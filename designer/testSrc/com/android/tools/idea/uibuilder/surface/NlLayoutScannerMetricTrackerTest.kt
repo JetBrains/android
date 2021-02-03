@@ -64,7 +64,8 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
   fun testTrackResult() {
     val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    tracker.trackResult(mockRenderResult())
+    val mockResult = mockRenderResult()
+    tracker.trackResult(mockResult, mockResult.validatorResult as ValidatorResult)
 
     assertEquals(AtfAuditResult.Trigger.UNKNOWN_TRIGGER, tracker.metric.trigger)
     assertEquals(TOTAL_RENDER_TIME, tracker.metric.renderMs)
@@ -75,7 +76,8 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
   fun testLogEvents() {
     val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    tracker.trackResult(mockRenderResult())
+    val mockResult = mockRenderResult()
+    tracker.trackResult(mockResult, mockResult.validatorResult as ValidatorResult)
     tracker.logEvents()
 
     // Logging must clear all metrics

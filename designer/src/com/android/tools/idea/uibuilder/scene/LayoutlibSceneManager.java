@@ -1125,6 +1125,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
+      .withLayoutScannerOptimization(myLayoutScannerConfig.isScannerAlwaysOn())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
