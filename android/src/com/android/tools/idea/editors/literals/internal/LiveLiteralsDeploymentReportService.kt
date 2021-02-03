@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.literals.internal
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
@@ -30,6 +32,14 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+
+private val PROBLEM_NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Live Literal Problem Notification")
+
+private fun LiveLiteralsMonitorHandler.Problem.Severity.toNotificationSeverity() = when(this) {
+  LiveLiteralsMonitorHandler.Problem.Severity.INFO -> NotificationType.INFORMATION
+  LiveLiteralsMonitorHandler.Problem.Severity.ERROR -> NotificationType.ERROR
+  LiveLiteralsMonitorHandler.Problem.Severity.WARNING -> NotificationType.WARNING
+}
 
 @VisibleForTesting
 @Service
@@ -160,6 +170,11 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     }
 
     if (isActive) {
+      // Log all the problems to the event log
+      problems.forEach {
+        PROBLEM_NOTIFICATION_GROUP.createNotification("[${it.severity}] ${it.content}", it.severity.toNotificationSeverity())
+          .notify(project)
+      }
       project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onLiveLiteralsPushed(deviceId)
     }
   }
