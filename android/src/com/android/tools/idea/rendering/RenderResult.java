@@ -47,11 +47,10 @@ public class RenderResult {
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
-  private final long myInflateDurationMs;
-  private final long myRenderDurationMs;
   private final boolean myHasRequestedCustomViews;
   @Nullable private final RenderContext myRenderContext;
   private boolean isDisposed;
+  private final RenderResultStats myStats;
 
   protected RenderResult(@NotNull PsiFile file,
                          @NotNull Module module,
@@ -65,8 +64,7 @@ public class RenderResult {
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
                          @NotNull Map<Object, ResourceReference> defaultStyles,
                          @Nullable Object validatorResult,
-                         long inflateDurationMs,
-                         long renderDurationMs) {
+                         @NotNull RenderResultStats stats) {
     myModule = module;
     myRenderContext = renderContext;
     myFile = file;
@@ -78,8 +76,7 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
     myValidatorResult = validatorResult;
-    myInflateDurationMs = inflateDurationMs;
-    myRenderDurationMs = renderDurationMs;
+    myStats = stats;
     myHasRequestedCustomViews = hasRequestedCustomViews;
   }
 
@@ -141,8 +138,7 @@ public class RenderResult {
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
       session.getValidationData(),
-      -1,
-      -1);
+      RenderResultStats.getEMPTY());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -155,7 +151,7 @@ public class RenderResult {
    * Creates a new {@link RenderResult} from this with recorded render duration.
    */
   @NotNull
-  RenderResult createWithTotalRenderDuration(long inflateDurationMs, long renderDurationMs) {
+  RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
       myFile,
       myModule,
@@ -169,31 +165,7 @@ public class RenderResult {
       myDefaultProperties,
       myDefaultStyles,
       myValidatorResult,
-      inflateDurationMs,
-      renderDurationMs);
-  }
-
-
-  /**
-   * Creates a new {@link RenderResult} from this with recorded inflate duration.
-   */
-  @NotNull
-  RenderResult createWithInflateDuration(long inflateDurationMs) {
-    return new RenderResult(
-      myFile,
-      myModule,
-      myLogger,
-      myRenderContext,
-      myHasRequestedCustomViews,
-      myRenderResult,
-      myRootViews,
-      mySystemRootViews,
-      myImage,
-      myDefaultProperties,
-      myDefaultStyles,
-      myValidatorResult,
-      inflateDurationMs,
-      myRenderDurationMs);
+      myStats.combine(stats));
   }
 
   /**
@@ -240,8 +212,7 @@ public class RenderResult {
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,
-      -1,
-      -1);
+      RenderResultStats.getEMPTY());
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -335,27 +306,8 @@ public class RenderResult {
       .toString();
   }
 
-  /**
-   * Returns inflate duration in ms or -1 if unknown.
-   */
-  public long getInflateDuration() {
-    return myInflateDurationMs;
-  }
-
-  /**
-   * Returns render duration in ms or -1 if unknown.
-   */
-  public long getRenderDuration() {
-    return myRenderDurationMs;
-  }
-
-  /**
-   * Returns total render duration (inflate + render) in ms or -1 if both are unknown.
-   */
-  public long getTotalRenderDuration() {
-    if (myRenderDurationMs == -1 && myInflateDurationMs == -1) {
-      return -1;
-    }
-    return (myInflateDurationMs != -1 ? myInflateDurationMs : 0) + (myRenderDurationMs != -1 ? myRenderDurationMs : 0);
+  @NotNull
+  public RenderResultStats getStats() {
+    return myStats;
   }
 }

@@ -46,7 +46,7 @@ class NlLayoutScannerMetricTracker(
   fun trackResult(result: RenderResult) {
     val validatorResult = result.validatorResult as ValidatorResult?
 
-    metric.renderMs = result.totalRenderDuration
+    metric.renderMs = result.stats.totalRenderDurationMs
     metric.scanMs = validatorResult?.metric?.mElapsedMs ?: 0
     metric.componentCount = result.rootViews.stream().flatMap {
       Stream.concat(it.children.stream(), Stream.of(it)) }.count().toInt()

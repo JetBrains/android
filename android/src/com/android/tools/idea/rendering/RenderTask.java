@@ -872,7 +872,11 @@ public class RenderTask {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
         }
         return result != null ?
-               result.createWithInflateDuration(System.currentTimeMillis() - startInflateTimeMs) :
+               result.createWithStats(
+                 new RenderResultStats(
+                   System.currentTimeMillis() - startInflateTimeMs,
+                   -1,
+                   myModuleClassLoader.getStats())) :
                RenderResult.createRenderTaskErrorResult(xmlFile, ex);
       });
   }
@@ -999,9 +1003,12 @@ public class RenderTask {
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
-          return result.createWithTotalRenderDuration(inflateResult != null ?
-                                                      inflateResult.getInflateDuration() : result.getInflateDuration(),
-                                                      System.currentTimeMillis() - startRenderTimeMs);
+          return result.createWithStats(new RenderResultStats(
+            inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
+            System.currentTimeMillis() - startRenderTimeMs,
+            myModuleClassLoader.getStats().getClassesFound(),
+            myModuleClassLoader.getStats().getAccumulatedFindTimeMs(),
+            myModuleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
         });
       }
       catch (Exception e) {

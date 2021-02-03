@@ -21,6 +21,7 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.RenderResultStats
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.ValidatorData
@@ -136,7 +137,7 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
       builder.add(Mockito.mock(ViewInfo::class.java))
     }
     Mockito.`when`(result.rootViews).thenReturn(builder.build())
-    Mockito.`when`(result.totalRenderDuration).thenReturn(TOTAL_RENDER_TIME)
+    Mockito.`when`(result.stats).thenReturn(RenderResultStats(renderDurationMs = TOTAL_RENDER_TIME))
 
     val renderResult = Mockito.mock(Result::class.java)
     Mockito.`when`(result.renderResult).thenReturn(renderResult)

@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -32,7 +33,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-private const val NUMBER_OF_WARM_UP = 2
 private const val NUMBER_OF_SAMPLES = 40
 
 private val composeTimeBenchmark = Benchmark.Builder("Compose Preview Benchmark")
@@ -57,10 +57,13 @@ class PerfgateComposeTest {
       buildError?.printStackTrace()
       assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
+
+    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
   }
 
   @After
   fun tearDown() {
+    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }
@@ -103,11 +106,20 @@ class PerfgateComposeTest {
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("default_template_inflate_time")),
       // Measures just the render time.
-      RenderTimeMeasurement(Metric("default_template_render_time"))),
-      printSamples = true) {
+      RenderTimeMeasurement(Metric("default_template_render_time")),
+      // Measures the class loading time.
+      ClassLoadTimeMeasurment(Metric("default_class_total_load_time")),
+      // Measures the class loading time.
+      ClassRewriteTimeMeasurement(Metric("default_class_total_rewrite_time")),
+      // Measures the number of classes loaded.
+      ClassLoadCountMeasurement(Metric("default_class_load_count")),
+      // Measures the class avg loading time.
+      ClassAverageLoadTimeMeasurement(Metric("default_class_avg_load_time"))),
+                                          printSamples = true) {
       val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
                                                        SinglePreviewElementInstance.forTesting(
-                                                         "google.simpleapplication.MainActivityKt.DefaultPreview")).get()
+                                                         "google.simpleapplication.MainActivityKt.DefaultPreview"),
+                                                       true).get()
       val image = renderResult!!.renderedImage
       assertTrue(
         "Valid result image is expected to be bigger than 10x10. It's ${image.width}x${image.height}",
@@ -128,7 +140,15 @@ class PerfgateComposeTest {
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("complex_template_inflate_time")),
       // Measures just the render time.
-      RenderTimeMeasurement(Metric("complex_template_render_time"))),
+      RenderTimeMeasurement(Metric("complex_template_render_time")),
+      // Measures the class loading time.
+      ClassLoadTimeMeasurment(Metric("complex_template_class_total_load_time")),
+      // Measures the class loading time.
+      ClassRewriteTimeMeasurement(Metric("complex_template_class_total_rewrite_time")),
+      // Measures the number of classes loaded.
+      ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
+      // Measures the class avg loading time.
+      ClassAverageLoadTimeMeasurement(Metric("complex_template_class_avg_load_time"))),
                                           printSamples = true) {
       val renderResult = renderPreviewElementForResult(projectRule.androidFacet(":app"),
                                                        SinglePreviewElementInstance.forTesting(
