@@ -26,14 +26,21 @@ import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineScope
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 /**
@@ -61,17 +68,12 @@ class AppInspectionInspectorRule : TestRule {
 
   private val inspectionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION, true)
   // TODO(b/177231212): Set this to true and test compose inspector client as well
-  private val composeFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT, false)
+  private val composeFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
-  /**
-   * A fake which pretends to be acting like an inspector running on device normally would.
-   *
-   * Use this to intercept commands normally sent to the view inspector.
-   */
-  val viewInspector = FakeViewLayoutInspector(object : FakeViewLayoutInspector.Connection() {
-    override fun sendEvent(event: layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event) {
+  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
+    override fun sendEvent(event: ViewProtocol.Event) {
       inspectionService.addAppInspectionEvent(
         AppInspection.AppInspectionEvent.newBuilder().apply {
           inspectorId = VIEW_LAYOUT_INSPECTOR_ID
@@ -80,9 +82,10 @@ class AppInspectionInspectorRule : TestRule {
       )
     }
   })
+  val composeInspector = FakeComposeLayoutInspector()
 
   init {
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(
+    val viewInspectorHandler = TestAppInspectorCommandHandler(
       timer,
       rawInspectorResponse = { rawCommand ->
         val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
@@ -90,7 +93,24 @@ class AppInspectionInspectorRule : TestRule {
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
       })
-    )
+
+    val composeInspectorHandler = TestAppInspectorCommandHandler(
+      timer,
+      rawInspectorResponse = { rawCommand ->
+        val composeCommand = ComposeProtocol.Command.parseFrom(rawCommand.content)
+        val composeResponse = composeInspector.handleCommand(composeCommand)
+        val rawResponse = AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
+        AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
+      })
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        when (command.appInspectionCommand.inspectorId) {
+          VIEW_LAYOUT_INSPECTOR_ID -> viewInspectorHandler.handleCommand(command, events)
+          COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
+        }
+      }
+    })
   }
 
   /**

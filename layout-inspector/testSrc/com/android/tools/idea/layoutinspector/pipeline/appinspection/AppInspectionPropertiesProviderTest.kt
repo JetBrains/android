@@ -24,6 +24,8 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
@@ -243,8 +245,8 @@ class AppInspectionPropertiesProviderTest {
     private val getPropertiesRequestCount = mutableMapOf<Long, Int>()
 
     init {
-      viewInspector.addCommandListener(ViewProtocol.Command.SpecializedCase.START_FETCH_COMMAND) { command ->
-        // Send all root IDs, which needs to happen before we sent our first layout capture
+      viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
+        // Send all root IDs, which always happens before we send our first layout capture
         viewInspector.connection.sendEvent {
           rootsEventBuilder.apply {
             layoutTrees.forEach { tree -> addIds(tree.id) }
@@ -252,9 +254,11 @@ class AppInspectionPropertiesProviderTest {
         }
 
         layoutTrees.forEach { tree -> triggerLayoutCapture(rootId = tree.id, isLastCapture = !command.startFetchCommand.continuous) }
+
+        ViewProtocol.Response.newBuilder().setStartFetchResponse(ViewProtocol.StartFetchResponse.getDefaultInstance()).build()
       }
 
-      viewInspector.addCommandInterceptor(ViewProtocol.Command.SpecializedCase.GET_PROPERTIES_COMMAND) { command ->
+      viewInspector.interceptWhen({ it.hasGetPropertiesCommand() }) { command ->
         getPropertiesRequestCount.compute(command.getPropertiesCommand.viewId) { _, prev -> (prev ?: 0) + 1 }
 
         val propertyGroup = propertyGroups[command.getPropertiesCommand.rootViewId]!!
