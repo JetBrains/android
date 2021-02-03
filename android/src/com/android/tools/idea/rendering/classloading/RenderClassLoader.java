@@ -226,7 +226,7 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
         if (!isValidClassFile(data)) {
           throw new ClassFormatError(name);
         }
-        byte[] transformedData = ClassConverter.rewriteClass(data, classTransform, ClassWriter.COMPUTE_MAXS, this);
+        byte[] transformedData = rewriteClass(name, data, classTransform, ClassWriter.COMPUTE_MAXS);
         Pair<String, String> splitPath = URLUtil.splitJarUrl(classUrl.getPath());
         if (splitPath != null) {
           myTransformedClassCache.put(name, classTransformId, splitPath.first, transformedData);
@@ -254,13 +254,17 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
     return null;
   }
 
+  protected byte[] rewriteClass(@NotNull String fqcn, @NotNull byte[] classData, @NotNull ClassTransform transformations, int flags) {
+    return ClassConverter.rewriteClass(classData, transformations, flags, this);
+  }
+
   @NotNull
   protected Class<?> loadClass(@NotNull String fqcn, @NotNull byte[] data) {
     if (!isValidClassFile(data)) {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider, this);
+    byte[] rewritten = rewriteClass(fqcn, data,  myProjectClassesTransformationProvider, ClassWriter.COMPUTE_FRAMES);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));

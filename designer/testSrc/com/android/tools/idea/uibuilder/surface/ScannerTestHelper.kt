@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.RenderResultStats
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
@@ -106,6 +107,7 @@ class ScannerTestHelper {
 
     val renderResult = Mockito.mock(Result::class.java)
     Mockito.`when`(result.renderResult).thenReturn(renderResult)
+    Mockito.`when`(result.stats).thenReturn(RenderResultStats())
     Mockito.`when`(renderResult.isSuccess).thenReturn(true)
 
     return result
