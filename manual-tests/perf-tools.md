@@ -229,29 +229,23 @@ effects.**
 **(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. Choose "Record Java/Kotlin allocations" and press "Record".
+1. The profiler should enter a new allocation-recording stage with a smaller timeline on top.
 1. In the QA App, select the "Java Memory Allocation" scenario.
-1. Observe the sampling pulldown (which should be set to *Sampled* unless changed
-   in a previous session).
-   * Set it to "Full" now.
-     If you restart Studio and your sampling value is not saved across sessions,
-     please file a bug.
-     **There should be a dashed line beginning with an full circle icon.**
-     The horizontal position of the full circle icon should be either
-     at the current point on the timeline, or near the beginning of
-     the profiler session if the last session ends with "Full" sampling rate.
-1. Change the pulldown from "Full" to "None"
-1. You should see **the dashed chart line end, finishing with an empty circle
-   icon**
-1. **Important**: Set the pulldown back to "Sampled" to avoid unintentionally
-   affecting other memory tests.
-1. You should see **a semi-filled circle icon**.
-   Its vertical position should be near the bottom.
+1. Observe the sampling pulldown, which should be set to *Full* and there should
+be a dashed line in the timeline.
+   * Set it to "Sampled" now.
+     The dashed line should end with a semi-filled circle.
+1. Change the pulldown from "Sampled" to "Full"
+1. You should see **the dashed line reappearing, starting with a filled circle**
+1. The "force garbage collection" button should still work as in the main memory stage.
+1. Press the red "Stop recording" button to stop recording.
+1. Press the "back" (left arrow) button to go back to the memory profiler's main stage.
+1. You should be able to re-visit this recorded allocation session either by clicking
+   on corresponding grayed out period on the main timeline, or by clicking the entry
+   in the "Sessions" panel on the left.
 
-![Memory - Live Allocation Sampling, None][memory-alloc-sample-none]
-
----
-
-![Memory - Live Allocation Sampling, Full][memory-alloc-sample-full]
+![Memory - Live Allocation Stage][memory-alloc-stage]
 
 ### Native Memory Allocation
 
@@ -515,8 +509,7 @@ of whichever profiler you have selected.
 [memory-alloc-java]: res/perf-tools/memory-alloc-java.png
 [memory-alloc-native]: res/perf-tools/memory-alloc-native.png
 [memory-alloc-object]: res/perf-tools/memory-alloc-object.png
-[memory-alloc-sample-none]: res/perf-tools/memory-alloc-sample-none.png
-[memory-alloc-sample-full]: res/perf-tools/memory-alloc-sample-full.png
+[memory-alloc-stage]: res/perf-tools/memory-alloc-stage.png
 [memory-jni-app]: res/perf-tools/memory-jni-app.png
 [memory-jni-studio]: res/perf-tools/memory-jni-studio.png
 [memory-heap-export]: res/perf-tools/memory-heap-export.png
