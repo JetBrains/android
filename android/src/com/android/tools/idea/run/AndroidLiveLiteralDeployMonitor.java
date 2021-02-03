@@ -124,7 +124,7 @@ class AndroidLiveLiteralDeployMonitor {
 
             // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
             Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-            LiveLiteralDeployer deployer = new LiveLiteralDeployer(DeploymentService.getInstance(project).getDeploymentCacheDatabase());
+            LiveLiteralDeployer deployer = new LiveLiteralDeployer();
             List<LiveLiteralDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
             for (LiteralReference change : changes) {
               for (LiteralUsageReference use : change.getUsages()) {
