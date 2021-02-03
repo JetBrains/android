@@ -516,7 +516,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           sendShutdown()
         }
         else {
-          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+          alarm.addRequest(::sendKeepAlive, KEEP_ALIVE_INTERVAL_MILLIS)
         }
       }
 
