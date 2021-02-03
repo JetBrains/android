@@ -24,6 +24,11 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Property
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.PropertyGroup
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
@@ -198,37 +203,37 @@ class AppInspectionPropertiesProviderTest {
           Property {
             name = 115
             type = ViewProtocol.Property.Type.RESOURCE
-            source = Resource(207, 206, 212)
+            source = ViewResource(207, 206, 212)
             addAllResolutionStack(listOf(
-              Resource(207, 210, 212),
-              Resource(208, 210, 214),
-              Resource(208, 210, 215),
+              ViewResource(207, 210, 212),
+              ViewResource(208, 210, 214),
+              ViewResource(208, 210, 215),
             ))
-            resourceValue = Resource(206, 210, 211)
+            resourceValue = ViewResource(206, 210, 211)
           }
           Property {
             name = 116
             type = ViewProtocol.Property.Type.DRAWABLE
-            source = Resource(208, 210, 216)
+            source = ViewResource(208, 210, 216)
             addAllResolutionStack(listOf(
-              Resource(207, 210, 213),
-              Resource(208, 210, 216),
-              Resource(208, 210, 217),
-              Resource(208, 210, 218),
-              Resource(208, 209, 219),
+              ViewResource(207, 210, 213),
+              ViewResource(208, 210, 216),
+              ViewResource(208, 210, 217),
+              ViewResource(208, 210, 218),
+              ViewResource(208, 209, 219),
             ))
             int32Value = 141
           }
           Property {
             name = 118
             type = ViewProtocol.Property.Type.ANIMATOR
-            source = Resource(208, 210, 216)
+            source = ViewResource(208, 210, 216)
             addAllResolutionStack(listOf(
-              Resource(207, 210, 213),
-              Resource(208, 210, 216),
-              Resource(208, 210, 217),
-              Resource(208, 210, 218),
-              Resource(208, 209, 219),
+              ViewResource(207, 210, 213),
+              ViewResource(208, 210, 216),
+              ViewResource(208, 210, 217),
+              ViewResource(208, 210, 218),
+              ViewResource(208, 209, 219),
             ))
             int32Value = 146
           }
