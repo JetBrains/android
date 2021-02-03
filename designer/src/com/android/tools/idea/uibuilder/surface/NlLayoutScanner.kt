@@ -21,7 +21,9 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
+import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
@@ -67,15 +69,29 @@ class NlLayoutScanner(
    * Validate the layout and update the lint accordingly.
    */
   fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
-    val validatorResult = renderResult.validatorResult
-
-    val listeners = HashSet(listeners)
-    if (validatorResult == null || validatorResult !is ValidatorResult) {
-      // Result not available.
-      listeners.forEach { it.lintUpdated(null) }
-      return
+    when (val validatorResult = renderResult.validatorResult) {
+      is ValidatorHierarchy -> {
+        if (!validatorResult.isHierarchyBuilt) {
+          // Result not available
+          listeners.forEach { it.lintUpdated(null) }
+          return
+        }
+        validateAndUpdateLint(renderResult, LayoutValidator.validate(validatorResult), model)
+      }
+      is ValidatorResult -> {
+        validateAndUpdateLint(renderResult, validatorResult, model)
+      }
+      else -> {
+        // Result not available.
+        listeners.forEach { it.lintUpdated(null) }
+      }
     }
+  }
 
+  private fun validateAndUpdateLint(
+      renderResult: RenderResult,
+      validatorResult: ValidatorResult,
+      model: NlModel) {
     lintIntegrator.clear()
     viewToComponent.clear()
     idToComponent.clear()
@@ -83,7 +99,7 @@ class NlLayoutScanner(
     var result: ValidatorResult? = null
     try {
       val components = model.components
-      if (validatorResult == null || validatorResult !is ValidatorResult || components.isEmpty()) {
+      if (components.isEmpty()) {
         // Result not available.
         return
       }
@@ -101,7 +117,7 @@ class NlLayoutScanner(
     } finally {
       viewToComponent.clear()
       idToComponent.clear()
-      metricTracker.trackResult(renderResult)
+      metricTracker.trackResult(renderResult, validatorResult)
       metricTracker.logEvents()
       listeners.forEach { it.lintUpdated(result) }
     }
