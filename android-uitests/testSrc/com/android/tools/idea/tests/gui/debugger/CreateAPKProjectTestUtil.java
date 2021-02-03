@@ -43,7 +43,7 @@ public class CreateAPKProjectTestUtil {
 
     // This step generates the ~/ApkProjects/app-x86-debug directory. This
     // directory will be removed as a part of our tests' cleanup methods.
-    guiTest.welcomeFrame().profileOrDebugApk()
+    guiTest.welcomeFrame().profileOrDebugApk(apk)
       .select(apkFile)
       .clickOk();
 

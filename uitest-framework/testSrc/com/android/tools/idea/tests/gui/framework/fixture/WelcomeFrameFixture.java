@@ -23,14 +23,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizar
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.options.newEditor.SettingsTreeView;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.RecentProjectPanel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBOptionButton;
 import com.intellij.ui.components.labels.LinkLabel;
+import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -72,7 +75,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
-  public FileChooserDialogFixture profileOrDebugApk() {
+  public FileChooserDialogFixture profileOrDebugApk(@NotNull File apk) {
+    // The file chooser is quite slow and we don't have a good way to find when loading finished (there used to be
+    // a loading spinner, but was removed from the platform). To make sure we don't have to wait, we pre-inject the path.
+    PropertiesComponent.getInstance().setValue("last.apk.imported.location", FileUtil.toSystemDependentName(apk.getPath()));
+
     clickMoreOptionsItem("Profile or Debug APK");
     return FileChooserDialogFixture.findDialog(robot(), "Select APK File");
   }
