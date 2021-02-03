@@ -151,7 +151,7 @@ private object ModifiedTableCellRenderer : DefaultTableCellRenderer() {
     val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
     component.font = component.font.deriveFont(Font.BOLD)
     if (!hasFocus && !isSelected) {
-      component.foreground = JBUI.CurrentTheme.Link.linkColor()
+      component.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
     }
     return component
   }
