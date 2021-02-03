@@ -15,7 +15,7 @@
  */
 @file:Suppress("TestFunctionName")
 
-package com.android.tools.idea.layoutinspector.pipeline.appinspection
+package com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl
 
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Bounds
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
@@ -26,15 +26,6 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Rect
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StringEntry
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ViewNode
-
-// Normally, I would discourage writing custom wrappers on top of protobuf APIs, as it means how you instantiate objects is inconsistent.
-// Really, the ideal solution is if tools generated this Kotlin code for us in the first place.
-//
-// But for now, as tests in this package need to create handcrafted proto messages that are pretty extensive, it's a win to keep the builder
-// boilerplate minimized. And it's just for test code, so the scope of these utility methods is limited.
-//
-// The rule of thumb for adding a utility method here or not is if you find yourself otherwise writing a ton of
-// `Proto.Class.newBuilder().apply` noise in your tests, especially if within deep, nested tree structures.
 
 // Need to create a helper function to avoid name ambiguity
 private fun createViewString(id: Int, str: String): StringEntry {
@@ -58,20 +49,20 @@ fun ViewNode.Builder.ViewNode(init: ViewNode.Builder.() -> Unit) {
   addChildren(createViewNode(init))
 }
 
-fun Bounds(layout: Rect, render: Quad? = null): Bounds {
+fun ViewBounds(layout: Rect, render: Quad? = null): Bounds {
   return Bounds.newBuilder().apply {
     this.layout = layout
     render?.let { this.render = it }
   }.build()
 }
 
-fun Rect(w: Int, h: Int): Rect = Rect(0, 0, w, h)
+fun ViewRect(w: Int, h: Int): Rect = ViewRect(0, 0, w, h)
 
-fun Rect(x: Int, y: Int, w: Int, h: Int): Rect {
+fun ViewRect(x: Int, y: Int, w: Int, h: Int): Rect {
   return Rect.newBuilder().setX(x).setY(y).setW(w).setH(h).build()
 }
 
-fun Quad(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int): Quad {
+fun ViewQuad(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int): Quad {
   return Quad.newBuilder().apply {
     this.x0 = x0
     this.y0 = y0
@@ -84,7 +75,7 @@ fun Quad(x0: Int, y0: Int, x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int)
   }.build()
 }
 
-fun Resource(type: Int, namespace: Int, name: Int): Resource {
+fun ViewResource(type: Int, namespace: Int, name: Int): Resource {
   return Resource.newBuilder().apply {
     this.type = type
     this.namespace = namespace
