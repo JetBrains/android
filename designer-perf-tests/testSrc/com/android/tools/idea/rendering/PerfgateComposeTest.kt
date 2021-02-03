@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -27,11 +29,13 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.junit.After
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 private const val NUMBER_OF_SAMPLES = 40
 
@@ -161,6 +165,63 @@ class PerfgateComposeTest {
       assertNotNull(image.copy)
 
       renderResult
+    }
+  }
+
+  @Test
+  fun interactiveClickPerf() {
+    composeTimeBenchmark.measureOperation(listOf(
+      // Measures the full rendering time, including ModuleClassLoader instantiation, inflation and render.
+      ElapsedTimeMeasurement(Metric("interactive_template_end_to_end_time")),
+      // Measures just the inflate time.
+      InflateTimeMeasurement(Metric("interactive_template_inflate_time")),
+      // Measures just the render time.
+      RenderTimeMeasurement(Metric("interactive_template_render_time")),
+      FirstCallbacksExecutionTimeMeasurement(Metric("interactive_first_callbacks_time")),
+      FirstTouchEventTimeMeasurement(Metric("interactive_first_touch_time")),
+      PostTouchEventCallbacksExecutionTimeMeasurement(Metric("interactive_post_touch_time"))),
+                                          printSamples = true) {
+      val renderTaskFuture = createRenderTaskFuture(projectRule.androidFacet(":app"),
+                                                    SinglePreviewElementInstance.forTesting(
+                                                      "google.simpleapplication.ComplexPreviewKt.ComplexPreview"),
+                                                    true)
+
+      // Pseudo interactive
+      val frameNanos = 16000000L
+      val clickX = 30
+      val clickY = 30
+
+      val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
+      try {
+        val renderResult = renderTask.render().get(1, TimeUnit.MINUTES)
+        val firstRenderPixel = renderResult.renderedImage.getPixel(clickX, clickY)
+        // Not black and not white
+        assertNotEquals(firstRenderPixel or 0xFFFFFF, 0)
+        assertNotEquals(firstRenderPixel, 0xFFFFFFFF)
+
+        val firstExecutionResult = renderTask.executeCallbacks(0).get(5, TimeUnit.SECONDS)
+        val firstTouchEventResult = renderTask.triggerTouchEvent(RenderSession.TouchEventType.PRESS, clickX, clickY, 1000).get(5, TimeUnit.SECONDS)
+
+        renderTask.render().get(5, TimeUnit.SECONDS)
+        val postTouchEventResult = renderTask.executeCallbacks(frameNanos).get(5, TimeUnit.SECONDS)
+        renderTask.render().get(5, TimeUnit.SECONDS)
+        renderTask.executeCallbacks(2 * frameNanos).get(5, TimeUnit.SECONDS)
+
+        renderTask.triggerTouchEvent(RenderSession.TouchEventType.RELEASE, clickX, clickY, 2 * frameNanos + 1000).get(5, TimeUnit.SECONDS)
+
+        val finalRenderResult = renderTask.render().get(5, TimeUnit.SECONDS)
+        val clickPixel = finalRenderResult.renderedImage.getPixel(clickX, clickY)
+        // Not the same as in the initial render (there is a ripple)
+        assertNotEquals(clickPixel, firstRenderPixel)
+        // Not black and not white
+        assertNotEquals(clickPixel or 0xFFFFFF, 0)
+        assertNotEquals(clickPixel, 0xFFFFFFFF)
+
+        ExtendedRenderResult.create(renderResult, firstExecutionResult, firstTouchEventResult, postTouchEventResult)
+      }
+      finally {
+        renderTaskFuture.get(5, TimeUnit.SECONDS).dispose().get(5, TimeUnit.SECONDS)
+      }
     }
   }
 }

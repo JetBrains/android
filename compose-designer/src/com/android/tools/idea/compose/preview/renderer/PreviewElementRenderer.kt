@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -32,6 +33,32 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.function.Supplier
+
+/**
+ * Returns a [CompletableFuture] that creates a [RenderTask] for a single [PreviewElementInstance]. It is the
+ * responsibility of a client of this function to dispose the resulting [RenderTask] when no loner needed.
+ */
+@VisibleForTesting
+fun createRenderTaskFuture(facet: AndroidFacet,
+                           previewElement: PreviewElementInstance,
+                           privateClassLoader: Boolean = false): CompletableFuture<RenderTask> {
+  val project = facet.module.project
+
+  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
+  val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
+  val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
+
+  return RenderService.getInstance(project)
+    .taskBuilder(facet, configuration)
+    .withPsiFile(psiFile)
+    .disableDecorations().apply {
+      if (privateClassLoader) {
+        usePrivateClassLoader()
+      }
+    }
+    .withRenderingMode(SessionParams.RenderingMode.SHRINK)
+    .build()
+}
 
 /**
  * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
@@ -42,22 +69,7 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
                                   previewElement: PreviewElementInstance,
                                   privateClassLoader: Boolean = false,
                                   executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
-  val project = facet.module.project
-
-  val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXml().buildString()) { previewElement.previewElementDefinitionPsi?.virtualFile }
-  val psiFile = AndroidPsiUtils.getPsiFileSafely(project, file) ?: return CompletableFuture.completedFuture(null)
-  val configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(facet), null, FolderConfiguration.createDefault())
-
-  val renderTaskFuture = RenderService.getInstance(project)
-    .taskBuilder(facet, configuration)
-    .withPsiFile(psiFile)
-    .disableDecorations().apply {
-      if (privateClassLoader) {
-        usePrivateClassLoader()
-      }
-    }
-    .withRenderingMode(SessionParams.RenderingMode.SHRINK)
-    .build()
+  val renderTaskFuture = createRenderTaskFuture(facet, previewElement, privateClassLoader)
 
   val renderResultFuture = CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)
     .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
