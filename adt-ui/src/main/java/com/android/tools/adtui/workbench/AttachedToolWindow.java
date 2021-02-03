@@ -24,8 +24,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
-import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
+import com.intellij.openapi.wm.impl.ToolwindowHeaderDecorator;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
@@ -443,13 +443,13 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     ActionManager manager = ActionManager.getInstance();
     if (myDefinition.isAutoHideAllowed()) {
       group.add(
-        new ToggleOppositePropertyTypeDumbAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
+        new ToggleOppositePropertyTypeDumbAction(PropertyType.AUTO_HIDE, manager.getAction(ToolwindowHeaderDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
     }
     if (myDefinition.isFloatingAllowed()) {
-      group.add(new TogglePropertyTypeDumbAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
+      group.add(new TogglePropertyTypeDumbAction(PropertyType.FLOATING, manager.getAction(ToolwindowHeaderDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
     }
     if (myDefinition.isSplitModeChangesAllowed()) {
-      group.add(new TogglePropertyTypeDumbAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
+      group.add(new TogglePropertyTypeDumbAction(PropertyType.SPLIT, manager.getAction(ToolwindowHeaderDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
     }
   }
 
