@@ -24,10 +24,7 @@ java_proto_library(
 iml_module(
     name = "intellij.android.core",
     # do not sort: must match IML order
-    srcs = [
-        "resources",
-        "src",
-    ],
+    srcs = ["src"],
     bundled_deps = [
         "//tools/adt/idea/android/lib:spantable",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
@@ -41,6 +38,7 @@ iml_module(
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
     lint_timeout = "long",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
     # do not sort: must match IML order
