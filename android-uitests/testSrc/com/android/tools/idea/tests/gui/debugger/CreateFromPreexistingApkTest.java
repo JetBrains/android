@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LibraryEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.List;
@@ -77,7 +78,7 @@ public class CreateFromPreexistingApkTest {
     String packagedLibraryPath = "lib/x86/libsanangeles.so";
     Wait.seconds(5)
       .expecting("libsanangeles.so to be available")
-      .until(() -> ideFrame.findFileByRelativePath(packagedLibraryPath) != null);
+      .until(() -> ideFrame.findFileByRelativePath(packagedLibraryPath) != null && !DumbService.isDumb(ideFrame.getProject()));
     LibraryEditorFixture libraryEditor = editor.open(packagedLibraryPath)
       .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);

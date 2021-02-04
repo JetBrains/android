@@ -129,16 +129,15 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
       protected boolean isMatching(@NotNull JComponent comp) {
         // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
         return (comp instanceof JBOptionButton && text.equals(((JButton) comp).getText())) ||
-               (comp instanceof JLabel && text.equals(((JLabel) comp).getText())) ||
-               (comp instanceof ActionButton && text.equals(((ActionButton)comp).getAction().getTemplateText()));
+               (comp instanceof JLabel && text.equals(((JLabel) comp).getText()));
       }
     });
 
-    if (buttonLabel instanceof JButton || buttonLabel instanceof ActionButton) {
+    if (buttonLabel instanceof JButton) {
       robot().click(buttonLabel);
     }
     else if (buttonLabel instanceof LinkLabel) {
-      robot().click(buttonLabel, ((LinkLabel) buttonLabel).getTextRectangleCenter());
+      robot().click(buttonLabel, ((LinkLabel<?>) buttonLabel).getTextRectangleCenter());
     }
     else {
       robot().click(buttonLabel.getParent());
@@ -146,7 +145,17 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   private void clickMoreOptionsItem(@NotNull String text) {
-    findAndClickButton("More Actions");
+    JComponent moreActionsLabel = GuiTests.waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<JComponent>(JComponent.class) {
+      @Override
+      protected boolean isMatching(@NotNull JComponent comp) {
+        // Depending if the Welcome Wizard has recent Projects, we can have a buttons at the top or a JLabel inside a panel.
+        return (comp instanceof JButton && "More Actions".equals(((JButton) comp).getText())) ||
+               (comp instanceof ActionButton && "More Actions".equals(((ActionButton)comp).getAction().getTemplateText()));
+      }
+    });
+
+    robot().click(moreActionsLabel);
+
     // Mouse needs to "move over" the menu item for it to be selected/focused. Call drag() to simulate that.
     new JListFixture(robot(), waitForPopup(robot())).item(text).drag().click();
   }
