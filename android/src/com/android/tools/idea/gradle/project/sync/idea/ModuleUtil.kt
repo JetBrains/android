@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.diagnostic.logger
@@ -57,7 +56,7 @@ object ModuleUtil {
    * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
    */
   @JvmStatic
-  fun DataNode<ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
+  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
     val holderModule = dataToModuleMap(data) ?: return
     if (!holderModule.project.isModulePerSourceSetEnabled()) return
     var unitTestModule : Module? = null
