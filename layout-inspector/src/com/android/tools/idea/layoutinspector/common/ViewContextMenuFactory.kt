@@ -132,6 +132,6 @@ private class SelectViewAction(
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
 
     // This action is only performed from mouse clicks on the image
-    inspectorModel.stats.selectionMadeFromImage()
+    inspectorModel.stats.selectionMadeFromImage(view)
   }
 }

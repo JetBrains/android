@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -42,6 +43,7 @@ import org.mockito.Mockito.spy
 @RunsInEdt
 class ComposeDependencyCheckerTest {
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(true)
+  private lateinit var model: InspectorModel
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -54,6 +56,7 @@ class ComposeDependencyCheckerTest {
 
   @Before
   fun before() {
+    model = model(projectRule.project) {}
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
@@ -78,7 +81,7 @@ class ComposeDependencyCheckerTest {
     moduleSystem.registerDependency(GoogleMavenArtifactId.COMPOSE_RUNTIME.getCoordinate("1.0.0-alpha11"))
     moduleSystem.registerDependency(GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("1.0.0-alpha11"))
     moduleSystem.registerDependency(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate("1.4.2"))
-    val checker = ComposeDependencyChecker(projectRule.project)
+    val checker = ComposeDependencyChecker(model)
     checker.performCheck(createClient("com.example"))
     assertThat(lastNotification).isNull()
   }
@@ -87,7 +90,7 @@ class ComposeDependencyCheckerTest {
   fun testMissingToolingLibrary() {
     moduleSystem.registerDependency(GoogleMavenArtifactId.COMPOSE_RUNTIME.getCoordinate("1.0.0-alpha11"))
     moduleSystem.registerDependency(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate("1.4.2"))
-    val checker = ComposeDependencyChecker(projectRule.project)
+    val checker = ComposeDependencyChecker(model)
     checker.performCheck(createClient("com.example"))
     assertThat(lastNotification).isNotNull()
     assertThat(lastNotification?.message).isEqualTo(
@@ -108,7 +111,7 @@ class ComposeDependencyCheckerTest {
     moduleSystem.registerDependency(GoogleMavenArtifactId.COMPOSE_RUNTIME.getCoordinate("1.4.0-alpha11"))
     moduleSystem.registerDependency(GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("1.0.0-alpha11"))
     moduleSystem.registerDependency(GoogleMavenArtifactId.KOTLIN_STDLIB.getCoordinate("1.4.3"))
-    val checker = ComposeDependencyChecker(projectRule.project)
+    val checker = ComposeDependencyChecker(model)
     checker.performCheck(createClient("com.example"))
     assertThat(lastNotification).isNotNull()
     assertThat(lastNotification?.message).isEqualTo(

@@ -36,7 +36,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /** Callback taking (oldWindow, newWindow, isStructuralChange */
   val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  val stats = SessionStatistics()
+  override val stats = SessionStatistics()
   var lastGeneration = 0
   var updating = false
 
@@ -44,7 +44,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   private val memoryProbe = InspectorMemoryProbe(this)
   private val idLookup = mutableMapOf<Long, ViewNode>()
 
-  var selection: ViewNode? = null
+  override var selection: ViewNode? = null
     private set
 
   val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()

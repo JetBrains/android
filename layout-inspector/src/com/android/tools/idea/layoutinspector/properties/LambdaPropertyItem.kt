@@ -60,6 +60,7 @@ class LambdaPropertyItem(
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
+            lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
           }
           return
         }

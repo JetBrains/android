@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
+import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.pom.Navigatable
@@ -38,10 +41,14 @@ class LambdaPropertyItemTest {
   @Test
   fun testNavigate() {
     val lookup: ViewNodeAndResourceLookup = mock()
+    val stats: SessionStatistics = mock()
+    val selection: ComposeViewNode = mock()
     val resourceLookup: ResourceLookup = mock()
     val navigatable: Navigatable = mock()
     val location = SourceLocation("Text.kt:34", navigatable)
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
+    `when`(lookup.stats).thenReturn(stats)
+    `when`(lookup.selection).thenReturn(selection)
     `when`(resourceLookup.findLambdaLocation("com.example", "Text.kt", "f1$1", "", 34, 34)).thenReturn(location)
     `when`(navigatable.canNavigate()).thenReturn(true)
     val property = LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, lookup)
@@ -52,6 +59,7 @@ class LambdaPropertyItemTest {
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     verify(navigatable).navigate(true)
+    verify(stats).gotoSourceFromPropertyValue(eq(selection))
     assertThat(link.templateText).isEqualTo("Text.kt:34")
     assertThat(link.templatePresentation.isEnabled).isTrue()
   }
