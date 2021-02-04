@@ -15,6 +15,12 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
@@ -32,8 +38,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
 interface WarningsDataPageModel {
-  val reportData: BuildAttributionReportUiData
-
   /** Text of the header visible above the tree. */
   val treeHeaderText: String
 
@@ -69,7 +73,7 @@ interface WarningsDataPageModel {
 }
 
 class WarningsDataPageModelImpl(
-  override val reportData: BuildAttributionReportUiData
+  private val reportData: BuildAttributionReportUiData
 ) : WarningsDataPageModel {
 
   private val modelUpdatedListeners: MutableList<((treeStructureChanged: Boolean) -> Unit)> = CopyOnWriteArrayList()
@@ -126,7 +130,9 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.totalIssuesCount == 0
+    get() = reportData.issues.sumBy { it.warningCount } +
+      reportData.annotationProcessors.issueCount +
+      reportData.confCachingData.warningsCount() == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
     selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
@@ -218,6 +224,31 @@ private class WarningsTreeStructure(
           treeStats.filteredWarningsCount += size
         }
       treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
+
+      // Add configuration caching issues
+      if (reportData.confCachingData != ConfigurationCachingTurnedOn) {
+        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(reportData.confCachingData)).apply {
+          reportData.confCachingData.let {
+            if (it is IncompatiblePluginsDetected) {
+              it.incompatiblePluginWarnings.forEach {
+                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it)))
+              }
+              it.upgradePluginWarnings.forEach {
+                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it)))
+              }
+              (it.incompatiblePluginWarnings.size + it.upgradePluginWarnings.size).let { confCachingWarnings ->
+                treeStats.filteredWarningsCount += confCachingWarnings
+                treeStats.totalWarningsCount += confCachingWarnings
+              }
+            }
+            // Update tree stats.
+            it.warningsCount().let { warnings ->
+              treeStats.filteredWarningsCount += warnings
+              treeStats.totalWarningsCount += warnings
+            }
+          }
+        })
+      }
     }
   }
 
@@ -236,6 +267,7 @@ class WarningsTreeNode(
   val descriptor: WarningsTreePresentableNodeDescriptor
 ) : DefaultMutableTreeNode(descriptor)
 
+// TODO (mlazeba): consider removing this class as it is not really used
 enum class WarningsPageType {
   EMPTY_SELECTION,
   TASK_WARNING_DETAILS,
@@ -243,7 +275,9 @@ enum class WarningsPageType {
   TASK_UNDER_PLUGIN,
   TASK_WARNING_PLUGIN_GROUP,
   ANNOTATION_PROCESSOR_DETAILS,
-  ANNOTATION_PROCESSOR_GROUP
+  ANNOTATION_PROCESSOR_GROUP,
+  CONFIGURATION_CACHING_ROOT,
+  CONFIGURATION_CACHING_WARNING,
 }
 
 data class WarningsPageId(
@@ -262,7 +296,11 @@ data class WarningsPageId(
     fun annotationProcessor(annotationProcessorData: AnnotationProcessorUiData) = WarningsPageId(
       WarningsPageType.ANNOTATION_PROCESSOR_DETAILS, annotationProcessorData.className)
 
+    fun configurationCachingWarning(data: IncompatiblePluginWarning) =
+      WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_WARNING, data.plugin.toString())
+
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
+    val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
     val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
@@ -375,6 +413,39 @@ class AnnotationProcessorDetailsNodeDescriptor(
       nodeIconState = NodeIconState.WARNING_ICON,
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(annotationProcessorData.compilationTimeMs)
     )
+}
+
+/** Descriptor for the configuration caching problems page node. */
+class ConfigurationCachingRootNodeDescriptor(
+  val data: ConfigurationCachingCompatibilityProjectResult
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.configurationCachingRoot
+  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = "Configuration caching",
+      suffix = warningsCountString(data.warningsCount())
+    )
+}
+
+class ConfigurationCachingWarningNodeDescriptor(
+  val data: IncompatiblePluginWarning
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.configurationCachingWarning(data)
+  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = data.plugin.displayNames().first(),
+      suffix = if (data.requiredVersion != null) "update required" else "not compatible",
+      nodeIconState = NodeIconState.WARNING_ICON
+    )
+}
+
+private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
+  is AGPUpdateRequired -> 1
+  is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
+  NoIncompatiblePlugins -> 0
+  ConfigurationCachingTurnedOn -> 0
 }
 
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =

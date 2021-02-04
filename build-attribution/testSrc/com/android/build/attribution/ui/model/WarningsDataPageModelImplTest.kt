@@ -58,6 +58,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -83,7 +84,8 @@ class WarningsDataPageModelImplTest {
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
-      |===>com.google.auto.value.processor.AutoOneOfProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+      |=>CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -111,6 +113,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
   }
@@ -134,6 +137,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -157,6 +161,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
   }
@@ -175,6 +180,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
   }
 
@@ -196,6 +202,7 @@ class WarningsDataPageModelImplTest {
       |  TASK_SETUP_ISSUE
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
+      |  CONFIGURATION_CACHING
     """.trimMargin())
   }
 
@@ -220,6 +227,7 @@ class WarningsDataPageModelImplTest {
       |  ALWAYS_RUN_TASKS
       |===>ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -243,6 +251,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
@@ -262,6 +271,7 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
+      |  CONFIGURATION_CACHING
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
