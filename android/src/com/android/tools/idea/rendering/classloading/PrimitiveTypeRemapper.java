@@ -16,14 +16,14 @@
 package com.android.tools.idea.rendering.classloading;
 
 /**
- * Utility class used by the {@link LiveLiteralsMethodVisitor} to handle the auto-boxing of primitives.
+ * Utility class used by the {@link LiveLiteralsTransformKt} to handle the auto-boxing of primitives.
  * Constants are always primitives but both ASM and our constant management use boxed types. This class defines a number
  * of methods that allow to do the unboxing correctly when called from user code.
  */
 @SuppressWarnings("ConstantConditions")
 public class PrimitiveTypeRemapper {
   public static float remapFloat(Object source, String fileName, int offset, float value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).floatValue();
     }
@@ -33,7 +33,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static double remapDouble(Object source, String fileName, int offset, double value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).doubleValue();
     }
@@ -43,7 +43,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static short remapShort(Object source, String fileName, int offset, short value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).shortValue();
     }
@@ -53,7 +53,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static int remapInt(Object source, String fileName, int offset, int value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).intValue();
     }
@@ -63,7 +63,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static long remapLong(Object source, String fileName, int offset, long value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).longValue();
     }
@@ -73,7 +73,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static byte remapByte(Object source, String fileName, int offset, byte value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Number) {
       return ((Number)constant).byteValue();
     }
@@ -83,7 +83,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static char remapChar(Object source, String fileName, int offset, char value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Character) {
       return (Character)constant;
     }
@@ -93,7 +93,7 @@ public class PrimitiveTypeRemapper {
   }
 
   public static boolean remapBoolean(Object source, String fileName, int offset, boolean value) {
-    Object constant = ConstantRemapperManager.remapAny(source, fileName, offset, value);
+    Object constant = ComposePreviewConstantRemapper.remapAny(source, fileName, offset, value);
     if (constant instanceof Boolean) {
       return (Boolean)constant;
     }

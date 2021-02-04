@@ -8,7 +8,7 @@ import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.ListenerCollection
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
@@ -288,7 +288,7 @@ class LiveLiteralsService private constructor(private val project: Project,
     }.forEach {
       val constantValue = it.constantValue ?: return@forEach
       it.usages.forEach { elementPath ->
-        val constantModified = ConstantRemapperManager.getConstantRemapper().addConstant(
+        val constantModified = ProjectConstantRemapper.getInstance(project).addConstant(
           null, elementPath, it.initialConstantValue, constantValue)
         log.debug("[${it.uniqueId}] Constant updated to ${it.text} path=${elementPath}")
         if (constantModified) {
@@ -382,11 +382,11 @@ class LiveLiteralsService private constructor(private val project: Project,
     setupChangeListener(project, ::onDocumentsUpdated, newActivationDisposable, updateMergingQueue)
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        ConstantRemapperManager.getConstantRemapper().clearConstants(null)
+        // The project has built successfully so we can drop the constants that we were keeping.
+        ProjectConstantRemapper.getInstance(project).clearConstants(null)
       }
 
       override fun buildFailed() {
-        ConstantRemapperManager.getConstantRemapper().clearConstants(null)
       }
 
       override fun buildStarted() {
@@ -405,7 +405,6 @@ class LiveLiteralsService private constructor(private val project: Project,
   private fun deactivateTracking() {
     log.debug("deactivateTracking")
     trackers.clear()
-    ConstantRemapperManager.getConstantRemapper().clearConstants(null)
     activationDisposable?.let {
       Disposer.dispose(it)
     }

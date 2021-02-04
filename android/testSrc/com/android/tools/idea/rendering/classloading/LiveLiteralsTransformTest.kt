@@ -17,11 +17,11 @@ package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.idea.editors.literals.LiteralUsageReference
 import com.android.tools.idea.run.util.StopWatch
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -102,6 +102,13 @@ class LiveLiteralsTransformTest {
   private val constantAccessTrace = StringWriter()
   private val constantAccessLogger = PrintWriter(constantAccessTrace)
 
+  private lateinit var originalProjectRemapper: ProjectConstantRemapper
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+  private val project: Project
+    get() = projectRule.project
+
   // This will will log to the stdout logging information that might be useful debugging failures.
   // The logging only happens if the test fails.
   @get:Rule
@@ -112,7 +119,7 @@ class LiveLiteralsTransformTest {
       println("---- Constant accesses ----")
       println(constantAccessTrace)
       println("\n---- All available keys ----")
-      println(DefaultConstantRemapper.allKeysToText())
+      println(originalProjectRemapper.allKeysToText())
       println("\n---- Classes before transformation ----")
       println(beforeTransformTrace)
       println("\n---- Classes after transformation ----")
@@ -132,32 +139,30 @@ class LiveLiteralsTransformTest {
       ),
       fileInfoAnnotationName = FileInfo::class.java.name,
       infoAnnotationName = KeyInfo::class.java.name)
+    }.apply {
+      setModule(projectRule.module)
     }
 
   @Before
   fun setup() {
-    ConstantRemapperManager.setRemapper(object : ConstantRemapper {
-      override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any) =
-        DefaultConstantRemapper.addConstant(classLoader, reference, initialValue, newValue)
+    originalProjectRemapper = ProjectConstantRemapper.getInstance(project) as ProjectConstantRemapper
+    object : ConstantRemapper {
+      override fun addConstant(classLoader: ClassLoader?, reference: LiteralUsageReference, initialValue: Any, newValue: Any): Boolean =
+        originalProjectRemapper.addConstant(classLoader, reference, initialValue, newValue)
 
-      override fun clearConstants(classLoader: ClassLoader?) = DefaultConstantRemapper.clearConstants(classLoader)
+      override fun clearConstants(classLoader: ClassLoader?) = originalProjectRemapper.clearConstants(classLoader)
 
       override fun remapConstant(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any? {
-        val result = DefaultConstantRemapper.remapConstant(source, fileName, offset, initialValue)
+        val result = originalProjectRemapper.remapConstant(source, fileName, offset, initialValue)
         val shortFileName = fileName.substringAfter(File.separator)
         constantAccessLogger.println("Access ($shortFileName:$offset, $initialValue) -> $result")
         return result
       }
 
-      override fun hasConstants(): Boolean = DefaultConstantRemapper.hasConstants()
+      override fun hasConstants(): Boolean = originalProjectRemapper.hasConstants()
 
-      override fun getModificationCount(): Long = DefaultConstantRemapper.modificationCount
-    })
-  }
-
-  @After
-  fun tearDown() {
-    ConstantRemapperManager.restoreDefaultRemapper()
+      override fun getModificationCount(): Long = originalProjectRemapper.modificationCount
+    }
   }
 
   private fun usageReference(fileName: String, offset: Int): LiteralUsageReference {
@@ -176,11 +181,11 @@ class LiveLiteralsTransformTest {
       "LiveLiterals${'$'}Test" to LiveLiteralsTestClass.`LiveLiterals$TestClass`::class.java
     )) { hasLiveLiterals = true }
 
-    DefaultConstantRemapper.addConstant(
+    ProjectConstantRemapper.getInstance(project).addConstant(
       testClassLoader, usageReference("Test.kt", 0), "A1", "Remapped A1")
-    DefaultConstantRemapper.addConstant(
+    ProjectConstantRemapper.getInstance(project).addConstant(
       testClassLoader, usageReference("Test.kt", 3), 3.0f, 90f)
-    DefaultConstantRemapper.addConstant(
+    ProjectConstantRemapper.getInstance(project).addConstant(
       testClassLoader, usageReference("Test.kt", 5), 0, 999)
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
 
@@ -223,7 +228,7 @@ class LiveLiteralsTransformTest {
     })
 
     val testClassLoader = setupTestClassLoader(mapOf("Test" to LiveLiteralsTestClass::class.java))
-    DefaultConstantRemapper.addConstant(testClassLoader, usageReference("Test", 0), "A1", "Remapped A1")
+    ProjectConstantRemapper.getInstance(project).addConstant(testClassLoader, usageReference("Test", 0), "A1", "Remapped A1")
     val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
 
     println(time {
