@@ -24,11 +24,17 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Parameter
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ParameterGroup
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Property
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.PropertyGroup
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
@@ -48,6 +54,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
@@ -55,8 +62,11 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 @RunsInEdt
 class AppInspectionPropertiesProviderTest {
   // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more scattered.
-  class FakeInspectorState(private val viewInspector: FakeViewLayoutInspector) {
-    private val strings = listOf(
+  class FakeInspectorState(
+    private val viewInspector: FakeViewLayoutInspector,
+    composeInspector: FakeComposeLayoutInspector) {
+
+    private val viewStrings = listOf(
       // layout strings
       ViewString(1, "androidx.constraintlayout.widget"),
       ViewString(2, "ConstraintLayout"),
@@ -70,6 +80,7 @@ class AppInspectionPropertiesProviderTest {
       ViewString(10, "FloatingActionButton"),
       ViewString(11, "android.view"),
       ViewString(12, "View"),
+      ViewString(13, "ComposeView"),
 
       // property names
       // TODO(b/177231212): Test remaining property types
@@ -141,6 +152,11 @@ class AppInspectionPropertiesProviderTest {
             packageName = 9
             className = 10
           }
+        }
+        ViewNode {
+          id = 6
+          packageName = 11
+          className = 13
         }
       },
       ViewNode {
@@ -242,12 +258,125 @@ class AppInspectionPropertiesProviderTest {
       this[layoutTrees[1].id] = emptyList()
     }
 
+    private val composeStrings = listOf(
+      // layout strings
+      ComposableString(1, "com.example"),
+      ComposableString(2, "File1.kt"),
+      ComposableString(3, "File2.kt"),
+      ComposableString(4, "Surface"),
+      ComposableString(5, "Button"),
+      ComposableString(6, "Text"),
+
+      // parameter names
+      // TODO(b/177231212): Test remaining parameter types
+      ComposableString(101, "text"), // STRING
+      ComposableString(102, "clickable"), // BOOLEAN
+      // placeholder for DOUBLE parameter
+      // placeholder for FLOAT parameter
+      ComposableString(105, "maxLines"), // INT32
+      // placeholder for INT64 parameter
+      ComposableString(107, "color"), // COLOR
+      // placeholder for RESOURCE parameter
+      ComposableString(109, "elevation"), // DIMENSION_DP
+      ComposableString(110, "fontSize"), // DIMENSION_SP
+      // placeholder for DIMENSION_EM parameter
+      ComposableString(112, "onTextLayout"), // LAMBDA
+      // placeholder for FUNCTION_REFERENCE parameter
+
+      // parameter values
+      ComposableString(201, "placeholder"),
+      ComposableString(202, "lambda"),
+    )
+
+    // Composable tree that lives under ComposeView
+    private val composableRoot = ComposableRoot {
+      viewId = 6
+      ComposableNode {
+        id = -2 // -1 reserved by inspectorModel
+        packageHash = 1
+        filename = 2
+        name = 4
+
+        ComposableNode {
+          id = -3
+          packageHash = 1
+          filename = 2
+          name = 5
+
+          ComposableNode {
+            id = -4
+            packageHash = 1
+            filename = 2
+            name = 6
+          }
+        }
+      }
+    }
+
+    private val parameterGroups = listOf(
+      ParameterGroup {
+        composableId = -2
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 101
+          int32Value = 201
+        }
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.BOOLEAN
+          name = 102
+          int32Value = 1
+        }
+      },
+      ParameterGroup {
+        composableId = -3
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.INT32
+          name = 105
+          int32Value = 16
+        }
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.COLOR
+          name = 107
+          int32Value = -13172557
+        }
+      },
+      ParameterGroup {
+        composableId = -4
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.DIMENSION_DP
+          name = 109
+          floatValue = 1f
+        }
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.DIMENSION_SP
+          name = 110
+          floatValue = 16f
+        }
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.LAMBDA
+          name = 112
+          lambdaValueBuilder.apply {
+            packageName = 1
+            fileName = 3
+            lambdaName = 202
+            startLineNumber = 20
+            endLineNumber = 21
+          }
+        }
+      },
+    )
+
     /**
      * Map of "view ID" to number of times properties were requested for it.
      *
      * This is useful for verifying that data is being cached to avoid subsequent fetches.
      */
     private val getPropertiesRequestCount = mutableMapOf<Long, Int>()
+
+    /**
+     * Map of "composable ID" to number of times parameters were requested for it.
+     */
+    private val getParametersRequestCount = mutableMapOf<Long, Int>()
 
     init {
       viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
@@ -274,15 +403,54 @@ class AppInspectionPropertiesProviderTest {
                             }
         ViewProtocol.Response.newBuilder().setGetPropertiesResponse(
           ViewProtocol.GetPropertiesResponse.newBuilder().apply {
-            addAllStrings(strings)
+            addAllStrings(viewStrings)
             this.propertyGroup = propertyGroup
           }
         ).build()
+      }
+
+      composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
+        ComposeProtocol.Response.newBuilder().apply {
+          getComposablesResponseBuilder.apply {
+            if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+              addAllStrings(composeStrings)
+              addRoots(composableRoot)
+            }
+          }
+        }.build()
+      }
+
+      composeInspector.interceptWhen({ it.hasGetParametersCommand() }) { command ->
+        getParametersRequestCount.compute(command.getParametersCommand.composableId) { _, prev -> (prev ?: 0) + 1 }
+        ComposeProtocol.Response.newBuilder().apply {
+          getParametersResponseBuilder.apply {
+            parameterGroups.firstOrNull { it.composableId == command.getParametersCommand.composableId }?.let { group ->
+              addAllStrings(composeStrings)
+              parameterGroup = group
+            }
+          }
+        }.build()
+      }
+
+      composeInspector.interceptWhen({ it.hasGetAllParametersCommand() }) { command ->
+        ComposeProtocol.Response.newBuilder().apply {
+          getAllParametersResponseBuilder.apply {
+            rootViewId = command.getAllParametersCommand.rootViewId
+            if (command.getAllParametersCommand.rootViewId == layoutTrees[0].id) {
+              addAllStrings(composeStrings)
+              addAllParameterGroups(parameterGroups)
+            }
+          }
+        }.build()
       }
     }
 
     fun getPropertiesRequestCountFor(viewId: Long): Int {
       return getPropertiesRequestCount[viewId] ?: 0
+    }
+
+    fun getParametersRequestCountFor(composableId: Long): Int {
+      return getParametersRequestCount[composableId] ?: 0
     }
 
     /**
@@ -293,7 +461,7 @@ class AppInspectionPropertiesProviderTest {
       val rootView = layoutTrees.first { it.id == rootId }
       viewInspector.connection.sendEvent {
         layoutEventBuilder.apply {
-          addAllStrings(strings)
+          addAllStrings(viewStrings)
           this.rootView = rootView
         }
       }
@@ -301,7 +469,7 @@ class AppInspectionPropertiesProviderTest {
         viewInspector.connection.sendEvent {
           propertiesEventBuilder.apply {
             this.rootId = rootId
-            addAllStrings(strings)
+            addAllStrings(viewStrings)
             addAllPropertyGroups(propertyGroups[rootId])
           }
         }
@@ -326,7 +494,7 @@ class AppInspectionPropertiesProviderTest {
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
 
-    inspectorState = FakeInspectorState(inspectionRule.viewInspector)
+    inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
   }
 
   @Test
@@ -505,7 +673,135 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
-  // TODO(b/177231212): Test Composables
+  @Test
+  fun canQueryParametersForComposables() {
+    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+
+    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await()
+
+    val provider = inspectorRule.inspectorClient.provider
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
+    provider.resultListeners.add { _, view, table ->
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+    }
+
+    inspectorRule.inspectorModel[-2]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.take()
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("text", PropertyType.STRING, "placeholder")
+        assertProperty("clickable", PropertyType.BOOLEAN, "true")
+      }
+    }
+
+    inspectorRule.inspectorModel[-3]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.take()
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("maxLines", PropertyType.INT32, "16")
+        assertProperty("color", PropertyType.COLOR, "#3700B3")
+      }
+    }
+
+    inspectorRule.inspectorModel[-4]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.take()
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
+        // TODO(b/179324422): Investigate DIMENSION_SP formatting
+        assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ Lambda", namespace = "")
+      }
+    }
+  }
+
+  @Test
+  fun parametersAreCachedUntilNextLayoutEvent() {
+    InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
+
+    val modelUpdatedSignal = ArrayBlockingQueue<Unit>(2) // We should get no more than two updates before continuing
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedSignal.offer(Unit)
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedSignal.take() // Event triggered by tree #1
+    modelUpdatedSignal.take() // Event triggered by tree #2
+
+    val provider = inspectorRule.inspectorClient.provider
+
+    val composableNode = inspectorRule.inspectorModel[-2]!!
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(0)
+
+    provider.requestProperties(composableNode).get() // First fetch, not cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(1)
+
+    provider.requestProperties(composableNode).get()  // Should be cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(1)
+
+    provider.requestProperties(composableNode).get()  // Still cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(1)
+
+    // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
+    // not that for the second tree
+    inspectorState.triggerLayoutCapture(rootId = 1)
+    modelUpdatedSignal.take()
+
+    provider.requestProperties(composableNode).get() // First fetch after layout event, not cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
+
+    provider.requestProperties(composableNode).get()  // Should be cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
+
+    // Trigger a fake layout update in *just* the second tree, which should not affect the cache of the
+    // first
+    inspectorState.triggerLayoutCapture(rootId = 101)
+    modelUpdatedSignal.take()
+
+    provider.requestProperties(composableNode).get()  // Should still be cached
+    assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
+  }
+
+  @Test
+  fun snapshotModeSendsAllParametersAtOnce() {
+    InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
+
+    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await()
+
+    // Calling "get properties" at this point should work without talking to the device because everything should
+    // be cached now.
+
+    val provider = inspectorRule.inspectorClient.provider
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
+    provider.resultListeners.add { _, view, table ->
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+    }
+
+    for (id in listOf(-2L, -3L, -4L)) {
+      assertThat(inspectorState.getParametersRequestCountFor(id)).isEqualTo(0)
+      inspectorRule.inspectorModel[id]!!.let { targetNode ->
+        provider.requestProperties(targetNode).get()
+        val result = resultQueue.take()
+        assertThat(result.view).isSameAs(targetNode)
+        assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
+      }
+    }
+  }
 
   private fun PropertiesTable<InspectorPropertyItem>.assertProperty(
     name: String,
