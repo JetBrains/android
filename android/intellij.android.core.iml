@@ -183,5 +183,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" />
     <orderEntry type="module" module-name="intellij.properties.psi.impl" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
   </component>
 </module>
