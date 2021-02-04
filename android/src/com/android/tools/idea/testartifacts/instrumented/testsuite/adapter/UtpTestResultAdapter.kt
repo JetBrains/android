@@ -99,7 +99,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
         } else {
           AndroidDeviceType.LOCAL_EMULATOR
         }
-        val device = AndroidDevice(id.toString(), deviceInfo.name, deviceType, AndroidVersion(deviceInfo.apiLevel))
+        val device = AndroidDevice(id.toString(), deviceInfo.displayName(), deviceType, AndroidVersion(deviceInfo.apiLevel))
         id += 1
         return@map DeviceTestSuite(device)
       }
@@ -127,7 +127,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
       val deviceKey = if (deviceInfo == null) {
         defaultDeviceKey
       } else {
-        Pair(deviceInfo.name, deviceInfo.deviceType())
+        Pair(deviceInfo.displayName(), deviceInfo.deviceType())
       }
       val deviceTestSuite = deviceMap[deviceKey]!!
       val device = deviceTestSuite.device
@@ -187,6 +187,9 @@ private fun TestResultProto.TestResult.getDeviceInfo(dir: File): AndroidTestDevi
     }
   }
 }
+
+private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.displayName(): String =
+    if (gradleDslDeviceName.isNotEmpty()) "Gradle:$gradleDslDeviceName" else name
 
 private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType {
   if (avdName == "") {
