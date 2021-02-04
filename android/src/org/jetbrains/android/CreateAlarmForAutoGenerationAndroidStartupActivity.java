@@ -17,8 +17,15 @@ package org.jetbrains.android;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
+import com.intellij.compiler.impl.CompileContextImpl;
+import com.intellij.compiler.impl.ModuleCompileScope;
+import com.intellij.compiler.progress.CompilerTask;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
@@ -30,6 +37,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.compiler.AndroidAutogenerator;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
@@ -108,8 +116,31 @@ class CreateAlarmForAutoGenerationAndroidStartupActivity implements AndroidStart
       final Collection<AndroidAutogeneratorMode> modes = entry.getValue();
 
       for (AndroidAutogeneratorMode mode : modes) {
-        AndroidCompileUtil.doGenerate(facet, mode);
+        doGenerate(facet, mode);
       }
     }
+  }
+
+  public static boolean doGenerate(AndroidFacet facet, final AndroidAutogeneratorMode mode) {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+    final CompileContext[] contextWrapper = new CompileContext[1];
+    final Module module = facet.getModule();
+    final Project project = module.getProject();
+
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        if (project.isDisposed()) return;
+        CompilerTask task = new CompilerTask(project, "Android auto-generation", true, false, true, true);
+        CompileScope scope = new ModuleCompileScope(module, false);
+        contextWrapper[0] = new CompileContextImpl(project, task, scope, false, false);
+      }
+    });
+    CompileContext context = contextWrapper[0];
+    if (context == null) {
+      return false;
+    }
+    AndroidAutogenerator.run(mode, facet, context, false);
+    return context.getMessages(CompilerMessageCategory.ERROR).length == 0;
   }
 }
