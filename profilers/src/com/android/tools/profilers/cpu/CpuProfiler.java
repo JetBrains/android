@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -33,7 +33,6 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,12 +44,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,31 +61,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CpuProfiler extends StudioProfiler {
-
-  /**
-   * Maps a {@link Common.Session} ID to the trace {@link File} (to be) imported into it as a {@link CpuCapture}.
-   */
-  @NotNull
-  private final Map<Long, File> mySessionTraceFiles;
-
   public CpuProfiler(@NotNull StudioProfilers profilers) {
     super(profilers);
-    mySessionTraceFiles = new HashMap<>();
     registerImportedSessionListener();
     registerTraceImportHandler();
   }
 
-  private void run() {
+  private void onImportSessionSelected() {
     Common.Session session = myProfilers.getSession();
-    // Make sure the timeline is paused when the stage is opened for the first time, and its bounds are within the session.
-    StreamingTimeline timeline = myProfilers.getTimeline();
-    timeline.reset(session.getStartTimestamp(), session.getEndTimestamp());
-    timeline.setIsPaused(true);
-
-    assert mySessionTraceFiles.containsKey(session.getSessionId());
-    ProfilingConfiguration importConfig = new ImportedConfiguration();
-    myProfilers.setStage(
-      CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
+    CpuCaptureStage captureStage = CpuCaptureStage.create(myProfilers, new ImportedConfiguration(), session.getStartTimestamp());
+    if (captureStage != null) {
+      myProfilers.getIdeServices().getMainExecutor().execute(() -> myProfilers.setStage(captureStage));
+    }
+    else {
+      myProfilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+    }
   }
 
   private static Logger getLogger() {
@@ -93,11 +83,11 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   /**
-   * Registers a listener that will open a {@link CpuProfilerStage} in import trace mode when the {@link Common.Session} selected is a
+   * Registers a listener that will switch to the {@link CpuCaptureStage} when the {@link Common.Session} selected is a
    * {@link Common.SessionMetaData.SessionType#CPU_CAPTURE}.
    */
   private void registerImportedSessionListener() {
-    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::run);
+    myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.CPU_CAPTURE, this::onImportSessionSelected);
   }
 
   /**
@@ -124,39 +114,25 @@ public class CpuProfiler extends StudioProfiler {
     }
 
     long endTimestampNs = timestampsNs.second;
-    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+    try {
+      // Use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist across projects.
+      byte[] fileBytes = Files.readAllBytes(Paths.get(file.getPath()));
+      Map<String, ByteString> byteCacheMap = Collections.singletonMap(String.valueOf(startTimestampNs), ByteString.copyFrom(fileBytes));
       sessionsManager.createImportedSession(file.getName(),
                                             Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
                                             startTimestampNs,
                                             endTimestampNs,
                                             startTimestampEpochMs,
-                                            Collections.emptyMap());
+                                            byteCacheMap);
       // NOTE - New imported session will be auto selected by SessionsManager once it is queried
-
-      // TODO b/132796215 use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist
-      // across projects.
-      mySessionTraceFiles.put(startTimestampNs, file);
     }
-    else {
-      Common.Session importedSession = sessionsManager.createImportedSessionLegacy(file.getName(),
-                                                                                   Common.SessionMetaData.SessionType.CPU_CAPTURE,
-                                                                                   startTimestampNs,
-                                                                                   endTimestampNs,
-                                                                                   startTimestampEpochMs);
-      // Associate the trace file with the session so we can retrieve it later.
-      mySessionTraceFiles.put(importedSession.getSessionId(), file);
-      // Select the imported session
-      sessionsManager.update();
-      sessionsManager.setSession(importedSession);
+    catch (IOException ex) {
+      getLogger().warn("Importing Session Failed: cannot read from " + file.getPath());
+      return;
     }
 
     myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
                                                                         SessionsManager.SessionCreationSource.MANUAL);
-  }
-
-  @Nullable
-  public File getTraceFile(Common.Session session) {
-    return mySessionTraceFiles.get(session.getSessionId());
   }
 
   @Override
@@ -181,7 +157,7 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   /**
-   * Copies the content of the trace file corresponding to a {@link TraceInfo} to a given {@link FileOutputStream}.
+   * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
    */
   static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull CpuTraceInfo info, @NotNull OutputStream outputStream) {
 
