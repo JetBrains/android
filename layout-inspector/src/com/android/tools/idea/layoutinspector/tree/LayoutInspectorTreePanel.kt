@@ -64,8 +64,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTree, parentDisposable) }
     selectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
-        setSelection(it.firstOrNull() as? ViewNode, SelectionOrigin.COMPONENT_TREE)
-        stats.selectionMadeFromComponentTree()
+        val view = it.firstOrNull() as? ViewNode
+        setSelection(view, SelectionOrigin.COMPONENT_TREE)
+        stats.selectionMadeFromComponentTree(view)
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }

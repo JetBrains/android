@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
 
 /**
  * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].
@@ -31,4 +32,14 @@ interface ViewNodeAndResourceLookup {
    * Provide a resource lookup.
    */
   val resourceLookup: ResourceLookup
+
+  /**
+   * The current selected node
+   */
+  val selection: ViewNode?
+
+  /**
+   * Provide access to statistics
+   */
+  val stats: SessionStatistics
 }

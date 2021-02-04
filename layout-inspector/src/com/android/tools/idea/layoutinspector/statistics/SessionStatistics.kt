@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.statistics
 
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 
 /**
@@ -24,26 +25,40 @@ class SessionStatistics {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
   val memory = MemoryStatistics()
+  val compose = ComposeStatistics()
+  val system = SystemViewToggleStatistics()
 
   fun start(isCapturing: Boolean) {
     live.start(isCapturing)
     rotation.start()
     memory.start()
+    compose.start()
+    system.start()
   }
 
   fun save(data: DynamicLayoutInspectorSession.Builder) {
     live.save(data.liveBuilder)
     rotation.save(data.rotationBuilder)
     memory.save(data.memoryBuilder)
+    compose.save(data.composeBuilder)
+    system.save(data.systemBuilder)
   }
 
-  fun selectionMadeFromImage() {
+  fun selectionMadeFromImage(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromImage()
+    compose.selectionMadeFromImage(view)
+    system.selectionMade()
   }
 
-  fun selectionMadeFromComponentTree() {
+  fun selectionMadeFromComponentTree(view: ViewNode?) {
     live.selectionMade()
     rotation.selectionMadeFromComponentTree()
+    compose.selectionMadeFromComponentTree(view)
+    system.selectionMade()
+  }
+
+  fun gotoSourceFromPropertyValue(view: ViewNode?) {
+    compose.gotoSourceFromPropertyValue(view)
   }
 }
