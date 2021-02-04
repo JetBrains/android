@@ -102,6 +102,7 @@ public class AndroidGradleTests {
   private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
+  private static final Pattern MAVEN_CENTRAL_REPOSITORY_PATTERN = Pattern.compile("mavenCentral\\(\\)");
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
   /** Property name that allows adding multiple local repositories via JVM properties */
   private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
@@ -304,6 +305,7 @@ public class AndroidGradleTests {
     String newContents = contents;
     newContents = GOOGLE_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     newContents = JCENTER_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
+    newContents = MAVEN_CENTRAL_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
     newContents = MAVEN_REPOSITORY_PATTERN.matcher(newContents).replaceAll("");
 
     // Last, as it has maven repos
