@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAttributionStateReporter
 import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -157,6 +158,8 @@ class BuildAttributionUiManagerImpl(
       override val configurationTime: ConfigurationUiData
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
       override val annotationProcessors: AnnotationProcessorsReport
+        get() = throw UnsupportedOperationException("Shouldn't be called on this object")
+      override val confCachingData: ConfigurationCachingCompatibilityProjectResult
         get() = throw UnsupportedOperationException("Shouldn't be called on this object")
     }
   }

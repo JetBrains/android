@@ -109,7 +109,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
     // No incompatible since plugin since not in known.
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(listOf(binaryPlugin("my.org.gradle.Plugin1")))
   ))
 
   @Test
