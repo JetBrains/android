@@ -46,18 +46,18 @@ class ComposeParametersDataGenerator(
 
   fun generate(): ComposeParametersData {
     for (parameter in parameterGroup.parameterList) {
-      val item = parameter.toPropertyItem()
+      val item = parameter.toPropertyItem(parameterGroup.composableId)
       propertyTable.put(item.namespace, item.name, item)
     }
     return ComposeParametersData(PropertiesTable.create(propertyTable))
   }
 
-  private fun Parameter.toPropertyItem(): InspectorPropertyItem {
+  private fun Parameter.toPropertyItem(composableId: Long): InspectorPropertyItem {
     val name = stringTable[name]
     if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
       return LambdaPropertyItem(
         name = name,
-        viewId = 0L,
+        viewId = composableId,
         packageName = stringTable[lambdaValue.packageName],
         fileName = stringTable[lambdaValue.fileName],
         lambdaName = stringTable[lambdaValue.lambdaName],
@@ -85,6 +85,14 @@ class ComposeParametersDataGenerator(
     val type = type.convert()
 
     // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-    return InspectorPropertyItem(SdkConstants.ANDROID_URI, name, type, value.toString(), PropertySection.DEFAULT, null, 0L, lookup)
+    return InspectorPropertyItem(
+      SdkConstants.ANDROID_URI,
+      name,
+      type,
+      value.toString(),
+      PropertySection.DEFAULT,
+      null,
+      composableId,
+      lookup)
   }
 }

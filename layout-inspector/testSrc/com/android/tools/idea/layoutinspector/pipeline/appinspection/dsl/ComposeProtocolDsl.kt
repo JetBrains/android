@@ -40,8 +40,15 @@ fun GetComposablesResponse.Builder.ComposableString(id: Int, str: String) {
   addStrings(createComposableString(id, str))
 }
 
+// Need to create a helper function to avoid name ambiguity
+private fun createComposableRoot(init: ComposableRoot.Builder.() -> Unit): ComposableRoot {
+  return ComposableRoot.newBuilder().apply(init).build()
+}
+
+fun ComposableRoot(init: ComposableRoot.Builder.() -> Unit) = createComposableRoot(init)
+
 fun GetComposablesResponse.Builder.ComposableRoot(init: ComposableRoot.Builder.() -> Unit) {
-  addRoots(ComposableRoot.newBuilder().apply(init).build())
+  addRoots(createComposableRoot(init))
 }
 
 // Need to create a helper function to avoid name ambiguity
