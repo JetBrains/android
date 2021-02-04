@@ -673,7 +673,7 @@ public final class StudioFlags {
     "This option is only respected when running Android Studio internally.", false);
   public static final Flag<Boolean> USE_MODULE_PER_SOURCE_SET = Flag.create(
     GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
-    "This allows the IDE to more closely represent how the project is configured in Gradle.", false);
+    "This allows the IDE to more closely represent how the project is configured in Gradle.", true);
 
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
