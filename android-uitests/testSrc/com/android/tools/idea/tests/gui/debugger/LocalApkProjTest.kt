@@ -31,6 +31,7 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.finder.WindowFinder
 import org.fest.swing.timing.Wait
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,6 +47,13 @@ class LocalApkProjTest {
    */
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+
+  @Before
+  fun removeExistingApkProjects() {
+    // An ~/ApkProjects directory will show us a dialog in the middle of the test
+    // to overwrite the directory. Delete the directory now so it won't trip the test.
+    CreateAPKProjectTestUtil.removeApkProjectsDirectory()
+  }
 
   /**
    * Verifies source code directories are set for locally built APKs.
