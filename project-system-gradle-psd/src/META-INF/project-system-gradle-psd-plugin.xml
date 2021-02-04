@@ -13,7 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin>
+  <depends optional="true" config-file="project-system-gradle-psd-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+
   <extensionPoints>
   </extensionPoints>
   <actions>
@@ -27,10 +29,6 @@
     </group>
   </actions>
   <extensions defaultExtensionNs="com.intellij">
-    <actionConfigurationCustomizer id="Startup.AdtImportInitializer" order="after Startup.AndroidStudioInitializer"
-                              implementation="com.android.tools.idea.gradle.adtimport.AdtImportInitializer"/>
-    <actionConfigurationCustomizer id="Startup.PsdActionsInitializer" order="after Startup.AndroidStudioInitializer"
-                              implementation="com.android.tools.idea.gradle.structure.PsdActionsInitializer"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
@@ -42,6 +40,4 @@
     <ide.androidConfigurableContributor
         implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
   </extensions>
-  <project-components>
-  </project-components>
 </idea-plugin>
