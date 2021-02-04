@@ -49,7 +49,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
     buildSrcDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -66,7 +66,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildSrcDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -74,7 +74,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildSrcDependenciesInfo = emptySet(),
     knownPluginsData = knownPluginsData,
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -82,7 +82,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildSrcDependenciesInfo = setOf("my.org:plugin-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -91,7 +91,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -100,7 +100,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildSrcDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
-    expectedResult = NoIncompatiblePlugins
+    expectedResult = NoIncompatiblePlugins(emptyList())
   ))
 
   @Test
@@ -149,7 +149,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
         pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin1")),
         buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
         knownPluginsData = knownPluginsData,
-        expectedResult = NoIncompatiblePlugins
+        expectedResult = NoIncompatiblePlugins(emptyList())
       ),
     )
   }
