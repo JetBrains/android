@@ -22,6 +22,7 @@ import com.android.tools.idea.lint.common.AndroidLintGradleIdeErrorInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidLintJavaPluginLanguageLevelInspection;
+import com.android.tools.idea.lint.common.AndroidLintJcenterRepositoryObsoleteInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
@@ -178,6 +179,16 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testJavaLanguageLevelToplevelMissing() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJcenterCall() throws Exception {
+    AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJcenterBlock() throws Exception {
+    AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
     doTest(inspection, null);
   }
 
