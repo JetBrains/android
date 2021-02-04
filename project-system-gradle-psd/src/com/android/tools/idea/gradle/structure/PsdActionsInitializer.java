@@ -20,12 +20,13 @@ import com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSetti
 import com.android.tools.idea.startup.Actions;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 public class PsdActionsInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void customize(ActionManager actionManager) {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      Actions.replaceAction(actionManager, "ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
-    }
+  public void customize(@NotNull ActionManager actionManager) {
+    Logger.getInstance(PsdActionsInitializer.class).assertTrue(IdeInfo.getInstance().isAndroidStudio(), "Customization only needed in AndroidStudio");
+    Actions.replaceAction(actionManager, "ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
   }
 }
