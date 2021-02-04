@@ -579,30 +579,6 @@ public class AndroidCompileUtil {
     return c == null || !AndroidBuildCommonUtils.isTestConfiguration(c.getType().getId());
   }
 
-  public static boolean isReleaseBuild(@NotNull CompileContext context) {
-    final Boolean value = context.getCompileScope().getUserData(RELEASE_BUILD_KEY);
-    if (value != null && value.booleanValue()) {
-      return true;
-    }
-    final Project project = context.getProject();
-    final Set<Artifact> artifacts = ArtifactCompileScope.getArtifactsToBuild(project, context.getCompileScope(), false);
-
-    if (artifacts != null) {
-      for (Artifact artifact : artifacts) {
-        final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
-        if (properties instanceof AndroidApplicationArtifactProperties) {
-          final AndroidArtifactSigningMode signingMode = ((AndroidApplicationArtifactProperties)properties).getSigningMode();
-
-          if (signingMode != AndroidArtifactSigningMode.DEBUG &&
-              signingMode != AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   public static void setReleaseBuild(@NotNull CompileScope compileScope) {
     compileScope.putUserData(RELEASE_BUILD_KEY, Boolean.TRUE);
   }
