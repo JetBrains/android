@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.VariantDetails
 import com.android.tools.idea.gradle.project.sync.VariantSelectionChange
 import com.android.tools.idea.gradle.project.sync.applyChange
 import com.android.tools.idea.gradle.project.sync.getSelectedVariantDetails
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -106,14 +107,18 @@ fun Project.getSelectedVariantAndAbis(): Map<String, VariantAndAbi> {
     .mapNotNull { androidFacet ->
       val module = androidFacet.module
       val ndkFacet = NdkFacet.getInstance(module)
-      (ExternalSystemApiUtil.getExternalProjectId(module) ?: return@mapNotNull null) to
-        VariantAndAbi(
-          androidFacet.properties.SELECTED_BUILD_VARIANT,
-          // NOTE: Do not use `ndkFacet?.selectedVariantAbi` whis is too smart and assumes NdkModuleModel is already attached.
-          ndkFacet?.configuration?.selectedVariantAbi?.abi
-        )
-    }
-    .toMap()
+      val moduleId = if (isModulePerSourceSetEnabled()) {
+        ExternalSystemApiUtil.getExternalProjectId(module)?.removeSourceSetSuffixFromExternalProjectID()
+      } else {
+        ExternalSystemApiUtil.getExternalProjectId(module)
+      } ?: return@mapNotNull null
+      moduleId to
+          VariantAndAbi(
+            androidFacet.properties.SELECTED_BUILD_VARIANT,
+            // NOTE: Do not use `ndkFacet?.selectedVariantAbi` whis is too smart and assumes NdkModuleModel is already attached.
+            ndkFacet?.configuration?.selectedVariantAbi?.abi
+          )
+    }.toMap()
 }
 
 fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variants: Map<String, VariantAndAbi>): DataNode<ProjectData>? {

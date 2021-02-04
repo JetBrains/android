@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -25,6 +26,8 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -66,9 +69,11 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -208,7 +213,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       .filter { it.name?.startsWith("Gradle: ") ?: false }
       // Module level libraries and libraries not listed in any library table usually represent special kinds of artifacts like local
       // libraries in `lib` folders, generated code, etc. We are interested in libraries with JAR files in the shared Gradle cache.
-      //
       .filter { it.table?.tableLevel == LibraryTablesRegistrar.PROJECT_LEVEL }
   }
     .distinct()
@@ -236,14 +240,27 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       }
       .toMap()
 
-  val holderModuleToDataNodePairs: Collection<Pair<Module, DataNode<ModuleData>>> =
+  val holderModuleToDataNodePairs: Collection<Pair<Module, DataNode<out ModuleData>>> =
     projectDataNodes.flatMap { projectData ->
       projectData
         .modules()
-        .map { node ->
+        .flatMap inner@ { node ->
+          val sourceSets = ExternalSystemApiUtil.findAll(node, GradleSourceSetData.KEY)
+
           val externalId = node.data.id
           val module = modulesById[externalId] ?: run { requestSync("Module $externalId not found"); return }
-          module to node
+
+          if (sourceSets.isEmpty()) {
+            return@inner listOf(module to node)
+          } else {
+            val sourceSetModules : MutableList<Pair<Module, DataNode<out ModuleData>>> = sourceSets.map {
+              val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
+              moduleId to it
+            }.toMutableList()
+            // Add the holder module
+            sourceSetModules.add(module to node)
+            return@inner sourceSetModules
+          }
         }
     }
 
@@ -257,7 +274,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
-      getFacet: Module.() -> V?,
+      getFacet: (Module, DataNode<out ModuleData>) -> V?,
       attach: V.(T) -> Unit,
       configure: T.(Module) -> Unit = { _ -> },
       validate: T.() -> Boolean = { true }
@@ -269,7 +286,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           ?.data
         ?: return { /* Nothing to do if no model present. */ }
       if (!model.validate()) requestSync("invalid model found for $dataKey in ${module.name}")
-      val facet = module.getFacet() ?: run {
+      val facet = getFacet(module, moduleDataNode) ?: run {
         requestSync("no facet found for $dataKey in ${module.name} module")
         return null  // Missing facet detected, triggering sync.
       }
@@ -282,12 +299,24 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
     }
 
+    // The Android facet is attached to a different module than the data node for module per source set.
+    val androidFacetObtainer : (Module, DataNode<out ModuleData>) -> AndroidFacet? = if (project.isModulePerSourceSetEnabled()) {
+      { _, node ->
+        val mainModuleNode = node.findAll(GradleSourceSetData.KEY).first {
+          it.data.moduleName == getModuleName(IdeArtifactName.MAIN)
+        }
+        val mainModule = modulesById[mainModuleNode.data.id]
+        if (mainModule == null) null else AndroidFacet.getInstance(mainModule)
+      }
+    } else {
+      { m, _ -> AndroidFacet.getInstance(m) }
+    }
     listOf(
-      prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule,
+      prepare(ANDROID_MODEL,  androidFacetObtainer , AndroidModel::set, AndroidModuleModel::setModule,
               validate = AndroidModuleModel::validate) ?: return,
-      prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
-      prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, { NdkFacet.getInstance(this) }, NdkFacet::setNdkModuleModel) ?: return
+      prepare(JAVA_MODULE_MODEL, { m, _ -> JavaFacet.getInstance(m) }, JavaFacet::setJavaModuleModel) ?: return,
+      prepare(GRADLE_MODULE_MODEL, { m, _ -> GradleFacet.getInstance(m) }, GradleFacet::setGradleModuleModel) ?: return,
+      prepare(NDK_MODEL, { m, _ -> NdkFacet.getInstance(m) }, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 

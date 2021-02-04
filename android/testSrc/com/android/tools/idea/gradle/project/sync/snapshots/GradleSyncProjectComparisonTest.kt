@@ -465,6 +465,27 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
   }
 
+  @Test
+  fun testModulePerSourceSetReopen() {
+    StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
+    try {
+      prepareGradleProject(PSD_SAMPLE_GROOVY, "project")
+      val before = openPreparedProject("project") { project: Project ->
+        project.saveAndDump()
+      }
+      val after = openPreparedProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        before to ".same",
+        after to ".same"
+      )
+    }
+    finally {
+      StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
+    }
+  }
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
