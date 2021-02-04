@@ -14,7 +14,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.compiler.AndroidAutogenerator;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +93,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
 
           if (facet != null) {
             for (AndroidAutogeneratorMode mode : AndroidAutogeneratorMode.values()) {
-              AndroidCompileUtil.generate(facet, mode, context, true);
+              AndroidAutogenerator.run(mode, facet, context, true);
             }
           }
         }
