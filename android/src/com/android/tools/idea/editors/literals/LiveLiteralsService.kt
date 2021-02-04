@@ -203,8 +203,10 @@ class LiveLiteralsService private constructor(private val project: Project,
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
 
   /**
-   * If true, the highlights will be shown.
+   * If true, the highlights will be shown. This must be only changed from the UI thread.
    */
+  @set:UiThread
+  @get:UiThread
   var showLiveLiteralsHighlights = false
     set(value) {
       field = value
@@ -334,15 +336,15 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     // If the mouse is already within the editor hover area, activate the highlights
     if (GraphicsEnvironment.isHeadless() || editor.component.mousePosition != null) {
-      UIUtil.invokeAndWaitIfNeeded(Runnable {
+      UIUtil.invokeLaterIfNeeded {
         if (showLiveLiteralsHighlights) {
           tracker.showHighlights()
         }
-      })
+      }
     }
   }
 
-  private fun refreshHighlightTrackersVisibility() = UIUtil.invokeAndWaitIfNeeded(Runnable {
+  private fun refreshHighlightTrackersVisibility() = UIUtil.invokeLaterIfNeeded {
     trackers.forEach {
       if (showLiveLiteralsHighlights) {
         it.showHighlights()
@@ -351,7 +353,7 @@ class LiveLiteralsService private constructor(private val project: Project,
         it.hideHighlights()
       }
     }
-  })
+  }
 
   @Synchronized
   private fun activateTracking() {
