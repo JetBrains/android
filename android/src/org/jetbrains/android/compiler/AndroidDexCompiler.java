@@ -22,24 +22,36 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.packaging.artifacts.ArtifactProperties;
+import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.compiler.tools.AndroidDxWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -108,6 +120,51 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     }
   }
 
+  @Nullable
+  public static ProguardRunningOptions getProguardConfigFilePathIfShouldRun(@NotNull AndroidFacet facet, CompileContext context) {
+    // wizard
+    String pathsStr = context.getCompileScope().getUserData(AndroidCompileUtil.PROGUARD_CFG_PATHS_KEY);
+    if (pathsStr != null) {
+      final String[] paths = pathsStr.split(File.pathSeparator);
+
+      if (paths.length > 0) {
+        return new ProguardRunningOptions(Arrays.asList(paths));
+      }
+    }
+    final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    final String sdkHomePath = platform != null ? FileUtil.toCanonicalPath(platform.getSdkData().getPath()) : null;
+
+    // artifact
+    final Project project = context.getProject();
+    final Set<Artifact> artifacts = ArtifactCompileScope.getArtifactsToBuild(project, context.getCompileScope(), false);
+
+    for (Artifact artifact : artifacts) {
+      if (artifact.getArtifactType() instanceof AndroidApplicationArtifactType &&
+          facet.equals(AndroidArtifactUtil.getPackagedFacet(project, artifact))) {
+        final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
+
+        if (properties instanceof AndroidApplicationArtifactProperties) {
+          final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
+
+          if (p.isRunProGuard()) {
+            final List<String> paths = AndroidUtils.urlsToOsPaths(p.getProGuardCfgFiles(), sdkHomePath);
+            return new ProguardRunningOptions(paths);
+          }
+        }
+      }
+    }
+
+    // facet
+    final AndroidFacetConfiguration configuration = facet.getConfiguration();
+    final AndroidFacetProperties properties = configuration.getState();
+    if (properties != null && properties.RUN_PROGUARD) {
+      final List<String> urls = properties.myProGuardCfgFiles;
+      final List<String> paths = AndroidUtils.urlsToOsPaths(urls, sdkHomePath);
+      return new ProguardRunningOptions(paths);
+    }
+    return null;
+  }
+
   private static final class PrepareAction implements Computable<ProcessingItem[]> {
     private final CompileContext myContext;
 
@@ -130,7 +187,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
           Collection<VirtualFile> files;
 
-          final boolean shouldRunProguard = AndroidCompileUtil.getProguardConfigFilePathIfShouldRun(facet, myContext) != null;
+          final boolean shouldRunProguard = getProguardConfigFilePathIfShouldRun(facet, myContext) != null;
 
           if (shouldRunProguard) {
             final VirtualFile obfuscatedSourcesJar = dexOutputDir.findChild(AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
