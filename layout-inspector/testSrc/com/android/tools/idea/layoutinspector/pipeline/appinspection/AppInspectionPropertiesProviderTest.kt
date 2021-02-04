@@ -333,14 +333,14 @@ class AppInspectionPropertiesProviderTest {
     modelUpdatedLatch.await()
 
     val provider = inspectorRule.inspectorClient.provider
-    var lastResult: ProviderResult? = null
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      lastResult = ProviderResult(view, table, inspectorRule.inspectorModel)
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
     }
 
     inspectorRule.inspectorModel[3]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = lastResult!!
+      val result = resultQueue.take()
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("text", PropertyType.STRING, "Next")
@@ -351,7 +351,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[4]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = lastResult!!
+      val result = resultQueue.take()
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("minWidth", PropertyType.INT32, "200")
@@ -363,7 +363,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = lastResult!!
+      val result = resultQueue.take()
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
@@ -387,14 +387,14 @@ class AppInspectionPropertiesProviderTest {
     modelUpdatedLatch.await()
 
     val provider = inspectorRule.inspectorClient.provider
-    var lastResult: ProviderResult? = null
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      lastResult = ProviderResult(view, table, inspectorRule.inspectorModel)
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
     }
 
     inspectorRule.inspectorModel[1]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = lastResult!!
+      val result = resultQueue.take()
 
       // Technically the view with ID #1 has no properties, but synthetic properties are always added
       result.table.run {
@@ -480,16 +480,17 @@ class AppInspectionPropertiesProviderTest {
     // be cached now.
 
     val provider = inspectorRule.inspectorClient.provider
-    var lastResult: ProviderResult? = null
+    val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      lastResult = ProviderResult(view, table, inspectorRule.inspectorModel)
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
     }
 
     for (id in listOf(3L, 4L, 5L)) {
       assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       inspectorRule.inspectorModel[id]!!.let { targetNode ->
         provider.requestProperties(targetNode).get()
-        assertThat(lastResult!!.view).isSameAs(targetNode)
+        val result = resultQueue.take()
+        assertThat(result.view).isSameAs(targetNode)
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
     }
