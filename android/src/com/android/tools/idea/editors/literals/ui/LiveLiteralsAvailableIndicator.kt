@@ -57,6 +57,8 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   private val literalsService = LiveLiteralsService.getInstance(project)
   private val deployReportingService = LiveLiteralsDeploymentReportService.getInstance(project)
   private var statusBar: StatusBar? = null
+  /** Will be set to true the first time this indicator receives a notification from a device being available. */
+  private var hasEverBeenActive = false
 
   init {
     addActionListener {
@@ -81,7 +83,10 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     }
 
     deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
-      override fun onMonitorStarted(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
+      override fun onMonitorStarted(deviceId: String) {
+        hasEverBeenActive = true
+        LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
+      }
       override fun onMonitorStopped(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       override fun onLiveLiteralsPushed(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
     })
@@ -97,6 +102,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   override fun copy(): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> = when {
+    !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
     !literalsService.isEnabled -> message("live.literals.is.disabled") to null // Live literals is completely disabled
     !literalsService.isAvailable -> message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
     deployReportingService.hasProblems -> message("live.literals.is.enabled") to ERROR_ICON
