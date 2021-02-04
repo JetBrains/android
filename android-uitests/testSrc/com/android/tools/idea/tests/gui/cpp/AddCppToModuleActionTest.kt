@@ -27,6 +27,7 @@ import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -56,6 +57,9 @@ class AddCppToModuleActionTest {
 
     ideFrame.openAddCppToModuleDialog().apply {
       selectCreateCppFiles()
+      Wait.seconds(1).expecting("OK button to be enabled").until {
+        okButton.isEnabled
+      }
       okButton.click()
     }
 
@@ -65,7 +69,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("tools.cpp")
+    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("native-lib.cpp")
   }
 
   @Test
