@@ -20,8 +20,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
 import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class ModuleClassLoader extends RenderClassLoader {
+public final class ModuleClassLoader extends RenderClassLoader implements ModuleProvider {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
   /**
@@ -179,7 +179,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
-    myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
+    myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(module.getProject()).getModificationCount();
 
     registerResources(module);
     cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
@@ -573,5 +573,11 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   public boolean isClassLoaded(@NotNull String className) {
     return findLoadedClass(className) != null;
+  }
+
+  @Override
+  @Nullable
+  public Module getModule() {
+    return myModuleReference.get();
   }
 }

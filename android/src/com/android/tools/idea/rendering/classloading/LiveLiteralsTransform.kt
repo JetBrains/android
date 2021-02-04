@@ -50,7 +50,7 @@ private fun getRemapper(type: Type): Pair<java.lang.reflect.Method, Boolean> =
     Type.LONG_TYPE -> PrimitiveTypeRemapper::remapLong.javaMethod!! to true
     Type.CHAR_TYPE -> PrimitiveTypeRemapper::remapChar.javaMethod!! to true
     Type.BOOLEAN_TYPE -> PrimitiveTypeRemapper::remapBoolean.javaMethod!! to true
-    else -> ConstantRemapperManager::remapAny.javaMethod!! to false
+    else -> ComposePreviewConstantRemapper::remapAny.javaMethod!! to false
   }
 
 private fun getDefaultTypeValue(type: Type): Any? =
@@ -302,7 +302,7 @@ class LiveLiteralsTransform @JvmOverloads constructor(
   }
 
   /**
-   * Outputs the code to load the constant from the [ConstantRemapperManager].
+   * Outputs the code to load the constant from the [ComposePreviewConstantRemapper].
    */
   private fun GeneratorAdapter.writeConstantLoadingCode(
     fileName: String, offset: Int, returnType: Type, initialValue: Any?) {

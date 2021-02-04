@@ -17,19 +17,22 @@ package com.android.tools.idea.rendering.classloading;
 
 import static org.junit.Assert.assertNotNull;
 
+import com.intellij.openapi.module.Module;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import junit.framework.TestCase;
+import org.jetbrains.android.uipreview.ModuleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Class loader that stores a number of .class files loaded in memory and loads the classes.
  */
-class TestClassLoader extends RenderClassLoader {
+class TestClassLoader extends RenderClassLoader implements ModuleProvider {
   private final Map<String, byte[]> myDefinedClasses;
+  private Module myModule;
 
   /**
    * Creates a new {@link TestClassLoader}.
@@ -62,5 +65,15 @@ class TestClassLoader extends RenderClassLoader {
     Class<?> clz = loadClass(name, data);
     TestCase.assertNotNull(clz);
     return clz;
+  }
+
+  public void setModule(@NotNull Module module) {
+    myModule = module;
+  }
+
+  @Nullable
+  @Override
+  public Module getModule() {
+    return myModule;
   }
 }
