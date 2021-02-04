@@ -22,8 +22,8 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
-import org.jetbrains.kotlin.test.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.ConfigLibraryUtil
+import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import java.io.File
 
 

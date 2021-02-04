@@ -17,7 +17,6 @@ package org.jetbrains.kotlin.android
 
 import com.android.testutils.TestUtils
 import org.jetbrains.kotlin.android.quickfix.AbstractAndroidQuickFixMultiFileTest
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import java.io.File
 
 abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {

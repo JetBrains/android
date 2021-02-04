@@ -365,17 +365,6 @@ java_import(
 
 # managed by go/iml_to_build [unb]
 java_import(
-    name = "unb.kotlin-plugin-test",
-    jars = ["//prebuilts/tools/common/android-kotlin:unb.kotlin-plugin-test_files"],
-    tags = [
-        "manual",
-        "unb",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build [unb]
-java_import(
     name = "unb.tightvnc",
     jars = ["//prebuilts/tools/common/tightvnc:unb.tightvnc_files"],
     tags = [

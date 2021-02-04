@@ -27,8 +27,11 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.impl.cache.TypeInfo
+import com.intellij.psi.impl.compiled.ClsTypeElementImpl
+import com.intellij.psi.impl.compiled.SignatureParsing
+import com.intellij.psi.impl.compiled.StubBuildingVisitor
 import com.intellij.psi.impl.search.AnnotatedElementsSearcher
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.LocalSearchScope
@@ -38,21 +41,17 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.collectDescendantsOfType
 import org.jetbrains.kotlin.asJava.ImpreciseResolveResult
 import org.jetbrains.kotlin.asJava.LightClassUtil
-import org.jetbrains.kotlin.asJava.classes.createTypeFromCanonicalText
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toPsiParameters
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.builtins.StandardNames
+import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.codegen.ClassBuilderMode
 import org.jetbrains.kotlin.codegen.signature.BothSignatureWriter
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.search.PsiBasedClassResolver
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinSourceFilterScope
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -68,6 +67,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
+import java.text.StringCharacterIterator
 
 /**
  * Searches for methods, fields and parameters of methods annotated with a given annotation, within a given scope in Java and Kotlin files.
@@ -261,23 +261,40 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
       return false
     }
   }
-  if (unboxedPsiType is PsiPrimitiveType) {
-    if (!StandardNames.FqNames.primitiveTypeShortNames.contains(Name.identifier(shortName))) {
-      return false
-    }
+
+  val kotlinPrimitiveTypeFqName = PrimitiveType.getByShortName(shortName)?.let { it.typeFqName }
+                                  ?: PrimitiveType.getByShortArrayName(shortName)?.let { it.arrayTypeFqName }
+
+  if (kotlinPrimitiveTypeFqName != null) {
+    return kotlinPrimitiveTypeFqNameToPsiType[kotlinPrimitiveTypeFqName.asString()] == unboxedPsiType
   }
+
   ProgressManager.checkCanceled()
   val kotlinType = analyze(BodyResolveMode.PARTIAL).get(BindingContext.TYPE, this) ?: return false
   val psiType = kotlinType.toPsi(this)
   return psiType == unboxedPsiType
 }
 
+/**
+ * Copied from [org.jetbrains.kotlin.asJava.classes.UltraLightUtilsKt.createTypeFromCanonicalText].
+ */
+private fun createTypeFromCanonicalText(
+  canonicalSignature: String,
+  psiContext: PsiElement
+): PsiType {
+  val signature = StringCharacterIterator(canonicalSignature)
+
+  val javaType = SignatureParsing.parseTypeString(signature, StubBuildingVisitor.GUESSING_MAPPER)
+  val typeInfo = TypeInfo.fromString(javaType, false)
+  val typeText = TypeInfo.createTypeText(typeInfo) ?: return PsiType.NULL
+
+  val type = ClsTypeElementImpl(psiContext, typeText, '\u0000').type
+  return type
+}
+
+
 private fun KotlinType.toPsi(context: PsiElement): PsiType? {
   val notNullableType = makeNotNullable()
-  if (KotlinBuiltIns.isPrimitiveType(notNullableType) ||
-      KotlinBuiltIns.isPrimitiveArray(notNullableType)) {
-    return kotlinTypeToPrimitive[notNullableType.fqName?.asString()]
-  }
 
   // Extracted from ultraLightUtils.kt#KtUltraLightSupport.mapType
   val signatureWriter = BothSignatureWriter(BothSignatureWriter.Mode.SKIP_CHECKS)
@@ -286,7 +303,7 @@ private fun KotlinType.toPsi(context: PsiElement): PsiType? {
 }
 
 // Inspired by KtLightAnnotationsValues.kt#psiType
-private val kotlinTypeToPrimitive: Map<String, PsiType> = mapOf(
+private val kotlinPrimitiveTypeFqNameToPsiType: Map<String, PsiType> = mapOf(
   "kotlin.Int" to PsiType.INT,
   "kotlin.Long" to PsiType.LONG,
   "kotlin.Short" to PsiType.SHORT,
