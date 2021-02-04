@@ -41,7 +41,7 @@ private val JAR = AppInspectorJar("compose-ui-inspection.jar",
                                   developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
 
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
-  "androidx.compose.ui", "ui", "1.0.0-alpha11", ArtifactCoordinate.Type.AAR
+  "androidx.compose.ui", "ui", "1.0.0-alpha12", ArtifactCoordinate.Type.AAR
 )
 
 /**
