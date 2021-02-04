@@ -36,9 +36,9 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.util.descendantsOfType
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -141,7 +141,7 @@ abstract class FullProjectBenchmark {
     val fixture = gradleRule.fixture
     fixture.openFileInEditor(file)
     val psiFile = PsiManager.getInstance(gradleRule.project).findFile(file) as? PsiElement ?: return emptyList()
-    val functions = psiFile.collectDescendantsOfType<KtFunction> { it.hasBlockBody() && it.bodyExpression != null }.toMutableList()
+    val functions = psiFile.descendantsOfType<KtFunction>().filter { it.hasBlockBody() && it.bodyExpression != null }.toMutableList()
     val samples = mutableListOf<CompletionSample>()
     functions.take(maxNumberOfFunctions).forEach { function ->
       // Performing completion before the end of the function
@@ -180,7 +180,7 @@ abstract class FullProjectBenchmark {
     UndoManager.getInstance(fixture.project).undo(TextEditorProvider.getInstance().getTextEditor(fixture.editor))
 
     // Perform completion for function before the end of the first available class, if any.
-    val classes = (psiFile as PsiElement).collectDescendantsOfType<KtClassOrObject> { it.body != null }
+    val classes = (psiFile as PsiElement).descendantsOfType<KtClassOrObject>().filter { it.body != null }
     val body = classes.firstOrNull()?.body ?: return samples
     val innerOffset = body.endOffset - 1
     fixture.editor.caretModel.moveToOffset(innerOffset)
