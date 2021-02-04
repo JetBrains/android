@@ -253,3 +253,10 @@ java_import(
     jars = ["//prebuilts/studio/layoutlib/data:layoutlib_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+java_import(
+    name = "libapp-processes-proto",
+    jars = ["//tools/base/ddmlib:libapp-processes-proto.jar"],
+    visibility = ["//visibility:public"],
+)
