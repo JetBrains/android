@@ -123,6 +123,7 @@ class EmulatorView(
   private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
   private var displayRectangle: Rectangle? = null
   private var skinLayout: SkinLayout? = null
+  private val cachedSkinLayout = CachedSkinLayout(emulator)
   private val displayTransform = AffineTransform()
   @Volatile
   private var screenshotFeed: Cancelable? = null
@@ -725,8 +726,7 @@ class EmulatorView(
     @Slow
     private fun updateSkinAndDisplayImage() {
       val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
-      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(screenshot.width, screenshot.height, screenshot.rotation) ?:
-                              SkinLayout(Dimension(screenshot.width, screenshot.height))
+      screenshot.skinLayout = cachedSkinLayout.get(screenshot.width, screenshot.height, screenshot.rotation)
       updateDisplayImageAsync(screenshot)
     }
 
@@ -808,6 +808,31 @@ class EmulatorView(
         pixels[i] = alpha or (red shl 16) or (green shl 8) or blue
       }
       return pixels
+    }
+  }
+
+  /**
+   * Stores the last computed scaled [SkinLayout] together with the corresponding display
+   * dimensions and orientation.
+   */
+  private class CachedSkinLayout(val emulator: EmulatorController) {
+    var width = 0
+    var height = 0
+    var displayRotation: SkinRotation? = null
+    var skinLayout: SkinLayout? = null
+
+    fun get(width: Int, height: Int, displayRotation: SkinRotation): SkinLayout {
+      synchronized(this) {
+        var layout = this.skinLayout
+        if (width != this.width || height != this.height || displayRotation != this.displayRotation || layout == null) {
+          layout = emulator.skinDefinition?.createScaledLayout(width, height, displayRotation) ?: SkinLayout(Dimension(width, height))
+          this.width = width
+          this.height = height
+          this.displayRotation = displayRotation
+          this.skinLayout = layout
+        }
+        return layout
+      }
     }
   }
 
