@@ -444,7 +444,7 @@ class ConfigurationCachingWarningNodeDescriptor(
 private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
-  NoIncompatiblePlugins -> 0
+  is NoIncompatiblePlugins -> 0
   ConfigurationCachingTurnedOn -> 0
 }
 

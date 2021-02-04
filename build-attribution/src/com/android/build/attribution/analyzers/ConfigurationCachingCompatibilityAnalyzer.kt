@@ -96,7 +96,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
       }
     }
     return if (incompatiblePluginWarnings.isEmpty() && upgradePluginWarnings.isEmpty()) {
-      NoIncompatiblePlugins
+      NoIncompatiblePlugins(pluginsByPluginInfo[null]?.filterOutInternalPlugins() ?: emptyList())
     }
     else {
       IncompatiblePluginsDetected(incompatiblePluginWarnings, upgradePluginWarnings)
@@ -105,6 +105,11 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 
   private fun GradleCoordinate.isSameCoordinate(dependencyCoordinates: GradlePluginsData.DependencyCoordinates) =
     dependencyCoordinates.group == groupId && dependencyCoordinates.name == artifactId
+
+  private fun List<PluginData>.filterOutInternalPlugins() = filter {
+    // ignore Gradle, AGP and Kotlin plugins, buildscript
+    !it.isAndroidPlugin() && !it.isGradlePlugin() && !it.isKotlinPlugin() && it.pluginType != PluginData.PluginType.SCRIPT
+  }
 }
 
 sealed class ConfigurationCachingCompatibilityProjectResult : AnalyzerResult
@@ -120,7 +125,9 @@ data class AGPUpdateRequired(
  * Analyzer result returned when all recognised plugins are compatible with configuration caching.
  * There still might be problems in unknown plugins or buildscript and buildSrc plugins.
  */
-object NoIncompatiblePlugins : ConfigurationCachingCompatibilityProjectResult()
+data class NoIncompatiblePlugins(
+  val unrecognizedPlugins: List<PluginData>
+) : ConfigurationCachingCompatibilityProjectResult()
 
 /**
  * Analyzer result returned when there are incompatible plugins detected.
