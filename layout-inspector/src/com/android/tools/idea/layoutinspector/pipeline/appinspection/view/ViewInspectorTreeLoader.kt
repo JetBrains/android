@@ -37,6 +37,7 @@ class ViewInspectorTreeLoader(
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
   composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
+  private val updateScreenshotType: (LayoutInspectorViewProtocol.Screenshot.Type) -> Unit,
 ) {
   private val loadStartTime = AtomicLong(-1)
 
@@ -59,7 +60,7 @@ class ViewInspectorTreeLoader(
     try {
       resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings)
       val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
-      return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted })
+      return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted }, updateScreenshotType)
     }
     finally {
       loadStartTime.set(0)

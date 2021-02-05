@@ -36,6 +36,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetProperties
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.LayoutEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
@@ -49,8 +50,8 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  * The client responsible for interacting with the view layout inspector running on the target
  * device.
  *
- * @param eventScope A coroutine scope used for asynchronously responding to events coming in from
- *     the inspector.
+ * @param scope A coroutine scope used for asynchronously responding to events coming in from
+ *     the inspector and other miscellaneous coroutine tasks.
  *
  * @param messenger The messenger that lets us communicate with the view inspector.
  *
@@ -59,7 +60,7 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  */
 class ViewLayoutInspectorClient(
   model: InspectorModel,
-  eventScope: CoroutineScope,
+  private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
   private val fireError: (String) -> Unit = {},
@@ -74,7 +75,8 @@ class ViewLayoutInspectorClient(
     val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResponse?
+    val composeEvent: GetComposablesResponse?,
+    val updateScreenshotType: (Screenshot.Type) -> Unit
   )
 
   companion object {
@@ -119,7 +121,7 @@ class ViewLayoutInspectorClient(
   private val currRoots = mutableListOf<Long>()
 
   init {
-    eventScope.launch {
+    scope.launch {
       messenger.eventFlow.collect { eventBytes ->
         val event = Event.parseFrom(eventBytes)
         when (event.specializedCase) {
@@ -140,6 +142,15 @@ class ViewLayoutInspectorClient(
         this.continuous = continuous
         skipSystemViews = TreeSettings.hideSystemNodes
       }.build()
+    }
+  }
+
+  private suspend fun updateScreenshotType(type: Screenshot.Type, scale: Float = 1.0f) {
+    messenger.sendCommand {
+      updateScreenshotTypeCommandBuilder.apply {
+        this.type = type
+        this.scale = scale
+      }
     }
   }
 
@@ -182,7 +193,14 @@ class ViewLayoutInspectorClient(
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
     val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
-    fireTreeEvent(Data(generation, currRoots, layoutEvent, composablesResponse))
+    fireTreeEvent(Data(
+      generation,
+      currRoots,
+      layoutEvent,
+      composablesResponse,
+      updateScreenshotType = { type ->
+        scope.launch { updateScreenshotType(type) }
+      }))
   }
 
   private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {
