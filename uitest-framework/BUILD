@@ -15,7 +15,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module]",
@@ -49,5 +48,6 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )

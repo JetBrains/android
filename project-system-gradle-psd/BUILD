@@ -10,7 +10,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -25,6 +24,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 

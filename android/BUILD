@@ -45,14 +45,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/analytics[module]",
         "//tools/analytics-library/publisher:analytics-publisher[module]",
         "//tools/adt/idea/build-common:intellij.android.buildCommon[module]",
@@ -118,6 +111,13 @@ iml_module(
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
     ],
 )
 
@@ -314,14 +314,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n[test]",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
@@ -384,6 +377,13 @@ iml_module(
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto-test[test]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-i18n[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
     ],
 )
 
