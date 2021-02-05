@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
-import static com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationDataModel;
@@ -129,14 +128,16 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @Override
   public void enter() {
     super.enter();
-    updateAllocationTrackingStatus();
-    updateNativeAllocationTrackingStatus();
 
     myRecordingOptionsModel.addBuiltInOptions(makeHeapDumpOption());
     if (isNativeAllocationSamplingEnabled()) {
       myRecordingOptionsModel.addBuiltInOptions(makeNativeRecordingOption());
     }
     myRecordingOptionsModel.addBuiltInOptions(makeJavaRecodingOption());
+
+    // Update statuses after recording options model has been initialized
+    updateAllocationTrackingStatus();
+    updateNativeAllocationTrackingStatus();
   }
 
   @Override
@@ -242,16 +243,19 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     getStudioProfilers().getTransportPoller().registerListener(statusListener);
   }
 
-  private void nativeAllocationTrackingStart(@NotNull Memory.MemoryNativeTrackingData status) {
+  @VisibleForTesting
+  void nativeAllocationTrackingStart(@NotNull Memory.MemoryNativeTrackingData status) {
     switch (status.getStatus()) {
       case SUCCESS:
         myNativeAllocationTracking = true;
+        setModelToRecordingNative();
         setPendingCaptureStartTime(status.getStartTime());
         setTrackingAllocations(true);
         myPendingLegacyAllocationStartTimeNs = status.getStartTime();
         break;
       case IN_PROGRESS:
         myNativeAllocationTracking = true;
+        setModelToRecordingNative();
         setTrackingAllocations(true);
         getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
         break;
@@ -266,6 +270,15 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         break;
     }
     getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
+  }
+
+  private void setModelToRecordingNative() {
+    RecordingOption option = getRecordingOptionsModel().getBuiltInOptions().stream()
+      .filter(opt -> opt.getTitle().equals(RECORD_NATIVE_TEXT)).findFirst().orElse(null);
+    if (option != null) {
+      getRecordingOptionsModel().selectBuiltInOption(option);
+      getRecordingOptionsModel().setRecording();
+    }
   }
 
   public void requestHeapDump() {
