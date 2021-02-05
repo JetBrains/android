@@ -55,27 +55,35 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     functionName: String,
     startLine: Int,
     endLine: Int
-  ): SourceLocation? {
+  ): SourceLocation {
     if (startLine < 1 || endLine < 1) {
-      return null
+      return unknown(fileName)
     }
-    val ktFile = findKotlinFile(fileName) { it == packageName } ?: return null
-    val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return null
+    val ktFile = findKotlinFile(fileName) { it == packageName } ?: return unknown(fileName)
+    val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return unknown(fileName, ktFile)
 
     val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
     val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
 
-    val navigatable = lambda?.navigationElement as? Navigatable ?: return null
+    val navigatable = lambda?.navigationElement as? Navigatable ?: return unknown(fileName, ktFile)
     val startLineOffset = doc.getLineStartOffset(startLine)
     val line = startLine + if (lambda.startOffset < startLineOffset) 0 else 1
     return SourceLocation("${fileName}:$line", navigatable)
   }
 
+  private fun unknown(fileName: String, ktFile: KtFile? = null): SourceLocation =
+    SourceLocation("$fileName:unknown", ktFile)
+
   /**
    * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely within the line range.
    */
   private fun findPossibleLambdas(ktFile: KtFile, doc: Document, functionName: String, startLine: Int, endLine: Int): List<KtExpression> {
-    val offsetRange = doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
+    val offsetRange = try {
+      doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
+    }
+    catch (ex: IndexOutOfBoundsException) {
+      return emptyList()
+    }
     if (offsetRange.isEmpty()) {
       return emptyList()
     }
