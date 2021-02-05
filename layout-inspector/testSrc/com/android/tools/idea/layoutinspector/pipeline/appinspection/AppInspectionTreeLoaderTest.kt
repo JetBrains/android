@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.io.readImage
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
@@ -56,6 +57,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class AppInspectionTreeLoaderTest {
+
   /**
    * Process a target image png file and create the data that normally would have been generated on a target device.
    */
@@ -69,24 +71,11 @@ class AppInspectionTreeLoaderTest {
                                                   origImage.height)
       val graphics = image.graphics
       graphics.drawImage(origImage, 0, 0, null)
-      val deflater = Deflater(Deflater.BEST_SPEED)
       val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
                                                       ShortArray(image.width * image.height)) as ShortArray
       val imageBytes = ArrayList<Byte>(image.width * image.height * 2)
       dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-      deflater.setInput(imageBytes.toByteArray())
-      deflater.finish()
-      val buffer = ByteArray(1024 * 100)
-      val baos = ByteArrayOutputStream()
-      while (!deflater.finished()) {
-        val count = deflater.deflate(buffer)
-        if (count <= 0) {
-          break
-        }
-        baos.write(buffer, 0, count)
-      }
-      baos.flush()
-      bytes = baos.toByteArray()
+      bytes = imageBytes.toByteArray().compress()
     }
   }
 
@@ -99,7 +88,9 @@ class AppInspectionTreeLoaderTest {
    * Generate fake data containing hand-crafted layout information that can be used for
    * generating trees.
    */
-  private fun createFakeData(): ViewLayoutInspectorClient.Data {
+  private fun createFakeData(
+    screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP)
+    : ViewLayoutInspectorClient.Data {
     val viewLayoutEvent = ViewProtocol.LayoutEvent.newBuilder().apply {
       ViewString(1, "en-us")
       ViewString(2, "com.example")
@@ -120,7 +111,7 @@ class AppInspectionTreeLoaderTest {
         packageName = 2
         className = 3
         bounds = ViewBounds(
-          ViewRect(100, 200))
+          ViewRect(sample.image.width, sample.image.height))
 
         ViewNode {
           id = 2
@@ -156,7 +147,7 @@ class AppInspectionTreeLoaderTest {
       }
 
       screenshotBuilder.apply {
-        type = ViewProtocol.Screenshot.Type.SKP
+        type = screenshotType
         bytes = ByteString.copyFrom(sample.bytes)
       }
     }.build()
@@ -204,7 +195,8 @@ class AppInspectionTreeLoaderTest {
       11,
       listOf(123, 456),
       viewLayoutEvent,
-      composablesResponse
+      composablesResponse,
+      updateScreenshotType = {}
     )
   }
 
@@ -249,8 +241,8 @@ class AppInspectionTreeLoaderTest {
     assertThat(tree.drawId).isEqualTo(1)
     assertThat(tree.x).isEqualTo(0)
     assertThat(tree.y).isEqualTo(0)
-    assertThat(tree.width).isEqualTo(100)
-    assertThat(tree.height).isEqualTo(200)
+    assertThat(tree.width).isEqualTo(sample.image.width)
+    assertThat(tree.height).isEqualTo(sample.image.height)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
     ViewNode.readDrawChildren { drawChildren -> assertThat((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
     assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
@@ -334,5 +326,33 @@ class AppInspectionTreeLoaderTest {
     }
   }
 
-  // TODO(b/177669393): Test that Bitmap mode works (see TransportTreeLoaderTest#testBitmap)
+  @Test
+  fun testCanProcessBitmapScreenshots() {
+    val skiaParser: SkiaParserService = mock()
+    `when`(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    val treeLoader = AppInspectionTreeLoader(projectRule.project, skiaParser)
+
+    val data = createFakeData(ViewProtocol.Screenshot.Type.BITMAP)
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
+    assertThat(data.generation).isEqualTo(generation)
+    window!!.refreshImages(1.0)
+
+    val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
+    ImageDiffUtil.assertImageSimilar("image1.png", sample.image, resultImage, 0.01)
+  }
+}
+
+private fun ByteArray.compress(): ByteArray {
+  val deflater = Deflater(Deflater.BEST_SPEED)
+  deflater.setInput(this)
+  deflater.finish()
+  val buffer = ByteArray(1024 * 100)
+  val baos = ByteArrayOutputStream()
+  while (!deflater.finished()) {
+    val count = deflater.deflate(buffer)
+    if (count <= 0) break
+    baos.write(buffer, 0, count)
+  }
+  baos.flush()
+  return baos.toByteArray()
 }
