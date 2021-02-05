@@ -73,7 +73,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jdom.Element;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
-import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
@@ -178,10 +177,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       AndroidUtils.reportImportErrorToEventLog("'apksources' dependency is deprecated and can be poorly supported by IDE. " +
                                                "It is strongly recommended to use 'apklib' dependency instead.",
                                                facet.getModule().getName(), facet.getModule().getProject());
-    }
-
-    if (Boolean.parseBoolean(findConfigValue(mavenProject, DEX_CORE_LIBRARY_PROPERTY))) {
-      AndroidDexCompilerConfiguration.getInstance(facet.getModule().getProject()).CORE_LIBRARY = true;
     }
   }
 
