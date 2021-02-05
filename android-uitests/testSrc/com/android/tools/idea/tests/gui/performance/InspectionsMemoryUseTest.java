@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixtu
 import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +35,7 @@ import org.junit.runner.RunWith;
 @RunIn(TestGroup.PERFORMANCE)
 public class InspectionsMemoryUseTest {
 
-  @Rule public GuiTestRule guiTest = new GuiTestRule();
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   @Test
   @UseBleak
