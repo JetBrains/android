@@ -64,6 +64,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlReport().setValue(false);
     lintOptions.ignore().getListValue("ignore-id-2").setValue("ignore-id-3");
     lintOptions.ignoreWarnings().setValue(false);
+    lintOptions.informational().getListValue("informational-id-1").setValue("informational-id-3");
     lintOptions.lintConfig().setValue("other-lint.config");
     lintOptions.noLines().setValue(true);
     lintOptions.quiet().setValue(false);
@@ -96,6 +97,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-3"), lintOptions.ignore());
     assertEquals("ignoreWarnings", Boolean.FALSE, lintOptions.ignoreWarnings());
+    assertEquals("informational", ImmutableList.of("informational-id-3", "informational-id-2"), lintOptions.informational());
     assertEquals("lintConfig", "other-lint.config", lintOptions.lintConfig());
     assertEquals("noLines", Boolean.TRUE, lintOptions.noLines());
     assertEquals("quiet", Boolean.FALSE, lintOptions.quiet());
@@ -132,6 +134,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlReport().setValue(false);
     lintOptions.ignore().addListValue().setValue("ignore-id-1");
     lintOptions.ignoreWarnings().setValue(true);
+    lintOptions.informational().addListValue().setValue("informational-id-1");
     lintOptions.lintConfig().setValue("lint.config");
     lintOptions.noLines().setValue(false);
     lintOptions.quiet().setValue(true);
@@ -165,6 +168,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1"), lintOptions.ignore());
     assertEquals("ignoreWarnings", Boolean.TRUE, lintOptions.ignoreWarnings());
+    assertEquals("informational", ImmutableList.of("informational-id-1"), lintOptions.informational());
     assertEquals("lintConfig", "lint.config", lintOptions.lintConfig());
     assertEquals("noLines", Boolean.FALSE, lintOptions.noLines());
     assertEquals("quiet", Boolean.TRUE, lintOptions.quiet());
@@ -202,6 +206,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlReport().delete();
     lintOptions.ignore().delete();
     lintOptions.ignoreWarnings().delete();
+    lintOptions.informational().delete();
     lintOptions.lintConfig().delete();
     lintOptions.noLines().delete();
     lintOptions.quiet().delete();
@@ -243,6 +248,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-2"), lintOptions.ignore());
     assertEquals("ignoreWarnings", Boolean.TRUE, lintOptions.ignoreWarnings());
+    assertEquals("informational", ImmutableList.of("informational-id-1", "informational-id-2"), lintOptions.informational());
     assertEquals("lintConfig", "lint.config", lintOptions.lintConfig());
     assertEquals("noLines", Boolean.FALSE, lintOptions.noLines());
     assertEquals("quiet", Boolean.TRUE, lintOptions.quiet());
@@ -274,6 +280,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("htmlReport", lintOptions.htmlReport());
     assertMissingProperty("ignore", lintOptions.ignore());
     assertMissingProperty("ignoreWarnings", lintOptions.ignoreWarnings());
+    assertMissingProperty("informational", lintOptions.informational());
     assertMissingProperty("lintConfig", lintOptions.lintConfig());
     assertMissingProperty("noLines", lintOptions.noLines());
     assertMissingProperty("quiet", lintOptions.quiet());
@@ -301,6 +308,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("error", ImmutableList.of("error-id-1", "error-id-2"), lintOptions.error());
     assertEquals("fatal", ImmutableList.of("fatal-id-1", "fatal-id-2"), lintOptions.fatal());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-2"), lintOptions.ignore());
+    assertEquals("informational", ImmutableList.of("informational-id-1", "informational-id-2"), lintOptions.informational());
     assertEquals("warning", ImmutableList.of("warning-id-1", "warning-id-2"), lintOptions.warning());
 
     lintOptions.check().getListValue("check-id-1").delete();
@@ -309,6 +317,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.error().getListValue("error-id-2").delete();
     lintOptions.fatal().getListValue("fatal-id-1").delete();
     lintOptions.ignore().getListValue("ignore-id-2").delete();
+    lintOptions.informational().getListValue("informational-id-1").delete();
     lintOptions.warning().getListValue("warning-id-1").delete();
 
     applyChangesAndReparse(buildModel);
@@ -324,6 +333,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("error", ImmutableList.of("error-id-1"), lintOptions.error());
     assertEquals("fatal", ImmutableList.of("fatal-id-2"), lintOptions.fatal());
     assertEquals("ignore", ImmutableList.of("ignore-id-1"), lintOptions.ignore());
+    assertEquals("informational", ImmutableList.of("informational-id-2"), lintOptions.informational());
     assertEquals("warning", ImmutableList.of("warning-id-2"), lintOptions.warning());
   }
 
@@ -343,6 +353,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("error", ImmutableList.of("error-id"), lintOptions.error());
     assertEquals("fatal", ImmutableList.of("fatal-id"), lintOptions.fatal());
     assertEquals("ignore", ImmutableList.of("ignore-id"), lintOptions.ignore());
+    assertEquals("informational", ImmutableList.of("informational-id"), lintOptions.informational());
     assertEquals("warning", ImmutableList.of("warning-id"), lintOptions.warning());
 
     lintOptions.check().getListValue("check-id").delete();
@@ -351,6 +362,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.error().getListValue("error-id").delete();
     lintOptions.fatal().getListValue("fatal-id").delete();
     lintOptions.ignore().getListValue("ignore-id").delete();
+    lintOptions.informational().getListValue("informational-id").delete();
     lintOptions.warning().getListValue("warning-id").delete();
 
     applyChangesAndReparse(buildModel);
@@ -367,6 +379,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("error", lintOptions.error());
     assertMissingProperty("fatal", lintOptions.fatal());
     assertMissingProperty("ignore", lintOptions.ignore());
+    assertMissingProperty("informational", lintOptions.informational());
     assertMissingProperty("warning", lintOptions.warning());
   }
 }

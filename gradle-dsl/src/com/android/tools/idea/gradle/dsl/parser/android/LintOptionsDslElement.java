@@ -70,7 +70,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"error", atLeast(0), ERROR, OTHER},
     {"fatal", atLeast(0), FATAL, OTHER},
     {"ignore", atLeast(0), IGNORE, OTHER},
-    // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
+    {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
   }).collect(toModelMap());
 
@@ -122,7 +122,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"error", atLeast(0), ERROR, OTHER},
     {"fatal", atLeast(0), FATAL, OTHER},
     {"ignore", atLeast(0), IGNORE, OTHER},
-    // TODO(b/144403889): {"informational", atLeast(0), INFORMATIONAL, OTHER},
+    {"informational", atLeast(0), INFORMATIONAL, OTHER},
     {"warning", atLeast(0), WARNING, OTHER},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<LintOptionsDslElement> LINT_OPTIONS =
@@ -169,7 +169,9 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     else if (property.equals("ignore")) {
       addToParsedExpressionList(IGNORE, element); return;
     }
-    // TODO(b/144403889): informational
+    else if (property.equals("informational")) {
+      addToParsedExpressionList(INFORMATIONAL, element); return;
+    }
     else if (property.equals("warning")) {
       addToParsedExpressionList(WARNING, element); return;
     }
