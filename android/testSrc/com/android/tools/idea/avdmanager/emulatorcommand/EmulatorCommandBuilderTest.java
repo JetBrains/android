@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class QuickBootEmulatorCommandBuilderTest {
+public final class EmulatorCommandBuilderTest {
   private FileSystem myFileSystem;
   private Path myEmulator;
 
@@ -53,7 +53,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   @Test
   public void build() {
     // Arrange
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd);
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
     GeneralCommandLine command = builder.build();
@@ -67,7 +67,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
     // Arrange
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.windows());
     Path emulator = fileSystem.getPath("C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe");
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(emulator, myAvd);
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(emulator, myAvd);
 
     // Act
     GeneralCommandLine command = builder.build();
@@ -81,7 +81,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   public void buildNetworkLatencyIsntNull() {
     // Arrange
     Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_LATENCY)).thenReturn("none");
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd);
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
     GeneralCommandLine command = builder.build();
@@ -94,7 +94,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   public void buildNetworkSpeedIsntNull() {
     // Arrange
     Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_SPEED)).thenReturn("full");
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd);
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
 
     // Act
     GeneralCommandLine command = builder.build();
@@ -106,7 +106,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   @Test
   public void buildEmulatorSupportsSnapshots() {
     // Arrange
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd)
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .setEmulatorSupportsSnapshots(true);
 
     // Act
@@ -119,7 +119,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   @Test
   public void buildStudioParamsIsntNull() {
     // Arrange
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd)
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .setStudioParams(myFileSystem.getPath("/home/user/temp/emu.tmp"));
 
     // Act
@@ -133,7 +133,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   @Test
   public void buildLaunchInToolWindow() {
     // Arrange
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd)
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .setLaunchInToolWindow(true);
 
     // Act
@@ -147,7 +147,7 @@ public final class QuickBootEmulatorCommandBuilderTest {
   @Test
   public void buildStudioEmuParamsIsntEmpty() {
     // Arrange
-    EmulatorCommandBuilder builder = new QuickBootEmulatorCommandBuilder(myEmulator, myAvd)
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .addAllStudioEmuParams(Arrays.asList("-param-1", "-param-2", "-param-3"));
 
     // Act

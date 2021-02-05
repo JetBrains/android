@@ -98,6 +98,20 @@ class FindEmulatorAndSetupRetentionTest {
   }
 
   @Test
+  fun filterBootParameters1() {
+    val parameters = listOf("./emulator", "-netdelay", "123", "-netspeed", "456", "-avd", "abc", "-grpc-use-token", "-feature", "Vulkan")
+    val filtered = filterEmulatorBootParameters(parameters)
+    assertThat(filtered).isEqualTo(listOf("-feature", "Vulkan"))
+  }
+
+  @Test
+  fun filterBootParameters2() {
+    val parameters = listOf("./emulator", "@abc", "-feature", "Vulkan")
+    val filtered = filterEmulatorBootParameters(parameters)
+    assertThat(filtered).isEqualTo(listOf("-feature", "Vulkan"))
+  }
+
+  @Test
   fun pushAndLoad() {
     emulator.start()
     val emulators = RunningEmulatorCatalog.getInstance().updateNow().get()
