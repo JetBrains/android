@@ -423,18 +423,18 @@ PROJECT             : AS36_noiml
             Scope               : Test
             IsExported          : false
             Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/AndroidManifest.xml
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/AndroidManifest.xml
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/res [-]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/jars/classes.jar!/
         LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
             Name                : Gradle: androidx.test:core:1.2.0@aar [=]
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/AndroidManifest.xml
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/AndroidManifest.xml
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/res [-]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/jars/classes.jar!/
         LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1263,18 +1263,18 @@ PROJECT             : AS36_noiml
             Scope               : Test
             IsExported          : false
             Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/AndroidManifest.xml
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/AndroidManifest.xml
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/res [-]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/jars/classes.jar!/
         LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
             Name                : Gradle: androidx.test:core:1.2.0@aar [=]
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/AndroidManifest.xml
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/AndroidManifest.xml
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/res [-]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/jars/classes.jar!/
         LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false

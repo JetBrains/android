@@ -158,6 +158,10 @@ class ProjectDumper(
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
         } ?: it
       }
+      .let {
+        if (IdeInfo.getInstance().isAndroidStudio) it
+        else it.replace("/jetified-", "/", ignoreCase = false) // flaky GradleSyncProjectComparisonTest tests in IDEA
+      }
       .removeAndroidVersionsFromPath()
 
   fun appendln(data: String) {
