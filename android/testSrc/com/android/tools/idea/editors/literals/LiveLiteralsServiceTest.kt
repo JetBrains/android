@@ -80,7 +80,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertTrue(isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
@@ -90,7 +90,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -116,7 +116,7 @@ internal class LiveLiteralsServiceTest {
       latch.countDown()
     }
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertFalse(liveLiteralsService.allConstants().isEmpty())
 
     // Run test
@@ -140,7 +140,7 @@ internal class LiveLiteralsServiceTest {
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
     assertEquals(0, changeListenerCalls)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertEquals(0, changeListenerCalls)
     assertTrue(liveLiteralsService.allConstants().isEmpty())

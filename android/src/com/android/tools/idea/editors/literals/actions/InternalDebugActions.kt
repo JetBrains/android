@@ -42,7 +42,7 @@ private fun simulateDeployment(project: Project, problems: Collection<LiveLitera
   val randomTimeMs = Random.nextInt(100, 1200).toLong()
   val pushId = pushIdCounter.getAndIncrement().toString(16)
 
-  LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(FAKE_DEVICE_ID)
+  LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(FAKE_DEVICE_ID, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
   LiveLiteralsService.getInstance(project).liveLiteralPushStarted(FAKE_DEVICE_ID, pushId)
   AppExecutorUtil.getAppScheduledExecutorService().schedule(Callable {
     LiveLiteralsService.getInstance(project).liveLiteralPushed(FAKE_DEVICE_ID, pushId, problems)

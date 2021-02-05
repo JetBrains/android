@@ -69,7 +69,8 @@ class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Runnable getCallback(Project project, String deviceId, String packageName) {
+  static Runnable getCallback(Project project, String packageName, IDevice device) {
+    String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
     if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
       return null;
@@ -96,8 +97,16 @@ class AndroidLiveLiteralDeployMonitor {
         }
       }
 
+      LiveLiteralsMonitorHandler.DeviceType deviceType;
+      if (device.isEmulator()) {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+      }
+      else {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+      }
+
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName);
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
     };
   }
 
