@@ -50,11 +50,13 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.TouchEventResult;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -1463,14 +1465,14 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks() {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks() {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(false);
+        return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
       }
       return myRenderTask.executeCallbacks(currentTimeNanos());
     }
@@ -1490,7 +1492,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(
+  public CompletableFuture<TouchEventResult> triggerTouchEvent(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");

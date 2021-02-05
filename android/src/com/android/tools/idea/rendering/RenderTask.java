@@ -907,14 +907,15 @@ public class RenderTask {
   }
 
   /**
-   * Triggers execution of the Handler and frame callbacks in layoutlib
+   * Triggers execution of the Handler and frame callbacks in layoutlib.
    *
-   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
+   * @return a {@link ExecuteCallbacksResult} future that is completed when callbacks are executed that is true if there are more callbacks
+   * to execute.
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks(long timeNanos) {
     if (myRenderSession == null) {
-      return CompletableFuture.completedFuture(false);
+      return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
     }
 
     // Execute the callbacks with a 500ms timeout for all of them to run. Callbacks should not take a long time to execute, if they do,
@@ -922,7 +923,9 @@ public class RenderTask {
     // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
-      return myRenderSession.executeCallbacks(timeNanos);
+      long start = System.currentTimeMillis();
+      boolean hasMoreCallbacks = myRenderSession.executeCallbacks(timeNanos);
+      return ExecuteCallbacksResult.create(hasMoreCallbacks, System.currentTimeMillis() - start);
     }, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -930,21 +933,22 @@ public class RenderTask {
    * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
    * detected of a particular type at a particular point.
    *
-   * @param touchEventType type of a touch event
-   * @param x              horizontal android coordinate of the detected touch event
-   * @param y              vertical android coordinate of the detected touch event
-   * @return a future that is completed when layoutlib handled the touch event
+   * @param touchEventType type of a touch event.
+   * @param x              horizontal android coordinate of the detected touch event.
+   * @param y              vertical android coordinate of the detected touch event.
+   * @return a {@link TouchEventResult} future that is completed when layoutlib handled the touch event.
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
+  public CompletableFuture<TouchEventResult> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
+      long start = System.currentTimeMillis();
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
-      return null;
+      return TouchEventResult.create(System.currentTimeMillis() - start);
     });
   }
 
