@@ -49,6 +49,20 @@ private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS
  */
 interface LiveLiteralsMonitorHandler {
   /**
+   * Type of device being used.
+   */
+  enum class DeviceType {
+    UNKNOWN,
+
+    /** Not a real device. Studio Compose Preview. */
+    PREVIEW,
+    /** An emulator. */
+    EMULATOR,
+    /** A device connected to Studio. */
+    PHYSICAL
+  }
+
+  /**
    * Describes a problem found during deployment.
    * @param severity Severity of the problem.
    * @param content Description of the problem.
@@ -71,7 +85,7 @@ interface LiveLiteralsMonitorHandler {
    * Call this method when the deployment for [deviceId] has started. This will clear all current registered
    * [Problem]s for that device.
    */
-  fun liveLiteralsMonitorStarted(deviceId: String)
+  fun liveLiteralsMonitorStarted(deviceId: String, deviceType: DeviceType)
 
   /**
    * Call this method when the monitoring for [deviceId] has stopped. For example, if the application has stopped.
@@ -427,8 +441,8 @@ class LiveLiteralsService private constructor(private val project: Project,
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
-  override fun liveLiteralsMonitorStarted(deviceId: String) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStarted(deviceId)
+  override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) =
+    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStarted(deviceId, deviceType)
 
   override fun liveLiteralsMonitorStopped(deviceId: String) =
     LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStopped(deviceId)

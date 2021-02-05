@@ -58,7 +58,7 @@ internal class LiveLiteralsDeploymentReportServiceTest {
 
     assertFalse(service.hasProblems)
     assertFalse(service.hasActiveDevices)
-    service.liveLiteralsMonitorStarted("DeviceA")
+    service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertTrue(service.hasActiveDevices)
     assertEquals(0, deployments)
 
@@ -76,12 +76,12 @@ internal class LiveLiteralsDeploymentReportServiceTest {
   fun `check problems are recorded`() {
     assertFalse(service.hasProblems)
     assertFalse(service.hasActiveDevices)
-    service.liveLiteralsMonitorStarted("DeviceA")
+    service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     // Finish the deployment successfully
     service.liveLiteralPushed("DeviceA", "0")
     assertFalse(service.hasProblems)
 
-    service.liveLiteralsMonitorStarted("DeviceA")
+    service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     service.liveLiteralPushed("DeviceA", "0", listOf(
       LiveLiteralsMonitorHandler.Problem.info("Info"),
       LiveLiteralsMonitorHandler.Problem.warn("Warn"),
@@ -93,7 +93,7 @@ internal class LiveLiteralsDeploymentReportServiceTest {
       [DeviceA] WARNING: Warn
     """.trimIndent(), service.problems.asString())
 
-    service.liveLiteralsMonitorStarted("DeviceA")
+    service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertTrue(service.hasProblems)
     service.liveLiteralPushed("DeviceA", "0")
     assertTrue(service.problems.isEmpty())
@@ -113,8 +113,8 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     service.liveLiteralPushed("DeviceB", "0")
     assertEquals("The device was not active, no deployments expected", 0, deployments)
 
-    service.liveLiteralsMonitorStarted("DeviceA")
-    service.liveLiteralsMonitorStarted("DeviceB")
+    service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    service.liveLiteralsMonitorStarted("DeviceB", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     service.liveLiteralPushed("DeviceB", "0")
     assertTrue(service.hasActiveDevices)
     assertEquals(1, deployments)

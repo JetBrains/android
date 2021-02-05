@@ -39,6 +39,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
@@ -391,7 +392,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var hasLiveLiterals: Boolean = false
     private set(value) {
       field = value
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId)
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
 
   override val isLiveLiteralsEnabled: Boolean
@@ -586,7 +587,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LOG.debug("onActivate")
 
       if (hasLiveLiterals) {
-        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId)
+        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
       }
 
       isActive.set(true)

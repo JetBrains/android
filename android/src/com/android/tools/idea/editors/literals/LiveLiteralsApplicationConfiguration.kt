@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -38,7 +39,10 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
   var isEnabled
     get() = state.isEnabled
     set(value) {
-      state.isEnabled = value
+      if (state.isEnabled != value) {
+        state.isEnabled = value
+        LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value)
+      }
     }
 
   /**

@@ -115,7 +115,7 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
    * Call this method when the deployment for [deviceId] has started. This will clear all current registered
    * Problems for that device.
    */
-  override fun liveLiteralsMonitorStarted(deviceId: String) {
+  override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) {
     if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
 
     var started: Boolean
@@ -132,6 +132,7 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
       modificationTracker.incModificationCount()
       project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStarted(deviceId)
     }
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStarted(deviceId, deviceType)
   }
 
   /**
@@ -154,13 +155,13 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     if (stopped) {
       project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStopped(deviceId)
     }
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStopped(deviceId)
   }
 
   override fun liveLiteralPushStarted(deviceId: String, pushId: String) {
     if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
     log.debug("Device '$deviceId' pushed started.")
-    // Currently we only handle 1 single push at a time so we pass an empty pushId
-    LiveLiteralsDiagnosticsManager.getWriteInstance(project).recordPushStarted(deviceId, pushId)
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushStarted(deviceId, pushId)
   }
 
   /**
@@ -176,7 +177,7 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
       if (isActive) {
         problemsMap[deviceId] = problems.toList()
         // Currently we only handle 1 single push at a time so we pass an empty pushId
-        LiveLiteralsDiagnosticsManager.getWriteInstance(project).recordPushFinished(deviceId, pushId, problems.size)
+        LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushed(deviceId, pushId, problems)
       }
       else {
         log.warn("Device $deviceId is not active, liveLiteralPushed ignored.")
