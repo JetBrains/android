@@ -59,11 +59,11 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
     .build()
 
-  val renderResultFuture = CompletableFuture.supplyAsync(Supplier { renderTaskFuture.get() }, executor)
+  val renderResultFuture = CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)
     .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
     .thenApply { if (it != null && it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty() && !it.logger.hasErrors()) it else null }
 
-  CompletableFuture.allOf(renderTaskFuture, renderResultFuture).handle { _, _ -> renderTaskFuture.get().dispose() }
+  renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
 
   return renderResultFuture
 }
@@ -73,8 +73,6 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
  * This method will render the element asynchronously and will return immediately.
  */
 fun renderPreviewElement(facet: AndroidFacet,
-                         previewElement: PreviewElementInstance,
-                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
-  return renderPreviewElementForResult(facet, previewElement, false, executor)
-    .thenApply { it?.renderedImage?.copy }
+                         previewElement: PreviewElementInstance): CompletableFuture<BufferedImage?> {
+  return renderPreviewElementForResult(facet, previewElement).thenApply { it?.renderedImage?.copy }
 }
