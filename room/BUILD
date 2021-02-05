@@ -11,7 +11,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],

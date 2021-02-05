@@ -19,7 +19,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",

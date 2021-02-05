@@ -35,7 +35,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",

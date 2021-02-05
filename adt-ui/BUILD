@@ -28,7 +28,6 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/ninepatch:studio.android.sdktools.ninepatch[module]",
