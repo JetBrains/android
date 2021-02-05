@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService.LearnMoreAction
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOn
@@ -29,7 +30,7 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
-const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-inspector-add-dependency"
+private const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-inspector-add-dependency"
 
 /**
  * The layout inspector can only show compose nodes if the compose tooling library is
@@ -81,11 +82,6 @@ class ComposeDependencyChecker(private val project: Project) {
 
     val message = createMessage(addToolingLibrary, addReflectionLibrary)
     val bannerService = InspectorBannerService.getInstance(project)
-    val learnMore = object : AnAction("Learn more") {
-      override fun actionPerformed(event: AnActionEvent) {
-        BrowserUtil.browse(LEARN_MORE_LINK)
-      }
-    }
     // Temporary disable the actual library addition:
     //val addToProject = object : AnAction("Add to Project") {
     //  override fun actionPerformed(event: AnActionEvent) {
@@ -96,7 +92,7 @@ class ComposeDependencyChecker(private val project: Project) {
     //  }
     //}
     // End temporary change
-    bannerService.setNotification(message, listOf(learnMore, bannerService.DISMISS_ACTION))
+    bannerService.setNotification(message, listOf(LearnMoreAction(LEARN_MORE_LINK), bannerService.DISMISS_ACTION))
   }
 
   private fun createMessage(addToolingLibrary: Boolean, addReflectionLibrary: Boolean): String {

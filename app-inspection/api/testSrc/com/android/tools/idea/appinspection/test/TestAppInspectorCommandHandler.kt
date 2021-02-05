@@ -151,6 +151,23 @@ fun createCreateInspectorResponse(
   }
 }
 
+fun AppInspection.CreateInspectorCommand.createResponse(
+  responseStatus: AppInspection.CreateInspectorResponse.Status,
+  error: String? = null,
+): AppInspection.AppInspectionResponse.Builder {
+  val delegateCreator = if (responseStatus == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
+    DEFAULT_CREATE_INSPECTOR_RESPONSE
+  }
+  else {
+    createCreateInspectorResponse(
+      AppInspection.AppInspectionResponse.Status.ERROR,
+      responseStatus,
+      error
+    )
+  }
+  return delegateCreator(this)
+}
+
 fun createRawResponse(status: AppInspection.AppInspectionResponse.Status,
                       content: String): (AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder {
   return {

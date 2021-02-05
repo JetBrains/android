@@ -78,7 +78,7 @@ class ComposeDependencyCheckerTest {
       "To fully support inspecting Compose layouts, " +
       "your app project should include the compose tooling library.")
     assertThat(lastNotification?.actions).hasSize(2)
-    assertThat(lastNotification?.actions?.firstOrNull()?.templateText).isEqualTo("Learn more")
+    assertThat(lastNotification?.actions?.firstOrNull()?.templateText).isEqualTo("Learn More")
     assertThat(lastNotification?.actions?.lastOrNull()?.templateText).isEqualTo("Dismiss")
   }
 
@@ -93,7 +93,7 @@ class ComposeDependencyCheckerTest {
       "To fully support inspecting Compose layouts, " +
       "your app project should include the Kotlin reflection library.")
     assertThat(lastNotification?.actions).hasSize(2)
-    assertThat(lastNotification?.actions?.firstOrNull()?.templateText).isEqualTo("Learn more")
+    assertThat(lastNotification?.actions?.firstOrNull()?.templateText).isEqualTo("Learn More")
     assertThat(lastNotification?.actions?.lastOrNull()?.templateText).isEqualTo("Dismiss")
   }
 
