@@ -16,9 +16,18 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.property.panel.api.LinkPropertyItem
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBInsets
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.util.application.invokeLater
+import java.util.concurrent.TimeUnit
 
 /**
  * A [LinkPropertyItem] for a lambda parameter from Compose.
@@ -54,19 +63,36 @@ class LambdaPropertyItem(
 ), LinkPropertyItem {
   override val link = object : AnAction("$fileName:$startLineNumber") {
     override fun actionPerformed(event: AnActionEvent) {
-      val loc = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
-      loc?.navigatable?.let {
+      val location =
+        lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
+      templatePresentation.text = location.source
+      location.navigatable?.let {
         if (it.canNavigate()) {
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
             lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
+            if (location.source.endsWith(":unknown")) {
+              showBalloonError("Could not determine exact source location", event)
+            }
           }
           return
         }
       }
-      templatePresentation.isEnabled = false
-      templatePresentation.text = "$fileName:unknown"
+      showBalloonError("Could not determine source location", event)
     }
+  }
+
+  @Suppress("SameParameterValue")
+  private fun showBalloonError(content: String, event: AnActionEvent) {
+    val globalScheme = EditorColorsManager.getInstance().globalScheme
+    val background = globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND) ?: UIUtil.getToolTipBackground()
+    val balloon = JBPopupFactory.getInstance()
+      .createHtmlTextBalloonBuilder(content, AllIcons.General.BalloonWarning, background, null)
+      .setBorderColor(JBColor.border())
+      .setBorderInsets(JBInsets.create(4, 4))
+      .setFadeoutTime(TimeUnit.SECONDS.toMillis(4))
+      .createBalloon()
+    balloon.show(JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext), Balloon.Position.above)
   }
 }
