@@ -118,6 +118,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu();
+    toggleRecordingView.run();
   }
 
   @Override

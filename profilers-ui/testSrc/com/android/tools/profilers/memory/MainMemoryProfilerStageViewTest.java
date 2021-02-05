@@ -43,6 +43,7 @@ import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
@@ -904,6 +905,17 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(view.getStartStopButton().isEnabled()).isTrue();
     assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.STOP);
+  }
+
+  @Test
+  public void recordingsDisabledWhenVisitingDeadSession() {
+    myProfilers.setStage(new NullMonitorStage(myProfilers));
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    assertThat(view.getStartStopButton().isEnabled()).isFalse();
+    view.getAllRadios().forEach(btn -> assertThat(btn.isEnabled()).isFalse());
   }
 
   private static void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
