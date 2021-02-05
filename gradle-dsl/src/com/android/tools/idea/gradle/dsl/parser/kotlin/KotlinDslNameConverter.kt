@@ -85,7 +85,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.semantics) {
           VAR, VWO -> return ExternalNameInfo(e.key.first, false)
-          SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
+          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
           else -> Unit
         }
       }

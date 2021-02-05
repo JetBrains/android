@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
@@ -142,6 +143,10 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       SemanticsDescription description = effect.semantics;
       if (description == ADD_AS_LIST && element instanceof GradleDslSimpleExpression) {
         addAsParsedDslExpressionList(effect.property.name, (GradleDslSimpleExpression) element);
+        return;
+      }
+      if (description == AUGMENT_LIST) {
+        addToParsedExpressionList(effect.property, element);
         return;
       }
       maybeCanonizeElement(element); // NOTYPO
