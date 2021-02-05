@@ -107,3 +107,7 @@ fun ParameterGroup(init: ParameterGroup.Builder.() -> Unit): ParameterGroup {
 fun ParameterGroup.Builder.Parameter(init: Parameter.Builder.() -> Unit) {
   addParameter(Parameter.newBuilder().apply(init).build())
 }
+
+fun Parameter.Builder.Element(init: Parameter.Builder.() -> Unit) {
+  addElements(Parameter.newBuilder().apply(init).build())
+}
