@@ -28,7 +28,6 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",

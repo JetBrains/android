@@ -14,7 +14,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
     ],

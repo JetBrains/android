@@ -1,18 +1,5 @@
 # managed by go/iml_to_build
 java_import(
-    name = "kotlin-stdlib-jdk8",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.0:kotlin-stdlib-jdk8_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "truth",
     # do not sort: must match IML order
     jars = [
