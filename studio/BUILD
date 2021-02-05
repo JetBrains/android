@@ -469,6 +469,8 @@ android_studio(
             "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
             "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
             "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+            "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
+            "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
             "//tools/adt/idea/.idea/libraries:tightvnc",
         ],
         "license": [
