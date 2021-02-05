@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
+import com.intellij.packaging.artifacts.ArtifactType;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
@@ -44,7 +45,6 @@ import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
 import org.jetbrains.annotations.NotNull;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
@@ -336,9 +336,10 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
   @NotNull
   private Collection<? extends Artifact> getAndroidArtifacts() {
     final ArtifactManager artifactManager = ArtifactManager.getInstance(myProject);
-    return artifactManager == null
+    final ArtifactType androidArtifactType = ArtifactType.findById("apk");
+    return artifactManager == null || androidArtifactType == null
            ? Collections.emptyList()
-           : artifactManager.getArtifactsByType(AndroidApplicationArtifactType.getInstance());
+           : artifactManager.getArtifactsByType(androidArtifactType);
   }
 
   @Nullable
