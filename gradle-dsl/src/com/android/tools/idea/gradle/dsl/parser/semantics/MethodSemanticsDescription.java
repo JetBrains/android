@@ -17,19 +17,19 @@ package com.android.tools.idea.gradle.dsl.parser.semantics;
 
 public enum MethodSemanticsDescription implements SemanticsDescription {
   /**
-   * A zero-argument getter method
+   * A zero-argument getter method.
    */
   GET,
   /**
-   * A one-argument setter method
+   * A one-argument setter method.
    */
   SET,
   /**
-   * The method's varargs argument list is the new value of the property
+   * The method's varargs argument list is the new value of the property.
    */
   ADD_AS_LIST,
   /**
-   * Anything else (semantics currently implemented explicitly in DslElement classes)
+   * Anything else (semantics currently implemented explicitly in DslElement classes).
    */
   OTHER
 }
