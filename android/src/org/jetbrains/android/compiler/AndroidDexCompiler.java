@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
@@ -40,7 +39,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
@@ -93,22 +91,6 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
   @Override
   public ValidityState createValidityState(DataInput in) throws IOException {
     return new MyValidityState(in);
-  }
-
-  public static VirtualFile getOutputDirectoryForDex(@NotNull Module module) {
-    if (AndroidMavenUtil.isMavenizedModule(module)) {
-      AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();
-      if (mavenProvider != null) {
-        String buildDirPath = mavenProvider.getBuildDirectory(module);
-        if (buildDirPath != null) {
-          VirtualFile buildDir = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(buildDirPath));
-          if (buildDir != null) {
-            return buildDir;
-          }
-        }
-      }
-    }
-    return CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
   }
 
   static void addModuleOutputDir(Collection<VirtualFile> files, VirtualFile dir) {
@@ -183,7 +165,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
         AndroidFacet facet = FacetManager.getInstance(module).getFacetByType(AndroidFacet.ID);
         if (facet != null && facet.getConfiguration().isAppProject()) {
 
-          final VirtualFile dexOutputDir = getOutputDirectoryForDex(module);
+          final VirtualFile dexOutputDir = AndroidMavenUtil.getOutputDirectoryForDex(module, CompilerModuleExtension.getInstance(module).getCompilerOutputPath());
 
           Collection<VirtualFile> files;
 

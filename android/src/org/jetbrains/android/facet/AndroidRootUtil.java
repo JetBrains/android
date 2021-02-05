@@ -17,16 +17,13 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.base.Strings;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
@@ -35,12 +32,11 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
-import org.jetbrains.android.compiler.AndroidDexCompiler;
+import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -276,7 +272,7 @@ public class AndroidRootUtil {
             VirtualFile classDir = extension.getCompilerOutputPath();
 
             if (libraryProject) {
-              VirtualFile tmpArtifactsDir = AndroidDexCompiler.getOutputDirectoryForDex(depModule);
+              VirtualFile tmpArtifactsDir = AndroidMavenUtil.getOutputDirectoryForDex(depModule, classDir);
 
               if (tmpArtifactsDir != null) {
                 VirtualFile packedClassesJar = tmpArtifactsDir.findChild(CLASSES_JAR_FILE_NAME);

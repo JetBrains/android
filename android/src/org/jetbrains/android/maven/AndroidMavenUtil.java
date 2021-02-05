@@ -20,6 +20,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NonNls;
@@ -151,5 +153,21 @@ public class AndroidMavenUtil {
   @Nullable
   public static AndroidMavenProvider getMavenProvider() {
     return ArrayUtil.getFirstElement(AndroidMavenProvider.EP_NAME.getExtensions());
+  }
+
+  public static VirtualFile getOutputDirectoryForDex(@NotNull Module module, VirtualFile defultDirForNonMavenizedProject) {
+    if (isMavenizedModule(module)) {
+      AndroidMavenProvider mavenProvider = getMavenProvider();
+      if (mavenProvider != null) {
+        String buildDirPath = mavenProvider.getBuildDirectory(module);
+        if (buildDirPath != null) {
+          VirtualFile buildDir = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(buildDirPath));
+          if (buildDir != null) {
+            return buildDir;
+          }
+        }
+      }
+    }
+    return defultDirForNonMavenizedProject;
   }
 }
