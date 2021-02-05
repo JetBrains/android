@@ -31,6 +31,9 @@ public interface AndroidModel extends GradleDslModel {
   AdbOptionsModel adbOptions();
 
   @NotNull
+  AndroidResourcesModel androidResources();
+
+  @NotNull
   ResolvedPropertyModel buildToolsVersion();
 
   @NotNull
