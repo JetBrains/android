@@ -57,7 +57,7 @@ class SinglePreviewElementRendererTest {
   /**
    * Checks the rendering of the default `@Preview` in the Compose template with a background
    */
-  @Test
+  // @Test b/179639821
   fun testDefaultPreviewRenderingWithBackground() {
     val defaultRenderWithBackground = renderPreviewElement(
       projectRule.androidFacet(":app"),

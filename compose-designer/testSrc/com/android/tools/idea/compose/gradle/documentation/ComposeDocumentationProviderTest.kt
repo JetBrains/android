@@ -51,7 +51,7 @@ class ComposeDocumentationProviderTest {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
 
-  @Test
+  // @Test b/179639821
   fun testBasicDoc() {
     val project = projectRule.project
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
