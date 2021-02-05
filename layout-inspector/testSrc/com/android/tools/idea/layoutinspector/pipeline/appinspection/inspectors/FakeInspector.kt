@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors
 
+import com.android.tools.app.inspection.AppInspection
+
 /**
  * Base class for fake versions of our different inspectors.
  *
@@ -32,6 +34,13 @@ abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
   abstract class Connection<E> {
     abstract fun sendEvent(event: E)
   }
+
+  /**
+   * The status we should return when the system attempts to create this inspector.
+   *
+   * This must be set *before* the inspector is launched.
+   */
+  var createResponseStatus = AppInspection.CreateInspectorResponse.Status.SUCCESS
 
   private val interceptors = mutableMapOf<(C) -> Boolean, (C) -> R>()
   private val listeners = mutableMapOf<(C) -> Boolean, (C) -> Unit>()

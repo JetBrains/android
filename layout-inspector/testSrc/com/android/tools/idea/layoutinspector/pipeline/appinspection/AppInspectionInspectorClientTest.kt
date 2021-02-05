@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -190,5 +194,25 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
+  }
+
+  @Test
+  fun composeClientShowsMessageIfOlderComposeUiLibrary() {
+    inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.VERSION_INCOMPATIBLE
+    val banner = InspectorBanner(inspectorRule.project)
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+
+    assertThat(banner.text.text).isEqualTo(INCOMPATIBLE_LIBRARY_MESSAGE)
+  }
+
+  @Test
+  fun composeClientShowsMessageIfProguardedComposeUiLibrary() {
+    inspectionRule.composeInspector.createResponseStatus = AppInspection.CreateInspectorResponse.Status.APP_PROGUARDED
+    val banner = InspectorBanner(inspectorRule.project)
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+
+    assertThat(banner.text.text).isEqualTo(PROGUARDED_LIBRARY_MESSAGE)
   }
 }
