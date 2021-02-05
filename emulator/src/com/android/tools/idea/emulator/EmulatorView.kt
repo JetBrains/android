@@ -51,12 +51,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
+import com.intellij.util.Alarm
+import com.intellij.util.SofterReference
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
@@ -67,11 +70,11 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.color.ColorSpace
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
@@ -109,8 +112,12 @@ import java.awt.event.KeyEvent.VK_W
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
-import java.awt.image.ColorModel
-import java.awt.image.MemoryImageSource
+import java.awt.image.BufferedImage
+import java.awt.image.DataBuffer
+import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
+import java.awt.image.Raster
+import java.awt.image.SinglePixelPackedSampleModel
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -140,11 +147,10 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotImage: Image? = null
+  private var screenshotImage: BufferedImage? = null
   private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
   private var displayRectangle: Rectangle? = null
   private var skinLayout: SkinLayout? = null
-  private val cachedSkinLayout = CachedSkinLayout(emulator)
   private val displayTransform = AffineTransform()
   /** Count of received display frames. */
   @VisibleForTesting
@@ -682,9 +688,14 @@ class EmulatorView(
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw display.
-    displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
-    g.drawImage(displayImage, displayTransform, null)
+    if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
+      g.drawImage(displayImage, null, displayRect.x, displayRect.y)
+    }
+    else {
+      displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
+      displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+      g.drawImage(displayImage, displayTransform, null)
+    }
 
     if (deviceFrameVisible) {
       // Draw device frame and mask.
@@ -740,13 +751,14 @@ class EmulatorView(
         .setWidth(w)
         .setHeight(h)
         .build()
-      val receiver = ScreenshotReceiver(rotation, screenshotShape)
+      val receiver = ScreenshotReceiver(rotation)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
     }
   }
 
   private fun cancelScreenshotFeed() {
+    screenshotReceiver?.let { Disposer.dispose(it) }
     screenshotReceiver = null
     screenshotFeed?.cancel()
     screenshotFeed = null
@@ -930,13 +942,12 @@ class EmulatorView(
     }
   }
 
-  private inner class ScreenshotReceiver(
-    val rotation: SkinRotation,
-    val currentScreenshotShape: DisplayShape
-  ) : EmptyStreamObserver<ImageMessage>() {
-    private var cachedImageSource: MemoryImageSource? = null
-    private val screenshotForSkinUpdate = AtomicReference<Screenshot>()
-    private val screenshotForDisplay = AtomicReference<Screenshot>()
+  private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
+    private val screenshotForProcessing = AtomicReference<RawScreenshot?>()
+    private val screenshotForDisplay = AtomicReference<Screenshot?>()
+    private val displayShapeCache = CachedSkinLayout(emulator)
+    private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
+    private val alarm = Alarm(this)
 
     override fun onNext(response: ImageMessage) {
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
@@ -952,7 +963,7 @@ class EmulatorView(
         return // Ignore empty screenshot.
       }
 
-      val screenshot = Screenshot(response)
+      val screenshot = RawScreenshot(response)
 
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
@@ -964,16 +975,7 @@ class EmulatorView(
         return
       }
 
-      if (screenshot.shape == currentScreenshotShape) {
-        updateDisplayImageAsync(screenshot)
-      }
-      else {
-        updateSkinAndDisplayImageAsync(screenshot)
-      }
-    }
-
-    private fun updateSkinAndDisplayImageAsync(screenshot: Screenshot) {
-      screenshotForSkinUpdate.set(screenshot)
+      screenshotForProcessing.set(screenshot)
 
       executeOnPooledThread {
         // If the screenshot feed has not been cancelled, update the skin and the display image.
@@ -985,12 +987,28 @@ class EmulatorView(
 
     @Slow
     private fun updateSkinAndDisplayImage() {
-      val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
-      screenshot.skinLayout = cachedSkinLayout.get(screenshot.width, screenshot.height, screenshot.rotation)
-      updateDisplayImageAsync(screenshot)
-    }
+      val rawScreenshot = screenshotForProcessing.getAndSet(null) ?: return
+      val shape = rawScreenshot.shape
+      val skinLayout = displayShapeCache.get(shape)
+      alarm.cancelAllRequests()
+      val recycledImage = recycledImage.getAndSet(null)?.get()
+      val image = if (recycledImage?.width == shape.width && recycledImage.height == shape.height) {
+        val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
+        unpackPixels(rawScreenshot.imageBytes, pixels)
+        recycledImage
+      }
+      else {
+        val pixels = IntArray(shape.width * shape.height)
+        unpackPixels(rawScreenshot.imageBytes, pixels)
+        val buffer = DataBufferInt(pixels, pixels.size)
+        val sampleModel =
+            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, shape.width, shape.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+        val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
+        @Suppress("UndesirableClassUsage")
+        BufferedImage(COLOR_MODEL, raster, false, null)
+      }
 
-    private fun updateDisplayImageAsync(screenshot: Screenshot) {
+      val screenshot = Screenshot(shape, image, skinLayout)
       screenshotForDisplay.set(screenshot)
 
       invokeLaterInAnyModalityState {
@@ -1006,85 +1024,66 @@ class EmulatorView(
       hideLongRunningOperationIndicatorInstantly()
 
       val screenshot = screenshotForDisplay.getAndSet(null) ?: return
-      val w = screenshot.width
-      val h = screenshot.height
 
-      val layout = screenshot.skinLayout
-      if (layout != null) {
-        skinLayout = layout
-      }
-      if (skinLayout == null) {
-        // Create a skin layout without a device frame.
-        skinLayout = SkinLayout(Dimension(w, h))
+      // Creation of a large BufferedImage is expensive. Recycle the old image if it has the proper size.
+      screenshotImage?.let {
+        if (it.width == screenshot.displayShape.width && it.height == screenshot.displayShape.height) {
+          recycledImage.set(SofterReference(it))
+          alarm.cancelAllRequests()
+          alarm.addRequest({ recycledImage.set(null) }, CACHED_IMAGE_LIVE_TIME_MILLIS, ModalityState.any())
+        }
       }
 
-      var imageSource = cachedImageSource
-      if (imageSource == null || screenshotShape.width != w || screenshotShape.height != h) {
-        imageSource = MemoryImageSource(w, h, screenshot.pixels, 0, w)
-        imageSource.setAnimated(true)
-        screenshotImage = createImage(imageSource)
-        screenshotShape = screenshot.shape
-        cachedImageSource = imageSource
-      }
-      else {
-        imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, w)
-      }
+      skinLayout = screenshot.skinLayout
+      screenshotImage = screenshot.image
+      screenshotShape = screenshot.displayShape
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
     }
-  }
 
-  private class Screenshot(emulatorImage: ImageMessage) {
-    val shape: DisplayShape
-    val pixels: IntArray
-    var skinLayout: SkinLayout? = null
-    val width: Int
-      get() = shape.width
-    val height: Int
-      get() = shape.height
-    val rotation: SkinRotation
-      get() = shape.rotation
-
-    init {
-      val format = emulatorImage.format
-      shape = DisplayShape(format.width, format.height, format.rotation.rotation)
-      pixels = getPixels(emulatorImage.image, width, height)
-    }
-
-    private fun getPixels(imageBytes: ByteString, width: Int, height: Int): IntArray {
-      val pixels = IntArray(width * height)
-      val byteIterator = imageBytes.iterator()
+    @Slow
+    fun unpackPixels(imageBytes: ByteString, pixels: IntArray) {
       val alpha = 0xFF shl 24
+      var j = 0
       for (i in pixels.indices) {
-        val red = byteIterator.nextByte().toInt() and 0xFF
-        val green = byteIterator.nextByte().toInt() and 0xFF
-        val blue = byteIterator.nextByte().toInt() and 0xFF
+        val red = imageBytes.byteAt(j).toInt() and 0xFF
+        val green = imageBytes.byteAt(j + 1).toInt() and 0xFF
+        val blue = imageBytes.byteAt(j + 2).toInt() and 0xFF
+        j += 3
         pixels[i] = alpha or (red shl 16) or (green shl 8) or blue
       }
-      return pixels
+    }
+
+    override fun dispose() {
     }
   }
+
+  private class RawScreenshot(emulatorImage: ImageMessage) {
+    val shape = DisplayShape(emulatorImage.format)
+    val imageBytes: ByteString = emulatorImage.image
+    val rotation: SkinRotation
+      get() = shape.rotation
+  }
+
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout)
 
   /**
    * Stores the last computed scaled [SkinLayout] together with the corresponding display
    * dimensions and orientation.
    */
   private class CachedSkinLayout(val emulator: EmulatorController) {
-    var width = 0
-    var height = 0
-    var displayRotation: SkinRotation? = null
+    var displayShape: DisplayShape? = null
     var skinLayout: SkinLayout? = null
 
-    fun get(width: Int, height: Int, displayRotation: SkinRotation): SkinLayout {
+    fun get(displayShape: DisplayShape): SkinLayout {
       synchronized(this) {
         var layout = this.skinLayout
-        if (width != this.width || height != this.height || displayRotation != this.displayRotation || layout == null) {
-          layout = emulator.skinDefinition?.createScaledLayout(width, height, displayRotation) ?: SkinLayout(Dimension(width, height))
-          this.width = width
-          this.height = height
-          this.displayRotation = displayRotation
+        if (displayShape != this.displayShape || layout == null) {
+          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
+                   SkinLayout(displayShape.width, displayShape.height)
+          this.displayShape = displayShape
           this.skinLayout = layout
         }
         return layout
@@ -1092,7 +1091,9 @@ class EmulatorView(
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation)
+  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation) {
+    constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
+  }
 }
 
 private var emulatorOutOfDateNotificationShown = false
@@ -1103,5 +1104,11 @@ private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS = VIRTUAL_SCENE_CAME
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+
+private val ZERO_POINT = Point()
+private const val ALPHA_MASK = 0xFF shl 24
+private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                   32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
+private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
