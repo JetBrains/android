@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.SdkConstants
+import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
@@ -61,7 +62,7 @@ class ComposeParametersDataGenerator(
         packageName = stringTable[lambdaValue.packageName],
         fileName = stringTable[lambdaValue.fileName],
         lambdaName = stringTable[lambdaValue.lambdaName],
-        functionName = stringTable[lambdaValue.functionName],
+        functionName = stringTable [lambdaValue.functionName],
         startLineNumber = lambdaValue.startLineNumber,
         endLineNumber = lambdaValue.endLineNumber,
         lookup = lookup
@@ -85,14 +86,29 @@ class ComposeParametersDataGenerator(
     val type = type.convert()
 
     // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-    return InspectorPropertyItem(
-      SdkConstants.ANDROID_URI,
-      name,
-      type,
-      value.toString(),
-      PropertySection.DEFAULT,
-      null,
-      composableId,
-      lookup)
+    if (elementsList.isEmpty()) {
+      return InspectorPropertyItem(
+        SdkConstants.ANDROID_URI,
+        name,
+        type,
+        value.toString(),
+        PropertySection.DEFAULT,
+        null,
+        composableId,
+        lookup)
+    }
+    else {
+      return InspectorGroupPropertyItem(
+        SdkConstants.ANDROID_URI,
+        name,
+        type,
+        value.toString(),
+        null,
+        PropertySection.DEFAULT,
+        null,
+        composableId,
+        lookup,
+        elementsList.toList().map { it.toPropertyItem(composableId) })
+    }
   }
 }
