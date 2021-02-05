@@ -819,6 +819,8 @@
     <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
+
+    <projectFacetListener facet-type="android" implementation="org.jetbrains.android.facet.AndroidModuleAutogenerationListener"/>
   </extensions>
 
   <projectListeners>
