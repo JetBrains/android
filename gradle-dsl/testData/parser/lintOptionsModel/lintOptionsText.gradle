@@ -14,6 +14,7 @@ android {
     htmlReport false
     ignore 'ignore-id-1', 'ignore-id-2'
     ignoreWarnings true
+    informational 'informational-id-1', 'informational-id-2'
     lintConfig file('lint.config')
     noLines false
     quiet true

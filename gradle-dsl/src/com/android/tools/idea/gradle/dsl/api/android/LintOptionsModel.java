@@ -64,6 +64,9 @@ public interface LintOptionsModel extends GradleDslModel {
   ResolvedPropertyModel ignoreWarnings();
 
   @NotNull
+  ResolvedPropertyModel informational();
+
+  @NotNull
   ResolvedPropertyModel lintConfig();
 
   @NotNull

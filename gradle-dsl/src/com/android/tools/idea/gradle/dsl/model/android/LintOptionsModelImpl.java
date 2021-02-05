@@ -38,6 +38,7 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NonNls public static final String HTML_REPORT = "mHtmlReport";
   @NonNls public static final String IGNORE = "mIgnore";
   @NonNls public static final String IGNORE_WARNINGS = "mIgnoreWarnings";
+  @NonNls public static final String INFORMATIONAL = "mInformational";
   @NonNls public static final String LINT_CONFIG = "mLintConfig";
   @NonNls public static final String NO_LINES = "mNoLines";
   @NonNls public static final String QUIET = "mQuiet";
@@ -135,6 +136,12 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NotNull
   public ResolvedPropertyModel ignoreWarnings() {
     return getModelForProperty(IGNORE_WARNINGS);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel informational() {
+    return getModelForProperty(INFORMATIONAL);
   }
 
   @Override
