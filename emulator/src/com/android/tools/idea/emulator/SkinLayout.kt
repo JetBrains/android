@@ -38,7 +38,7 @@ class SkinLayout(val displaySize: Dimension, val frameRectangle: Rectangle,
   /**
    * Creates a layout without a frame or mask.
    */
-  constructor(displaySize: Dimension) : this(displaySize, Rectangle(0, 0, displaySize.width, displaySize.height), emptyList(), emptyList())
+  constructor(width: Int, height: Int) : this(Dimension(width, height), Rectangle(0, 0, width, height), emptyList(), emptyList())
 
   /**
    * Draws frame and mask to the given graphics context. The [displayRectangle]  parameter defines
