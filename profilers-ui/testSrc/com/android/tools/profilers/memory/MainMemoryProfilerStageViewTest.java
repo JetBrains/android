@@ -643,18 +643,12 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Test
   public void testNativeAllocationContextMenu() {
     myIdeProfilerServices.enableNativeMemorySampling(true);
-    int deviceId = "Test".hashCode();
     // Setup Q Device.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId(deviceId)
-      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
+    Common.Device device = makeDevice("Test", AndroidVersion.VersionCodes.Q);
     myTransportService.addDevice(device);
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
     myTransportService.addEventToStream(
-      deviceId, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+      device.getDeviceId(), ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
     startSessionHelper(device, FAKE_PROCESS);
 
     // Clear the pre-setup context menu items.
@@ -702,6 +696,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Test
   public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
     myIdeProfilerServices.enableNativeMemorySampling(true);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     RecordingOptionsView view = new MainMemoryProfilerStageView(myProfilersView, myStage).getRecordingOptionsView();
     myStage.toggleNativeAllocationTracking();
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -725,14 +720,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
       view1.getGarbageCollectionButtion()
     );
 
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId("Test".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
 
     MainMemoryProfilerStageView view2 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     toolbar = (JPanel)view2.getToolbar().getComponent(0);
@@ -748,14 +736,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     myIdeProfilerServices.enableLiveAllocationTracking(true);
 
     // Test toolbar configuration for pre-O.
-    Common.Device device = Common.Device.newBuilder()
-      .setDeviceId("PreO".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.N)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
+    startWithNewDevice("PreO", AndroidVersion.VersionCodes.N);
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
@@ -764,14 +745,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     );
 
     // Test toolbar configuration for O+;
-    device = Common.Device.newBuilder()
-      .setDeviceId("OPlus".hashCode())
-      .setFeatureLevel(AndroidVersion.VersionCodes.O)
-      .setSerial("Test")
-      .setState(Common.Device.State.ONLINE)
-      .build();
-    myTransportService.addDevice(device);
-    startSessionHelper(device, FAKE_PROCESS);
+    startWithNewDevice("OPlus", AndroidVersion.VersionCodes.O);
     MainMemoryProfilerStageView view2 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     toolbar = (JPanel)view2.getToolbar().getComponent(0);
     assertThat(toolbar.getComponents()).asList().containsExactly(
@@ -916,6 +890,21 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
     assertThat(view.getStartStopButton().isEnabled()).isFalse();
     view.getAllRadios().forEach(btn -> assertThat(btn.isEnabled()).isFalse());
+  }
+
+  @Test
+  public void uiInSyncWithStartupNativeRecording() {
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
+    assertThat(myStage.isNativeAllocationSamplingEnabled()).isTrue();
+    myStage.nativeAllocationTrackingStart(Memory.MemoryNativeTrackingData.newBuilder()
+                                            .setStatus(Memory.MemoryNativeTrackingData.Status.SUCCESS)
+                                            .build());
+    RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
+    assertThat(view.getStartStopButton().getText()).isEqualTo(RecordingOptionsView.STOP);
+    assertThat(view.getStartStopButton().isEnabled()).isTrue();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isNotNull();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption().getTitle()).isEqualTo(MainMemoryProfilerStage.RECORD_NATIVE_TEXT);
   }
 
   private static void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
@@ -1091,5 +1080,20 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     myProfilers.getSessionsManager().beginSession(device.getDeviceId(), device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.setStage(myStage);
+  }
+
+  private void startWithNewDevice(String name, int versionCode) {
+    Common.Device device = makeDevice(name, versionCode);
+    myTransportService.addDevice(device);
+    startSessionHelper(device, FAKE_PROCESS);
+  }
+
+  private Common.Device makeDevice(String name, int versionCode) {
+    return Common.Device.newBuilder()
+      .setDeviceId(name.hashCode())
+      .setFeatureLevel(versionCode)
+      .setSerial("Test")
+      .setState(Common.Device.State.ONLINE)
+      .build();
   }
 }
