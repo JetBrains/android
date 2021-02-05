@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * -avd Pixel_4_API_30}. The subclasses map to different ways of booting a virtual device: cold boot, cold boot now, quick boot, snapshot
  * boot, etc.
  */
-public abstract class EmulatorCommandBuilder {
+public class EmulatorCommandBuilder {
   /**
    * The path to the emulator executable, something like /home/user/Android/Sdk/emulator/emulator on Linux
    */
@@ -44,7 +44,7 @@ public abstract class EmulatorCommandBuilder {
 
   private final @NotNull List<@NotNull String> myStudioEmuParams;
 
-  EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
+  public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
     myEmulator = emulator;
     myAvd = avd;
 
@@ -105,5 +105,6 @@ public abstract class EmulatorCommandBuilder {
     command.addParameters(parameter1, parameter2.toString());
   }
 
-  abstract void addSnapshotParameters(@NotNull GeneralCommandLine command);
+  void addSnapshotParameters(@NotNull GeneralCommandLine command) {
+  }
 }

@@ -71,8 +71,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulato
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
-import com.android.tools.idea.avdmanager.emulatorcommand.QuickBootEmulatorCommandBuilder;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -421,7 +421,7 @@ public class AvdManagerConnection {
   }
 
   public @NotNull ListenableFuture<@NotNull IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd) {
-    return startAvd(project, avd, QuickBootEmulatorCommandBuilder::new);
+    return startAvd(project, avd, EmulatorCommandBuilder::new);
   }
 
   public @NotNull ListenableFuture<@NotNull IDevice> bootWithSnapshot(@NotNull Project project,
@@ -430,19 +430,17 @@ public class AvdManagerConnection {
     return startAvd(project, avd, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
-  @NotNull
-  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, new DefaultEmulatorCommandBuilderFactory());
   }
 
-  @NotNull
-  ListenableFuture<IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, ColdBootNowEmulatorCommandBuilder::new);
   }
 
-  private @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project,
-                                                      @NotNull AvdInfo info,
-                                                      @NotNull EmulatorCommandBuilderFactory factory) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project,
+                                                              @NotNull AvdInfo info,
+                                                              @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
