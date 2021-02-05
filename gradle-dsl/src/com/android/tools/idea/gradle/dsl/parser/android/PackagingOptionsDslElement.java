@@ -38,25 +38,25 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"doNotStrip", property, DO_NOT_STRIP, VAR},
-    {"doNotStrip", exactly(1), DO_NOT_STRIP, OTHER},
+    {"doNotStrip", exactly(1), DO_NOT_STRIP, AUGMENT_LIST},
     {"excludes", property, EXCLUDES, VAR},
-    {"exclude", exactly(1), EXCLUDES, OTHER},
+    {"exclude", exactly(1), EXCLUDES, AUGMENT_LIST},
     {"merges", property, MERGES, VAR},
-    {"merge", exactly(1), MERGES, OTHER},
+    {"merge", exactly(1), MERGES, AUGMENT_LIST},
     {"pickFirsts", property, PICK_FIRSTS, VAR},
-    {"pickFirst", exactly(1), PICK_FIRSTS, OTHER}
+    {"pickFirst", exactly(1), PICK_FIRSTS, AUGMENT_LIST}
   }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"doNotStrip", property, DO_NOT_STRIP, VAR},
-    {"doNotStrip", exactly(1), DO_NOT_STRIP, OTHER},
+    {"doNotStrip", exactly(1), DO_NOT_STRIP, AUGMENT_LIST},
     {"excludes", property, EXCLUDES, VAR},
-    {"exclude", exactly(1), EXCLUDES, OTHER},
+    {"exclude", exactly(1), EXCLUDES, AUGMENT_LIST},
     {"merges", property, MERGES, VAR},
-    {"merge", exactly(1), MERGES, OTHER},
+    {"merge", exactly(1), MERGES, AUGMENT_LIST},
     {"pickFirsts", property, PICK_FIRSTS, VAR},
-    {"pickFirst", exactly(1), PICK_FIRSTS, OTHER}
+    {"pickFirst", exactly(1), PICK_FIRSTS, AUGMENT_LIST}
   }).collect(toModelMap());
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
     new PropertiesElementDescription<>("packagingOptions", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
@@ -77,31 +77,5 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("doNotStrip")) {
-      addToParsedExpressionList(DO_NOT_STRIP, element);
-      return;
-    }
-
-    if (property.equals("exclude")) {
-      addToParsedExpressionList(EXCLUDES, element);
-      return;
-    }
-
-    if (property.equals("merge")) {
-      addToParsedExpressionList(MERGES, element);
-      return;
-    }
-
-    if (property.equals("pickFirst")) {
-      addToParsedExpressionList(PICK_FIRSTS, element);
-      return;
-    }
-
-    super.addParsedElement(element);
   }
 }
