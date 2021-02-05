@@ -151,15 +151,15 @@ private val LOG = Logger.getInstance("Upgrade Assistant")
 abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   constructor(project: Project) : super(project) {
     this.project = project
-    this.buildModel = ProjectBuildModel.get(project)
+    this.projectBuildModel = ProjectBuildModel.get(project)
   }
   constructor(processor: GradleBuildModelRefactoringProcessor): super(processor.project) {
     this.project = processor.project
-    this.buildModel = processor.buildModel
+    this.projectBuildModel = processor.projectBuildModel
   }
 
   val project: Project
-  val buildModel: ProjectBuildModel
+  val projectBuildModel: ProjectBuildModel
 
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
 
@@ -177,10 +177,10 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
 
   override fun performPsiSpoilingRefactoring() {
     LOG.info("applying changes from \"${this.commandName}\" refactoring to build model")
-    buildModel.applyChanges()
+    projectBuildModel.applyChanges()
 
     if (psiSpoilingUsageInfos.isNotEmpty()) {
-      buildModel.reparse()
+      projectBuildModel.reparse()
     }
 
     psiSpoilingUsageInfos.forEach {
@@ -304,7 +304,7 @@ class AgpUpgradeRefactoringProcessor(
     //  they are run in isolation.  We could be correct regarding the sub-processor issue by either keeping track
     //  of which constructor was used (e.g. "do I have a parent processor?  If so, don't reparse") or by reparsing
     //  in findUsages() but calling findComponentUsages() from here.
-    buildModel.reparse()
+    projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
     usages.addAll(classpathRefactoringProcessor.findUsages())
@@ -575,7 +575,7 @@ class AgpUpgradeRefactoringProcessor(
     progressManager.runProcessWithProgressSynchronously(
       {
         val indicator = progressManager.progressIndicator
-        buildModel.getAllIncludedBuildModels { seen, total ->
+        projectBuildModel.getAllIncludedBuildModels { seen, total ->
           indicator?.let {
             indicator.checkCanceled()
             // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
@@ -818,7 +818,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     val buildSrcDir = File(getBaseDirPath(project), "buildSrc").toVirtualFile()
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (isUpdatablePluginDependency(new, dep)) {
@@ -938,7 +938,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     val usages = ArrayList<UsageInfo>()
     // using the buildModel, look for classpath dependencies on AGP, and if we find one,
     // check the buildscript/repositories block for a google() gmaven entry, recording an additional usage if we don't find one
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         when (isUpdatablePluginDependency(new, dep)) {
           // consider returning a usage even if the dependency has the current version (in a chained upgrade, the dependency
@@ -1033,7 +1033,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     // Check plugins for compatibility with our minimum Gradle version even if we're not upgrading (because the project has a higher
     // version, for example) because some compatibility issues are related to the (AGP,Gradle) version pair rather than just directly
     // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CLASSPATH).forEach dep@{ dep ->
         GradleVersion.tryParse(dep.version().toString())?.let { currentVersion ->
           // GradleVersion.tryParse() looks like it should only parse plausibly-valid version strings.  Unfortunately, things like
@@ -1219,7 +1219,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     }
 
     val usages = mutableListOf<UsageInfo>()
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // TODO(xof): we should consolidate the various ways of guessing what a module is from its plugins (see also
       //  PsModuleType.kt)
       val pluginNames = model.plugins().map { it.name().forceString() }
@@ -1378,7 +1378,7 @@ class KotlinLanguageLevelUsageInfo(
   }
 
   override fun performPsiSpoilingBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    val element = processor.buildModel.getModuleBuildModel(gradleFile).android().kotlinOptions().jvmTarget().psiElement ?: return
+    val element = processor.projectBuildModel.getModuleBuildModel(gradleFile).android().kotlinOptions().jvmTarget().psiElement ?: return
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = documentManager.getDocument(element.containingFile) ?: return
     document.insertString(element.textRange.endOffset, " // Java 7 not supported by kotlinOptions jvmTarget")
@@ -1434,7 +1434,7 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       }
     }
 
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // if we don't have a PsiElement for the model, we don't have a file at all, and attempting to perform a refactoring is not
       // going to work
       val modelPsiElement = model.psiElement ?: return@model
@@ -1534,7 +1534,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = ArrayList<UsageInfo>()
-    buildModel.allIncludedBuildModels.forEach model@{ model ->
+    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
 
       // ref. https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android Step 2.1:
@@ -1920,8 +1920,8 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
 }
 
 data class BooleanPropertiesMoveRefactoringInfo(
-  val optionalVersion: GradleVersion,
-  val requiredVersion: GradleVersion,
+  val optionalFromVersion: GradleVersion,
+  val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
@@ -1932,7 +1932,7 @@ data class BooleanPropertiesMoveRefactoringInfo(
     constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-    override fun necessity() = standardRegionNecessity(current, new, optionalVersion, requiredVersion)
+    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
 
@@ -1941,9 +1941,9 @@ data class BooleanPropertiesMoveRefactoringInfo(
 
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
-      buildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
+      projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
         propertyMoveInfos.forEach propertyInfo@{ propertyInfo ->
-          val propertyModel = buildModel.(propertyInfo.sourceModel)()
+          val propertyModel = buildModel.(propertyInfo.sourcePropertyModelGetter)()
           if (propertyModel.getValue(BOOLEAN_TYPE) != null) {
             val psiElement = propertyModel.psiElement ?: return@propertyInfo
             val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
@@ -1970,8 +1970,8 @@ data class BooleanPropertiesMoveRefactoringInfo(
 }
 
 data class BooleanPropertyMoveInfo(
-  val sourceModel: GradleBuildModel.() -> ResolvedPropertyModel,
-  val destinationModel: GradleBuildModel.() -> ResolvedPropertyModel,
+  val sourcePropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
+  val destinationPropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
 ) {
@@ -1981,7 +1981,7 @@ data class BooleanPropertyMoveInfo(
     val buildModel: GradleBuildModel
   ) : GradleBuildModelUsageInfo(element) {
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-      val valueModel = buildModel.sourceModel().unresolvedModel
+      val valueModel = buildModel.sourcePropertyModelGetter().unresolvedModel
 
       val value: Any = when (valueModel.valueType) {
         GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
@@ -1989,8 +1989,8 @@ data class BooleanPropertyMoveInfo(
         else -> return
       }
 
-      buildModel.destinationModel().setValue(value)
-      buildModel.sourceModel().delete()
+      buildModel.destinationPropertyModelGetter().setValue(value)
+      buildModel.sourcePropertyModelGetter().delete()
     }
 
     override fun getTooltipText(): String = tooltipTextSupplier.get()
@@ -2000,31 +2000,31 @@ data class BooleanPropertyMoveInfo(
 }
 
 val VIEW_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
-  { android().viewBinding().enabled() },
-  { android().buildFeatures().viewBinding() },
-  AndroidBundle.messagePointer("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
+  sourcePropertyModelGetter = { android().viewBinding().enabled() },
+  destinationPropertyModelGetter = { android().buildFeatures().viewBinding() },
+  tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
+  usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
 )
 
 val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
-  { android().dataBinding().enabled() },
-  { android().buildFeatures().dataBinding() },
-  AndroidBundle.messagePointer("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
+  sourcePropertyModelGetter = { android().dataBinding().enabled() },
+  destinationPropertyModelGetter = { android().buildFeatures().dataBinding() },
+  tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
+  usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
 )
 
 val MIGRATE_TO_BUILD_FEATURES_INFO = BooleanPropertiesMoveRefactoringInfo(
-  GradleVersion.parse("4.0.0-alpha05"),
-  GradleVersion.parse("7.0.0"),
-  AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
-  AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
-  MIGRATE_TO_BUILD_FEATURES,
-  listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
+  optionalFromVersion = GradleVersion.parse("4.0.0-alpha05"),
+  requiredFromVersion = GradleVersion.parse("7.0.0"),
+  commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
+  processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
+  componentKind = MIGRATE_TO_BUILD_FEATURES,
+  propertyMoveInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
 
 data class RemovePropertiesRefactoringInfo(
-  val optionalVersion: GradleVersion,
-  val requiredVersion: GradleVersion,
+  val optionalFromVersion: GradleVersion,
+  val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
@@ -2035,7 +2035,7 @@ data class RemovePropertiesRefactoringInfo(
     constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-    override fun necessity() = standardRegionNecessity(current, new, optionalVersion, requiredVersion)
+    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
 
@@ -2044,9 +2044,9 @@ data class RemovePropertiesRefactoringInfo(
 
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
-      buildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
+      projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
         removePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
-          val models = buildModel.(propertyInfo.model)()
+          val models = buildModel.(propertyInfo.propertyModelGetter)()
           models.forEach model@{ model ->
             val psiElement = model.representativeContainedPsiElement ?: return@model
             val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
@@ -2073,7 +2073,7 @@ data class RemovePropertiesRefactoringInfo(
 }
 
 data class RemovePropertiesInfo(
-  val model: GradleBuildModel.() -> List<GradleDslModel>,
+  val propertyModelGetter: GradleBuildModel.() -> List<GradleDslModel>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
 ) {
@@ -2083,7 +2083,7 @@ data class RemovePropertiesInfo(
   ) : GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-      buildModel.model().forEach {
+      buildModel.propertyModelGetter().forEach {
         it.delete()
       }
     }
@@ -2095,18 +2095,18 @@ data class RemovePropertiesInfo(
 }
 
 val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
-  { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
-  AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
+  propertyModelGetter = { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
+  tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
+  usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
 )
 
 val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
-  GradleVersion.parse("7.0.0-alpha06"),
-  GradleVersion.parse("8.0.0"),
-  AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
-  AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
-  REMOVE_SOURCE_SET_JNI,
-  listOf(SOURCE_SET_JNI_INFO)
+  optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
+  requiredFromVersion = GradleVersion.parse("8.0.0"),
+  commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
+  componentKind = REMOVE_SOURCE_SET_JNI,
+  removePropertiesInfos = listOf(SOURCE_SET_JNI_INFO)
 )
 
 /**
