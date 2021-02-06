@@ -110,13 +110,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "protobuf",
-    jars = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:protobuf_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "libam-instrumentation-data-proto",
     jars = ["//tools/base/ddmlib:libam-instrumentation-data-proto.jar"],
     visibility = ["//visibility:public"],
