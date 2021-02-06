@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.debuggers",
     srcs = ["src"],
-    bundled_deps = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9:kotlinx-coroutines-guava"],
     iml_files = ["intellij.android.debuggers.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],

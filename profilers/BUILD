@@ -12,7 +12,6 @@ filegroup(
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/profilers:traceprocessor-proto"],
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [

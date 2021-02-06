@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.compose-designer",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/compose-designer:ui-animation-tooling-internal"],
     iml_files = ["intellij.android.compose-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],

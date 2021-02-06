@@ -53,11 +53,7 @@ def _module_deps(ctx, jar_names, modules):
                 plugin_jar = j
                 plugin_xml = m.module.plugin
             modules_jars += [m.module.module_jars]
-            for dep in m.module.bundled_deps:
-                if dep in bundled:
-                    continue
-                res_files += [(dep.basename, dep)]
-                bundled[dep] = True
+
         run_singlejar(ctx, modules_jars, jar_file)
         res_files += [(j, jar_file)]
     return res_files, plugin_jar, plugin_xml
@@ -145,6 +141,7 @@ def _depset_subtract(depset1, depset2):
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
     plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
     _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
@@ -152,16 +149,20 @@ def _studio_plugin_impl(ctx):
 
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
-    need = depset(transitive = [m.module.module_deps for m in ctx.attr.modules] + [m.module.plugin_deps for m in ctx.attr.modules])
+    need = depset(transitive =
+                      [m.module.module_deps for m in ctx.attr.modules] +
+                      [m.module.plugin_deps for m in ctx.attr.modules] +
+                      [m.module.external_deps for m in ctx.attr.modules])
     have = depset(
-        direct = ctx.attr.modules + ctx.attr.provided,
+        direct = ctx.attr.modules + ctx.attr.libs + ctx.attr.provided,
         transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
+                     [d.lib_deps for d in ctx.attr.deps if hasattr(d, "lib_deps")] +
                      [depset([p for p in ctx.attr.deps if hasattr(p, "plugin_info")])],
     )
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
-        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
+        fail("Whilae analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
     return struct(
         directory = ctx.attr.directory,
@@ -173,11 +174,13 @@ def _studio_plugin_impl(ctx):
         files_win = depset([ctx.outputs.plugin_win]),
         plugin_info = plugin_info,
         module_deps = depset(ctx.attr.modules),
+        lib_deps = depset(ctx.attr.libs),
     )
 
 _studio_plugin = rule(
     attrs = {
         "modules": attr.label_list(allow_empty = False),
+        "libs": attr.label_list(allow_files = True),
         "jars": attr.string_list(),
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),

@@ -23,18 +23,7 @@ java_proto_library(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core",
-    # do not sort: must match IML order
     srcs = ["src"],
-    bundled_deps = [
-        "//tools/adt/idea/android/lib:spantable",
-        "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
-        "//tools/adt/idea/android:moshi",
-        "//tools/adt/idea/android/lib:instantapps-api",
-        "//tools/adt/idea/android/lib:pepk",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
-        "//tools/adt/idea/android:libandroid-core-proto",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
-    ],
     iml_files = ["intellij.android.core.iml"],
     lint_baseline = "lint_baseline.xml",
     lint_timeout = "long",
@@ -123,12 +112,6 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
-    bundled_deps = [
-        "//tools/adt/idea/android/lib:instantapps-api",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
-        "//tools/adt/idea/android:libandroid-core-proto",
-        "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
-    ],
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {

@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.app-inspection.inspectors.workmanager.view",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
