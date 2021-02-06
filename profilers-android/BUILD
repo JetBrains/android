@@ -5,7 +5,6 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/profilers-android:traceprocessor-proto"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],

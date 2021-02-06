@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.editor",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/nav/editor:eclipse-layout-kernel"],
     iml_files = ["intellij.android.nav.editor.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],

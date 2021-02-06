@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.buildCommon",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/android/lib:android-sdk-tools-jps"],
     iml_files = ["intellij.android.buildCommon.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
