@@ -84,7 +84,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
         "//tools/adt/idea/.idea/libraries:transport-proto[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",

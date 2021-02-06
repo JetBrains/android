@@ -43,7 +43,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",

@@ -17,7 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module-library">
       <library name="ui-animation-tooling-internal">
