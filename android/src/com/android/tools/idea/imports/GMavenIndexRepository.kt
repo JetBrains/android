@@ -21,19 +21,26 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.HttpRequests
+import com.intellij.util.io.exists
+import com.intellij.util.io.outputStream
 import java.io.InputStream
+import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.Duration
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /** Network connection timeout in milliseconds. */
 private const val NETWORK_TIMEOUT_MILLIS = 5000
 private const val GZ_EXT = ".gz"
+
+/** Key used in property list to find ETag value.  */
+private const val ETAG_KEY = "etag"
 
 /**
  * A repository provides Maven class registry generated from loading local disk cache, which is actively refreshed from
@@ -49,6 +56,8 @@ class GMavenIndexRepository(
   private val cacheDir: Path,
   private val refreshInterval: Duration
 ) : Disposable {
+  private class ValueWithETag(val data: ByteArray, val eTag: String)
+
   private val relativeCachePath = if (RELATIVE_PATH.endsWith(GZ_EXT)) RELATIVE_PATH.dropLast(GZ_EXT.length) else RELATIVE_PATH
   private var lastComputedMavenClassRegistry = AtomicReference<MavenClassRegistryFromRepository?>()
   private val scheduler = AppExecutorUtil.createBoundedScheduledExecutorService(
@@ -116,21 +125,34 @@ class GMavenIndexRepository(
   /**
    * Returns [RefreshedStatus.UPDATED] if the disk cache is successfully updated.
    *
-   * Or returns [RefreshedStatus.UNCHANGED] if it's already up to date. Or returns
-   * [RefreshedStatus.ERROR] when errors occur.
+   * Or returns [RefreshedStatus.UNCHANGED] if it's already up to date. Or returns [RefreshedStatus.ERROR] when errors
+   * occur.
+   *
+   * When requesting content, we explicitly store the corresponding ETag values, in a `.properties` file, as a sibling
+   * to the local cached content. So, such cached ETag value can be an identifier to determine if there's new changes
+   * since the last request, and `304 Not Modified Response` is the expected response if we've already gotten an up to
+   * date cache.
    */
   @Slow
   private fun refreshDiskCache(url: String): RefreshedStatus {
-    return try {
+    try {
       val cacheFile = cacheDir.resolve(relativeCachePath)
-      val data = readUrlData(url, NETWORK_TIMEOUT_MILLIS)
-      saveCache(data, cacheFile)
-      thisLogger().info("Refreshed disk cache successfully.")
-      RefreshedStatus.UPDATED
+      val eTagForCacheFile: String? = if (cacheFile.exists()) loadETag(getETagFile(cacheFile)) else null
+
+      val valueWithETag = readUrlData(url, NETWORK_TIMEOUT_MILLIS, eTagForCacheFile)
+      if (valueWithETag == null) {
+        thisLogger().info("Kept the old disk cache with an old ETag header: $eTagForCacheFile.")
+        return RefreshedStatus.UNCHANGED
+      }
+
+      saveCache(valueWithETag.data, cacheFile)
+      saveETag(getETagFile(cacheFile), valueWithETag.eTag)
+      thisLogger().info("Refreshed disk cache successfully with a new ETag header: ${valueWithETag.eTag}.")
+      return RefreshedStatus.UPDATED
     }
     catch (e: Exception) {
       thisLogger().info("Failed to refresh local disk cache:\n$e")
-      RefreshedStatus.ERROR
+      return RefreshedStatus.ERROR
     }
   }
 
@@ -138,12 +160,25 @@ class GMavenIndexRepository(
    * Reads the given query URL, with the given time out, and returns the bytes found.
    */
   @Slow
-  private fun readUrlData(url: String, timeoutMillis: Int): ByteArray {
+  private fun readUrlData(url: String, timeoutMillis: Int, eTag: String?): ValueWithETag? {
     return HttpRequests
       .request(URL(url).toExternalForm())
       .connectTimeout(timeoutMillis)
       .readTimeout(timeoutMillis)
-      .readBytes(null)
+      .tuner { connection ->
+        eTag?.let { connection.setRequestProperty("If-None-Match", it) }
+      }
+      .connect { request ->
+        val eTagField = request.connection.getHeaderField("ETag")
+        val responseCode = (request.connection as HttpURLConnection).responseCode
+        if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+          thisLogger().info("HTTP not modified since the last request for URL: $url (etag: $eTagField).")
+          return@connect null
+        }
+
+        val bytes = request.readBytes(null)
+        return@connect ValueWithETag(bytes, eTagField)
+      }
   }
 
   private fun readDefaultData(): InputStream {
@@ -167,6 +202,32 @@ class GMavenIndexRepository(
       Files.deleteIfExists(tempFile)
       throw e
     }
+  }
+
+  private fun loadETag(file: Path): String? {
+    return try {
+      val properties = Properties().apply {
+        CancellableFileIo.newInputStream(file).use { inputStream ->
+          this.load(inputStream)
+        }
+      }
+      properties.getProperty(ETAG_KEY)
+    }
+    catch (e: Exception) {
+      thisLogger().info("Error when loading ETag value:\n$e")
+      null
+    }
+  }
+
+  private fun saveETag(file: Path, eTag: String) {
+    Properties().apply {
+      setProperty(ETAG_KEY, eTag)
+      store(file.outputStream(), "## Metadata for gmaven index cache. Do not modify.")
+    }
+  }
+
+  private fun getETagFile(file: Path): Path {
+    return file.resolveSibling("${file.fileName}.properties")
   }
 
   /**
