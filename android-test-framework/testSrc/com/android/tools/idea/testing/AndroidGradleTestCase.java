@@ -59,6 +59,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.TestApplicationManagerKt;
 import com.intellij.testFramework.ThreadTracker;
@@ -149,6 +150,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // TODO(b/159600848)
       GradleBuildOutputUtil.emulateStartupActivityForTest(getProject());
     }
+
+    // Use per-project code style settings so we never modify the IDE defaults.
+    CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
   }
 
   public void setUpFixture() throws Exception {
