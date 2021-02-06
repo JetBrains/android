@@ -42,13 +42,16 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
                                  allocSeries: DataSeries<CaptureDurationData<CaptureObject>>,
                                  samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
       DataSeries { _ ->
-        samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().map {
+        samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().mapNotNull {
           val startTime = it.min.toLong()
           val durationUs = it.max.toLong() - startTime
           val rawData = allocSeries.getDataForRange(it)
-          assert(rawData.isNotEmpty())
-          val data = AllocationDurationData(durationUs, rawData[0].value.captureEntry, it.min, it.max)
-          SeriesData(startTime, data as CaptureDurationData<CaptureObject>)
+          if (rawData.isEmpty()) {
+            null
+          } else {
+            val data = AllocationDurationData(durationUs, rawData[0].value.captureEntry, it.min, it.max)
+            SeriesData(startTime, data as CaptureDurationData<CaptureObject>)
+          }
         }
       }
 
