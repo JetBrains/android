@@ -77,8 +77,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -172,7 +172,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JBLabel mySkinDefinitionLabel;
   private JBLabel myInternalStorageLabel;
   private JBLabel myMemoryAndStorageLabel;
-  private HyperlinkLabel myHardwareSkinHelpLabel;
+  private BrowserLink myHardwareSkinHelpLabel;
   private JComboBox myCoreCount;
   private JComboBox mySpeedCombo;
   private JComboBox myLatencyCombo;
@@ -1322,8 +1322,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
-    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
   }
 
   private static final class NamedIcon {

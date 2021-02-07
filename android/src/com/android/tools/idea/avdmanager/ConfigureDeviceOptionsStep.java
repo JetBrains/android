@@ -38,6 +38,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.*;
+import com.intellij.ui.components.BrowserLink;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +68,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private JTextField myScreenResolutionWidth;
   private JTextField myScreenResolutionHeight;
   private SkinChooser myCustomSkinPath;
-  private HyperlinkLabel myHardwareSkinHelpLabel;
+  private BrowserLink myHardwareSkinHelpLabel;
   private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
@@ -222,8 +223,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class));
     myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
-    myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
-    myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
+    myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
     myCustomSkinPath = new SkinChooser(null, false);
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }
