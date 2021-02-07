@@ -27,8 +27,8 @@ import com.android.tools.idea.welcome.install.UI_UNITS
 import com.android.tools.idea.welcome.install.getMaxHaxmMemory
 import com.android.tools.idea.welcome.install.getRecommendedHaxmMemory
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBIntSpinner
+import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.StartupUiUtil
@@ -50,10 +50,7 @@ class HaxmInstallSettingsStep(
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
-  private val intelHaxmDocumentationButton = HyperlinkLabel().apply {
-    setHyperlinkText("Intel® HAXM Documentation")
-    setHyperlinkTarget(HAXM_DOCUMENTATION_URL)
-  }
+  private val intelHaxmDocumentationButton = BrowserLink("Intel® HAXM Documentation", HAXM_DOCUMENTATION_URL)
 
   private val fullMemorySize = AvdManagerConnection.getMemorySize()
   private val maxMemory = getMaxHaxmMemory(fullMemorySize)

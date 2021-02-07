@@ -31,7 +31,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.icons.AllIcons
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -50,7 +49,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.util.Query
@@ -282,11 +281,7 @@ private fun createEmptyPanel(): Component {
   addLabel(NO_HOST_TEXT4, panel)
   addLabel(NO_HOST_TEXT5, panel)
 
-  val link = HyperlinkLabel()
-  link.setIcon(AllIcons.General.ContextHelp)
-  link.setHyperlinkText(NO_HOST_LINK_TEXT)
-  link.setHyperlinkTarget(NO_HOST_LINK_TARGET)
-  panel.add(link)
+  panel.add(BrowserLink(NO_HOST_LINK_TEXT, NO_HOST_LINK_TARGET))
 
   return panel
 }

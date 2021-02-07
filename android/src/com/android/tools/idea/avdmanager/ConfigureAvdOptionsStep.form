@@ -678,7 +678,7 @@
                           <text value="Custom skin definition"/>
                         </properties>
                       </component>
-                      <component id="61e9" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
+                      <component id="61e9" class="com.intellij.ui.components.BrowserLink" binding="myHardwareSkinHelpLabel" custom-create="true">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
