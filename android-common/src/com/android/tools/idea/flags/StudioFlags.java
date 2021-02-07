@@ -21,6 +21,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,7 +48,7 @@ public final class StudioFlags {
     else {
       userOverrides = new DefaultFlagOverrides();
     }
-    return new Flags(userOverrides, new PropertyOverrides());
+    return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
   }
 
   //region New Project Wizard
