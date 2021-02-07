@@ -71,7 +71,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
           ApplicationManager.getApplication().invokeLater {
             // Make sure the Android session is still active. b/156897049.
             val descriptor = status.processHandler.getUserData(AndroidSessionInfo.KEY)?.descriptor
-            if (descriptor != null && !Disposer.isDisposed(descriptor) && !Disposer.isDisposing(descriptor)) {
+            if (descriptor != null && !Disposer.isDisposed(descriptor)) {
               base.launchDebugger(launchInfo, client, status, printer)
             }
           }

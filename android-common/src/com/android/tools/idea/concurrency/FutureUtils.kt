@@ -289,7 +289,7 @@ fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
  */
 fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFuture<V> {
   // best effort but it doesn't guarantee that Disposer.register won't fail
-  if (Disposer.isDisposed(parent) || Disposer.isDisposing(parent)) {
+  if (Disposer.isDisposed(parent)) {
     cancel(true)
     return this
   }
@@ -302,7 +302,7 @@ fun <V> ListenableFuture<V>.cancelOnDispose(parent: Disposable): ListenableFutur
   // It isn't completely safe, because to access the tree Disposer grabs internal lock
   // and it is blocking operation
   addListener({
-    if (!Disposer.isDisposed(disposable) && !Disposer.isDisposing(disposable)) {
+    if (!Disposer.isDisposed(disposable)) {
       // we need to remove disposable from the tree since we don't need it anymore
       // as well as we need to free future, so it can be gc-ed
       Disposer.dispose(disposable)
