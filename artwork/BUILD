@@ -12,10 +12,7 @@ iml_module(
     iml_files = ["intellij.android.artwork.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
-    resources = [
-        "resources",
-        "compatibilityResources",
-    ],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
 )
