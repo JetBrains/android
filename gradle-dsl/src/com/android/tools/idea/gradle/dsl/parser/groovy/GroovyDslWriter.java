@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
@@ -40,6 +41,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
@@ -130,9 +132,9 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     String statementText = quotePartsIfNecessary(externalNameInfo);
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
-    boolean useAssignment = element.shouldUseAssignment();
-    if (externalNameInfo.syntax != UNKNOWN) {
-      useAssignment = externalNameInfo.syntax != METHOD; // TODO(xof): this is horrible
+    ExternalNameSyntax syntax = externalNameInfo.syntax;
+    if (syntax == UNKNOWN) {
+      syntax = element.shouldUseAssignment() ? ASSIGNMENT : METHOD;
     }
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
@@ -142,7 +144,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         statementText += " {\n}\n";
       }
     }
-    else if (useAssignment) {
+    else if (syntax == ASSIGNMENT) {
       if (element.getElementType() == PropertyType.REGULAR) {
         statementText += " = 'abc'";
       }
@@ -295,13 +297,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     String statementText;
     if (!methodCall.getFullName().isEmpty()) {
       ExternalNameInfo info = maybeTrimForParent(methodCall, this);
-      boolean useAssignment = methodCall.shouldUseAssignment();
-      if (info.syntax != UNKNOWN) {
-        useAssignment = info.syntax != METHOD; // TODO(xof): also horrible
+      ExternalNameSyntax syntax = info.syntax;
+      if (syntax == UNKNOWN) {
+        syntax = methodCall.shouldUseAssignment() ? ASSIGNMENT : METHOD;
       }
-
       String elementName = quotePartsIfNecessary(info) + " ";
-      statementText = elementName + (useAssignment ? "= " : "") + methodCallText;
+      statementText = elementName + (syntax == ASSIGNMENT ? "= " : "") + methodCallText;
     }
     else {
       statementText = methodCallText;
