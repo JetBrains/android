@@ -92,13 +92,9 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
-      val databaseInspectorClientCommands = object : DatabaseInspectorClientCommandsChannel {
-        override fun keepConnectionsOpen(keepOpen: Boolean) = dbClient.keepConnectionsOpen(keepOpen)
-      }
-
       init {
         databaseInspectorProjectService.projectScope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(databaseInspectorClientCommands, ideServices, processDescriptor)
+          databaseInspectorProjectService.startAppInspectionSession(dbClient, ideServices, processDescriptor)
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
@@ -119,4 +115,6 @@ fun createErrorSideChannel(project: Project): ErrorsSideChannel = { command, err
  */
 interface DatabaseInspectorClientCommandsChannel {
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?>
+  fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?>
+  fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit>
 }

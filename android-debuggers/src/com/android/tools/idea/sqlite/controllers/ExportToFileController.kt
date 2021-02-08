@@ -73,6 +73,11 @@ import java.util.zip.ZipOutputStream
 /**
  * @param downloadDatabase allows to download a database from the device (works for file-based databases (i.e. not in-memory))
  * @param deleteDatabase allows to delete files downloaded using [downloadDatabase]
+ * @param acquireDatabaseLock Takes a databaseId; returns lockId or null if it was not possible to secure a lock. Locking means preventing
+ * any thread (including application threads) from modifying the database while the lock is in place. This allows for getting a consistent
+ * snapshot of the data (e.g. when exporting a large table, we are fetching the data from the device by chunks, and locking guarantees that
+ * the table won't change while we are in the process of fetching the data).
+ * @param releaseDatabaseLock takes a lockId acquired through [acquireDatabaseLock]
  */
 @UiThread
 class ExportToFileController(
@@ -82,6 +87,8 @@ class ExportToFileController(
   private val databaseRepository: DatabaseRepository,
   private val downloadDatabase: (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
   private val deleteDatabase: suspend (DatabaseFileData) -> Unit,
+  private val acquireDatabaseLock: suspend (Int) -> Int?,
+  private val releaseDatabaseLock: suspend (Int) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
   private val notifyExportComplete: (ExportRequest) -> Unit,
@@ -152,20 +159,22 @@ class ExportToFileController(
 
   @Suppress("BlockingMethodInNonBlockingContext") // IO on taskDispatcher
   private suspend fun exportDatabaseToCsv(database: SqliteDatabaseId, format: CSV, dstPath: Path) = withContext(taskDispatcher) {
-    // TODO(161081452): expose an option to let the user decide if to export views; defaulting now to not exporting views
-    val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
+    withDatabaseLock(database) {
+      // TODO(161081452): expose an option to let the user decide if to export views; defaulting now to not exporting views
+      val tableNames: List<String> = databaseRepository.fetchSchema(database).tables.filter { !it.isView }.map { it.name }
 
-    // TODO(161081452): skip temporary files (write directly to zip stream)
-    val dstDir = findOrCreateDir(dstPath.parent)
-    val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
-    Closeable { FileUtil.delete(tmpDir) }.use {
-      val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
-        val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
-        doExport(ExportTableRequest(database, name, format, path))
-        TempExportedData(path, "$name.csv")
+      // TODO(161081452): skip temporary files (write directly to zip stream)
+      val dstDir = findOrCreateDir(dstPath.parent)
+      val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
+      Closeable { FileUtil.delete(tmpDir) }.use {
+        val tmpFileToEntryName: List<TempExportedData> = tableNames.mapIndexed { ix, name ->
+          val path = tmpDir.toAbsolutePath().resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
+          doExport(ExportTableRequest(database, name, format, path))
+          TempExportedData(path, "$name.csv")
+        }
+
+        createZipFile(dstPath, tmpFileToEntryName) // TODO(161081452): write directly to zip file or move outside of database lock
       }
-
-      createZipFile(dstPath, tmpFileToEntryName)
     }
   }
 
@@ -176,7 +185,7 @@ class ExportToFileController(
   private suspend fun exportDatabaseToSqliteBinary(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
     executeTaskOnLocalDatabaseCopy(database) { srcPath ->
       findOrCreateDir(dstPath.parent)
-      cloneDatabase(srcPath, dstPath)
+      cloneDatabase(srcPath, dstPath) // TODO(161081452): replace clone with PRAGMA wal_checkpoint(TRUNCATE) to avoid temporary multiple db copies
     }
   }
 
@@ -228,15 +237,36 @@ class ExportToFileController(
   }
 
   private suspend fun downloadDatabase(database: LiveSqliteDatabaseId) = withContext(taskDispatcher) {
-    val flow = downloadDatabase(database) { message, throwable ->
-      throw IllegalStateException("Issue while downloading database (${database.name}): $message", throwable)
-    }
+    withDatabaseLock(database) {
+      val flow = downloadDatabase(database) { message, throwable ->
+        throw IllegalStateException("Issue while downloading database (${database.name}): $message", throwable)
+      }
 
-    flow
-      .filter { it.downloadState == COMPLETED }
-      .map { it.filesDownloaded }
-      .toList()
-      .flatten()
+      flow
+        .filter { it.downloadState == COMPLETED }
+        .map { it.filesDownloaded }
+        .toList()
+        .flatten()
+    }
+  }
+
+  private suspend fun <T> withDatabaseLock(database: SqliteDatabaseId, block: suspend () -> T) = withContext(taskDispatcher) {
+    when (database) {
+      is LiveSqliteDatabaseId -> {
+        var lockId: Int? = null
+        try {
+          lockId = acquireDatabaseLock(database.connectionId)
+          if (lockId != null) block()
+          else throw IllegalStateException("Unable to acquire a lock on ${database.name}. ") // TODO(161081452): add error logging
+        }
+        finally {
+          lockId?.let { releaseDatabaseLock(it) }
+        }
+      }
+      is FileSqliteDatabaseId -> {
+        block() // lock is not required for file-databases (they are read-only, so effectively locked)
+      }
+    }
   }
 
   private suspend fun findOrCreateDir(dir: Path): Path = withContext(taskDispatcher) {
@@ -304,9 +334,11 @@ class ExportToFileController(
 
   private suspend fun executeQuery(srcDatabase: SqliteDatabaseId, srcQuery: SqliteStatement): List<SqliteRow> =
     withContext(taskDispatcher) {
-      val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
-      // TODO(161081452): convert to a streaming implementation not to crash / hang on huge tables
-      resultSet.getRowBatch(0, Integer.MAX_VALUE).await()
+      withDatabaseLock(srcDatabase) {
+        val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
+        // TODO(161081452): convert to a streaming implementation not to crash / hang on huge tables
+        resultSet.getRowBatch(0, Integer.MAX_VALUE).await()
+      }
     }
 
   // TODO(161081452): change to writing a chunk at a time

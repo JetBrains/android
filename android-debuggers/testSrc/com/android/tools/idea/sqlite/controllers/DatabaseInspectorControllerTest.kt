@@ -1303,9 +1303,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testKeepConnectionOpenUpdatesSuccessfully() {
     // Prepare
     val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
-      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-        return Futures.immediateFuture(true)
-      }
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(true)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
@@ -1321,9 +1321,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   fun testKeepConnectionOpenDoesNotUpdateIfOperationFails() {
     // Prepare
     val databaseInspectorClientCommandChannel = object : DatabaseInspectorClientCommandsChannel {
-      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-        return Futures.immediateFuture(null)
-      }
+      override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
@@ -1350,6 +1350,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
         invocations.add(keepOpen)
         return Futures.immediateFuture(keepOpen)
       }
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     // Act
