@@ -6,6 +6,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -99,5 +100,25 @@ internal class LiveLiteralsServiceTest {
     // Close the second editor
     UIUtil.invokeAndWaitIfNeeded(Runnable { FileEditorManager.getInstance(project).closeFile(file2.virtualFile) })
     assertEquals(9, liveLiteralsService.allConstants().size)
+  }
+
+  @Test
+  fun `listener is only called when live literals are available`() {
+    var changeListenerCalls = 0
+    val liveLiteralsService = getTestLiveLiteralsService()
+    liveLiteralsService.addOnLiteralsChangedListener(projectRule.fixture.testRootDisposable) {
+      changeListenerCalls++
+    }
+    assertTrue(liveLiteralsService.allConstants().isEmpty())
+    assertFalse(isAvailable)
+    assertEquals(0, changeListenerCalls)
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    assertFalse("Live Literals should not be available since there are no constants", isAvailable)
+    assertEquals(0, changeListenerCalls)
+    assertTrue(liveLiteralsService.allConstants().isEmpty())
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+
+    liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
+    assertEquals(0, changeListenerCalls)
   }
 }
