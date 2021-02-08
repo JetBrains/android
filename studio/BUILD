@@ -6,6 +6,7 @@ studio_plugin(
     directory = "android",
     libs = [
         "//prebuilts/r8",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
         "//prebuilts/tools/common/archive-patcher:explainer",
         "//prebuilts/tools/common/archive-patcher:generator",
         "//prebuilts/tools/common/archive-patcher:shared",
@@ -194,7 +195,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
-        "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:baksmali",
         "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
@@ -224,7 +224,6 @@ studio_plugin(
     ],
     resources = {
         "lib": [
-            "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/android/annotations:androidAnnotations",
