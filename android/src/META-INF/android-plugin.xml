@@ -420,6 +420,9 @@
 
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderManager"/>
 
+    <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
+                        serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
+
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
     <fileType name="Android 9-Patch"
