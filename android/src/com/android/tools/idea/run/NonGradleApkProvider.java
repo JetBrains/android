@@ -21,9 +21,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.packaging.artifacts.Artifact;
-import com.intellij.packaging.artifacts.ArtifactManager;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
-import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,24 +77,7 @@ public class NonGradleApkProvider implements ApkProvider {
     String localPath;
 
     if (myArtifactName != null && !myArtifactName.isEmpty()) {
-      final Artifact artifact = ArtifactManager.getInstance(facet.getModule().getProject()).findArtifact(myArtifactName);
-
-      if (artifact == null) {
-        throw new ApkProvisionException("ERROR: cannot find artifact \"" + myArtifactName + '"');
-      }
-      if (!AndroidArtifactUtil.isRelatedArtifact(artifact, facet.getModule())) {
-        throw new ApkProvisionException("ERROR: artifact \"" +
-                                        myArtifactName +
-                                        "\" doesn't contain packaged module \"" +
-                                        facet.getModule().getName() +
-                                        '"');
-      }
-      final String artifactOutPath = artifact.getOutputFilePath();
-
-      if (artifactOutPath == null || artifactOutPath.isEmpty()) {
-        throw new ApkProvisionException("ERROR: output path is not specified for artifact \"" + myArtifactName + '"');
-      }
-      localPath = FileUtil.toSystemDependentName(artifactOutPath);
+      localPath = NonGradleAndroidArtifactResolver.getInstance().getModuleApkPathByArtifactName(module, myArtifactName);
     } else {
       localPath = AndroidCompileUtil.getUnsignedApkPath(facet);
     }
