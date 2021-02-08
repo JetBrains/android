@@ -44,6 +44,7 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   override var bottomPanel: JComponent? = null
   override var hasComponentsOverlay: Boolean = false
   override var isInteractive: Boolean = false
+  override var isAnimationPreview: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
 
