@@ -186,7 +186,7 @@ class ContentManager(val project: Project) {
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refreshTree() }
     }
-    val okButton = JButton("OK Go").apply {
+    val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade() }
     }
     val content = JBPanel<JBPanel<*>>().apply {
