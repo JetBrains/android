@@ -22,6 +22,8 @@ import com.android.tools.idea.editors.literals.actions.ShowLiveLiteralsProblemAc
 import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsStatusAction
 import com.android.tools.idea.editors.literals.actions.UpdateHighlightsKeymapAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.application.subscribe
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -29,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -43,6 +46,8 @@ import com.intellij.ui.LayeredIcon
 import com.intellij.util.IconUtil
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -63,6 +68,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   private var hasEverBeenActive = false
 
   init {
+    isVisible = false
     object : ClickListener() {
       override fun onClick(event: MouseEvent, clickCount: Int): Boolean {
         onClick()
@@ -74,9 +80,20 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
         hasEverBeenActive = true
         LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       }
+
       override fun onMonitorStopped(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       override fun onLiveLiteralsPushed(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
     })
+    DumbService.DUMB_MODE.subscribe(this, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        if (project.isDisposed) return
+        LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
+      }
+    })
+  }
+
+  private fun isComposeProject() = project.cacheInvalidatingOnRootModifications {
+    project.allModules().any { it.getModuleSystem().usesCompose }
   }
 
   override fun ID(): String = WIDGET_ID
@@ -110,8 +127,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   }
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> = when {
-    !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
-    !literalsService.isEnabled -> message("live.literals.is.disabled") to null // Live literals is completely disabled
+    !isComposeProject() || !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
     !literalsService.isAvailable -> message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
     deployReportingService.hasProblems -> message("live.literals.is.enabled") to ERROR_ICON
     else -> message("live.literals.is.enabled") to AVAILABLE_ICON
