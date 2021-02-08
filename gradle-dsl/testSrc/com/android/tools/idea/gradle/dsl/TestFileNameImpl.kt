@@ -25,7 +25,7 @@ interface TestFileName {
   @JvmDefault
   fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtil.toSystemDependentName(basePath) + extension)
 }
-@TestDataPath("\$CONTENT_ROOT/testData")
+@TestDataPath("\$CONTENT_ROOT/../testData/parser")
 enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
@@ -49,18 +49,6 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST("adbOptionsModel/removeOneOfElementsInTheList"),
   ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED("adbOptionsModel/removeOneOfElementsInTheListExpected"),
   ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST("adbOptionsModel/removeOnlyElementInTheList"),
-  ANDROID_RESOURCES_PARSE_ELEMENTS_ONE("androidResources/parseElementsOne"),
-  ANDROID_RESOURCES_PARSE_ELEMENTS_TWO("androidResources/parseElementsTwo"),
-  ANDROID_RESOURCES_EDIT_ELEMENTS("androidResources/editElements"),
-  ANDROID_RESOURCES_EDIT_ELEMENTS_EXPECTED("androidResources/editElementsExpected"),
-  ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN("androidResources/editIgnoreAssetPattern"),
-  ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN_EXPECTED("androidResources/editIgnoreAssetPatternExpected"),
-  ANDROID_RESOURCES_ADD_ELEMENTS("androidResources/addElements"),
-  ANDROID_RESOURCES_ADD_ELEMENTS_EXPECTED("androidResources/addElementsExpected"),
-  ANDROID_RESOURCES_REMOVE_ELEMENTS("androidResources/removeElements"),
-  ANDROID_RESOURCES_REMOVE_ONE_ELEMENT("androidResources/removeOneElementInList"),
-  ANDROID_RESOURCES_REMOVE_ONE_ELEMENT_EXPECTED("androidResources/removeOneElementInListExpected"),
-  ANDROID_RESOURCES_REMOVE_LAST_ELEMENT("androidResources/removeLastElementInList"),
   BUILD_FEATURES_MODEL_PARSE_ELEMENTS("buildFeaturesModel/parseElements"),
   BUILD_FEATURES_MODEL_EDIT_ELEMENTS("buildFeaturesModel/editElements"),
   BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED("buildFeaturesModel/editElementsExpected"),
