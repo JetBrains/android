@@ -574,6 +574,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onActivate() {
     activationLock.withLock {
       LOG.debug("onActivate")
+
+      if (hasLiveLiterals) {
+        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId)
+      }
+
       isActive.set(true)
       if (isFirstActivation) {
         isFirstActivation = false

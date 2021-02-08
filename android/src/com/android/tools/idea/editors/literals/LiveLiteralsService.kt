@@ -10,6 +10,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.ListenerCollection
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -33,6 +34,8 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 
 internal val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
@@ -85,10 +88,15 @@ interface LiveLiteralsMonitorHandler {
 /**
  * Project service to track live literals. The service, when [isAvailable] is true, will listen for changes of constants
  * and will notify listeners.
+ *
+ * @param project the project this service is attached to.
+ * @param availableListener listener to be called when the service becomes available.
+ * @param listenerExecutor executor to run the listener calls on.
  */
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
-                                              private val availableListener: LiteralsAvailableListener) : LiveLiteralsMonitorHandler, Disposable {
+                                              private val availableListener: LiteralsAvailableListener,
+                                              listenerExecutor: Executor) : LiveLiteralsMonitorHandler, Disposable {
   /**
    * Interface for listeners that want to be notified when Live Literals becomes available. For example
    * when the preview or the emulator find that the current project supports them.
@@ -131,7 +139,7 @@ class LiveLiteralsService private constructor(private val project: Project,
         LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
       }
     }
-  })
+  }, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1))
 
   /**
    * Class that groups all the highlighters for a given file/editor combination. This allows enabling/disabling them.
@@ -194,8 +202,11 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
 
     @TestOnly
-    fun getInstanceForTest(project: Project, parentDisposable: Disposable, availableListener: LiteralsAvailableListener = NopListener): LiveLiteralsService =
-      LiveLiteralsService(project, availableListener).also {
+    fun getInstanceForTest(project: Project,
+                           parentDisposable: Disposable,
+                           availableListener: LiteralsAvailableListener = NopListener,
+                           listenerExecutor: Executor = MoreExecutors.directExecutor()): LiveLiteralsService =
+      LiveLiteralsService(project, availableListener, listenerExecutor).also {
         Disposer.register(parentDisposable, it)
       }
   }
@@ -222,8 +233,7 @@ class LiveLiteralsService private constructor(private val project: Project,
   /**
    * [ListenerCollection] for all the listeners that need to be notified when any live literal has changed value.
    */
-  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(
-    AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1))
+  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(listenerExecutor)
 
   private val literalsManager = LiteralsManager()
   private val documentSnapshots = mutableMapOf<Document, LiteralReferenceSnapshot>()
@@ -409,8 +419,6 @@ class LiveLiteralsService private constructor(private val project: Project,
       Disposer.dispose(it)
     }
     activationDisposable = null
-    fireOnLiteralsChanged(emptyList())
-
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
