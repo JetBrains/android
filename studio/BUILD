@@ -226,10 +226,10 @@ studio_plugin(
         "lib": [
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",
-            "//tools/adt/idea/android/annotations:androidAnnotations",
             "//prebuilts/studio/layoutlib:layoutlib",
         ],
         "resources": [
+            "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/profiler/transform:profilers-transform",
