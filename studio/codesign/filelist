@@ -3,7 +3,7 @@
 # macOS app bundle.
 %prefix%Contents/lib/grpc-netty-shaded-1.21.1.jar
 %prefix%Contents/lib/pty4j-0.11.1.jar
-%prefix%Contents/lib/sqlite-jdbc-3.21.0.1.jar
+%prefix%Contents/plugins/android/lib/sqlite-jdbc-3.21.0.1.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 %prefix%Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
