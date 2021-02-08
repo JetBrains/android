@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -178,10 +179,12 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     }
   }
 
-  fun setBenchmarkText(benchmarkText: String) {
+  fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
     myBenchmarkView.clear()
-    myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT)
-    myBenchmarkTab.isHidden = StringUtil.isEmpty(benchmarkText)
+    for (line in benchmarkText.lines) {
+      line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT)
+    }
+    myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
   }
 
   fun setRetentionInfo(retentionInfo: File?) {

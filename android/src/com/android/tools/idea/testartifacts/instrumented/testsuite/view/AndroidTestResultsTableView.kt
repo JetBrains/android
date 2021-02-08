@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -1069,7 +1070,7 @@ private class AndroidTestResultsRow(override val methodName: String,
   /**
    * Returns a benchmark result for a given [device].
    */
-  override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
+  override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput(myTestCases[device.id]?.benchmark ?: "")
 
   /**
    * Returns the retention info artifact from Android Test Retention if available.
@@ -1232,17 +1233,15 @@ private class AggregationRow(override val packageName: String = "",
     }.sum())
   }
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
-  override fun getBenchmark(device: AndroidDevice): String {
-    return allChildren.fold("") { acc, result ->
-      val benchmark = (result as? AndroidTestResults)?.getBenchmark(device)
-      if (benchmark.isNullOrBlank()) {
+  override fun getBenchmark(device: AndroidDevice): BenchmarkOutput {
+    return allChildren.fold(BenchmarkOutput.Empty) { acc, result ->
+      val benchmark = (result as? AndroidTestResults)?.getBenchmark(device) ?: BenchmarkOutput.Empty
+      if (benchmark == BenchmarkOutput.Empty) {
         acc
+      } else if (acc == BenchmarkOutput.Empty) {
+        benchmark
       } else {
-        if (acc.isBlank()) {
-          benchmark
-        } else {
-          "${acc}\n${benchmark}"
-        }
+        acc.fold(benchmark)
       }
     }
   }

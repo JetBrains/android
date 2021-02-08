@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -129,7 +130,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
-      override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }
