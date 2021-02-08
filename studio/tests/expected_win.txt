@@ -1781,7 +1781,6 @@ android-studio/plugins/android/lib/generator.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
-android-studio/plugins/android/lib/javawriter-2.2.1.jar
 android-studio/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
 android-studio/plugins/android/lib/jps/android-jps-plugin.jar
 android-studio/plugins/android/lib/juniversalchardet-1.0.3.jar

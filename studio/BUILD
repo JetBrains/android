@@ -224,7 +224,6 @@ studio_plugin(
     ],
     resources = {
         "lib": [
-            "//tools/adt/idea/android/lib:bundled-libs",
             "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/lib:sample-data-bundle",

@@ -2271,7 +2271,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javawriter-2.2.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jps/android-jps-plugin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/juniversalchardet-1.0.3.jar
