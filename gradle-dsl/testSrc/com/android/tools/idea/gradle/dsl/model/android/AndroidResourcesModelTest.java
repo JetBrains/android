@@ -15,33 +15,26 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_EDIT_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_PARSE_ELEMENTS_ONE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_PARSE_ELEMENTS_TWO;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_REMOVE_LAST_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_REMOVE_ONE_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_RESOURCES_REMOVE_ONE_ELEMENT_EXPECTED;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import com.intellij.testFramework.TestDataPath;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Test;
 
 /**
  * Tests for {@link AndroidResourcesModel}.
  */
+@TestDataPath("$CONTENT_ROOT/../testData/parser/androidResources/")
 public class AndroidResourcesModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsOne() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_PARSE_ELEMENTS_ONE);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_PARSE_ELEMENTS_ONE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -57,7 +50,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsTwo() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_PARSE_ELEMENTS_TWO);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_PARSE_ELEMENTS_TWO);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -73,7 +66,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_EDIT_ELEMENTS);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -95,7 +88,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
     androidResources.noCompress().getListValue("b").setValue("c");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ANDROID_RESOURCES_EDIT_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ANDROID_RESOURCES_EDIT_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -111,7 +104,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditIgnoreAssetPattern() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -124,7 +117,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
     androidResources.ignoreAssets().setValue("mnop");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -135,7 +128,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_ADD_ELEMENTS);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -157,7 +150,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
     androidResources.noCompress().addListValue().setValue("a");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ANDROID_RESOURCES_ADD_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ANDROID_RESOURCES_ADD_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -173,7 +166,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_REMOVE_ELEMENTS);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -213,7 +206,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneElementsInList() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_REMOVE_ONE_ELEMENT);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_REMOVE_ONE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -227,7 +220,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
     androidResources.noCompress().getListValue("b").delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ANDROID_RESOURCES_REMOVE_ONE_ELEMENT_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ANDROID_RESOURCES_REMOVE_ONE_ELEMENT_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -239,7 +232,7 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveLastElementInList() throws Exception {
-    writeToBuildFile(ANDROID_RESOURCES_REMOVE_LAST_ELEMENT);
+    writeToBuildFile(TestFile.ANDROID_RESOURCES_REMOVE_LAST_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -263,5 +256,31 @@ public class AndroidResourcesModelTest extends GradleFileModelTestCase {
     checkForInvalidPsiElement(androidResources, AndroidResourcesModelImpl.class);
     assertMissingProperty("additionalParameters", androidResources.additionalParameters());
     assertMissingProperty("noCompress", androidResources.noCompress());
+  }
+
+  enum TestFile implements TestFileName {
+    ANDROID_RESOURCES_PARSE_ELEMENTS_ONE("parseElementsOne"),
+    ANDROID_RESOURCES_PARSE_ELEMENTS_TWO("parseElementsTwo"),
+    ANDROID_RESOURCES_EDIT_ELEMENTS("editElements"),
+    ANDROID_RESOURCES_EDIT_ELEMENTS_EXPECTED("editElementsExpected"),
+    ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN("editIgnoreAssetPattern"),
+    ANDROID_RESOURCES_EDIT_IGNORE_ASSET_PATTERN_EXPECTED("editIgnoreAssetPatternExpected"),
+    ANDROID_RESOURCES_ADD_ELEMENTS("addElements"),
+    ANDROID_RESOURCES_ADD_ELEMENTS_EXPECTED("addElementsExpected"),
+    ANDROID_RESOURCES_REMOVE_ELEMENTS("removeElements"),
+    ANDROID_RESOURCES_REMOVE_ONE_ELEMENT("removeOneElementInList"),
+    ANDROID_RESOURCES_REMOVE_ONE_ELEMENT_EXPECTED("removeOneElementInListExpected"),
+    ANDROID_RESOURCES_REMOVE_LAST_ELEMENT("removeLastElementInList"),
+    ;
+    @NotNull @SystemIndependent private final String path;
+    TestFile(@NotNull @SystemIndependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemIndependent String basePath, @NotNull String extension) {
+      return new File(basePath + "/androidResources/" + path + extension);
+    }
   }
 }
