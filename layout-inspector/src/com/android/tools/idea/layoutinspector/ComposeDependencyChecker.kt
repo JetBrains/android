@@ -21,15 +21,13 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOn
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
-
-const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-inspector-add-dependency"
 
 /**
  * The layout inspector can only show compose nodes if the compose tooling library is
@@ -81,22 +79,15 @@ class ComposeDependencyChecker(private val project: Project) {
 
     val message = createMessage(addToolingLibrary, addReflectionLibrary)
     val bannerService = InspectorBannerService.getInstance(project)
-    val learnMore = object : AnAction("Learn more") {
+    val addToProject = object : AnAction("Add to Project") {
       override fun actionPerformed(event: AnActionEvent) {
-        BrowserUtil.browse(LEARN_MORE_LINK)
+        ApplicationManager.getApplication().invokeAndWait {
+          operations.reversed().forEach { it() }
+          bannerService.notification = null
+        }
       }
     }
-    // Temporary disable the actual library addition:
-    //val addToProject = object : AnAction("Add to Project") {
-    //  override fun actionPerformed(event: AnActionEvent) {
-    //    ApplicationManager.getApplication().invokeAndWait {
-    //      operations.reversed().forEach { it() }
-    //      bannerService.notification = null
-    //    }
-    //  }
-    //}
-    // End temporary change
-    bannerService.setNotification(message, listOf(learnMore, bannerService.DISMISS_ACTION))
+    bannerService.setNotification(message, listOf(addToProject, bannerService.DISMISS_ACTION))
   }
 
   private fun createMessage(addToolingLibrary: Boolean, addReflectionLibrary: Boolean): String {
