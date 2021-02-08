@@ -565,8 +565,10 @@ class DatabaseInspectorControllerImpl(
       databaseRepository,
       downloadDatabase = { id, onError -> processDescriptor?.let { procDesc -> downloadDatabase(id, onError, procDesc) } ?: emptyFlow() },
       deleteDatabase = { fileDatabaseManager.cleanUp(it) },
-      taskExecutor,
-      edtExecutor,
+      acquireDatabaseLock = { databaseInspectorClientCommandsChannel?.acquireDatabaseLock(it)?.await() },
+      releaseDatabaseLock = { databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await() },
+      taskExecutor = taskExecutor,
+      edtExecutor = edtExecutor,
       notifyExportComplete = { }, // TODO(161081452): implement export confirmation bubble
       notifyExportError = { _, _ -> } // TODO(161081452): implement export error bubble
     )

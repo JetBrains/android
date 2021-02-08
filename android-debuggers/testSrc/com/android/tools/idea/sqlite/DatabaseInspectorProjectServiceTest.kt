@@ -144,6 +144,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
@@ -224,6 +226,8 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
     // Prepare
     val clientCommandsChannel = object : DatabaseInspectorClientCommandsChannel {
       override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> = Futures.immediateFuture(null)
+      override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> = Futures.immediateFuture(null)
+      override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> = Futures.immediateFuture(null)
     }
 
     val appInspectionServices = mock(AppInspectionIdeServices::class.java)
