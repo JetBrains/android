@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
@@ -243,19 +244,19 @@ class AndroidTestResultsTableViewTest {
     table.addTestCase(device2, AndroidTestCase("testid2", "method2", "class1", "package1", benchmark="benchmarkE"))
     table.addTestCase(device2, AndroidTestCase("testid3", "method1", "class2", "package1", benchmark="benchmarkF"))
 
-    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device1)).isEqualTo("benchmarkA\nbenchmarkB\nbenchmarkC")
-    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device1)).isEqualTo("benchmarkA\nbenchmarkB")
-    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device1)).isEqualTo("benchmarkA")
-    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device1)).isEqualTo("benchmarkB")
-    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device1)).isEqualTo("benchmarkC")
-    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device1)).isEqualTo("benchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA, benchmarkB, benchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA, benchmarkB")
+    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkA")
+    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkB")
+    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkC")
+    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device1).lines.joinToString { it.rawText }).isEqualTo("benchmarkC")
 
-    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device2)).isEqualTo("benchmarkD\nbenchmarkE\nbenchmarkF")
-    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device2)).isEqualTo("benchmarkD\nbenchmarkE")
-    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device2)).isEqualTo("benchmarkD")
-    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device2)).isEqualTo("benchmarkE")
-    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device2)).isEqualTo("benchmarkF")
-    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device2)).isEqualTo("benchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(0).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD, benchmarkE, benchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(1).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD, benchmarkE")
+    assertThat(table.getTableViewForTesting().getItem(2).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkD")
+    assertThat(table.getTableViewForTesting().getItem(3).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkE")
+    assertThat(table.getTableViewForTesting().getItem(4).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkF")
+    assertThat(table.getTableViewForTesting().getItem(5).getBenchmark(device2).lines.joinToString { it.rawText }).isEqualTo("benchmarkF")
   }
 
   @Test
@@ -770,7 +771,7 @@ class AndroidTestResultsTableViewTest {
       override fun getDuration(device: AndroidDevice): Duration? = null
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
-      override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }

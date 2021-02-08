@@ -26,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -417,10 +418,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     AppUIUtil.invokeOnEdt {
       // Include a benchmark output to a raw output console for backward compatibility.
       val benchmarkOutput = testCase.benchmark
-      if (!benchmarkOutput.isBlank()) {
-        for (line in benchmarkOutput.lines()) {
-          print("benchmark: $line\n", ConsoleViewContentType.NORMAL_OUTPUT)
-        }
+      if (benchmarkOutput.isNotEmpty()) {
+        BenchmarkOutput(benchmarkOutput).print(myDetailsView.rawTestLogConsoleView, ConsoleViewContentType.NORMAL_OUTPUT)
       }
       when (Preconditions.checkNotNull(testCase.result)) {
         AndroidTestCaseResult.PASSED -> passedTestCases++

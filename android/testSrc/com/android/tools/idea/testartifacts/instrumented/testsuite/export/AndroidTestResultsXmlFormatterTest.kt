@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
@@ -88,7 +89,7 @@ class AndroidTestResultsXmlFormatterTest {
       `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234L))
       `when`(getLogcat(eq(device))).thenReturn("testLogcat")
       `when`(getErrorStackTrace(eq(device))).thenReturn("testErrorStackTrace")
-      `when`(getBenchmark(eq(device))).thenReturn("testBenchmark")
+      `when`(getBenchmark(eq(device))).thenReturn(BenchmarkOutput("testBenchmark"))
     }
     val rootResultsNode = AndroidTestResultsTreeNode(
       rootResults,
@@ -178,13 +179,13 @@ class AndroidTestResultsXmlFormatterTest {
       `when`(getDuration(eq(device1))).thenReturn(Duration.ofMillis(1234L))
       `when`(getLogcat(eq(device1))).thenReturn("testLogcat")
       `when`(getErrorStackTrace(eq(device1))).thenReturn("testErrorStackTrace")
-      `when`(getBenchmark(eq(device1))).thenReturn("testBenchmark")
+      `when`(getBenchmark(eq(device1))).thenReturn(BenchmarkOutput("testBenchmark"))
 
       `when`(getTestCaseResult(eq(device2))).thenReturn(AndroidTestCaseResult.FAILED)
       `when`(getDuration(eq(device2))).thenReturn(Duration.ofMillis(7777L))
       `when`(getLogcat(eq(device2))).thenReturn("testLogcat2")
       `when`(getErrorStackTrace(eq(device2))).thenReturn("testErrorStackTrace2")
-      `when`(getBenchmark(eq(device2))).thenReturn("testBenchmark2")
+      `when`(getBenchmark(eq(device2))).thenReturn(BenchmarkOutput("testBenchmark2"))
     }
     val rootResultsNode = AndroidTestResultsTreeNode(
       rootResults,
