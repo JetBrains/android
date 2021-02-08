@@ -2019,7 +2019,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
-Android Studio Preview.app/Contents/plugins/android/lib/androidAnnotations.jar
 Android Studio Preview.app/Contents/plugins/android/lib/antlr4-runtime-4.5.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/artwork.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-7.0.jar
@@ -2651,6 +2650,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/traceprocessor_protos.ja
 Android Studio Preview.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar
 Android Studio Preview.app/Contents/plugins/android/lib/workmanager_inspector_proto.jar
+Android Studio Preview.app/Contents/plugins/android/resources/androidAnnotations.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/network-inspector.jar
 Android Studio Preview.app/Contents/plugins/android/resources/app-inspection/sqlite-inspection.jar

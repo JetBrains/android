@@ -170,7 +170,7 @@ public class ExternalAnnotationsSupport {
       String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
       // release build? If so the jar file is bundled under android/lib..
-      String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
+      String releaseLocation = homePath + "/plugins/android/resources/androidAnnotations.jar";
       root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
 
       if (root == null) {

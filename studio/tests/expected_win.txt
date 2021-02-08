@@ -1529,7 +1529,6 @@ android-studio/plugins/android/lib/android-kotlin.jar
 android-studio/plugins/android/lib/android-profilers.jar
 android-studio/plugins/android/lib/android-rt.jar
 android-studio/plugins/android/lib/android.jar
-android-studio/plugins/android/lib/androidAnnotations.jar
 android-studio/plugins/android/lib/antlr4-runtime-4.5.3.jar
 android-studio/plugins/android/lib/artwork.jar
 android-studio/plugins/android/lib/asm-7.0.jar
@@ -2163,6 +2162,7 @@ android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
+android-studio/plugins/android/resources/androidAnnotations.jar
 android-studio/plugins/android/resources/app-inspection/layoutinspector-view-inspection.jar
 android-studio/plugins/android/resources/app-inspection/network-inspector.jar
 android-studio/plugins/android/resources/app-inspection/sqlite-inspection.jar
