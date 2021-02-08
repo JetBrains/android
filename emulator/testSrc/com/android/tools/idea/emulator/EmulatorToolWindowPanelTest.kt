@@ -35,6 +35,7 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.DebugLoggerRule
 import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -100,7 +101,7 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(DebugLoggerRule()).around(projectRule).around(emulatorRule).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
