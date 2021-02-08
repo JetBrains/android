@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
@@ -172,15 +171,18 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     if (previewStatus.isRefreshing) {
       LOG.debug("Refreshing")
       return when (previewStatus.interactiveMode) {
-        ComposePreviewManager.InteractiveMode.STARTING, ComposePreviewManager.InteractiveMode.STOPPING -> {
-          EditorNotificationPanel().apply {
-            text = if (previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING)
-              message("notification.interactive.preview.starting")
-            else
-              message("notification.interactive.preview.stopping")
-            icon(AnimatedIcon.Default())
-          }
+        ComposePreviewManager.InteractiveMode.STARTING -> EditorNotificationPanel().apply {
+          text = message("notification.interactive.preview.starting")
+          icon(AnimatedIcon.Default())
         }
+        ComposePreviewManager.InteractiveMode.STOPPING ->
+          // Don't show the notification when entering animation preview
+          if (previewManager.animationInspectionPreviewElementInstance != null) null
+          else
+            EditorNotificationPanel().apply {
+              text = message("notification.interactive.preview.stopping")
+              icon(AnimatedIcon.Default())
+            }
         else -> null
       }
     }
