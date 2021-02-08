@@ -68,6 +68,7 @@
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
     <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
+    <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"

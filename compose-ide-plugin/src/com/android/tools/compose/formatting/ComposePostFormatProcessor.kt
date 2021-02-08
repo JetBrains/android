@@ -17,6 +17,7 @@ package com.android.tools.compose.formatting
 
 import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.isModifierChainLongerThanTwo
+import com.android.tools.compose.settings.ComposeCustomCodeStyleSettings
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
@@ -38,14 +39,20 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
  * splits it in one modifier per line.
  */
 class ComposePostFormatProcessor : PostFormatProcessor {
+
+  private fun isAvailable(psiElement: PsiElement, settings: CodeStyleSettings): Boolean {
+    return psiElement.containingFile is KtFile &&
+           isComposeEnabled(psiElement) &&
+           !DumbService.isDumb(psiElement.project) &&
+           settings.getCustomSettings(ComposeCustomCodeStyleSettings::class.java).USE_CUSTOM_FORMATTING_FOR_MODIFIERS
+  }
+
   override fun processElement(source: PsiElement, settings: CodeStyleSettings): PsiElement {
-    if (source.containingFile !is KtFile || !isComposeEnabled(source) || DumbService.isDumb(source.project)) return source
-    return ComposeModifierProcessor(settings).process(source)
+    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).process(source) else source
   }
 
   override fun processText(source: PsiFile, rangeToReformat: TextRange, settings: CodeStyleSettings): TextRange {
-    if (source !is KtFile || !isComposeEnabled(source) || DumbService.isDumb(source.project)) return rangeToReformat
-    return ComposeModifierProcessor(settings).processText(source, rangeToReformat)
+    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).processText(source, rangeToReformat) else rangeToReformat
   }
 }
 
