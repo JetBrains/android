@@ -94,6 +94,8 @@
 
     <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
 
+    <automaticRenamerFactory implementation="com.android.tools.compose.ComposableElementAutomaticRenamerFactory"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
