@@ -338,6 +338,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           previewElementProvider.instanceFilter = value
           animationInspection.set(true)
           composeWorkBench.hasComponentsOverlay = false
+          composeWorkBench.isAnimationPreview = true
 
           // Open the animation inspection panel
           composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
@@ -364,6 +365,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
+    composeWorkBench.isAnimationPreview = false
     previewElementProvider.instanceFilter = null
   }
 

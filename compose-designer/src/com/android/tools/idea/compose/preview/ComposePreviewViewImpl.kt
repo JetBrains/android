@@ -92,6 +92,12 @@ interface ComposePreviewView {
   var isInteractive: Boolean
 
   /**
+   * Sets whether the panel is in animation preview mode. When this mode is active, the panel might need to show/hide different elements,
+   * e.g. hiding the pinned previews panel.
+   */
+  var isAnimationPreview: Boolean
+
+  /**
    * Sets whether the panel has content to display. If it does not, it will display an overlay with a message for the user.
    */
   var hasContent: Boolean
@@ -378,8 +384,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
 
     if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
-      // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive.
-      mainSurfacePinLabel.isVisible = !isInteractive && !isPinnedSurfaceVisible
+      // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive nor animation preview.
+      mainSurfacePinLabel.isVisible = !isInteractive && !isPinnedSurfaceVisible && !isAnimationPreview
       mainSurfacePinLabel.update()
       pinnedPanelLabel.update()
     }
@@ -404,6 +410,8 @@ internal class ComposePreviewViewImpl(private val project: Project,
       }
       updateVisibilityAndNotifications()
     }
+
+  override var isAnimationPreview: Boolean = false
 
   override var hasContent: Boolean = true
 
