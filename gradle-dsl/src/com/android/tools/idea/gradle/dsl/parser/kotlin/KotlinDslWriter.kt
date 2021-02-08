@@ -145,14 +145,13 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
     var statementText : String
-    val useAssignment = when (externalNameInfo.syntax) {
-      UNKNOWN -> element.shouldUseAssignment()
-      ASSIGNMENT -> true
-      METHOD -> false
+    val syntax = when (externalNameInfo.syntax) {
+      UNKNOWN -> if (element.shouldUseAssignment()) ASSIGNMENT else METHOD
+      else -> externalNameInfo.syntax
     }
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
-    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
+    if (element.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
       statementText = "\"${joinedName}\""
     }
     else if (element is GradleDslNamedDomainElement) {
@@ -185,7 +184,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         statementText += " {\n}"  // Can't create expression with another new line after.
       }
     }
-    else if (useAssignment) {
+    else if (syntax == ASSIGNMENT) {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
@@ -460,19 +459,18 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         if (propertyName.startsWith("project(':")) {
           propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
         }
-        val useAssignment = when (externalNameInfo.syntax) {
-          UNKNOWN -> methodCall.shouldUseAssignment()
-          ASSIGNMENT -> true
-          METHOD -> false
+        val syntax = when (externalNameInfo.syntax) {
+          UNKNOWN -> if (methodCall.shouldUseAssignment()) ASSIGNMENT else METHOD
+          else -> externalNameInfo.syntax
         }
         var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
-        if (useAssignment) {
+        if (syntax == ASSIGNMENT) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
         else {
           // Ex: implementation(fileTree()), "feature"(fileTree())
-          if (methodCall.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
+          if (methodCall.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
             propertyName = "\"$propertyName\""
           }
           "$propertyName($methodName())"
