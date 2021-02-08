@@ -40,6 +40,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpres
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mASSIGN;
@@ -129,8 +131,8 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     boolean useAssignment = element.shouldUseAssignment();
-    if (externalNameInfo.asMethod != null) {
-      useAssignment = !externalNameInfo.asMethod;
+    if (externalNameInfo.syntax != UNKNOWN) {
+      useAssignment = externalNameInfo.syntax != METHOD; // TODO(xof): this is horrible
     }
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
@@ -294,8 +296,8 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (!methodCall.getFullName().isEmpty()) {
       ExternalNameInfo info = maybeTrimForParent(methodCall, this);
       boolean useAssignment = methodCall.shouldUseAssignment();
-      if (info.asMethod != null) {
-        useAssignment = !info.asMethod;
+      if (info.syntax != UNKNOWN) {
+        useAssignment = info.syntax != METHOD; // TODO(xof): also horrible
       }
 
       String elementName = quotePartsIfNecessary(info) + " ";

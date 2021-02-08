@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.decodeStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
@@ -107,15 +110,15 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @Override
   public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, ModelEffectDescription> map = context.getExternalToModelMap(this);
-    ExternalNameInfo result = new ExternalNameInfo(modelName, null);
+    ExternalNameInfo result = new ExternalNameInfo(modelName, UNKNOWN);
     for (Map.Entry<Pair<String,Integer>, ModelEffectDescription> e : map.entrySet()) {
       if (e.getValue().property.name.equals(modelName)) {
         SemanticsDescription semantics = e.getValue().semantics;
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == AUGMENT_LIST || semantics == OTHER) {
-          return new ExternalNameInfo(e.getKey().getFirst(), true);
+          return new ExternalNameInfo(e.getKey().getFirst(), METHOD);
         }
         if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
-          result = new ExternalNameInfo(e.getKey().getFirst(), false);
+          result = new ExternalNameInfo(e.getKey().getFirst(), ASSIGNMENT);
         }
       }
     }

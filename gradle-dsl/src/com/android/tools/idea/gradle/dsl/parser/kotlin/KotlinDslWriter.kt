@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
@@ -142,9 +145,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
     var statementText : String
-    val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
-      null -> element.shouldUseAssignment()
-      else -> !asMethod
+    val useAssignment = when (externalNameInfo.syntax) {
+      UNKNOWN -> element.shouldUseAssignment()
+      ASSIGNMENT -> true
+      METHOD -> false
     }
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
@@ -456,9 +460,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         if (propertyName.startsWith("project(':")) {
           propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
         }
-        val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
-          null -> methodCall.shouldUseAssignment()
-          else -> !asMethod
+        val useAssignment = when (externalNameInfo.syntax) {
+          UNKNOWN -> methodCall.shouldUseAssignment()
+          ASSIGNMENT -> true
+          METHOD -> false
         }
         var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
         if (useAssignment) {
