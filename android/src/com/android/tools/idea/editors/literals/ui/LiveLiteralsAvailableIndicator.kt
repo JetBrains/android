@@ -120,7 +120,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     val toggleLiteralsActionName = "\"${highlightAction.templateText}\"$shortcutLabel"
     GotItTooltip("android.live.literals.popup", message("live.literals.is.available", toggleLiteralsActionName), this)
       .withLink(message("live.literals.is.available.disable.hint")) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(null, message("live.literals.configurable.display.name"))
+        ShowSettingsUtil.getInstance().showSettingsDialog(null, LiveLiteralsConfigurable::class.java)
       }
       .withShowCount(if (invokedByUser) Int.MAX_VALUE else 1)
       .show(this) { Point(0, 0) }
