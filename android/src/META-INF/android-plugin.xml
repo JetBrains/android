@@ -122,7 +122,6 @@
         <override-text place="toolbar"/> <!-- Layout editor device menu -->
         <override-text place="popup"/> <!-- "run target" menu -->
       </action>
-      <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="ResourceExplorer.open"
               text="Resource Manager"
@@ -395,7 +394,7 @@
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderManager"/>
 
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
-                        serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
+                        serviceImplementation="com.android.tools.idea.run.NonGradleAndroidArtifactResolver$Dummy"/>
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
@@ -629,7 +628,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
 
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
-    <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
@@ -705,29 +703,16 @@
 
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectNamespacingStatusService" />
 
-    <packaging.elementType implementation="org.jetbrains.android.compiler.artifact.AndroidFinalPackageElementType"/>
-    <packaging.sourceItemProvider implementation="org.jetbrains.android.compiler.artifact.AndroidSourceItemsProvider"/>
-    <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
-    <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
-
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.manifest.StaleManifestNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
-    <!-- see also org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider -->
-    <compileServer.plugin classpath="apkzlib-4.0.0.jar;apksig-4.0.0.jar"/>
-    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-jps-model.jar;build-common.jar;android-rt.jar;studio.android.sdktools.sdk-common-27.1.0.0.jar;studio.android.sdktools.common-27.1.0.0.jar"/>
-    <compileServer.plugin classpath="studio.android.sdktools.repository-27.1.0.0.jar;studio.android.sdktools.sdklib-27.1.0.0.jar;studio.android.sdktools.layoutlib-api-27.1.0.0.jar;studio.android.sdktools.manifest-merger-27.1.0.0.jar"/>
-    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
-
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineLayoutHandler" order="first"/>
 
     <editorNotificationProvider implementation="org.jetbrains.android.sdk.AndroidSdkNotConfiguredNotificationProvider"/>
-    <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
-    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
@@ -822,8 +807,6 @@
     <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
-
-    <projectFacetListener facet-type="android" implementation="org.jetbrains.android.facet.AndroidModuleAutogenerationListener"/>
   </extensions>
 
   <projectListeners>
@@ -914,10 +897,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android">
-    <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
-    <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
     <androidStartupActivity implementation="com.android.tools.idea.templates.DynamicTemplateMenuAndroidStartupActivity" />
-    <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
     <androidStartupActivity implementation="com.android.tools.idea.gradle.util.LastBuildOrSyncStartupActivity" />
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
