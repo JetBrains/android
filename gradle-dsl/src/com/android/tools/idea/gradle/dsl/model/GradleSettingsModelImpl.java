@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
@@ -183,7 +184,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     // Create the GradleDslMethodCall that represents that method.
     GradleNameElement gradleNameElement = GradleNameElement.fake(projectDirPropertyName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(myGradleDslFile, gradleNameElement, FILE_METHOD_NAME);
-    methodCall.setUseAssignment(true);
+    methodCall.setExternalSyntax(ASSIGNMENT);
     myGradleDslFile.setNewElement(methodCall);
 
     // Make the method call new File(rootDir, <PATH>) if possible.

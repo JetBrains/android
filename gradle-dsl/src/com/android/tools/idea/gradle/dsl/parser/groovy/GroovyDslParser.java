@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
@@ -52,7 +53,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -646,7 +646,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       name = GradleNameElement.create(ensureUnquotedText(index));
       if (blockElement instanceof GradleDslExpressionMap) {
         GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-        propertyElement.setUseAssignment(true);
+        propertyElement.setExternalSyntax(ASSIGNMENT);
         propertyElement.setElementType(REGULAR);
 
         blockElement.setParsedElement(propertyElement);
@@ -658,7 +658,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
     else {
       GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-      propertyElement.setUseAssignment(true);
+      propertyElement.setExternalSyntax(ASSIGNMENT);
       propertyElement.setElementType(REGULAR);
 
       blockElement.setParsedElement(propertyElement);

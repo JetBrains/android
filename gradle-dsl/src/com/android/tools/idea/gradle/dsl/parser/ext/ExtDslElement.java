@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.ext;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -52,7 +54,7 @@ public final class ExtDslElement extends GradleDslBlockElement {
   @NotNull
   public GradleDslLiteral setNewLiteral(@NotNull String property, @NotNull Object object) {
     GradleDslLiteral element = super.setNewLiteral(property, object);
-    element.setUseAssignment(true);
+    element.setExternalSyntax(ASSIGNMENT);
     return element;
   }
 
@@ -60,7 +62,7 @@ public final class ExtDslElement extends GradleDslBlockElement {
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement element) {
     GradleDslElement newElement = super.setNewElement(element);
-    newElement.setUseAssignment(true);
+    newElement.setExternalSyntax(ASSIGNMENT);
     return newElement;
   }
 

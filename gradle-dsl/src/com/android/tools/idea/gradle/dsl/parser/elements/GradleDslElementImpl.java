@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
@@ -49,6 +50,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.*;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
@@ -74,10 +76,10 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   private long myLastCommittedModificationCount;
   private long myModificationCount;
 
-  // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
-  // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
-  // the information to make this distinction. GradleDslElement will set this to a default of false.
-  protected boolean myUseAssignment;
+  /**
+   * Represents the expressed syntax of this element (if from the parser), defaulting to METHOD.
+   */
+  @NotNull protected ExternalNameSyntax mySyntax;
 
   @NotNull private PropertyType myElementType;
 
@@ -109,7 +111,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       myDslFile = parent.getDslFile();
     }
 
-    myUseAssignment = false;
+    mySyntax = METHOD;
     // Default to DERIVED, this is overwritten in the parser if required for the given element type.
     myElementType = DERIVED;
   }
@@ -235,13 +237,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  public boolean shouldUseAssignment() {
-    return myUseAssignment;
+  @NotNull
+  public ExternalNameSyntax getExternalSyntax() {
+    return mySyntax;
   }
 
   @Override
-  public void setUseAssignment(boolean useAssignment) {
-    myUseAssignment = useAssignment;
+  public void setExternalSyntax(@NotNull ExternalNameSyntax syntax) {
+    mySyntax = syntax;
   }
 
   @Override

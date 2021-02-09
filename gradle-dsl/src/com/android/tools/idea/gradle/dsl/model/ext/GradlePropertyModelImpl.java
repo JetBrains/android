@@ -30,7 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +40,7 @@ import java.util.stream.Collectors;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
@@ -580,7 +580,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       return REFERENCE;
     }
     else if ((element instanceof GradleDslMethodCall &&
-              (element.shouldUseAssignment() || element.getElementType() == PropertyType.DERIVED)) ||
+              (element.getExternalSyntax() == ASSIGNMENT || element.getElementType() == PropertyType.DERIVED)) ||
              element instanceof GradleDslUnknownElement) {
       // This check ensures that methods we care about, i.e targetSdkVersion(12) are not classed as unknown.
       return UNKNOWN;
@@ -722,7 +722,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
     element.setElementType(myPropertyType);
     if (myElement != null) {
-      element.setUseAssignment(myElement.shouldUseAssignment());
+      element.setExternalSyntax(myElement.getExternalSyntax());
     }
     // TODO(b/...): this is necessary until models store the properties they're associated with: for now, the models have only names
     //  while the Dsl elements are annotated with model effect / properties.

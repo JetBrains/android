@@ -145,10 +145,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
     var statementText : String
-    val syntax = when (externalNameInfo.syntax) {
-      UNKNOWN -> if (element.shouldUseAssignment()) ASSIGNMENT else METHOD
-      else -> externalNameInfo.syntax
-    }
+    val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: element.externalSyntax
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
     if (element.parent is DependenciesDslElement && (syntax == METHOD) && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
@@ -459,10 +456,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         if (propertyName.startsWith("project(':")) {
           propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
         }
-        val syntax = when (externalNameInfo.syntax) {
-          UNKNOWN -> if (methodCall.shouldUseAssignment()) ASSIGNMENT else METHOD
-          else -> externalNameInfo.syntax
-        }
+        val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: methodCall.externalSyntax
         var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
         if (syntax == ASSIGNMENT) {
           // Ex: a = b().

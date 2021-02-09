@@ -33,13 +33,13 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Assume
 import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
@@ -65,7 +65,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   private fun newLiteral(parent: GradleDslElement, name: String, value: Any): GradleDslLiteral {
     val newElement = GradleDslLiteral(parent, GradleNameElement.create(name))
     newElement.setValue(value)
-    newElement.setUseAssignment(true)
+    newElement.externalSyntax = ASSIGNMENT
     newElement.elementType = REGULAR
     return newElement
   }

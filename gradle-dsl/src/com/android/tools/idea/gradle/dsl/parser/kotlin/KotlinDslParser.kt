@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
@@ -450,7 +451,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
     else {
       val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
 
       parentBlock.setParsedElement(propertyElement)
@@ -491,7 +492,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
       ext.setParsedElement(propertyElement)
     }
