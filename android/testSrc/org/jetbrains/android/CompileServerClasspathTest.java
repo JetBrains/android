@@ -3,7 +3,6 @@ package org.jetbrains.android;
 
 import static org.junit.Assert.assertFalse;
 
-import com.google.common.collect.Streams;
 import com.intellij.compiler.server.impl.BuildProcessClasspathManager;
 import com.intellij.openapi.project.DefaultProjectFactory;
 import com.intellij.openapi.project.Project;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.cmdline.ClasspathBootstrap;
 import org.junit.Test;
 
 public class CompileServerClasspathTest extends BareTestFixtureTestCase {
@@ -26,10 +24,9 @@ public class CompileServerClasspathTest extends BareTestFixtureTestCase {
 
   @NotNull
   private Set<String> getBuildProcessClasspath() {
-    List<String> baseCp = ClasspathBootstrap.getBuildProcessApplicationClasspath();
     Project project = DefaultProjectFactory.getInstance().getDefaultProject();
-    @NotNull List<String> pluginsCp = new BuildProcessClasspathManager(getTestRootDisposable()).getBuildProcessPluginsClasspath(project);
-    return Streams.concat(baseCp.stream(), pluginsCp.stream())
+    @NotNull List<String> pluginsCp = new BuildProcessClasspathManager(getTestRootDisposable()).getBuildProcessClasspath(project);
+    return pluginsCp.stream()
       .map(it -> LightJavaModule.moduleName(new File(it).getName()))
       .collect(Collectors.toSet());
   }
