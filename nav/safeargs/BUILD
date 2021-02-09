@@ -56,6 +56,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

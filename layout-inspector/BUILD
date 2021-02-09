@@ -76,6 +76,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",

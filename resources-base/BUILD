@@ -40,6 +40,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

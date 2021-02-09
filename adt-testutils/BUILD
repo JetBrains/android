@@ -10,7 +10,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
     ],
