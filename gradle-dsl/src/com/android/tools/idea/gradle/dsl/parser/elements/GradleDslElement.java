@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -103,9 +104,10 @@ public interface GradleDslElement extends AnchorProvider {
 
   void setPsiElement(@Nullable PsiElement psiElement);
 
-  boolean shouldUseAssignment();
+  @NotNull
+  ExternalNameSyntax getExternalSyntax();
 
-  void setUseAssignment(boolean useAssignment);
+  void setExternalSyntax(@NotNull ExternalNameSyntax syntax);
 
   @NotNull
   PropertyType getElementType();

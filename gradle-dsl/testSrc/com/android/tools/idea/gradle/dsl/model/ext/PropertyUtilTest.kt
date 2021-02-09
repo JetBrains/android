@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_UTIL_WRITE_BA
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
@@ -103,7 +104,7 @@ class PropertyUtilTest : TransformTestCase() {
     val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()
     literal.elementType = PropertyType.REGULAR
     if (!isGroovy) {
-      literal.setUseAssignment(true)
+      literal.externalSyntax = ASSIGNMENT
     }
     defaultConfigBlock.setNewElement(literal)
     literal.setValue("hello")

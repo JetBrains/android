@@ -25,6 +25,7 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
@@ -82,7 +83,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
   private ModelEffectDescription getModelEffect(@NotNull GradleDslElement element) {
     String name = element.getName();
     Map<Pair<String,Integer>,ModelEffectDescription> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
-    if (element.shouldUseAssignment()) {
+    if (element.getExternalSyntax() == ASSIGNMENT) {
       ModelEffectDescription value = nameMapper.get(new Pair<>(name, (Integer) null));
       if (value != null) {
         return value;
@@ -115,7 +116,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     ModelEffectDescription effect = getModelEffect(element);
     if (effect == null) return;
     SemanticsDescription description = effect.semantics;
-    if (element.shouldUseAssignment()) {
+    if (element.getExternalSyntax() == ASSIGNMENT) {
       if (description != VAR && description != VWO && description != VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
         // we are maybe-renaming a property involved in an assignment, which only makes sense if the property has a writer (i.e.
         // it is a property and not a read-only VAL)

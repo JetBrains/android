@@ -134,7 +134,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     ExternalNameSyntax syntax = externalNameInfo.syntax;
     if (syntax == UNKNOWN) {
-      syntax = element.shouldUseAssignment() ? ASSIGNMENT : METHOD;
+      syntax = element.getExternalSyntax();
     }
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
@@ -299,7 +299,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       ExternalNameInfo info = maybeTrimForParent(methodCall, this);
       ExternalNameSyntax syntax = info.syntax;
       if (syntax == UNKNOWN) {
-        syntax = methodCall.shouldUseAssignment() ? ASSIGNMENT : METHOD;
+        syntax = methodCall.getExternalSyntax();
       }
       String elementName = quotePartsIfNecessary(info) + " ";
       statementText = elementName + (syntax == ASSIGNMENT ? "= " : "") + methodCallText;
