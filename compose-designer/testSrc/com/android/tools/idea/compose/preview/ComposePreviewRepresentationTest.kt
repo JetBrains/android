@@ -26,9 +26,14 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertArrayEquals
 import org.junit.Rule
@@ -73,7 +78,7 @@ class ComposePreviewRepresentationTest {
 
   @Test
   fun testPreviewInitialization() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "Test.kt",
       // language=kotlin
       """

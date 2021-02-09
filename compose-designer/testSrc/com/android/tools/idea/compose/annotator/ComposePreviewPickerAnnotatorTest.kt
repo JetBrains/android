@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -63,7 +64,7 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
 
-    rule.fixture.addFileToProject(
+    rule.fixture.addFileToProjectAndInvalidate(
       FILE_PATH,
       // language=kotlin
       """

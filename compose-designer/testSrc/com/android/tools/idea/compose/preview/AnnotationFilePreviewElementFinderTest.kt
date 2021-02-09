@@ -82,7 +82,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testFindPreviewAnnotations() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -139,7 +139,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       """.trimIndent())
 
     // Add secondary file with Previews that should not be found when looking into composeFile
-    val otherFile = fixture.addFileToProject(
+    val otherFile = fixture.addFileToProjectAndInvalidate(
       "src/OtherFile.kt",
       // language=kotlin
       """
@@ -251,7 +251,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testFindPreviewAnnotationsWithoutImport() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -273,7 +273,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testNoDuplicatePreviewElements() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -294,7 +294,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testFindPreviewPackage() {
-    fixture.addFileToProject(
+    fixture.addFileToProjectAndInvalidate(
       "com/android/notpreview/Preview.kt",
       // language=kotlin
       """
@@ -307,7 +307,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
                                  val heightDp: Int = -1)
        """.trimIndent())
 
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -339,7 +339,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
    */
   @Test
   fun testDumbMode() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -372,7 +372,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testPreviewParameters() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -445,7 +445,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testOrdering() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -508,7 +508,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
   @Test
   fun testRepeatedPreviewAnnotations() {
-    val composeTest = fixture.addFileToProject(
+    val composeTest = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """

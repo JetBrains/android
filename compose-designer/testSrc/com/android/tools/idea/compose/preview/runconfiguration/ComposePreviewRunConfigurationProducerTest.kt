@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
@@ -44,7 +45,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -91,7 +92,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testParameterProvider() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestPreviewParameter.kt",
       // language=kotlin
       """
@@ -120,7 +121,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   fun testSetupConfigurationFromContextLibraryModule() {
     val modulePath = getAdditionalModulePath("myLibrary")
 
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
       // language=kotlin
       """
@@ -141,7 +142,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   fun testInvalidContexts() {
-    val file = myFixture.addFileToProject(
+    val file = myFixture.addFileToProjectAndInvalidate(
       "src/TestNotPreview.kt",
       // language=kotlin
       """

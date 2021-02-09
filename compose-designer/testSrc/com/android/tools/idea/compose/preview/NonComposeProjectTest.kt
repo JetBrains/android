@@ -31,7 +31,7 @@ class NonComposeProjectTest {
 
   @Test
   fun `compose preview not available`() {
-    val file = fixture.addFileToProject(
+    val file = fixture.addFileToProjectAndInvalidate(
       "Main.kt",
       // language=kotlin
       """

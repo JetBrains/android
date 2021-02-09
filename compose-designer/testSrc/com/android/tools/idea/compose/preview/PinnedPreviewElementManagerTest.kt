@@ -34,7 +34,7 @@ internal class PinnedPreviewElementManagerTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PIN_PREVIEW.override(true)
-    file1 = fixture.addFileToProject(
+    file1 = fixture.addFileToProjectAndInvalidate(
       "src/Test.kt",
       // language=kotlin
       """
@@ -54,7 +54,7 @@ internal class PinnedPreviewElementManagerTest {
 
       """.trimIndent())
 
-    file2 = fixture.addFileToProject(
+    file2 = fixture.addFileToProjectAndInvalidate(
       "src/com/test/Test.kt",
       // language=kotlin
       """
