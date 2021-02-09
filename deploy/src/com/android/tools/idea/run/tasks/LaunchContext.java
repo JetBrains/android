@@ -20,6 +20,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,7 @@ public class LaunchContext {
   private final ConsolePrinter consolePrinter;
 
   private final ProcessHandler processHandler;
+  private final ProgressIndicator progressIndicator;
   private boolean killBeforeLaunch = false;
   private boolean launchApp = true;
 
@@ -50,13 +52,15 @@ public class LaunchContext {
                        @NotNull IDevice device,
                        @NotNull LaunchStatus launchStatus,
                        @NotNull ConsolePrinter consolePrinter,
-                       @NotNull ProcessHandler processHandler) {
+                       @NotNull ProcessHandler processHandler,
+                       @NotNull ProgressIndicator progressIndicator) {
     this.project = project;
     this.executor = executor;
     this.device = device;
     this.launchStatus = launchStatus;
     this.consolePrinter = consolePrinter;
     this.processHandler = processHandler;
+    this.progressIndicator = progressIndicator;
   }
 
   @NotNull
@@ -87,6 +91,10 @@ public class LaunchContext {
   @NotNull
   public ProcessHandler getProcessHandler() {
     return processHandler;
+  }
+
+  public @NotNull ProgressIndicator getProgressIndicator() {
+    return progressIndicator;
   }
 
   public void setKillBeforeLaunch(boolean killBeforeLaunch) {

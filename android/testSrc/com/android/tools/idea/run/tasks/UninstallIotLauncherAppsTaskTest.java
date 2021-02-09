@@ -23,6 +23,7 @@ import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +50,7 @@ public class UninstallIotLauncherAppsTaskTest {
   @Mock private IotInstallChecker myChecker;
   @Mock private RetryingInstaller.Prompter myPrompt;
   @Mock private ProcessHandler myHandler;
+  @Mock private ProgressIndicator myIndicator;
 
   @Before
   public void initMocks() {
@@ -59,20 +61,22 @@ public class UninstallIotLauncherAppsTaskTest {
   @Test
   public void testTaskSucceedsOnNonEmbeddedHardware() {
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(myProject, PACKAGE_NAME);
-    assertTrue(task.run(new LaunchContext(myProject, myExecutor, myDevice, myLaunchStatus, myPrinter, myHandler)).getSuccess());
+    assertTrue(
+      task.run(new LaunchContext(myProject, myExecutor, myDevice, myLaunchStatus, myPrinter, myHandler, myIndicator)).getSuccess());
   }
 
   @Test
   public void testTaskSucceedsIfNoIotPackageExists() {
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(myProject, PACKAGE_NAME);
-    assertTrue(task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler)).getSuccess());
+    assertTrue(
+      task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler, myIndicator)).getSuccess());
   }
 
   @Test
   public void testTaskPromptsUserIfIotPackageExists() {
     when(myChecker.getInstalledIotLauncherApps(myEmbeddedDevice)).thenReturn(Collections.singleton(OTHER_PACKAGE_NAME));
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
-    task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler));
+    task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler, myIndicator));
     verify(myPrompt).showQuestionPrompt(Mockito.anyString());
   }
 
@@ -82,7 +86,8 @@ public class UninstallIotLauncherAppsTaskTest {
     // Answer "Yes" to "Do you want to uninstall packages?"
     when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(true);
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
-    assertTrue(task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler)).getSuccess());
+    assertTrue(
+      task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler, myIndicator)).getSuccess());
     verify(myEmbeddedDevice).uninstallPackage(OTHER_PACKAGE_NAME);
   }
 
@@ -93,7 +98,8 @@ public class UninstallIotLauncherAppsTaskTest {
     when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(true);
     when(myEmbeddedDevice.uninstallPackage(OTHER_PACKAGE_NAME)).thenThrow(new InstallException("Error"));
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
-    assertFalse(task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler)).getSuccess());
+    assertFalse(
+      task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler, myIndicator)).getSuccess());
     verify(myPrompt).showErrorMessage(Mockito.anyString());
   }
 
@@ -103,6 +109,7 @@ public class UninstallIotLauncherAppsTaskTest {
     // Answer "No" to "Do you want to uninstall packages?"
     when(myPrompt.showQuestionPrompt(Mockito.anyString())).thenReturn(false);
     UninstallIotLauncherAppsTask task = new UninstallIotLauncherAppsTask(PACKAGE_NAME, myChecker, myPrompt);
-    assertFalse(task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler)).getSuccess());
+    assertFalse(
+      task.run(new LaunchContext(myProject, myExecutor, myEmbeddedDevice, myLaunchStatus, myPrinter, myHandler, myIndicator)).getSuccess());
   }
 }

@@ -23,14 +23,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
+import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +77,8 @@ public class DeployTask extends AbstractDeployTask {
   @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
-                                    @NotNull ApkInfo apkInfo) throws DeployerException {
+                                    @NotNull ApkInfo apkInfo,
+                                    @NotNull Canceller canceller) throws DeployerException {
     // All installations default to allow debuggable APKs
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
@@ -144,7 +144,10 @@ public class DeployTask extends AbstractDeployTask {
         installMode = Deployer.InstallMode.FULL;
     }
 
-    Deployer.Result result = deployer.install(apkInfo.getApplicationId(), getPathsToInstall(apkInfo), options.build(), installMode);
+    options.setCancelChecker(canceller);
+
+    Deployer.Result result =
+      deployer.install(apkInfo.getApplicationId(), getPathsToInstall(apkInfo), options.build(), installMode);
 
     // Manually force-stop the application if we set --dont-kill above.
     if (!result.skippedInstall && isDontKillSupported) {

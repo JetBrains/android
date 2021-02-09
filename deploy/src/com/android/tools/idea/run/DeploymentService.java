@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -43,7 +44,7 @@ public class DeploymentService {
   }
 
   private DeploymentService() {
-    service = Executors.newFixedThreadPool(5);
+    service = Executors.newFixedThreadPool(5, new ThreadFactoryBuilder().setNameFormat("deployment-service-%d").build());
     runner = new TaskRunner(service);
 
     Path dexDbPath = Paths.get(PathManager.getSystemPath(), ".dex_cache.db");

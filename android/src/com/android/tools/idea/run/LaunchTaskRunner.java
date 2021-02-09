@@ -196,8 +196,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         IDevice device = entry.getKey();
         boolean isSucceeded = runLaunchTasks(
           entry.getValue(),
-          indicator,
-          new LaunchContext(myProject, myLaunchInfo.executor, device, launchStatus, consolePrinter, myProcessHandler),
+          new LaunchContext(myProject, myLaunchInfo.executor, device, launchStatus, consolePrinter, myProcessHandler, indicator),
           destroyProcessOnCancellation,
           completedStepsCount,
           totalScheduledStepsCount
@@ -235,12 +234,12 @@ public class LaunchTaskRunner extends Task.Backgroundable {
   }
 
   private boolean runLaunchTasks(@NotNull List<LaunchTask> launchTasks,
-                                 @NotNull ProgressIndicator indicator,
                                  @NotNull LaunchContext launchContext,
                                  boolean destroyProcessOnCancellation,
                                  @NotNull Ref<Integer> completedStepsCount,
                                  int totalScheduledStepsCount) {
     // Update the indicator progress.
+    ProgressIndicator indicator = launchContext.getProgressIndicator();
     indicator.setFraction(completedStepsCount.get().floatValue() / totalScheduledStepsCount);
     IDevice device = launchContext.getDevice();
     LaunchStatus launchStatus = launchContext.getLaunchStatus();
