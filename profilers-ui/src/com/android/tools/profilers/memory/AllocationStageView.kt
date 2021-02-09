@@ -31,6 +31,7 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -118,13 +119,19 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
       }
     }
 
-    val elapsedUs = (stage.minTrackingTimeUs - stage.timeline.dataRange.min).toLong()
-    captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
+    fun updateLabel() {
+      val elapsedUs = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
+      captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
+    }
 
     stage.captureSelection.aspect.addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
     stage.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE, ::adjustSelectAllButton)
-    stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE, ::adjustSelectAllButton)
+    stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE) {
+      adjustSelectAllButton()
+      updateLabel()
+    }
+    updateLabel()
     updateInstanceDetailsSplitter()
     component.add(mainPanel, BorderLayout.CENTER)
   }
