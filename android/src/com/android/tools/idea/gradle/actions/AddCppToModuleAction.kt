@@ -216,7 +216,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
             val libraryName = buildModel.android().defaultConfig().applicationId().valueAsString()?.split('.')?.last()
                               ?: module.name.substringAfterLast('.').replace(' ', '_')
             val sourceName = "$libraryName.cpp"
-            filesToOpen += cppFolder.resolve("native-lib.cpp").apply {
+            filesToOpen += cppFolder.resolve(sourceName).apply {
               writeText("""
               // Write C++ code here.
               //
@@ -226,13 +226,13 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
               //
               // In MainActivity.java:
               //    static {
-              //       System.loadLibrary("native-lib");
+              //       System.loadLibrary("$libraryName");
               //    }
               //
               // Or, in MainActivity.kt:
               //    companion object {
               //      init {
-              //         System.loadLibrary("native-lib")
+              //         System.loadLibrary("$libraryName")
               //      }
               //    }
             """.trimIndent())
