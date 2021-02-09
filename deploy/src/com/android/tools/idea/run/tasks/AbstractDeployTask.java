@@ -28,6 +28,7 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
+import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
@@ -162,7 +163,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
     for (ApkInfo apkInfo : myPackages) {
       try {
         launchContext.setLaunchApp(shouldTaskLaunchApp());
-        Deployer.Result result = perform(device, deployer, apkInfo);
+        Deployer.Result result = perform(device, deployer, apkInfo, new Canceller() {
+          @Override
+          public boolean cancelled() {
+            return launchContext.getProgressIndicator().isCanceled();
+          }
+        });
 
         if (result.skippedInstall) {
           idsSkippedInstall.add(apkInfo.getApplicationId());
@@ -203,7 +209,10 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   abstract protected boolean shouldTaskLaunchApp();
 
-  abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo) throws DeployerException;
+  abstract protected Deployer.Result perform(IDevice device,
+                                             Deployer deployer,
+                                             @NotNull ApkInfo apkInfo,
+                                             @NotNull Canceller canceller) throws DeployerException;
 
   private String getLocalInstaller() {
     File path;

@@ -26,6 +26,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.junit.Before
 import org.junit.Rule
@@ -56,6 +57,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
+  @Mock lateinit var mockIndicator: ProgressIndicator
   val retentionConfiguration = RetentionConfiguration()
 
   @Before
@@ -77,7 +79,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration
     )
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -109,7 +112,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration)
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -141,7 +145,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration)
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -174,7 +179,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration)
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -207,7 +213,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       retentionConfiguration
     )
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -238,7 +245,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration)
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isTrue()
     verify(mockGradleConnectedAndroidTestInvoker).schedule(
@@ -289,7 +297,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockGradleConnectedAndroidTestInvoker,
       retentionConfiguration)
 
-    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+    val result = launchTask.run(
+      LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler, mockIndicator))
 
     assertThat(result.success).isFalse()
     assertThat(result.errorId).isEqualTo("ANDROID_TEST_AGP_VERSION_TOO_OLD")

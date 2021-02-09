@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
@@ -84,12 +85,13 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
-                                    @NotNull ApkInfo apkInfo) throws DeployerException {
+                                    @NotNull ApkInfo apkInfo,
+                                    @NotNull Canceller canceller) throws DeployerException {
     LOG.info("Applying code changes to application: " + apkInfo.getApplicationId());
     // TODO: support fallback on R- devices
     ImmutableMap<Integer, ClassRedefiner> debuggerRedefiners = makeDebuggerRedefiners(
       getProject(), device, getFastRerunOnSwapFailure() && deployer.supportsNewPipeline());
-    return deployer.codeSwap(getPathsToInstall(apkInfo), debuggerRedefiners);
+    return deployer.codeSwap(getPathsToInstall(apkInfo), debuggerRedefiners, canceller);
   }
 
   @NotNull
