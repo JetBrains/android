@@ -19,13 +19,18 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDeviceTarget extends Target {
-  PhysicalDeviceTarget(@NotNull SerialNumber deviceKey) {
+/**
+ * A physical device or virtual device booted in an unknown way. Such targets show up in the "Running devices" section of the drop down,
+ * hence the name. The other Target subclasses are used for devices that are not running (the ones in the "Available devices" section). When
+ * we can identify how a running virtual device was actually booted, the other subclasses will be used for those devices too.
+ */
+final class RunningDeviceTarget extends Target {
+  RunningDeviceTarget(@NotNull Key deviceKey) {
     super(deviceKey);
   }
 
   /**
-   * @return throws UnsupportedOperationException. The text indicates the way a device will be booted but physical devices are not booted by
+   * @return throws UnsupportedOperationException. The text indicates the way a device will be booted but running devices are not booted by
    * the drop down.
    */
   @Override
@@ -45,6 +50,6 @@ final class PhysicalDeviceTarget extends Target {
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof PhysicalDeviceTarget && getDeviceKey().equals(((Target)object).getDeviceKey());
+    return object instanceof RunningDeviceTarget && getDeviceKey().equals(((Target)object).getDeviceKey());
   }
 }
