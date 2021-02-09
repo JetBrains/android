@@ -1,0 +1,1 @@
+(legacy) Plugin for building android modules with JPS

@@ -1,0 +1,52 @@
+<idea-plugin>
+  <name>Android JPS Build</name>
+  <id>org.jetbrains.android.jpsBuild</id>
+  <description>
+    <![CDATA[
+    Supports JPS (non-Gradle) build of <a href="https://developer.android.com">Android</a> applications with IntelliJ IDEA.
+    ]]>
+  </description>
+  <category>Android</category>
+  <vendor>JetBrains</vendor>
+  <depends>org.jetbrains.android</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
+    <compileServer.plugin classpath="apkzlib-4.0.0.jar;apksig-4.0.0.jar"/>
+    <compileServer.plugin classpath="jps/android-jps-plugin.jar;android-jps-model.jar;build-common.jar;android-rt.jar;studio.android.sdktools.sdk-common-27.1.0.0.jar;studio.android.sdktools.common-27.1.0.0.jar"/>
+    <compileServer.plugin classpath="studio.android.sdktools.repository-27.1.0.0.jar;studio.android.sdktools.sdklib-27.1.0.0.jar;studio.android.sdktools.layoutlib-api-27.1.0.0.jar;studio.android.sdktools.manifest-merger-27.1.0.0.jar"/>
+
+    <compiler.buildTargetScopeProvider implementation="org.jetbrains.android.compiler.AndroidBuildTargetScopeProvider"/>
+
+    <packaging.elementType implementation="org.jetbrains.android.compiler.artifact.AndroidFinalPackageElementType"/>
+    <packaging.sourceItemProvider implementation="org.jetbrains.android.compiler.artifact.AndroidSourceItemsProvider"/>
+    <packaging.artifactPropertiesProvider implementation="org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider"/>
+    <packaging.artifactType implementation="org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType"/>
+
+    <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
+                         key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
+
+    <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
+
+    <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
+                        serviceImplementation="org.jetbrains.android.compiler.artifact.JpsAndroidArtifactResolver"
+                        overrides="true"
+    />
+
+    <projectFacetListener facet-type="android" implementation="org.jetbrains.android.compiler.AndroidModuleAutogenerationListener"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android">
+    <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
+  </extensions>
+
+  <actions>
+    <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction">
+      <add-to-group group-id="AndroidToolsGroup"
+                    relative-to-action="Android.RunAndroidAvdManager"
+                    anchor="after" />
+    </action>
+  </actions>
+</idea-plugin>

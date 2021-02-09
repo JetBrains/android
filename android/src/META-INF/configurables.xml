@@ -18,7 +18,5 @@
     <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
                          id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
 
-    <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
-                         key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
   </extensions>
 </idea-plugin>
