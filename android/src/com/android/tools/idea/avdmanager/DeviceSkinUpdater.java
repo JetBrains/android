@@ -93,7 +93,7 @@ final class DeviceSkinUpdater {
    *
    * @return the SDK skins path for the device. Returns device as is if it's empty, absolute, equal to _no_skin, or both the Studio skins
    * path and SDK are not found. Returns the SDK skins path for the device if the Studio skins path is not found. Returns the Studio skins
-   * path for the device (${HOME}/android-studio/plugins/android/lib/device-art-resources/pixel_4) if the SDK is not found or an IOException
+   * path for the device (${HOME}/android-studio/plugins/android/resources/device-art-resources/pixel_4) if the SDK is not found or an IOException
    * is thrown.
    * @see DeviceSkinUpdaterService
    */
