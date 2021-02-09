@@ -35,8 +35,8 @@ import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.DebugLoggerRule
 import com.android.tools.idea.testing.flags.override
+import com.android.utils.FlightRecorder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.ide.dnd.DnDEvent
@@ -101,7 +101,7 @@ class EmulatorToolWindowPanelTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(DebugLoggerRule()).around(projectRule).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
@@ -339,6 +339,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testDnD() {
+    FlightRecorder.initialize(100)
     val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
@@ -358,6 +359,7 @@ class EmulatorToolWindowPanelTest {
 
     val target = nullableTarget as DnDTarget
     val device = mock<IDevice>()
+    FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: device: $device")
     `when`(device.isEmulator).thenReturn(true)
     `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
@@ -379,8 +381,10 @@ class EmulatorToolWindowPanelTest {
     val installPackagesCalled = CountDownLatch(1)
     val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
     val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any()))
-      .then { installPackagesCalled.countDown() }
+    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
+      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: app installed")
+      installPackagesCalled.countDown()
+    }
 
     // Simulate drop.
     target.drop(dnDEvent1)
@@ -401,16 +405,23 @@ class EmulatorToolWindowPanelTest {
     val firstArgCaptor = ArgumentCaptor.forClass(String::class.java)
     val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
     `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
-      println("EmulatorToolWindowPanelTest.testDnD: file pushed")
+      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: file pushed")
       allFilesPushed.countDown()
     }
 
     // Simulate drop.
     target.drop(dnDEvent2)
 
-    assertThat(allFilesPushed.await(5, TimeUnit.SECONDS)).isTrue()
-    assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
-    assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
+    try {
+      assertThat(allFilesPushed.await(5, TimeUnit.SECONDS)).isTrue()
+      assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
+      assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
+      FlightRecorder.print()
+    }
+    catch (t: Throwable) {
+      FlightRecorder.print()
+      throw t
+    }
 
     panel.destroyContent()
   }

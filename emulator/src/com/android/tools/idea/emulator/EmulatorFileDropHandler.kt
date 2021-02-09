@@ -25,6 +25,7 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.log.LogWrapper
+import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -33,8 +34,6 @@ import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDSupport
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import com.intellij.util.concurrency.EdtExecutorService
@@ -82,7 +81,7 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
     val fileNames = files.joinToString(", ") { it.name }
 
     if (fileTypes.contains(FileType.APK)) {
-      thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.drop: installing $fileNames" }
+      FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.drop: installing $fileNames" }
       emulatorView.showLongRunningOperationIndicator("Installing $fileNames")
 
       val resultFuture: ListenableFuture<InstallResult> = findDevice().transform(getAppExecutorService()) { install(files, it) }
@@ -106,7 +105,7 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
         })
     }
     else {
-      thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.drop: copying $fileNames" }
+      FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.drop: copying $fileNames" }
       emulatorView.showLongRunningOperationIndicator("Copying $fileNames")
 
       val resultFuture: ListenableFuture<Unit> = findDevice().transform(getAppExecutorService()) { push(files, it) }
@@ -137,16 +136,16 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
   }
 
   private fun install(files: List<File>, device: IDevice): InstallResult {
-    thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.install" }
+    FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.install: on $device" }
     val filePaths = files.asSequence().map { it.path }.toList()
     return createAdbClient(device).install(filePaths, listOf("-t", "--user", "current", "--full", "--dont-kill"), true)
   }
 
   private fun push(files: List<File>, device: IDevice) {
-    thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push" }
+    FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push" }
     val adbClient = createAdbClient(device)
     for (file in files) {
-      thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push: pushing ${file.name}" }
+      FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push: pushing ${file.name} to $device" }
       adbClient.push(file.absolutePath, DEVICE_DOWNLOAD_DIR + file.name)
     }
   }
@@ -154,12 +153,12 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
   private fun createAdbClient(device: IDevice) = AdbClient(device, LogWrapper(EmulatorFileDropHandler::class.java))
 
   private fun notifyOfSuccess(message: String) {
-    thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.notifyOfSuccess: $message" }
+    FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.notifyOfSuccess: $message" }
     EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.INFORMATION).notify(project)
   }
 
   private fun notifyOfError(message: String) {
-    thisLogger().debug { "${TraceUtils.currentTime()} EmulatorFileDropHandler.notifyOfError: $message" }
+    FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.notifyOfError: $message" }
     EMULATOR_NOTIFICATION_GROUP.createNotification(message, NotificationType.WARNING).notify(project)
   }
 
