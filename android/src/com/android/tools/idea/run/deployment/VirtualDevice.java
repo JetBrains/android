@@ -196,12 +196,28 @@ final class VirtualDevice extends Device {
 
   @Override
   @NotNull Target getDefaultTarget() {
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return new QuickBootTarget(getKey());
+    }
+
+    if (isConnected()) {
+      return new RunningDeviceTarget(getKey());
+    }
+
     return new QuickBootTarget(getKey());
   }
 
   @Override
   @NotNull Collection<@NotNull Target> getTargets() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
+      return Collections.singletonList(new QuickBootTarget(getKey()));
+    }
+
+    if (isConnected()) {
+      return Collections.singletonList(new RunningDeviceTarget(getKey()));
+    }
+
+    if (mySnapshots.isEmpty()) {
       return Collections.singletonList(new QuickBootTarget(getKey()));
     }
 

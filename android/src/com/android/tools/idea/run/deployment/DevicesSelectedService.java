@@ -255,7 +255,10 @@ final class DevicesSelectedService {
     }
 
     private TargetState(@NotNull Target target) {
-      if (target instanceof ColdBootTarget) {
+      if (target instanceof RunningDeviceTarget) {
+        type = TargetType.RUNNING_DEVICE_TARGET;
+      }
+      else if (target instanceof ColdBootTarget) {
         type = TargetType.COLD_BOOT_TARGET;
       }
       else if (target instanceof QuickBootTarget) {
@@ -264,9 +267,6 @@ final class DevicesSelectedService {
       else if (target instanceof BootWithSnapshotTarget) {
         type = TargetType.BOOT_WITH_SNAPSHOT_TARGET;
         snapshotKey = ((BootWithSnapshotTarget)target).getSnapshotKey();
-      }
-      else if (target instanceof PhysicalDeviceTarget) {
-        type = TargetType.PHYSICAL_DEVICE_TARGET;
       }
       else {
         assert false : target;
@@ -285,6 +285,8 @@ final class DevicesSelectedService {
       }
 
       switch (type) {
+        case RUNNING_DEVICE_TARGET:
+          return new RunningDeviceTarget(deviceKey.asKey());
         case COLD_BOOT_TARGET:
           return new ColdBootTarget(deviceKey.asKey());
         case QUICK_BOOT_TARGET:
@@ -292,8 +294,6 @@ final class DevicesSelectedService {
         case BOOT_WITH_SNAPSHOT_TARGET:
           assert snapshotKey != null;
           return new BootWithSnapshotTarget(deviceKey.asKey(), snapshotKey);
-        case PHYSICAL_DEVICE_TARGET:
-          return new PhysicalDeviceTarget((SerialNumber)deviceKey.asKey());
         default:
           throw new DevicesSelectedServiceException(type.toString());
       }
@@ -323,7 +323,7 @@ final class DevicesSelectedService {
     }
   }
 
-  private enum TargetType {COLD_BOOT_TARGET, QUICK_BOOT_TARGET, BOOT_WITH_SNAPSHOT_TARGET, PHYSICAL_DEVICE_TARGET}
+  private enum TargetType {RUNNING_DEVICE_TARGET, COLD_BOOT_TARGET, QUICK_BOOT_TARGET, BOOT_WITH_SNAPSHOT_TARGET}
 
   @Tag("Key")
   private static final class KeyState {

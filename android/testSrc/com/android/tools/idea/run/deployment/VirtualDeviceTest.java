@@ -22,6 +22,7 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -31,14 +32,31 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTest {
+  private static final Key DEVICE_KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
+  @Test
+  public void getDefaultTarget() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
+      .build();
+
+    // Act
+    Object target = device.getDefaultTarget();
+
+    // Assert
+    assertEquals(new QuickBootTarget(DEVICE_KEY), target);
+  }
+
   @Test
   public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsIsntEnabled() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
@@ -47,20 +65,35 @@ public final class VirtualDeviceTest {
     Object targets = device.getTargets();
 
     // Assert
-    assertEquals(Collections.singletonList(new QuickBootTarget(key)), targets);
+    assertEquals(Collections.singletonList(new QuickBootTarget(DEVICE_KEY)), targets);
+  }
+
+  @Test
+  public void getTargetsIsConnected() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    // Act
+    Object targets = device.getTargets();
+
+    // Assert
+    assertEquals(Collections.singletonList(new RunningDeviceTarget(DEVICE_KEY)), targets);
   }
 
   @Test
   public void getTargets() {
     // Arrange
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(deviceKey)
+      .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(snapshotKey))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
@@ -70,9 +103,9 @@ public final class VirtualDeviceTest {
     Object actualTargets = device.getTargets();
 
     // Assert
-    Object expectedTargets = Arrays.asList(new ColdBootTarget(deviceKey),
-                                           new QuickBootTarget(deviceKey),
-                                           new BootWithSnapshotTarget(deviceKey, snapshotKey));
+    Object expectedTargets = Arrays.asList(new ColdBootTarget(DEVICE_KEY),
+                                           new QuickBootTarget(DEVICE_KEY),
+                                           new BootWithSnapshotTarget(DEVICE_KEY, snapshotKey));
 
     assertEquals(expectedTargets, actualTargets);
   }
