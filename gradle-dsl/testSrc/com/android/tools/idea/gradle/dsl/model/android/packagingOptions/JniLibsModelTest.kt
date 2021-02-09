@@ -30,6 +30,9 @@ class JniLibsModelTest : GradleFileModelTestCase() {
     val jniLibsModel = buildModel.android().packagingOptions().jniLibs()
     checkForValidPsiElement(jniLibsModel, JniLibsModelImpl::class.java)
     assertEquals("useLegacyPackaging", true, jniLibsModel.useLegacyPackaging())
+    verifyListProperty("excludes", jniLibsModel.excludes(), listOf("foo"))
+    verifyListProperty("pickFirsts", jniLibsModel.pickFirsts(), listOf("bar", "baz"))
+    verifyListProperty("keepDebugSymbols", jniLibsModel.keepDebugSymbols(), listOf("a", "b", "c"))
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {

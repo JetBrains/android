@@ -29,6 +29,9 @@ class ResourcesModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val resourcesModel = buildModel.android().packagingOptions().resources()
     checkForValidPsiElement(resourcesModel, ResourcesModelImpl::class.java)
+    verifyListProperty("excludes", resourcesModel.excludes(), listOf("foo"))
+    verifyListProperty("pickFirsts", resourcesModel.pickFirsts(), listOf("bar", "baz"))
+    verifyListProperty("merges", resourcesModel.merges(), listOf("a", "b", "c"))
   }
 
   enum class TestFile(val path: @SystemDependent String) : TestFileName {

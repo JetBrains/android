@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
@@ -591,10 +592,12 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
   private boolean parseGrAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     PsiElement operationToken = assignment.getOperationToken();
-    if (!operationToken.getText().equals("=")) {
-      return false; // TODO: Add support for other operators like +=.
-    }
+    if (operationToken.getText().equals("=")) return processAssignment(assignment, blockElement);
+    if (operationToken.getText().equals("+=")) return processAugmentedAssignment(assignment, blockElement);
+    return false;
+  }
 
+  private boolean processAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
     GrExpression left = assignment.getLValue();
     GradleNameElement name = GradleNameElement.from(left, this);
     if (name.isEmpty()) {
@@ -664,6 +667,43 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       blockElement.setParsedElement(propertyElement);
     }
     return true;
+  }
+
+  boolean processAugmentedAssignment(@NotNull GrAssignmentExpression assignment, @NotNull GradlePropertiesDslElement blockElement) {
+    GrExpression left = assignment.getLValue();
+    GradleNameElement name = GradleNameElement.from(left, this);
+    if (name.isEmpty()) {
+      return false;
+    }
+
+    if (name.isQualified()) {
+      GradlePropertiesDslElement nestedElement = getPropertiesElement(name.qualifyingParts(), blockElement, null);
+      if (nestedElement != null) {
+        blockElement = nestedElement;
+      }
+      else {
+        return false;
+      }
+    }
+
+    GrExpression right = assignment.getRValue();
+    if (right == null) {
+      return false;
+    }
+
+    Matcher matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name());
+    if (matcher.find()) {
+      // not supporting indexing for += (yet?)
+      return false;
+    }
+    else {
+      GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+      propertyElement.setExternalSyntax(AUGMENTED_ASSIGNMENT);
+      propertyElement.setElementType(REGULAR);
+
+      blockElement.augmentParsedElement(propertyElement);
+      return true;
+    }
   }
 
   @NotNull
