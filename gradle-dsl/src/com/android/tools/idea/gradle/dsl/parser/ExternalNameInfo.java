@@ -26,6 +26,8 @@ public class ExternalNameInfo {
     METHOD,
     /** The external name is used on the left-hand side of an assignment. */
     ASSIGNMENT,
+    /** The external name is used on the left-hand side of an augmented assignment. */
+    AUGMENTED_ASSIGNMENT,
     /** The external name is used in an unknown or backend-dependent context. */
     UNKNOWN
   }

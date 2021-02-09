@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.annotations.VisibleForTesting;
@@ -201,6 +202,26 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public void addParsedElement(@NotNull GradleDslElement element) {
     element.setParent(this);
     addPropertyInternal(element, EXISTING);
+  }
+
+  /**
+   * Augments a property with the given {@code element}.
+   *
+   * Subclasses
+   * @param element
+   */
+  public void augmentParsedElement(@NotNull GradleDslElement element) {
+    ModelPropertyDescription modelProperty = element.getModelProperty();
+    if (modelProperty == null) {
+      // this is probably not right but let's see what happens.
+      addParsedElement(element);
+      return;
+    }
+    if (modelProperty.type == ModelPropertyType.MUTABLE_LIST || modelProperty.type == ModelPropertyType.MUTABLE_SET) {
+      addToParsedExpressionList(modelProperty, element);
+      return;
+    }
+    addParsedElement(element);
   }
 
   /**
