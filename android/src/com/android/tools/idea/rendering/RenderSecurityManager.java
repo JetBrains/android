@@ -141,7 +141,7 @@ public class RenderSecurityManager extends SecurityManager {
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
-    mIndexRootPath = PathManager.getIndexRoot().getPath();
+    mIndexRootPath = PathManager.getIndexRoot().toString();
     mCachePath = PathManager.getSystemPath() + "/caches/";
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
