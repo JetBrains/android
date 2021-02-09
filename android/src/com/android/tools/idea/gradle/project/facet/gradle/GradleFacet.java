@@ -32,13 +32,13 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.ProjectTopics.PROJECT_ROOTS;
 import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
-import static org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
 
 /**
  * Identifies a module as a "Gradle project".
  */
 public class GradleFacet extends Facet<GradleFacetConfiguration> {
+  public static final String ANDROID_GRADLE_FACET_ID = "android-gradle";
+  public static final String ANDROID_GRADLE_FACET_NAME = "Android-Gradle";
   @NotNull private static final FacetTypeId<GradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
 
   @Nullable private GradleModuleModel myGradleModuleModel;
