@@ -379,13 +379,13 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     // Find all the active editors
     EditorFactory.getInstance().allEditors.forEach {
-      addDocumentTracking(newActivationDisposable, it, it.document)
+      if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
     }
 
     // Listen for all new editors opening
     EditorFactory.getInstance().addEditorFactoryListener(object : EditorFactoryListener {
       override fun editorCreated(event: EditorFactoryEvent) {
-        addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
+        if (event.editor.project == project) addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
       }
 
       override fun editorReleased(event: EditorFactoryEvent) {
