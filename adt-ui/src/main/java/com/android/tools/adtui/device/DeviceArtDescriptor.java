@@ -65,40 +65,15 @@ public class DeviceArtDescriptor {
   /** Returns the absolute path to {@link #FN_BASE} folder, or null if it couldn't be located. */
   @Nullable
   public static File getBundledDescriptorsFolder() {
-    // In the IDE distribution, this should be in plugins/android/lib/FN_BASE
-    String androidJarPath = PathManager.getJarPathForClass(DeviceArtDescriptor.class);
-    if (androidJarPath != null) {
-      File androidJar = new File(androidJarPath);
-      if (androidJar.isFile()) {
-        File base = new File(androidJar.getParentFile(), FN_BASE);
-        if (base.exists() && base.isDirectory()) {
-          return base;
-        }
-      }
+    // In the IDE distribution, this should be in plugins/android/resources/FN_BASE
+    String base = FileUtil.join(PathManager.getHomePath(), "plugins", "android", "resources");
+    if (StudioPathManager.isRunningFromSources()) {
+      base = FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources");
     }
-
-    // In development environments, search a few other folders
-    String basePath = PathManager.getHomePath();
-    String[] paths = new String[]{
-      FileUtil.join(basePath, "plugins", "android"),
-      StudioPathManager.isRunningFromSources()
-      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources")
-      : null,
-      FileUtil.join(basePath, "android", "artwork", "resources"),
-      FileUtil.join(basePath, "community", "android", "artwork", "resources"),
-    };
-
-    for (String p : paths) {
-      if (p == null) continue;
-      File base = new File(p);
-      if (base.isDirectory()) {
-        File files = new File(base, FN_BASE);
-        if (files.isDirectory()) {
-          return files;
-        }
-      }
+    File dir = new File(base, FN_BASE);
+    if (dir.exists() && dir.isDirectory()) {
+      return dir;
     }
-
     return null;
   }
 
