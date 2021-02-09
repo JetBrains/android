@@ -35,8 +35,33 @@ class JniLibsModelTest : GradleFileModelTestCase() {
     verifyListProperty("keepDebugSymbols", jniLibsModel.keepDebugSymbols(), listOf("a", "b", "c"))
   }
 
+  @Test
+  fun testAddAndApply() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY)
+    val buildModel = gradleBuildModel
+    val jniLibsModel = buildModel.android().packagingOptions().jniLibs()
+    checkForInvalidPsiElement(jniLibsModel, JniLibsModelImpl::class.java)
+    jniLibsModel.useLegacyPackaging().setValue(true)
+    jniLibsModel.excludes().addListValue().setValue("foo")
+    jniLibsModel.pickFirsts().addListValue().setValue("bar")
+    jniLibsModel.pickFirsts().addListValue().setValue("baz")
+    jniLibsModel.keepDebugSymbols().addListValue().setValue("a")
+    jniLibsModel.keepDebugSymbols().addListValue().setValue("b")
+    jniLibsModel.keepDebugSymbols().addListValue().setValue("c")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED)
+
+    assertEquals("useLegacyPackaging", true, jniLibsModel.useLegacyPackaging())
+    verifyListProperty("excludes", jniLibsModel.excludes(), listOf("foo"))
+    verifyListProperty("pickFirsts", jniLibsModel.pickFirsts(), listOf("bar", "baz"))
+    verifyListProperty("keepDebugSymbols", jniLibsModel.keepDebugSymbols(), listOf("a", "b", "c"))
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
-    PARSE("parse")
+    PARSE("parse"),
+    ADD_AND_APPLY("addAndApply"),
+    ADD_AND_APPLY_EXPECTED("addAndApplyExpected"),
     ;
 
     override fun toFile(basePath: String, extension: String): File = super.toFile("$basePath/jniLibsModel/$path", extension)
