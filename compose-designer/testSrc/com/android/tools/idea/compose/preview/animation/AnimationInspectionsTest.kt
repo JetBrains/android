@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
@@ -41,7 +42,7 @@ class AnimationInspectionsTest {
 
   @Before
   fun setUp() {
-    fixture.addFileToProject(
+    fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/core/PropKey.kt",
       // language=kotlin
       """
@@ -50,7 +51,7 @@ class AnimationInspectionsTest {
       class IntPropKey(val label: String = "IntPropKey")
       """.trimIndent()
     )
-    fixture.addFileToProject(
+    fixture.addFileToProjectAndInvalidate(
       "src/androidx/compose/animation/PropertyKeys.kt",
       // language=kotlin
       """
