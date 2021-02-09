@@ -19,8 +19,7 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
@@ -228,6 +227,6 @@ class AllocationSamplingMenu(private val stage: AllocationStage): JBPanel<Alloca
 
   private fun onSamplingModeChanged() = when (val mode = stage.liveAllocationSamplingMode) {
     FULL, SAMPLED -> { combobox.model.selectedItem = mode }
-    else -> logger.error("Allocation sampling mode set to $mode when viewing live allocations")
+    NONE -> {}
   }
 }
