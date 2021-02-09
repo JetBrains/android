@@ -34,8 +34,31 @@ class ResourcesModelTest : GradleFileModelTestCase() {
     verifyListProperty("merges", resourcesModel.merges(), listOf("a", "b", "c"))
   }
 
+  @Test
+  fun testAddAndApply() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY)
+    val buildModel = gradleBuildModel
+    val resourcesModel = buildModel.android().packagingOptions().resources()
+    checkForInvalidPsiElement(resourcesModel, ResourcesModelImpl::class.java)
+    resourcesModel.excludes().addListValue().setValue("foo")
+    resourcesModel.pickFirsts().addListValue().setValue("bar")
+    resourcesModel.pickFirsts().addListValue().setValue("baz")
+    resourcesModel.merges().addListValue().setValue("a")
+    resourcesModel.merges().addListValue().setValue("b")
+    resourcesModel.merges().addListValue().setValue("c")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED)
+
+    verifyListProperty("excludes", resourcesModel.excludes(), listOf("foo"))
+    verifyListProperty("pickFirsts", resourcesModel.pickFirsts(), listOf("bar", "baz"))
+    verifyListProperty("merges", resourcesModel.merges(), listOf("a", "b", "c"))
+  }
+
   enum class TestFile(val path: @SystemDependent String) : TestFileName {
-    PARSE("parse")
+    PARSE("parse"),
+    ADD_AND_APPLY("addAndApply"),
+    ADD_AND_APPLY_EXPECTED("addAndApplyExpected"),
     ;
 
     override fun toFile(basePath: String, extension: String): File = super.toFile("$basePath/resourcesModel/$path", extension)

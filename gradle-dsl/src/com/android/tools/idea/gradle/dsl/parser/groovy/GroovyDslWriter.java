@@ -42,6 +42,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrNewExp
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
@@ -133,8 +134,9 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     ExternalNameSyntax syntax = externalNameInfo.syntax;
-    if (syntax == UNKNOWN) {
-      syntax = element.getExternalSyntax();
+    switch (syntax) {
+      case UNKNOWN: syntax = element.getExternalSyntax(); break;
+      default: element.setExternalSyntax(syntax);
     }
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
@@ -144,9 +146,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
         statementText += " {\n}\n";
       }
     }
-    else if (syntax == ASSIGNMENT) {
+    else if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
       if (element.getElementType() == PropertyType.REGULAR) {
-        statementText += " = 'abc'";
+        switch (syntax) {
+          case ASSIGNMENT: statementText += " = 'abc'"; break;
+          case AUGMENTED_ASSIGNMENT: statementText += " += 'abc'"; break;
+        }
       }
       else if (element.getElementType() == PropertyType.VARIABLE) {
         statementText = "def " + statementText + " = 'abc'";
