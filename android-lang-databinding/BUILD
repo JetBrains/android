@@ -53,6 +53,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
