@@ -209,6 +209,27 @@ class ComposePreviewAnimationManagerTest {
   }
 
   @Test
+  fun animationStatesInferredForBoolean() {
+    val inspector = createAndOpenInspector()
+    val transitionAnimation = object : ComposeAnimation {
+      override val animationObject = Any()
+      override val type = ComposeAnimationType.TRANSITION_ANIMATION
+      override val states = setOf(true) // Note that `false` is not provided
+    }
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), transitionAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    // We can get any of the combo boxes, since "from" and "to" states should be the same.
+    val stateComboBoxes = TreeWalker(inspector).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
+    val startStateComboBox = stateComboBoxes[0] as ComboBox<*>
+
+    assertEquals(2, startStateComboBox.itemCount)
+    assertEquals(true, startStateComboBox.getItemAt(0))
+    assertEquals(false, startStateComboBox.getItemAt(1)) // false inferred because the animation states received had a boolean
+  }
+
+  @Test
   fun tabsAreNamedFromAnimationLabel() {
     val inspector = createAndOpenInspector()
     val clock = TestClock()

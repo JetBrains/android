@@ -111,7 +111,7 @@ object ComposePreviewAnimationManager {
       UIUtil.invokeLaterIfNeeded {
         inspector.addTab(animation)
         if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
-          inspector.updateTransitionStates(animation, animation.states)
+          inspector.updateTransitionStates(animation, handleKnownStateTypes(animation.states))
         }
       }
     }
@@ -138,6 +138,16 @@ object ComposePreviewAnimationManager {
    */
   fun invalidate() {
     currentInspector?.let { UIUtil.invokeLaterIfNeeded { it.invalidatePanel() } }
+  }
+
+  /**
+   * Due to a limitation in the Compose Animation framework, we might not know all the available states for a given animation, only the
+   * initial/current one. However, we can infer all the states based on the initial one depending on its type, e.g. for a boolean we know
+   * the available states are only `true` or `false`.
+   */
+  private fun handleKnownStateTypes(originalStates: Set<Any>) = when (originalStates.iterator().next()) {
+    is Boolean -> setOf(true, false)
+    else -> originalStates
   }
 }
 
