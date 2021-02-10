@@ -9,8 +9,8 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.profilers.CloseButton
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.ProfilerComboboxCellRenderer
@@ -19,7 +19,9 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
