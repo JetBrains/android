@@ -249,6 +249,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     }
 
     long startTimeMs = System.currentTimeMillis();
+    myDiagnostics.classLoadStart(name);
     boolean classLoaded = true;
     try {
       if (isRepackagedClass(name)) {
@@ -264,7 +265,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
       throw e;
     } finally {
       if (classLoaded) {
-        myDiagnostics.classLoaded(name, System.currentTimeMillis() - startTimeMs);
+        myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
       }
     }
   }
@@ -279,6 +280,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     Module module = myModuleReference.get();
     long startTimeMs = System.currentTimeMillis();
     boolean classFound = true;
+    myDiagnostics.classFindStart(name);
     try {
       if (!myInsideJarClassLoader) {
         if (module != null) {
@@ -326,9 +328,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
       classFound = false;
       throw e;
     } finally {
-      if (classFound) {
-        myDiagnostics.classFound(name, System.currentTimeMillis() - startTimeMs);
-      }
+      myDiagnostics.classFindEnd(name, classFound, System.currentTimeMillis() - startTimeMs);
     }
   }
 
