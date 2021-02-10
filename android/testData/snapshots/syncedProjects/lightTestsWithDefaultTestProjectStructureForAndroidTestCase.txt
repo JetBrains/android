@@ -54,11 +54,13 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/renderscript [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK

@@ -32,7 +32,13 @@ public enum AndroidSourceType {
   MANIFEST("manifest", it -> ImmutableList.copyOf(it.getManifestFiles()), AllIcons.Modules.SourceRoot),
 
   /** Java and Kotlin sources. */
-  JAVA("java", it -> ImmutableList.copyOf(it.getJavaDirectories()), AllIcons.Modules.SourceRoot),
+  JAVA(
+    "java",
+    it -> ImmutableList.copyOf(it.getJavaDirectories()), AllIcons.Modules.SourceRoot),
+
+  KOTLIN(
+    "kotlin",
+    it -> ImmutableList.copyOf(it.getKotlinDirectories()), AllIcons.Modules.SourceRoot),
 
   /** Generated java source folders, e.g. R, BuildConfig, and etc. */
   GENERATED_JAVA(JAVA.getName(), null, AllIcons.Modules.GeneratedSourceRoot, true),

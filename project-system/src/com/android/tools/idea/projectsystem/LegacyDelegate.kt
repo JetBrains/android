@@ -85,6 +85,9 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val javaDirectories: Collection<VirtualFile> get() = ModuleRootManager.getInstance(
     facet.module).contentRoots.toSet()
 
+  override val kotlinDirectoryUrls: Collection<String> = emptySet()
+  override val kotlinDirectories: Iterable<VirtualFile> = emptySet()
+
   override val resourcesDirectoryUrls: Collection<String> get() = emptySet()
   override val resourcesDirectories: Collection<VirtualFile> get() = emptySet()
 

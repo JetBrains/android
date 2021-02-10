@@ -133,6 +133,7 @@ PROJECT                       : testSyncKotlinProject
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaSource                    : file://<PROJECT>/app/src/main/kotlin
+            JavaSource                    : file://<PROJECT>/app/src/main/myKotlin
             JavaResource                  : file://<PROJECT>/app/src/main/res
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -171,6 +172,7 @@ PROJECT                       : testSyncKotlinProject
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
@@ -179,6 +181,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
@@ -187,6 +190,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
@@ -200,6 +204,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
@@ -208,6 +213,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
@@ -783,6 +789,7 @@ PROJECT                       : testSyncKotlinProject
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTest/resources [-]
@@ -791,6 +798,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/androidTestDebug/resources [-]
@@ -799,6 +807,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/ml [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/awesomeandroidlibrary/src/debug/resources [-]
@@ -813,6 +822,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/awesomeandroidlibrary/src/main/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/test/resources [-]
@@ -821,6 +831,7 @@ PROJECT                       : testSyncKotlinProject
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/ml [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/awesomeandroidlibrary/src/testDebug/resources [-]
