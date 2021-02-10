@@ -17,9 +17,7 @@ package com.android.tools.idea.lang.multiDexKeep
 
 import com.android.tools.idea.lang.AndroidParsingTestCase
 import com.intellij.psi.TokenType
-import org.junit.Ignore
 
-@Ignore("b/178023426")
 class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTANCE.defaultExtension, MultiDexKeepParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
