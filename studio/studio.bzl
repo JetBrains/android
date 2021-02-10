@@ -469,6 +469,19 @@ def _android_studio_os(ctx, platform, out):
 
     _zip_merger(ctx, zips, overrides, out)
 
+script_template = """\
+    #!/bin/bash
+    args=$@
+    options=
+    if [ "$1" == "--debug" ]; then
+      options={vmoptions}
+      args=${{@:2}}
+    fi
+    tmp_dir=$(mktemp -d -t android-studio-XXXXXXXXXX)
+    unzip -q "{linux_file}" -d "$tmp_dir"
+    STUDIO_VM_OPTIONS="$options" $tmp_dir/android-studio/bin/studio.sh $args
+"""
+
 def _android_studio_impl(ctx):
     plugins = [plugin.directory for plugin in ctx.attr.plugins]
     ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
@@ -477,8 +490,23 @@ def _android_studio_impl(ctx):
     _android_studio_os(ctx, MAC, ctx.outputs.mac)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
+    vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
+    ctx.actions.write(vmoptions, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
+
+    script = ctx.actions.declare_file("%s-run" % ctx.label.name)
+    script_content = script_template.format(
+        linux_file = ctx.outputs.linux.short_path,
+        vmoptions = vmoptions.short_path,
+    )
+    ctx.actions.write(script, script_content, is_executable = True)
+    runfiles = ctx.runfiles(files = [ctx.outputs.linux, vmoptions])
+
     # Leave everything that is not the main zips as implicit outputs
-    return DefaultInfo(files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]))
+    return DefaultInfo(
+        executable = script,
+        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]),
+        runfiles = runfiles,
+    )
 
 _android_studio = rule(
     attrs = {
@@ -529,6 +557,7 @@ _android_studio = rule(
         "win": "%{name}.win.zip",
         "plugins": "%{name}.plugin.lst",
     },
+    executable = True,
     implementation = _android_studio_impl,
 )
 
