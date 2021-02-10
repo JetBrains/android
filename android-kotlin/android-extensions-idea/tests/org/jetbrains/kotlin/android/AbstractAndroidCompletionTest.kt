@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.android
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.kotlin.idea.completion.test.testCompletion
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import java.io.File
 

@@ -26,14 +26,21 @@ import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineScope
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 /**
@@ -42,8 +49,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
  * Note that some parameters are provided lazily to allow rules to initialize them first.
  */
 class AppInspectionClientProvider(private val getApiServices: () -> AppInspectionApiServices,
-                                  private val getScope: () -> CoroutineScope,
-                                  private val inspectorId: String)
+                                  private val getScope: () -> CoroutineScope)
   : InspectorClientProvider {
   override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
     val apiServices = getApiServices()
@@ -60,39 +66,63 @@ class AppInspectionInspectorRule : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
-  private val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION, true)
+  private val inspectionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION, true)
+  // TODO(b/177231212): Set this to true and test compose inspector client as well
+  private val composeFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
-  /**
-   * A fake handler which pretends to be acting like an inspector running on device normally would.
-   *
-   * Use this to intercept commands normally sent to the view inspector.
-   */
-  val viewInspectorHandler = FakeViewLayoutInspector()
+  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
+    override fun sendEvent(event: ViewProtocol.Event) {
+      inspectionService.addAppInspectionEvent(
+        AppInspection.AppInspectionEvent.newBuilder().apply {
+          inspectorId = VIEW_LAYOUT_INSPECTOR_ID
+          rawEventBuilder.content = event.toByteString()
+        }.build()
+      )
+    }
+  })
+  val composeInspector = FakeComposeLayoutInspector()
 
   init {
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(
+    val viewInspectorHandler = TestAppInspectorCommandHandler(
       timer,
       rawInspectorResponse = { rawCommand ->
         val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
-        val viewResponse = viewInspectorHandler.handleCommand(viewCommand)
+        val viewResponse = viewInspector.handleCommand(viewCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
       })
-    )
+
+    val composeInspectorHandler = TestAppInspectorCommandHandler(
+      timer,
+      rawInspectorResponse = { rawCommand ->
+        val composeCommand = ComposeProtocol.Command.parseFrom(rawCommand.content)
+        val composeResponse = composeInspector.handleCommand(composeCommand)
+        val rawResponse = AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
+        AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
+      })
+
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        when (command.appInspectionCommand.inspectorId) {
+          VIEW_LAYOUT_INSPECTOR_ID -> viewInspectorHandler.handleCommand(command, events)
+          COMPOSE_LAYOUT_INSPECTOR_ID -> composeInspectorHandler.handleCommand(command, events)
+        }
+      }
+    })
   }
 
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(inspectorId: String = VIEW_LAYOUT_INSPECTOR_ID): AppInspectionClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, { inspectionService.scope }, inspectorId)
+  fun createInspectorClientProvider(): AppInspectionClientProvider {
+    return AppInspectionClientProvider({ inspectionService.apiServices }, { inspectionService.scope })
   }
 
   override fun apply(base: Statement, description: Description): Statement {
     // Rules will be applied in reverse order. This class will evaluate last.
-    val innerRules = listOf(inspectionService, grpcServer, flagRule)
+    val innerRules = listOf(inspectionService, grpcServer, inspectionFlagRule, composeFlagRule)
     return innerRules.fold(base) { stmt: Statement, rule: TestRule -> rule.apply(stmt, description) }
   }
 }

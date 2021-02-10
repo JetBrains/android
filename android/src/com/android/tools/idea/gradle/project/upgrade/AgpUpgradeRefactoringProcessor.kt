@@ -276,7 +276,7 @@ class AgpUpgradeRefactoringProcessor(
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
-    MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR.RefactoringProcessor(this)
+    MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this)
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -2010,7 +2010,7 @@ val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
 )
 
-val MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR = BooleanPropertiesMoveRefactoringInfo(
+val MIGRATE_TO_BUILD_FEATURES_INFO = BooleanPropertiesMoveRefactoringInfo(
   GradleVersion.parse("4.0.0-alpha05"),
   GradleVersion.parse("7.0.0"),
   AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),

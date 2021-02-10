@@ -20,8 +20,8 @@ import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
-import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.util.end
-import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.idea.core.util.start
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
@@ -70,7 +69,7 @@ interface PsiElementLiteralUsageReferenceProvider {
    * Returns a [LiteralUsageReference] for the given [element] or null it was not possible to find a
    * reference, for example if element is not a valid literal.
    */
-  fun getLiteralUsageReference(element: PsiElement): LiteralUsageReference?
+  fun getLiteralUsageReference(element: PsiElement, constantEvaluator: ConstantEvaluator): LiteralUsageReference?
 }
 
 /**
@@ -100,19 +99,19 @@ object SimplePsiElementUniqueIdProvider : PsiElementUniqueIdProvider {
  * the FQN for the class and method name where the [PsiElement] is contained.
  */
 private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLiteralUsageReferenceProvider {
-  override fun getLiteralUsageReference(element: PsiElement): LiteralUsageReference? =
+  override fun getLiteralUsageReference(element: PsiElement, constantEvaluator: ConstantEvaluator): LiteralUsageReference =
     when (element) {
       is KtElement -> {
         val className = element.containingClass()?.fqName ?: FqName(element.containingKtFile.findFacadeClass()?.qualifiedName ?: "")
         val methodPath = getTopMostParentFunction(element)
         val methodName = if (methodPath.isRoot) "<init>" else methodPath.asString()
-        val range = if (element is KtStringTemplateExpression) TextRange(element.range.start + 1, element.range.end) else element.range
+        val range = constantEvaluator.range(element)
         LiteralUsageReference(FqName("$className.$methodName"), element.containingFile.virtualFile.path, range, element.getLineNumber())
       }
       else -> {
         val className = PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.qualifiedName?.let { "$it." } ?: ""
         val methodName = PsiTreeUtil.getContextOfType(element, PsiMethod::class.java)?.name ?: "<init>"
-        LiteralUsageReference(FqName("$className.$methodName"), element.containingFile.name, element.range, element.getLineNumber())
+        LiteralUsageReference(FqName("$className.$methodName"), element.containingFile.name, constantEvaluator.range(element), element.getLineNumber())
       }
     }
 }
@@ -147,10 +146,18 @@ interface LiteralReference {
 }
 
 /**
- * Interface for expression evaluators that calculate the value of an expression.
+ * Interface for expression evaluators that calculate the value of an expression and its current position.
  */
 interface ConstantEvaluator {
+  /**
+   * Returns the value of the expression at the moment.
+   */
   fun evaluate(expression: PsiElement): Any?
+
+  /**
+   * Returns the current [TextRange] for the given [PsiElement].
+   */
+  fun range(expression: PsiElement): TextRange = expression.textRange
 }
 
 /**
@@ -180,6 +187,40 @@ private object PsiTextConstantEvaluator : ConstantEvaluator {
 }
 
 /**
+ * Special [ConstantEvaluator] to evaluate string templates.
+ * A template can generate multiple constants. For example "Hello $name!!" will generate two:
+ * - "Hello "
+ * - "!!"
+ * This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
+ */
+private object KotlinLiteralTemplateConstantEvaluator : ConstantEvaluator {
+  override fun evaluate(expression: PsiElement): Any? {
+    val element = expression as? KtStringTemplateExpression ?: return PsiTextConstantEvaluator.evaluate(expression)
+
+    return if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
+      PsiTextConstantEvaluator.evaluate(expression)
+    }
+    else {
+      element.entries.joinToString("") { it.text }
+    }
+  }
+
+  override fun range(expression: PsiElement): TextRange {
+    val element = expression as? KtStringTemplateExpression ?: return PsiTextConstantEvaluator.range(expression)
+
+    return if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
+      PsiTextConstantEvaluator.range(expression)
+    }
+    else {
+      TextRange(
+        element.entries.map { it.textRange.start }.min() ?: 0,
+        element.entries.map { it.textRange.end }.max() ?: 0
+      )
+    }
+  }
+}
+
+/**
  * A usage of a literal. This records the usage positional [FqName]. Think about it as
  * the identifier of where a literal is used.
  */
@@ -204,21 +245,22 @@ private fun getTopMostParentFunction(element: KtElement): FqName {
  * Finds the usages for the given constant [PsiElement].
  */
 private fun findUsages(constantElement: PsiElement,
-                       usageReferenceProvider: PsiElementLiteralUsageReferenceProvider): Collection<LiteralUsageReference> =
-  listOfNotNull(usageReferenceProvider.getLiteralUsageReference(constantElement))
+                       usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
+                       constantEvaluator: ConstantEvaluator): Collection<LiteralUsageReference> =
+  listOfNotNull(usageReferenceProvider.getLiteralUsageReference(constantElement, constantEvaluator))
 
 /**
  * [LiteralReference] implementation that keeps track of modifications.
  */
-private class LiteralReferenceImpl(originalElement: PsiElement,
-                                   uniqueIdProvider: PsiElementUniqueIdProvider,
-                                   usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
-                                   override val initialConstantValue: Any,
-                                   private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
+private open class LiteralReferenceImpl(originalElement: PsiElement,
+                                        uniqueIdProvider: PsiElementUniqueIdProvider,
+                                        usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
+                                        final override val initialConstantValue: Any,
+                                        private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
   private val elementPointer = ReattachableSmartPsiElementPointer(originalElement)
   override val fileName = originalElement.containingFile.name
-  override val usages = findUsages(originalElement, usageReferenceProvider)
-  override val initialTextRange: TextRange = originalElement.textRange
+  override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
+  override val initialTextRange: TextRange = constantEvaluator.range(originalElement)
   override val uniqueId = uniqueIdProvider.getUniqueId(originalElement)
   private var lastCachedConstantValue: Any? = initialConstantValue
   val element: PsiElement?
@@ -252,7 +294,9 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
 
   override val text: String
     get() = ReadAction.compute<String, Throwable> {
-      element?.text ?: "<null>"
+      element?.let {
+        constantEvaluator.evaluate(it) as? String ?: it.text
+      } ?: "<null>"
     }
 }
 
@@ -333,11 +377,20 @@ class LiteralsManager(
             //  - "Hello "
             //  - "!!"
             // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
-            element.entries.forEach {
-              if (it is KtLiteralStringTemplateEntry) {
-                savedLiterals.add(
-                  LiteralReferenceImpl(it, uniqueIdProvider, literalUsageReferenceProvider, it.text, PsiTextConstantEvaluator))
+            if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
+              element.entries.forEach {
+                if (it is KtLiteralStringTemplateEntry) {
+                  savedLiterals.add(
+                    LiteralReferenceImpl(it, uniqueIdProvider, literalUsageReferenceProvider, it.text, PsiTextConstantEvaluator))
+                }
               }
+            }
+            else {
+              // All sub elements are string entries so handle as one string
+              savedLiterals.add(
+                LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
+                                     KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
+                                     KotlinLiteralTemplateConstantEvaluator))
             }
             return
           }
@@ -379,7 +432,7 @@ class LiteralsManager(
  */
 fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
                                                        editor: Editor,
-                                                       textAttributes: TextAttributes,
+                                                       textAttributesKey: TextAttributesKey,
                                                        outHighlighters: MutableSet<RangeHighlighter>? = null) {
   val highlightManager = HighlightManager.getInstance(project)
   val elements = all.filterIsInstance<LiteralReferenceImpl>()
@@ -390,7 +443,7 @@ fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
   highlightManager.addOccurrenceHighlights(
     editor,
     elements,
-    textAttributes,
+    textAttributesKey,
     false,
     resultHighlighters)
   resultHighlighters.forEach {

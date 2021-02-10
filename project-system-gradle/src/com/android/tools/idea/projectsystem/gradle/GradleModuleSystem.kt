@@ -19,8 +19,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.IdeBuildType
-import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.gradle.model.convertLibraryToExternalLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -33,7 +31,6 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
@@ -420,12 +417,11 @@ class GradleModuleSystem(
       ManifestSystemProperty.PACKAGE to androidModel.applicationId
     )
     val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
-    val flavor = gradleModel.selectedVariant.mergedFlavor
-    val buildType = gradleModel.findBuildType(gradleModel.selectedVariant.buildType)!!.buildType
-    val placeholders = (flavor.manifestPlaceholders + buildType.manifestPlaceholders).mapValues { it.value.toString() }
+    val variant = gradleModel.selectedVariant
+    val placeholders = variant.manifestPlaceholders
     val directOverridesFromGradle = notNullMapOf(
-      ManifestSystemProperty.MAX_SDK_VERSION to flavor.maxSdkVersion?.toString(),
-      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel, buildType)
+      ManifestSystemProperty.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
+      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel)
     )
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
   }
@@ -442,20 +438,30 @@ class GradleModuleSystem(
     )
   }
 
-  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: IdeBuildType): String? {
-    val flavor = gradleModel.selectedVariant.mergedFlavor
-    val versionName = flavor.versionName
-    val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
-    val suffix = flavorSuffix + buildType.versionNameSuffix.orEmpty()
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel): String? {
+    val variant = gradleModel.selectedVariant
+    val versionNameWithSuffix = variant.versionNameWithSuffix
+    val versionNameSuffix = variant.versionNameWithSuffix
     return when {
-      versionName != null && versionName.isNotEmpty() -> versionName + suffix
-      suffix.isEmpty() -> null
-      else -> facet.getPrimaryManifestXml()?.versionName.orEmpty() + suffix
+      versionNameWithSuffix != null && versionNameWithSuffix.isNotEmpty() -> versionNameWithSuffix
+      versionNameSuffix.isNullOrEmpty() -> null
+      else -> facet.getPrimaryManifestXml()?.versionName.orEmpty() + versionNameSuffix
     }
   }
 
   override fun getPackageName(): String? {
     return getPackageName(module)
+  }
+
+  override fun getTestPackageName(): String? {
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    val variant = AndroidModuleModel.get(facet)?.selectedVariant ?: return null
+    return variant.testApplicationId ?: run {
+      // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
+      // there is no applicationId and the package name from the manifest is used with the suffix.
+      val applicationId = if (facet.configuration.isLibraryProject) getPackageName() else variant.deprecatedPreMergedApplicationId
+      if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
+    }
   }
 
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {

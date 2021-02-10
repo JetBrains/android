@@ -44,7 +44,7 @@ class StudioTests(unittest.TestCase):
     for f in file.namelist():
       m = re.search("Android Studio.*\\.app/Contents/([^/]+)$", f)
       if m:
-        self.assertEquals(m.group(1), "Info.plist", "Only Info.plist should be present in Contents (Found " + m.group(1) + ")")
+        self.assertEqual(m.group(1), "Info.plist", "Only Info.plist should be present in Contents (Found " + m.group(1) + ")")
 
   def test_mac_filelist(self):
     """Tests whether the _codesign/filelist file is up to date.

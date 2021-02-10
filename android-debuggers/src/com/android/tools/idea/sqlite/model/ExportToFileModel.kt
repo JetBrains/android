@@ -63,6 +63,6 @@ sealed class ExportRequest(
 sealed class ExportDialogParams(open val srcDatabase: SqliteDatabaseId) {
   data class ExportDatabaseDialogParams(override val srcDatabase: SqliteDatabaseId) : ExportDialogParams(srcDatabase)
   data class ExportTableDialogParams(override val srcDatabase: SqliteDatabaseId, val srcTable: String) : ExportDialogParams(srcDatabase)
-  data class ExportQueryResultDialogParams(override val srcDatabase: SqliteDatabaseId, val query: SqliteStatement)
+  data class ExportQueryResultsDialogParams(override val srcDatabase: SqliteDatabaseId, val query: SqliteStatement)
     : ExportDialogParams(srcDatabase)
 }

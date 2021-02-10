@@ -22,7 +22,7 @@ public enum ElementState {
   TO_BE_ADDED, // Does not exist on file, should be added.
   TO_BE_REMOVED, // Exists on file but should be deleted.
   EXISTING, // Exists on file and should stay there.
-  HIDDEN, // Exists on file but invisible to the model.
+  HIDDEN, // Exists on file but invisible to the model, because some element (of another name e.g. reset()) has operated to override.
   APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
   DEFAULT, // These properties do not exist on file at all, but represent their default value.
   MOVED, // These properties should be moved.

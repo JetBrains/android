@@ -116,7 +116,7 @@ object DefaultConstantRemapper : ConstantRemapper {
     // Construct the lookupKey to find the constant in the constant map.
     // For lambdas, we ignore the invoke() method name in Kotlin.
     val lookupKey = "$fileName:$offset:$serializedValue"
-    LOG.debug { "Constant lookup $lookupKey" }
+    LOG.debug { "Constant lookup $lookupKey (present=${classLoaderMap.containsKey(lookupKey)})" }
     return classLoaderMap.getOrDefault(lookupKey, initialValue)
   }
 

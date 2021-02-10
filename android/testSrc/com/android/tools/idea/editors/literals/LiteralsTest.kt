@@ -329,4 +329,57 @@ class LiteralsTest {
       "text='S3' location='LiteralsTest.kt (66,68)' value='S3' usages='test.app.LiteralsTest.<init>-66'",
       snapshot.modified.toDebugString())
   }
+
+  @Test
+  fun `check multiline string`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val STR = ""${'"'}
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ""${'"'}
+
+          private val SIMPLE = ""${'"'}
+              Hello world!
+          ""${'"'}
+  
+          private val ONE_LINE = ""${'"'}In one line""${'"'}
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+
+    val snapshot = literalsManager.findLiterals(file)
+    assertEquals(
+      """
+      text='
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ' location='LiteralsTest.kt (68,134)' value='
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ' usages='test.app.LiteralsTest.<init>-68'
+      text='
+              Hello world!
+          ' location='LiteralsTest.kt (167,193)' value='
+              Hello world!
+          ' usages='test.app.LiteralsTest.<init>-167'
+      text='In one line' location='LiteralsTest.kt (228,239)' value='In one line' usages='test.app.LiteralsTest.<init>-228'
+      """.trimIndent(),
+      snapshot.all.toDebugString())
+  }
 }

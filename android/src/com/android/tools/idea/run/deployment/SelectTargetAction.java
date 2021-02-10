@@ -30,24 +30,10 @@ final class SelectTargetAction extends AnAction {
   private final @NotNull Device myDevice;
   private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
-  private SelectTargetAction(@NotNull Target target, @NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+  SelectTargetAction(@NotNull Target target, @NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
     myTarget = target;
     myDevice = device;
     myComboBoxAction = comboBoxAction;
-  }
-
-  static @NotNull SelectTargetAction newColdBootAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    return new SelectTargetAction(new ColdBootTarget(device.getKey()), device, comboBoxAction);
-  }
-
-  static @NotNull SelectTargetAction newQuickBootAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    return new SelectTargetAction(new QuickBootTarget(device.getKey()), device, comboBoxAction);
-  }
-
-  static @NotNull SelectTargetAction newBootWithSnapshotAction(@NotNull Device device,
-                                                               @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                                                               @NotNull Snapshot snapshot) {
-    return new SelectTargetAction(new BootWithSnapshotTarget(device.getKey(), snapshot.getDirectory()), device, comboBoxAction);
   }
 
   @Override

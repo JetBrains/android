@@ -15,17 +15,17 @@
  */
 package com.android.tools.adtui.common;
 
-import com.intellij.openapi.util.text.StringUtil;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
-import javax.swing.*;
-import java.awt.*;
-
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static org.junit.Assert.assertEquals;
+
+import com.intellij.openapi.util.text.StringUtil;
+import java.awt.Color;
+import java.awt.FontMetrics;
+import javax.swing.JLabel;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class AdtUiUtilsTest {
@@ -49,6 +49,9 @@ public class AdtUiUtilsTest {
     // Just enough space for ellipsis, but we should still return an empty string (since "..." on
     // its own is useless)
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth));
+
+    // Provide a threshold to avoid font width computation (performance optimization)
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, 1.0f, 1.0f));
 
     for (int i = 5; i < 80; ++i) {
       int spaceAvailable = i * perCharacterWidth;

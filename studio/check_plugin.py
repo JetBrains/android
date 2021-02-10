@@ -6,22 +6,23 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
-def load_include(external_xmls, index, href, xpath):
-  rel = href[1:] if href.startswith("/") else "META-INF/" + href
+def load_include(external_xmls, cwd, index, href, xpath):
+  rel = href[1:] if href.startswith("/") else cwd + "/" + href
 
   if rel in external_xmls:
-    return []
+    return [], None
+  new_cwd = rel[0:rel.rindex("/")]
 
   if rel not in index:
     print("Cannot find file to include %s" % href)
-    return []
+    sys.exit(1)
 
   with zipfile.ZipFile(index[rel]) as jar:
     res = jar.read(rel)
 
   e = ET.fromstring(res)
   if not xpath:
-    return [e]
+    return [e], new_cwd
 
   if not xpath.startswith("/"):
     print("Unexpected xpath %s. Only absolute paths are supported" % xpath)
@@ -36,10 +37,10 @@ def load_include(external_xmls, index, href, xpath):
     print("did not produce any elements to include")
     sys.exit(1)
 
-  return ret
+  return ret, new_cwd
 
 
-def resolve_includes(elem, external_xmls, index):
+def resolve_includes(elem, external_xmls, cwd, index):
   """ Resolves xincludes in the given xml element. By replacing xinclude tags like
 
   <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -66,10 +67,10 @@ def resolve_includes(elem, external_xmls, index):
           print("only xpointers of the form xpointer(xpath) are supported")
           sys.exit(1)
         xpath = m.group(1)
-      nodes = load_include(external_xmls, index, href, xpath)
+      nodes, new_cwd = load_include(external_xmls, cwd, index, href, xpath)
       subtree = ET.Element("nodes")
       subtree.extend(nodes)
-      resolve_includes(subtree, external_xmls, index)
+      resolve_includes(subtree, external_xmls, new_cwd, index)
       nodes = list(subtree)
       if nodes:
         for node in nodes[:-1]:
@@ -80,7 +81,7 @@ def resolve_includes(elem, external_xmls, index):
           node.tail = (node.tail or "") + e.tail
         elem[i] = node
     else:
-      resolve_includes(e, external_xmls, index)
+      resolve_includes(e, external_xmls, cwd, index)
     i = i + 1
 
 
@@ -119,7 +120,7 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     sys.exit(1)
   found_id = ids[0]
   # We cannot use ElementInclude because it does not support xpointer
-  resolve_includes(element, external_xmls, index)
+  resolve_includes(element, external_xmls, "META-INF", index)
   if plugin_id and found_id != plugin_id:
     print("Expected plugin id to be %d, but found %s" % (plugin_id, found_id))
     sys.exit(1)

@@ -188,15 +188,21 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
                                          highestApiTarget: (Configuration) -> IAndroidTarget?,
                                          devicesProvider: (Configuration) -> Collection<Device>,
                                          defaultDeviceProvider: (Configuration) -> Device?) {
+  fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
+    if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() != newTarget.hashString()) {
+      renderConfiguration.target = newTarget
+    }
+  }
+
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
-      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, it)
+      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
     }
   }
   else {
     // Use the highest available one when not defined.
     highestApiTarget(renderConfiguration)?.let {
-      renderConfiguration.target = CompatibilityRenderTarget(it, it.version.apiLevel, it)
+      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, it.version.apiLevel, it))
     }
   }
 

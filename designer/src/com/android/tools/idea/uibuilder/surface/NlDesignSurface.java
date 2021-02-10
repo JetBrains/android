@@ -64,6 +64,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
@@ -446,8 +447,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       // y-axis.
       // When view size changes to 500 * 1000, the new center should be (400, 750) because we want to keep same weights
       // We calculate the new viewport position to achieve above behavior.
-      // FIXME: This doesn't work when scaling makes re-layout when using GridLayout.
-      //        Consider to use hovered SceneView to determine the new viewport position in that case.
+      if (myLayoutManager instanceof GridSurfaceLayoutManager) {
+        // Grid surface layout manager layouts the preview depending on the screen size. There is no particular trace point for zooming.
+        return;
+      }
       DesignSurfaceViewport port = getViewport();
       Dimension newViewportSize = port.getViewSize();
       if (newViewportSize == null ||

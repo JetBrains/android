@@ -135,7 +135,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     adbOptions = android.adbOptions();
-    checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
+    checkForInvalidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertMissingProperty("installOptions", adbOptions.installOptions());
     assertMissingProperty("timeOutInMs", adbOptions.timeOutInMs());
   }
@@ -184,7 +184,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     adbOptions = android.adbOptions();
-    checkForInValidPsiElement(adbOptions, AdbOptionsModelImpl.class);
+    checkForInvalidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertMissingProperty("installOptions", adbOptions.installOptions());
   }
 }

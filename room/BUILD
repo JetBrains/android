@@ -13,7 +13,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
@@ -44,7 +43,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
     ],
 )

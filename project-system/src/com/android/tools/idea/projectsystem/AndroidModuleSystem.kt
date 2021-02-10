@@ -192,9 +192,22 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * this method may be optimized to avoid the costs of merged manifest computation.
    *
    * The returned package name is guaranteed to reflect the latest contents of the Android
-   * manifests including changes that haven't been saved yet.
+   * manifests including changes that haven't been saved yet but is NOT guaranteed to reflect
+   * the latest contents of the build configuration if the project hasn't been re-synced with
+   * the build configuration yet.
    */
   fun getPackageName(): String?
+
+  /**
+   * Returns the module's resource test package name, or null if it could not be determined.
+   *
+   * The returned package name is guaranteed to reflect the latest contents of the Android
+   * manifests including changes that haven't been saved yet but is NOT guaranteed to reflect
+   * the latest contents of the build configuration if the project hasn't been re-synced with
+   * the build configuration yet.
+   */
+  @JvmDefault
+  fun getTestPackageName(): String? = null
 
   /**
    * DO NOT USE!

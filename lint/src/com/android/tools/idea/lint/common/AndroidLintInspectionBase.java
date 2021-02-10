@@ -31,6 +31,7 @@ import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.LintFix.AnnotateFix;
 import com.android.tools.lint.detector.api.LintFix.LintFixGroup;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
@@ -726,6 +727,10 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       return new LintIdeQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.getFamilyName(), data.attribute,
                                                             data.namespace, data.value,
                                                             data.dot, data.mark)};
+    }
+    else if (lintFix instanceof AnnotateFix) {
+      AnnotateFix fix = (AnnotateFix)lintFix;
+      return new LintIdeQuickFix[]{new AnnotateQuickFix(fix.getDisplayName(), fix.getFamilyName(), fix.annotation, fix.replace)};
     }
     else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;

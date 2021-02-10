@@ -32,7 +32,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDeviceTest {
   @Test
-  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsEnabled() {
+  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsIsntEnabled() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
@@ -40,6 +40,7 @@ public final class VirtualDeviceTest {
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
     // Act

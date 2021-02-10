@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -122,10 +123,6 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
     }
-  }
-
-  private fun switchVariant(project: Project, moduleGradlePath: String, variant: String) {
-    BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.gradleModule(moduleGradlePath)!!.name, variant)
   }
 
   override fun getName(): String = testName.methodName

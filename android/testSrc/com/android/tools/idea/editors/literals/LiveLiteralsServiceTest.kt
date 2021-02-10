@@ -2,11 +2,13 @@ package com.android.tools.idea.editors.literals
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -15,14 +17,26 @@ import org.junit.Test
 internal class LiveLiteralsServiceTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
-  lateinit var project: Project
+  private val project: Project
+    get() = projectRule.project
+  private val rootDisposable: Disposable
+    get() = projectRule.fixture.testRootDisposable
   lateinit var file1: PsiFile
-  lateinit var  file2: PsiFile
+  lateinit var file2: PsiFile
+
+  private var isAvailable = false
+
+  private fun getTestLiveLiteralsService(): LiveLiteralsService =
+    LiveLiteralsService.getInstanceForTest(project, rootDisposable, object : LiveLiteralsService.LiteralsAvailableListener {
+      override fun onAvailable() {
+        isAvailable = true
+      }
+
+    })
 
   @Before
   fun setup() {
     StudioFlags.COMPOSE_LIVE_LITERALS.override(true)
-    project = projectRule.project
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
 
@@ -59,17 +73,21 @@ internal class LiveLiteralsServiceTest {
   @Test
   fun `check that already open editors register constants`() {
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
-    val liveLiteralsService = LiveLiteralsService.getInstance(project)
+    val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    liveLiteralsService.isEnabled = true
+    assertFalse(isAvailable)
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    assertTrue(isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
   @Test
   fun `check that constants are registered after a new editor is opened`() {
-    val liveLiteralsService = LiveLiteralsService.getInstance(project)
+    val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    liveLiteralsService.isEnabled = true
+    assertFalse(isAvailable)
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     assertEquals(9, liveLiteralsService.allConstants().size)

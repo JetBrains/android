@@ -135,7 +135,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     viewBinding = android.viewBinding();
-    checkForInValidPsiElement(viewBinding, ViewBindingModelImpl.class);
+    checkForInvalidPsiElement(viewBinding, ViewBindingModelImpl.class);
     assertMissingProperty("enabled", viewBinding.enabled());
   }
 }

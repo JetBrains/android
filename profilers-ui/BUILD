@@ -14,7 +14,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/profilers:intellij.android.profilers[module]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",

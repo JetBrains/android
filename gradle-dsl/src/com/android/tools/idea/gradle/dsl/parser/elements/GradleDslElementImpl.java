@@ -297,10 +297,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public void delete() {
-    for (GradleDslElement element : getChildren()) {
-      element.delete();
-    }
-
     this.getDslFile().getWriter().deleteDslElement(this);
   }
 

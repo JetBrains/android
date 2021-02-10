@@ -108,6 +108,7 @@ class SqliteEvaluatorControllerTest : LightPlatformTestCase() {
       sqliteEvaluatorView,
       { successfulInvocationNotificationInvocations.add(it) },
       { },
+      { },
       edtExecutor,
       edtExecutor
     )

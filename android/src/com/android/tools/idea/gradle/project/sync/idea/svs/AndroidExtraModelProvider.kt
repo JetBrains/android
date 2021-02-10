@@ -438,7 +438,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val variant = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
         parameter.setVariantName(variantName)
       }
-      return variant?.let { module.addVariant(modelCache.variantFrom(it, module.modelVersion)) }
+      return variant?.let { module.addVariant(modelCache.variantFrom(module.androidProject, it, module.modelVersion)) }
     }
 
     private fun syncAndAddNativeVariantAbi(
@@ -497,7 +497,7 @@ private fun createAndroidModule(
   val ideAndroidProject = modelCache.androidProjectFrom(androidProject)
   val idePrefetchedVariants =
     ModelCache.safeGet(androidProject::getVariants, emptyList())
-      .map { modelCache.variantFrom(it, modelVersion) }
+      .map { modelCache.variantFrom(ideAndroidProject, it, modelVersion) }
       .takeUnless { it.isEmpty() }
 
   // Single-variant-sync models have variantNames property and pre-single-variant sync model should have all variants present instead.

@@ -15,18 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.files
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_APPLY_FROM_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_FILES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_PROPERTIES_LIST
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_PROPERTIES_LIST_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
@@ -41,15 +30,17 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.utils.FileUtils.toSystemIndependentPath
 import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
+import java.io.File
 
 class GradleDslFileTest : GradleFileModelTestCase() {
   @Test
   fun testInvolvedFiles() {
     val childProperties = "childPropProp1 = somevalue"
     val parentProperties = "parentPropProp1 = othervalue"
-    writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_FILES)
-    writeToSubModuleBuildFile(GRADLE_DSL_FILE_INVOLVED_FILES_SUB)
+    writeToBuildFile(TestFile.INVOLVED_FILES)
+    writeToSubModuleBuildFile(TestFile.INVOLVED_FILES_SUB)
     writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
@@ -69,8 +60,8 @@ class GradleDslFileTest : GradleFileModelTestCase() {
   fun testPropertiesList() {
     val childProperties = "childPropProp1 = somevalue"
     val parentProperties = "parentPropProp1 = othervalue"
-    writeToBuildFile(GRADLE_DSL_FILE_PROPERTIES_LIST)
-    writeToSubModuleBuildFile(GRADLE_DSL_FILE_PROPERTIES_LIST_SUB)
+    writeToBuildFile(TestFile.PROPERTIES_LIST)
+    writeToSubModuleBuildFile(TestFile.PROPERTIES_LIST_SUB)
     writeToSettingsFile(subModuleSettingsText)
     writeToPropertiesFile(parentProperties)
     writeToSubModulePropertiesFile(childProperties)
@@ -113,9 +104,9 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testInvolvedAppliedFiles() {
-    val b = writeToNewProjectFile("b", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
-    val a = writeToNewProjectFile("a", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
-    writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES)
+    val b = writeToNewProjectFile("b", TestFile.INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", TestFile.INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToBuildFile(TestFile.INVOLVED_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
 
@@ -134,9 +125,9 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testListPropertiesFromAppliedFiles() {
-    val b = writeToNewProjectFile("b", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
-    val a = writeToNewProjectFile("a", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
-    writeToBuildFile(GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES)
+    val b = writeToNewProjectFile("b", TestFile.LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", TestFile.LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
+    writeToBuildFile(TestFile.LIST_PROPERTIES_FROM_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
     val files = buildModel.involvedFiles
@@ -169,8 +160,8 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFromBlock() {
-    writeToNewProjectFile("a", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
-    writeToBuildFile(GRADLE_DSL_FILE_APPLY_FROM_BLOCK)
+    writeToNewProjectFile("a", TestFile.APPLY_FROM_BLOCK_APPLIED)
+    writeToBuildFile(TestFile.APPLY_FROM_BLOCK)
 
     val buildModel = gradleBuildModel
 
@@ -178,5 +169,39 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     verifyPropertyModel(property, STRING_TYPE, "value:name:2", STRING, REGULAR, 1)
   }
 
+  @Test
+  fun testDelete() {
+    writeToBuildFile(TestFile.DELETE)
+
+    val buildModel = gradleBuildModel
+
+    buildModel.delete()
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, "")
+  }
+
   fun getFile(file: VirtualFile, files: Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.path) == it.virtualFile.path }
+
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
+
+    INVOLVED_FILES("involvedFiles"),
+    INVOLVED_FILES_SUB("involvedFiles_sub"),
+    PROPERTIES_LIST("propertiesList"),
+    PROPERTIES_LIST_SUB("propertiesList_sub"),
+    INVOLVED_APPLIED_FILES("involvedAppliedFiles"),
+    INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE("involvedAppliedFilesAppliedFileOne"),
+    INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO("involvedAppliedFilesAppliedFileTwo"),
+    LIST_PROPERTIES_FROM_APPLIED_FILES("listPropertiesFromAppliedFiles"),
+    LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE("listPropertiesFromAppliedFilesAppliedFileOne"),
+    LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO("listPropertiesFromAppliedFilesAppliedFileTwo"),
+    APPLY_FROM_BLOCK("applyFromBlock"),
+    APPLY_FROM_BLOCK_APPLIED("applyFromBlockApplied"),
+    DELETE("delete")
+    ;
+
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/gradleDslFile/$path", extension)
+    }
+  }
+
 }

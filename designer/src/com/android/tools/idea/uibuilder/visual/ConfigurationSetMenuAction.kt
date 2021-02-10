@@ -30,6 +30,7 @@ enum class ConfigurationSet(val title: String,
                             val modelsProviderCreator: (ConfigurationSetListener) -> VisualizationModelsProvider,
                             val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
+  WEAR_DEVICES("Wear OS Devices", { WearDeviceModelsProvider }),
   PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }, StudioFlags.NELE_VISUALIZATION_LOCALE_MODE.get()),
   CUSTOM("Custom", { CustomModelsProvider(it) }),
   COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }),
@@ -60,7 +61,7 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
 
   companion object {
     val MENU_GROUPS = listOf(
-      listOf(ConfigurationSet.PIXEL_DEVICES, ConfigurationSet.PROJECT_LOCALES),
+      listOf(ConfigurationSet.PIXEL_DEVICES, ConfigurationSet.WEAR_DEVICES, ConfigurationSet.PROJECT_LOCALES),
       listOf(ConfigurationSet.CUSTOM),
       listOf(ConfigurationSet.COLOR_BLIND_MODE, ConfigurationSet.LARGE_FONT)
     )

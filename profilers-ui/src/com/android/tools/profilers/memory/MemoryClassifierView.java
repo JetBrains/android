@@ -651,13 +651,17 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                              @NotNull ClassifierSet targetSet) {
     Set<InstanceObject> target = targetSet.getInstancesStream().collect(Collectors.toSet());
-    return rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target) : null;
+    // When `targetSet` is empty, if `rootNode` isn't empty, many of its leaves (if any) trivially count as smallest super-set nodes.
+    // Because the result isn't interesting, we arbitrarily return `rootNode` itself for this special case to save some work.
+    return targetSet.isEmpty() ? rootNode
+         : rootNode.getAdapter().isSupersetOf(target) ? findSmallestSuperSetNode(rootNode, target)
+         : null;
   }
 
   @NotNull
   private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
                                                                               @NotNull Set<InstanceObject> targetSet) {
-    // At any point, we maintain that `rootNode` is the only subtree that can cover `targetSet`.
+    // At any point, we maintain that `rootNode` is the only subtree that can cover non-empty `targetSet`.
     // Given that nodes' immediate instances don't overlap:
     // - If `rootNode`'s immediate instances overlap with `targetSet`, then it's also the smallest superset.
     // - If `rootNode` doesn't immediately overlap with `targetSet` but it has 2+ children that overlap with `targetSet`, it must

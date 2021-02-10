@@ -20,7 +20,6 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
-import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.Range;

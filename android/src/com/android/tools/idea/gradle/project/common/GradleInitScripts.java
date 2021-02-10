@@ -181,7 +181,6 @@ public class GradleInitScripts {
              "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
              "  beforeSettings {\n" +
              "    it.dependencyResolutionManagement {\n" +
-             "      repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)\n" +
              "      repositories {\n" + paths +
              "      }\n" +
              "    }\n" +

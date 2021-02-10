@@ -11,28 +11,62 @@ android {
         versionCode 1
         versionName "1.0"
 
+        proguardFiles "default.pro"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = ["a": "default"]
+        resValue "string", "v_a", "default"
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            proguardFiles "debug.pro"
+            manifestPlaceholders = ["b": "debug"]
+            resValue "string", "v_b", "debug"
+            versionNameSuffix "-debug"
+        }
         release {
+            applicationIdSuffix ".release"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = ["b": "release"]
+            resValue "string", "v_b", "release"
+            versionNameSuffix "-release"
         }
     }
     flavorDimensions 'Dim1', 'Dim2'
     productFlavors {
         firstAbc {
             dimension = 'Dim1'
+            applicationIdSuffix ".firstAbc"
+            proguardFiles "firstAbc.txt"
+            manifestPlaceholders = ["a": "firstAbc"]
+            resValue "string", "v_a", "firstAbc"
+            versionNameSuffix "-firstAbc"
+            versionCode 20
         }
         firstXyz {
             dimension = 'Dim1'
         }
         secondAbc {
             dimension = 'Dim2'
+            applicationIdSuffix ".secondAbc"
+            manifestPlaceholders = ["a": "secondAbc", "b": "secondAbc", "c": "secondAbc"]
+            resValue "string", "v_a", "secondAbc"
+            resValue "string", "v_b", "secondAbc"
+            resValue "string", "v_c", "secondAbc"
+            versionCode 30
+            versionName "1.secondAbc"
+            versionNameSuffix "-secondAbc"
         }
         secondXyz {
             dimension = 'Dim2'
+            applicationIdSuffix ".secondXyz"
+            proguardFiles "secondXyz.txt"
+            manifestPlaceholders = ["b": "secondXyz"]
+            resValue "string", "v_b", "secondXyz"
+            versionCode 31
+            versionNameSuffix "-secondXyz"
         }
     }
     sourceSets {

@@ -36,6 +36,7 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.hover.TableHoverListener;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
@@ -174,6 +175,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myIconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myIconTable.setCellSelectionEnabled(true);
     myIconsPanel.add(new JBScrollPane(myIconTable));
+    TableHoverListener.DEFAULT.removeFrom(myIconTable);
     myIconTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {

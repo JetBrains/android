@@ -85,7 +85,7 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class GradleApkProvider implements ApkProvider {
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final ApplicationIdProvider myApplicationIdProvider;
+  @NotNull private final GradleApplicationIdProvider myApplicationIdProvider;
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
@@ -108,7 +108,7 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull GradleApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test,
                            @NotNull Function<AndroidVersion, OutputKind> outputKindProvider) {
@@ -117,14 +117,14 @@ public class GradleApkProvider implements ApkProvider {
 
   @VisibleForTesting
   public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull GradleApplicationIdProvider applicationIdProvider,
                            boolean test) {
     this(facet, applicationIdProvider, () -> null, test, version -> OutputKind.Default);
   }
 
   @VisibleForTesting
   public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull GradleApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test) {
     this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, version -> OutputKind.Default);
@@ -132,7 +132,7 @@ public class GradleApkProvider implements ApkProvider {
 
   @VisibleForTesting
   GradleApkProvider(@NotNull AndroidFacet facet,
-                    @NotNull ApplicationIdProvider applicationIdProvider,
+                    @NotNull GradleApplicationIdProvider applicationIdProvider,
                     @NotNull PostBuildModelProvider outputModelProvider,
                     @NotNull BestOutputFinder bestOutputFinder,
                     boolean test,
@@ -473,7 +473,7 @@ public class GradleApkProvider implements ApkProvider {
       File targetApk = getApk(targetVariant, deviceAbis, deviceVersion, targetFacet, false);
 
       // TODO: use the applicationIdProvider to get the applicationId (we might not know it by sync time for Instant Apps)
-      String applicationId = targetVariant.getMergedFlavor().getApplicationId();
+      String applicationId = targetVariant.getDeprecatedPreMergedApplicationId();
       if (applicationId == null) {
         // If can't find applicationId in model, get it directly from manifest
         applicationId = targetAndroidModel.getApplicationId();

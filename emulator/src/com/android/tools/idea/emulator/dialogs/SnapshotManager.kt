@@ -22,10 +22,10 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.emulator.readKeyValueFile
 import com.android.tools.idea.emulator.updateKeyValueFile
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.konan.file.use
 import java.io.IOException
 import java.nio.file.Files
@@ -91,9 +91,8 @@ class SnapshotManager(val emulatorController: EmulatorController) {
     }
     catch (_: NoSuchFileException) {
       // The "snapshot.pb" file is missing. Skip the incomplete snapshot.
-    }
-    catch (e: IOException) {
-      logger.warn("Error reading $snapshotProtoFile - ${e.localizedMessage}")
+    } catch (e: IOException) {
+      thisLogger().warn("Error reading $snapshotProtoFile - ${e.localizedMessage}")
     }
     return null
   }
@@ -116,9 +115,8 @@ class SnapshotManager(val emulatorController: EmulatorController) {
       Files.newOutputStream(protoFile, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING).use { stream->
         snapshotProto.writeTo(stream)
       }
-    }
-    catch (e: IOException) {
-      logger.warn("Error writing $protoFile - ${e.localizedMessage}")
+    } catch (e: IOException) {
+      thisLogger().warn("Error writing $protoFile - ${e.localizedMessage}")
     }
   }
 

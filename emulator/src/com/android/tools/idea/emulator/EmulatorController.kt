@@ -45,6 +45,7 @@ import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.containers.ConcurrentList
@@ -239,7 +240,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setClipboard(${shortDebugString(clipData)})")
+      // Don't log the actual clipboard contents to protect user privacy.
+      val clipDataForLogging = shortDebugString(clipData.toBuilder().setText("<clipboard contents>").build())
+      LOG.info("setClipboard($clipDataForLogging)")
     }
     emulatorController.setClipboard(clipData, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetClipboardMethod()))
   }
@@ -513,7 +516,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           sendShutdown()
         }
         else {
-          alarm.addRequest({ sendKeepAlive() }, KEEP_ALIVE_INTERVAL_MILLIS)
+          alarm.addRequest(::sendKeepAlive, KEEP_ALIVE_INTERVAL_MILLIS)
         }
       }
 
@@ -625,7 +628,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           applier.apply(headers)
         }
         catch (e: Throwable) {
-          logger.error(e)
+          thisLogger().error(e)
           applier.fail(Status.UNAUTHENTICATED.withCause(e))
         }
       }

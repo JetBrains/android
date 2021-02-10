@@ -161,6 +161,12 @@
       <action internal="true" id="Android.ShowFileResources" class="com.android.tools.idea.res.ShowFileResourcesAction"/>
       <add-to-group group-id="Internal"/>
     </group>
+    <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">
+      <action internal="true" id="LiveLiterals.SimulateSuccessfulDeployment" class="com.android.tools.idea.editors.literals.actions.InternalSimulateSuccessfulLiteralDeployment" />
+      <action internal="true" id="LiveLiterals.SimulateErrorDeployment" class="com.android.tools.idea.editors.literals.actions.InternalSimulateFailedLiteralDeployment" />
+
+      <add-to-group group-id="Internal.Android"/>
+    </group>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
@@ -271,7 +277,7 @@
 
     <action
         id="Compose.Live.Literals.ToggleHighlight"
-        class="com.android.tools.idea.editors.literals.ToggleLiveLiteralsHighlightAction"
+        class="com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsHighlightAction"
         text="Toggle Live Literals Highlights"
         description="Switches the Live Literals highlights on/off">
       <keyboard-shortcut keymap="$default" first-keystroke="alt shift COMMA" />
@@ -454,6 +460,7 @@
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
+    <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
@@ -487,6 +494,9 @@
     <completion.contributor language="kotlin"
                             implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor"
                             order="first, after KotlinCompletionContributor"/>
+    <completion.contributor language="kotlin"
+                            implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorKotlin"
+                            order="first, before KotlinCompletionContributor"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
@@ -687,6 +697,15 @@
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
     <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
+    <statusBarWidgetFactory id="LiveLiterals" implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory"/>
+
+    <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveLiteralsConfigurableProvider"
+                             key="live.literals.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
+    <colorSettingsPage implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsHighlightColorConfigurable"/>
+    <notificationGroup id="Live Literal Problem Notification" displayType="NONE" />
+
+    <additionalTextAttributes scheme="Default" file="colorschemes/LiveLiteralsColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.refactoring.renaming.ResourceRenameHandler" order="first"/>

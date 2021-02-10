@@ -16,6 +16,8 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -28,6 +30,8 @@ interface DatabaseInspectorViewsFactory {
   fun createEvaluatorView(project: Project, schemaProvider: SchemaProvider, tableView: TableView): SqliteEvaluatorView
 
   fun createParametersBindingView(project: Project, sqliteStatementText: String): ParametersBindingDialogView
+
+  fun createExportToFileView(project: Project, params: ExportDialogParams): ExportToFileDialogView
 
   fun createDatabaseInspectorView(project: Project): DatabaseInspectorView
 }

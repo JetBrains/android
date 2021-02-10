@@ -62,7 +62,6 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
                       "  beforeSettings {\n" +
                       "    it.dependencyResolutionManagement {\n" +
-                      "      repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)\n" +
                       "      repositories {\n" +
                       "      maven { url 'path1'}\n" +
                       "      maven { url 'path2'}\n" +

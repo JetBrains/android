@@ -25,7 +25,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
-import org.jetbrains.kotlin.idea.jsonUtils.getString
 import java.io.File
 
 
@@ -104,4 +103,9 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
 
     fun getTargetElement() = myFixture.file.findElementAt(myFixture.caretOffset)?.parent
+
+  // Originally from jsonUtils.kt
+  private fun JsonObject.getString(name: String): String {
+    return this[name]?.asString ?: throw IllegalStateException("Member with name '$name' is expected in '$this'")
+  }
 }

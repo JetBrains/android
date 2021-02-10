@@ -458,14 +458,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty(android.defaultConfig().applicationId())
 
     android.defaultConfig().applicationId().setValue("foo.bar")
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
 
     buildModel.resetState()
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
     assertMissingProperty(android.defaultConfig().applicationId())
   }
 
@@ -600,7 +600,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    checkForInValidPsiElement(android, AndroidModelImpl::class.java)
+    checkForInvalidPsiElement(android, AndroidModelImpl::class.java)
   }
 
   @Test
@@ -968,14 +968,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, "")
 
     assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
     assertMissingProperty(android.defaultConfig().applicationId())
-    checkForInValidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
+    checkForInvalidPsiElement(android.defaultConfig(), ProductFlavorModelImpl::class.java)
   }
 
   @Test
@@ -1493,6 +1493,24 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty(android.defaultConfig().resConfigs())
   }
 
+  @Test
+  fun testDefaultConfigBlockAndStatement() {
+    writeToBuildFile(TestFile.DEFAULT_CONFIG_BLOCK_AND_STATEMENT)
+
+    val buildModel = gradleBuildModel
+    assertEquals("applicationId", "abc.def", buildModel.android().defaultConfig().applicationId())
+    assertEquals("applicationIdSuffix", "xyz", buildModel.android().defaultConfig().applicationIdSuffix())
+  }
+
+  @Test
+  fun testDefaultConfigStatementAndBlock() {
+    writeToBuildFile(TestFile.DEFAULT_CONFIG_STATEMENT_AND_BLOCK)
+
+    val buildModel = gradleBuildModel
+    assertEquals("applicationId", "abc.def", buildModel.android().defaultConfig().applicationId())
+    assertEquals("applicationIdSuffix", "xyz", buildModel.android().defaultConfig().applicationIdSuffix())
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
@@ -1574,6 +1592,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     REMOVE_FROM_AND_APPLY_LIST_ELEMENTS("removeFromAndApplyListElements"),
     REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED("removeFromAndApplyListElementsExpected"),
     PARSE_NO_RESCONFIGS_PROPERTY("parseNoResConfigsProperty"),
+    DEFAULT_CONFIG_BLOCK_AND_STATEMENT("defaultConfigBlockAndStatement"),
+    DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

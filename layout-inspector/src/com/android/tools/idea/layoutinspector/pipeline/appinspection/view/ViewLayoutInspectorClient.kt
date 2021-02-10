@@ -134,20 +134,20 @@ class ViewLayoutInspectorClient(
   }
 
   suspend fun startFetching(continuous: Boolean) {
+    isFetchingContinuously = continuous
     messenger.sendCommand {
       startFetchCommand = StartFetchCommand.newBuilder().apply {
         this.continuous = continuous
         skipSystemViews = TreeSettings.hideSystemNodes
       }.build()
     }
-    isFetchingContinuously = continuous
   }
 
   suspend fun stopFetching() {
+    isFetchingContinuously = false
     messenger.sendCommand {
       stopFetchCommand = StopFetchCommand.getDefaultInstance()
     }
-    isFetchingContinuously = false
   }
 
   suspend fun getProperties(rootViewId: Long, viewId: Long): GetPropertiesResponse {

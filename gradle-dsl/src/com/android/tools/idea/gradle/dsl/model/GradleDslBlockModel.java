@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -23,10 +25,15 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.HashSetQueue;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +75,40 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
     return myDslElement.getContainedElements(true).stream()
                        .filter(e -> e instanceof GradleDslExpression)
                        .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getRepresentativeContainedPsiElement() {
+    PsiElement psiElement = getPsiElement();
+    if (psiElement != null) return psiElement;
+    Queue<GradleDslElement> elementQueue = new HashSetQueue<>();
+    Set<GradleDslElement> visitedSet = new HashSet<>();
+    visitedSet.add(myDslElement);
+    for (GradleDslElement newElement : myDslElement.getOriginalElements()) {
+      if (!visitedSet.contains(newElement)) {
+        elementQueue.add(newElement);
+      }
+    }
+    while (!elementQueue.isEmpty()) {
+      GradleDslElement element = elementQueue.remove();
+      psiElement = element.getPsiElement();
+      if (psiElement != null) return psiElement;
+      visitedSet.add(element);
+      if (element instanceof GradlePropertiesDslElement) {
+        for (GradleDslElement newElement : ((GradlePropertiesDslElement)element).getOriginalElements()) {
+          if (!visitedSet.contains(newElement)) {
+            elementQueue.add(newElement);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void delete() {
+    removeElement(myDslElement);
   }
 
   @NotNull

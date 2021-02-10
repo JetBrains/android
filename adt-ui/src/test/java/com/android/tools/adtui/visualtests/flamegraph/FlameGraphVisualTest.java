@@ -21,8 +21,6 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.flamegraph.SampledMethodUsage;
-import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.LineChartModel;

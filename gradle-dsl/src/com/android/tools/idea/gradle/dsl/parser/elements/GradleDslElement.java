@@ -144,7 +144,7 @@ public interface GradleDslElement extends AnchorProvider {
   PsiElement move();
 
   /**
-   * Deletes this element and all it's children from the .gradle file.
+   * Deletes this element and all its children from the .gradle file.
    */
   void delete();
 

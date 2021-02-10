@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
@@ -44,25 +45,30 @@ import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
-import org.jetbrains.jps.model.serialization.PathMacroUtil
 import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
@@ -78,53 +84,98 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
   override fun getTargetDataKey(): Key<AndroidModuleModel> = ANDROID_MODEL
 
+  /**
+   * This method is responsible for managing the presence of both the [AndroidFacet] and [AndroidArtifactFacet] across all modules.
+   *
+   * It also sets up the SDKs and language levels for all modules that stem from an [AndroidModuleModel]
+   */
   public override fun importData(toImport: Collection<DataNode<AndroidModuleModel>>,
                                  project: Project,
                                  modelsProvider: IdeModifiableModelsProvider,
                                  modelsByModuleName: Map<String, DataNode<AndroidModuleModel>>) {
     val moduleValidator = myModuleValidatorFactory.create(project)
-    for (module in modelsProvider.modules) {
 
-      val androidModelDataNode = modelsByModuleName[module.name]
-      val androidModel = androidModelDataNode?.data
-      if (androidModel != null) {
-        // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
-        // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
-        // Android model is null for the root project module.
-        val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
-          androidModel.androidProject.name,
-          androidModel.androidProject.compileTarget,
-          androidModel.androidProject.bootClasspath,
-          IdeSdks.getInstance()
-        )
-        if (sdkToUse != null) {
-          modelsProvider.getModifiableRootModel(module).sdk = sdkToUse
-        }
+    // Any modules left in this set need to be purged of all Android and AndroidArtifact facets.
+    val nonAndroidModules = modelsProvider.modules.toMutableSet()
 
-        // Create the Android facet and attache to the module.
-        val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
-                           ?: createAndroidFacet(module, modelsProvider)
-        androidModel.setModule(module)
-        // Configure that Android facet from the information in the AndroidModuleModel.
-        configureFacet(androidFacet, androidModel)
+    for (nodeToImport in toImport) {
+      val mainModuleDataNode = ExternalSystemApiUtil.findParent(
+        nodeToImport,
+        ProjectKeys.MODULE
+      ) ?: continue
+      val mainModuleData = mainModuleDataNode.data
+      val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
+      nonAndroidModules.remove<Module>(mainIdeModule)
 
-        // Set language level if available
-        val languageLevel = androidModel.javaLanguageLevel
-        if (languageLevel != null) {
-          modelsProvider.getModifiableRootModel(module).getModuleExtension(LanguageLevelModuleExtension::class.java).languageLevel = languageLevel
-        }
+      val androidModel = nodeToImport.data
+      androidModel.setModule(mainIdeModule)
 
-        moduleValidator.validate(module, androidModel)
+      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
+      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
+      // Android model is null for the root project module.
+      val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
+        androidModel.androidProject.name,
+        androidModel.androidProject.compileTarget,
+        androidModel.androidProject.bootClasspath,
+        IdeSdks.getInstance()
+      )
+      val languageLevel = androidModel.javaLanguageLevel
+
+      val mainFacetModel = modelsProvider.getModifiableFacetModel(mainIdeModule)
+      // Remove any Android Artifact facet from the main module
+      removeAllFacets(mainFacetModel, AndroidArtifactFacet.ID)
+
+      // Create the Android facet and attach to the module.
+      val androidFacet = mainFacetModel.getFacetByType(AndroidFacet.ID) ?: createAndroidFacet(mainIdeModule, mainFacetModel)
+
+      // Configure that Android facet from the information in the AndroidModuleModel.
+      configureFacet(androidFacet, androidModel)
+      moduleValidator.validate(mainIdeModule, androidModel)
+
+      // Setup SDK and language level for the main module
+      mainIdeModule.setupSdkAndLanguageLevel(modelsProvider, languageLevel, sdkToUse)
+
+      val childModules = findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { modelsProvider.findIdeModule(it.data) }
+
+      childModules.forEach { childModule ->
+        nonAndroidModules.remove<Module>(childModule)
+        val childFacetModel = modelsProvider.getModifiableFacetModel(childModule)
+
+        // Remove any possible existing Android facets.
+        removeAllFacets(childFacetModel, AndroidFacet.ID)
+
+        // Set up artifact facets on modules that aren't the holder
+        val artifactFacet = modelsProvider.getModifiableFacetModel(childModule).getFacetByType(AndroidArtifactFacet.ID)
+                            ?: createArtifactFacet(childModule, childFacetModel)
+        // Link the facet to the main Android Facet on the holder module.
+        artifactFacet.linkToAndroidFacet(androidFacet)
+
+        childModule.setupSdkAndLanguageLevel(modelsProvider, languageLevel, sdkToUse)
       }
-      else {
-        // If we don't have a model for this module then we need to ensure that no Android facets are left on the module.
-        val facetModel = modelsProvider.getModifiableFacetModel(module)
-        removeAllFacets(facetModel, AndroidFacet.ID)
-      }
+    }
+
+    nonAndroidModules.forEach { module ->
+      removeAllFacets(modelsProvider.getModifiableFacetModel(module), AndroidFacet.ID)
+      removeAllFacets(modelsProvider.getModifiableFacetModel(module), AndroidArtifactFacet.ID)
+      // We don't need to clean up the sdk or language level as that should be set by whatever is handling the new module type.
     }
 
     if (modelsByModuleName.isNotEmpty()) {
       moduleValidator.fixAndReportFoundIssues()
+    }
+  }
+
+  private fun Module.setupSdkAndLanguageLevel(
+    modelsProvider: IdeModifiableModelsProvider,
+    languageLevel: LanguageLevel?,
+    sdkToUse: Sdk?)  {
+    val rootModel = modelsProvider.getModifiableRootModel(this)
+    if (languageLevel != null) {
+      rootModel.getModuleExtension(
+        LanguageLevelModuleExtension::class.java).languageLevel = languageLevel
+    }
+    if (sdkToUse != null) {
+      rootModel.sdk = sdkToUse
     }
   }
 
@@ -167,12 +218,22 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 /**
  * Creates an [AndroidFacet] on the given [module] with the default facet configuration.
  */
-private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableModelsProvider): AndroidFacet {
-  val model = modelsProvider.getModifiableFacetModel(module)
+private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel): AndroidFacet {
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
   @Suppress("UnstableApiUsage")
-  model.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
+  return facet
+}
+
+/**
+ * Creates an [AndroidArtifactFacet] on the given [module] with the default facet configuration.
+ */
+private fun createArtifactFacet(module: Module, facetModel: ModifiableFacetModel) : AndroidArtifactFacet {
+  val facetType = AndroidArtifactFacet.getFacetType()
+  val facet = facetType.createFacet(module, AndroidArtifactFacet.NAME, facetType.createDefaultConfiguration(), null)
+  @Suppress("UnstableApiUsage")
+  facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(GRADLE_SYSTEM_ID))
   return facet
 }
 

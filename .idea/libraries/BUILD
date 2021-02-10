@@ -24,18 +24,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "Guava",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/28.2-jre:Guava_files",
-        "//prebuilts/tools/common/m2/repository/com/google/guava/failureaccess/1.0.1:Guava_files",
-        "//prebuilts/tools/common/m2/repository/com/google/j2objc/j2objc-annotations/1.3:Guava_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "javax-inject",
     jars = ["//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:javax-inject_files"],
     visibility = ["//visibility:public"],
@@ -227,13 +215,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "kotlin-plugin-test",
-    jars = ["//prebuilts/tools/common/android-kotlin:kotlin-plugin-test_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "tightvnc",
     jars = ["//prebuilts/tools/common/tightvnc:tightvnc_files"],
     visibility = ["//visibility:public"],
@@ -282,6 +263,6 @@ java_import(
 # managed by go/iml_to_build
 java_import(
     name = "network_inspector_java_proto",
-    jars = ["//tools/base/network-inspector:network_inspector_java_proto.jar"],
+    jars = ["//tools/base/app-inspection/inspectors/network:network_inspector_java_proto.jar"],
     visibility = ["//visibility:public"],
 )

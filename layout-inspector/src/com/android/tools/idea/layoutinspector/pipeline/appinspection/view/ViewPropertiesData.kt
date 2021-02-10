@@ -30,11 +30,6 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
 import java.awt.Color
 
-private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT32_VALUE_FIELD_NUMBER)
-private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
-private val DOUBLE_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.DOUBLE_VALUE_FIELD_NUMBER)
-private val FLOAT_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.FLOAT_VALUE_FIELD_NUMBER)
-
 private const val SOME_UNKNOWN_ANIM_VALUE = "@anim/?"
 private const val SOME_UNKNOWN_ANIMATOR_VALUE = "@animator/?"
 private const val SOME_UNKNOWN_DRAWABLE_VALUE = "@drawable/?"
@@ -144,35 +139,19 @@ class ViewPropertiesDataGenerator(
   }
 
   private fun fromInt32(property: Property): Int? {
-    val intValue = property.int32Value
-    if (intValue == 0 && !property.hasField(INT32_FIELD_DESCRIPTOR)) {
-      return null
-    }
-    return intValue
+    return if (property.valueCase == Property.ValueCase.INT32_VALUE) property.int32Value else null
   }
 
   private fun fromInt64(property: Property): Long? {
-    val intValue = property.int64Value
-    if (intValue == 0L && !property.hasField(INT64_FIELD_DESCRIPTOR)) {
-      return null
-    }
-    return intValue
+    return if (property.valueCase == Property.ValueCase.INT64_VALUE) property.int64Value else null
   }
 
   private fun fromDouble(property: Property): Double? {
-    val doubleValue = property.doubleValue
-    if (doubleValue == 0.0 && !property.hasField(DOUBLE_FIELD_DESCRIPTOR)) {
-      return null
-    }
-    return doubleValue
+    return if (property.valueCase == Property.ValueCase.DOUBLE_VALUE) property.doubleValue else null
   }
 
   private fun fromFloat(property: Property): Float? {
-    val floatValue = property.floatValue
-    if (floatValue == 0.0f && !property.hasField(FLOAT_FIELD_DESCRIPTOR)) {
-      return null
-    }
-    return floatValue
+    return if (property.valueCase == Property.ValueCase.FLOAT_VALUE) property.floatValue else null
   }
 
   private fun fromColor(property: Property): String? {

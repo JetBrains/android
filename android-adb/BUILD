@@ -13,7 +13,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

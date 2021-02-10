@@ -378,9 +378,9 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       if (isIdeXmxModified()) {
         MemorySettingsUtil.saveXmx(mySelectedIdeXmx);
         myCurrentIdeXmx = mySelectedIdeXmx;
-        if (Messages.showOkCancelDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
-                                        IdeBundle.message("title.restart.needed"),
-                                        Messages.getQuestionIcon()) == Messages.OK) {
+        if (Messages.showYesNoDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
+                                     IdeBundle.message("title.restart.needed"),
+                                     Messages.getQuestionIcon()) == Messages.YES) {
           ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
         }
         changed = true;

@@ -16,40 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.util.PsiTreeUtil;
-import java.util.Objects;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.asJava.elements.KtLightMethod;
-import org.jetbrains.kotlin.psi.KtNamedFunction;
 
 public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase {
   public AndroidLintAnimatorKeepInspection() {
     super(AndroidBundle.message("android.lint.inspections.animator.keep"), ObjectAnimatorDetector.MISSING_KEEP);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    PsiMethod method = LintFix.getMethod(fixData, ObjectAnimatorDetector.KEY_METHOD);
-    if (method instanceof KtLightMethod) {
-      KtNamedFunction fun = PsiTreeUtil.getParentOfType(startElement, KtNamedFunction.class, false);
-      if (fun == null || !Objects.equals(fun.getName(), method.getName())) {
-        return super.getQuickFixes(startElement, endElement, message, fixData);
-      }
-    }
-    else if (method == null || !method.equals(PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, false))) {
-      return super.getQuickFixes(startElement, endElement, message, fixData);
-    }
-    return new LintIdeQuickFix[]{new AddKeepAnnotationFix()};
   }
 }

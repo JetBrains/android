@@ -141,6 +141,9 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
     writer.beginObject()
     commonVersion?.let {
       writer.name("sdk_version").value(it.apiLevel.toLong())
+      it.codename?.let { codename ->
+        writer.name("codename").value(codename)
+      }
     }
     density?.let {
       if (it.dpiValue > 0) {

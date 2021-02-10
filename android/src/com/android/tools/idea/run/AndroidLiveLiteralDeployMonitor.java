@@ -68,7 +68,7 @@ class AndroidLiveLiteralDeployMonitor {
    * This method mostly create a call back and it is locked to be thread-safe.
    */
   static Runnable getCallback(Project project, String packageName) {
-    LiveLiteralsService.Companion.getInstance(project).setEnabled(false);
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped("Device#${packageName}");
     if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
       return null;
     }
@@ -95,7 +95,7 @@ class AndroidLiveLiteralDeployMonitor {
       }
 
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
-      LiveLiteralsService.Companion.getInstance(project).setEnabled(true);
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted("Device#${packageName}");;
     };
   }
 

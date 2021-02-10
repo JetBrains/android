@@ -86,6 +86,7 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide",
             "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model",
             "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view",
+            "//tools/adt/idea/server-flags:intellij.android.server-flags",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -172,6 +173,7 @@ studio_plugin(
             "//prebuilts/studio/layoutlib:layoutlib",
         ],
         "resources": [
+            "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
@@ -218,8 +220,18 @@ studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
     external_xmls = [
-        "META-INF/CidrCorePlugin.xml",
         "META-INF/CidrClangdPlugin.xml",
+        "META-INF/CidrCommonPlugin.xml",
+        "META-INF/CidrDebuggerPlugin.xml",
+        "META-INF/CidrExecutionPlugin.xml",
+        "META-INF/CidrLangBase.xml",
+        "META-INF/CidrLangObjCPlugin.xml",
+        "META-INF/CidrLangPlugin.xml",
+        "META-INF/CidrProjectModelPlugin.xml",
+        "META-INF/CidrUtilPlugin.xml",
+        "META-INF/CidrWorkspaceModelCore.xml",
+        "META-INF/DoxygenPlugin.xml",
+        "META-INF/OCDebuggerPlugin.xml",
     ],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
     provided = [
@@ -474,9 +486,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 6,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

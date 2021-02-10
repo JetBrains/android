@@ -29,7 +29,7 @@ class MigrateToBuildFeaturesRefactoringProcessorTest: UpgradeGradleFileModelTest
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   fun MigrateToBuildFeaturesRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) =
-    MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR.RefactoringProcessor(project, current, new)
+    MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(project, current, new)
 
   @Test
   fun testNecessities() {

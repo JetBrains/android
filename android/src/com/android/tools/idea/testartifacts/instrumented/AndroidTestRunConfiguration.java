@@ -461,7 +461,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       // When a project is a gradle based project, instrumentation runner is always specified
       // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
       // these values are always overwritten by AGP).
-      String runner = androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunner();
+      String runner = androidModel.getSelectedVariant().getTestInstrumentationRunner();
       if (isEmptyOrSpaces(runner)) {
         return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
       }

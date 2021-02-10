@@ -26,7 +26,6 @@ import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
@@ -68,17 +67,8 @@ fun getPackageName(module: Module) = module.getModuleSystem().getPackageName()
 /**
  * Returns the package name for resources from the module under test corresponding to the given [facet].
  * See [https://developer.android.com/studio/build/application-id#change_the_application_id_for_testing].
- * TODO: Make this build-system independent.
  */
-fun getTestPackageName(facet: AndroidFacet): String? {
-  val flavor = AndroidModuleModel.get(facet)?.selectedVariant?.mergedFlavor ?: return null
-  return flavor.testApplicationId ?: run {
-    // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
-    // there is no applicationId and the package name from the manifest is used with the suffix.
-    val applicationId = if (facet.configuration.isLibraryProject) getPackageName(facet) else flavor.applicationId
-    if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
-  }
-}
+fun getTestPackageName(facet: AndroidFacet): String? = facet.getModuleSystem().getTestPackageName()
 
 /**
  * Returns whether the given manifest [element] requires an attribute named [attrName].

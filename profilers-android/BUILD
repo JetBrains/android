@@ -25,7 +25,6 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",

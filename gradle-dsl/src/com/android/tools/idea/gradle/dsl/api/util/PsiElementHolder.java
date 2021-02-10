@@ -20,8 +20,11 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This interface is intended to be implemented by all Dsl models -- whether block, file or property -- and supports
- * only querying for the PsiElement corresponding to the model, if any (there may be no Psi element
- * if the model has been created through use of the API rather than through parsing).
+ * only querying for a PsiElement corresponding to the model, if any (there may be no Psi element in situations
+ * when the model has been created through use of the API rather than through parsing, or when the model is of an implicit
+ * entity rather than explicit).  The two getters are intended for use in different contexts: {@link #getPsiElement()} when
+ * specifically the element for this model is needed, and {@link #getRepresentativeContainedPsiElement()} when any reasonable
+ * contained element will do if the model has no element.
  */
 public interface PsiElementHolder {
   /**
@@ -29,4 +32,13 @@ public interface PsiElementHolder {
    */
   @Nullable
   PsiElement getPsiElement();
+
+  /**
+   * @return the psiElement for this model; or, if it is null but at least one child element has a non-null psiElement, the
+   * psiElement of one such child.
+   */
+  @Nullable
+  default PsiElement getRepresentativeContainedPsiElement() {
+    return getPsiElement();
+  }
 }

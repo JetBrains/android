@@ -220,7 +220,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     lintOptions = android.lintOptions();
-    checkForInValidPsiElement(lintOptions, LintOptionsModelImpl.class);
+    checkForInvalidPsiElement(lintOptions, LintOptionsModelImpl.class);
     verifyNullLintOptions();
   }
 
@@ -360,7 +360,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     lintOptions = android.lintOptions();
-    checkForInValidPsiElement(lintOptions, LintOptionsModelImpl.class);
+    checkForInvalidPsiElement(lintOptions, LintOptionsModelImpl.class);
     assertMissingProperty("check", lintOptions.check());
     assertMissingProperty("disable", lintOptions.disable());
     assertMissingProperty("enable", lintOptions.enable());

@@ -179,5 +179,8 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
       .setOrientation(orientation)
       .setRootVisible(false)
       .build()
+      .apply {
+        isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled
+      }
   }
 }

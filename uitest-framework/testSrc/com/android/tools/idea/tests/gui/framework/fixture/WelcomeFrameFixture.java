@@ -61,13 +61,13 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   public SdkProblemDialogFixture createNewProjectWhenSdkIsInvalid() {
-    findAndClickButton("Create New Project");
+    findAndClickButton("New Project");
     return SdkProblemDialogFixture.find(this);
   }
 
   @NotNull
   public NewProjectWizardFixture createNewProject() {
-    findAndClickButton("Create New Project");
+    findAndClickButton("New Project");
     return NewProjectWizardFixture.find(robot());
   }
 

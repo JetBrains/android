@@ -50,13 +50,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.Closeable
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -73,10 +77,11 @@ import java.util.zip.ZipOutputStream
 @UiThread
 class ExportToFileController(
   private val project: Project,
+  private val projectScope: CoroutineScope,
   private val view: ExportToFileDialogView,
   private val databaseRepository: DatabaseRepository,
   private val downloadDatabase: (LiveSqliteDatabaseId, handleError: (String, Throwable?) -> Unit) -> Flow<DownloadProgress>,
-  private val deleteDatabase: (DatabaseFileData) -> Unit,
+  private val deleteDatabase: suspend (DatabaseFileData) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
   private val notifyExportComplete: (ExportRequest) -> Unit,
@@ -85,8 +90,11 @@ class ExportToFileController(
   private val edtDispatcher = edtExecutor.asCoroutineDispatcher()
   private val taskDispatcher = taskExecutor.asCoroutineDispatcher()
   private val listener = object : ExportToFileDialogView.Listener {
-    override suspend fun exportRequestSubmitted(params: ExportRequest) = export(params)
+    override fun exportRequestSubmitted(params: ExportRequest) { lastExportJob = projectScope.launch { export(params) } }
   }
+
+  @VisibleForTesting
+  var lastExportJob : Job? = null
 
   fun setUp() {
     view.addListener(listener)
@@ -94,6 +102,10 @@ class ExportToFileController(
 
   override fun dispose() {
     view.removeListener(listener)
+  }
+
+  fun showView() {
+    view.show()
   }
 
   private suspend fun export(params: ExportRequest) = withContext(edtDispatcher) {
@@ -181,7 +193,7 @@ class ExportToFileController(
         }
         is LiveSqliteDatabaseId -> {
           downloadDatabase(database).let { files ->
-            Closeable { files.forEach { deleteDatabase(it) } }.use {
+            Closeable { files.forEach { projectScope.launch { deleteDatabase(it) } } }.use {
               files.let {
                 if (it.size != 1) throw IllegalStateException("Unexpected number of downloaded database files: ${it.size}")
                 task(it.single().mainFile.toNioPath())

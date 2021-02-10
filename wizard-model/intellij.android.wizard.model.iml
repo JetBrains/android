@@ -11,7 +11,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="intellij.android.observable" />
-    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
   </component>
 </module>

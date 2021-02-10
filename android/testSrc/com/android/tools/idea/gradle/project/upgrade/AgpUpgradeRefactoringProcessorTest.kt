@@ -120,7 +120,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnMigrateBuildFeatures() {
     fun AgpUpgradeComponentRefactoringProcessor.isMigrateBuildFeaturesRefactoringProcessor() =
-      this is BooleanPropertiesMoveRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_REFACTORING_PROCESSOR
+      this is BooleanPropertiesMoveRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_INFO
 
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("7.0.0"))

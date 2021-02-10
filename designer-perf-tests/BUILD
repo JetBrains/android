@@ -40,7 +40,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",

@@ -28,10 +28,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -43,37 +41,6 @@ import org.mockito.Mockito;
 public final class VirtualDevicesTaskTest {
   private final FileSystem myFileSystem = Jimfs.newFileSystem(Configuration.unix());
   private final AndroidDevice myAndroidDevice = Mockito.mock(AndroidDevice.class);
-
-  @Test
-  public void get() throws InterruptedException, ExecutionException {
-    // Arrange
-    Collection<AvdInfo> avds = Arrays.asList(mockAvd("Pixel 4 API 30",
-                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                     "Pixel_4_API_30"),
-                                             mockAvd("Pixel 4 API 30",
-                                                     "/home/juancnuno/.android/avd/Pixel_4_API_30.avd",
-                                                     "Pixel_4_API_30"));
-
-    AsyncSupplier<Collection<VirtualDevice>> task = new VirtualDevicesTask.Builder()
-      .setExecutorService(MoreExecutors.newDirectExecutorService())
-      .setGetAvds(() -> avds)
-      .setFileSystem(myFileSystem)
-      .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
-      .build();
-
-    // Act
-    Future<Collection<VirtualDevice>> future = task.get();
-
-    // Assert
-    Object device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(myAndroidDevice)
-      .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
-      .build();
-
-    assertEquals(Collections.singletonList(device), future.get());
-  }
 
   @Test
   public void getSnapshotIsntNull() throws Exception {

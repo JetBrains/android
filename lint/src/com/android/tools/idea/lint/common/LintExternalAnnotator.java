@@ -453,6 +453,11 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
     public boolean startInWriteAction() {
       return myQuickFix.startInWriteAction();
     }
+
+    @Override
+    public String toString() {
+      return getText();
+    }
   }
 
   private static class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {

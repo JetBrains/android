@@ -140,7 +140,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
-    val expectedJson = "{\"sdk_version\":23,\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
+    val expectedJson = "{\"sdk_version\":23,\"codename\":\"N\",\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
     assertExpectedJsonFile(arguments, expectedJson)
   }
 

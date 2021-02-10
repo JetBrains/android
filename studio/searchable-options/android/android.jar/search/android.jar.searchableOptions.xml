@@ -187,9 +187,6 @@
     <option name="layout" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
     <option name="motion" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
     <option name="panel" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
-    <option name="create" path="ActionManager" hit="Create New Project" />
-    <option name="new" path="ActionManager" hit="Create New Project" />
-    <option name="project" path="ActionManager" hit="Create New Project" />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -452,8 +449,11 @@
     <option name="to" path="ActionManager" hit="Navigate to shared preferences folder" />
     <option name="module" path="ActionManager" hit="New Module..." />
     <option name="new" path="ActionManager" hit="New Module..." />
+    <option name="new" path="ActionManager" hit="New Project" />
+    <option name="project" path="ActionManager" hit="New Project" />
     <option name="new" path="ActionManager" hit="New Project..." />
     <option name="project" path="ActionManager" hit="New Project..." />
+    <option name="open" path="ActionManager" hit="Open" />
     <option name="an" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="asset" path="ActionManager" hit="Open Asset Studio to create an image asset" />
     <option name="create" path="ActionManager" hit="Open Asset Studio to create an image asset" />
@@ -476,10 +476,6 @@
     <option name="studio" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="vector" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
-    <option name="an" path="ActionManager" hit="Open an Existing Project" />
-    <option name="existing" path="ActionManager" hit="Open an Existing Project" />
-    <option name="open" path="ActionManager" hit="Open an Existing Project" />
-    <option name="project" path="ActionManager" hit="Open an Existing Project" />
     <option name="open" path="ActionManager" hit="Open recent test session" />
     <option name="recent" path="ActionManager" hit="Open recent test session" />
     <option name="session" path="ActionManager" hit="Open recent test session" />
@@ -787,6 +783,13 @@
     <option name="info" hit="Info" />
     <option name="verbose" hit="Verbose" />
     <option name="warning" hit="Warning" />
+  </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Literals" configurable_name="Live Literals">
+    <option name="literals" hit="Live Literals" />
+    <option name="live" hit="Live Literals" />
+    <option name="highlights" hit="Live Literals Highlights" />
+    <option name="literals" hit="Live Literals Highlights" />
+    <option name="live" hit="Live Literals Highlights" />
   </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
@@ -1336,11 +1339,6 @@
     <option name="profile" hit="Trace Gradle import with profile:" />
     <option name="trace" hit="Trace Gradle import with profile:" />
     <option name="with" hit="Trace Gradle import with profile:" />
-    <option name="accessibility" hit="Use new Accessibility Testing Framework" />
-    <option name="framework" hit="Use new Accessibility Testing Framework" />
-    <option name="new" hit="Use new Accessibility Testing Framework" />
-    <option name="testing" hit="Use new Accessibility Testing Framework" />
-    <option name="use" hit="Use new Accessibility Testing Framework" />
     <option name="engine" hit="Use new Layout Rendering Engine" />
     <option name="layout" hit="Use new Layout Rendering Engine" />
     <option name="new" hit="Use new Layout Rendering Engine" />

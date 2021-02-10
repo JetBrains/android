@@ -58,9 +58,10 @@ class ViewNodeCreator(
     val layoutResource = view.layoutResource.convert().createReference(strings)
     val textValue = strings[view.textValue]
     val rect = view.bounds.layout
+    val renderBounds = view.bounds.render.takeIf { it != LayoutInspectorViewProtocol.Quad.getDefaultInstance() }
 
-    val node = ViewNode(view.id, qualifiedName, layoutResource, rect.x, rect.y, rect.w, rect.h, null, resource, textValue,
-                        view.layoutFlags)
+    val node = ViewNode(view.id, qualifiedName, layoutResource, rect.x, rect.y, rect.w, rect.h, renderBounds?.toShape(), resource,
+                        textValue, view.layoutFlags)
 
     val children = view.childrenList.map { it.convert(shouldInterrupt) }.toMutableList()
     composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }

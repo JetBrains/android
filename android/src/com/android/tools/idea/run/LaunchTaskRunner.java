@@ -210,6 +210,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       // A debug session task should be performed sequentially at the end.
       for (IDevice device : devices) {
         if (debugSessionTask != null) {
+          indicator.setText(debugSessionTask.getDescription());
           debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
           // Update the indicator progress bar.
           completedStepsCount.set(completedStepsCount.get() + debugSessionTask.getDuration());

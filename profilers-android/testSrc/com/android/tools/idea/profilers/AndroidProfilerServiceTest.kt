@@ -16,11 +16,9 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.transport.TransportDeviceManager
-import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
@@ -29,13 +27,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.isA
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -43,7 +41,7 @@ import org.mockito.Mockito.verify
  * Test cases that verify behavior of the profiler service. A PlatformTestCase is used for access to the Application and Project
  * structures created in setup.
  */
-class AndroidProfilerServiceTest : PlatformTestCase() {
+class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
@@ -60,7 +58,7 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.clearOverride()
   }
 
-  fun testProfilerServiceStartsCorrectlyAfterToolWindowInit() {
+  fun testProfilerServiceNotStartedWhenInUnifiedPipeline() {
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
     val mockProxy = mockTransportProxy()
     val windowManager = ToolWindowManager.getInstance(myProject)
@@ -68,10 +66,8 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)
 
-    ApplicationManager.getApplication().messageBus.syncPublisher<TransportDeviceManager.TransportDeviceManagerListener>(
-      TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
-
-    verify<TransportProxy>(mockProxy).registerProxyService(isA<ProfilerServiceProxy>(ProfilerServiceProxy::class.java))
+    ApplicationManager.getApplication().messageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
+    verify(mockProxy, never()).registerProxyService(any())
   }
 
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
@@ -81,13 +77,11 @@ class AndroidProfilerServiceTest : PlatformTestCase() {
     val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
     val factory = AndroidProfilerToolWindowFactory()
     factory.init(toolWindow)
-    ApplicationManager.getApplication().messageBus.syncPublisher<TransportDeviceManager.TransportDeviceManagerListener>(
-      TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
+    ApplicationManager.getApplication().messageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
     clearInvocations(mockProxy)
     factory.init(toolWindow)
-    ApplicationManager.getApplication().messageBus.syncPublisher<TransportDeviceManager.TransportDeviceManagerListener>(
-      TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
+    ApplicationManager.getApplication().messageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
     verify(mockProxy, times(1)).registerDataPreprocessor(any())
 
   }

@@ -157,8 +157,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {
     // Update the Welcome Screen actions
-    Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
-    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open"));
+    Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("New Project"));
     Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 

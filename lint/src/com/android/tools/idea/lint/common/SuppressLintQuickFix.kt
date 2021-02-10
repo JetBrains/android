@@ -35,8 +35,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiBinaryFile
-import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -53,14 +51,10 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.plugins.groovy.GroovyLanguage
 import java.util.ArrayList
 
@@ -109,19 +103,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addSuppressAttribute(file, tag, lintId)
   }
 
-  private fun findModifierListOwner(element: PsiElement?): PsiModifierListOwner? {
-    val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java)
-    if (modifier !is PsiClassInitializer) {
-      return modifier
-    }
-    else {
-      return findModifierListOwner(modifier)
-    }
-  }
-
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
-    val container = findModifierListOwner(element) ?: return
+    val container = findJavaAnnotationTarget(element) ?: return
     if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
       return
     }
@@ -203,12 +187,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) })
       }
     }
-  }
-
-  private fun KtElement.isNewLineNeededForAnnotation(): Boolean {
-    return !(this is KtParameter ||
-             this is KtTypeParameter ||
-             this is KtPropertyAccessor)
   }
 
   private fun PsiElement.isSuppressLintTarget(): Boolean {

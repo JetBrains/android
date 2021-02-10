@@ -171,19 +171,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
   @NotNull
   @Override
-  public String getApplicationId() {
-    List<String> applicationIds = new ArrayList<>();
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidModel androidModuleModel = AndroidModel.get(module);
-      if (androidModuleModel != null) {
-        applicationIds.add(androidModuleModel.getApplicationId());
-      }
-    }
-    return applicationIds.isEmpty() ? "" : applicationIds.get(0);
-  }
-
-  @NotNull
-  @Override
   public NativeFrameSymbolizer getNativeFrameSymbolizer() {
     return myNativeSymbolizer;
   }

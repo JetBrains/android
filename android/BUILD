@@ -117,6 +117,7 @@ iml_module(
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
+        "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
     ],
 )
 
@@ -382,6 +383,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libandroid-core-proto-test[test]",
+        "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
     ],
 )
 
@@ -451,8 +453,10 @@ filegroup(
         ":transport-artifacts",
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
         "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
+        "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
+        "//tools/base/app-inspection/inspectors/network:network_inspector_java_proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.

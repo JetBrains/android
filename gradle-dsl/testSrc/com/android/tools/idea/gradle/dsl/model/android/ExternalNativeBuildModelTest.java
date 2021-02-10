@@ -115,7 +115,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     externalNativeBuild.removeCMake();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     buildModel.resetState();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
@@ -139,21 +139,21 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     externalNativeBuild.removeCMake();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class); // empty blocks removed
-    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class); // empty blocks removed
+    checkForInvalidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     externalNativeBuild = android.externalNativeBuild();
-    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.cmake(), CMakeModelImpl.class);
   }
 
   @Test
@@ -309,7 +309,7 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     externalNativeBuild.removeNdkBuild();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     buildModel.resetState();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
@@ -333,21 +333,21 @@ public class ExternalNativeBuildModelTest extends GradleFileModelTestCase {
 
     externalNativeBuild.removeNdkBuild();
     checkForValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     applyChanges(buildModel);
     verifyFileContents(myBuildFile, "");
 
-    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
 
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
 
     externalNativeBuild = android.externalNativeBuild();
-    checkForInValidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
-    checkForInValidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild, ExternalNativeBuildModelImpl.class);
+    checkForInvalidPsiElement(externalNativeBuild.ndkBuild(), NdkBuildModelImpl.class);
   }
 
   @Test

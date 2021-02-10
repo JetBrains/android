@@ -36,11 +36,6 @@ public class GradleDslInfixExpression extends GradlePropertiesDslElement impleme
   }
 
   @Override
-  public @NotNull Collection<GradleDslElement> getChildren() {
-    return getAllElements();
-  }
-
-  @Override
   public @Nullable PsiElement getExpression() {
     return getPsiElement();
   }

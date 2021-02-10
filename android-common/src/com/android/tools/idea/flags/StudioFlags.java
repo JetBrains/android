@@ -470,7 +470,7 @@ public final class StudioFlags {
     "select.device.snapshot.combo.box.snapshots.enabled",
     "Enable Select Device/Snapshot combo box snapshots",
     "So the new Instant Run can use the combo box",
-    false);
+    true);
 
   public static final Flag<Boolean> RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED = Flag.create(
     RUNDEBUG,

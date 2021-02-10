@@ -36,7 +36,7 @@ import com.android.tools.idea.sqlite.mocks.FakeTableView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ExportDialogParams
-import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultDialogParams
+import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportQueryResultsDialogParams
 import com.android.tools.idea.sqlite.model.ExportDialogParams.ExportTableDialogParams
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.RowIdName
@@ -2161,7 +2161,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testShowExportToFileDialogInvoked_query() {
     val sqliteStatement = SqliteStatement(SqliteStatementType.SELECT, "select * from table1337")
-    val expectedDialogParams = ExportQueryResultDialogParams(mockDatabaseConnectionId, sqliteStatement)
+    val expectedDialogParams = ExportQueryResultsDialogParams(mockDatabaseConnectionId, sqliteStatement)
     testShowExportToFileDialogInvoked({ null }, sqliteStatement, expectedDialogParams)
   }
 

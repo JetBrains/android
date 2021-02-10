@@ -1308,7 +1308,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1326,7 +1326,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       }
     }
 
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Act
     databaseInspectorView.viewListeners.first().toggleKeepConnectionOpenActionInvoked()
@@ -1353,7 +1353,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Act
-    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock()) }
+    runDispatching { databaseInspectorController.startAppInspectionSession(databaseInspectorClientCommandChannel, mock(), processDescriptor, processDescriptor.name) }
 
     // Assert
     assertEquals(listOf(false), invocations)

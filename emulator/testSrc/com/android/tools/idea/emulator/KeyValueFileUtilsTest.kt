@@ -59,13 +59,13 @@ class KeyValueFileUtilsTest {
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
 
     // Check with I/O errors.
-    exception = IOException("something horrible happened")
+    exception = IOException("simulated I/O error")
     try {
       updateKeyValueFile(file, mapOf("PlayStore.enabled" to "false"))
       fail("Expected an exception to be logged")
     }
     catch (e: AssertionError) {
-      assertThat(e.message).isEqualTo("Error writing $file - something horrible happened")
+      assertThat(e.message).isEqualTo("Error writing $file - simulated I/O error")
     }
     assertThat(fileSystem.getExistingFiles()).containsExactly("$file") // No extra files left behind.
   }

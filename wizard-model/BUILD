@@ -13,7 +13,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
-        "//tools/adt/idea/.idea/libraries:Guava",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

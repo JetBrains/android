@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,4 +44,10 @@ public interface GradleDslModel extends PsiElementHolder {
    */
   @NotNull
   List<GradlePropertyModel> getDeclaredProperties();
+
+  /**
+   * Marks this model and all of its sub-models for deletion; when {@link GradleFileModel#applyChanges()} is called they will be
+   * removed from the file.
+   */
+  void delete();
 }

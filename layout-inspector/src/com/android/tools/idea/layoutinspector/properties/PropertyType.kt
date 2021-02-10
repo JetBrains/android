@@ -41,4 +41,5 @@ enum class PropertyType {
   DIMENSION_SP,
   DIMENSION_EM,
   LAMBDA,
+  FUNCTION_REFERENCE
 }

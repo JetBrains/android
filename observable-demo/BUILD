@@ -12,6 +12,5 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/adt/idea/.idea/libraries:Guava",
     ],
 )

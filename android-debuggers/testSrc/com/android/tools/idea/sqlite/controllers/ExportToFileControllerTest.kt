@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
@@ -28,6 +28,9 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
 import com.android.tools.idea.sqlite.controllers.DumpCommand.DumpDatabase
 import com.android.tools.idea.sqlite.controllers.DumpCommand.DumpTable
+import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.ERROR
+import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.NOT_CALLED
+import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.SUCCESS
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
@@ -72,9 +75,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -98,9 +100,10 @@ private const val downloadFolderName = "downloaded$nonAsciiSuffix"
 /** Keeps connection ids unique */
 private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
 
+// TODO(161081452): add in-memory database test coverage
+@Suppress("IncorrectParentDisposable")
 class ExportToFileControllerTest : LightPlatformTestCase() {
-  private lateinit var notifyExportComplete: (ExportRequest) -> Unit
-  private lateinit var notifyExportError: (ExportRequest, Throwable?) -> Unit
+  private lateinit var exportProcessedListener: ExportProcessedListener
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
   private lateinit var databaseDownloadTestFixture: DatabaseDownloadTestFixture
@@ -117,10 +120,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
 
-    notifyExportComplete = mock()
-    notifyExportError = { request, throwable ->
-      throw IllegalStateException("Error while processing a request ($request).", throwable)
-    }
+    exportProcessedListener = ExportProcessedListener()
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
     tempDirTestFixture.setUp()
@@ -138,14 +138,15 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     view = FakeExportToFileDialogView()
     controller = ExportToFileController(
       project,
+      AndroidCoroutineScope(project, edtExecutor.asCoroutineDispatcher()),
       view,
       databaseRepository,
       databaseDownloadTestFixture::downloadDatabase,
-      databaseDownloadTestFixture::deleteDatabase,
+      { databaseDownloadTestFixture.deleteDatabase(it) },
       taskExecutor,
       edtExecutor,
-      notifyExportComplete,
-      notifyExportError
+      exportProcessedListener::onExportComplete,
+      exportProcessedListener::onExportError
     )
     controller.setUp()
     Disposer.register(testRootDisposable, controller)
@@ -261,14 +262,20 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     )
 
   /** Overload suitable for a general case (provide a [decompress] function if required to get the underlying output files). */
-  private fun testExport(exportRequest: ExportRequest, decompress: (Path) -> List<Path>, expectedOutput: List<ExpectedOutputFile>) {
-    // given: an export request
-    // when: an export request is submitted
-    submitExportRequest(exportRequest)
-
+  private fun testExport(
+    exportRequest: ExportRequest,
+    decompress: (Path) -> List<Path>,
+    expectedOutput: List<ExpectedOutputFile>,
+    verifyExportCallbacks: () -> Unit = {
+      assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS)
+      assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
+    }
+  ) {
     // then: compare output file(s) with expected output
-    verify(notifyExportComplete).invoke(exportRequest)
-    verifyNoMoreInteractions(notifyExportComplete)
+    submitExportRequest(exportRequest)
+    awaitExportComplete(5000L)
+
+    verifyExportCallbacks()
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
     assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
@@ -359,7 +366,6 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
   private fun testInvalidRequest(databaseType: DatabaseType) {
     // given: an invalid request
-    val assertionDescription = "Expecting a SQLite exception caused by an invalid query."
     val exportRequest = ExportTableRequest(
       createEmptyDatabase(databaseType),
       "non-existing-table", // this will cause an exception (we are a database without any tables)
@@ -367,18 +373,23 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       tempDirTestFixture.createFile("ignored-output-file").toNioPath()
     )
 
-    try {
-      // when: a request is processed by the controller
-      submitExportRequest(exportRequest)
-      fail(assertionDescription) // if we got here, it means we didn't encounter the expected exception
-    }
-    catch (throwable: Throwable) {
-      // then: expect the exception related to the issue
-      val sqlException = generateSequence(throwable) { it.cause }.firstOrNull {
-        it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
+    // when/then
+    testExport(
+      exportRequest = exportRequest,
+      decompress = {
+        // assertThat(exportRequest.dstPath.exists()).isFalse() // TODO(161081452): don't leave empty files around on error
+        emptyList()  // no output expected
+      },
+      expectedOutput = emptyList(), // no output expected
+      verifyExportCallbacks = {
+        assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
+        assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
+        val sqlException = generateSequence(exportProcessedListener.capturedError) { it.cause }.firstOrNull {
+          it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
+        }
+        assertWithMessage("Expecting a SQLite exception caused by an invalid query.").that(sqlException).isNotNull()
       }
-      assertWithMessage(assertionDescription).that(sqlException).isNotNull()
-    }
+    )
   }
 
   fun testNextConnectionId() {
@@ -387,7 +398,12 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   }
 
   private fun submitExportRequest(exportRequest: ExportRequest) =
-    runDispatching { view.listeners.first().exportRequestSubmitted(exportRequest) }
+    runDispatching { view.listeners.forEach { it.exportRequestSubmitted(exportRequest) } }
+
+  @Suppress("SameParameterValue")
+  private fun awaitExportComplete(timeoutMs: Long) = runDispatching {
+    withTimeout(timeoutMs) { controller.lastExportJob!!.join() }
+  }
 
   private fun createEmptyDatabase(type: DatabaseType): SqliteDatabaseId {
     val databaseFile = let {
@@ -533,4 +549,30 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
   private fun createFile(dbFileName: String): Path = downloadFolder.resolve(dbFileName).also { it.createFile() }
 
   private fun Path.toVirtualFile(): VirtualFile = VfsUtil.findFile(this, true)!!
+}
+
+/** Allows to track the outcome of an [ExportRequest] submitted to an [ExportToFileController]. */
+private class ExportProcessedListener {
+  var capturedRequest: ExportRequest? = null
+  var capturedError: Throwable? = null
+  var scenario: Scenario = NOT_CALLED
+
+  fun onExportComplete(request: ExportRequest) {
+    checkOnlyCall()
+    capturedRequest = request
+    scenario = SUCCESS
+  }
+
+  fun onExportError(request: ExportRequest, error: Throwable?) {
+    checkOnlyCall()
+    capturedRequest = request
+    capturedError = error
+    scenario = ERROR
+  }
+
+  private fun checkOnlyCall() {
+    if (scenario != NOT_CALLED) throw IllegalStateException("Expected: a single call to a callback method. Actual: more than one call.")
+  }
+
+  enum class Scenario { NOT_CALLED, SUCCESS, ERROR }
 }

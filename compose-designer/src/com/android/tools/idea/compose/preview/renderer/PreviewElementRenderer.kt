@@ -40,6 +40,7 @@ import java.util.function.Supplier
 @VisibleForTesting
 fun renderPreviewElementForResult(facet: AndroidFacet,
                                   previewElement: PreviewElementInstance,
+                                  privateClassLoader: Boolean = false,
                                   executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val project = facet.module.project
 
@@ -50,7 +51,11 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
   val renderTaskFuture = RenderService.getInstance(project)
     .taskBuilder(facet, configuration)
     .withPsiFile(psiFile)
-    .disableDecorations()
+    .disableDecorations().apply {
+      if (privateClassLoader) {
+        usePrivateClassLoader()
+      }
+    }
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
     .build()
 
@@ -70,6 +75,6 @@ fun renderPreviewElementForResult(facet: AndroidFacet,
 fun renderPreviewElement(facet: AndroidFacet,
                          previewElement: PreviewElementInstance,
                          executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
-  return renderPreviewElementForResult(facet, previewElement, executor)
+  return renderPreviewElementForResult(facet, previewElement, false, executor)
     .thenApply { it?.renderedImage?.copy }
 }

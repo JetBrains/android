@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,14 +41,16 @@ public final class SnapshotActionGroupTest {
   @Test
   public void getChildren() {
     // Arrange
+    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Snapshot snapshot = new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58"));
+    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(snapshot)
+      .addSnapshot(new Snapshot(snapshotKey))
       .build();
 
     ActionGroup group = new SnapshotActionGroup(device, myComboBoxAction);
@@ -57,9 +60,9 @@ public final class SnapshotActionGroupTest {
 
     // Assert
     Object[] expectedChildren = {
-      SelectTargetAction.newColdBootAction(device, myComboBoxAction),
-      SelectTargetAction.newQuickBootAction(device, myComboBoxAction),
-      SelectTargetAction.newBootWithSnapshotAction(device, myComboBoxAction, snapshot)};
+      new SelectTargetAction(new ColdBootTarget(deviceKey), device, myComboBoxAction),
+      new SelectTargetAction(new QuickBootTarget(deviceKey), device, myComboBoxAction),
+      new SelectTargetAction(new BootWithSnapshotTarget(deviceKey, snapshotKey), device, myComboBoxAction)};
 
     assertArrayEquals(expectedChildren, actualChildren);
   }

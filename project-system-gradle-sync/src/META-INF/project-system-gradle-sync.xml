@@ -16,7 +16,5 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
     <externalProjectDataService implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService" />
-
-    <facetType implementation="com.android.tools.idea.projectsystem.gradle.sync.AndroidArtifactFacetType" />
   </extensions>
 </idea-plugin>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.2.0-dev">
+<issues format="5" by="lint 7.0.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -407,14 +407,6 @@
         <location
             file="src/com/android/tools/idea/uibuilder/scout/ScoutDirectConvert.java"
             line="252"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/ScreenViewLayer.java"
-            line="293"/>
     </issue>
 
     <issue

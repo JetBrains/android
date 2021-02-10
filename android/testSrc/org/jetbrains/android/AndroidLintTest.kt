@@ -33,11 +33,11 @@ import com.android.tools.idea.lint.AndroidLintAllowBackupInspection
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection
 import com.android.tools.idea.lint.AndroidLintAndroidGradlePluginVersionInspection
 import com.android.tools.idea.lint.AndroidLintAnimatorKeepInspection
+import com.android.tools.idea.lint.AndroidLintAnnotateVersionCheckInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection
 import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection
-import com.android.tools.idea.lint.AndroidLintButtonOrderInspection
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection
 import com.android.tools.idea.lint.AndroidLintClickableViewAccessibilityInspection
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection
@@ -204,8 +204,12 @@ class AndroidLintTest : AndroidTestCase() {
     if ("testImlFileOutsideContentRoot" == name) {
       addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
       addModuleWithAndroidFacet(projectBuilder, modules, "module2", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    } else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
+    }
+    else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
       addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", AndroidProjectTypes.PROJECT_TYPE_APP)
+    } else if ("testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name) {
+      // These lint checks only do something in libraries, not app modules
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
     }
   }
 
@@ -1074,6 +1078,25 @@ class AndroidLintTest : AndroidTestCase() {
                   "/src/p1/p2/MyActivity.kt", "kt")
   }
 
+  fun testAddSdkIntJava() {
+    // Check adding a version-checking annotation in a Java File
+    // This lint check only triggers in a library, so place it there instead of normal src/ location:
+    val srcRoot = "/additionalModules/module1/src"
+    addChecksSdkIntAtLeast(srcRoot)
+    doTestWithFix(AndroidLintAnnotateVersionCheckInspection(),
+                  "Annotate with @ChecksSdkIntAtLeast",
+                  "$srcRoot/p1/p2/JavaSdkIntTest.java", "java")
+  }
+
+  fun testAddSdkIntKotlin() {
+    // Like testAddSdkIntJava but for Kotlin
+    val srcRoot = "/additionalModules/module1/src"
+    addChecksSdkIntAtLeast(srcRoot)
+    doTestWithFix(AndroidLintAnnotateVersionCheckInspection(),
+                  "Annotate with @ChecksSdkIntAtLeast",
+                  "$srcRoot/p1/p2/SdkIntTest.kt", "kt")
+  }
+
   fun testJava8FeaturesWithoutDesugaring() {
     val minSdk = 16
     deleteManifest()
@@ -1578,9 +1601,9 @@ class AndroidLintTest : AndroidTestCase() {
   }
 
   private fun addKeep() {
-    myFixture.addFileToProject("/src/android/support/annotation/Keep.java",
+    myFixture.addFileToProject("/src/androidx/annotation/Keep.java",
                                """
-                                 package android.support.annotation;
+                                 package androidx.annotation;
                                  import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
                                  import static java.lang.annotation.ElementType.CONSTRUCTOR;
                                  import static java.lang.annotation.ElementType.FIELD;
@@ -1676,6 +1699,29 @@ class AndroidLintTest : AndroidTestCase() {
                                  public @interface ColorRes {
                                  }
                                """.trimIndent())
+  }
+
+  private fun addChecksSdkIntAtLeast(targetDir: String = "/src/") {
+    myFixture.addFileToProject("$targetDir/androidx/annotation/ChecksSdkIntAtLeast.java",
+             """
+            package androidx.annotation;
+            import static java.lang.annotation.ElementType.FIELD;
+            import static java.lang.annotation.ElementType.METHOD;
+            import static java.lang.annotation.RetentionPolicy.CLASS;
+            import java.lang.annotation.Documented;
+            import java.lang.annotation.Retention;
+            import java.lang.annotation.Target;
+            @Documented
+            @Retention(CLASS)
+            @Target({METHOD, FIELD})
+            public @interface ChecksSdkIntAtLeast {
+                int api() default -1;
+                String codename() default "";
+                int parameter() default -1;
+                int lambda() default -1;
+            }
+            """.trimIndent()
+    )
   }
 
   companion object {

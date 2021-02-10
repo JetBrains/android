@@ -160,7 +160,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name.
-    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getMergedFlavor().getTestApplicationId();
+    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getTestApplicationId();
     if (testPackageName != null) {
       return testPackageName;
     }

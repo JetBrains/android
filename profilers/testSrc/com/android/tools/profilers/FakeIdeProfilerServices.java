@@ -181,10 +181,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    * the selection.
    */
   private int myListBoxOptionsIndex;
-  /**
-   * Fake application id to be used by test.
-   */
-  private String myApplicationId = "";
 
   @Nullable private Notification myNotification;
 
@@ -247,16 +243,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public void enableAdvancedProfiling() {
     // No-op.
-  }
-
-  @NotNull
-  @Override
-  public String getApplicationId() {
-    return myApplicationId;
-  }
-
-  public void setApplicationId(@NotNull String name) {
-    myApplicationId = name;
   }
 
   @NotNull

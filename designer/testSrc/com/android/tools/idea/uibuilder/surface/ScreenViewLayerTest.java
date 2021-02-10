@@ -144,14 +144,13 @@ public class ScreenViewLayerTest {
 
   @SuppressWarnings("UndesirableClassUsage")
   @Test
-  public void scalingPaintTest() throws Exception {
-    VirtualTimeScheduler timeScheduler = new VirtualTimeScheduler();
+  public void paintTest() throws Exception {
     Ref<Rectangle> screenViewSize = new Ref<>(scaleRectangle(FULL_SIZE, SCALE));
 
     // Create a high quality image bigger than the screenView that will be scaled.
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
     ScreenView screenView = createScreenViewMock(screenViewSize, createRenderResultMock(imageHQ));
-    ScreenViewLayer layer = new ScreenViewLayer(screenView, timeScheduler);
+    ScreenViewLayer layer = new ScreenViewLayer(screenView);
 
     // First, we expect the low quality scaling in the first call.
     BufferedImage unscaled = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
@@ -163,20 +162,6 @@ public class ScreenViewLayerTest {
     g = createGraphicsAndClean(output, screenViewSize.get());
     layer.paint(g);
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
-
-    double xScale = imageHQ.getWidth() / screenViewSize.get().getWidth();
-    double yScale = imageHQ.getHeight() / screenViewSize.get().getHeight();
-    BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(imageHQ.getCopy(), xScale, yScale, ScaleContext.create(g));
-
-    BufferedImage scaledHQ = new BufferedImage(imageHQScaled.getWidth(), imageHQScaled.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    UIUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);
-
-    // We wait more than the debounce delay to ensure that the next call to paint will draw an scaled image.
-    timeScheduler.advanceBy(600, TimeUnit.MILLISECONDS);
-    //noinspection UndesirableClassUsage
-    g = createGraphicsAndClean(output, screenViewSize.get());
-    layer.paint(g);
-    ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", scaledHQ, output, 0.0);
 
     // Scale value back to 1.0, so no scaling.
     screenViewSize.set(FULL_SIZE);
@@ -190,46 +175,19 @@ public class ScreenViewLayerTest {
     ImageDiffUtil.assertImageSimilar("screenviewlayer_result.png", unscaled, output, 0.0);
   }
 
-  // b/115639193
-  @Test
-  public void cancelPreviewTest() {
-    VirtualTimeScheduler timeScheduler = new VirtualTimeScheduler();
-    Ref<Rectangle> screenViewSize = new Ref<>(scaleRectangle(FULL_SIZE, SCALE));
-
-    // Create a high quality image bigger than the screenView that will be scaled.
-    ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
-    ImagePool.Image imageNoScale = getTestImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT);
-
-    ScreenView screenView = createScreenViewMock(screenViewSize, createRenderResultMock(imageHQ), createRenderResultMock(imageNoScale));
-    ScreenViewLayer layer = new ScreenViewLayer(screenView, timeScheduler);
-
-    //noinspection UndesirableClassUsage
-    BufferedImage output = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g = createGraphicsAndClean(output, screenViewSize.get());
-    layer.paint(g);
-
-    // This has scheduled a task to resize the image
-    assertEquals(1, timeScheduler.getActionsQueued());
-    // Advance time without triggering the debounce timeout
-    timeScheduler.advanceBy(30, TimeUnit.MILLISECONDS);
-    assertEquals(1, timeScheduler.getActionsQueued());
-
-    // Get a new image that does not need resizing so it will cancel the existing timer
-    layer.paint(g);
-    assertEquals(0, timeScheduler.getActionsQueued());
-  }
-
   @NotNull
   private static ImagePool.Image getTestImage(int imageWidth, int imageHeight) {
     ImagePool imagePool = ImagePoolFactory.createImagePool();
     ImagePool.Image imageHQ = imagePool.create(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
     imageHQ.paint(g -> {
       g.setStroke(new BasicStroke(10));
+      //noinspection UseJBColor
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, imageWidth, imageHeight);
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      //noinspection UseJBColor
       g.setColor(Color.BLACK);
       g.drawLine(0, 0, imageWidth, imageHeight);
       g.drawLine(imageWidth, 0, 0, imageHeight);

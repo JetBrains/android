@@ -16,6 +16,9 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.SchemaProvider
+import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
@@ -39,6 +42,9 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
 
   override fun createParametersBindingView(project: Project, sqliteStatementText: String)
     = ParametersBindingDialogViewImpl(sqliteStatementText, project, true)
+
+  override fun createExportToFileView(project: Project, params: ExportDialogParams): ExportToFileDialogView =
+    ExportToFileDialogViewImpl(project, params)
 
   override fun createDatabaseInspectorView(project: Project) = DatabaseInspectorViewImpl(project, project)
 }

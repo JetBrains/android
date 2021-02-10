@@ -131,7 +131,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
-    checkForInValidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
+    checkForInvalidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
     assertMissingProperty("compose", buildFeatures.compose())
     assertMissingProperty("dataBinding", buildFeatures.dataBinding())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())

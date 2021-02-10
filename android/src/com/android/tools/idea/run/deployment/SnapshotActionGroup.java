@@ -19,8 +19,6 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import java.util.ArrayList;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,17 +35,9 @@ final class SnapshotActionGroup extends ActionGroup {
 
   @Override
   public @NotNull AnAction @NotNull [] getChildren(@Nullable AnActionEvent event) {
-    Collection<Snapshot> snapshots = myDevice.getSnapshots();
-
-    Collection<AnAction> children = new ArrayList<>(2 + snapshots.size());
-    children.add(SelectTargetAction.newColdBootAction(myDevice, myComboBoxAction));
-    children.add(SelectTargetAction.newQuickBootAction(myDevice, myComboBoxAction));
-
-    snapshots.stream()
-      .map(snapshot -> SelectTargetAction.newBootWithSnapshotAction(myDevice, myComboBoxAction, snapshot))
-      .forEach(children::add);
-
-    return children.toArray(new AnAction[0]);
+    return myDevice.getTargets().stream()
+      .map(target -> new SelectTargetAction(target, myDevice, myComboBoxAction))
+      .toArray(AnAction[]::new);
   }
 
   @Override
