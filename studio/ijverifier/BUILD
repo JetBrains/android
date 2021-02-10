@@ -22,6 +22,8 @@ py_test(
     ],
     python_version = "PY3",
     tags = [
+        # TODO: b/179893091
+        "manual",
         # No need to test on multiple platforms.
         "no_mac",
         "no_windows",
