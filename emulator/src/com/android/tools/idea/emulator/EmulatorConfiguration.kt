@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.SdkConstants.ANDROID_SDK_ROOT_ENV
+import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.util.text.StringUtil.parseInt
 import java.awt.Dimension
@@ -51,7 +51,7 @@ class EmulatorConfiguration private constructor(
       val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density")
       val hardwareIni = readKeyValueFile(file, keysToExtract1) ?: return null
 
-      val sdkPath = hardwareIni.get("android.sdk.root") ?: System.getenv(ANDROID_SDK_ROOT_ENV) ?: ""
+      val sdkPath = hardwareIni.get("android.sdk.root") ?: System.getenv(ANDROID_HOME_ENV) ?: ""
       val androidSdkRoot = avdFolder.fileSystem.getPath(sdkPath)
       val displayWidth = parseInt(hardwareIni["hw.lcd.width"], 0)
       val displayHeight = parseInt(hardwareIni["hw.lcd.height"], 0)
