@@ -15,25 +15,24 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.stdui.CommonTabbedPane;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.profilers.CloseButton;
+import com.android.tools.adtui.stdui.CloseButton;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBEmptyBorder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * View to display a single network request and its detailed information.
