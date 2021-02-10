@@ -62,6 +62,29 @@ To build Android Studio run
 ```
 bazel build //tools/adt/idea/studio:android-studio
 ```
+and it will produce the following files:
+
+```
+bazel-bin/tools/adt/idea/studio/android-studio.linux.zip
+bazel-bin/tools/adt/idea/studio/android-studio.mac.zip
+bazel-bin/tools/adt/idea/studio/android-studio.win.zip
+```
+
+# Running Android Studio
+
+Unzipping the files produced in the last step, should be all that is needed. But there is a handy utility on linux to do this:
+
+```
+bazel run //tools/adt/idea/studio:android-studio
+```
+
+will unzip the linux binary in a directory in `/tmp`, and will run it from there. The even handier: 
+
+```
+bazel run //tools/adt/idea/studio:android-studio -- --debug
+```
+
+will set it up to wait for a remote debugger connection on the `:5005` port.
 
 ## Searchable Options
 
