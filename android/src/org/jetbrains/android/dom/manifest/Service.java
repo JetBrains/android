@@ -38,4 +38,6 @@ public interface Service extends ApplicationComponent {
   List<IntentFilter> getIntentFilters();
 
   IntentFilter addIntentFilter();
+
+  List<Property> getProperties();
 }

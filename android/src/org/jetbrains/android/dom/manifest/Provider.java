@@ -42,4 +42,6 @@ public interface Provider extends ApplicationComponent {
   List<IntentFilter> getIntentFilters();
 
   IntentFilter addIntentFilter();
+
+  List<Property> getProperties();
 }
