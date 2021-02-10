@@ -22,10 +22,16 @@ import com.android.sdklib.AndroidVersion
  * Describes the specification of a device or the common specification of devices the application is to be launched on.
  */
 interface AndroidDeviceSpec {
-  /** The common version of the device or devices, null when combining multiple devices with different versions */
+  /**
+   * The common version of the device or devices.
+   * Null when combining multiple devices with different versions, or when the version is unknown.
+   */
   val commonVersion: AndroidVersion?
-  /** The minimum version of the device or devices, unlike [commonVersion] this is always defined. */
-  val minVersion: AndroidVersion
+  /**
+   * The minimum version of the device or devices.
+   * Null if the device version is unknown.
+   */
+  val minVersion: AndroidVersion?
   val density: Density?
   val abis: List<String>
   val languages: List<String>
