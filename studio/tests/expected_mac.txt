@@ -2799,13 +2799,13 @@ Android Studio Preview.app/Contents/plugins/google-samples/lib/google-samples.ja
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/resources_en.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-6.5.1-java7-sp2.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-6.5.1-java7-sp2.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-6.8.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-impldep-6.8.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-common.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-6.5.1-java7-sp2.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-launcher-6.8.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-api.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-6.5.1-java7-sp2.jar
+Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-6.8.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
 Android Studio Preview.app/Contents/plugins/hg4idea/lib/hg4idea.jar
 Android Studio Preview.app/Contents/plugins/hg4idea/lib/resources_en.jar

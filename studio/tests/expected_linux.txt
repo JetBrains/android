@@ -2809,13 +2809,13 @@ android-studio/plugins/google-samples/lib/google-samples.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
 android-studio/plugins/gradle-java/lib/resources_en.jar
-android-studio/plugins/gradle/lib/gradle-api-6.5.1-java7-sp2.jar
-android-studio/plugins/gradle/lib/gradle-api-impldep-6.5.1-java7-sp2.jar
+android-studio/plugins/gradle/lib/gradle-api-6.8.jar
+android-studio/plugins/gradle/lib/gradle-api-impldep-6.8.jar
 android-studio/plugins/gradle/lib/gradle-common.jar
-android-studio/plugins/gradle/lib/gradle-launcher-6.5.1-java7-sp2.jar
+android-studio/plugins/gradle/lib/gradle-launcher-6.8.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-android-studio/plugins/gradle/lib/gradle-wrapper-6.5.1-java7-sp2.jar
+android-studio/plugins/gradle/lib/gradle-wrapper-6.8.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/hg4idea/lib/hg4idea.jar
 android-studio/plugins/hg4idea/lib/resources_en.jar
