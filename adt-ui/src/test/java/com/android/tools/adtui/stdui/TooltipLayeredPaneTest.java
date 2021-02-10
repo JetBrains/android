@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
-
-import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
+package com.android.tools.adtui.stdui;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class ProfilerLayeredPaneTest {
+import java.awt.Container;
+import java.awt.Cursor;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import org.junit.Test;
+
+public class TooltipLayeredPaneTest {
   @Test
-  public void setCursorOnProfilerLayeredPane() {
+  public void setCursorOnLayeredPane() {
     JButton button = new JButton();
     JPanel panel = new JPanel();
     panel.add(button);
-    ProfilerLayeredPane layeredPane = new ProfilerLayeredPane(panel);
+    TooltipLayeredPane layeredPane = new TooltipLayeredPane(panel);
     Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-    Container cursorSettingContainer = ProfilerLayeredPane.setCursorOnProfilerLayeredPane(
+    Container cursorSettingContainer = TooltipLayeredPane.setCursor(
       button, cursor);
     assertThat(layeredPane).isSameAs(cursorSettingContainer);
     assertThat(cursor).isEqualTo(layeredPane.getCursor());
   }
 
   @Test
-  public void setCursorOnProfilerLayeredPaneNotFound() {
+  public void setCursorOnLayeredPaneNotFound() {
     JButton button = new JButton();
     JPanel panel = new JPanel();
     panel.add(button);
     Cursor cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
-    assertThat(ProfilerLayeredPane.setCursorOnProfilerLayeredPane(button, cursor)).isNull();
+    assertThat(TooltipLayeredPane.setCursor(button, cursor)).isNull();
   }
 }
