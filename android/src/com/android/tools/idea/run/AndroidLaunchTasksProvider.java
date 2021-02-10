@@ -187,7 +187,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages.build(),
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, device.getSerialNumber(), packageName)));
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
@@ -195,7 +195,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages.build(),
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, device.getSerialNumber(), packageName)));
         break;
       case DEPLOY:
         tasks.add(new DeployTask(
@@ -204,7 +204,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName)));
+        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, device.getSerialNumber(), packageName)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
