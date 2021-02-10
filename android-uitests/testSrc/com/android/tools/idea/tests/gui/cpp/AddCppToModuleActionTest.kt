@@ -69,7 +69,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("native-lib.cpp")
+    Truth.assertThat(ideFrame.editor.currentFile!!.name).isEqualTo("tools.cpp")
   }
 
   @Test
