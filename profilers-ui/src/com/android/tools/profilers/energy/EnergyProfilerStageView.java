@@ -39,10 +39,10 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TooltipLayeredPane;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -129,7 +129,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
     RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel());
-    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    selection.setCursorSetter(TooltipLayeredPane::setCursor);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline,
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),

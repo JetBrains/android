@@ -31,8 +31,8 @@ import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.stdui.StreamingScrollbar
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerLayeredPane
 import com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH
 import com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER
 import com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING
@@ -195,7 +195,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       }.build()
 
   private fun makeRangeSelectionComponent() = RangeSelectionComponent(stage.rangeSelectionModel).apply {
-    setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane)
+    setCursorSetter(TooltipLayeredPane::setCursor)
   }
 
   companion object {
