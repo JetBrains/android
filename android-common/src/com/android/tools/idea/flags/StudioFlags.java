@@ -1001,14 +1001,14 @@ public final class StudioFlags {
     COMPOSE, "preview.live.literals",
     "Enable the live literals",
     "If enabled, the live literals feature is enabled",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
     COMPOSE, "deploy.live.literals.deploy",
     "Enable live literals deploy",
     "If enabled, literals within Composable functions are instantly deployed to device",
-    false
+    true
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(

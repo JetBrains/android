@@ -1017,6 +1017,13 @@
     <option name="test" hit="Enable test runs across multiple devices in parallel." />
     <option name="testing" hit="Testing" />
   </configurable>
+  <configurable id="android.live.literals" configurable_name="Live Literals">
+    <option name="enable" hit="Enable Live Literals" />
+    <option name="literals" hit="Enable Live Literals" />
+    <option name="live" hit="Enable Live Literals" />
+    <option name="literals" hit="Live Literals" />
+    <option name="live" hit="Live Literals" />
+  </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
     <option name="an" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
