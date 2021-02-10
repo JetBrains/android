@@ -45,12 +45,12 @@
     <option name="selected" path="ActionManager" hit="Add deep link to the selected item" />
     <option name="the" path="ActionManager" hit="Add deep link to the selected item" />
     <option name="to" path="ActionManager" hit="Add deep link to the selected item" />
-    <option name="add" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
-    <option name="light-to-left" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
-    <option name="possible" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
-    <option name="rtl" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
-    <option name="support" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
-    <option name="where" path="ActionManager" hit="Add light-to-left (RTL) support where possible" />
+    <option name="add" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="possible" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="right-to-left" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="rtl" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="support" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="where" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="add" path="ActionManager" hit="Add sample data file" />
     <option name="data" path="ActionManager" hit="Add sample data file" />
     <option name="file" path="ActionManager" hit="Add sample data file" />
