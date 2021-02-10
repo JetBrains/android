@@ -171,7 +171,7 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
 
   companion object {
     private fun findLiveLiteralsIndicator(project: Project): LiveLiteralsAvailableIndicator? =
-      WindowManager.getInstance().getStatusBar(project).getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator
+      WindowManager.getInstance()?.getStatusBar(project)?.getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator
 
     fun showIsAvailablePopup(project: Project) {
       findLiveLiteralsIndicator(project)?.showAvailablePopup()
