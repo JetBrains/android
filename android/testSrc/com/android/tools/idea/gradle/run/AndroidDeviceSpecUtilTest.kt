@@ -57,11 +57,11 @@ class AndroidDeviceSpecUtilTest {
     val api17Device = mockDevice(AndroidVersion(17))
 
     val spec17And22 = createSpec(listOf(api22Device, api17Device), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
-    assertThat(spec17And22.minVersion.featureLevel).isEqualTo(17)
+    assertThat(spec17And22.minVersion?.featureLevel).isEqualTo(17)
     assertThat(spec17And22.commonVersion).isNull()
 
     val spec16And17 = createSpec(listOf(api16Device, api17Device), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
-    assertThat(spec16And17.minVersion.featureLevel).isEqualTo(16)
+    assertThat(spec16And17.minVersion?.featureLevel).isEqualTo(16)
     assertThat(spec16And17.commonVersion).isNull()
   }
 
@@ -71,9 +71,26 @@ class AndroidDeviceSpecUtilTest {
     val previewMDevice = mockDevice(AndroidVersion(22, "M"))
 
     val spec2And4 = createSpec(listOf(api23Device, previewMDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
-    assertThat(spec2And4.minVersion.featureLevel).isEqualTo(23)
+    assertThat(spec2And4.minVersion?.featureLevel).isEqualTo(23)
     assertThat(spec2And4.commonVersion).isNull()
 
+  }
+
+  @Test
+  fun ignoresUnknownVersions() {
+    val unknownDevice = mockDevice(AndroidVersion.DEFAULT)
+    val specUnknown = createSpec(listOf(unknownDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+    assertThat(specUnknown.minVersion).isNull()
+    assertThat(specUnknown.commonVersion).isNull()
+
+  }
+  @Test
+  fun ignoresUnknownVersionsCombined() {
+    val unknownDevice = mockDevice(AndroidVersion.DEFAULT)
+    val api22Device = mockDevice(AndroidVersion(22))
+    val spec22AndUnknown = createSpec(listOf(api22Device, unknownDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+    assertThat(spec22AndUnknown.minVersion).isNull()
+    assertThat(spec22AndUnknown.commonVersion).isNull()
   }
 
   @Test

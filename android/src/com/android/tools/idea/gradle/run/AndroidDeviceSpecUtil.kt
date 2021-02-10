@@ -34,10 +34,16 @@ import java.util.concurrent.TimeUnit
 
 
 data class AndroidDeviceSpecImpl @JvmOverloads constructor (
-  /** The common version of the device or devices, null when combining multiple devices with different versions */
-  override val commonVersion: AndroidVersion?,
-  /** The minimum version of the device or devices, unlike [commonVersion] this is always defined. */
-  override val minVersion: AndroidVersion,
+  /**
+   * The common version of the device or devices.
+   * Null when combining multiple devices with different versions, or when the version is unknown.
+   */
+  override val  commonVersion: AndroidVersion?,
+  /**
+   * The minimum version of the device or devices.
+   * Null if the device version is unknown.
+   */
+  override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
@@ -66,14 +72,16 @@ fun createSpec(
   }
 
   val versions = devices.map { it.version }.toSet()
-  // Find the common value of the device version to pass to the build (null if there are multiple versions)
-  val version = versions.singleOrNull()
+  val hasUnknownVersions = versions.contains(AndroidVersion.DEFAULT)
+  // Find the common value of the device version to pass to the build.
+  // Null if there are multiple distinct versions, or the version is unknown.
+  val version = if (hasUnknownVersions) null else versions.singleOrNull()
+  // Find the minimum value of the build API level for making other decisions
+  // If the API level of any device is not known, do not commit to a version
+  val minVersion = if (hasUnknownVersions) null else versions.minWith(Ordering.natural())!!
+
   var density: Density? = null
   var abis: List<String> = emptyList()
-
-  // Find the minimum value of the build API level for making other decisions
-  val minVersion = versions.minWith(Ordering.natural())!!
-
   // If we are building for only one device, pass the density and the ABI
   if (devices.size == 1) {
     val device = devices[0]
