@@ -33,20 +33,20 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.instructions.HyperlinkInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.instructions.HyperlinkInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
+import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -199,7 +199,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(timeline, panel);
+    StreamingScrollbar sb = new StreamingScrollbar(timeline, panel);
     panel.add(sb, new TabularLayout.Constraint(3, 0));
 
     JComponent timeAxis = buildTimeAxis(profilers);

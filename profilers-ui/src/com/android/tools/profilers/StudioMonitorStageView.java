@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -88,7 +89,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar sb = new ProfilerScrollbar(getStage().getTimeline(), getComponent());
+    StreamingScrollbar sb = new StreamingScrollbar(getStage().getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
