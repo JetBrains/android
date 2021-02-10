@@ -40,7 +40,6 @@ import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
@@ -420,9 +419,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
-      // TODO(b/150503095)
-      Transport.ExecuteResponse response =
-          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
@@ -472,9 +469,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
-      // TODO(b/150503095)
-      Transport.ExecuteResponse response =
-          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());
     }
     else {
       // In legacy pipeline BeginSession uses device ID as stream ID.

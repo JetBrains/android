@@ -74,6 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -399,6 +400,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       .addAllSymbolDirs(getStudioProfilers().getIdeServices().getNativeSymbolsDirectories())
       .build();
 
+    Executor poolExecutor = getStudioProfilers().getIdeServices().getPoolExecutor();
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Commands.Command startCommand = Commands.Command.newBuilder()
         .setStreamId(mySession.getStreamId())
@@ -407,20 +409,21 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
         .build();
 
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(startCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.CPU_TRACE_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> mySession.getStreamId(),
-                                                                         () -> mySession.getPid(),
-                                                                         event -> {
-                                                                           startCapturingCallback(
-                                                                             event.getCpuTraceStatus().getTraceStartStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
-      getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
+        .thenAcceptAsync(response -> {
+          TransportEventListener statusListener = new TransportEventListener(
+            Common.Event.Kind.CPU_TRACE_STATUS,
+            getStudioProfilers().getIdeServices().getMainExecutor(),
+            event -> event.getCommandId() == response.getCommandId(),
+            () -> mySession.getStreamId(),
+            () -> mySession.getPid(),
+            event -> {
+              startCapturingCallback(event.getCpuTraceStatus().getTraceStartStatus());
+              // unregisters the listener.
+              return true;
+            });
+          getStudioProfilers().getTransportPoller().registerListener(statusListener);
+        }, poolExecutor);
     }
     else {
       CpuProfilingAppStartRequest request = CpuProfilingAppStartRequest.newBuilder()
@@ -428,7 +431,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         .setConfiguration(configuration)
         .build();
       CompletableFuture.supplyAsync(
-        () -> getCpuClient().startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+        () -> getCpuClient().startProfilingApp(request), poolExecutor)
         .thenAcceptAsync(response -> this.startCapturingCallback(response.getStatus()),
                          getStudioProfilers().getIdeServices().getMainExecutor());
     }
