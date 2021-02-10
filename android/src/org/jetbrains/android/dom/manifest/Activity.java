@@ -61,4 +61,6 @@ public interface Activity extends ApplicationComponent {
   List<NavGraph> getNavGraphs();
 
   NavGraph addNavGraph();
+
+  List<Property> getProperties();
 }

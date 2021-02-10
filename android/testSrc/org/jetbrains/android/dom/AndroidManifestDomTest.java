@@ -34,6 +34,83 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
   }
 
+  public void testPropertyHighlighting() {
+    // UNRESOLVED errors do not relate to the <property> tag which is the purpose of the test.
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=XML
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "        package=\"p1.p2\" >\n" +
+      "  <application>\n" +
+      "    <property android:name=\"android.cts.PROPERTY_STRING_VIA_RESOURCE\" android:value=\"foo\" />\n" +
+      "    <activity android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_ACTIVITY\" android:value=\"foo\" />\n" +
+      "    </activity>\n" +
+      "    <activity-alias android:name=\"UNRESOLVED\" android:targetActivity=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_ACTIVITY_ALIAS\" android:value=\"foo\" />\n" +
+      "    </activity-alias>\n" +
+      "    <provider android:name=\"<error>UNRESOLVED</error>\" android:authorities=\"UNRESOLVED\">\n" +
+      "      <property android:name=\"android.cts.PROPERTY_PROVIDER\" android:value=\"foo\" />\n" +
+      "    </provider>\n" +
+      "    <receiver android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_RECEIVER\" android:value=\"foo\" />\n" +
+      "    </receiver>\n" +
+      "    <service android:name=\"<error>UNRESOLVED</error>\">\n" +
+      "        <property android:name=\"android.cts.PROPERTY_SERVICE\" android:value=\"foo\" />\n" +
+      "    </service>\n" +
+      "  </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testPropertyTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <<caret>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("property");
+  }
+
+  public void testPropertyAttributeCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <property <caret>/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("android:name", "android:value", "android:resource");
+  }
+
+
+  public void testPropertyResourceAttributeValueCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <application>\n" +
+      "        <property android:name=\"android.cts.PROPERTY_RESOURCE_XML\" android:resource=\"@<caret>\"/>\n" +
+      "    </application>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    //Contains every accessible resource.
+    assertThat(myFixture.getLookupElementStrings()).containsAllOf("@android:", "@color/color0", "@color/color1");
+  }
+
+
   public void testProfileableHighlighting() {
     VirtualFile file = myFixture.addFileToProject(
       "AndroidManifest.xml",
