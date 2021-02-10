@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
@@ -38,7 +39,9 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICA
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.analytics.toProto
 import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
@@ -53,6 +56,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
@@ -132,6 +136,8 @@ import kotlin.math.roundToInt
 import com.android.emulator.control.Image as ImageMessage
 import com.android.emulator.control.MouseEvent as MouseEventMessage
 import com.android.emulator.control.Notification as EmulatorNotification
+import org.HdrHistogram.Histogram
+import java.time.Duration
 
 /**
  * A view of the Emulator display optionally encased in the device frame.
@@ -147,11 +153,11 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotImage: BufferedImage? = null
-  private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
+  private var lastScreenshot: Screenshot? = null
   private var displayRectangle: Rectangle? = null
-  private var skinLayout: SkinLayout? = null
   private val displayTransform = AffineTransform()
+  private val screenshotShape
+    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -253,6 +259,7 @@ class EmulatorView(
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
   private val virtualSceneCameraOrientation = Point()
   private val virtualSceneCameraReferencePoint = Point()
+  private val stats = Stats(this)
 
   init {
     Disposer.register(parentDisposable, this)
@@ -612,7 +619,7 @@ class EmulatorView(
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
-      screenshotImage = null
+      lastScreenshot = null
       hideLongRunningOperationIndicator()
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
@@ -676,8 +683,8 @@ class EmulatorView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
-    val displayImage = screenshotImage ?: return
-    val skin = skinLayout ?: return
+    val screenshot = lastScreenshot ?: return
+    val skin = screenshot.skinLayout
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
@@ -689,17 +696,22 @@ class EmulatorView(
 
     // Draw display.
     if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
-      g.drawImage(displayImage, null, displayRect.x, displayRect.y)
+      g.drawImage(screenshot.image, null, displayRect.x, displayRect.y)
     }
     else {
       displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
       displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
-      g.drawImage(displayImage, displayTransform, null)
+      g.drawImage(screenshot.image, displayTransform, null)
     }
 
     if (deviceFrameVisible) {
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
+    }
+    if (!screenshot.painted) {
+      screenshot.painted = true
+      val paintTime = System.currentTimeMillis()
+      stats.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
     }
   }
 
@@ -734,9 +746,6 @@ class EmulatorView(
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      if (screenshotImage == null) {
-        screenshotShape = DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
-      }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val actualSize = computeActualSize(rotation)
 
@@ -948,32 +957,40 @@ class EmulatorView(
     private val displayShapeCache = CachedSkinLayout(emulator)
     private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
     private val alarm = Alarm(this)
+    private var expectedFrameNumber = -1
 
     override fun onNext(response: ImageMessage) {
+      val arrivalTime = System.currentTimeMillis()
+      val imageFormat = response.format
+      val imageRotation = imageFormat.rotation.rotation
+
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        val latency = System.currentTimeMillis() - response.timestampUs / 1000
-        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation} " +
-                 "$latency ms latency")
+        val latency = arrivalTime - response.timestampUs / 1000
+        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
         return // This screenshot feed has already been cancelled.
       }
 
-      if (response.format.width == 0 || response.format.height == 0) {
+      if (imageFormat.width == 0 || imageFormat.height == 0) {
         return // Ignore empty screenshot.
       }
-
-      val screenshot = RawScreenshot(response)
 
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
-      if (screenshot.rotation != rotation) {
+      if (imageRotation != rotation) {
         invokeLaterInAnyModalityState {
-          requestScreenshotFeed(screenshot.rotation)
+          requestScreenshotFeed(imageRotation)
         }
         return
       }
+
+      val screenshot = RawScreenshot(response)
+
+      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
+      stats.recordFrameArrival(arrivalTime - screenshot.frameOriginationTime, lostFrames)
+      expectedFrameNumber = response.seq + 1
 
       screenshotForProcessing.set(screenshot)
 
@@ -987,7 +1004,12 @@ class EmulatorView(
 
     @Slow
     private fun updateSkinAndDisplayImage() {
-      val rawScreenshot = screenshotForProcessing.getAndSet(null) ?: return
+      val rawScreenshot = screenshotForProcessing.getAndSet(null)
+      if (rawScreenshot == null) {
+        stats.recordDroppedFrame()
+        return
+      }
+
       val shape = rawScreenshot.shape
       val skinLayout = displayShapeCache.get(shape)
       alarm.cancelAllRequests()
@@ -1008,7 +1030,7 @@ class EmulatorView(
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
-      val screenshot = Screenshot(shape, image, skinLayout)
+      val screenshot = Screenshot(shape, image, skinLayout, rawScreenshot.frameOriginationTime)
       screenshotForDisplay.set(screenshot)
 
       invokeLaterInAnyModalityState {
@@ -1023,10 +1045,14 @@ class EmulatorView(
     private fun updateDisplayImage() {
       hideLongRunningOperationIndicatorInstantly()
 
-      val screenshot = screenshotForDisplay.getAndSet(null) ?: return
+      val screenshot = screenshotForDisplay.getAndSet(null)
+      if (screenshot == null) {
+        stats.recordDroppedFrame()
+        return
+      }
 
       // Creation of a large BufferedImage is expensive. Recycle the old image if it has the proper size.
-      screenshotImage?.let {
+      lastScreenshot?.image?.let {
         if (it.width == screenshot.displayShape.width && it.height == screenshot.displayShape.height) {
           recycledImage.set(SofterReference(it))
           alarm.cancelAllRequests()
@@ -1034,9 +1060,7 @@ class EmulatorView(
         }
       }
 
-      skinLayout = screenshot.skinLayout
-      screenshotImage = screenshot.image
-      screenshotShape = screenshot.displayShape
+      lastScreenshot = screenshot
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
@@ -1061,13 +1085,13 @@ class EmulatorView(
   }
 
   private class RawScreenshot(emulatorImage: ImageMessage) {
+    val frameOriginationTime: Long = emulatorImage.timestampUs / 1000
     val shape = DisplayShape(emulatorImage.format)
     val imageBytes: ByteString = emulatorImage.image
-    val rotation: SkinRotation
-      get() = shape.rotation
   }
 
-  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout)
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout,
+                           val frameOriginationTime: Long, var painted: Boolean = false)
 
   /**
    * Stores the last computed scaled [SkinLayout] together with the corresponding display
@@ -1094,6 +1118,79 @@ class EmulatorView(
   private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation) {
     constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
   }
+
+  private class Stats(parentDisposable: Disposable): Disposable {
+    @GuardedBy("this")
+    private var data = Data()
+    private val alarm = Alarm(this)
+
+    init {
+      Disposer.register(parentDisposable, this)
+      scheduleNextLogging()
+    }
+
+    @Synchronized
+    fun recordFrameArrival(latencyOfArrival: Long, numberOfLostFrames: Int) {
+      data.frameCount += 1 + numberOfLostFrames
+      data.latencyOfArrival.recordValue(latencyOfArrival)
+      if (numberOfLostFrames != 0) {
+        data.droppedFrameCount += numberOfLostFrames
+        data.droppedFrameCountBeforeArrival += numberOfLostFrames
+      }
+    }
+
+    @Synchronized
+    fun recordDroppedFrame() {
+      data.droppedFrameCount++
+    }
+
+    @Synchronized
+    fun recordLatencyEndToEnd(latency: Long) {
+      data.latencyEndToEnd.recordValue(latency)
+    }
+
+    override fun dispose() {
+      getAndSetData().log()
+    }
+
+    private fun logAndReset() {
+      getAndSetData(Data()).log()
+      scheduleNextLogging()
+    }
+
+    @Synchronized
+    private fun getAndSetData(newData: Data? = null): Data {
+      val oldData = data
+      if (newData != null) {
+        data = newData
+      }
+      return oldData
+    }
+
+    private fun scheduleNextLogging() {
+      alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+    }
+
+    private class Data {
+      var frameCount = 0
+      var droppedFrameCount = 0
+      var droppedFrameCountBeforeArrival = 0
+      val latencyEndToEnd = Histogram(1)
+      val latencyOfArrival = Histogram(1)
+      val collectionStart = System.currentTimeMillis()
+
+      fun log() {
+        if (frameCount != 0) {
+          val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
+          val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
+          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate\n" +
+                            "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+                            "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+        }
+      }
+    }
+  }
 }
 
 private var emulatorOutOfDateNotificationShown = false
@@ -1110,5 +1207,7 @@ private const val ALPHA_MASK = 0xFF shl 24
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                    32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
+
+private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis() // TODO: Change to 1 hour when switching to analytics logging.
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
