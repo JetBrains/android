@@ -223,11 +223,9 @@ studio_plugin(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # Plugins :com.android.layoutlib.*" are optional
     ],
     resources = {
-        "lib": [
-            "//tools/adt/idea/android/lib:sample-data-bundle",
-            "//prebuilts/studio/layoutlib:layoutlib",
-        ],
         "resources": [
+            "//prebuilts/studio/layoutlib:layoutlib",
+            "//tools/adt/idea/android/lib:sample-data-bundle",
             "//tools/adt/idea/artwork:device-art-resources-bundle",  # duplicated in android.jar
             "//tools/adt/idea/android/annotations:androidAnnotations",
             "//tools/base/app-inspection/inspectors/network:bundle",
