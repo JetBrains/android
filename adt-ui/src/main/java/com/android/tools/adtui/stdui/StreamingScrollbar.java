@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers;
+package com.android.tools.adtui.stdui;
+
+import static com.android.tools.adtui.stdui.StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR;
 
 import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -33,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
  * A custom toolbar that synchronizes with the data+view ranges from the {@link StreamingTimeline}.
  * This control sets the timeline into streaming mode if users drags the thumb all the way to the right.
  */
-public final class ProfilerScrollbar extends JBScrollBar {
+public final class StreamingScrollbar extends JBScrollBar {
   /**
    * The percentage of the current view range's length to zoom per mouse wheel click.
    */
@@ -61,8 +63,8 @@ public final class ProfilerScrollbar extends JBScrollBar {
   private boolean myUpdating;
   private boolean myCheckStream;
 
-  public ProfilerScrollbar(@NotNull StreamingTimeline timeline,
-                           @NotNull JComponent zoomPanComponent) {
+  public StreamingScrollbar(@NotNull StreamingTimeline timeline,
+                            @NotNull JComponent zoomPanComponent) {
     super(HORIZONTAL);
 
     myAspectObserver = new AspectObserver();
@@ -70,7 +72,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
     myTimeline.getDataRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
-    ProfilerScrollbarUi scrollbarUi = new ProfilerScrollbarUi();
+    StreamingScrollbarUi scrollbarUi = new StreamingScrollbarUi();
     setUI(scrollbarUi);
     addPropertyChangeListener(evt -> {
       // preserve RangeScrollbarUI always, otherwise it reverts back to the default UI when switching themes.
@@ -165,10 +167,10 @@ public final class ProfilerScrollbar extends JBScrollBar {
     return (model.getValue() + model.getExtent()) / (float)model.getMaximum() >= snapPercentage;
   }
 
-  private class ProfilerScrollbarUi extends RangeScrollBarUI {
+  private class StreamingScrollbarUi extends RangeScrollBarUI {
     @Override
     protected void doPaintTrack(Graphics g, JComponent c, Rectangle bounds) {
-      g.setColor(ProfilerColors.DEFAULT_BACKGROUND);
+      g.setColor(DEFAULT_CONTENT_BACKGROUND_COLOR);
       g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
     }
   }
