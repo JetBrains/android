@@ -909,7 +909,6 @@ android-studio/jre/release
 android-studio/lib/FastInfoset-1.2.15.jar
 android-studio/lib/HdrHistogram-2.1.4.jar
 android-studio/lib/RoaringBitmap-0.9.0.jar
-android-studio/lib/aapt2-proto-0.3.1.jar
 android-studio/lib/android-base-common.jar
 android-studio/lib/animal-sniffer-annotations-1.17.jar
 android-studio/lib/annotations-4.1.1.4.jar
@@ -975,12 +974,8 @@ android-studio/lib/ant/lib/ant.jar
 android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
-android-studio/lib/asm-7.0.jar
 android-studio/lib/asm-all-9.0.jar
-android-studio/lib/asm-analysis-7.0.jar
-android-studio/lib/asm-tree-7.0.jar
 android-studio/lib/automaton-1.12-1.jar
-android-studio/lib/baksmali-2.2.4.jar
 android-studio/lib/batik-anim-1.13.0-21.jar
 android-studio/lib/batik-awt-util-1.13.0-21.jar
 android-studio/lib/batik-bridge-1.13.0-21.jar
@@ -1024,7 +1019,6 @@ android-studio/lib/configuration-store-impl.jar
 android-studio/lib/coverage-common.jar
 android-studio/lib/credential-store.jar
 android-studio/lib/delight-rhino-sandbox-0.0.11.jar
-android-studio/lib/dexlib2-2.2.4.jar
 android-studio/lib/dom-impl.jar
 android-studio/lib/dom-openapi.jar
 android-studio/lib/error_prone_annotations-2.3.1.jar
@@ -1085,7 +1079,6 @@ android-studio/lib/java-string-similarity-1.2.1.jar
 android-studio/lib/javac2.jar
 android-studio/lib/javax.activation-1.2.0.jar
 android-studio/lib/javax.annotation-api-1.3.2.jar
-android-studio/lib/javax.inject-1.jar
 android-studio/lib/jaxb-api-2.3.1.jar
 android-studio/lib/jaxb-runtime-2.3.1.jar
 android-studio/lib/jaxen-1.2.0.jar
@@ -1213,13 +1206,11 @@ android-studio/lib/testFramework-java.jar
 android-studio/lib/testFramework.core.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/tests_bootstrap.jar
-android-studio/lib/tightvnc.jar
 android-studio/lib/tips-intellij-idea-community-203.16.jar
 android-studio/lib/trang-core.jar
 android-studio/lib/trove4j.jar
 android-studio/lib/txw2-2.3.1.jar
 android-studio/lib/uast-tests.jar
-android-studio/lib/util-2.2.4.jar
 android-studio/lib/util.jar
 android-studio/lib/velocity-1.7.jar
 android-studio/lib/winp-1.28.jar
@@ -1530,6 +1521,7 @@ android-studio/plugins/android-layoutlib/lib/layoutlib.jar
 android-studio/plugins/android-ndk/lib/android-ndk.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
 android-studio/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
+android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
 android-studio/plugins/android/lib/adt-ui.jar
 android-studio/plugins/android/lib/android-common.jar
 android-studio/plugins/android/lib/android-extensions-ide.jar
@@ -1543,12 +1535,14 @@ android-studio/plugins/android/lib/asm-7.0.jar
 android-studio/plugins/android/lib/asm-analysis-7.0.jar
 android-studio/plugins/android/lib/asm-tree-7.0.jar
 android-studio/plugins/android/lib/auto-common-0.10.jar
+android-studio/plugins/android/lib/baksmali-2.2.4.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/core-3.4.0.jar
 android-studio/plugins/android/lib/core-proto-0.0.8-alpha01.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
+android-studio/plugins/android/lib/dexlib2-2.2.4.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
 android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
@@ -1558,6 +1552,7 @@ android-studio/plugins/android/lib/generator.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
+android-studio/plugins/android/lib/javax.inject-1.jar
 android-studio/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
 android-studio/plugins/android/lib/jps/android-jps-plugin.jar
 android-studio/plugins/android/lib/juniversalchardet-1.0.3.jar
@@ -1601,6 +1596,7 @@ android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
+android-studio/plugins/android/lib/util-2.2.4.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
@@ -2283,6 +2279,7 @@ android-studio/plugins/firebase-testing/lib/firebase-testing.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-storage-v1-rev1-1.18.0-rc.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20151013-1.20.0.jar
+android-studio/plugins/firebase-testing/lib/tightvnc.jar
 android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
 android-studio/plugins/git4idea/lib/git4idea-rt.jar
