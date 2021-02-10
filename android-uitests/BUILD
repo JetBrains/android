@@ -37,6 +37,7 @@ COMMON_DATA = [
 COMMON_TAGS = [
     "block-network",
     "no_windows",
+    "no_mac",
     "cpu:3",
 ]
 
