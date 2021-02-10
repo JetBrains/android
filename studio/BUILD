@@ -14,6 +14,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2/repository/com/google/flatbuffers/flatbuffers-java/1.12.0:flatbuffers-java",
         "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:juniversalchardet",
+        "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.10.0:javapoet",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
         "//prebuilts/tools/common/m2/repository/commons-lang/commons-lang/2.6:commons-lang",
@@ -27,15 +28,18 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
+        "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
+        "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/adt/idea/.idea/libraries:sqlite",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:zxing-core",
+        "//tools/adt/idea/.idea/libraries:baksmali",
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android:moshi",
@@ -207,10 +211,6 @@ studio_plugin(
     # List of modules and libraries we expect to be provided by the platform
     provided = [
         "//prebuilts/studio/layoutlib/data:layoutlib",  # Plugins :com.android.layoutlib.*" are optional
-        "//tools/adt/idea/.idea/libraries:aapt-proto",
-        "//tools/adt/idea/.idea/libraries:baksmali",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
-        "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-kotlin:dx",  # TODO
@@ -262,7 +262,6 @@ studio_plugin(
     directory = "android-apk",
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
     provided = [
-        "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker",
     ],
@@ -361,11 +360,11 @@ studio_plugin(
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-storage-v1-rev1-1.18.0-rc",
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-toolresults-v1beta3-rev20151013-1.20.0",
+        "//tools/adt/idea/.idea/libraries:tightvnc",
     ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
     provided = [
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:tightvnc",
         "//tools/analytics-library/tracker:analytics-tracker",
     ],
     deps = [
@@ -540,15 +539,8 @@ android_studio(
             "//prebuilts/tools:lldb-bundle",
         ],
         "lib": [
-            # For now listing all the project library needed until we get them from deps
-            "//tools/adt/idea/.idea/libraries:javax-inject",
-            "//tools/adt/idea/.idea/libraries:dexlib2",
-            "//tools/adt/idea/.idea/libraries:asm-tools",
             "//tools/adt/idea/.idea/libraries:kxml2",
-            "//tools/adt/idea/.idea/libraries:aapt-proto",
             "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-            "//tools/adt/idea/.idea/libraries:baksmali",
-            "//tools/adt/idea/.idea/libraries:tightvnc",
         ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
