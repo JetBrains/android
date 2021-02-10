@@ -37,6 +37,10 @@ class SourceProviderAdapter(private val name: String, private val paths: Android
     return if (srcDirectory == null) emptyList() else setOf(srcDirectory)
   }
 
+  override fun getKotlinDirectories(): Collection<File> {
+    return emptyList()
+  }
+
   override fun getResourcesDirectories(): Collection<File> {
     return emptyList()
   }

@@ -32,6 +32,7 @@ fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scope
     core = object : NamedIdeaSourceProviderImpl.Core {
       override val manifestFileUrl: String get() = VfsUtil.fileToUrl(it.manifestFile)
       override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
+      override val kotlinDirectoryUrls: Sequence<String> get() = it.kotlinDirectories.asSequence().toUrls()
       override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
       override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
       override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()

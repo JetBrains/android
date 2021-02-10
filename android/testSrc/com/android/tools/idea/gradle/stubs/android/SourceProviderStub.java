@@ -30,6 +30,7 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myAidlDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myAssetsDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myJavaDirectories = Sets.newHashSet();
+  @NotNull private final Set<File> myKotlinDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myCppDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myCDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
@@ -89,6 +90,12 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull
   public Set<File> getJavaDirectories() {
     return myJavaDirectories;
+  }
+
+  @NotNull
+  @Override
+  public Collection<File> getKotlinDirectories() {
+    return myKotlinDirectories;
   }
 
   /**

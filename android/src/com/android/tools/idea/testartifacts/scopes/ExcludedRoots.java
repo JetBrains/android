@@ -250,6 +250,7 @@ class ExcludedRoots {
   public static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {
     return Stream.of(
       provider.getJavaDirectories(),
+      provider.getKotlinDirectories(),
       provider.getResDirectories(),
       provider.getAidlDirectories(),
       provider.getRenderscriptDirectories(),

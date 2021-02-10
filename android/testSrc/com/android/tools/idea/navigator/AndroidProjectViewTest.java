@@ -289,6 +289,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  local.properties (SDK Location)\n" +
                       "  settings.gradle.kts (Project Settings)\n" +
                       " app (Android)\n" +
+                      "  kotlin\n" +
+                      "   kotlingradle (main)\n" +
+                      "    CLASS\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n" +
                       "  res\n" +
@@ -309,6 +312,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "    strings.xml\n" +
                       "    styles.xml\n" +
                       " lib (Android)\n" +
+                      "  kotlin\n" +
+                      "   lib (main)\n" +
+                      "    LibMain.kt\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n";
     int numLines = expected.split("\n").length;

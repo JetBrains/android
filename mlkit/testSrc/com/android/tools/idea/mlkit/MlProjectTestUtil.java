@@ -54,6 +54,7 @@ public class MlProjectTestUtil {
             ARTIFACT_NAME_MAIN,
             new File(it.getBasePath(), "AndroidManifest.xml"),
             ImmutableList.of(new File(it.getBasePath(), "src")),
+            ImmutableList.of(new File(it.getBasePath(), "srcKotlin")),
             emptyList(),
             emptyList(),
             emptyList(),

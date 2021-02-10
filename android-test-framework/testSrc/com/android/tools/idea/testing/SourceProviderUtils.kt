@@ -77,6 +77,7 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("AidlDirectories") { it.aidlDirectories }
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
         dumpPaths("JavaDirectories") { it.javaDirectories }
+        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
         dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
         dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
         dumpPaths("ResDirectories") { it.resDirectories }
@@ -100,6 +101,8 @@ fun Project.dumpSourceProviders(): String {
         dumpPaths("AssetsDirectories") { it.assetsDirectories }
         dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
         dumpPaths("JavaDirectories") { it.javaDirectories }
+        dumpUrls("KotlinDirectoryUrls") { it.kotlinDirectoryUrls }
+        dumpPaths("KotlinDirectories") { it.kotlinDirectories }
         dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
         dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
         dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }

@@ -45,6 +45,9 @@ interface IdeaSourceProvider {
   val javaDirectoryUrls: Iterable<String>
   val javaDirectories: Iterable<VirtualFile>
 
+  val kotlinDirectoryUrls: Iterable<String>
+  val kotlinDirectories: Iterable<VirtualFile>
+
   val resourcesDirectoryUrls: Iterable<String>
   val resourcesDirectories: Iterable<VirtualFile>
 

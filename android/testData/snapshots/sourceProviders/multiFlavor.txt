@@ -19,6 +19,11 @@ MODULE: MultiFlavor.app
                 file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            KotlinDirectoryUrls:
+                file://./app/src/main/java
+                file://./app/src/main/kotlin
+            KotlinDirectories:
+                file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -43,6 +48,9 @@ MODULE: MultiFlavor.app
                 ./app/src/main/assets
             JavaDirectories:
                 ./app/src/main/java
+            KotlinDirectories:
+                ./app/src/main/java
+                ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -65,6 +73,9 @@ MODULE: MultiFlavor.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -86,6 +97,9 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/assets
                 JavaDirectories:
                     ./app/src/firstAbc/java
+                KotlinDirectories:
+                    ./app/src/firstAbc/java
+                    ./app/src/firstAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbc/jniLibs
                 RenderscriptDirectories:
@@ -108,6 +122,9 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     ./app/src/secondAbc/java
                     ./app/src/secondAbc/java2
+                KotlinDirectories:
+                    ./app/src/secondAbc/java
+                    ./app/src/secondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/secondAbc/jniLibs
                 RenderscriptDirectories:
@@ -130,6 +147,9 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
                     ./app/src/firstAbcSecondAbc/java2
+                KotlinDirectories:
+                    ./app/src/firstAbcSecondAbc/java
+                    ./app/src/firstAbcSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -151,6 +171,9 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -172,6 +195,9 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbcDebug/java
+                KotlinDirectories:
+                    ./app/src/firstAbcSecondAbcDebug/java
+                    ./app/src/firstAbcSecondAbcDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectories:
@@ -194,6 +220,9 @@ MODULE: MultiFlavor.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -215,6 +244,9 @@ MODULE: MultiFlavor.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -236,6 +268,9 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbc/assets
                 JavaDirectories:
                     ./app/src/firstAbc/java
+                KotlinDirectories:
+                    ./app/src/firstAbc/java
+                    ./app/src/firstAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbc/jniLibs
                 RenderscriptDirectories:
@@ -258,6 +293,9 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbc/java
                     ./app/src/firstAbcSecondAbc/java2
+                KotlinDirectories:
+                    ./app/src/firstAbcSecondAbc/java
+                    ./app/src/firstAbcSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -279,6 +317,9 @@ MODULE: MultiFlavor.app
                     ./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectories:
                     ./app/src/firstAbcSecondAbcDebug/java
+                KotlinDirectories:
+                    ./app/src/firstAbcSecondAbcDebug/java
+                    ./app/src/firstAbcSecondAbcDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/firstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectories:
@@ -300,6 +341,9 @@ MODULE: MultiFlavor.app
                     ./app/src/firstXyz/assets
                 JavaDirectories:
                     ./app/src/firstXyz/java
+                KotlinDirectories:
+                    ./app/src/firstXyz/java
+                    ./app/src/firstXyz/kotlin
                 JniLibsDirectories:
                     ./app/src/firstXyz/jniLibs
                 RenderscriptDirectories:
@@ -321,6 +365,9 @@ MODULE: MultiFlavor.app
                     ./app/src/release/assets
                 JavaDirectories:
                     ./app/src/release/java
+                KotlinDirectories:
+                    ./app/src/release/java
+                    ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 RenderscriptDirectories:
@@ -343,6 +390,9 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     ./app/src/secondAbc/java
                     ./app/src/secondAbc/java2
+                KotlinDirectories:
+                    ./app/src/secondAbc/java
+                    ./app/src/secondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/secondAbc/jniLibs
                 RenderscriptDirectories:
@@ -364,6 +414,9 @@ MODULE: MultiFlavor.app
                     ./app/src/secondXyz/assets
                 JavaDirectories:
                     ./app/src/secondXyz/java
+                KotlinDirectories:
+                    ./app/src/secondXyz/java
+                    ./app/src/secondXyz/kotlin
                 JniLibsDirectories:
                     ./app/src/secondXyz/jniLibs
                 RenderscriptDirectories:
@@ -386,6 +439,9 @@ MODULE: MultiFlavor.app
                     ./app/src/test/assets
                 JavaDirectories:
                     ./app/src/test/java
+                KotlinDirectories:
+                    ./app/src/test/java
+                    ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -407,6 +463,9 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbc/assets
                 JavaDirectories:
                     ./app/src/testFirstAbc/java
+                KotlinDirectories:
+                    ./app/src/testFirstAbc/java
+                    ./app/src/testFirstAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/testFirstAbc/jniLibs
                 RenderscriptDirectories:
@@ -428,6 +487,9 @@ MODULE: MultiFlavor.app
                     ./app/src/testSecondAbc/assets
                 JavaDirectories:
                     ./app/src/testSecondAbc/java
+                KotlinDirectories:
+                    ./app/src/testSecondAbc/java
+                    ./app/src/testSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/testSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -449,6 +511,9 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbcSecondAbc/assets
                 JavaDirectories:
                     ./app/src/testFirstAbcSecondAbc/java
+                KotlinDirectories:
+                    ./app/src/testFirstAbcSecondAbc/java
+                    ./app/src/testFirstAbcSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/testFirstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -470,6 +535,9 @@ MODULE: MultiFlavor.app
                     ./app/src/testDebug/assets
                 JavaDirectories:
                     ./app/src/testDebug/java
+                KotlinDirectories:
+                    ./app/src/testDebug/java
+                    ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -491,6 +559,9 @@ MODULE: MultiFlavor.app
                     ./app/src/testFirstAbcSecondAbcDebug/assets
                 JavaDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/java
+                KotlinDirectories:
+                    ./app/src/testFirstAbcSecondAbcDebug/java
+                    ./app/src/testFirstAbcSecondAbcDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectories:
@@ -513,6 +584,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTest/assets
                 JavaDirectories:
                     ./app/src/androidTest/java
+                KotlinDirectories:
+                    ./app/src/androidTest/java
+                    ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -534,6 +608,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbc/assets
                 JavaDirectories:
                     ./app/src/androidTestFirstAbc/java
+                KotlinDirectories:
+                    ./app/src/androidTestFirstAbc/java
+                    ./app/src/androidTestFirstAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestFirstAbc/jniLibs
                 RenderscriptDirectories:
@@ -555,6 +632,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestSecondAbc/assets
                 JavaDirectories:
                     ./app/src/androidTestSecondAbc/java
+                KotlinDirectories:
+                    ./app/src/androidTestSecondAbc/java
+                    ./app/src/androidTestSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -576,6 +656,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbcSecondAbc/assets
                 JavaDirectories:
                     ./app/src/androidTestFirstAbcSecondAbc/java
+                KotlinDirectories:
+                    ./app/src/androidTestFirstAbcSecondAbc/java
+                    ./app/src/androidTestFirstAbcSecondAbc/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbc/jniLibs
                 RenderscriptDirectories:
@@ -597,6 +680,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestDebug/java
+                    ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -618,6 +704,9 @@ MODULE: MultiFlavor.app
                     ./app/src/androidTestFirstAbcSecondAbcDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestFirstAbcSecondAbcDebug/java
+                    ./app/src/androidTestFirstAbcSecondAbcDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectories:
@@ -684,6 +773,23 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/java
                     file://./app/src/firstAbcSecondAbc/java
                     file://./app/src/firstAbcSecondAbc/java2
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                    file://./app/src/firstAbc/java
+                    file://./app/src/firstAbc/kotlin
+                    file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/kotlin
+                    file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/kotlin
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                    file://./app/src/firstAbcSecondAbcDebug/java
+                    file://./app/src/firstAbcSecondAbcDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
+                    file://./app/src/secondAbc/java
+                    file://./app/src/firstAbcSecondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/firstAbc/jniLibs
@@ -776,6 +882,24 @@ MODULE: MultiFlavor.app
                     file://./app/src/testSecondAbc/java
                     file://./app/src/testFirstAbcSecondAbc/java
                     file://./app/src/testFirstAbcSecondAbcDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                    file://./app/src/testFirstAbc/java
+                    file://./app/src/testFirstAbc/kotlin
+                    file://./app/src/testSecondAbc/java
+                    file://./app/src/testSecondAbc/kotlin
+                    file://./app/src/testFirstAbcSecondAbc/java
+                    file://./app/src/testFirstAbcSecondAbc/kotlin
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                    file://./app/src/testFirstAbcSecondAbcDebug/java
+                    file://./app/src/testFirstAbcSecondAbcDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
+                    file://./app/src/testSecondAbc/java
+                    file://./app/src/testFirstAbcSecondAbc/java
+                    file://./app/src/testFirstAbcSecondAbcDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testFirstAbc/jniLibs
@@ -860,6 +984,21 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTestFirstAbc/java
+                    file://./app/src/androidTestFirstAbc/kotlin
+                    file://./app/src/androidTestSecondAbc/java
+                    file://./app/src/androidTestSecondAbc/kotlin
+                    file://./app/src/androidTestFirstAbcSecondAbc/java
+                    file://./app/src/androidTestFirstAbcSecondAbc/kotlin
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTestFirstAbcSecondAbcDebug/java
+                    file://./app/src/androidTestFirstAbcSecondAbcDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestFirstAbc/jniLibs
@@ -921,6 +1060,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -947,6 +1091,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -971,6 +1118,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbc/java
+                    file://./app/src/firstAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1001,6 +1151,11 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     file://./app/src/firstAbcSecondAbc/java
                     file://./app/src/firstAbcSecondAbc/java2
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/kotlin
+                KotlinDirectories:
+                    file://./app/src/firstAbcSecondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1025,6 +1180,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbcSecondAbcDebug/java
+                    file://./app/src/firstAbcSecondAbcDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1049,6 +1207,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstXyz/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstXyz/java
+                KotlinDirectoryUrls:
+                    file://./app/src/firstXyz/java
+                    file://./app/src/firstXyz/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/firstXyz/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1073,6 +1234,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
                     file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1102,6 +1266,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/java2
                 JavaDirectories:
                     file://./app/src/secondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/kotlin
+                KotlinDirectories:
+                    file://./app/src/secondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/secondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1126,6 +1295,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondXyz/assets
                 JavaDirectoryUrls:
                     file://./app/src/secondXyz/java
+                KotlinDirectoryUrls:
+                    file://./app/src/secondXyz/java
+                    file://./app/src/secondXyz/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/secondXyz/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1157,6 +1329,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1183,6 +1360,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbc/java
+                    file://./app/src/firstAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1211,6 +1391,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/secondAbc/java
                     file://./app/src/secondAbc/java2
                 JavaDirectories:
+                    file://./app/src/secondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/secondAbc/java
+                    file://./app/src/secondAbc/kotlin
+                KotlinDirectories:
                     file://./app/src/secondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/secondAbc/jniLibs
@@ -1242,6 +1427,11 @@ MODULE: MultiFlavor.app
                 JavaDirectories:
                     file://./app/src/firstAbcSecondAbc/java
                     file://./app/src/firstAbcSecondAbc/java2
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbcSecondAbc/java
+                    file://./app/src/firstAbcSecondAbc/kotlin
+                KotlinDirectories:
+                    file://./app/src/firstAbcSecondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1266,6 +1456,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1290,6 +1483,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/firstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/firstAbcSecondAbcDebug/java
+                    file://./app/src/firstAbcSecondAbcDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1319,6 +1515,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/test/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1343,6 +1544,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/testFirstAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testFirstAbc/java
+                    file://./app/src/testFirstAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testFirstAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1370,6 +1574,11 @@ MODULE: MultiFlavor.app
                 JavaDirectoryUrls:
                     file://./app/src/testSecondAbc/java
                 JavaDirectories:
+                    file://./app/src/testSecondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testSecondAbc/java
+                    file://./app/src/testSecondAbc/kotlin
+                KotlinDirectories:
                     file://./app/src/testSecondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testSecondAbc/jniLibs
@@ -1399,6 +1608,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/testFirstAbcSecondAbc/java
                 JavaDirectories:
                     file://./app/src/testFirstAbcSecondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testFirstAbcSecondAbc/java
+                    file://./app/src/testFirstAbcSecondAbc/kotlin
+                KotlinDirectories:
+                    file://./app/src/testFirstAbcSecondAbc/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1423,6 +1637,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1450,6 +1667,11 @@ MODULE: MultiFlavor.app
                 JavaDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/java
                 JavaDirectories:
+                    file://./app/src/testFirstAbcSecondAbcDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testFirstAbcSecondAbcDebug/java
+                    file://./app/src/testFirstAbcSecondAbcDebug/kotlin
+                KotlinDirectories:
                     file://./app/src/testFirstAbcSecondAbcDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testFirstAbcSecondAbcDebug/jniLibs
@@ -1480,6 +1702,11 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTest/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1504,6 +1731,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestFirstAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/java
+                    file://./app/src/androidTestFirstAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestFirstAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1528,6 +1758,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestSecondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestSecondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/java
+                    file://./app/src/androidTestSecondAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1552,6 +1785,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbc/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestFirstAbcSecondAbc/java
+                    file://./app/src/androidTestFirstAbcSecondAbc/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbc/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1576,6 +1812,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1600,6 +1839,9 @@ MODULE: MultiFlavor.app
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestFirstAbcSecondAbcDebug/java
+                    file://./app/src/androidTestFirstAbcSecondAbcDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/jniLibs
                 RenderscriptDirectoryUrls:

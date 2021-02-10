@@ -266,6 +266,7 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
       override val manifestFileUrls get() = providers.asSequence().map { it.manifestFileUrls.asSequence() }.flatten()
       override val manifestDirectoryUrls get() = providers.asSequence().map { it.manifestDirectoryUrls.asSequence() }.flatten()
       override val javaDirectoryUrls get() = providers.asSequence().map { it.javaDirectoryUrls.asSequence() }.flatten()
+      override val kotlinDirectoryUrls get() = providers.asSequence().map { it.kotlinDirectoryUrls.asSequence() }.flatten()
       override val resourcesDirectoryUrls get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
       override val aidlDirectoryUrls get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
       override val renderscriptDirectoryUrls get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
@@ -370,6 +371,7 @@ val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
   get() =
     arrayOf(
       javaDirectories,
+      kotlinDirectories,
       resDirectories,
       aidlDirectories,
       renderscriptDirectories,

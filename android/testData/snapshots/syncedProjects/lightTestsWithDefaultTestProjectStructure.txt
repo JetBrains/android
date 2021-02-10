@@ -55,11 +55,13 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/renderscript [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/srcKotlin [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
