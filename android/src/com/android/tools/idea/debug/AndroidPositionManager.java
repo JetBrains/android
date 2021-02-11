@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
-import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -219,8 +218,7 @@ public class AndroidPositionManager extends PositionManagerImpl {
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
       AndroidVersion version = details.getAndroidVersion();
-      FileOp fop = AndroidSdks.getInstance().tryToChooseSdkHandler().getFileOp();
-      VirtualFile sourceFolder = VfsUtil.findFileByIoFile(fop.toFile(sourcePackage.getLocation()), false);
+      VirtualFile sourceFolder = VfsUtil.findFile(sourcePackage.getLocation(), false);
       if (sourceFolder != null && sourceFolder.isValid()) {
         sourcesByApi.put(version, sourceFolder);
       }
