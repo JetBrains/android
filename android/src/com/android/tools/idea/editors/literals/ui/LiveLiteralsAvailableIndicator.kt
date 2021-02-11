@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.literals.ui
 
-import com.android.tools.adtui.common.AdtUiUtilsKt.Companion.showAbove
+import com.android.tools.adtui.common.AdtUiUtils.showAbove
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.actions.CustomizeLiveLiteralsThemeAction
 import com.android.tools.idea.editors.literals.actions.ShowLiveLiteralsProblemAction
