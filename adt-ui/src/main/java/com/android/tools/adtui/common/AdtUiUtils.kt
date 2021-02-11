@@ -17,6 +17,7 @@ package com.android.tools.adtui.common
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
+import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.openapi.keymap.MacKeymapUtil
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
@@ -32,12 +33,15 @@ import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.JdkConstants
 import org.intellij.lang.annotations.MagicConstant
 import java.awt.Color
+import java.awt.Container
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.GridBagConstraints
 import java.awt.Insets
 import java.awt.Point
 import java.awt.event.InputEvent
+import java.util.function.BiFunction
 import java.util.function.Predicate
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -255,6 +259,24 @@ object AdtUiUtils {
     val scrollPane = JBScrollPane(component)
     NestedScrollPaneMouseWheelListener.installOn(scrollPane)
     return scrollPane
+  }
+
+  /**
+   * Traverses up to the TooltipLayeredPane and sets the cursor on it.
+   *
+   * Returns the TooltipLayeredPane if found. Null otherwise.
+   */
+  @JvmStatic
+  fun setTooltipCursor(container: Container, cursor: Cursor): Container? {
+    var p: Container? = container
+    while (p != null) {
+      if (p is TooltipLayeredPane) {
+        p.setCursor(cursor)
+        break
+      }
+      p = p.parent
+    }
+    return p
   }
 }
 

@@ -17,6 +17,7 @@ package com.android.tools.adtui.stdui;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import java.awt.Container;
 import java.awt.Cursor;
 import javax.swing.JButton;
@@ -31,8 +32,7 @@ public class TooltipLayeredPaneTest {
     panel.add(button);
     TooltipLayeredPane layeredPane = new TooltipLayeredPane(panel);
     Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-    Container cursorSettingContainer = TooltipLayeredPane.setCursor(
-      button, cursor);
+    Container cursorSettingContainer = AdtUiUtils.setTooltipCursor(button, cursor);
     assertThat(layeredPane).isSameAs(cursorSettingContainer);
     assertThat(cursor).isEqualTo(layeredPane.getCursor());
   }
@@ -43,6 +43,6 @@ public class TooltipLayeredPaneTest {
     JPanel panel = new JPanel();
     panel.add(button);
     Cursor cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
-    assertThat(TooltipLayeredPane.setCursor(button, cursor)).isNull();
+    assertThat(AdtUiUtils.setTooltipCursor(button, cursor)).isNull();
   }
 }
