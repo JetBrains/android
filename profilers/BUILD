@@ -46,6 +46,7 @@ iml_module(
         "//tools/adt/idea/profilers:traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
     ],
 )
 

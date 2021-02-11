@@ -36,5 +36,6 @@
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="library" name="asm-tools" level="project" />
   </component>
 </module>
