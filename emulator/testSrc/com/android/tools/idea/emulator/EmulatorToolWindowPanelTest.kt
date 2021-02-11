@@ -74,7 +74,11 @@ import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_END
+import java.awt.event.KeyEvent.VK_HOME
 import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_PAGE_DOWN
+import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_UP
@@ -286,15 +290,17 @@ class EmulatorToolWindowPanelTest {
     }
 
     // Check camera movement.
-    for (c in "WASQDE") {
-      ui.keyboard.press(c.toInt())
+    val velocityExpectations =
+        mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
+    for ((key, expected) in velocityExpectations) {
+      ui.keyboard.press(key.toInt())
       var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(call.request)).isEqualTo("""key: "Key$c"""")
-      ui.keyboard.release(c.toInt())
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
+      assertThat(shortDebugString(call.request)).isEqualTo(expected)
+      ui.keyboard.release(key.toInt())
       call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
-      assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Key$c"""")
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
+      assertThat(shortDebugString(call.request)).isEqualTo("")
     }
 
     // Check camera rotation.
@@ -303,28 +309,19 @@ class EmulatorToolWindowPanelTest {
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: -2.3561945 y: 1.5707964")
 
-    ui.keyboard.pressAndRelease(VK_LEFT)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: -2 y: 45")
-
-    ui.keyboard.pressAndRelease(VK_RIGHT)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
-
-    ui.keyboard.pressAndRelease(VK_UP)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 20")
-
-    ui.keyboard.pressAndRelease(VK_DOWN)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 23 y: 45")
+    val rotationExpectations = mapOf(VK_LEFT to "y: 0.08726646", VK_RIGHT to "y: -0.08726646",
+                                     VK_UP to "x: 0.08726646", VK_DOWN to "x: -0.08726646",
+                                     VK_HOME to "x: 0.08726646 y: 0.08726646", VK_END to "x: -0.08726646 y: 0.08726646",
+                                     VK_PAGE_UP to "x: 0.08726646 y: -0.08726646", VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646")
+    for ((key, expected) in rotationExpectations) {
+      ui.keyboard.pressAndRelease(key)
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
+      assertThat(shortDebugString(call.request)).isEqualTo(expected)
+    }
 
     // Check that the notification changes when Shift is released.
     ui.keyboard.release(VK_SHIFT)
