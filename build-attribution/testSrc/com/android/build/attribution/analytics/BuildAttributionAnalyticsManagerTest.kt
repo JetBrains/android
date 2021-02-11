@@ -22,6 +22,7 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
+import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
@@ -57,9 +58,13 @@ class BuildAttributionAnalyticsManagerTest {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  private val applicationPlugin = PluginData(createBinaryPluginIdentifierStub("com.android.application"), ":app")
-  private val pluginA = PluginData(createBinaryPluginIdentifierStub("pluginA"), ":buildSrc").apply { markAsBuildSrcPlugin() }
-  private val buildScript = PluginData(createScriptPluginIdentifierStub("build.gradle"), ":app")
+  private val pluginContainer = PluginContainer()
+  private val applicationPlugin = pluginContainer
+    .getPlugin(createBinaryPluginIdentifierStub("com.android.application", "com.android.build.gradle.api.AndroidBasePlugin"), ":app")
+  private val pluginA = pluginContainer
+    .getPlugin(createBinaryPluginIdentifierStub("pluginA", "my.plugin.PluginA"), ":buildSrc").apply { markAsBuildSrcPlugin() }
+  private val buildScript = pluginContainer
+    .getPlugin(createScriptPluginIdentifierStub("build.gradle"), ":app")
 
   val pluginATask = TaskData("sampleTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
     setTaskType("com.example.test.SampleTask")

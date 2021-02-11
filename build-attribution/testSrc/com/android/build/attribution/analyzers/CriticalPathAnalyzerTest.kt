@@ -55,8 +55,8 @@ class CriticalPathAnalyzerTest {
     val analyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
 
-    val pluginA = createBinaryPluginIdentifierStub("pluginA")
-    val pluginB = createBinaryPluginIdentifierStub("pluginB")
+    val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
+    val pluginB = createBinaryPluginIdentifierStub("pluginB", "my.gradle.plugin.PluginB")
 
     wrapper.onBuildStart()
 
@@ -120,9 +120,9 @@ class CriticalPathAnalyzerTest {
              TaskData.createTaskData(taskLast, pluginContainer)))
 
     assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(pluginContainer.getPlugin(pluginA, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(66)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(pluginContainer.getPlugin(pluginB, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(34)
 
 
@@ -164,9 +164,9 @@ class CriticalPathAnalyzerTest {
              TaskData.createTaskData(taskE, pluginContainer)))
 
     assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(pluginContainer.getPlugin(pluginB, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(30)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(pluginContainer.getPlugin(pluginA, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(25)
   }
 

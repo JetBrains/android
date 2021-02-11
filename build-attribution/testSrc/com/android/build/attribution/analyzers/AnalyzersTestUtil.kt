@@ -23,6 +23,7 @@ import org.gradle.tooling.events.ScriptPluginIdentifier
 import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor
+import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -32,9 +33,10 @@ import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
-fun createBinaryPluginIdentifierStub(pluginName: String): BinaryPluginIdentifier {
+fun createBinaryPluginIdentifierStub(displayName: String, className: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
-  `when`(pluginIdentifier.displayName).thenReturn(pluginName)
+  `when`(pluginIdentifier.displayName).thenReturn(displayName)
+  `when`(pluginIdentifier.className).thenReturn(className)
   return pluginIdentifier
 }
 
@@ -109,9 +111,12 @@ fun createProjectConfigurationStartEventStub(projectPath: String): ProjectConfig
   return projectConfigurationStartEvent
 }
 
-fun createProjectConfigurationFinishEventStub(projectPath: String,
-                                              projectConfigurationStartTime: Long,
-                                              projectConfigurationEndTime: Long): ProjectConfigurationFinishEvent {
+fun createProjectConfigurationFinishEventStub(
+  projectPath: String,
+  projectConfigurationStartTime: Long,
+  projectConfigurationEndTime: Long,
+  appliedPlugins: List<PluginIdentifier>
+): ProjectConfigurationFinishEvent {
   val projectConfigurationFinishEvent = Mockito.mock(ProjectConfigurationFinishEvent::class.java)
 
   val project = Mockito.mock(ProjectIdentifier::class.java)
@@ -123,6 +128,12 @@ fun createProjectConfigurationFinishEventStub(projectPath: String,
   val result = Mockito.mock(ProjectConfigurationSuccessResult::class.java)
   `when`(result.startTime).thenReturn(projectConfigurationStartTime)
   `when`(result.endTime).thenReturn(projectConfigurationEndTime)
+  val pluginApplicationResults = appliedPlugins.map { pluginIdentifier ->
+    Mockito.mock(ProjectConfigurationOperationResult.PluginApplicationResult::class.java).apply {
+      `when`(plugin).thenReturn(pluginIdentifier)
+    }
+  }
+  `when`(result.pluginApplicationResults).thenReturn(pluginApplicationResults)
 
   `when`(projectConfigurationFinishEvent.descriptor).thenReturn(descriptor)
   `when`(projectConfigurationFinishEvent.result).thenReturn(result)
