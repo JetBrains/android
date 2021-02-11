@@ -26,12 +26,12 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.chart.linechart.OverlayComponent
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.stdui.StreamingScrollbar
-import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH
 import com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER
@@ -195,7 +195,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       }.build()
 
   private fun makeRangeSelectionComponent() = RangeSelectionComponent(stage.rangeSelectionModel).apply {
-    setCursorSetter(TooltipLayeredPane::setCursor)
+    setCursorSetter(AdtUiUtils::setTooltipCursor)
   }
 
   companion object {
