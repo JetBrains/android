@@ -201,6 +201,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return optionalDevices;
   }
 
+  public boolean isMultipleTargetsSelectedInComboBox(@NotNull Project project) {
+    return myDevicesSelectedServiceGetInstance.apply(project).isMultipleDevicesSelectedInComboBox();
+  }
+
   @Nullable
   @VisibleForTesting
   Device getSelectedDevice(@NotNull Project project) {
