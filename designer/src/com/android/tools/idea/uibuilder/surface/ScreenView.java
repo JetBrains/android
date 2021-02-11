@@ -55,6 +55,15 @@ public class ScreenView extends ScreenViewBase {
      * @param outDimension A {@link Dimension} to return the size.
      */
     void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension);
+
+    /**
+     * Called by the {@link ScreenView} when it needs to check the content size.
+     * @return true if content size is determined.
+     */
+    default boolean hasContentSize(@NotNull ScreenView screenView) {
+      RenderResult result = screenView.getSceneManager().getRenderResult();
+      return result != null && !isErrorResult(result);
+    }
   }
 
   /**
@@ -345,9 +354,8 @@ public class ScreenView extends ScreenViewBase {
   }
 
   @Override
-  public boolean hasContent() {
-    RenderResult result = getSceneManager().getRenderResult();
-    return result != null && !isErrorResult(result);
+  public boolean hasContentSize() {
+    return myContentSizePolicy.hasContentSize(this);
   }
 
   @Override

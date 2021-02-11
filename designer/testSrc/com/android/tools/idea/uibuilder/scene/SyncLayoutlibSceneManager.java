@@ -81,7 +81,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  protected CompletableFuture<Void> updateModel() {
+  public CompletableFuture<Void> updateModel() {
     return CompletableFuture.completedFuture(super.updateModel().join());
   }
 

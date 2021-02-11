@@ -125,7 +125,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
+    nlModel.surface.sceneManager!!.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
     nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
