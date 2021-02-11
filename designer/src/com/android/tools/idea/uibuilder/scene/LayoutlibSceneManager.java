@@ -1508,14 +1508,22 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
-   * Returns true if the callback was executed successfully and on time, and the render was requested.
+   * Executes the given {@link Runnable} callback synchronously with a 30ms timeout.
    */
   public boolean executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+    return executeCallbacksAndRequestRender(30, TimeUnit.MILLISECONDS, callback);
+  }
+
+  /**
+   * Executes the given {@link Runnable} callback synchronously with the given timeout. Then calls {@link #executeCallbacks()} and requests
+   * render afterwards. Callers must be aware that long timeouts should only be passed when not on EDT, otherwise the UI will freeze.
+   * Returns true if the callback was executed successfully and on time, and render was requested.
+   */
+  public boolean executeCallbacksAndRequestRender(long timeout, TimeUnit timeoutUnit, @Nullable Runnable callback) {
     try {
       if (callback != null) {
         RenderService.getRenderAsyncActionExecutor()
-          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get(30, TimeUnit.MILLISECONDS);
+          .runAsyncActionWithTimeout(timeout, timeoutUnit, Executors.callable(callback)).get(timeout, timeoutUnit);
       }
       executeCallbacks().thenCompose(b -> requestRender());
       return true;

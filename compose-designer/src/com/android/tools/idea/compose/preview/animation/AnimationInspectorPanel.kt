@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.AnActionButton
@@ -48,6 +49,7 @@ import com.intellij.ui.TabbedPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -64,6 +66,7 @@ import java.awt.event.MouseEvent
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
+import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JEditorPane
@@ -154,6 +157,11 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   internal var animationClock: AnimationClock? = null
 
+  /**
+   * Executor responsible for updating animation states off EDT.
+   */
+  private val updateAnimationStatesExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation States Updater", 1)
+
   init {
     name = "Animation Preview"
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
@@ -191,11 +199,43 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       tab.updateStateComboboxes(states.toTypedArray())
       tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
       // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
-      tab.updateAnimationStartAndEndStates()
-      // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
-      // Note: this is called only once per tab, in this method, when creating the tab.
-      tab.setupAnimationStatesComboBoxListeners()
+      updateAnimationStatesExecutor.execute {
+        // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
+        // This is necessary here because it's the first time the animation mutable states will be written, when setting the clock, and
+        // read, when getting its duration. These operations takes longer than the default 30ms timeout the first time they're executed.
+        tab.updateAnimationStartAndEndStates(longTimeout = true)
+        // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
+        // Note: this is called only once per tab, in this method, when creating the tab.
+        tab.setupAnimationStatesComboBoxListeners()
+      }
     }
+  }
+
+  /**
+   * Update the timeline window size, which is usually the duration of the longest animation being tracked. However, repeatable animations
+   * are handled differently because they can have a large number of iterations resulting in a unrealistic duration. In that case, we take
+   * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
+   * iterations.
+   */
+  fun updateTimelineWindowSize(longTimeout: Boolean = false) {
+    val clock = animationClock ?: return
+
+    var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
+    if (!surface.executeOnRenderThread(longTimeout) {
+        maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
+      }) return
+    timeline.updateMaxDuration(maxDurationPerIteration)
+
+    var maxDuration = DEFAULT_MAX_DURATION_MS
+    if (!surface.executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
+
+    timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
+      // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
+      // so we need to add as many loops to the timeline as necessary to display all the iterations.
+      ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
+    }
+    // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
+    else 1
   }
 
   /**
@@ -319,42 +359,16 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Updates the actual animation in Compose to set its start and end states to the ones selected in the respective combo boxes.
      */
-    fun updateAnimationStartAndEndStates() {
+    fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
       if (!surface.executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
 
-      timeline.jumpToStart()
-      timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
-
-      updateTimelineWindowSize()
-    }
-
-    /**
-     * Update the timeline window size, which is usually the duration of the longest animation being tracked. However, repeatable animations
-     * are handled differently because they can have a large number of iterations resulting in a unrealistic duration. In that case, we take
-     * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
-     * iterations.
-     */
-    fun updateTimelineWindowSize() {
-      val clock = animationClock ?: return
-
-      var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
-      if (!surface.executeOnRenderThread { maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long }) return
-      timeline.updateMaxDuration(maxDurationPerIteration)
-
-      var maxDuration = DEFAULT_MAX_DURATION_MS
-      if (!surface.executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
-
-      timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
-        // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
-        // so we need to add as many loops to the timeline as necessary to display all the iterations.
-        ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
-      }
-      // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
-      else 1
+      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
+      timeline.setClockTime(0, longTimeout) // Make sure that clock time is actually set in case timeline was already in 0.
+      updateTimelineWindowSize(longTimeout)
     }
 
     /**
@@ -777,7 +791,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       slider.maximum = durationMs.toInt()
     }
 
-    fun setClockTime(newValue: Int) {
+    fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       val tab = selectedTab ?: return
 
@@ -787,7 +801,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      if (!surface.executeOnRenderThread { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
+      if (!surface.executeOnRenderThread(longTimeout) { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
       tab.updateProperties()
     }
 
@@ -954,8 +968,17 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
   }
 
-  private fun DesignSurface.executeOnRenderThread(callback: () -> Unit) =
-    surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+  private fun DesignSurface.executeOnRenderThread(useLongTimeout: Boolean = false, callback: () -> Unit): Boolean {
+    val (time, timeUnit) = if (useLongTimeout) {
+      // Make sure we don't block the UI thread when setting a large timeout
+      ApplicationManager.getApplication().assertIsNonDispatchThread()
+      5L to TimeUnit.SECONDS
+    }
+    else {
+      30L to TimeUnit.MILLISECONDS
+    }
+    return surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender(time, timeUnit) {
       callback()
     } ?: false
+  }
 }
