@@ -37,7 +37,6 @@ COMMON_DATA = [
 COMMON_TAGS = [
     "block-network",
     "no_windows",
-    "no_mac",
     "cpu:3",
 ]
 
@@ -109,7 +108,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/LayoutTest/**"]) + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.LayoutEditorMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -119,7 +121,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.InspectionsMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -129,7 +134,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.GradleSyncMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -139,7 +147,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.FindInPathMemoryLeakTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -149,7 +160,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.EditorTabsMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -159,7 +173,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddResourceMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -169,7 +186,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.AddAssetMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -179,7 +199,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/Navigation/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.performance.NavEditorMemoryUseTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -189,7 +212,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.VisualizationTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -199,7 +225,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.ComposePreviewTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -209,7 +238,10 @@ java_test(
     size = "large",
     data = COMMON_DATA + glob(["testData/SimpleComposeApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.customview.CustomViewPreviewTest"],
-    tags = COMMON_TAGS + ["very_flaky"],
+    tags = COMMON_TAGS + [
+        "very_flaky",
+        "no_mac",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
