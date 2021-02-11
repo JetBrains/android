@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import static com.intellij.util.containers.ContainerUtil.sorted;
 
-import com.android.repository.io.FileOp;
+import com.android.io.CancellableFileIo;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
@@ -48,10 +48,10 @@ public class SkinLayoutDefinition {
   private final Map<String, SkinLayoutDefinition> myChildren;
 
   @Nullable
-  public static SkinLayoutDefinition parseFile(@NotNull File file, @NotNull FileOp fop) {
+  public static SkinLayoutDefinition parseFile(@NotNull File file) {
     String contents;
     try {
-      contents = fop.readText(file);
+      contents = CancellableFileIo.readString(file.toPath());
     }
     catch (IOException e) {
       return null;

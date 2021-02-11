@@ -17,8 +17,6 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants
 import com.android.repository.api.RemotePackage
-import com.android.repository.io.FileOp
-import com.android.repository.io.FileOpUtils
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
@@ -47,15 +45,12 @@ import com.google.common.base.Objects
 import com.google.common.collect.ImmutableSet
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
-import java.io.File
 import java.nio.file.Path
 
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice @JvmOverloads constructor(
-  remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean, val fop: FileOp = FileOpUtils.create()
-) : InstallableComponent(
+class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
@@ -82,7 +77,7 @@ class AndroidVirtualDevice @JvmOverloads constructor(
     val d = getDevice(sdkHandler.location!!)
     val systemImageDescription = getSystemImageDescription(sdkHandler)
     val cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString()
-    val hardwareSkinPath = d.defaultHardware.skinFile?.let { fop.toPath(it) }
+    val hardwareSkinPath = d.defaultHardware.skinFile?.let { sdkHandler.toCompatiblePath(it) }
       ?.let { defaultHardwareSkin ->
         DeviceSkinUpdaterService.getInstance().updateSkins(defaultHardwareSkin, systemImageDescription).get()
       }
