@@ -25,21 +25,26 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderUtils;
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
-abstract public class SceneManager implements Disposable {
+abstract public class SceneManager implements Disposable, ResourceNotificationManager.ResourceChangeListener {
   /**
    * Provider mapping {@link NlComponent}s to {@link SceneComponent}/
    */
@@ -294,6 +299,11 @@ abstract public class SceneManager implements Disposable {
    * @returns true if the {@link SceneManager} was not active before and was activated.
    */
   public boolean activate(@NotNull Object source) {
+    AndroidFacet facet = myModel.getFacet();
+    VirtualFile file = myModel.getVirtualFile();
+    Configuration config = myModel.getConfiguration();
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+    manager.addListener(this, facet, file, config);
     return getModel().activate(source);
   }
 
@@ -306,6 +316,41 @@ abstract public class SceneManager implements Disposable {
    * @returns true if the {@link SceneManager} was active before and was deactivated.
    */
   public boolean deactivate(@NotNull Object source) {
+    AndroidFacet facet = myModel.getFacet();
+    VirtualFile file = myModel.getVirtualFile();
+    Configuration config = myModel.getConfiguration();
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+    manager.removeListener(this, facet, file, config);
     return getModel().deactivate(source);
+  }
+
+  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
+
+  @Override
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+    for (ResourceNotificationManager.Reason reason : reasons) {
+      switch (reason) {
+        case RESOURCE_EDIT:
+          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.RESOURCE_EDIT);
+          break;
+        case EDIT:
+          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.EDIT);
+          break;
+        case IMAGE_RESOURCE_CHANGED:
+          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
+          myModel.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+          break;
+        case GRADLE_SYNC:
+        case PROJECT_BUILD:
+        case VARIANT_CHANGED:
+        case SDK_CHANGED:
+          RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
+          myModel.notifyModified(NlModel.ChangeType.BUILD);
+          break;
+        case CONFIGURATION_CHANGED:
+          myModel.notifyModified(NlModel.ChangeType.CONFIGURATION_CHANGE);
+          break;
+      }
+    }
   }
 }

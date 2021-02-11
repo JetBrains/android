@@ -326,10 +326,10 @@ public abstract class SceneView {
   }
 
   /**
-   * Returns whether this {@link SceneView} has content. Some {@link SceneView} might not have the content available while it's rendering
-   * or if there's been a failure.
+   * Returns whether this {@link SceneView} knows the content size. Some {@link SceneView} might not know its content size while it's
+   * rendering or if the rendering is failure.
    */
-  public boolean hasContent() {
+  public boolean hasContentSize() {
     return true;
   }
 

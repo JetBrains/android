@@ -101,6 +101,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -319,9 +320,26 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean myUsePrivateClassLoader = false;
 
   /**
+   * If true, listen the resource change.
+   */
+  private boolean myListenResourceChange = true;
+
+  /**
    * If true, the render will paint the system decorations (status and navigation bards)
    */
   private boolean useShowDecorations;
+
+  /**
+   * If true, automatically re-render when {@link ModelListener#modelDerivedDataChanged(NlModel)} is triggered. Which happens after model is
+   * inflated.
+   */
+  private boolean myRerenderWhenModelDerivedDataChanged = true;
+
+  /**
+   * If true, automatically update (if needed) and re-render when being activated. Which happens after {@link #activate(Object)} is called.
+   * Note that if the it is activated already, then it will not re-render.
+   */
+  private boolean myUpdateAndRenderWhenActivated = true;
 
   /**
    * If true, the scene is interactive.
@@ -698,7 +716,16 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
+      // After the model derived data is changed, we need to update the selection in Edt thread.
+      // Changing selection should run in UI thread to avoid avoid race condition.
       NlDesignSurface surface = getDesignSurface();
+      if (!myRerenderWhenModelDerivedDataChanged) {
+        CompletableFuture.runAsync(() -> {
+          // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
+          mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+        }, EdtExecutorService.getInstance());
+        return;
+      }
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
       if (false && surface.getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
         requestLayout(true);
@@ -706,7 +733,6 @@ public class LayoutlibSceneManager extends SceneManager {
       else {
         requestRender(getTriggerFromChangeType(model.getLastChangeType()))
           .thenRunAsync(() ->
-            // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
       }
@@ -841,7 +867,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Asynchronously inflates the model and updates the view hierarchy
+   * Schedule asynchronously model inflating and view hierarchy updating.
    */
   protected void requestModelUpdate() {
     if (isDisposed.get()) {
@@ -897,11 +923,28 @@ public class LayoutlibSceneManager extends SceneManager {
     useShrinkRendering = enabled;
   }
 
+  /**
+   * If true, register the {@link com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener} which calls
+   * {@link #resourcesChanged(Set)} when any resource is changed.
+   * By default it is enabled.
+   */
+  public void setListenResourceChange(boolean enabled) {
+    myListenResourceChange = enabled;
+  }
+
   public void setShowDecorations(boolean enabled) {
     if (useShowDecorations != enabled) {
       useShowDecorations = enabled;
       forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
     }
+  }
+
+  public void setRerenderWhenModelDerivedDataChanged(boolean enabled) {
+    myRerenderWhenModelDerivedDataChanged = enabled;
+  }
+
+  public void setUpdateAndRenderWhenActivated(boolean enable) {
+    myUpdateAndRenderWhenActivated = enable;
   }
 
   public boolean isShowingDecorations() {
@@ -1220,8 +1263,10 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Asynchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
+   *
+   * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
-  protected CompletableFuture<Void> updateModel() {
+  public CompletableFuture<Void> updateModel() {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1730,7 +1775,7 @@ public class LayoutlibSceneManager extends SceneManager {
   public boolean activate(@NotNull Object source) {
     boolean active = super.activate(source);
 
-    if (active) {
+    if (active && myUpdateAndRenderWhenActivated) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
@@ -1756,6 +1801,13 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     return deactivated;
+  }
+
+  @Override
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+    if (myListenResourceChange) {
+      super.resourcesChanged(reasons);
+    }
   }
 
   /**

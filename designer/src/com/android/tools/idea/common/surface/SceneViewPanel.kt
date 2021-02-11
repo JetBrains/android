@@ -167,7 +167,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
         }
       }
 
-    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContent())
+    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContentSize())
       sceneView.getContentSize(dimension).also {
         cachedContentSize.size = it
       }
