@@ -40,18 +40,13 @@ object ComposeFqNames {
     private const val root = "androidx.compose"
     fun fqNameFor(cname: String) = FqName("$root.$cname")
     val Composable = fqNameFor("Composable")
-    val ComposableContract = fqNameFor("ComposableContract")
-    val StableMarker = fqNameFor("StableMarker")
   }
 
   val Composable = fqNameFor("Composable")
-  val ComposableContract = fqNameFor("ComposableContract")
-  val StableMarker = fqNameFor("StableMarker")
+  val DisallowComposableCalls = fqNameFor("DisallowComposableCalls")
+  val ReadOnlyComposable = fqNameFor("ReadOnlyComposable")
   fun fqNameFor(cname: String) = FqName("$root.$cname")
 
-  fun internal(cname: String? = null) = FqName(
-    "$root.internal${cname?.let { ".$it"} ?: ""}"
-  )
   fun makeComposableAnnotation(module: ModuleDescriptor): AnnotationDescriptor =
     object : AnnotationDescriptor {
       override val type: KotlinType
@@ -77,34 +72,13 @@ fun KotlinType.hasComposableAnnotation(): Boolean =
     annotations.findAnnotation(ComposeFqNames.Composable) != null ||
     annotations.findAnnotation(ComposeFqNames.old.Composable) != null
   )
-fun KotlinType.isMarkedStable(): Boolean =
-  !isSpecialType && (
-    annotations.hasStableMarker() ||
-    (constructor.declarationDescriptor?.annotations?.hasStableMarker() ?: false))
 fun Annotated.hasComposableAnnotation(): Boolean =
   annotations.findAnnotation(ComposeFqNames.Composable) != null ||
   annotations.findAnnotation(ComposeFqNames.old.Composable) != null
-fun Annotated.composableRestartableContract(): Boolean? {
-  val contract = composableContract() ?: return null
-  return contract.argumentValue("restartable")?.value as? Boolean
-}
-fun Annotated.composableReadonlyContract(): Boolean? {
-  val contract = composableContract() ?: return null
-  return contract.argumentValue("readonly")?.value as? Boolean
-}
-fun Annotated.composableTrackedContract(): Boolean? {
-  val contract = composableContract() ?: return null
-  return contract.argumentValue("tracked")?.value as? Boolean
-}
-
-private fun Annotated.composableContract(): AnnotationDescriptor? =
-  annotations.findAnnotation(ComposeFqNames.ComposableContract) ?:
-  annotations.findAnnotation(ComposeFqNames.old.ComposableContract)
-
-fun Annotated.composablePreventCaptureContract(): Boolean? {
-  val contract = composableContract() ?: return null
-  return contract.argumentValue("preventCapture")?.value as? Boolean
-}
+fun Annotated.hasReadonlyComposableAnnotation(): Boolean =
+  annotations.findAnnotation(ComposeFqNames.ReadOnlyComposable) != null
+fun Annotated.hasDisallowComposableCallsAnnotation(): Boolean =
+  annotations.findAnnotation(ComposeFqNames.DisallowComposableCalls) != null
 
 internal val KotlinType.isSpecialType: Boolean get() =
   this === NO_EXPECTED_TYPE || this === UNIT_EXPECTED_TYPE
@@ -112,11 +86,3 @@ internal val KotlinType.isSpecialType: Boolean get() =
 val AnnotationDescriptor.isComposableAnnotation: Boolean
   get() = fqName == ComposeFqNames.Composable ||
           fqName == ComposeFqNames.old.Composable
-
-fun Annotations.hasStableMarker(): Boolean = any(AnnotationDescriptor::isStableMarker)
-
-fun AnnotationDescriptor.isStableMarker(): Boolean {
-  val classDescriptor = annotationClass ?: return false
-  return classDescriptor.annotations.hasAnnotation(ComposeFqNames.StableMarker) ||
-         classDescriptor.annotations.hasAnnotation(ComposeFqNames.old.StableMarker)
-}
