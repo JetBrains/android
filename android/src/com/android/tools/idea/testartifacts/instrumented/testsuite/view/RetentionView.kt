@@ -26,10 +26,11 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
+import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
+import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.LOAD_RETENTION_ACTION_ID
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
@@ -37,6 +38,7 @@ import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.android.tools.idea.testartifacts.instrumented.retention.findFailureReasonFromEmulatorOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto.IceboxOutput
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -137,7 +139,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         PACKAGE_NAME_KEY.name -> retentionInfo?.appPackage?:classPackageName
         RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> true
         RETENTION_ON_FINISH_KEY.name -> Runnable { myRetentionDebugButton.isEnabled = true }
-        DEVICE_NAME_KEY.name -> androidDevice!!.deviceName
+        AVD_NAME_KEY.name -> androidDevice!!.avdName
+        IS_MANAGED_DEVICE.name -> androidDevice!!.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
         else -> null
       }
     }

@@ -202,6 +202,6 @@ class DetailsViewContentViewTest {
   }
 
   private fun device(id: String, name: String): AndroidDevice {
-    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 }

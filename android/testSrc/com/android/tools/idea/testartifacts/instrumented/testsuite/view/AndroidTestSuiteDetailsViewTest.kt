@@ -67,7 +67,7 @@ class AndroidTestSuiteDetailsViewTest {
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
-    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+    view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
@@ -78,7 +78,7 @@ class AndroidTestSuiteDetailsViewTest {
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
-    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+    view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
     view.setAndroidTestResults(createTestResults(null))
 

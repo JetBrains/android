@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 fun convertIDeviceToAndroidDevice(device: IDevice): AndroidDevice {
   return AndroidDevice(device.serialNumber,
                        device.avdName ?: "",
+                       device.avdName ?: "",
                        if (device.isEmulator) {
                          AndroidDeviceType.LOCAL_EMULATOR
                        }

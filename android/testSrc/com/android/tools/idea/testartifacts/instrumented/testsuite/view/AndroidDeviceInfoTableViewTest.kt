@@ -69,7 +69,7 @@ class AndroidDeviceInfoTableViewTest {
     val table = AndroidDeviceInfoTableView()
 
     val device = AndroidDevice(
-      "mock device id", "mock device name",
+      "mock device id", "mock device name", "mock device name",
       AndroidDeviceType.LOCAL_EMULATOR,
       AndroidVersion(29),
       mutableMapOf("Manufacturer" to "mock manufacturer name"))

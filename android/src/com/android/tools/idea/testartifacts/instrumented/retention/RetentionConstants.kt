@@ -30,7 +30,9 @@ import java.io.File
 
 @JvmField val PACKAGE_NAME_KEY = DataKey.create<String>("PackageName")
 
-@JvmField val DEVICE_NAME_KEY = DataKey.create<String>("DeviceName")
+@JvmField val AVD_NAME_KEY = DataKey.create<String>("AvdName")
+
+@JvmField val IS_MANAGED_DEVICE = DataKey.create<Boolean>("IsManagedDevice")
 
 @JvmField val RETENTION_ON_FINISH_KEY = DataKey.create<Runnable>("RetentionOnFinish")
 

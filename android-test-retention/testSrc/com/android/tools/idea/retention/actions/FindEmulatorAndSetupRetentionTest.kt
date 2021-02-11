@@ -21,9 +21,10 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.FakeEmulatorRule
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
+import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
@@ -88,8 +89,11 @@ class FindEmulatorAndSetupRetentionTest {
         if (dataId == RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name) {
           return false
         }
-        if (dataId == DEVICE_NAME_KEY.name) {
+        if (dataId == AVD_NAME_KEY.name) {
           return emulator.avdId
+        }
+        if (dataId == IS_MANAGED_DEVICE.name) {
+          return false
         }
         return parentDataContext.getData(dataId)
       }
