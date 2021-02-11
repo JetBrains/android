@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea";
+option java_multiple_files = true;
+
+// represents a date with day, month, and year values
+message Date {
+  optional int32 year = 1;   // year of the date
+  optional int32 month = 2;  // month of the date
+  optional int32 day = 3;    // day of the date
+}

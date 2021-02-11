@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea";
+option java_multiple_files = true;
+
+// An individual option in a survey
+message Option {
+  optional string icon_path = 1;  // path to icon in Android Studio
+  optional string label = 2;      // text displayed to the user
+}
+
+// A survey presented to the user
+message Survey {
+  optional string title = 1;         // title of the survey
+  optional string question = 2;      // question posed to user
+  optional int32 interval_days = 3;  // days between survey being asked
+  optional int32 answer_count = 4;   // number of answers to be selected
+  repeated Option options = 5;       // list of survey options
+  optional string name = 6;          // unique name for this survey
+  optional bool random_order = 7;    // randomize order of options for user
+}
