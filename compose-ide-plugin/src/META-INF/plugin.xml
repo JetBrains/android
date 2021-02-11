@@ -26,7 +26,6 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <storageComponentContainerContributor implementation="com.android.tools.compose.TryCatchComposableChecker"/>
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
