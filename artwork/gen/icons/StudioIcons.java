@@ -647,7 +647,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon LIBRARY_UNKNOWN = load("studio/icons/shell/filetree/library-unknown.svg", -1084061156140578695L, 2);
       /** 16x16 */ public static final @NotNull Icon LIBRARY_WARNING = load("studio/icons/shell/filetree/library-warning.svg", 1860463973103052837L, 2);
       /** 16x16 */ public static final @NotNull Icon MANIFEST_FILE = load("studio/icons/shell/filetree/manifest-file.svg", 5587539169853152755L, 2);
-      /** 16x16 */ public static final @NotNull Icon MAVEN = load("studio/icons/shell/filetree/maven.svg", 8677441193927467911L, 2);
+      /** 16x16 */ public static final @NotNull Icon MAVEN = load("studio/icons/shell/filetree/maven.svg", 9146646909590119762L, 2);
       /** 16x16 */ public static final @NotNull Icon RENDER_SCRIPT = load("studio/icons/shell/filetree/render-script.svg", 7038334729406890614L, 2);
       /** 16x16 */ public static final @NotNull Icon SCENEFORM_ASSET_DESCRIPTION_FILE = load("studio/icons/shell/filetree/sceneform-asset-description-file.svg", -2558801497140325987L, 2);
       /** 16x16 */ public static final @NotNull Icon SCENEFORM_BINARY = load("studio/icons/shell/filetree/sceneform-binary.svg", -2714868365945178821L, 2);
