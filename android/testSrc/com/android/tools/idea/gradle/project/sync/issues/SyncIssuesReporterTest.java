@@ -24,6 +24,7 @@ import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.builder.model.SyncIssue.TYPE_JCENTER_IS_DEPRECATED;
 import static com.android.builder.model.SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST;
 import static com.android.builder.model.SyncIssue.TYPE_MISSING_SDK_PACKAGE;
 import static com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET;
@@ -213,7 +214,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(12);
+    assertThat(strategies).hasSize(13);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -261,6 +262,10 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_ANDROID_X_PROPERTY_NOT_ENABLED);
     assertThat(strategy).isInstanceOf(AndroidXUsedReporter.class);
+    assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
+
+    strategy = strategies.get(TYPE_JCENTER_IS_DEPRECATED);
+    assertThat(strategy).isInstanceOf(JcenterDeprecatedReporter.class);
     assertSame(mySyncMessagesStub, strategy.getSyncMessages(appModule));
   }
 
