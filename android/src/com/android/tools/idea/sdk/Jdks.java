@@ -92,7 +92,7 @@ public class Jdks {
 
   @Nullable
   public Sdk createEmbeddedJdk() {
-    if (myIdeInfo.isAndroidStudio()) {
+    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
       File path = EmbeddedDistributionPaths.getInstance().tryToGetEmbeddedJdkPath();
       if (path == null) {
         return null;
