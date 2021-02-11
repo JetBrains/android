@@ -31,6 +31,7 @@ import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.SnapshotDetails
 import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
@@ -38,6 +39,7 @@ import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
+import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
@@ -438,6 +440,18 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         if (request.state == VmRunState.RunState.SHUTDOWN) {
           stop()
         }
+      }
+    }
+
+    override fun rotateVirtualSceneCamera(request: RotationRadian, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun setVirtualSceneCameraVelocity(request: Velocity, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
       }
     }
 
