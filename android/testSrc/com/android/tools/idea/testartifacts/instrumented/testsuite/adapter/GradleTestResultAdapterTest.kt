@@ -74,7 +74,7 @@ class GradleTestResultAdapterTest {
   private fun device(deviceNum: Int,
     id: String = "mockDevice${deviceNum}SerialNumber",
                      name: String = "mockDevice${deviceNum}AvdName"): AndroidDevice {
-    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 
   private fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()

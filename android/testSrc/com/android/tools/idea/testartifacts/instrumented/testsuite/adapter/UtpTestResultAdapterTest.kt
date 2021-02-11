@@ -406,7 +406,9 @@ class UtpTestResultAdapterTest {
     val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
     utpTestResultAdapter.forwardResults(mockListener)
     val deviceMatcher = ArgumentMatcher<AndroidDevice> { device ->
-      device?.deviceName == "Gradle:$dslName" && device.deviceType == AndroidDeviceType.LOCAL_EMULATOR
+      device?.deviceName == "Gradle:$dslName" &&
+      device.avdName == deviceName &&
+      device.deviceType == AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
     }
     val testCaseMatcher = ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod && testCase.className == testClass && testCase.packageName == TEST_PACKAGE_NAME

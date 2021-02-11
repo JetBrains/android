@@ -111,11 +111,11 @@ class ExportUtilsTest {
 
   private fun createDevicesAndResultsNode(): Pair<List<AndroidDevice>, AndroidTestResultsTreeNode> {
     val device1 = AndroidDevice(
-      "testDeviceId1", "testDeviceName1",
+      "testDeviceId1", "testDeviceName1", "testDeviceName1",
       AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(23),
       mutableMapOf("processorName" to "testProcessorName1"))
     val device2 = AndroidDevice(
-      "testDeviceId2", "testDeviceName2",
+      "testDeviceId2", "testDeviceName2", "testDeviceName1",
       AndroidDeviceType.LOCAL_PHYSICAL_DEVICE, AndroidVersion(24),
       mutableMapOf("processorName" to "testProcessorName2"))
 

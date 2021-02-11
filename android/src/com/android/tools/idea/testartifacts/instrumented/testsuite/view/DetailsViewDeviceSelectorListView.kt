@@ -221,7 +221,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
 
 private fun getIconForDeviceType(deviceType: AndroidDeviceType): Icon? {
   return when (deviceType) {
-    AndroidDeviceType.LOCAL_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+    AndroidDeviceType.LOCAL_EMULATOR, AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
     AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
   }
 }
