@@ -24,11 +24,14 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
@@ -48,6 +51,12 @@ object ComposePreviewAnimationManager {
   val subscribedAnimations = mutableSetOf<ComposeAnimation>()
 
   private var newInspectorOpenedCallback: (() -> Unit)? = null
+
+  internal val onSubscribedUnsubscribedExecutor =
+    if (ApplicationManager.getApplication().isUnitTestMode)
+      MoreExecutors.directExecutor()
+    else
+      AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
   @Slow
   fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
@@ -156,7 +165,9 @@ fun animationSubscribed(clock: Any?, animation: Any?) {
   if (LOG.isDebugEnabled) {
     LOG.debug("Animation subscribed: $animation")
   }
-  (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
+    (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+  }
 }
 
 @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
@@ -165,5 +176,7 @@ fun animationUnsubscribed(animation: Any?) {
     LOG.debug("Animation unsubscribed: $animation")
   }
   if (animation == null) return
-  (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
+    (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+  }
 }
