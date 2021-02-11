@@ -87,6 +87,13 @@ class TaskData(val taskName: String,
     return "TaskData(taskPath='${getTaskPath()}')"
   }
 
+  fun isKaptTask(): Boolean {
+    return taskType == "org.jetbrains.kotlin.gradle.internal.KaptTask" ||
+           taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithKotlincTask" ||
+           taskType == "org.jetbrains.kotlin.gradle.internal.KaptWithoutKotlincTask" ||
+           taskType == "org.jetbrains.kotlin.gradle.internal.KaptGenerateStubsTask"
+  }
+
   companion object {
     const val UNKNOWN_TASK_TYPE = "UNKNOWN"
 

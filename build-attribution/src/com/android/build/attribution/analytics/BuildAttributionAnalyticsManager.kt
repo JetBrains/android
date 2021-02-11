@@ -139,6 +139,7 @@ class BuildAttributionAnalyticsManager(
     val builder = BuildAttributionPluginIdentifier.newBuilder().setType(pluginType)
     if (pluginType == BuildAttributionPluginIdentifier.PluginType.OTHER_PLUGIN) {
       builder.pluginDisplayName = pluginData.displayName
+      //TODO (b/177051800): add classname field
     }
     return builder.build()
   }

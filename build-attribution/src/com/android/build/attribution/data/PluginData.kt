@@ -15,13 +15,18 @@
  */
 package com.android.build.attribution.data
 
-import org.gradle.tooling.events.BinaryPluginIdentifier
-import org.gradle.tooling.events.PluginIdentifier
-import org.gradle.tooling.events.ScriptPluginIdentifier
+import com.intellij.util.containers.mapSmartSet
 
-class PluginData(pluginType: PluginType, val displayName: String) {
+/**
+ * Plugin representation in build analysis.
+ * Only single instance is created for each plugin, plugins are matched by [idName],
+ * which is a plugin class for binary plugins and "projectPath:fileName" for scripts.
+ */
+class PluginData(pluginType: PluginType, val idName: String) {
   var pluginType: PluginType = pluginType
     private set
+
+  private val projectToDisplayName = mutableMapOf<String, DisplayName>()
 
   enum class PluginType {
     UNKNOWN,
@@ -30,56 +35,66 @@ class PluginData(pluginType: PluginType, val displayName: String) {
     SCRIPT
   }
 
-  constructor(pluginIdentifier: PluginIdentifier?, projectPath: String) : this(getPluginType(pluginIdentifier),
-                                                                               getPluginName(pluginIdentifier, projectPath))
+  data class DisplayName(
+    val name: String,
+    /** Project path where plugin is defined by this name.*/
+    val projectPath: String
+  )
 
-  override fun toString(): String = toString(pluginType, displayName)
+  override fun toString(): String = when (pluginType) {
+    PluginType.UNKNOWN -> "unknown plugin"
+    PluginType.BINARY_PLUGIN -> "binary plugin $idName"
+    PluginType.BUILDSRC_PLUGIN -> "buildSrc plugin $idName"
+    PluginType.SCRIPT -> "script $idName"
+  }
 
   override fun equals(other: Any?): Boolean {
     return other is PluginData &&
-           displayName == other.displayName
+           idName == other.idName
   }
 
   override fun hashCode(): Int {
-    return displayName.hashCode()
+    return idName.hashCode()
   }
 
   fun markAsBuildSrcPlugin() {
     this.pluginType = PluginType.BUILDSRC_PLUGIN
   }
 
-  companion object {
-    fun toString(pluginIdentifier: PluginIdentifier?, projectPath: String): String = toString(getPluginType(pluginIdentifier),
-                                                                                              getPluginName(pluginIdentifier, projectPath))
 
-    fun toString(pluginType: PluginType, displayName: String): String {
-      return when (pluginType) {
-        PluginType.UNKNOWN -> "unknown plugin"
-        PluginType.BINARY_PLUGIN -> "binary plugin $displayName"
-        PluginType.BUILDSRC_PLUGIN -> "buildSrc plugin $displayName"
-        PluginType.SCRIPT -> "script $displayName"
-      }
-    }
+  fun recordDisplayName(displayName: DisplayName) = projectToDisplayName.put(displayName.projectPath, displayName)
 
-    private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginType {
-      return when (pluginIdentifier) {
-        is BinaryPluginIdentifier -> PluginType.BINARY_PLUGIN
-        is ScriptPluginIdentifier -> PluginType.SCRIPT
-        else -> PluginType.UNKNOWN
-      }
-    }
+  fun displayNameInProject(project: String): String = projectToDisplayName[project]?.name ?: idName
 
-    private fun getPluginName(pluginIdentifier: PluginIdentifier?, projectPath: String): String {
-      if (pluginIdentifier == null) {
-        return ""
-      }
-      if (pluginIdentifier.displayName.startsWith("com.android.internal.")) {
-        return pluginIdentifier.displayName.replace("com.android.internal.", "com.android.")
-      }
-      if (pluginIdentifier is ScriptPluginIdentifier) {
-        return "$projectPath:${pluginIdentifier.displayName}"
-      }
-      return pluginIdentifier.displayName
+  fun displayNames(): Set<String> = projectToDisplayName.values.mapSmartSet { it.name }
+
+  /**
+   * Tries to select the best display name for this plugin from the ones defined in this project.
+   * Normally there should only be a single name used in all sub-projects but otherwise select the first one.
+   */
+  val displayName: String
+    get() = displayNames().minBy { it.length } ?: idName
+
+
+  fun isJavaPlugin(): Boolean {
+    return displayNames().any {
+      it == "application" ||
+      it == "java" ||
+      it == "java-base" ||
+      it == "java-gradle-plugin" ||
+      it == "java-library" ||
+      it == "java-platform"
     }
   }
+
+  fun isAndroidPlugin(): Boolean {
+    return idName.startsWith("com.android.build.gradle.")
+  }
+
+  fun isKotlinPlugin(): Boolean {
+    return idName.startsWith("org.jetbrains.kotlin.")
+  }
+
+  fun isGradlePlugin() = idName.startsWith("org.gradle.")
+
 }

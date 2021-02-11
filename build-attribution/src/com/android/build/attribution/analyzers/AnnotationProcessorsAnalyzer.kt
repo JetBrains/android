@@ -17,6 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.TaskContainer
+import com.android.build.attribution.data.TaskData
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
@@ -61,7 +62,7 @@ class AnnotationProcessorsAnalyzer(
   }
 
   override fun calculateResult(): Result {
-    if (taskContainer.any(::isKaptTask)) {
+    if (taskContainer.any(TaskData::isKaptTask)) {
       // TODO(b/159108417): get data about annotation processors incrementality from kapt
       nonIncrementalAnnotationProcessorsSet.clear()
     }
