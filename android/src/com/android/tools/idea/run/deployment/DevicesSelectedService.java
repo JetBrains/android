@@ -201,6 +201,9 @@ final class DevicesSelectedService {
   }
 
   private static final class State {
+    @OptionTag(tag = "runningDeviceTargetSelectedWithDropDown", nameAttribute = "")
+    public @Nullable TargetState runningDeviceTargetSelectedWithDropDown;
+
     @OptionTag(tag = "targetSelectedWithDropDown", nameAttribute = "")
     public @Nullable TargetState targetSelectedWithDropDown;
 
@@ -211,14 +214,19 @@ final class DevicesSelectedService {
     public boolean multipleDevicesSelectedInDropDown;
 
     @XCollection(style = Style.v2)
+    public @NotNull Collection<@NotNull TargetState> runningDeviceTargetsSelectedWithDialog = Collections.emptyList();
+
+    @XCollection(style = Style.v2)
     public @NotNull Collection<@NotNull TargetState> targetsSelectedWithDialog = Collections.emptyList();
 
     @Override
     public int hashCode() {
-      int hashCode = Objects.hashCode(targetSelectedWithDropDown);
+      int hashCode = Objects.hashCode(runningDeviceTargetSelectedWithDropDown);
 
+      hashCode = 31 * hashCode + Objects.hashCode(targetSelectedWithDropDown);
       hashCode = 31 * hashCode + Objects.hashCode(timeTargetWasSelectedWithDropDown);
       hashCode = 31 * hashCode + Boolean.hashCode(multipleDevicesSelectedInDropDown);
+      hashCode = 31 * hashCode + runningDeviceTargetsSelectedWithDialog.hashCode();
       hashCode = 31 * hashCode + targetsSelectedWithDialog.hashCode();
 
       return hashCode;
@@ -232,9 +240,11 @@ final class DevicesSelectedService {
 
       State state = (State)object;
 
-      return Objects.equals(targetSelectedWithDropDown, state.targetSelectedWithDropDown) &&
+      return Objects.equals(runningDeviceTargetSelectedWithDropDown, state.runningDeviceTargetSelectedWithDropDown) &&
+             Objects.equals(targetSelectedWithDropDown, state.targetSelectedWithDropDown) &&
              Objects.equals(timeTargetWasSelectedWithDropDown, state.timeTargetWasSelectedWithDropDown) &&
              multipleDevicesSelectedInDropDown == state.multipleDevicesSelectedInDropDown &&
+             runningDeviceTargetsSelectedWithDialog.equals(state.runningDeviceTargetsSelectedWithDialog) &&
              targetsSelectedWithDialog.equals(state.targetsSelectedWithDialog);
     }
   }

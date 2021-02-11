@@ -153,7 +153,10 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new RunningDeviceTarget(connectedDeviceKey)), target);
+    // TODO(http://b/179836372)
+    // assertEquals(Optional.of(new RunningDeviceTarget(connectedDeviceKey)), target);
+
+    assertEquals(Optional.of(new QuickBootTarget(connectedDeviceKey)), target);
   }
 
   @Test
