@@ -29,11 +29,11 @@
     <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
 
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
-                        serviceImplementation="org.jetbrains.android.compiler.artifact.JpsAndroidArtifactResolver"
+                        serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"
                         overrides="true"
     />
 
-    <projectFacetListener facet-type="android" implementation="org.jetbrains.android.compiler.AndroidModuleAutogenerationListener"/>
+    <projectFacetListener facet-type="android" implementation="org.jetbrains.android.facet.AndroidModuleAutogenerationListener"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android">
