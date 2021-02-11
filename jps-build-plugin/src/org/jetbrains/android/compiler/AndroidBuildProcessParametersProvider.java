@@ -1,6 +1,12 @@
 package org.jetbrains.android.compiler;
 
+import com.android.AndroidProjectTypes;
+import com.android.ide.common.build.CommonBuiltArtifact;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.manifmerger.ManifestMerger2;
 import com.android.prefs.AndroidLocation;
+import com.android.repository.api.Repository;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.pixelprobe.util.Strings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -19,6 +25,8 @@ import javax.xml.bind.JAXBContext;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.gradle.tooling.BuildException;
+import org.jetbrains.android.facet.AndroidFacetProperties;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidBuildProcessParametersProvider extends BuildProcessParametersProvider {
@@ -46,7 +54,17 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
       DataSource.class,                         // javaee.jar
 
       AndroidLocation.class,
-      BuildException.class                      // gradle tooling
+      BuildException.class,                     // gradle tooling
+
+      // jars from main Android plugin
+      AndroidFacetProperties.class,             // android-jps-model.jar
+      AndroidBuildCommonUtils.class,            // build-common.jar
+      AndroidProjectTypes.class,                // studio.android.sdktools.common
+      LayoutlibCallback.class,                  // studio.android.sdktools.layoutlib-api
+      ManifestMerger2.class,                    // studio.android.sdktools.manifest-merger
+      Repository.class,                         // studio.android.sdktools.repository
+      CommonBuiltArtifact.class,                // studio.android.sdktools.sdk-common
+      SdkVersionInfo.class                      // studio.android.sdktools.sdklib
     );
   }
 
