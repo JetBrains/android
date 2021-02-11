@@ -48,7 +48,8 @@ fun androidProjectBuildGradle(
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
+            jcenter() // Warning: this repository is going to shut down soon
             $kotlinEapRepoBlock
         }
     }
@@ -87,7 +88,8 @@ fun androidProjectBuildGradleKts(
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
+            jcenter() // Warning: this repository is going to shut down soon
             $kotlinEapRepoBlock
         }
     }
