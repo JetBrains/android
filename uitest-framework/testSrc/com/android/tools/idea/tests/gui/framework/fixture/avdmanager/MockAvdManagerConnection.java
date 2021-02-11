@@ -30,6 +30,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,8 +50,8 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   @NotNull private final AndroidSdkHandler mySdkHandler;
 
-  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    super(handler, MoreExecutors.newDirectExecutorService());
+  public MockAvdManagerConnection(@NotNull AndroidSdkHandler handler, @NotNull Path avdHomeFolder) {
+    super(handler, avdHomeFolder, MoreExecutors.newDirectExecutorService());
     mySdkHandler = handler;
   }
 
