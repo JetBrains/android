@@ -17,8 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.IdDisplay;
@@ -435,7 +433,7 @@ public final class AvdDeviceData {
     if (!skinLayoutFile.isFile()) {
       return null;
     }
-    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile, FileOpUtils.create());
+    SkinLayoutDefinition skin = SkinLayoutDefinition.parseFile(skinLayoutFile);
     if (skin == null) {
       return null;
     }
