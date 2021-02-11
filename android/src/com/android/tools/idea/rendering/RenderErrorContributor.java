@@ -1472,7 +1472,7 @@ public class RenderErrorContributor {
   }
 
   public static class Provider {
-    static final ExtensionPointName<Provider> EP_NAME =
+    public static final ExtensionPointName<Provider> EP_NAME =
       new ExtensionPointName<>("com.android.rendering.renderErrorContributor");
 
     public boolean isApplicable(Project project) {
