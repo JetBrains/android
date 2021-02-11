@@ -18,6 +18,8 @@ package com.android.tools.idea.welcome.install;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.android.prefs.AndroidLocationsException;
+import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -316,8 +318,10 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
   }
 
   @NotNull
-  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws WizardException {
-    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
+  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws WizardException,
+                                                                                                             AndroidLocationsException {
+    Path avdFolder = AndroidLocationsSingleton.INSTANCE.getAvdLocation();
+    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, avdFolder, MoreExecutors.newDirectExecutorService());
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
     disposeOnTearDown(() -> connection.deleteAvd(avdInfo));

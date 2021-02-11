@@ -38,6 +38,7 @@ public class EmulatorCommandBuilder {
 
   final @NotNull AvdInfo myAvd;
 
+  private @Nullable Path myAvdHome;
   private boolean myEmulatorSupportsSnapshots;
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
@@ -49,6 +50,11 @@ public class EmulatorCommandBuilder {
     myAvd = avd;
 
     myStudioEmuParams = new ArrayList<>();
+  }
+
+  public final @NotNull EmulatorCommandBuilder setAvdHome(@Nullable Path avdHome) {
+    myAvdHome = avdHome;
+    return this;
   }
 
   public final @NotNull EmulatorCommandBuilder setEmulatorSupportsSnapshots(boolean emulatorSupportsSnapshots) {
@@ -74,6 +80,10 @@ public class EmulatorCommandBuilder {
   public final @NotNull GeneralCommandLine build() {
     GeneralCommandLine command = new GeneralCommandLine();
     command.setExePath(myEmulator.toString());
+
+    if (myAvdHome != null) {
+      command.getEnvironment().put("ANDROID_AVD_HOME", myAvdHome.toString());
+    }
 
     addParametersIfParameter2IsntNull(command, "-netdelay", myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_LATENCY));
     addParametersIfParameter2IsntNull(command, "-netspeed", myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_SPEED));

@@ -67,7 +67,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
   }
 
   public void testWipeAvd() throws Exception {
@@ -242,7 +242,8 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
     AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mFileOp.toPath("/sdk"), mFileOp.toPath(ANDROID_PREFS_ROOT), mFileOp);
-    AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
+    AvdManagerConnection managerConnection =
+      new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();
     if (bogusEmulatorFile != null) {
