@@ -777,6 +777,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     getErrorQueue().queue(new Update("errors") {
       @Override
       public void run() {
+        // Whenever error queue is active, make sure to resume any paused scanner control.
+        myValidatorControl.resume();
         // Look up *current* result; a newer one could be available
         Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
           .filter(LayoutlibSceneManager.class::isInstance)
@@ -988,6 +990,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   public void setRenderSynchronously(boolean enabled) {
     myIsRenderingSynchronously = enabled;
+    // If animation is enabled, scanner must be paused.
+    if (enabled) {
+      myValidatorControl.pause();
+    } else {
+      myValidatorControl.resume();
+    }
   }
 
   public boolean isRenderingSynchronously() { return myIsRenderingSynchronously; }

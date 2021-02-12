@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssuePanel
+import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.idea.validator.ValidatorUtil
+import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 
@@ -29,6 +32,7 @@ class NlLayoutScannerControl(
 
   /** Metric tracker for scanner */
   private val metricTracker = NlLayoutScannerMetricTracker(surface)
+
   /** The main scanner logic that parses atf results and creates lint issues */
   override val scanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
 
@@ -52,6 +56,14 @@ class NlLayoutScannerControl(
   init {
     surface.issuePanel.addMinimizeListener(issuePanelListener)
     surface.issuePanel.expandListener = issueExpandListener
+  }
+
+  override fun pause() {
+    LayoutValidator.setPaused(true)
+  }
+
+  override fun resume() {
+    LayoutValidator.setPaused(false)
   }
 }
 
