@@ -98,7 +98,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
   }
 
-  private void addAppliedProperty(@NotNull GradleDslElement element) {
+  public void addAppliedProperty(@NotNull GradleDslElement element) {
     element.addHolder(this);
     addPropertyInternal(element, APPLIED);
   }
@@ -521,7 +521,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     Class<U> before
   ) {
     Integer at = null;
-    List<GradleDslElement> elements = getAllElements();
+    List<GradleDslElement> elements = getCurrentElements();
     for (int i = 0; i < elements.size(); i++) {
       if (before.isInstance(elements.get(i))) {
         at = i;
@@ -620,17 +620,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     newElement.setParent(this);
     addPropertyInternal(index, newElement, TO_BE_ADDED);
     setModified();
-  }
-
-  public <T> void addNewElementBeforeAllOfClass(@NotNull GradleDslElement newElement, @NotNull Class<T> clazz) {
-    List<GradleDslElement> elements = getAllElements();
-    int index = elements.size() - 1;
-    for (int i = 0; i < elements.size() - 1; i++) {
-      if (clazz.isInstance(elements.get(i))) {
-        index = i;
-      }
-    }
-    addNewElementAt(index, newElement);
   }
 
   @VisibleForTesting

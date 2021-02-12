@@ -1,0 +1,24 @@
+plugins {
+  id 'com.android.application'
+}
+
+android {
+  buildTypes {
+    release {
+      debuggable false
+    }
+  }
+  flavorDimensions 'tier'
+  productFlavors {
+    paid {
+      dimension 'tier'
+    }
+    free {
+      dimension 'tier'
+    }
+  }
+}
+
+dependencies {
+  implementation 'junit:junit:4.13'
+}

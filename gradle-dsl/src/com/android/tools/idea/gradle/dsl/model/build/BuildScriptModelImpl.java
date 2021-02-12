@@ -74,7 +74,7 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @Override
   public ExtModel ext() {
     int at = 0;
-    List<GradleDslElement> elements = myDslElement.getAllElements();
+    List<GradleDslElement> elements = myDslElement.getCurrentElements();
     if (!elements.isEmpty()) {
       GradleDslElement firstElement = elements.get(0);
       if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
