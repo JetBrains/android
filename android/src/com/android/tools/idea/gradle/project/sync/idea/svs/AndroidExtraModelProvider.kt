@@ -77,6 +77,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     if (remainingIncludedBuildModels == 0) {
       Worker(
         controller,
+        syncOptions,
         buildModels,
         // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
         // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
@@ -97,8 +98,9 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
   }
 
-  private inner class Worker(
+  private class Worker(
     private val controller: BuildController,
+    private val syncOptions: SyncActionOptions,
     private val buildModels: List<GradleBuild>, // Always not empty.
     private val consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
