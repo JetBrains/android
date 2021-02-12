@@ -19,8 +19,8 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.AppLinksAutoVerifyDetector;
 import org.jetbrains.android.util.AndroidBundle;
 
-public class AndroidLintAppLinksAutoVerifyWarningInspection extends AndroidLintInspectionBase {
-  public AndroidLintAppLinksAutoVerifyWarningInspection() {
-    super(AndroidBundle.message("android.lint.inspections.app.links.auto.verify.warning"), AppLinksAutoVerifyDetector.ISSUE_WARNING);
+public class AndroidLintAppLinksAutoVerifyInspection extends AndroidLintInspectionBase {
+  public AndroidLintAppLinksAutoVerifyInspection() {
+    super(AndroidBundle.message("android.lint.inspections.app.links.auto.verify"), AppLinksAutoVerifyDetector.ISSUE);
   }
 }
