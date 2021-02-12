@@ -144,9 +144,8 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     if (updateTopLevelGradleProperties) {
       myProject.getProjectProperties(createIfNotExists = true)?.apply {
         findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
-        findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
-        syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
       }
+      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
     }
 
   }
