@@ -72,7 +72,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public boolean isValidSdkHome(@Nullable String path) {
+  public boolean isValidSdkHome(@NotNull String path) {
     if (isEmpty(path)) {
       return false;
     }
@@ -88,7 +88,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   @NotNull
-  public String suggestSdkName(@Nullable String currentSdkName, String sdkHome) {
+  public String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
     return SDK_NAME;
   }
 
