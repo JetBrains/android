@@ -257,8 +257,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public ExtModel ext() {
     int at = 0;
     List<GradleDslElement> elements = myGradleDslFile.getAllElements();
-    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
-      at += 1;
+    if (!elements.isEmpty()) {
+      GradleDslElement firstElement = elements.get(0);
+      if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
+        at += 1;
+      }
     }
     ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);
