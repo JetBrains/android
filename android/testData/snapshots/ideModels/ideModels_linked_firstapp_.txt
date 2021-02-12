@@ -2813,8 +2813,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null

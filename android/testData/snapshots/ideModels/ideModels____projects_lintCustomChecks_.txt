@@ -596,8 +596,7 @@ MODULE                        : project.library
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -910,8 +909,7 @@ MODULE                        : project.library-remote
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null

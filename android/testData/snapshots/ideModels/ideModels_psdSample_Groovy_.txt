@@ -3686,8 +3686,7 @@ MODULE                        : project.lib
                             IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -5026,8 +5025,7 @@ MODULE                        : project.nested1
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -5337,8 +5335,7 @@ MODULE                        : project.nested1.deep
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -5772,8 +5769,7 @@ MODULE                        : project.nested2
                     ShadersDirectories            : <ROOT>/nested2/src/basicDebug/shaders [-]
                     MlModelsDirectories           : <ROOT>/nested2/src/basicDebug/ml [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleBasicDebug
                 ApkFromBundleTaskName         : extractApksForBasicDebug
                 CodeShrinker                  : null
@@ -6106,8 +6102,7 @@ MODULE                        : project.nested2.deep
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -6413,8 +6408,7 @@ MODULE                        : project.nested2.trans.deep2
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/renderscript_source_output_dir/debug/out [-]
                 AdditionalClassesFolders      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
