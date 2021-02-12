@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.gradle.adtimport;
 
+import static com.intellij.icons.AllIcons.ToolbarDecorator.Import;
+
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.startup.Actions;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import org.jetbrains.annotations.NotNull;
 
 public final class AdtImportInitializer implements ActionConfigurationCustomizer {
   @Override
-  public void customize(ActionManager actionManager) {
-    Actions.replaceAction(actionManager, "ImportProject", new AndroidImportProjectAction());
-    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
+  public void customize(@NotNull ActionManager actionManager) {
+    Actions.replaceAction(actionManager, "ImportProject",
+                          new AndroidImportProjectAction("Import Project...", null, null));
+    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject",
+                          new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)", null, Import));
   }
 }
