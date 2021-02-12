@@ -1403,6 +1403,7 @@ Android Studio Preview.app/Contents/jre/jdk/Contents/MacOS/libjli.dylib
 Android Studio Preview.app/Contents/lib/FastInfoset-1.2.15.jar
 Android Studio Preview.app/Contents/lib/HdrHistogram-2.1.4.jar
 Android Studio Preview.app/Contents/lib/RoaringBitmap-0.9.0.jar
+Android Studio Preview.app/Contents/lib/android-annotations.jar
 Android Studio Preview.app/Contents/lib/android-base-common.jar
 Android Studio Preview.app/Contents/lib/animal-sniffer-annotations-1.17.jar
 Android Studio Preview.app/Contents/lib/annotations-4.1.1.4.jar
@@ -1523,7 +1524,6 @@ Android Studio Preview.app/Contents/lib/failureaccess-1.0.1.jar
 Android Studio Preview.app/Contents/lib/fluent-hc-4.5.12.jar
 Android Studio Preview.app/Contents/lib/forms-1.1-preview.jar
 Android Studio Preview.app/Contents/lib/forms_rt.jar
-Android Studio Preview.app/Contents/lib/google-analytics-library.jar
 Android Studio Preview.app/Contents/lib/grazie-spellchecker-0.1.9.jar
 Android Studio Preview.app/Contents/lib/groovy-2.5.11.jar
 Android Studio Preview.app/Contents/lib/groovy-json-2.5.11.jar
@@ -1608,7 +1608,6 @@ Android Studio Preview.app/Contents/lib/kotlinx-coroutines-core-1.3.9.jar
 Android Studio Preview.app/Contents/lib/kotlinx-coroutines-jdk8-1.3.9.jar
 Android Studio Preview.app/Contents/lib/kryo-2.24.0.jar
 Android Studio Preview.app/Contents/lib/kxml2-2.3.0.jar
-Android Studio Preview.app/Contents/lib/libstudio.proto.jar
 Android Studio Preview.app/Contents/lib/log4j.jar
 Android Studio Preview.app/Contents/lib/lz4-java-1.7.1.jar
 Android Studio Preview.app/Contents/lib/markdownj-core-0.4.2-SNAPSHOT.jar
@@ -2039,6 +2038,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/flatbuffers-java-1.12.0.
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
@@ -2057,6 +2057,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libstudio.proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/lint-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/manifest-merger.jar
 Android Studio Preview.app/Contents/plugins/android/lib/moshi-1.6.0.jar
