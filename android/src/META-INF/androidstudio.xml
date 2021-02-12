@@ -97,7 +97,7 @@
 
     <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
             icon="StudioIcons.Shell.Menu.AVD_MANAGER">
-      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.RunAndroidSdkManager" anchor="after"/>
     </action>
 
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
