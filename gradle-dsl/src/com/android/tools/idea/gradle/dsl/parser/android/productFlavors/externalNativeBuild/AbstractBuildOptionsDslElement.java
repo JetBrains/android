@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atL
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
@@ -41,6 +42,20 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"abiFilters", property, ABI_FILTERS, VAL},
+    {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
+    {"arguments", property, ARGUMENTS, VAL},
+    {"arguments", atLeast(0), ARGUMENTS, AUGMENT_LIST},
+    {"cFlags", property, C_FLAGS, VAL},
+    {"cFlags", atLeast(0), C_FLAGS, AUGMENT_LIST},
+    {"cppFlags", property, CPP_FLAGS, VAL},
+    {"cppFlags", atLeast(0), CPP_FLAGS, AUGMENT_LIST},
+    {"targets", property, TARGETS, VAL},
+    {"targets", atLeast(0), TARGETS, AUGMENT_LIST}
+  }).collect(toModelMap());
+
+  @NotNull
+  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
     {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
     {"arguments", property, ARGUMENTS, VAR},
@@ -52,9 +67,6 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
     {"targets", property, TARGETS, VAR},
     {"targets", atLeast(0), TARGETS, AUGMENT_LIST}
   }).collect(toModelMap());
-
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = ktsToModelNameMap;
 
   @Override
   @NotNull
