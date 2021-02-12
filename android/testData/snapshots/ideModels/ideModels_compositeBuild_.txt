@@ -2874,8 +2874,7 @@ MODULE                        : TestCompositeLib1.lib
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -6842,8 +6841,7 @@ MODULE                        : TestCompositeLib3.lib
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
@@ -10818,8 +10816,7 @@ MODULE                        : project.lib
                             ArtifactAddress               : com.android.support:support-annotations:28.0.0@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
