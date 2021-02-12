@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables
+package com.android.tools.idea.gradle.repositories.search
 
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
+import com.google.common.util.concurrent.ListenableFuture
 
-interface RepositorySearchFactory {
-  fun create(repositories: Collection<ArtifactRepositorySearchService>): ArtifactRepositorySearchService
+interface ArtifactRepositorySearchService {
+  fun search(request: SearchRequest): ListenableFuture<SearchResult>
 }

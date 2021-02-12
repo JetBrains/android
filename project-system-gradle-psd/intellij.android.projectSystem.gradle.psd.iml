@@ -21,6 +21,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>
 </module>

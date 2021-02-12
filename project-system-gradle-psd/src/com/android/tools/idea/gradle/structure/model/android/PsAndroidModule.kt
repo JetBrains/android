@@ -31,8 +31,8 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
 import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
 import com.android.utils.combineAsCamelCase
 import com.android.utils.usLocaleCapitalize

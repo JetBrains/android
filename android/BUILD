@@ -367,6 +367,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
+        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
     ],
 )
 

@@ -15,7 +15,7 @@
  */
 @file:Suppress("UnstableApiUsage")
 
-package com.android.tools.idea.gradle.structure.model.repositories.search
+package com.android.tools.idea.gradle.repositories.search
 
 import com.android.tools.analytics.UsageTracker
 import com.google.common.util.concurrent.Futures

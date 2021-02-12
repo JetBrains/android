@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
-import com.android.tools.idea.gradle.structure.model.repositories.search.combine
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.combine
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.equalTo

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables
+package com.android.tools.idea.gradle.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.hamcrest.CoreMatchers
+import org.junit.Assert
 import org.junit.Test
-
 
 class CachingRepositorySearchFactoryTest {
 
@@ -65,8 +58,8 @@ class CachingRepositorySearchFactoryTest {
     module1Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
     module2Repos.search(SearchRequest(SearchQuery("group", "name"), 10, 0))
 
-    assertThat(a1Searched, equalTo(1))
-    assertThat(a2Searched, equalTo(0))
-    assertThat(b2Searched, equalTo(1))
+      Assert.assertThat(a1Searched, CoreMatchers.equalTo(1))
+      Assert.assertThat(a2Searched, CoreMatchers.equalTo(0))
+      Assert.assertThat(b2Searched, CoreMatchers.equalTo(1))
   }
 }
