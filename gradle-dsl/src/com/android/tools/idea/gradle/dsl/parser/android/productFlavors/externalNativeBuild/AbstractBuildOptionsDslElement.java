@@ -22,7 +22,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.ext
 import static com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.AbstractBuildOptionsModelImpl.TARGETS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
@@ -42,17 +42,15 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
-    {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
+    {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
     {"arguments", property, ARGUMENTS, VAR},
-    {"arguments", atLeast(0), ARGUMENTS, OTHER},
-    // TODO(xof): actually cFlags here does not currently work in KotlinScript, perhaps because of incompatible name mangling (or some
-    //  other reason?)
+    {"arguments", atLeast(0), ARGUMENTS, AUGMENT_LIST},
     {"cFlags", property, C_FLAGS, VAR},
-    {"cFlags", atLeast(0), C_FLAGS, OTHER},
+    {"cFlags", atLeast(0), C_FLAGS, AUGMENT_LIST},
     {"cppFlags", property, CPP_FLAGS, VAR},
-    {"cppFlags", atLeast(0), CPP_FLAGS, OTHER},
+    {"cppFlags", atLeast(0), CPP_FLAGS, AUGMENT_LIST},
     {"targets", property, TARGETS, VAR},
-    {"targets", atLeast(0), TARGETS, OTHER}
+    {"targets", atLeast(0), TARGETS, AUGMENT_LIST}
   }).collect(toModelMap());
 
   @NotNull
@@ -74,32 +72,5 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
 
   protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("abiFilters")) {
-      addToParsedExpressionList(ABI_FILTERS, element);
-      return;
-    }
-    if (property.equals("arguments")) {
-      addToParsedExpressionList(ARGUMENTS, element);
-      return;
-    }
-    if (property.equals("cFlags")) {
-      addToParsedExpressionList(C_FLAGS, element);
-      return;
-    }
-    if (property.equals("cppFlags")) {
-      addToParsedExpressionList(CPP_FLAGS, element);
-      return;
-    }
-    if (property.equals("targets")) {
-      addToParsedExpressionList(TARGETS, element);
-      return;
-    }
-
-    super.addParsedElement(element);
   }
 }
