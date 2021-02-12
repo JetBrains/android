@@ -329,6 +329,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     if (gradleDslExpressionList == null) {
       gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property.name), false);
       gradleDslExpressionList.setModelEffect(new ModelEffectDescription(property, CREATE_WITH_VALUE));
+      gradleDslExpressionList.setElementType(REGULAR);
       addPropertyInternal(gradleDslExpressionList, EXISTING);
     }
     else {
@@ -747,6 +748,33 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public void delete() {
     myProperties.forEach(e -> e.myElement.delete());
     super.delete();
+  }
+
+  protected void deleteAndRecreate() {
+    myProperties.removeElements(GradleDslElement::delete);
+    if (!myProperties.isEmpty()) {
+      myProperties.forEach(item -> {
+        GradleDslElement element = item.myElement;
+        GradleDslElement copy = element;
+        if (element instanceof GradleDslExpression) {
+          copy = ((GradleDslExpression)element).copy();
+        }
+        element.getDslFile().getWriter().deleteDslElement(element);
+        item.myElement = copy;
+      });
+      getDslFile().getWriter().deleteDslElement(this);
+      this.create();
+      myProperties.forEach(item -> {
+        GradleDslElement element = item.myElement;
+        element.create();
+        item.myElementState = EXISTING;
+      });
+    }
+  }
+
+  protected boolean isStructurallyModified() {
+    Predicate<ElementList.ElementItem> predicate = e -> Arrays.asList(APPLIED, EXISTING, DEFAULT, HIDDEN).contains(e.myElementState);
+    return !myProperties.myElements.stream().allMatch(predicate);
   }
 
   @Override

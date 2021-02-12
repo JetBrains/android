@@ -824,8 +824,11 @@ internal fun createPsiElementInsideList(parentDslElement : GradleDslElement,
   // Create a valueArgument to add to the list.
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   // support named argument. ex: plugin = "kotlin-android".
-  val argument = if (dslElement.name.isNotEmpty()) psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
-  else psiFactory.createArgument(psiElement as? KtExpression)
+  val argument = when {
+    parentDslElement is GradleDslMethodCall && dslElement.name.isNotEmpty() ->
+      psiFactory.createArgument(psiElement as? KtExpression, Name.identifier(dslElement.name))
+    else -> psiFactory.createArgument(psiElement as? KtExpression)
+  }
 
   // If the dslElement has an anchor that is not null and that the list is not empty, we add it to the list after the anchor ;
   // otherwise, we add it at the beginning of the list.

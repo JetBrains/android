@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.MOVED;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
+
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -143,8 +148,19 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   @Override
   protected void apply() {
     getDslFile().getWriter().applyDslExpressionList(this);
-
-    super.apply();
+    ModelEffectDescription effect = getModelEffect();
+    // TODO(b/144280051): this prevents the deletion/recreation of an implicit element when it and its children have been
+    //  destructively modified, rather than having any structural change.  This allows existing tests to pass while
+    //  not actually solving the fundamental problem of some packagingOptions properties having only one-arg augmenting
+    //  helper functions, for which proper handling we need to take proper account of arity when looking up model
+    //  functions to use.  When we add or remove elements, we must re-create it from scratch as just removing a sub-element may
+    //  invalidate the existing element's syntax constraints.
+    if (effect != null && effect.semantics == CREATE_WITH_VALUE && isStructurallyModified()) {
+      deleteAndRecreate();
+    }
+    else {
+      super.apply();
+    }
   }
 
   @Override
