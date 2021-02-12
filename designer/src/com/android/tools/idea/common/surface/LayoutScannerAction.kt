@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface
+package com.android.tools.idea.common.surface
 
+import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
-import java.util.concurrent.CompletableFuture
+import com.android.tools.idea.rendering.RenderResult
 
 /**
  * Controller for layout scanner that checks the layout and produces lint checks.
@@ -24,14 +26,18 @@ import java.util.concurrent.CompletableFuture
  * By default scanner is enabled/resumed.
  */
 interface LayoutScannerControl {
-  /** Return the scanner capable of checking the layout. */
-  val scanner: NlLayoutScanner
+
+  /**  Returns the list of accessibility issues created by ATF. */
+  val issues: Set<Issue>
 
   /** Pause the scanner until it is resumed by [resume] */
   fun pause()
 
   /** Resume the scanner until it is paused by [pause] */
   fun resume()
+
+  /** Validate the layout and update the lint accordingly. */
+  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel)
 }
 
 /** Configuration for layout scanner */

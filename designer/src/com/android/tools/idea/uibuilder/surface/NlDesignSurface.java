@@ -42,6 +42,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
+import com.android.tools.idea.common.surface.LayoutScannerControl;
+import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
@@ -89,7 +91,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -400,7 +401,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private LayoutScannerControl myValidatorControl;
+  @Nullable private LayoutScannerControl myScannerControl;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -490,7 +491,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     });
 
     if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myValidatorControl = new NlLayoutScannerControl(this, this);
+      myScannerControl = new NlLayoutScannerControl(this, this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
@@ -557,6 +558,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public NlAnalyticsManager getAnalyticsManager() {
     return myAnalyticsManager;
+  }
+
+  @Override
+  public @Nullable LayoutScannerControl getLayoutScannerControl() {
+    return myScannerControl;
   }
 
   public boolean isPreviewSurface() {
@@ -778,7 +784,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       @Override
       public void run() {
         // Whenever error queue is active, make sure to resume any paused scanner control.
-        myValidatorControl.resume();
+        myScannerControl.resume();
         // Look up *current* result; a newer one could be available
         Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
           .filter(LayoutlibSceneManager.class::isInstance)
@@ -788,9 +794,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myValidatorControl != null) {
+        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myScannerControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            myValidatorControl.getScanner().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+            myScannerControl.validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
           }
         }
 
@@ -992,9 +998,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myIsRenderingSynchronously = enabled;
     // If animation is enabled, scanner must be paused.
     if (enabled) {
-      myValidatorControl.pause();
+      myScannerControl.pause();
     } else {
-      myValidatorControl.resume();
+      myScannerControl.resume();
     }
   }
 
