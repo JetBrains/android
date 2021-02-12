@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.intellij.openapi.project.Project;
@@ -26,7 +27,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import kotlin.sequences.SequencesKt;
-import org.gradle.internal.impldep.org.eclipse.jgit.annotations.NonNull;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
