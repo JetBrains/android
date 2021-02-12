@@ -598,6 +598,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     Predicate<ElementList.ElementItem> currentElementFilter = e ->
       e.myElementState == TO_BE_ADDED ||
       e.myElementState == EXISTING ||
+      e.myElementState == MOVED ||
       (e.myElementState == DEFAULT && e.myElement instanceof GradlePropertiesDslElement &&
        !(((GradlePropertiesDslElement)e.myElement).getCurrentElements().isEmpty()));
     return myProperties.myElements.stream().filter(currentElementFilter).map(e -> e.myElement).collect(Collectors.toList());
