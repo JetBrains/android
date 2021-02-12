@@ -942,6 +942,7 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
+      // TODO: b/180067858 Clean up the render path. Currently mNeedsLayout is never ANIMATED_LAYOUT.
       if (myIsLiveRenderingEnabled) {
         manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }

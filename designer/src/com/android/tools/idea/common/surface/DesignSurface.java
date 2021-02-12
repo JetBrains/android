@@ -1308,6 +1308,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myAnalyticsManager;
   }
 
+  @Nullable
+  public LayoutScannerControl getLayoutScannerControl() {
+    return null;
+  }
+
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {

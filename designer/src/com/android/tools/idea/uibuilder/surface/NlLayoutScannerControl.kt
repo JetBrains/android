@@ -16,11 +16,12 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssuePanel
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.LayoutScannerControl
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
-import com.android.tools.idea.validator.ValidatorUtil
-import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 
@@ -34,7 +35,13 @@ class NlLayoutScannerControl(
   private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
   /** The main scanner logic that parses atf results and creates lint issues */
-  override val scanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
+  private val scanner = NlLayoutScanner(surface.issueModel, disposable, metricTracker)
+
+  override val issues get() = scanner.issues
+
+  override fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
+    scanner.validateAndUpdateLint(renderResult, model)
+  }
 
   /** Listener for issue panel open/close */
   @VisibleForTesting

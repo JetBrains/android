@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -70,7 +71,7 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     // Precondition: Scanner has some issues already
     val issuesSize = 3
     simulateSurfaceRefreshedWithScanner(control, issuesSize)
-    assertEquals(issuesSize, control.scanner.issues.size)
+    assertEquals(issuesSize, control.issues.size)
     assertTrue(check.isLayoutScannerEnabled)
 
     // Test: ensure it doesn't re-render.
@@ -87,7 +88,7 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     val helper = ScannerTestHelper()
     val model = helper.buildModel(issuesSize)
     check.isLayoutScannerEnabled = true
-    control.scanner.validateAndUpdateLint(helper.mockRenderResult(model), model)
+    control.validateAndUpdateLint(helper.mockRenderResult(model), model)
   }
 
   private fun mockSurfaceNoSceneManager(): NlDesignSurface {

@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.KeyPressedEvent;
 import com.android.tools.idea.common.surface.KeyReleasedEvent;
+import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.MouseReleasedEvent;
@@ -55,6 +56,11 @@ public class SceneInteraction extends Interaction {
   @Override
   public void begin(@NotNull InteractionEvent event) {
     if (event instanceof MousePressedEvent) {
+      LayoutScannerControl scannerControl = mySceneView.getSurface().getLayoutScannerControl();
+      if (scannerControl != null && mySceneView.getScene().isLiveRenderingEnabled()) {
+        scannerControl.pause();
+      }
+
       MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
@@ -124,6 +130,7 @@ public class SceneInteraction extends Interaction {
                                                  ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
 
     MouseEvent mouseEvent = ((MouseReleasedEvent)event).getEventObject();
+    resumeScanner();
     end(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
 
@@ -147,8 +154,16 @@ public class SceneInteraction extends Interaction {
 
   @Override
   public void cancel(@NotNull InteractionEvent event) {
+    resumeScanner();
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
     cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
+  }
+
+  private void resumeScanner() {
+    LayoutScannerControl scannerControl = mySceneView.getSurface().getLayoutScannerControl();
+    if (scannerControl != null && mySceneView.getScene().isLiveRenderingEnabled()) {
+      scannerControl.resume();
+    }
   }
 
   /**
