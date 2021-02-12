@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model.repositories.search
+package com.android.tools.idea.gradle.repositories.search
 
-import com.google.common.util.concurrent.ListenableFuture
+data class SearchQuery(val groupId: String?, val artifactName: String?)
+data class SearchRequest(val query: SearchQuery, val rowCount: Int, val start: Int)
 
-interface ArtifactRepositorySearchService {
-  fun search(request: SearchRequest): ListenableFuture<SearchResult>
-}

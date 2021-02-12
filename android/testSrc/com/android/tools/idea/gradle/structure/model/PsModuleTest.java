@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
-import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory;
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.testing.AndroidGradleTestCase;

@@ -21,18 +21,21 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.structure.model.repositories.search.GoogleRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
-import com.android.tools.idea.gradle.structure.model.toArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.GoogleRepository
+import com.android.tools.idea.gradle.repositories.search.JCenterRepository
+import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository
+import com.android.tools.idea.gradle.repositories.search.MavenCentralRepository
+import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
@@ -465,5 +468,16 @@ class GradleDependencyCompatibilityAnalyzer(
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
     }
+  }
+}
+
+private fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
+  return when (type) {
+    RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
+    RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
+    RepositoryModel.RepositoryType.MAVEN ->
+      LocalMavenRepository.maybeCreateLocalMavenRepository((this as MavenRepositoryModel).url().forceString(), name().forceString())
+    RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> GoogleRepository
+    RepositoryModel.RepositoryType.FLAT_DIR -> null
   }
 }
