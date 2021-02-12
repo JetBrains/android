@@ -163,7 +163,7 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   @Override
   @NotNull
   public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
-    List<GradleDslElement> es = getAllElements();
+    List<GradleDslElement> es = getCurrentElements();
     int i = 0;
     for (; i < es.size(); i++) {
       if (comparator.compare(es.get(i), newElement) > 0) {

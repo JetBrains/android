@@ -88,4 +88,33 @@ public class GradleBuildFile extends GradleDslFile {
 
     super.setParsedElement(element);
   }
+
+  @Override
+  public void addAppliedProperty(GradleDslElement element) {
+    // TODO(xof): unify with setParsedElement above.
+    ModelEffectDescription effect;
+
+    if (element instanceof GradleDslLiteral) {
+      if (element.getName().equals("sourceCompatibility")) {
+        effect = new ModelEffectDescription(new ModelPropertyDescription(SOURCE_COMPATIBILITY), SET);
+      }
+      else if (element.getName().equals("targetCompatibility")) {
+        effect = new ModelEffectDescription(new ModelPropertyDescription(TARGET_COMPATIBILITY), SET);
+      }
+      else {
+        super.addAppliedProperty(element);
+        return;
+      }
+      JavaDslElement javaDslElement = getPropertyElement(JAVA);
+      if (javaDslElement == null) {
+        javaDslElement = new JavaDslElement(this, GradleNameElement.create(JAVA.name));
+        addAppliedProperty(javaDslElement);
+      }
+      element.setModelEffect(effect);
+      javaDslElement.addAppliedProperty(element);
+      return;
+    }
+
+    super.addAppliedProperty(element);
+  }
 }
