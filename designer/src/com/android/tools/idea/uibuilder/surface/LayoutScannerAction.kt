@@ -20,11 +20,18 @@ import java.util.concurrent.CompletableFuture
 
 /**
  * Controller for layout scanner that checks the layout and produces lint checks.
- * It runs Accessibility Testing Framework.
+ * It controls when to run/pause/resume Accessibility Testing Framework.
+ * By default scanner is enabled/resumed.
  */
 interface LayoutScannerControl {
   /** Return the scanner capable of checking the layout. */
   val scanner: NlLayoutScanner
+
+  /** Pause the scanner until it is resumed by [resume] */
+  fun pause()
+
+  /** Resume the scanner until it is paused by [pause] */
+  fun resume()
 }
 
 /** Configuration for layout scanner */
