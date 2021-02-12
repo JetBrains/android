@@ -297,7 +297,6 @@ studio_plugin(
     provided = [
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/common:studio.android.sdktools.common",
     ],
 )
 
@@ -312,7 +311,6 @@ studio_plugin(
     provided = [
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/common:studio.android.sdktools.common",
     ],
 )
 
