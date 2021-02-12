@@ -38,6 +38,7 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 abstract class GradleModule(val gradleProject: BasicGradleProject) {
   abstract fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer)
   val findModelRoot: Model get() = gradleProject
+  val id = createUniqueModuleId(gradleProject)
 
   var projectSyncIssues: List<SyncIssueData>? = null; private set
   fun setSyncIssues(issues: List<SyncIssueData>) {
@@ -47,6 +48,18 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
   protected inner class ModelConsumer(val buildModelConsumer: ProjectImportModelProvider.BuildModelConsumer) {
     inline fun <reified T : Any> T.deliver() {
       buildModelConsumer.consumeProjectModel(gradleProject, this, T::class.java)
+    }
+  }
+}
+
+/**
+ * The container class for Java module, containing its Androidmodels handled by the Android plugin.
+ */
+@UsedInBuildAction
+class JavaModule(gradleProject: BasicGradleProject) : GradleModule(gradleProject) {
+  override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    with(ModelConsumer(consumer)) {
+      // Nothing to deliver yet.
     }
   }
 }
@@ -79,7 +92,6 @@ class AndroidModule internal constructor(
     return safeGet(::unsafeGet, null)
   }
 
-  val id = createUniqueModuleId(gradleProject)
 
   enum class NativeModelVersion { None, V1, V2 }
 

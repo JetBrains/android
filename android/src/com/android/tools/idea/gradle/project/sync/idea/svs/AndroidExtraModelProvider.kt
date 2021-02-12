@@ -104,7 +104,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     private val buildModels: List<GradleBuild>, // Always not empty.
     private val consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
-    private val modulesById: MutableMap<String, AndroidModule> = HashMap()
+    private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
     private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
     private val modelCache = ModelCache.create(buildFolderPaths)
 
@@ -151,13 +151,13 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
      * All of the requested models are registered back to the external project system via the
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
-    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<AndroidModule> {
+    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<GradleModule> {
       val isFullSync = when (syncOptions) {
         is FullSyncActionOptions -> true
         is SingleVariantSyncActionOptions -> false
         // Note: No other cases.
       }
-      val androidModules: MutableList<AndroidModule> = mutableListOf()
+      val modules: MutableList<GradleModule> = mutableListOf()
       buildModels.projects.forEach { gradleProject ->
         val androidProject = findParameterizedAndroidModel(
           gradleProject,
@@ -181,8 +181,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
             nativeModule,
             modelCache
           )
-          modulesById[module.id] = module
-          androidModules.add(module)
+          androidModulesById[module.id] = module
+          modules.add(module)
         }
       }
 
@@ -190,18 +190,18 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
         // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
         // e.g the ones that should be selected by the IDE.
-        chooseSelectedVariants(androidModules, syncOptions)
+        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions)
       }
 
       // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
       getAdditionalClassifierArtifactsModel(
         controller,
-        androidModules,
+        modules.filterIsInstance<AndroidModule>(),
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
         syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
       )
 
-      return androidModules
+      return modules
     }
 
     private fun fetchNativeVariantsAndroidModels(syncOptions: NativeVariantsSyncActionOptions, buildFolderPaths: BuildFolderPaths): List<GradleModule> {
@@ -378,7 +378,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       selectedVariants: SelectedVariants
     ): List<ModuleConfiguration>? {
       val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
-      val module = modulesById[moduleConfiguration.id]
+      val module = androidModulesById[moduleConfiguration.id]
                    ?: return null
       val variant = syncAndAddVariant(module, moduleConfiguration.variant) ?: return null
       val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
@@ -390,7 +390,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
                                                                                    base = selectedVariantDetails)
 
       fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
-        val dependencyModule = modulesById[dependencyModuleId] ?: return null
+        val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
         val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
         val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
 
