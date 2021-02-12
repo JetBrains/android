@@ -909,6 +909,7 @@ android-studio/jre/release
 android-studio/lib/FastInfoset-1.2.15.jar
 android-studio/lib/HdrHistogram-2.1.4.jar
 android-studio/lib/RoaringBitmap-0.9.0.jar
+android-studio/lib/android-annotations.jar
 android-studio/lib/android-base-common.jar
 android-studio/lib/animal-sniffer-annotations-1.17.jar
 android-studio/lib/annotations-4.1.1.4.jar
@@ -1029,7 +1030,6 @@ android-studio/lib/failureaccess-1.0.1.jar
 android-studio/lib/fluent-hc-4.5.12.jar
 android-studio/lib/forms-1.1-preview.jar
 android-studio/lib/forms_rt.jar
-android-studio/lib/google-analytics-library.jar
 android-studio/lib/grazie-spellchecker-0.1.9.jar
 android-studio/lib/groovy-2.5.11.jar
 android-studio/lib/groovy-json-2.5.11.jar
@@ -1114,7 +1114,6 @@ android-studio/lib/kotlinx-coroutines-core-1.3.9.jar
 android-studio/lib/kotlinx-coroutines-jdk8-1.3.9.jar
 android-studio/lib/kryo-2.24.0.jar
 android-studio/lib/kxml2-2.3.0.jar
-android-studio/lib/libstudio.proto.jar
 android-studio/lib/log4j.jar
 android-studio/lib/lz4-java-1.7.1.jar
 android-studio/lib/markdownj-core-0.4.2-SNAPSHOT.jar
@@ -1549,6 +1548,7 @@ android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
 android-studio/plugins/android/lib/game-tools-protos.jar
 android-studio/plugins/android/lib/game-tools.jar
 android-studio/plugins/android/lib/generator.jar
+android-studio/plugins/android/lib/google-analytics-library.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
@@ -1567,6 +1567,7 @@ android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
+android-studio/plugins/android/lib/libstudio.proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
 android-studio/plugins/android/lib/moshi-1.6.0.jar
