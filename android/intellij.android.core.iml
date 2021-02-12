@@ -29,7 +29,6 @@
     <orderEntry type="module" module-name="intellij.testng" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" exported="" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.rt" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.platform.jps.build" />
     <orderEntry type="module" module-name="intellij.spellchecker" />
