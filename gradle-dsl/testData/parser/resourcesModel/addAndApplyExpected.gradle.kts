@@ -1,9 +1,9 @@
 android {
   packagingOptions {
     resources {
-      excludes += listOf("foo")
-      pickFirsts += listOf("bar", "baz")
-      merges += listOf("a", "b", "c")
+      excludes += setOf("foo")
+      pickFirsts += setOf("bar", "baz")
+      merges += setOf("a", "b", "c")
     }
   }
 }
