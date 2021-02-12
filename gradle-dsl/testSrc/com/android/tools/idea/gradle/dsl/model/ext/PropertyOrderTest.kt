@@ -724,6 +724,17 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddExtBlockAfterPlugins() {
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED)
+  }
+
+  @Test
   fun testAddExtBlockAfterMultipleApplies() {
     writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES)
 
@@ -808,6 +819,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE_EXPECTED("addQualifiedDependencyWithExistingReferenceExpected"),
     ADD_EXT_BLOCK_AFTER_APPLY("addExtBlockAfterApply"),
     ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED("addExtBlockAfterApplyExpected"),
+    ADD_EXT_BLOCK_AFTER_PLUGINS("addExtBlockAfterPlugins"),
+    ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED("addExtBlockAfterPluginsExpected"),
     ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES("addExtBlockAfterMultipleApplies"),
     ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED("addExtBlockAfterMultipleAppliesExpected"),
     ADD_EXT_BLOCK_TO_TOP("addExtBlockToTop"),
