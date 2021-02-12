@@ -27,9 +27,9 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidLintFontValidationErrorInspection extends AndroidLintInspectionBase {
-  public AndroidLintFontValidationErrorInspection() {
-    super(AndroidBundle.message("android.lint.inspections.font.validation.error"), FontDetector.FONT_VALIDATION_ERROR);
+public class AndroidLintFontValidationInspection extends AndroidLintInspectionBase {
+  public AndroidLintFontValidationInspection() {
+    super(AndroidBundle.message("android.lint.inspections.font.validation"), FontDetector.FONT_VALIDATION);
   }
 
   @NotNull

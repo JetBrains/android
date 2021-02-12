@@ -35,7 +35,7 @@ class LintIdeConfiguration(
   project: Project,
   private val issues: Set<Issue>)
   : LintXmlConfiguration(configurations, project) {
-  override fun getDefinedSeverity(issue: Issue, source: Configuration): Severity? {
+  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? {
     val known = issues.contains(issue)
     if (!known) {
       if (issue == IssueRegistry.BASELINE) {
@@ -48,7 +48,7 @@ class LintIdeConfiguration(
         return Severity.IGNORE
       }
     }
-    return super.getDefinedSeverity(issue, source)
+    return super.getDefinedSeverity(issue, source, visibleDefault)
   }
 }
 
@@ -58,7 +58,7 @@ class LintIdeGradleConfiguration(
   lintOptions: LintModelLintOptions,
   private val issues: Set<Issue>)
   : LintOptionsConfiguration(configurations, lintOptions) {
-  override fun getDefinedSeverity(issue: Issue, source: Configuration): Severity? {
+  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? {
     val known = issues.contains(issue)
     if (!known) {
       if (issue == IssueRegistry.BASELINE) {
@@ -71,6 +71,6 @@ class LintIdeGradleConfiguration(
         return Severity.IGNORE
       }
     }
-    return super.getDefinedSeverity(issue, source)
+    return super.getDefinedSeverity(issue, source, visibleDefault)
   }
 }
