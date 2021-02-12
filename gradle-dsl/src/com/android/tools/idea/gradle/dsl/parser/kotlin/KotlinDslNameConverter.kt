@@ -32,6 +32,7 @@ import kotlin.jvm.JvmDefault
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
@@ -93,7 +94,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
           VAR, VWO -> return ExternalNameInfo(e.key.first, ASSIGNMENT)
           SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, METHOD)
           VAL -> when (e.value.property.type) {
-            MUTABLE_SET -> return ExternalNameInfo(e.key.first, AUGMENTED_ASSIGNMENT)
+            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.key.first, AUGMENTED_ASSIGNMENT)
             else -> Unit
           }
           else -> Unit
