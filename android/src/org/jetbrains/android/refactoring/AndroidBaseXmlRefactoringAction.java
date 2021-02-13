@@ -183,8 +183,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
         return null;
       }
     };
-    super.update(new AnActionEvent(e.getInputEvent(), patchedContext, e.getPlace(), e.getPresentation(),
-                                   e.getActionManager(), e.getModifiers()));
+    super.update(e.withDataContext(patchedContext));
   }
 
   protected abstract void doRefactorForTags(@NotNull Project project, @NotNull XmlTag[] tags);
