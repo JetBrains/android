@@ -383,11 +383,23 @@ public class AvdManagerConnection {
   }
 
   /**
-   * Launch the given AVD in the emulator.
-   * @return a future with the device that was launched
+   * Launches the given AVD in the emulator. Returns a future with the device that was launched.
    */
   @NotNull
   public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull List<String> parameters) {
+    return startAvd(project, info, false, parameters);
+  }
+
+  @NotNull
+  ListenableFuture<IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
+    return startAvd(project, info, true, Collections.emptyList());
+  }
+
+  @NotNull
+  private ListenableFuture<IDevice> startAvd(@Nullable Project project,
+                                             @NotNull AvdInfo info,
+                                             boolean forceColdBoot,
+                                             @NotNull List<String> parameters) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
@@ -403,7 +415,7 @@ public class AvdManagerConnection {
     // noinspection ConstantConditions, UnstableApiUsage
     return Futures.transformAsync(
       checkAccelerationAsync(),
-      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, parameters),
+      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, forceColdBoot, parameters),
       MoreExecutors.directExecutor());
   }
 
@@ -411,23 +423,24 @@ public class AvdManagerConnection {
   private ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(@NotNull AccelerationErrorCode code,
                                                                                        @Nullable Project project,
                                                                                        @NotNull AvdInfo info,
+                                                                                       boolean forceColdBoot,
                                                                                        @NotNull List<String> parameters) {
     switch (code) {
       case ALREADY_INSTALLED:
-        return continueToStartAvd(project, info, parameters);
+        return continueToStartAvd(project, info, forceColdBoot, parameters);
       case TOOLS_UPDATE_REQUIRED:
       case PLATFORM_TOOLS_UPDATE_ADVISED:
       case SYSTEM_IMAGE_UPDATE_ADVISED:
         // Launch the virtual device with possibly degraded performance even if there are updates
         // noinspection DuplicateBranchesInSwitch
-        return continueToStartAvd(project, info, parameters);
+        return continueToStartAvd(project, info, forceColdBoot, parameters);
       case NO_EMULATOR_INSTALLED:
         return handleAccelerationError(project, info, code);
       default:
         Abi abi = Abi.getEnum(info.getAbiType());
 
         if (abi == null) {
-          return continueToStartAvd(project, info, parameters);
+          return continueToStartAvd(project, info, forceColdBoot, parameters);
         }
 
         if (abi.equals(Abi.X86) || abi.equals(Abi.X86_64)) {
@@ -435,13 +448,16 @@ public class AvdManagerConnection {
         }
 
         // Let ARM and MIPS virtual devices launch without hardware acceleration
-        return continueToStartAvd(project, info, parameters);
+        return continueToStartAvd(project, info, forceColdBoot, parameters);
     }
   }
 
   @NotNull
-  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project, @NotNull AvdInfo avd, @NotNull List<String> parameters) {
-    final File emulatorBinary = getEmulatorBinary();
+  private ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project,
+                                                       @NotNull AvdInfo avd,
+                                                       boolean forceColdBoot,
+                                                       @NotNull List<String> parameters) {
+    File emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
@@ -472,7 +488,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, parameters);
+    GeneralCommandLine commandLine = newEmulatorCommand(project, emulatorBinary, avd, forceColdBoot, parameters);
     EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
@@ -529,11 +545,12 @@ public class AvdManagerConnection {
   private GeneralCommandLine newEmulatorCommand(@Nullable Project project,
                                                 @NotNull File emulator,
                                                 @NotNull AvdInfo device,
+                                                boolean forceColdBoot,
                                                 @NotNull List<String> parameters) {
     GeneralCommandLine command = new GeneralCommandLine();
 
     command.setExePath(emulator.getPath());
-    addParameters(project, device, command);
+    addParameters(project, device, forceColdBoot, command);
 
     CharSequence arguments = System.getenv("studio.emu.params");
 
@@ -582,8 +599,7 @@ public class AvdManagerConnection {
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@Nullable Project project,
-                               @NotNull AvdInfo info,
+  protected void addParameters(@Nullable Project project, @NotNull AvdInfo info, boolean forceColdBoot,
                                @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
@@ -604,7 +620,7 @@ public class AvdManagerConnection {
         // Do not fast boot and do not store a snapshot on exit
         commandLine.addParameter("-no-snapstorage");
       }
-      else if (AvdWizardUtils.COLD_BOOT_ONCE_VALUE.equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+      else if (forceColdBoot) {
         // No fast boot now, but do store a snapshot on exit for next time
         commandLine.addParameter("-no-snapshot-load");
       }
@@ -620,7 +636,7 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (shouldBeLaunchedEmbedded(project, info)) {
-      commandLine.addParameters("-no-window", "-gpu", "auto-no-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
+      commandLine.addParameters("-qt-hide-window", "-grpc-use-token", "-idle-grpc-timeout", "300"); // Launch headless.
     }
   }
 
@@ -1017,7 +1033,7 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  public AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
+  private AvdInfo reloadAvd(@NotNull AvdInfo avdInfo) {
     return myAvdManager.reloadAvd(avdInfo, SDK_LOG);
   }
 

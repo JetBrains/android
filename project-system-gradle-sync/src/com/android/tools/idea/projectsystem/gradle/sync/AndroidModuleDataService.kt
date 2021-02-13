@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
@@ -221,6 +222,15 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
     provider.resDirectories
   } + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
     VfsUtilCore.pathToUrl(file.absolutePath)
+  }
+
+
+  if (androidFacet.module.project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY) != true) {
+    // Full variant-sync should not reset the current selection of build variants. Variant switching is handled by the BuildVariantUpdater.
+    val currentlySelectedVariant = androidFacet.properties.SELECTED_BUILD_VARIANT
+    if (currentlySelectedVariant.isNotEmpty() && androidModuleModel.variantExists(currentlySelectedVariant)) {
+      androidModuleModel.setSelectedVariantName(currentlySelectedVariant)
+    }
   }
 
   AndroidModel.set(androidFacet, androidModuleModel)

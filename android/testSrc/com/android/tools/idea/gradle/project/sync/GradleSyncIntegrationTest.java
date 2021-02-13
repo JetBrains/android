@@ -215,28 +215,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertEquals(":", gradleModel.getGradlePath());
   }
 
-  // See https://code.google.com/p/android/issues/detail?id=224985
-  public void testNdkProjectSync() throws Exception {
-    loadProject(HELLO_JNI);
-
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    NdkFacet ndkFacet = NdkFacet.getInstance(appModule);
-    assertNotNull(ndkFacet);
-
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(appModule);
-    VirtualFile[] roots = rootManager.getSourceRoots(false /* do not include tests */);
-
-    boolean cppSourceFolderFound = false;
-    for (VirtualFile root : roots) {
-      if (root.getName().equals("cpp")) {
-        cppSourceFolderFound = true;
-        break;
-      }
-    }
-
-    assertTrue(cppSourceFolderFound);
-  }
-
   public void testProjectWithCustomBuildScriptDeps() throws Exception {
     // https://youtrack.jetbrains.com/issue/IDEA-228545
     loadProject(CUSTOM_BUILD_SCRIPT_DEPS);

@@ -23,6 +23,7 @@ import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
+import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
 import java.io.File
@@ -130,7 +131,7 @@ class MaterialVdIconsLoader(
     // TODO: Make sure this cannot be called more than once simultaneously. May cause IOExceptions from 'openConnection'.
     if (url == null) return
     when (url.protocol) {
-      "file" -> visitFiles(File(url.path), iconFileVisitor)
+      "file" -> visitFiles(SdkUtils.urlToFile(url), iconFileVisitor)
       "jar" -> {
         try {
           val connection = url.openConnection() as JarURLConnection

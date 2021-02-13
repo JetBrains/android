@@ -243,7 +243,7 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   private fun startAvd(emulatorBinary: File, avdInfo: AvdInfo): Process {
     val pb = ProcessBuilder()
-    pb.command(listOf(emulatorBinary.absolutePath, "-no-window", "-avd", avdInfo.name))
+    pb.command(listOf(emulatorBinary.absolutePath, "-qt-hide-window", "-avd", avdInfo.name))
     val env = pb.environment()
     env["HOME"] = AndroidLocation.getUserHomeFolder()
     env["ANDROID_AVD_HOME"] = AndroidLocation.getAvdFolder()

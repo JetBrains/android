@@ -119,7 +119,6 @@ public class AvdWizardUtils {
   public static final String USE_FAST_BOOT = AvdManager.AVD_INI_FORCE_FAST_BOOT_MODE;
   public static final String USE_CHOSEN_SNAPSHOT_BOOT = AvdManager.AVD_INI_FORCE_CHOSEN_SNAPSHOT_BOOT_MODE;
   public static final String CHOSEN_SNAPSHOT_FILE = AvdManager.AVD_INI_CHOSEN_SNAPSHOT_FILE;
-  public static final String COLD_BOOT_ONCE_VALUE = AvdManager.AVD_INI_COLD_BOOT_ONCE;
 
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
 

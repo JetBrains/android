@@ -167,7 +167,6 @@ PROJECT             : testNdkProjectSync
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
-            JavaSource          : file://<PROJECT>/app/src/main/cpp
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
             JavaResource        : file://<PROJECT>/app/src/main/ml

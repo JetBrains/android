@@ -451,6 +451,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     @JvmStatic
     private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
-      commandLine.parametersList.parameters.contains("-no-window")
+      commandLine.parametersList.parameters.contains("-qt-hide-window")
   }
 }
