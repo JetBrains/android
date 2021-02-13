@@ -534,12 +534,15 @@ public class NavigationSchema implements Disposable {
    */
   @NotNull
   private ImmutableMultimap<DestinationType, TypeRef> buildDestinationTypeToDestinationMap() {
-    Map<PsiClass, DestinationType> destinationClassToType = new HashMap<>();
+    // Build a map of qualified class names to destination types.
+    // Use the qualified name instead of the class since we might get different instances
+    // for the same PsiClass, possibly if a library module has a dependency on the same class
+    Map<String, DestinationType> destinationClassToType = new HashMap<>();
 
-    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_ACTIVITY, ACTIVITY, false);
-    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT, true);
-    updateDestinationTypeMap(destinationClassToType, SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT, true);
-    updateDestinationTypeMap(destinationClassToType, NAV_GRAPH_DESTINATION, NAVIGATION, false);
+    destinationClassToType.put(SdkConstants.CLASS_ACTIVITY, ACTIVITY);
+    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.oldName(), FRAGMENT);
+    destinationClassToType.put(SdkConstants.CLASS_V4_FRAGMENT.newName(), FRAGMENT);
+    destinationClassToType.put(NAV_GRAPH_DESTINATION, NAVIGATION);
 
     for (TypeRef destinationClassRef : myTagToDestinationClass.values()) {
       if (destinationClassRef == NULL_TYPE) {
@@ -554,7 +557,7 @@ public class NavigationSchema implements Disposable {
       DestinationType result = OTHER;
       while (destinationClass != null) {
         toUpdate.add(destinationClass);
-        DestinationType t = destinationClassToType.get(destinationClass);
+        DestinationType t = destinationClassToType.get(destinationClass.getQualifiedName());
         if (t != null) {
           result = t;
           break;
@@ -562,22 +565,13 @@ public class NavigationSchema implements Disposable {
         destinationClass = destinationClass.getSuperClass();
       }
       for (PsiClass d : toUpdate) {
-        destinationClassToType.put(d, result);
+        destinationClassToType.put(d.getQualifiedName(), result);
       }
     }
     ImmutableMultimap.Builder<DestinationType, TypeRef> typeToDestinationBuilder = ImmutableMultimap.builder();
     destinationClassToType.forEach((destination, type) -> typeToDestinationBuilder.put(type, new TypeRef(destination)));
     typeToDestinationBuilder.put(OTHER, NULL_TYPE);
     return typeToDestinationBuilder.build();
-  }
-
-  private void updateDestinationTypeMap(@NotNull Map<PsiClass, DestinationType> destinationClassToType,
-                                        @NotNull String className, @NotNull DestinationType type, boolean optional) {
-    PsiClass psiClass = getClass(className);
-    assert(psiClass != null || optional);
-    if (psiClass != null) {
-      destinationClassToType.put(psiClass, type);
-    }
   }
 
   /**

@@ -22,6 +22,8 @@
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <androidStudioInitializer id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                               implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleOpenProjectProcessorInitializer"/>
+    <androidStudioInitializer id="Startup.AndroidGradleDisableAutoImportInitializer"
+                              implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">

@@ -155,7 +155,7 @@ public class WizardStepHeaderPanel extends JPanel {
     if (iconComponent != null) {
       GridConstraints imageConstraints =
         new GridConstraints(0, column, spanningRows, 1, GridConstraints.ANCHOR_NORTHWEST, GridConstraints.FILL_NONE,
-                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, JBUI.size(60, 60), null);
+                            GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, JBUI.size(64, 64), null);
       add(iconComponent, imageConstraints);
       return true;
     }

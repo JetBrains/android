@@ -120,11 +120,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
 
   init {
-    val embeddedFlags = if (standalone) {
-      ""
-    } else {
-      """ "-no-window" "-gpu" "auto-no-window""""
-    }
+    val embeddedFlags = if (standalone) "" else """ "-qt-hide-window""""
 
     registration = """
       port.serial=${serialPort}

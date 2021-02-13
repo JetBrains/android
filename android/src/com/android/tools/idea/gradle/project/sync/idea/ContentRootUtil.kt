@@ -122,10 +122,6 @@ private fun collectContentRootData(
 
   // Deal with any NDK specific folders.
   if (ndkModel != null) {
-    ndkModel.selectedVariant.sourceFolders.forEach {
-      addSourceFolder(it.absolutePath, SOURCE)
-    }
-
     // Exclude .externalNativeBuild (b/72450552)
     addSourceFolder(File(ndkModel.rootDirPath, ".externalNativeBuild").absolutePath, EXCLUDED)
     addSourceFolder(File(ndkModel.rootDirPath, ".cxx").absolutePath, EXCLUDED)

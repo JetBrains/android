@@ -219,6 +219,11 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Backspace"""")
 
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+    assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "Enter"""")
+
     ui.keyboard.pressAndRelease(KeyEvent.VK_TAB)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")

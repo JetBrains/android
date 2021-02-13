@@ -36,9 +36,9 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
    @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
+    if (project != null) {
       Presentation presentation = e.getPresentation();
-      presentation.setEnabledAndVisible(GradleProjectInfo.getInstance(project).isBuildWithGradle());
+      presentation.setEnabledAndVisible(true);
       presentation.setIcon(AllIcons.General.ProjectStructure);
       presentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
       presentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));

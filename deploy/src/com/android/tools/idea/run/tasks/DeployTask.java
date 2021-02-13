@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
@@ -90,6 +91,17 @@ public class DeployTask extends AbstractDeployTask {
     // the app as instant.
     if (device.getVersion().isGreaterOrEqualThan(28)) {
       options.setInstallFullApk();
+    }
+
+    // After installing and after returning from the install request, the package manager issues a force-stop to the
+    // app it has just finished installing. This force-stop will compete with the "am start" issued from Studio to
+    // occasionally prevent the app from starting (if the force-stop from pm is issued after our "am start").
+    //
+    // Since the app has already been stopped from Studio, requesting "--dont-kill" prevent the package manager from
+    // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
+    // this functionality is only valid for Android Nougat or above.
+    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N)) {
+      options.setDontKill();
     }
 
     // We can just append this, since all these options get string-joined in the end anyways.

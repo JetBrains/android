@@ -61,9 +61,10 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   @Override
   protected void addParameters(@Nullable Project project,
                                @NotNull AvdInfo info,
+                               boolean forceColdBoot,
                                @NotNull GeneralCommandLine commandLine) {
-    super.addParameters(project, info, commandLine);
-    commandLine.addParameters("-no-window");
+    super.addParameters(project, info, forceColdBoot, commandLine);
+    commandLine.addParameters("-qt-hide-window");
   }
 
   @NotNull

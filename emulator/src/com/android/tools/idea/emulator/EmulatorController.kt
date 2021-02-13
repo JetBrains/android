@@ -228,7 +228,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable? {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("streamClipboard(})")
+      LOG.info("streamClipboard()")
     }
     val method = EmulatorControllerGrpc.getStreamClipboardMethod()
     val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
@@ -340,7 +340,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("getVmState()")
     }
-    emulatorController.withDeadlineAfter(3, TimeUnit.SECONDS)
+    val timeout = if (connectionState == ConnectionState.CONNECTED) 3L else 15L
+    emulatorController.withDeadlineAfter(timeout, TimeUnit.SECONDS)
         .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
