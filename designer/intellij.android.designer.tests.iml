@@ -46,9 +46,9 @@
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="module-library">
       <library name="layoutlib_native" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.1.0.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.1.1.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.1.0.0/jb-layoutlib-native-jdk11-27.1.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.1.1.0/jb-layoutlib-native-jdk11-27.1.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
