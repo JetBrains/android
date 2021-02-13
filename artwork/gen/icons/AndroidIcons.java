@@ -104,7 +104,7 @@ public final class AndroidIcons {
     }
 
     /** 256x256 */ public static final @NotNull Icon NoActivity = load("icons/wizards/no_activity.png", 0L, 7);
-    /** 60x60 */ public static final @NotNull Icon StudioProduct = load("icons/wizards/studio_product.png", 0L, 1);
+    /** 64x64 */ public static final @NotNull Icon StudioProduct = load("icons/wizards/studio_product.svg", -7701714393616035614L, 0);
     /** 512x512 */ public static final @NotNull Icon ThingsModule = load("icons/wizards/things_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon TvModule = load("icons/wizards/tv_module.png", 0L, 0);
     /** 512x512 */ public static final @NotNull Icon WearModule = load("icons/wizards/wear_module.png", 0L, 0);
