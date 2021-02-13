@@ -14,10 +14,10 @@
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:27.1.0.0" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:27.1.0.0" />
+      <library name="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:27.1.1.0" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:27.1.1.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-jdk11/27.1.0.0/jb-layoutlib-jdk11-27.1.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-jdk11/27.1.1.0/jb-layoutlib-jdk11-27.1.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

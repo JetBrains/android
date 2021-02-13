@@ -14,9 +14,9 @@
     <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" />
     <orderEntry type="module-library">
       <library name="compose-compiler-hosted" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compose-compiler-hosted-0.1.0-dev06:27.1.0.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compose-compiler-hosted-0.1.0-dev06:27.1.1.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compose-compiler-hosted-0.1.0-dev06/27.1.0.0/compose-compiler-hosted-0.1.0-dev06-27.1.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compose-compiler-hosted-0.1.0-dev06/27.1.1.0/compose-compiler-hosted-0.1.0-dev06-27.1.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
