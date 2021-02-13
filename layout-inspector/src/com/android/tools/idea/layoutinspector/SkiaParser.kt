@@ -361,22 +361,24 @@ class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
 
   @Slow
   fun shutdown() {
-    val lock = CountDownLatch(1)
-    client?.shutdown(Empty.getDefaultInstance(), object: StreamObserver<Empty> {
-      override fun onNext(ignore: Empty?) {
-        lock.countDown()
-      }
+    client?.let { client ->
+      val lock = CountDownLatch(1)
+      client.shutdown(Empty.getDefaultInstance(), object: StreamObserver<Empty> {
+        override fun onNext(ignore: Empty?) {
+          lock.countDown()
+        }
 
-      override fun onError(p0: Throwable?) {}
-      override fun onCompleted() {}
-    })
-    if (!lock.await(10, TimeUnit.SECONDS)) {
-      Logger.getInstance(SkiaParser::class.java).warn("Timed out waiting for skia parser shutdown. A skia-grpc-server process could have" +
-                                                      " been orphaned.")
+        override fun onError(p0: Throwable?) {}
+        override fun onCompleted() {}
+      })
+      if (!lock.await(10, TimeUnit.SECONDS)) {
+        Logger.getInstance(SkiaParser::class.java).warn(
+          "Timed out waiting for skia parser shutdown. A skia-grpc-server process could have been orphaned.")
+      }
+      channel?.shutdownNow()
+      channel?.awaitTermination(1, TimeUnit.SECONDS)
+      channel = null
     }
-    channel?.shutdownNow()
-    channel?.awaitTermination(1, TimeUnit.SECONDS)
-    channel = null
     client = null
     handler?.destroyProcess()
     handler = null
