@@ -95,7 +95,7 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
   private void createUIComponents() {
     final EditorTextField editorTextField = new LanguageTextField(PlainTextLanguage.INSTANCE, myProject, "") {
       @Override
-      protected EditorEx createEditor() {
+      protected @NotNull EditorEx createEditor() {
         final EditorEx editor = super.createEditor();
         final PsiFile file = PsiDocumentManager.getInstance(myProject).getPsiFile(editor.getDocument());
 
