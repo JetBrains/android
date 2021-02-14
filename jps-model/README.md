@@ -7,4 +7,4 @@ in JPS build process (e.g. `org.jetbrains.android.facet.AndroidFacet`). Also, la
 should match minimal supported language level for JPS build process (i.e. 1.8). 
 
 This module does not contain JPS build plugin itself. JPS build plugin sources are available in 
-[intellij.android.jps](../jps-plugin).
+[intellij.android.jpsBuildPlugin.jps](../jps-build-plugin/jps).
