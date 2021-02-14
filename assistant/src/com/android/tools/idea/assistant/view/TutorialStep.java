@@ -477,6 +477,7 @@ public class TutorialStep extends JPanel {
      * TODO: Only do this on the final editor creation, but ensure that we've got the track height when setting the preffered height in
      * the constructor.
      */
+    @NotNull
     @Override
     protected EditorEx createEditor() {
       EditorEx editor = super.createEditor();
