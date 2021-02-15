@@ -338,7 +338,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Horizontal [JBSplitter] comprising of the animated properties panel and the animation timeline.
      */
-    private val propertiesTimelineSplitter = JBSplitter(0.2f).apply {
+    private val propertiesTimelineSplitter = JBSplitter(0.45f).apply {
       firstComponent = createAnimatedPropertiesPanel()
       secondComponent = timelinePanel
       dividerWidth = 1
@@ -752,20 +752,27 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       override fun setMaximum(maximum: Int) {
         super.setMaximum(maximum)
         updateMajorTicks()
+        updateMinorTicks()
       }
 
       fun updateMajorTicks() {
-        // First, calculate where the major ticks and labels are going to be painted, based on the maximum.
-        val tickIncrement = maximum / 5
+        // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
+        // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
+        val tickIncrement = maximum / 2 // One label in start, middle and end.
         setMajorTickSpacing(tickIncrement)
         // Now, add the "ms" suffix to each label.
-        if (tickIncrement == 0) {
+        labelTable = if (tickIncrement == 0) {
           // Handle the special case where maximum == 0 and we only have the "0ms" label.
-          labelTable = createMsLabelTable(labelTable)
+          createMsLabelTable(labelTable)
         }
         else {
-          labelTable = createMsLabelTable(createStandardLabels(tickIncrement))
+          createMsLabelTable(createStandardLabels(tickIncrement))
         }
+      }
+
+      fun updateMinorTicks() {
+        // Split the timeline into 6 blocks, i.e. 7 vertical lines (without label) including start and end.
+        setMinorTickSpacing(maximum / 6)
       }
 
     }.apply {
@@ -834,7 +841,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         val key = keys.nextElement()
         labelTable[key] = object : JBLabel("$key ms") {
           // Setting the enabled property to false is not enough because BasicSliderUI will check if the slider itself is enabled when
-          // paiting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
+          // painting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
           override fun getForeground() = UIUtil.getLabelDisabledForeground()
         }
       }
@@ -901,7 +908,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         //        |   |
         //         \ /
         // We add 5 points with the following coordinates:
-        // (x, y): bottom of the scrubbler handle
+        // (x, y): bottom of the scrubber handle
         // (x - halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (left side)
         // (x - halfWidth, y - Height): top-left point of the scrubber, where there is a right angle
         // (x + halfWidth, y - Height): top-right point of the scrubber, where there is a right angle
@@ -919,9 +926,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
       override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
+        // Major ticks should not be painted.
+      }
+
+      override fun paintMinorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
         g as Graphics2D
         g.color = JBColor.border()
-        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height);
+        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height)
       }
 
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
