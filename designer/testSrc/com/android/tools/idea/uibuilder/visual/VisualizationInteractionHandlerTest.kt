@@ -16,10 +16,13 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
+import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
@@ -27,6 +30,7 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import java.awt.event.KeyEvent
 
 class VisualizationInteractionHandlerTest : SceneTest() {
 
@@ -88,6 +92,15 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     // TODO(b/147799910): Also test the case which popup menu is created.
     //                    For now it is not testable in unit test because the create JComponent is invisible and an exception is thrown.
+  }
+
+  fun testEnterPanModeWithPanShortcut() {
+    val surface = myModel.surface
+    val interactionHandler = VisualizationInteractionHandler(surface) { EmptyModelsProvider }
+
+    val keyEvent = KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, KeyEvent.CHAR_UNDEFINED).build()
+    val interaction = interactionHandler.keyPressedWithoutInteraction(keyEvent)
+    assertInstanceOf(interaction, PanInteraction::class.java)
   }
 
   override fun createModel(): ModelBuilder {
