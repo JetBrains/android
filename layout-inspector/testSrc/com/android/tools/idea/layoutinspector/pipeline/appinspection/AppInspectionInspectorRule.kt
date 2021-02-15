@@ -88,6 +88,9 @@ class AppInspectionInspectorRule : TestRule {
   init {
     val viewInspectorHandler = TestAppInspectorCommandHandler(
       timer,
+      createInspectorResponse = { createCommand ->
+        createCommand.createResponse(viewInspector.createResponseStatus)
+      },
       rawInspectorResponse = { rawCommand ->
         val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
         val viewResponse = viewInspector.handleCommand(viewCommand)
