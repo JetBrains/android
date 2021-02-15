@@ -318,4 +318,14 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
       return myJarClassLoader.get().getResources(name);
     }
   }
+
+  @NotNull
+  public ClassTransform getProjectClassesTransformationProvider() {
+    return myProjectClassesTransformationProvider;
+  }
+
+  @NotNull
+  public ClassTransform getNonProjectClassesTransformationProvider() {
+    return myNonProjectClassesTransformationProvider;
+  }
 }

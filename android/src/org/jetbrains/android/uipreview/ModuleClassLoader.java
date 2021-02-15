@@ -38,6 +38,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -57,13 +58,13 @@ import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import kotlin.jvm.functions.Function0;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -147,6 +148,11 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
    */
   @NotNull
   private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
+
+  /**
+   * Holds the provider that allows finding the {@link PsiFile}
+   */
+  private final Supplier<PsiFile> myPsiFileProvider;
   /**
    * Holds the provider that allows finding the source file that originated this
    * {@link ModuleClassLoader}. It allows for scoping the search of .class files.
@@ -174,6 +180,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     }
   }
 
+  private final Set<String> loadedClasses = new HashSet<>();
 
   /**
    * Method uses to remap type names using {@link ModuleClassLoader#INTERNAL_PACKAGE} as prefix to its original name so they original
@@ -202,9 +209,9 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     Disposer.register(renderContext.getModule(), this);
     myModuleReference = new WeakReference<>(renderContext.getModule());
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
-    final Function0<PsiFile> sourcePsiFileProvider = renderContext.getFileProvider();
+    myPsiFileProvider = renderContext.getFileProvider();
     mySourceFileProvider = () -> {
-      PsiFile file = sourcePsiFileProvider.invoke();
+      PsiFile file = myPsiFileProvider.get();
       return file != null ? file.getVirtualFile() : null;
     };
     mAdditionalLibraries = getAdditionalLibraries();
@@ -286,6 +293,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     } finally {
       if (classLoaded) {
         myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
+        loadedClasses.add(name);
       }
     }
   }
@@ -645,6 +653,17 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @NotNull
   public ModuleClassLoaderDiagnosticsRead getStats() {
     return myDiagnostics;
+  }
+
+  @NotNull
+  public ImmutableCollection<String> getLoadedClasses() {
+    return ImmutableList.copyOf(loadedClasses);
+  }
+
+  @Nullable
+  public ModuleRenderContext getModuleContext() {
+    Module module = myModuleReference.get();
+    return module == null ? null : ModuleRenderContext.forFile(module, myPsiFileProvider);
   }
 
   @Override
