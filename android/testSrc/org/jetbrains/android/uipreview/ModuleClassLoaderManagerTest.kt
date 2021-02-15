@@ -61,7 +61,6 @@ class ModuleClassLoaderManagerTest {
       moduleClassLoader = ModuleClassLoaderManager.get()
         .getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
       assertNotNull(moduleClassLoader)
-      ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
     }
 
     run {
@@ -77,7 +76,6 @@ class ModuleClassLoaderManagerTest {
       val newClassLoader = ModuleClassLoaderManager.get()
         .getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest, projectTransformations, nonProjectTransformations)
       assertEquals("No changes into the transformations. Same class loader was expected", newClassLoader, moduleClassLoader)
-      ModuleClassLoaderManager.get().release(newClassLoader, this@ModuleClassLoaderManagerTest)
     }
 
     run {
@@ -110,8 +108,7 @@ class ModuleClassLoaderManagerTest {
       assertNotNull(newClassLoader)
       assertNotEquals(newClassLoader, moduleClassLoader)
       ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
-      moduleClassLoader = newClassLoader
-      ModuleClassLoaderManager.get().release(moduleClassLoader!!, this@ModuleClassLoaderManagerTest)
+      ModuleClassLoaderManager.get().release(newClassLoader, this@ModuleClassLoaderManagerTest)
     }
   }
 

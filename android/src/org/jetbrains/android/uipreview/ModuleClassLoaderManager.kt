@@ -32,14 +32,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiFile
+import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.plugins.groovy.util.removeUserData
 import java.lang.ref.SoftReference
+import java.lang.ref.WeakReference
 import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.WeakHashMap
+import java.util.concurrent.CancellationException
+import java.util.function.Supplier
 
 private val DUMMY_HOLDER = Any()
 
@@ -86,14 +91,16 @@ private val SHARED_MODULE_CLASS_LOADER: Key<SoftReference<ModuleClassLoader>> = 
  * Class providing the context for a ModuleClassLoader in which is being used.
  * Gradle class resolution depends only on [Module] but ASWB will also need the file to be able to
  * correctly resolve the classes.
+ *
+ * This should be a short living object since it retains a string reference to a [Module].
  */
-class ModuleRenderContext private constructor(val module: Module, val fileProvider: () -> PsiFile?) {
+class ModuleRenderContext private constructor(val module: Module, val fileProvider: Supplier<PsiFile?>) {
   val project: Project
     get() = module.project
 
   companion object {
     @JvmStatic
-    fun forFile(module: Module, fileProvider: () -> PsiFile?) = ModuleRenderContext(module, fileProvider)
+    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)
 
     @JvmStatic
     fun forFile(file: PsiFile) = ModuleRenderContext(file.module!!) { file }
@@ -108,11 +115,43 @@ class ModuleRenderContext private constructor(val module: Module, val fileProvid
 }
 
 /**
+ * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper disposal of the resources used.
+ */
+private class PreloadingTask(moduleClassLoader: ModuleClassLoader, classesToPreload: Collection<String>) : Disposable {
+  private val module = WeakReference<Module>(moduleClassLoader.module)
+  private val preloader = preload(moduleClassLoader, classesToPreload, getAppExecutorService())
+
+  init {
+    preloader.handle { _: Void, _: Throwable ->
+      module.get()?.removeUserData(PRELOADING_TASK)
+    }
+    Disposer.register(moduleClassLoader, this)
+  }
+
+  fun stop() {
+    try {
+      preloader.cancel(false)
+    } catch (ignore: CancellationException) { }
+  }
+
+  override fun dispose() {
+    try {
+      preloader.cancel(true)
+    } catch (ignore: CancellationException) { }
+    try {
+      preloader.join()
+    } catch (ignore: Exception) { }
+  }
+}
+
+private val PRELOADING_TASK: Key<PreloadingTask> = Key.create(::PRELOADING_TASK.qualifiedName)
+
+/**
  * A [ClassLoader] for the [Module] dependencies.
  */
 class ModuleClassLoaderManager {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
-  private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = HashMap()
+  private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
   private var captureDiagnostics = false
 
   @TestOnly
@@ -128,6 +167,8 @@ class ModuleClassLoaderManager {
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
                 onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader {
     val module: Module = moduleRenderContext.module
+    // If the shared ClassLoader is requested we have to stop preloading because otherwise it will slow down the normal loading flow
+    module.removeUserData(PRELOADING_TASK)?.stop()
     var moduleClassLoader = module.getUserData(SHARED_MODULE_CLASS_LOADER)?.get()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
@@ -167,8 +208,8 @@ class ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
-      moduleClassLoader = ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, diagnostics)
+      moduleClassLoader =
+        ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, createDiagnostics())
       module.putUserData(SHARED_MODULE_CLASS_LOADER, SoftReference(moduleClassLoader))
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
@@ -192,14 +233,15 @@ class ModuleClassLoaderManager {
     // Make sure the helper service is initialized
     moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
-    val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
     return ModuleClassLoader(parent, moduleRenderContext,
                       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation),
                       combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation),
-                             diagnostics).apply {
+                             createDiagnostics()).apply {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
   }
+
+  private fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
 
   /**
    * Creates a [MutableMap] to be used as a storage of [ModuleClassLoader] holders. We would like the implementation to be different in
@@ -210,22 +252,17 @@ class ModuleClassLoaderManager {
    *
    * In Tests, we would like it to be a Set of STRONG references. So that any unreleased references got caught by the LeakHunter.
    */
-  private fun createHoldersSet(): MutableSet<Any> {
+  private fun createHoldersSet(): MutableSet<Any> =
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      return mutableSetOf()
+      mutableSetOf()
     } else {
-      return Collections.newSetFromMap(WeakHashMap())
+      Collections.newSetFromMap(WeakHashMap())
     }
-  }
 
   @Synchronized
   fun clearCache(module: Module) {
     module.removeUserData(SHARED_MODULE_CLASS_LOADER)?.get()?.let { Disposer.dispose(it) }
   }
-
-  @Synchronized
-  private fun isManaged(moduleClassLoader: ModuleClassLoader) =
-    moduleClassLoader.module?.getUserData(SHARED_MODULE_CLASS_LOADER)?.get() == moduleClassLoader
 
   @Synchronized
   private fun unHold(moduleClassLoader: ModuleClassLoader, holder: Any) {
@@ -238,7 +275,33 @@ class ModuleClassLoaderManager {
   }
 
   @Synchronized
-  private fun isHeld(moduleClassLoader: ModuleClassLoader) = holders[moduleClassLoader]?.isNotEmpty() == true
+  private fun stopManagingIfNotHeld(moduleClassLoader: ModuleClassLoader): Boolean {
+    if (holders[moduleClassLoader]?.isNotEmpty() == true) {
+      return false
+    }
+    // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
+    // recreate a new one for faster load next time
+    moduleClassLoader.module?.let { module ->
+      if (Disposer.isDisposed(module)) {
+        return@let
+      }
+      if (module.getUserData(SHARED_MODULE_CLASS_LOADER)?.get() != moduleClassLoader) {
+        return@let
+      }
+      module.removeUserData(PRELOADING_TASK)?.let { Disposer.dispose(it) }
+      module.removeUserData(SHARED_MODULE_CLASS_LOADER)
+      val moduleContext = moduleClassLoader.moduleContext ?: return@let
+      val newClassLoader = ModuleClassLoader(
+        moduleClassLoader.parent,
+        moduleContext,
+        moduleClassLoader.projectClassesTransformationProvider,
+        moduleClassLoader.nonProjectClassesTransformationProvider,
+        createDiagnostics())
+      module.putUserData(SHARED_MODULE_CLASS_LOADER, SoftReference(newClassLoader))
+      moduleClassLoader.module?.putUserData(PRELOADING_TASK, PreloadingTask(newClassLoader, moduleClassLoader.loadedClasses))
+    }
+    return true
+  }
 
   /**
    * Inform [ModuleClassLoaderManager] that [ModuleClassLoader] is not used anymore and therefore can be
@@ -246,12 +309,9 @@ class ModuleClassLoaderManager {
    */
   fun release(moduleClassLoader: ModuleClassLoader, holder: Any) {
     unHold(moduleClassLoader, holder)
-    if (isHeld(moduleClassLoader) || isManaged(moduleClassLoader)) {
-      // We are still managing this ClassLoader, cannot dispose yet
-      return
+    if (stopManagingIfNotHeld(moduleClassLoader)) {
+      Disposer.dispose(moduleClassLoader)
     }
-
-    Disposer.dispose(moduleClassLoader)
   }
 
   /**
