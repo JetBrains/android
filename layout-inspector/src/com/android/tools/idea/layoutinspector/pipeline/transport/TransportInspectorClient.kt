@@ -17,11 +17,10 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -31,7 +30,6 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -49,8 +47,6 @@ import com.google.common.html.HtmlEscapers
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
@@ -111,6 +107,7 @@ class TransportInspectorClient(
 
   private val project = model.project
   private val stats = model.stats
+  private val metrics = LayoutInspectorMetrics.create(project, process, stats)
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
 
@@ -245,7 +242,7 @@ class TransportInspectorClient(
   }
 
   private fun attach(process: ProcessDescriptor) {
-    logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, process)
+    logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
@@ -265,7 +262,7 @@ class TransportInspectorClient(
       processId = process::pid,
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
-      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS, process)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
       start(process)
 
       // TODO: verify that capture started successfully
@@ -288,10 +285,10 @@ class TransportInspectorClient(
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
-      logEvent(type, process)
+      metrics.logEvent(type)
     }
     else if (!loggedInitialRender) {
-      logEvent(type, process)
+      metrics.logEvent(type)
       loggedInitialRender = true
     }
   }
@@ -304,27 +301,13 @@ class TransportInspectorClient(
       else -> false
     }
 
-  private fun logEvent(eventType: DynamicLayoutInspectorEventType, process: ProcessDescriptor) {
-    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(eventType)
-    if (eventType == SESSION_DATA) {
-      stats.save(inspectorEvent.sessionBuilder)
-    }
-    val builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(inspectorEvent)
-      .setDeviceInfo(process.device.toDeviceInfo())
-      .withProjectId(project)
-
-    UsageTracker.log(builder)
-  }
-
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     ApplicationManager.getApplication().executeOnPooledThread {
       stopFetching()
       stop()
 
-      logEvent(SESSION_DATA, process)
+      logEvent(SESSION_DATA)
       SkiaParser.shutdownAll()
       future.set(null)
     }
