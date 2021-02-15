@@ -43,8 +43,12 @@ import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
+import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.protobuf.ExtensionRegistryLite
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.protobuf.WireFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
@@ -56,15 +60,21 @@ import io.grpc.CallCredentials
 import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
 import io.grpc.DecompressorRegistry
+import io.grpc.KnownLength
 import io.grpc.ManagedChannel
 import io.grpc.Metadata
 import io.grpc.MethodDescriptor
+import io.grpc.MethodDescriptor.Marshaller
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
+import java.io.IOException
+import java.io.InputStream
+import java.lang.ref.Reference
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -73,6 +83,9 @@ import java.util.concurrent.atomic.AtomicReference
  * Controls a running Emulator.
  */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
+  private val imageResponseMarshaller = ImageResponseMarshaller()
+  private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
+      EmulatorControllerGrpc.getStreamScreenshotMethod().requestMarshaller, imageResponseMarshaller).build()
   private var channel: ManagedChannel? = null
   @Volatile private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub? = null
   @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
@@ -338,14 +351,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   /**
    * Streams a series of screenshots.
+   *
+   * **Note**: The value returned by the [Image.getImage] method of the response object cannot be used
+   * outside of the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("streamScreenshot(${shortDebugString(imageFormat)})")
     }
-    val method = EmulatorControllerGrpc.getStreamScreenshotMethod()
-    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
-    ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, method))
+    val call = emulatorController.channel.newCall(streamScreenshotMethod, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
     return object : Cancelable {
       override fun cancel() {
         call.cancel("Canceled by consumer", null)
@@ -494,7 +509,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Shows the extended controls of the emulator.
    *
-   * @param paneIndex indentifies the pane to open
+   * @param paneIndex identifies the pane to open
    * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
    */
   fun showExtendedControls(paneIndex: PaneIndex, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
@@ -662,6 +677,112 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
   }
 }
+
+/**
+ * Marshaller for the [Image] objects that implements custom deserialization, which, unlike the standard
+ * one, doesn't allocate short-lived humongous objects (b/180151949).
+ */
+private class ImageResponseMarshaller : Marshaller<Image> {
+  private val reusableBuffer = ThreadLocal<Reference<ByteArray>>()
+  private val codedInputStreamCreationMethod =
+      CodedInputStream::class.java.getDeclaredMethod("newInstance", ByteArray::class.java, Int::class.javaPrimitiveType,
+                                                     Int::class.javaPrimitiveType, Boolean::class.javaPrimitiveType)
+        .apply { isAccessible = true }
+
+  override fun stream(response: Image): InputStream {
+    throw UnsupportedOperationException() // This marshaller is never used for serialization.
+  }
+
+  override fun parse(stream: InputStream): Image {
+    try {
+      val codedStream = createCodedInputStream(stream) ?: return Image.getDefaultInstance()
+      return parseImage(codedStream)
+    } catch (e: InvalidProtocolBufferException) {
+      throw Status.INTERNAL.withDescription("Invalid protobuf byte sequence").withCause(e).asRuntimeException()
+    }
+  }
+
+  @Throws(InvalidProtocolBufferException::class)
+  private fun createCodedInputStream(stream: InputStream): CodedInputStream? {
+    val codedStream: CodedInputStream
+    try {
+      if (stream is KnownLength) {
+        val size = stream.available()
+        if (size == 0) {
+          return null
+        }
+
+        var buf = reusableBuffer.get()?.get()
+        if (buf == null || buf.size < size) {
+          buf = ByteArray(size)
+          reusableBuffer.set(WeakReference(buf))
+        }
+
+        var remaining = size
+        while (remaining > 0) {
+          val position = size - remaining
+          val count = stream.read(buf, position, remaining)
+          if (count == -1) {
+            break
+          }
+          remaining -= count
+        }
+
+        if (remaining != 0) {
+          val position = size - remaining
+          throw RuntimeException("Inaccurate size: $size != $position")
+        }
+        // Use reflection to call a package-protected method that allows setting the immutable property
+        // to true. This is used together with enabling aliasing to avoid extra byte array allocation
+        // and copying in the CodedInputStream.readBytes method.
+        codedStream = codedInputStreamCreationMethod.invoke(null, buf, 0, size, true) as CodedInputStream
+        codedStream.enableAliasing(true)
+      }
+      else {
+        codedStream = CodedInputStream.newInstance(stream)
+      }
+    }
+    catch (e: IOException) {
+      throw InvalidProtocolBufferException(e)
+    }
+    // Pre-create the CodedInputStream so that we can remove the size limit restriction when parsing.
+    codedStream.setSizeLimit(Int.MAX_VALUE)
+    return codedStream
+  }
+
+  @Throws(InvalidProtocolBufferException::class)
+  private fun parseImage(input: CodedInputStream): Image {
+    val builder = Image.newBuilder()
+
+    try {
+      while (true) {
+        when (val tag = input.readTag()) {
+          0 -> break
+          FORMAT_FIELD_TAG -> builder.format = input.readMessage(ImageFormat.parser(), EMPTY_REGISTRY) as ImageFormat
+          IMAGE_FIELD_TAG -> builder.image = input.readBytes()
+          SEQ_FIELD_TAG-> builder.seq = input.readUInt32()
+          TIMESTAMPUS_FIELD_TAG -> builder.timestampUs = input.readUInt64()
+          else -> if (!input.skipField(tag)) break
+        }
+      }
+      input.checkLastTagWas(0)
+      return builder.build()
+    }
+    catch (e: InvalidProtocolBufferException) {
+      throw e.setUnfinishedMessage(builder.build())
+    }
+    catch (e: IOException) {
+      throw InvalidProtocolBufferException(e).setUnfinishedMessage(builder.build())
+    }
+  }
+}
+
+private const val FORMAT_FIELD_TAG = Image.FORMAT_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
+private const val IMAGE_FIELD_TAG = Image.IMAGE_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
+private const val SEQ_FIELD_TAG = Image.SEQ_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
+private const val TIMESTAMPUS_FIELD_TAG = Image.TIMESTAMPUS_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
+
+private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
 
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
