@@ -17,18 +17,14 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.stats.withProjectId
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 
 /**
@@ -43,7 +39,6 @@ class LegacyClient(
 ) : AbstractInspectorClient(process) {
 
   private val lookup: ViewNodeAndResourceLookup = model
-  private val stats = model.stats
 
   override val isCapturing = false
 
@@ -52,30 +47,16 @@ class LegacyClient(
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val project = model.project
+  private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
-      logEvent(type, process)
+      metrics.logEvent(type)
     }
     else if (!loggedInitialRender) {
-      logEvent(type, process)
+      metrics.logEvent(type)
       loggedInitialRender = true
     }
-  }
-
-  private fun logEvent(type: DynamicLayoutInspectorEventType, process: ProcessDescriptor) {
-    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(type)
-    if (type == DynamicLayoutInspectorEventType.SESSION_DATA) {
-      stats.save(inspectorEvent.sessionBuilder)
-    }
-    val builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(inspectorEvent)
-      .setDeviceInfo(process.device.toDeviceInfo())
-      .withProjectId(project)
-
-    UsageTracker.log(builder)
   }
 
   private fun isRenderEvent(type: DynamicLayoutInspectorEventType): Boolean =
@@ -94,25 +75,25 @@ class LegacyClient(
   }
 
   override fun doConnect() {
-    attach(process)
+    attach()
   }
 
-  private fun attach(process: ProcessDescriptor) {
+  private fun attach() {
     loggedInitialAttach = false
-    if (!doAttach(process)) {
+    if (!doAttach()) {
       // TODO: create a different event for when there are no windows
-      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
     }
   }
 
   /**
-   * Attach to the specified [process].
+   * Attach to the current [process].
    *
    * Return <code>true</code> if windows were found otherwise false.
    */
-  private fun doAttach(process: ProcessDescriptor): Boolean {
+  private fun doAttach(): Boolean {
     if (!loggedInitialAttach) {
-      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, process)
+      metrics.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST)
       loggedInitialAttach = true
     }
 

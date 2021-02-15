@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorRule
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -27,7 +30,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.concurrent.TimeUnit
 
-class MetricsTest {
+class TransportInspectorMetricsTest {
   private val transportRule = TransportInspectorRule()
   private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider())
 
