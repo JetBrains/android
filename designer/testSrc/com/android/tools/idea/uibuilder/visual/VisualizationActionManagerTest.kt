@@ -25,14 +25,14 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 
-private class TestVisualizationModelsProvider : VisualizationModelsProvider {
+internal object EmptyModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> = emptyList()
 }
 
 class VisualizationActionManagerTest : AndroidTestCase() {
 
   fun testPopupMenuActions() {
-    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { TestVisualizationModelsProvider() }
+    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { EmptyModelsProvider }
     val actions = actionManager.getPopupMenuActions(null).getChildren(null)
     assertTrue(actions[0] is ZoomInAction)
     assertTrue(actions[1] is ZoomOutAction)
@@ -40,7 +40,7 @@ class VisualizationActionManagerTest : AndroidTestCase() {
   }
 
   fun testToolbarActions() {
-    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { TestVisualizationModelsProvider() }
+    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { EmptyModelsProvider }
     assertEquals(0, actionManager.getToolbarActions(emptyList()).childrenCount)
   }
 }
