@@ -4513,7 +4513,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
 
       @Override
-      public boolean isProblemFile(VirtualFile virtualFile) {
+      public boolean isProblemFile(@NotNull VirtualFile virtualFile) {
         return problemFiles.contains(virtualFile);
       }
     });
