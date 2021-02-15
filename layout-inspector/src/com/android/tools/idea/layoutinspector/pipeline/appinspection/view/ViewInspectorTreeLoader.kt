@@ -19,6 +19,8 @@ import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
@@ -38,6 +40,7 @@ class ViewInspectorTreeLoader(
   private val resourceLookup: ResourceLookup,
   composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
   private val updateScreenshotType: (LayoutInspectorViewProtocol.Screenshot.Type) -> Unit,
+  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
   private val loadStartTime = AtomicLong(-1)
 
@@ -60,7 +63,7 @@ class ViewInspectorTreeLoader(
     try {
       resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings)
       val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
-      return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted }, updateScreenshotType)
+      return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted }, updateScreenshotType, logEvent)
     }
     finally {
       loadStartTime.set(0)
