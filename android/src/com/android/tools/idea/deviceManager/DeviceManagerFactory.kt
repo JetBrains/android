@@ -47,7 +47,9 @@ class DeviceManagerFactory : ToolWindowFactory {
 
     createTab(emulatorTab.content, emulatorTabName)
     createTab(physicalTab.content, physicalTabName)
-    createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
+    if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {
+      createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
+    }
 
     // FIXME(qumeric): create and use custom icon
     toolWindow.apply {
