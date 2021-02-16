@@ -1404,7 +1404,6 @@ Android Studio Preview.app/Contents/lib/FastInfoset-1.2.15.jar
 Android Studio Preview.app/Contents/lib/HdrHistogram-2.1.4.jar
 Android Studio Preview.app/Contents/lib/RoaringBitmap-0.9.0.jar
 Android Studio Preview.app/Contents/lib/android-annotations.jar
-Android Studio Preview.app/Contents/lib/android-base-common.jar
 Android Studio Preview.app/Contents/lib/animal-sniffer-annotations-1.17.jar
 Android Studio Preview.app/Contents/lib/annotations-4.1.1.4.jar
 Android Studio Preview.app/Contents/lib/annotations-java5.jar
@@ -2012,6 +2011,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
 Android Studio Preview.app/Contents/plugins/android/lib/aapt2-proto-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/adt-ui.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-base-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-extensions-ide.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
