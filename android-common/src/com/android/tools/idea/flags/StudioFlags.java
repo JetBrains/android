@@ -1131,6 +1131,11 @@ public final class StudioFlags {
     "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
     false
   );
+  public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_GROUPS = Flag.create(
+    DEVICE_MANAGER, "enable.device.manager.groups", "Enable groups tab",
+    "Enables the device groups tab in the new Device Manager",
+    false
+  );
   // endregion
 
   //region Auto-import
