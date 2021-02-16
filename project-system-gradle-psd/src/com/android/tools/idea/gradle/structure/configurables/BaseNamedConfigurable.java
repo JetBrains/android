@@ -21,11 +21,10 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import javax.swing.*;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedConfigurable<T>
   implements SearchableConfigurable, Place.Navigator {
@@ -102,12 +101,6 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
   @Override
   @Nullable
   public String getHelpTopic() {
-    return null;
-  }
-
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
     return null;
   }
 

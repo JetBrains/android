@@ -18,8 +18,8 @@ package com.android.tools.idea.structure.dialog
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
@@ -60,7 +60,9 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.UIUtil.*
+import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
+import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import com.intellij.util.ui.UIUtil.requestFocus
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
@@ -203,8 +205,6 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   }
 
   override fun getId(): String = "android.project.structure"
-
-  override fun enableSearch(option: String): Runnable? = null
 
   @Nls
   override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
