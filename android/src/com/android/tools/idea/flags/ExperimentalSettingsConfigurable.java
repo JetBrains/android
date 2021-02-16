@@ -34,7 +34,6 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
-import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -48,12 +47,6 @@ import java.io.File;
 import java.util.Hashtable;
 import javax.swing.*;
 import org.jetbrains.android.util.AndroidBundle;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,12 +102,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @NotNull
   public String getId() {
     return "gradle.experimental";
-  }
-
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
   }
 
   @Override

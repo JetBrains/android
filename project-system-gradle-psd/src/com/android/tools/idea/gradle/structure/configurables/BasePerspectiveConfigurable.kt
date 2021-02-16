@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
-import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
@@ -26,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.createWithDefaultGallery
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
@@ -385,8 +385,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
     toolWindowHeader?.let { Disposer.dispose(it) }
     toolWindowHeader = null
   }
-
-  override fun enableSearch(option: String): Runnable? = null
 
   override fun isModified(): Boolean = context.project.isModified
 
