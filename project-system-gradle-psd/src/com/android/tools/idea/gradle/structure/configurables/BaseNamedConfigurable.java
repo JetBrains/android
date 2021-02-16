@@ -105,12 +105,6 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
     return null;
   }
 
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
   /**
    * Restores the UI state persisted by this or another instance of the configurable in order to preserve a consistent selection (or other
    * aspects of the UI state) between modules.
