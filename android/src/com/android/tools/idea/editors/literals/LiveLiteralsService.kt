@@ -35,7 +35,6 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 
 internal val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
@@ -115,7 +114,8 @@ interface LiveLiteralsMonitorHandler {
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
                                               private val availableListener: LiteralsAvailableListener,
-                                              listenerExecutor: Executor) : LiveLiteralsMonitorHandler, Disposable {
+                                              listenerExecutor: Executor,
+                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   /**
    * Interface for listeners that want to be notified when Live Literals becomes available. For example
    * when the preview or the emulator find that the current project supports them.
@@ -128,15 +128,15 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   init {
-    LiveLiteralsDeploymentReportService.getInstance(project).subscribe(this, object: LiveLiteralsDeploymentReportService.Listener {
+    deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
-        if (LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+        if (deploymentReportService.hasActiveDevices) {
           activateTracking()
         }
       }
 
       override fun onMonitorStopped(deviceId: String) {
-        if (!LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+        if (!deploymentReportService.hasActiveDevices) {
           deactivateTracking()
         }
       }
@@ -158,7 +158,8 @@ class LiveLiteralsService private constructor(private val project: Project,
         LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
       }
     }
-  }, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1))
+  }, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1),
+                                       LiveLiteralsDeploymentReportService.getInstance(project))
 
   /**
    * Class that groups all the highlighters for a given file/editor combination. This allows enabling/disabling them.
@@ -225,7 +226,8 @@ class LiveLiteralsService private constructor(private val project: Project,
                            parentDisposable: Disposable,
                            availableListener: LiteralsAvailableListener = NopListener,
                            listenerExecutor: Executor = MoreExecutors.directExecutor()): LiveLiteralsService =
-      LiveLiteralsService(project, availableListener, listenerExecutor).also {
+      LiveLiteralsService(project, availableListener, listenerExecutor,
+                          LiveLiteralsDeploymentReportService.getInstanceForTesting(project, listenerExecutor)).also {
         Disposer.register(parentDisposable, it)
       }
   }
@@ -282,7 +284,7 @@ class LiveLiteralsService private constructor(private val project: Project,
    * current project has not any Live Literals yet.
    */
   val isAvailable: Boolean
-    get() = LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices
+    get() = deploymentReportService.hasActiveDevices
 
   @TestOnly
   fun allConstants(): Collection<LiteralReference> = documentSnapshots.flatMap { (_, snapshot) -> snapshot.all }
@@ -424,8 +426,12 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
     }, newActivationDisposable)
 
-    Disposer.register(this, newActivationDisposable)
-    activationDisposable = newActivationDisposable
+    if (Disposer.tryRegister(this, newActivationDisposable)) {
+      activationDisposable = newActivationDisposable
+    }
+    else {
+      Disposer.dispose(newActivationDisposable)
+    }
 
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
@@ -442,16 +448,16 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStarted(deviceId, deviceType)
+    deploymentReportService.liveLiteralsMonitorStarted(deviceId, deviceType)
 
   override fun liveLiteralsMonitorStopped(deviceId: String) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStopped(deviceId)
+    deploymentReportService.liveLiteralsMonitorStopped(deviceId)
 
   override fun liveLiteralPushStarted(deviceId: String, pushId: String) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushStarted(deviceId, pushId)
+    deploymentReportService.liveLiteralPushStarted(deviceId, pushId)
 
   override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushed(deviceId, pushId, problems)
+    deploymentReportService.liveLiteralPushed(deviceId, pushId, problems)
 
   override fun dispose() {
     deactivateTracking()

@@ -27,8 +27,11 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.Topic
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -43,7 +46,14 @@ private fun LiveLiteralsMonitorHandler.Problem.Severity.toNotificationSeverity()
 
 @VisibleForTesting
 @Service
-class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLiteralsMonitorHandler, ModificationTracker, Disposable {
+class LiveLiteralsDeploymentReportService private constructor(private val project: Project,
+                                                              listenerExecutor: Executor?) : LiveLiteralsMonitorHandler, ModificationTracker, Disposable {
+  private val listenerExecutor = listenerExecutor ?: AppExecutorUtil.createBoundedApplicationPoolExecutor("Listener executor",
+                                                                                                          AppExecutorUtil.getAppExecutorService(),
+                                                                                                          1, this)
+
+  constructor(project: Project) : this(project, null)
+
   /**
    * Interface for listeners of literals deployment notifications.
    */
@@ -130,7 +140,9 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
 
     if (started) {
       modificationTracker.incModificationCount()
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStarted(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStarted(deviceId)
+      }
     }
     LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStarted(deviceId, deviceType)
   }
@@ -153,7 +165,9 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     }
 
     if (stopped) {
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStopped(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStopped(deviceId)
+      }
     }
     LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStopped(deviceId)
   }
@@ -176,8 +190,6 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
       isActive = activeDevices.contains(deviceId)
       if (isActive) {
         problemsMap[deviceId] = problems.toList()
-        // Currently we only handle 1 single push at a time so we pass an empty pushId
-        LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushed(deviceId, pushId, problems)
       }
       else {
         log.warn("Device $deviceId is not active, liveLiteralPushed ignored.")
@@ -185,12 +197,16 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     }
 
     if (isActive) {
+      LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushed(deviceId, pushId, problems)
+
       // Log all the problems to the event log
       problems.forEach {
         PROBLEM_NOTIFICATION_GROUP.createNotification("[${it.severity}] ${it.content}", it.severity.toNotificationSeverity())
           .notify(project)
       }
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onLiveLiteralsPushed(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onLiveLiteralsPushed(deviceId)
+      }
     }
   }
 
@@ -210,6 +226,10 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
 
     fun getInstance(project: Project): LiveLiteralsDeploymentReportService =
       project.getService(LiveLiteralsDeploymentReportService::class.java)
+
+    @TestOnly
+    fun getInstanceForTesting(project: Project, listenerExecutor: Executor): LiveLiteralsDeploymentReportService =
+      LiveLiteralsDeploymentReportService(project, listenerExecutor)
   }
 
   override fun dispose() {
