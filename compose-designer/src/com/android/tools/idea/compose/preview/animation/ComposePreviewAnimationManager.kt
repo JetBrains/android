@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
@@ -48,7 +49,9 @@ object ComposePreviewAnimationManager {
     private set
 
   @get:VisibleForTesting
+  @GuardedBy("subscribedAnimationsLock")
   val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  private val subscribedAnimationsLock = Any()
 
   private var newInspectorOpenedCallback: (() -> Unit)? = null
 
@@ -81,7 +84,9 @@ object ComposePreviewAnimationManager {
     }
     currentInspector = null
     newInspectorOpenedCallback = null
-    subscribedAnimations.clear()
+    synchronized(subscribedAnimationsLock) {
+      subscribedAnimations.clear()
+    }
   }
 
   /**
@@ -107,16 +112,18 @@ object ComposePreviewAnimationManager {
     // subscribed animations, as they were tracked by the previous clock.
     inspector.animationClock?.let {
       if (it.clock != clock) {
-        val subscribedAnimationsIterator = subscribedAnimations.iterator()
-        for (subscribedAnimation in subscribedAnimationsIterator) {
-          onAnimationUnsubscribed(subscribedAnimation)
+        synchronized(subscribedAnimationsLock) {
+          val subscribedAnimationsIterator = subscribedAnimations.iterator()
+          for (subscribedAnimation in subscribedAnimationsIterator) {
+            onAnimationUnsubscribed(subscribedAnimation)
+          }
         }
         // Now update the clock
         inspector.animationClock = AnimationClock(clock)
       }
     }
 
-    if (subscribedAnimations.add(animation)) {
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
       UIUtil.invokeLaterIfNeeded {
         inspector.addTab(animation)
         if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
@@ -130,7 +137,7 @@ object ComposePreviewAnimationManager {
    * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
    */
   fun onAnimationUnsubscribed(animation: ComposeAnimation) {
-    if (subscribedAnimations.remove(animation)) {
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.removeTab(animation)
       }
