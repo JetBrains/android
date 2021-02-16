@@ -382,8 +382,6 @@ abstract class BasePerspectiveConfigurable protected constructor(
     toolWindowHeader = null
   }
 
-  override fun enableSearch(option: String): Runnable? = null
-
   override fun isModified(): Boolean = context.project.isModified
 
   final override fun apply() = context.applyChanges()

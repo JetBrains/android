@@ -206,8 +206,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun getId(): String = "android.project.structure"
 
-  override fun enableSearch(option: String): Runnable? = null
-
   @Nls
   override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
 
