@@ -34,6 +34,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -169,6 +170,7 @@ class PerfgateComposeTest {
     }
   }
 
+  @Ignore("b/180435158")
   @Test
   fun interactiveClickPerf() {
     composeTimeBenchmark.measureOperation(listOf(
