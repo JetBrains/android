@@ -41,14 +41,17 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
-import com.intellij.ui.JBTabsPaneImpl
-import com.intellij.ui.TabbedPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.TabsListener
+import com.intellij.ui.tabs.impl.JBEditorTabsBorder
+import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -72,7 +75,6 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
-import javax.swing.JTabbedPane.TOP
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
 import javax.swing.text.DefaultCaret
@@ -109,20 +111,23 @@ private const val DEFAULT_MAX_DURATION_MS = 10000L
 class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
 
   /**
-   * [TabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but
-   * have their own playback toolbar, from/to state combo boxes and animated properties panel.
+   * Tabs panel where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but have
+   * their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   @VisibleForTesting
-  val tabbedPane = JBTabsPaneImpl(surface.project, TOP, this).apply {
-    addChangeListener {
-      if (selectedIndex < 0) return@addChangeListener
-
-      (getComponentAt(selectedIndex) as? AnimationTab)?.let { tab ->
+  val tabbedPane = object : JBTabsImpl(surface.project, IdeFocusManager.getInstance(surface.project), this) {
+    // By default, JBTabsImpl uses JBDefaultTabsBorder, which doesn't add a border if there is only one tab.
+    override fun createTabBorder() = JBEditorTabsBorder(this)
+  }.apply {
+    addListener(object : TabsListener {
+      override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+        super.selectionChanged(oldSelection, newSelection)
+        val tab = newSelection?.component as? AnimationTab ?: return
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
         timeline.selectedTab = tab
       }
-    }
+    })
   }
 
   /**
@@ -221,13 +226,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val clock = animationClock ?: return
 
     var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
-    if (!surface.executeOnRenderThread(longTimeout) {
+    if (!executeOnRenderThread(longTimeout) {
         maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
       }) return
     timeline.updateMaxDuration(maxDurationPerIteration)
 
     var maxDuration = DEFAULT_MAX_DURATION_MS
-    if (!surface.executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
+    if (!executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
 
     timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
       // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
@@ -278,29 +283,20 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
                     else -> message("animation.inspector.tab.default.title")
                   }
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
-    tabbedPane.insertTab("$tabName #${tabNamesCount[tabName]}", null, animationTab, null, tabbedPane.tabCount)
+    tabbedPane.addTab(TabInfo(animationTab).setText("$tabName #${tabNamesCount[tabName]}"), tabbedPane.tabCount)
+    timeline.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
   }
 
   /**
    * Removes the [AnimationTab] corresponding to the given [animation] from [tabbedPane].
    */
   internal fun removeTab(animation: ComposeAnimation) {
-    tabbedPane.remove(animationTabs[animation])
+    tabbedPane.tabs.find { (it.component as? AnimationTab)?.animation === animation }?.let { tabbedPane.removeTab(it) }
     animationTabs.remove(animation)
 
     if (tabbedPane.tabCount == 0) {
       // There are no more tabs. Replace the TabbedPane with the placeholder panel.
       showNoAnimationsPanel()
-    }
-  }
-
-  private fun TabbedPane.remove(animationTab: AnimationTab?) {
-    if (animationTab == null) return
-    for (i in 0 until tabCount) {
-      if (animationTab === getComponentAt(i)) {
-        removeTabAt(i)
-        return
-      }
     }
   }
 
@@ -364,7 +360,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      if (!surface.executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
+      if (!executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
 
       UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
       timeline.setClockTime(0, longTimeout) // Make sure that clock time is actually set in case timeline was already in 0.
@@ -808,7 +804,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      if (!surface.executeOnRenderThread(longTimeout) { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
+      if (!executeOnRenderThread(longTimeout) { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
       tab.updateProperties()
     }
 
@@ -979,7 +975,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
   }
 
-  private fun DesignSurface.executeOnRenderThread(useLongTimeout: Boolean = false, callback: () -> Unit): Boolean {
+  private fun executeOnRenderThread(useLongTimeout: Boolean = false, callback: () -> Unit): Boolean {
     val (time, timeUnit) = if (useLongTimeout) {
       // Make sure we don't block the UI thread when setting a large timeout
       ApplicationManager.getApplication().assertIsNonDispatchThread()
