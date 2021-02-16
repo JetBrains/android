@@ -215,6 +215,9 @@ studio_plugin(
             "//tools/analytics-library/publisher:analytics-publisher",
             "//tools/analytics-library/crash:analytics-crash",
         ],
+        "android-base-common.jar": [
+            "//tools/base/common:studio.android.sdktools.common",
+        ],
     },
     # List of modules and libraries we expect to be provided by the platform
     provided = [
@@ -222,7 +225,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/android-kotlin:dx",  # TODO
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # Plugins :com.android.layoutlib.*" are optional
     ],
     resources = {
@@ -471,9 +473,6 @@ android_studio(
     codesign_filelist = "codesign/filelist",
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     modules = {
-        "android-base-common.jar": [
-            "//tools/base/common:studio.android.sdktools.common",
-        ],
         "android-annotations.jar": [
             "//tools/base/annotations:studio.android.sdktools.android-annotations",
         ],

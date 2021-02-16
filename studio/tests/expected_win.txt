@@ -910,7 +910,6 @@ android-studio/lib/FastInfoset-1.2.15.jar
 android-studio/lib/HdrHistogram-2.1.4.jar
 android-studio/lib/RoaringBitmap-0.9.0.jar
 android-studio/lib/android-annotations.jar
-android-studio/lib/android-base-common.jar
 android-studio/lib/animal-sniffer-annotations-1.17.jar
 android-studio/lib/annotations-4.1.1.4.jar
 android-studio/lib/annotations-java5.jar
@@ -1522,6 +1521,7 @@ android-studio/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.j
 android-studio/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
 android-studio/plugins/android/lib/adt-ui.jar
+android-studio/plugins/android/lib/android-base-common.jar
 android-studio/plugins/android/lib/android-common.jar
 android-studio/plugins/android/lib/android-extensions-ide.jar
 android-studio/plugins/android/lib/android-kotlin.jar
