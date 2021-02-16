@@ -110,4 +110,13 @@
     </component>
   </project-components>
 
+  <actions>
+    <action id="Android.Designer.ComposeIssueNotificationAction"
+            icon="StudioIcons.Common.ERROR"
+            class="com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAction"
+            text="Toggle Issue Panel"
+            description="Toggle the visibility of Issue Panel"
+            use-shortcut-of="Android.Designer.IssueNotificationAction" />
+  </actions>
+
 </idea-plugin>
