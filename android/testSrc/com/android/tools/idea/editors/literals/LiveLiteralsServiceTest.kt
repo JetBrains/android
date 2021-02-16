@@ -35,7 +35,6 @@ internal class LiveLiteralsServiceTest {
       override fun onAvailable() {
         isAvailable = true
       }
-
     })
 
   @Before
