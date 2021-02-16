@@ -6,10 +6,13 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
@@ -20,6 +23,7 @@ import com.intellij.openapi.roots.ExternalLibraryDescriptor
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.configuration.AndroidGradle
 import org.jetbrains.kotlin.idea.configuration.GradleBuildScriptManipulator
 import org.jetbrains.kotlin.idea.configuration.KotlinWithGradleConfigurator
@@ -116,7 +120,35 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-    companion object {
+  override fun changeGeneralFeatureConfiguration(
+    module: Module,
+    feature: LanguageFeature,
+    state: LanguageFeature.State,
+    forTests: Boolean
+  ) {
+    if (feature == LanguageFeature.InlineClasses) {
+      val project = module.project
+      val projectBuildModel = ProjectBuildModel.get(project)
+      val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
+      when (state) {
+        LanguageFeature.State.ENABLED ->
+          moduleBuildModel.android().kotlinOptions().freeCompilerArgs().addListValue().setValue("-Xinline-classes")
+        LanguageFeature.State.DISABLED ->
+          moduleBuildModel.android().kotlinOptions().freeCompilerArgs().getListValue("-Xinline-classes")?.delete()
+        LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.ENABLED_WITH_WARNING -> Unit
+      }
+      projectBuildModel.applyChanges()
+      moduleBuildModel.reparse()
+      moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
+        OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
+      }
+    }
+    else {
+      super.changeGeneralFeatureConfiguration(module, feature, state, forTests)
+    }
+  }
+
+  companion object {
         private const val NAME = "android-gradle"
 
         private const val KOTLIN_ANDROID = "kotlin-android"

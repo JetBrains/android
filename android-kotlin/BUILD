@@ -36,6 +36,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
 
@@ -96,6 +97,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.tests[module, test]",
     ],
 )
 
