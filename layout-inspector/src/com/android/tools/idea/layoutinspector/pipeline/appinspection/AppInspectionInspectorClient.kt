@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -94,6 +95,7 @@ class AppInspectionInspectorClient(
       debugViewAttributes.clear()
       viewInspector.disconnect()
       composeInspector?.disconnect()
+      SkiaParser.shutdownAll()
       future.set(null)
     }
     return future
