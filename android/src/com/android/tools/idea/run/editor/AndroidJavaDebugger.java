@@ -172,7 +172,6 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
         ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
           .contentToReuse(null)
           .dataContext(null)
-          .activeTarget()
           .build();
     }
     catch (ExecutionException e) {
