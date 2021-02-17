@@ -221,7 +221,7 @@ studio_plugin(
     },
     # List of modules and libraries we expect to be provided by the platform
     provided = [
-        "//prebuilts/studio/layoutlib/data:layoutlib",  # Plugins :com.android.layoutlib.*" are optional
+        "//tools/adt/idea/.idea/libraries:layoutlib",  # Plugins :com.android.layoutlib.*" are optional
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/android-kotlin:dx",  # TODO
         "//tools/base/annotations:studio.android.sdktools.android-annotations",
@@ -292,7 +292,7 @@ studio_plugin(
     name = "com.android.layoutlib",
     directory = "android-layoutlib",
     libs = [
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
         "//tools/adt/idea/.idea/libraries:kxml2",
     ],
     modules = {
