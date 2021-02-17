@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.SdkConstants.ANDROID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
@@ -36,8 +39,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.psi.*;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiTreeChangeListener;
+import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlComment;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.XmlText;
+import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.EnumSet;
 import java.util.List;
@@ -48,12 +61,6 @@ import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
-
-import static com.android.SdkConstants.ANDROID_PREFIX;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 /**
  * The {@linkplain ResourceNotificationManager} provides notifications to editors that
@@ -371,7 +378,7 @@ public class ResourceNotificationManager {
         ResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
-        myConnection = myFacet.getModule().getMessageBus().connect(myFacet);
+        myConnection = myFacet.getModule().getProject().getMessageBus().connect(myFacet);
         myConnection.subscribe(ResourceFolderManager.TOPIC, this);
         ResourceFolderManager.getInstance(myFacet); // Make sure ResourceFolderManager is initialized.
       }
@@ -416,14 +423,18 @@ public class ResourceNotificationManager {
 
     @Override
     public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-      myModificationCount++;
-      notice(Reason.GRADLE_SYNC);
+      if (facet.getModule() == myFacet.getModule()) {
+        myModificationCount++;
+        notice(Reason.GRADLE_SYNC);
+      }
     }
 
     @Override
     public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-      myModificationCount++;
-      notice(Reason.GRADLE_SYNC);
+      if (facet.getModule() == myFacet.getModule()) {
+        myModificationCount++;
+        notice(Reason.GRADLE_SYNC);
+      }
     }
   }
 
