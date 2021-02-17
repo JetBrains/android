@@ -411,7 +411,7 @@ public class ResourceNotificationManager {
         ResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
-        myConnection = myFacet.getModule().getMessageBus().connect(myFacet);
+        myConnection = myFacet.getModule().getProject().getMessageBus().connect(myFacet);
         myConnection.subscribe(ResourceFolderManager.TOPIC, this);
         ResourceFolderManager.getInstance(myFacet); // Make sure ResourceFolderManager is initialized.
       }
@@ -461,14 +461,18 @@ public class ResourceNotificationManager {
 
     @Override
     public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-      myModificationCount++;
-      notice(Reason.GRADLE_SYNC, null);
+      if (facet.getModule() == myFacet.getModule()) {
+        myModificationCount++;
+        notice(Reason.GRADLE_SYNC, null);
+      }
     }
 
     @Override
     public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-      myModificationCount++;
-      notice(Reason.GRADLE_SYNC, null);
+      if (facet.getModule() == myFacet.getModule()) {
+        myModificationCount++;
+        notice(Reason.GRADLE_SYNC, null);
+      }
     }
   }
 

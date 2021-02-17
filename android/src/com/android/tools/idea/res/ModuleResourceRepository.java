@@ -162,19 +162,19 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
       @Override
       public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.MAIN) {
+        if (mySourceSet == SourceSet.MAIN && facet.getModule() == myFacet.getModule()) {
           updateRoots(folders);
         }
       }
 
       @Override
       public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.TEST) {
+        if (mySourceSet == SourceSet.TEST && facet.getModule() == myFacet.getModule()) {
           updateRoots(folders);
         }
       }
     };
-    myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
+    myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
   }
 
   @VisibleForTesting
