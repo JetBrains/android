@@ -163,7 +163,7 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog());
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog(Collections.emptyList()));
     assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
     assertEquals(Optional.empty(), devicesSelectedService.getTargetSelectedWithComboBox(Collections.emptyList()));
 
@@ -201,7 +201,7 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog());
+    assertEquals(Collections.emptySet(), devicesSelectedService.getTargetsSelectedWithDialog(devices));
     assertFalse(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
     assertEquals(Optional.of(new QuickBootTarget(key2)), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
@@ -239,7 +239,7 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertEquals(targets, devicesSelectedService.getTargetsSelectedWithDialog());
+    assertEquals(targets, devicesSelectedService.getTargetsSelectedWithDialog(devices));
     assertTrue(devicesSelectedService.isMultipleDevicesSelectedInComboBox());
     assertEquals(Optional.of(target), devicesSelectedService.getTargetSelectedWithComboBox(devices));
 
@@ -284,7 +284,7 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertEquals(targets, service.getTargetsSelectedWithDialog());
+    assertEquals(targets, service.getTargetsSelectedWithDialog(devices));
     assertTrue(service.isMultipleDevicesSelectedInComboBox());
     assertEquals(Optional.of(new QuickBootTarget(deviceKey)), service.getTargetSelectedWithComboBox(devices));
 

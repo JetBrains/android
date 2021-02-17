@@ -156,11 +156,7 @@ final class DevicesSelectedService {
     state.multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
-  boolean isDialogSelectionEmpty() {
-    return myPersistentStateComponent.getState().targetsSelectedWithDialog.isEmpty();
-  }
-
-  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog() {
+  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull List<@NotNull Device> devices) {
     try {
       Collection<TargetState> targetStates = myPersistentStateComponent.getState().targetsSelectedWithDialog;
       Set<Target> targets = Sets.newHashSetWithExpectedSize(targetStates.size());

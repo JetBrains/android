@@ -41,6 +41,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
@@ -134,13 +135,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+    List<Device> devices = Collections.singletonList(device);
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(devices));
 
     Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
     Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
@@ -149,7 +152,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setDevicesGetterGetter(p -> myDevicesGetter)
       .setDevicesSelectedServiceGetInstance(p -> service)
       .setExecutionTargetServiceGetInstance(p -> myExecutionTargetService)
-      .setNewSelectMultipleDevicesDialog((p, devices) -> dialog)
+      .setNewSelectMultipleDevicesDialog((p, d) -> dialog)
       .build();
 
     Project project = myRule.getProject();
