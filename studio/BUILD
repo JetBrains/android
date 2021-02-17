@@ -291,10 +291,14 @@ studio_plugin(
 studio_plugin(
     name = "com.android.layoutlib",
     directory = "android-layoutlib",
-    libs = ["//prebuilts/studio/layoutlib/data:layoutlib"],
+    libs = [
+        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//tools/adt/idea/.idea/libraries:kxml2",
+    ],
     modules = {
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
     },
     provided = [
         "//tools/adt/idea/.idea/libraries:kxml2",
@@ -305,10 +309,14 @@ studio_plugin(
 studio_plugin(
     name = "com.android.layoutlib.legacy",
     directory = "android-layoutlib-legacy",
-    libs = ["//prebuilts/studio/layoutlib/data:layoutlib-legacy"],
+    libs = [
+        "//prebuilts/studio/layoutlib/data:layoutlib-legacy",
+        "//tools/adt/idea/.idea/libraries:kxml2",
+    ],
     modules = {
         "android-layoutlib-legacy.jar": ["//tools/adt/idea/layoutlib-legacy:intellij.android.layoutlib-legacy"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
+        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
     },
     provided = [
         "//tools/adt/idea/.idea/libraries:kxml2",
@@ -472,11 +480,6 @@ android_studio(
     codesign_entitlements = "codesign/entitlements.xml",
     codesign_filelist = "codesign/filelist",
     jre = "//prebuilts/studio/jdk:jdk-bundle",
-    modules = {
-        "android-annotations.jar": [
-            "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        ],
-    },
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
@@ -499,9 +502,6 @@ android_studio(
     resources = {
         "bin/lldb": [
             "//prebuilts/tools:lldb-bundle",
-        ],
-        "lib": [
-            "//tools/adt/idea/.idea/libraries:kxml2",
         ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
