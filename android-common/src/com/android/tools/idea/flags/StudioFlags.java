@@ -295,7 +295,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
     NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
     "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
