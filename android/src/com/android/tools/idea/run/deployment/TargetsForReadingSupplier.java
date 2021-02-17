@@ -65,16 +65,7 @@ final class TargetsForReadingSupplier {
   }
 
   @NotNull Optional<@NotNull Target> getDropDownTarget() {
-    int size = myTargets.size();
-
-    switch (size) {
-      case 0:
-        return Optional.empty();
-      case 1:
-        return Optional.of(myTargets.iterator().next());
-      default:
-        throw new IllegalStateException(Integer.toString(size));
-    }
+    return DeploymentCollections.toOptional(myTargets);
   }
 
   @NotNull Set<@NotNull Target> getDialogTargets() {
