@@ -121,11 +121,11 @@ private fun ProjectDumper.dump(nativeAbi: IdeNativeAbi, variantName: String? = n
   head("NativeAbi")
     nest {
       prop("Name") { nativeAbi.name }
-      prop("SourceFlagsFile") { nativeAbi.sourceFlagsFile.path.normalizeCxxPath(nativeAbi.name, variantName).toPrintablePath() }
-      prop("SymbolFolderIndexFile") { nativeAbi.symbolFolderIndexFile.path.normalizeCxxPath(nativeAbi.name, variantName).toPrintablePath() }
-      prop("BuildFileIndexFile") { nativeAbi.buildFileIndexFile.path.normalizeCxxPath(nativeAbi.name, variantName).toPrintablePath() }
+      prop("SourceFlagsFile") { nativeAbi.sourceFlagsFile.normalizeCxxPath(variantName).toPrintablePath() }
+      prop("SymbolFolderIndexFile") { nativeAbi.symbolFolderIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
+      prop("BuildFileIndexFile") { nativeAbi.buildFileIndexFile.normalizeCxxPath(variantName).toPrintablePath() }
       prop("AdditionalProjectFilesIndexFile") {
-        nativeAbi.additionalProjectFilesIndexFile?.path?.normalizeCxxPath(nativeAbi.name, variantName)?.toPrintablePath()
+        nativeAbi.additionalProjectFilesIndexFile?.normalizeCxxPath(variantName)?.toPrintablePath()
       }
     }
 }
