@@ -19,6 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -28,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -577,6 +579,21 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  @Suppress("UndesirableClassUsage")
+  fun testPaintEmpty() {
+    IconLoader.activate()
+    setPortableUiFont(2.0f)
+    val panel = DeviceViewContentPanel(model {}, DeviceViewSettings())
+    panel.setSize(400, 400)
+    val generatedImage = BufferedImage(400, 400, TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    // We have to use a big threshold here, since the image is almost all text and despite using the portable font there's still
+    // some differences between platforms.
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintEmpty.png"), generatedImage, 0.1)
   }
 
   @RunsInEdt
