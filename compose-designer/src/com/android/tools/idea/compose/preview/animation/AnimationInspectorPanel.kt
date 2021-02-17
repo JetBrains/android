@@ -126,6 +126,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
         timeline.selectedTab = tab
+        // Set the clock time when changing tabs to update the current tab's prop keys panel. Note we don't do that when old selection is
+        // null, as that will happen when adding/selecting the first tab to the tabbed pane. In that case, the set clock logic will be
+        // handled by updateTransitionStates.
+        if (oldSelection != null) {
+          timeline.setClockTime(timeline.cachedVal)
+        }
       }
     })
   }
