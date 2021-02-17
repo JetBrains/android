@@ -57,7 +57,7 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
     openPreparedProject("project") {
       // TODO(b/180112678): Fix when Kotlin single variant sync is implemented.
       assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kotlinSourceSets["app"].orEmpty()).containsExactly(
-        "debugAndroidTest", "debug", "debugUnitTest", "release", "releaseUnitTest"
+        "debugAndroidTest", "debug", "debugUnitTest"
       )
     }
   }

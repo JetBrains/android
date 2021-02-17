@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncExcepti
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
+import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
@@ -56,10 +57,13 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
  * The container class for Java module, containing its Androidmodels handled by the Android plugin.
  */
 @UsedInBuildAction
-class JavaModule(gradleProject: BasicGradleProject) : GradleModule(gradleProject) {
+class JavaModule(
+  gradleProject: BasicGradleProject,
+  private val kotlinGradleModel: KotlinGradleModel?
+) : GradleModule(gradleProject) {
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
-      // Nothing to deliver yet.
+      kotlinGradleModel?.deliver()
     }
   }
 }
@@ -115,6 +119,7 @@ class AndroidModule internal constructor(
   }
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
+  var kotlinGradleModel: KotlinGradleModel? = null
 
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
    * libraries other variants depend on.
@@ -146,6 +151,7 @@ class AndroidModule internal constructor(
     )
     with(ModelConsumer(consumer)) {
       ideAndroidModels.deliver()
+      kotlinGradleModel?.deliver()
       additionalClassifierArtifacts?.deliver()
     }
   }
