@@ -61,8 +61,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
       NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
     override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
-    override fun showNotification(title: String,
-                                  content: String,
+    override fun showNotification(content: String,
+                                  title: String,
                                   severity: AppInspectionIdeServices.Severity,
                                   hyperlinkClicked: () -> Unit) {
       val type = when (severity) {
