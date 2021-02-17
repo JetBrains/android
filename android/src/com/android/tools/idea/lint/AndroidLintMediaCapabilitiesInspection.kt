@@ -17,12 +17,12 @@ package com.android.tools.idea.lint
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintIdeQuickFix
-import com.android.tools.lint.checks.MediaCapabilitiesMetadataDetector
+import com.android.tools.lint.checks.MediaCapabilitiesDetector
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.util.AndroidBundle
 
 class AndroidLintMediaCapabilitiesInspection : AndroidLintInspectionBase(
-  AndroidBundle.message("android.lint.inspections.media.capabilities"), MediaCapabilitiesMetadataDetector.ISSUE) {
+  AndroidBundle.message("android.lint.inspections.media.capabilities"), MediaCapabilitiesDetector.ISSUE) {
   override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String): Array<LintIdeQuickFix> {
     return arrayOf(
       SetAndGenerateMediaCapabilities()

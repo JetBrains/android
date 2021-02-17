@@ -18,13 +18,12 @@ package com.android.tools.idea.lint
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.TAG_APPLICATION
-import com.android.SdkConstants.TAG_META_DATA
+import com.android.SdkConstants.TAG_PROPERTY
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.lint.checks.MediaCapabilitiesMetadataDetector
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.lint.checks.MediaCapabilitiesDetector
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
@@ -33,13 +32,13 @@ import org.jetbrains.plugins.groovy.lang.psi.util.childrenOfType
 
 /**
  * A [DefaultLintQuickFix] implementation responsible for
- * setting the media capabilities metadata
+ * setting the media capabilities property
  * as well as generating the capabilities descriptor.
  * Uses composition to call the respective quick fixes.
  *
  * Pre-conditions:
  *
- *  * There is no android.content.MEDIA_CAPABILITIES meta-data on <application>.</application>
+ *  * There is no android.content.MEDIA_CAPABILITIES <property> in <application/>
  *  * Value @xml/media_capabilities is not an existing file.
  *
   * At the end of the quick fix, it opens up the media capabilities descriptor in the editor.
@@ -54,9 +53,9 @@ internal class SetAndGenerateMediaCapabilities : DefaultLintQuickFix(COMMAND_NAM
     val tag = startElement.getParentOfType<XmlTag>(false)
     if (tag != null && tag.name == TAG_APPLICATION) {
       WriteCommandAction.writeCommandAction(startElement.containingFile).withName(COMMAND_NAME).run<Throwable> {
-        val metadataTag = tag.add(tag.createChildTag(TAG_META_DATA, tag.namespace, null, false)) as? XmlTag
-        metadataTag?.setAttribute(ATTR_NAME, ANDROID_URI, MediaCapabilitiesMetadataDetector.VALUE_MEDIA_CAPABILITIES)
-        metadataTag?.setAttribute(MediaCapabilitiesMetadataDetector.ATTR_RESOURCE, ANDROID_URI, resourceUrl.toString())
+        val propertyTag = tag.add(tag.createChildTag(TAG_PROPERTY, tag.namespace, null, false)) as? XmlTag
+        propertyTag?.setAttribute(ATTR_NAME, ANDROID_URI, MediaCapabilitiesDetector.VALUE_MEDIA_CAPABILITIES)
+        propertyTag?.setAttribute(MediaCapabilitiesDetector.ATTR_RESOURCE, ANDROID_URI, resourceUrl.toString())
         myGenerateDescriptorFix.apply(startElement, endElement, context)
       }
     }
@@ -69,7 +68,7 @@ internal class SetAndGenerateMediaCapabilities : DefaultLintQuickFix(COMMAND_NAM
     if (applicationTag == null || applicationTag.name != TAG_APPLICATION) {
       return false
     }
-    return !isMediaMetadataPresent(applicationTag)
+    return !isMediaPropertyPresent(applicationTag)
             && myGenerateDescriptorFix.isApplicable(startElement, endElement, contextType)
   }
 
@@ -80,14 +79,14 @@ internal class SetAndGenerateMediaCapabilities : DefaultLintQuickFix(COMMAND_NAM
      * @param startElement Element pointing to the an attribute of application
      * @return true iff android:allowBackup=true or the attribute is not set.
      */
-    fun isMediaMetadataPresent(applicationTag: PsiElement): Boolean {
+    fun isMediaPropertyPresent(applicationTag: PsiElement): Boolean {
       return applicationTag.childrenOfType<XmlTag>().any {
-        it.name == TAG_META_DATA
-        && it.getAttribute(ATTR_NAME, ANDROID_URI)?.value == MediaCapabilitiesMetadataDetector.VALUE_MEDIA_CAPABILITIES
+        it.name == TAG_PROPERTY
+        && it.getAttribute(ATTR_NAME, ANDROID_URI)?.value == MediaCapabilitiesDetector.VALUE_MEDIA_CAPABILITIES
       }
     }
   }
 
 }
 
-private const val COMMAND_NAME = "Add media capabilities metadata and generate descriptor"
+private const val COMMAND_NAME = "Add media capabilities property and generate descriptor"

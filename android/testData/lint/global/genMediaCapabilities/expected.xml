@@ -3,7 +3,7 @@
   <problem>
     <file>AndroidManifest.xml</file>
     <line>6</line>
-    <problem_class severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Media capabilities metadata in manifest</problem_class>
-    <description>&lt;html&gt;The app accesses &lt;code&gt;MediaStore.Video&lt;/code&gt;, but is missing a &lt;code&gt;&amp;lt;meta-data&gt;&lt;/code&gt; tag with a &lt;code&gt;android.content.MEDIA_CAPABILITIES&lt;/code&gt; declaration&lt;/html&gt;</description>
+    <problem_class severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Media capabilities property in manifest</problem_class>
+    <description>&lt;html&gt;The app accesses &lt;code&gt;MediaStore.Video&lt;/code&gt;, but is missing a &lt;code&gt;&amp;lt;property&gt;&lt;/code&gt; tag with a &lt;code&gt;android.content.MEDIA_CAPABILITIES&lt;/code&gt; declaration&lt;/html&gt;</description>
   </problem>
 </problems>
