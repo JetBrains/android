@@ -669,8 +669,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   @Override
-  @NotNull
-  public JComponent getPreferredFocusedComponent() {
+  public @Nullable JComponent getPreferredFocusedComponent() {
     Component toFocus = myComponentsById.get(mySelectedComponentId);
     return toFocus instanceof JComponent ? (JComponent)toFocus : mySdkLocationTextField.getTextField();
   }
