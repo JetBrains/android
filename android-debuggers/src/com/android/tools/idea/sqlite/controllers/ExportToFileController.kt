@@ -91,13 +91,18 @@ class ExportToFileController(
   private val releaseDatabaseLock: suspend (Int) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
+  private val notifyExportInProgress: (Job) -> Unit,
   private val notifyExportComplete: (ExportRequest) -> Unit,
   private val notifyExportError: (ExportRequest, Throwable?) -> Unit
 ) : Disposable {
   private val edtDispatcher = edtExecutor.asCoroutineDispatcher()
   private val taskDispatcher = taskExecutor.asCoroutineDispatcher()
   private val listener = object : ExportToFileDialogView.Listener {
-    override fun exportRequestSubmitted(params: ExportRequest) { lastExportJob = projectScope.launch { export(params) } }
+    override fun exportRequestSubmitted(params: ExportRequest) {
+      val job = projectScope.launch { export(params) }
+      lastExportJob = job
+      notifyExportInProgress(job)
+    }
   }
 
   @VisibleForTesting

@@ -34,6 +34,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -567,6 +568,7 @@ class DatabaseInspectorControllerImpl(
       releaseDatabaseLock = { databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await() },
       taskExecutor = taskExecutor,
       edtExecutor = edtExecutor,
+      notifyExportInProgress = { job -> viewFactory.createExportInProgressView(project, job, taskExecutor.asCoroutineDispatcher()).show() },
       notifyExportComplete = { }, // TODO(161081452): implement export confirmation bubble
       notifyExportError = { _, _ -> } // TODO(161081452): implement export error bubble
     )
