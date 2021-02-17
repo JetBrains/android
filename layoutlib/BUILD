@@ -10,6 +10,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
     ],
 )
