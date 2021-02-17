@@ -96,7 +96,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       return null;
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog());
+    return new DeviceAndSnapshotComboBoxTarget(myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog(devices));
   }
 
   @NotNull

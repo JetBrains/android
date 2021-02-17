@@ -45,6 +45,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @NotNull
   private final Project myProject;
 
+  private final @NotNull List<@NotNull Device> myDevices;
   private final @NotNull BooleanSupplier myRunOnMultipleDevicesActionEnabledGet;
   private final @NotNull TableModel myModel;
 
@@ -56,21 +57,24 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
 
   SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
     this(project,
+         devices,
          StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get,
-         new SelectMultipleDevicesDialogTableModel(devices, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get),
+         StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
          DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
   SelectMultipleDevicesDialog(@NotNull Project project,
+                              @NotNull List<@NotNull Device> devices,
                               @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
-                              @NotNull SelectMultipleDevicesDialogTableModel model,
+                              @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
                               @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
+    myDevices = devices;
     myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
-    myModel = model;
+    myModel = new SelectMultipleDevicesDialogTableModel(devices, selectDeviceSnapshotComboBoxSnapshotsEnabledGet);
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();
@@ -93,7 +97,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
     myTable = new SelectMultipleDevicesDialogTable();
 
     myTable.setModel(myModel);
-    myTable.setSelectedTargets(myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog());
+    myTable.setSelectedTargets(myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog(myDevices));
   }
 
   private void initOkAction() {

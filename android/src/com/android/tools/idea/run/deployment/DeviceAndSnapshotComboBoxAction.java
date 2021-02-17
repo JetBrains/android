@@ -219,7 +219,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
-      return service.getTargetsSelectedWithDialog();
+      return service.getTargetsSelectedWithDialog(devices);
     }
 
     return service.getTargetSelectedWithComboBox(devices).map(Collections::singleton).orElseGet(Collections::emptySet);
@@ -233,7 +233,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
-    service.setMultipleDevicesSelectedInComboBox(!service.isDialogSelectionEmpty());
+    service.setMultipleDevicesSelectedInComboBox(!service.getTargetsSelectedWithDialog(devices).isEmpty());
 
     setActiveExecutionTarget(project, getSelectedTargets(project, devices));
   }

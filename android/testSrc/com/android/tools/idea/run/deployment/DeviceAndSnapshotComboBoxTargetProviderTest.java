@@ -22,6 +22,7 @@ import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,8 +44,10 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    List<Device> devices = Collections.singletonList(device);
+
     AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
-    Mockito.when(getter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+    Mockito.when(getter.get()).thenReturn(Optional.of(devices));
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
     Mockito.when(dialog.showAndGet()).thenReturn(true);
@@ -52,11 +55,9 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog()).thenReturn(targets);
+    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
 
-    DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(project -> getter,
-                                                                                (project, devices) -> dialog,
-                                                                                project -> service);
+    DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(p -> getter, (p, d) -> dialog, p -> service);
 
     Module module = Mockito.mock(Module.class);
 
