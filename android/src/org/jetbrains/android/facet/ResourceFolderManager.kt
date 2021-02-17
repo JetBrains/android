@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.facet
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.FD_MAIN
+import com.android.SdkConstants.FD_RES
+import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.gradle.variant.view.BuildVariantView
@@ -24,7 +26,6 @@ import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Splitter
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -50,7 +51,8 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
     }
 
     @JvmField
-    val TOPIC = Topic.create(ResourceFolderManager::class.qualifiedName!!, ResourceFolderListener::class.java)
+    @Topic.ProjectLevel
+    internal val TOPIC = Topic(ResourceFolderListener::class.java)
   }
 
   /** Listeners for resource folder changes  */
@@ -119,26 +121,27 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
   /** Notifies the resource folder manager that the resource folder set may have changed.  */
   fun checkForChanges() {
     if (module.isDisposed) return
-    val facet = module.androidFacet ?: return
+    val facet = AndroidFacet.getInstance(module) ?: return
     val before = facet.getUserData(FOLDERS_KEY) ?: return
     facet.putUserData(FOLDERS_KEY, null)
     val after = mainAndTestFolders
-    notifyIfChanged(before, after, Folders::main, ResourceFolderListener::mainResourceFoldersChanged)
-    notifyIfChanged(before, after, Folders::test, ResourceFolderListener::testResourceFoldersChanged)
+    notifyIfChanged(before, after, Folders::main) { resourceFolderListener, folders ->
+      resourceFolderListener.mainResourceFoldersChanged(facet, folders)
+    }
+    notifyIfChanged(before, after, Folders::test) { resourceFolderListener, folders ->
+      resourceFolderListener.testResourceFoldersChanged(facet, folders)
+    }
   }
 
-  private inline fun notifyIfChanged(
-    before: Folders,
-    after: Folders,
-    filesToCheck: Folders.() -> List<VirtualFile>,
-    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>) -> Unit
-  ) {
-    val filesBefore = before.filesToCheck()
-    val filesAfter = after.filesToCheck()
+  private inline fun notifyIfChanged(before: Folders,
+                                     after: Folders,
+                                     filesToCheck: (Folders) -> List<VirtualFile>,
+                                     callback: (ResourceFolderListener, List<VirtualFile>) -> Unit) {
+    val filesBefore = filesToCheck(before)
+    val filesAfter = filesToCheck(after)
     if (filesBefore != filesAfter) {
       generation++
-      val facet = module.androidFacet ?: return
-      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
+      callback(module.project.messageBus.syncPublisher(TOPIC), filesToCheck(after))
     }
   }
 

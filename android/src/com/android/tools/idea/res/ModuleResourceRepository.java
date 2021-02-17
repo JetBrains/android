@@ -37,6 +37,7 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,6 +155,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
                                    @NotNull List<? extends LocalResourceRepository> delegates,
                                    @NotNull SourceSet sourceSet) {
     super(facet.getModule().getName());
+
     myFacet = facet;
     myNamespace = namespace;
     mySourceSet = sourceSet;
@@ -161,23 +163,22 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
     setChildren(delegates, ImmutableList.of(), ImmutableList.of());
 
-    ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
+    // Note that ".connect(this)" will register "this" as root disposable if it has not been registered yet
+    myFacet.getModule().getProject().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, new ResourceFolderListener() {
       @Override
-      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.MAIN) {
+      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet1, @NotNull List<? extends VirtualFile> folders) {
+        if (mySourceSet == SourceSet.MAIN && facet1.getModule() == myFacet.getModule()) {
           updateRoots(folders);
         }
       }
 
       @Override
-      public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.TEST) {
+      public void testResourceFoldersChanged(@NotNull AndroidFacet facet1, @NotNull List<? extends VirtualFile> folders) {
+        if (mySourceSet == SourceSet.TEST && facet1.getModule() == myFacet.getModule()) {
           updateRoots(folders);
         }
       }
-    };
-    // Note that ".connect(this)" will register "this" as root disposable if it has not been registered yet
-    myFacet.getModule().getMessageBus().connect(this).subscribe(ResourceFolderManager.TOPIC, resourceFolderListener);
+    });
   }
 
   @VisibleForTesting
