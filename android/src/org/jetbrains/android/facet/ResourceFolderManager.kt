@@ -131,7 +131,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     if (filesBefore != filesAfter) {
       generation++
       val facet = module.androidFacet ?: return
-      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
+      module.project.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
     }
   }
 
