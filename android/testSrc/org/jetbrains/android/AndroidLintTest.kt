@@ -557,7 +557,7 @@ class AndroidLintTest : AndroidTestCase() {
     // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
     doGlobalInspectionWithFix(
       AndroidLintMediaCapabilitiesInspection(),
-      "Add media capabilities metadata and generate descriptor")
+      "Add media capabilities property and generate descriptor")
     // also check the generated backup descriptor.
     myFixture.checkResultByFile("res/xml/media_capabilities.xml",
                                 "$globalTestDir/media_capabilities.xml", true)
