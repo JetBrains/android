@@ -18,6 +18,7 @@ package com.android.tools.adtui.swing
 
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -93,7 +94,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   /**
    * Renders the given component and returns the image reflecting its appearance.
    */
-  public fun render(component: Component): BufferedImage {
+  fun render(component: Component): BufferedImage {
     val image =
         createDipImage((component.width * screenScale).toInt(), (component.height * screenScale).toInt(), BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -305,14 +306,19 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
 
 /**
  * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
+ *
+ * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
+ * or down (to decrease the importance of text in generated images).
  */
-fun setPortableUiFont() {
+fun setPortableUiFont(scale: Float = 1.0f) {
   val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
+  val default = ImageDiffTestUtil.getDefaultFont()
   while (keys.hasMoreElements()) {
     val key = keys.nextElement()
     val value = UIManager.get(key)
     if (value is FontUIResource) {
-      UIManager.put(key, FontUIResource("Droid Sans", value.style, value.size))
+      val font = default.deriveFont(value.style).deriveFont(value.size.toFloat() * scale)
+      UIManager.put(key, FontUIResource(font))
     }
   }
 }

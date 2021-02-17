@@ -38,9 +38,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
@@ -163,6 +165,14 @@ class DeviceViewPanel(
   private val actionToolbar: ActionToolbar
 
   init {
+    val selectProcessAction = SelectProcessAction(processes,
+                                                  supportsOffline = false,
+                                                  createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
+                                                  stopPresentation = SelectProcessAction.StopPresentation(
+                                                    "Stop inspector",
+                                                    "Stop running the layout inspector against the current process"),
+                                                  onStopAction = { processes.stop() })
+    contentPanel.selectProcessAction = selectProcessAction
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
 
@@ -192,7 +202,8 @@ class DeviceViewPanel(
     keyboardListeners.forEach { contentPanel.addKeyListener(it) }
 
     scrollPane.border = JBUI.Borders.empty()
-    actionToolbar = createToolbar()
+
+    actionToolbar = createToolbar(selectProcessAction)
     val toolbarComponent = createToolbarPanel(actionToolbar)
     add(toolbarComponent, BorderLayout.NORTH)
     add(layeredPane, BorderLayout.CENTER)
@@ -325,15 +336,9 @@ class DeviceViewPanel(
     get() = scrollPane.viewport.viewPosition
     set(_) { }
 
-  private fun createToolbar(): ActionToolbar {
+  private fun createToolbar(selectProcessAction: AnAction): ActionToolbar {
     val leftGroup = DefaultActionGroup()
-    leftGroup.add(SelectProcessAction(processes,
-                                      supportsOffline = false,
-                                      createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
-                                      stopPresentation = SelectProcessAction.StopPresentation(
-                                        "Stop inspector",
-                                        "Stop running the layout inspector against the current process"),
-                                      onStopAction = { processes.stop() }))
+    leftGroup.add(selectProcessAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(ViewMenuAction)
     leftGroup.add(ToggleOverlayAction)
