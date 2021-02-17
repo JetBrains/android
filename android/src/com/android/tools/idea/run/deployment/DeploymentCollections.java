@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,5 +31,18 @@ final class DeploymentCollections {
     }
 
     return Collections.singletonList(element);
+  }
+
+  static <E> @NotNull Optional<@NotNull E> toOptional(@NotNull Collection<@NotNull E> collection) {
+    int size = collection.size();
+
+    switch (size) {
+      case 0:
+        return Optional.empty();
+      case 1:
+        return Optional.of(collection.iterator().next());
+      default:
+        throw new IllegalArgumentException(Integer.toString(size));
+    }
   }
 }
