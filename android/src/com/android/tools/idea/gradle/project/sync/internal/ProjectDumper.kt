@@ -17,17 +17,15 @@ package com.android.tools.idea.gradle.project.sync.internal
 
 import com.android.SdkConstants
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-import com.android.prefs.AndroidLocationsSingleton
+import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
-import com.twelvemonkeys.lang.StringUtil
 import org.jetbrains.android.facet.AndroidFacetProperties
 import java.io.File
 import java.lang.Math.max
@@ -76,17 +74,26 @@ class ProjectDumper(
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
 
-  fun String.normalizeCxxPath(name: String, variantName: String?): String {
-    // Special case for the release variant that is represented as relwithdebinfo variant.
-    val cxxVariantName =  when {
-      variantName?.toLowerCase(Locale.ROOT) == "release" -> "relWithDebInfo"
-      else -> variantName
-    }
-    cxxVariantName?.let {
-      val cxxConfigurationPattern = Regex("/.cxx/${StringUtil.capitalize(cxxVariantName)}/[0-9a-z]{8}/${name}")
-      return this.replace(cxxConfigurationPattern, "/.cxx/{${cxxVariantName.toUpperCase(Locale.ROOT)}}/${name}")
-    }
-    return this
+  fun File.normalizeCxxPath(variantName: String?): String {
+    val cxxSegment = findCxxSegment(this) ?: return this.path
+    val abiSegment = findAbiSegment(this) ?: return this.path
+    val stringFile = this.toString().replace("\\", "/")
+    val cxxPartToReplace = stringFile.substring(
+      stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1,
+      stringFile.lastIndexOf(abiSegment) - 1)
+    return this.path.replace(cxxPartToReplace, "{${variantName?.toUpperCase(Locale.ROOT)}}")
+  }
+
+  private fun findCxxSegment(file: File): String? {
+    val name = file.name
+    if (name.endsWith("cxx")) return file.name
+    return findCxxSegment(file.parentFile?:return null)
+  }
+
+  private fun findAbiSegment(file: File): String? {
+    val name = file.name
+    if (name in Abi.values().map{it -> it.toString()}.toSet()) return file.name
+    return findAbiSegment(file.parentFile?:return null)
   }
 
   fun String.toPrintablePaths(): Collection<String> =
