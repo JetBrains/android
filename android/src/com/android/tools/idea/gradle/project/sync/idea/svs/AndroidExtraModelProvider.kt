@@ -46,14 +46,18 @@ import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierAr
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.kotlin.gradle.KotlinGradleModel
+import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.util.LinkedList
 
 interface GradleInjectedSyncActionRunner {
@@ -195,7 +199,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
                 modelCache
               )
             }
-            return JavaModule(gradleProject)
+            val kotlinGradleModel = controller.findModel(gradleProject, KotlinGradleModel::class.java)
+            return JavaModule(gradleProject, kotlinGradleModel)
           }
         }.toList()
       )
@@ -324,6 +329,17 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       }
     }
 
+    private fun BuildController.isKotlinMppProject(root: Model) = findModel(root, KotlinMPPGradleModel::class.java) != null
+
+    private fun BuildController.findKotlinGradleModelForAndroidProject(root: Model, variantName: String): KotlinGradleModel? {
+      // Do not apply single-variant sync optimization to Kotlin multi-platform projects. We do not know the exact set of source sets
+      // that needs to be processed.
+      return if (isKotlinMppProject(root)) findModel(root, KotlinGradleModel::class.java)
+      else findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+        it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
+      }
+    }
+
     /**
      * This method requests all of the required [Variant] models from Gradle via the tooling API.
      *
@@ -428,6 +444,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       val module = androidModulesById[moduleConfiguration.id] ?: return { null }
       return fun(controller: BuildController): SyncVariantResult? {
         val variant = controller.findVariantModel(module, moduleConfiguration.variant) ?: return null
+        module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variant.name)
         val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
         val nativeVariantAbi = abiToRequest
           ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) }
@@ -609,6 +626,8 @@ private fun Collection<SyncIssue>.toSyncIssueData(): List<SyncIssueData> {
     )
   }
 }
+
+private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
 
 private fun createActionRunner(controller: BuildController): GradleInjectedSyncActionRunner {
   return object : GradleInjectedSyncActionRunner {
