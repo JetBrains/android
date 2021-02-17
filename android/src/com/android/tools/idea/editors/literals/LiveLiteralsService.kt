@@ -311,11 +311,12 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
-  @Synchronized
   private fun onDocumentsUpdated(document: Collection<Document>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
     val updateList = ArrayList<LiteralReference>()
     document.flatMap {
-      documentSnapshots[it]?.modified ?: emptyList()
+      synchronized(this@LiveLiteralsService) {
+        documentSnapshots[it]?.modified ?: emptyList()
+      }
     }.forEach {
       val constantValue = it.constantValue ?: return@forEach
       it.usages.forEach { elementPath ->
@@ -436,14 +437,18 @@ class LiveLiteralsService private constructor(private val project: Project,
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
-  @Synchronized
   private fun deactivateTracking() {
     log.debug("deactivateTracking")
-    trackers.clear()
-    activationDisposable?.let {
+    synchronized(this) {
+      trackers.clear()
+      val previousActivationDisposable = activationDisposable
+      activationDisposable = null
+
+      previousActivationDisposable
+    }?.let {
+      // Dispose the previous activation outside of the synchronized lock
       Disposer.dispose(it)
     }
-    activationDisposable = null
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
