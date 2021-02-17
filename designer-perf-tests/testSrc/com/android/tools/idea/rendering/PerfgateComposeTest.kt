@@ -170,7 +170,6 @@ class PerfgateComposeTest {
     }
   }
 
-  @Ignore("b/180435158")
   @Test
   fun interactiveClickPerf() {
     composeTimeBenchmark.measureOperation(listOf(
@@ -212,6 +211,9 @@ class PerfgateComposeTest {
         renderTask.executeCallbacks(2 * frameNanos).get(5, TimeUnit.SECONDS)
 
         renderTask.triggerTouchEvent(RenderSession.TouchEventType.RELEASE, clickX, clickY, 2 * frameNanos + 1000).get(5, TimeUnit.SECONDS)
+
+        renderTask.render().get(5, TimeUnit.SECONDS)
+        renderTask.executeCallbacks(3 * frameNanos).get(5, TimeUnit.SECONDS)
 
         val finalRenderResult = renderTask.render().get(5, TimeUnit.SECONDS)
         val clickPixel = finalRenderResult.renderedImage.getPixel(clickX, clickY)
