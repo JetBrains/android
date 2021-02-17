@@ -17,6 +17,8 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressView
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogViewImpl
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorViewImpl
@@ -26,6 +28,8 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 
 class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     companion object {
@@ -45,6 +49,9 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
 
   override fun createExportToFileView(project: Project, params: ExportDialogParams): ExportToFileDialogView =
     ExportToFileDialogViewImpl(project, params)
+
+  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView =
+    ExportInProgressViewImpl(project, job, taskDispatcher)
 
   override fun createDatabaseInspectorView(project: Project) = DatabaseInspectorViewImpl(project, project)
 }
