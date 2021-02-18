@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -24,6 +25,7 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
@@ -185,6 +187,16 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   fun notifyModified() =
     if (windows.isEmpty()) modificationListeners.forEach { it(null, null, false) }
     else windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+
+  fun clear() {
+    update(null, listOf<Nothing>(), 0)
+  }
+
+  fun setProcessModel(processes: ProcessesModel) {
+    processes.addSelectedProcessListeners(newSingleThreadExecutor()) {
+      clear()
+    }
+  }
 
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {

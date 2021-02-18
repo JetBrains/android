@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
@@ -27,6 +28,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -51,12 +53,14 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
@@ -64,6 +68,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -243,6 +248,48 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).containsExactly(Type.REFRESH, Type.START).inOrder()
     assertThat(stats.currentModeIsLive).isTrue()
+  }
+
+  @Test
+  fun testLoadingPane() {
+    val settings = DeviceViewSettings()
+    val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
+                                inspectorRule.projectRule.fixture.testRootDisposable)
+    val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
+    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    assertThat(loadingPane.isLoading).isFalse()
+    assertThat(contentPanel.showEmptyText).isTrue()
+
+    // Start connecting, loading should show
+    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess()
+
+    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
+    assertThat(contentPanel.showEmptyText).isFalse()
+
+    // Stop connecting, loading should stop
+    contentPanel.selectProcessAction.updateActions(mock())
+    val actionEvent = mock<AnActionEvent>()
+    `when`(actionEvent.actionManager).thenReturn(mock())
+    val stopAction = contentPanel.selectProcessAction.getChildren(actionEvent).first { it.templateText == "Stop inspector" }
+    stopAction.actionPerformed(mock())
+
+    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
+    assertThat(contentPanel.showEmptyText).isTrue()
+
+    // Start connecting again, loading should show
+    inspectorRule.processes.resume()
+    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(pid = 2)
+
+    waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
+
+    // We get a response from the device and the model is updated. Loading should stop.
+    val newWindow = window(ROOT, ROOT) { view(VIEW1) }
+    inspectorRule.inspectorModel.update(newWindow, listOf(ROOT), 0)
+
+    waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
+    assertThat(contentPanel.showEmptyText).isTrue()
+
   }
 
   private fun installCommandHandlers() {
