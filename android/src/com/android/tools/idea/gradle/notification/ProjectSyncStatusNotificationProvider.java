@@ -30,9 +30,9 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -63,6 +63,7 @@ import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -104,7 +105,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor editor, @NotNull Project project) {
-    NotificationPanel.Type newPanelType = notificationPanelType();
+    NotificationPanel.Type newPanelType = notificationPanelType(project);
     NotificationPanel panel = newPanelType.create(project, file, myProjectInfo);
     // Keep track of the last disposable panel created for the editor to dispose it when a new panel for the same editor is created.
     // We cannot rely on editor.getUserData(KEY) because the panels created by this method are not necessarily stored there.
@@ -134,6 +135,15 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
           throw t;
         }
       }
+    }
+  }
+
+  @NotNull
+  private NotificationPanel.Type notificationPanelType(@NotNull Project project) {
+    if (IdeInfo.getInstance().isAndroidStudio() || ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return notificationPanelType();
+    } else {
+      return NotificationPanel.Type.NONE;
     }
   }
 
