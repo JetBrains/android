@@ -19,10 +19,35 @@ package com.android.tools.idea.uibuilder.scene;
  * An implementation of session clock that provides a real time passed since the time of its construction.
  */
 public class RealTimeSessionClock implements SessionClock {
-  private final long myStartTimeNanos = System.nanoTime();
+  private static final long INVALID_TIME = -1;
+  private long myStartTimeNanos = System.nanoTime();
+  /**
+   * Time in nanos when the pause was set if in pause or INVALID_TIME otherwise.
+   */
+  private long myPauseTimeNanos = INVALID_TIME;
 
   @Override
-  public long getTimeNanos() {
+  public synchronized long getTimeNanos() {
+    if (myPauseTimeNanos != INVALID_TIME) {
+      return myPauseTimeNanos - myStartTimeNanos;
+    }
     return System.nanoTime() - myStartTimeNanos;
+  }
+
+  @Override
+  public synchronized void pause() {
+    if (myPauseTimeNanos == INVALID_TIME) {
+      myPauseTimeNanos = System.nanoTime();
+    }
+  }
+
+  @Override
+  public synchronized void resume() {
+    if (myPauseTimeNanos == INVALID_TIME) {
+      return;
+    }
+    // Shift the start time by the time spent in pause
+    myStartTimeNanos += System.nanoTime() - myPauseTimeNanos;
+    myPauseTimeNanos = INVALID_TIME;
   }
 }

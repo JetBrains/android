@@ -1663,6 +1663,24 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
+   * Pauses session clock, so that session time stops advancing.
+   */
+  public void pauseSessionClock() {
+    synchronized (myRenderingTaskLock) {
+      mySessionClock.pause();
+    }
+  }
+
+  /**
+   * Resumes session clock, so that session time keeps advancing.
+   */
+  public void resumeSessionClock() {
+    synchronized (myRenderingTaskLock) {
+      mySessionClock.resume();
+    }
+  }
+
+  /**
    * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a particular point
    * @param type type of a touch event
    * @param x horizontal android coordinate of the detected touch event
