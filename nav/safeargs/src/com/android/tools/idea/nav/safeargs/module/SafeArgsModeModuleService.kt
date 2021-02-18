@@ -54,7 +54,7 @@ class SafeArgsModeModuleService(val module: Module) {
       // initialized before here, so call update immediately just in case.
       updateSafeArgsMode()
 
-      val connection = module.messageBus.connect(module)
+      val connection = module.project.messageBus.connect(module)
       connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, object : GradleSyncListener {
         override fun syncSucceeded(project: Project) {
           updateSafeArgsMode()
