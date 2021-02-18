@@ -21,11 +21,12 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowAnchor
+import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
-import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.junit.Before
 import org.junit.Rule
@@ -35,7 +36,6 @@ import org.junit.runners.JUnit4
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
@@ -56,12 +56,8 @@ class VisualizationManagerTest {
   }
 
   @Test
-  fun testToolWindowIsRegisteredAfterInit() {
-    val manager = projectRule.project.getService(VisualizationManager::class.java)
-    assertNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(manager.toolWindowId))
-
-    UIUtil.invokeAndWaitIfNeeded(Runnable { manager.initToolWindow() })
-    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(manager.toolWindowId))
+  fun testToolWindowExist() {
+    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID))
   }
 
   @Test
@@ -118,6 +114,18 @@ private const val LAYOUT_FILE_TEXT = """<?xml version="1.0" encoding="utf-8"?>
 
 private class MyToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
   private val toolWindows = mutableMapOf<String, ToolWindow>()
+
+  init {
+    // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
+    @Suppress("UnstableApiUsage")
+    ToolWindowEP.EP_NAME.processWithPluginDescriptor { bean, pluginDescriptor ->
+      val factory = bean.getToolWindowFactory(pluginDescriptor)!!
+      if (factory.isApplicable(project)) {
+        val anchor = ToolWindowAnchor.fromText(bean.anchor ?: ToolWindowAnchor.LEFT.toString())
+        registerToolWindow(RegisterToolWindowTask(id = bean.id, anchor = anchor, contentFactory = factory))
+      }
+    }
+  }
 
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
     val toolWindow = MyMockToolWindow(project)

@@ -24,18 +24,17 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
@@ -47,12 +46,8 @@ import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import icons.StudioIcons;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
 import java.util.Arrays;
 import javax.swing.JComponent;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -66,6 +61,10 @@ import org.jetbrains.annotations.VisibleForTesting;
  * The visualization tool use {@link NlDesignSurface} for rendering previews.
  */
 public class VisualizationManager implements Disposable {
+
+  // Must be same as the tool window id in designer.xml
+  @NotNull public static final String TOOL_WINDOW_ID = "Layout Validation";
+
   /**
    * The default width for first time open.
    */
@@ -74,29 +73,24 @@ public class VisualizationManager implements Disposable {
   @Nullable
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
-  private final Project myProject;
+  @NotNull private final Project myProject;
 
   @Nullable private VisualizationForm myToolWindowForm;
-  @Nullable private ToolWindow myToolWindow;
-  private boolean myToolWindowReady = false;
-  private boolean myToolWindowDisposed = false;
+  @Nullable private final ToolWindow myToolWindow;
 
-  public static class VisualizationManagerPostStartupActivity implements StartupActivity {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      getInstance(project).onToolWindowReady();
-    }
-  }
-
-  public VisualizationManager(final Project project) {
+  public VisualizationManager(@NotNull Project project) {
     myProject = project;
+    myToolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+    if (myToolWindow == null) {
+      Logger.getInstance(getClass()).error("Cannot find Tool Window of Layout Validation Tool");
+      myToolWindowUpdateQueue = null;
+      return;
+    }
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, this);
-    final MessageBusConnection connection = project.getMessageBus().connect(this);
+    // TODO(b/180927397): Move File Editor Listener into VisualizationToolFactory
+    final MessageBusConnection connection = myProject.getMessageBus().connect(this);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
-  }
 
-  private void onToolWindowReady() {
-    myToolWindowReady = true;
     processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
   }
 
@@ -111,57 +105,15 @@ public class VisualizationManager implements Disposable {
   }
 
   @NotNull
-  public String getToolWindowId() {
-      return AndroidBundle.message("android.layout.visual.tool.window.title");
-  }
+  private VisualizationForm initToolWindowContent(@NotNull ToolWindow toolWindow) {
+    // TODO(b/180927397): move tool initialization to VisualizationToolFactory
+    VisualizationForm visualizationForm = new VisualizationForm(myProject, VisualizationManager.this);
 
-  @NotNull
-  protected VisualizationForm createPreviewForm() {
-    return new VisualizationForm(myProject, this);
-  }
-
-  protected void initToolWindow() {
-    myToolWindowForm = createPreviewForm();
-    final String toolWindowId = getToolWindowId();
-    myToolWindow =
-      ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, this, true);
-    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
-
-    myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
-      @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
-        if (VisualizationToolSettings.getInstance().getGlobalState().isFirstTimeOpen() && window instanceof ToolWindowEx) {
-          ToolWindowEx windowEx = (ToolWindowEx)window;
-          int width = window.getComponent().getWidth();
-          windowEx.stretchWidth(DEFAULT_WINDOW_WIDTH - width);
-        }
-        VisualizationToolSettings.getInstance().getGlobalState().setFirstTimeOpen(false);
-        if (window != null && window.isAvailable()) {
-          final boolean visible = window.isVisible();
-          VisualizationToolSettings.getInstance().getGlobalState().setVisible(visible);
-
-          if (myToolWindowForm != null) {
-            if (visible) {
-              myToolWindowForm.activate();
-            }
-            else {
-              myToolWindowForm.deactivate();
-            }
-          }
-        }
-      }
-    });
-
-    final JComponent contentPanel = myToolWindowForm.getComponent();
-    final ContentManager contentManager = myToolWindow.getContentManager();
+    final JComponent contentPanel = visualizationForm.getComponent();
+    final ContentManager contentManager = toolWindow.getContentManager();
     contentManager.addDataProvider(dataId -> {
       if (LangDataKeys.MODULE.is(dataId) || LangDataKeys.IDE_VIEW.is(dataId) || CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
-        FileEditor fileEditor = myToolWindowForm.getEditor();
+        FileEditor fileEditor = visualizationForm.getEditor();
         if (fileEditor != null) {
           JComponent component = fileEditor.getComponent();
           DataContext context = DataManager.getInstance().getDataContext(component);
@@ -172,106 +124,64 @@ public class VisualizationManager implements Disposable {
     });
 
     final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
-    content.setDisposer(myToolWindowForm);
+    content.setDisposer(visualizationForm);
     content.setCloseable(false);
     content.setPreferredFocusableComponent(contentPanel);
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-    if (isWindowVisible()) {
-      myToolWindowForm.activate();
+    if (toolWindow.isVisible()) {
+      visualizationForm.activate();
     }
+    return visualizationForm;
   }
-
-  /**
-   * Whether we've seen an open file editor yet
-   */
-  private boolean mySeenEditor;
-
-  /**
-   * The most recently opened file editor that was not showing (while {@link #mySeenEditor} was false)
-   */
-  private JComponent myPendingShowComponent;
-
-  /**
-   * A listener on {@link #myPendingShowComponent} which listens for the most recently opened file editor to start showing
-   */
-  private HierarchyListener myHierarchyListener;
 
   private void processFileEditorChange(@Nullable final FileEditor newEditor) {
     if (myToolWindowUpdateQueue == null) {
       return;
     }
-    if (myPendingShowComponent != null) {
-      myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
-      myPendingShowComponent = null;
-    }
+    assert myToolWindow != null : "The update queue only exists when tool window is not null";
 
     myToolWindowUpdateQueue.cancelAllUpdates();
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
       public void run() {
-        if (!myToolWindowReady || myToolWindowDisposed) {
+        if (myToolWindow.isDisposed()) {
           return;
         }
-        if (myToolWindow == null) {
-          if (newEditor == null) {
-            return;
-          }
-          else if (!newEditor.getComponent().isShowing() && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
-            // When the IDE starts, it opens all the previously open editors, one
-            // after the other. This means that this method gets called, and for
-            // each layout editor that is on top, it opens up the preview window
-            // and starts a render, even if the topmost editor is not a layout
-            // editor file. However, unlike a normal tab switch performed by the
-            // user, we can detect the startup scenario by ignoring editors that
-            // are not actually showing, so if editor tabs aren't showing, we ignore
-            // them.
-            //
-            // However, it's possible for the last editor to come up and not be
-            // marked showing yet. That means that the XML editor comes up and
-            // you have to give it focus before the layout preview kicks in.
-            // The reason this happens is that the last event we receive is when
-            // the file is opened (but the editor is not yet showing).
-            // To deal with this, the following code adds a hierarchy listener,
-            // which is notified when the component associated with this editor
-            // is actually shown. We need to remove those listeners as soon
-            // as we switch to a different editor (which at startup happens rapidly
-            // for each successive restored editor tab). And we only do this
-            // at startup (recorded by the mySeenEditor field; this is startup
-            // per project frame.)
-            if (!mySeenEditor) {
-              myPendingShowComponent = newEditor.getComponent();
-              if (myHierarchyListener == null) {
-                myHierarchyListener = hierarchyEvent -> {
-                  if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-                    if (hierarchyEvent.getComponent() == myPendingShowComponent && myPendingShowComponent.isShowing()) {
-                      myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
-                      mySeenEditor = true;
-                      myPendingShowComponent = null;
-                      processFileEditorChange(getFirstActiveLayoutEditor());
-                    }
-                  }
-                };
+
+        if (myToolWindowForm == null) {
+          myToolWindowForm = initToolWindowContent(myToolWindow);
+
+          myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+            @Override
+            public void stateChanged(@NotNull ToolWindowManager manager) {
+              if (myProject.isDisposed()) {
+                return;
               }
-              myPendingShowComponent.addHierarchyListener(myHierarchyListener);
+              if (VisualizationToolSettings.getInstance().getGlobalState().isFirstTimeOpen() && myToolWindow instanceof ToolWindowEx) {
+                ToolWindowEx windowEx = (ToolWindowEx)myToolWindow;
+                int width = myToolWindow.getComponent().getWidth();
+                windowEx.stretchWidth(DEFAULT_WINDOW_WIDTH - width);
+              }
+              VisualizationToolSettings.getInstance().getGlobalState().setFirstTimeOpen(false);
+              if (myToolWindow.isAvailable()) {
+                final boolean visible = myToolWindow.isVisible();
+                VisualizationToolSettings.getInstance().getGlobalState().setVisible(visible);
+
+                if (myToolWindowForm != null) {
+                  if (visible) {
+                    myToolWindowForm.activate();
+                  }
+                  else {
+                    myToolWindowForm.deactivate();
+                  }
+                }
+              }
             }
-
-            return;
-          }
-          mySeenEditor = true;
-          initToolWindow();
+          });
         }
 
-        if (myToolWindow == null || myToolWindowForm == null) {
-          return;
-        }
-
-        if (newEditor == null) {
-          myToolWindow.setAvailable(false);
-          return;
-        }
-
-        if (!myToolWindowForm.setNextEditor(newEditor)) {
+        if (newEditor == null || !myToolWindowForm.setNextEditor(newEditor)) {
           myToolWindow.setAvailable(false);
           return;
         }
@@ -299,8 +209,6 @@ public class VisualizationManager implements Disposable {
     if (myToolWindowForm != null) {
       Disposer.dispose(myToolWindowForm);
       myToolWindowForm = null;
-      myToolWindow = null;
-      myToolWindowDisposed = true;
     }
   }
 
@@ -326,33 +234,9 @@ public class VisualizationManager implements Disposable {
       .orElse(null);
   }
 
-  /**
-   * Find an active editor for the specified file, or just the first active editor if file is null.
-   */
-  @Nullable
-  private FileEditor getFirstActiveLayoutEditor() {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<FileEditor>)() -> getFirstActiveLayoutEditor());
-    }
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    return Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
-      .filter(editor -> {
-        VirtualFile editorFile = editor.getFile();
-        ResourceFolderType type = IdeResourcesUtil.getFolderType(editorFile);
-        return type == ResourceFolderType.LAYOUT;
-      })
-      .findFirst()
-      .orElse(null);
-  }
-
   @Nullable
   public static VisualizationManager getInstance(Project project) {
     return project.getService(VisualizationManager.class);
-  }
-
-  @NotNull
-  public Project getProject() {
-    return myProject;
   }
 
   @VisibleForTesting

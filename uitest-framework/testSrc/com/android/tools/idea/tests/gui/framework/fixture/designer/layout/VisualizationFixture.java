@@ -20,9 +20,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
+import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.Robot;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,7 +32,7 @@ public class VisualizationFixture extends ToolWindowFixture {
   private final NlDesignSurfaceFixture myDesignSurfaceFixture;
 
   public VisualizationFixture(@NotNull Project project, @NotNull Robot robot) {
-    super(AndroidBundle.message("android.layout.visual.tool.window.title"), project, robot);
+    super(VisualizationManager.TOOL_WINDOW_ID, project, robot);
     myDesignSurfaceFixture = new NlDesignSurfaceFixture(
       robot, GuiTests.waitUntilShowing(robot, null, Matchers.byName(NlDesignSurface.class, VisualizationForm.VISUALIZATION_DESIGN_SURFACE), 20));
   }
