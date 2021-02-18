@@ -36,11 +36,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   @NotNull
   private String myName;
 
-  /**
-   * Whether to disable live allocation during CPU recording.
-   */
-  private boolean myDisableLiveAllocation = true;
-
   protected ProfilingConfiguration(@NotNull String name) {
     myName = name;
   }
@@ -57,18 +52,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
   @OptionsProperty
   public void setName(@NotNull String name) {
     myName = name;
-  }
-
-  @OptionsProperty(group = "Performance", name = "Live allocation tracking:",
-    description = "Live allocation tracking tracks allocated java objects. This can have an impact on overall app performance. " +
-                  "It is recommended to disable this when recording a trace.")
-  public boolean isDisableLiveAllocation() {
-    return myDisableLiveAllocation;
-  }
-
-  @OptionsProperty
-  public void setDisableLiveAllocation(boolean disableLiveAllocation) {
-    myDisableLiveAllocation = disableLiveAllocation;
   }
 
   public abstract int getRequiredDeviceLevel();
@@ -116,7 +99,6 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
       case UNSPECIFIED_TYPE:
         return new UnspecifiedConfiguration(DEFAULT_CONFIGURATION_NAME);
     }
-    configuration.setDisableLiveAllocation(proto.getDisableLiveAllocation());
     return configuration;
   }
 
@@ -128,7 +110,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     return buildUserOptions()
       .setName(getName())
       .setTraceType(getTraceType())
-      .setDisableLiveAllocation(isDisableLiveAllocation())
+      .setDisableLiveAllocation(true)
       .build();
   }
 

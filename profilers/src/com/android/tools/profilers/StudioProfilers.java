@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
@@ -29,7 +27,6 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
-import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
@@ -37,10 +34,6 @@ import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
-import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
-import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -957,46 +950,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
     return String.format("%s (%s)", process.getName(), buildDeviceName(device));
-  }
-
-  /**
-   * Enable or disable Memory Profiler live allocation tracking to improve app performance.
-   *
-   * @param enabled True to enable live allocation, false to disable.
-   */
-  public void setMemoryLiveAllocationEnabled(boolean enabled) {
-    if (getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled() &&
-        getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-        isAgentAttached()) {
-      int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
-        MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-      int samplingRateOff = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
-      // If live allocation is already disabled, don't send any request.
-      if (savedSamplingRate != samplingRateOff) {
-        MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder()
-          .setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff)
-          .build();
-
-        if (getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-          // TODO(b/150503095)
-          Transport.ExecuteResponse response = getClient().getTransportClient().execute(
-            Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
-                                                               .setStreamId(getSession().getStreamId())
-                                                               .setPid(getSession().getPid())
-                                                               .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
-                                                               .setMemoryAllocSampling(samplingRate))
-              .build());
-        }
-        else {
-          // TODO(b/150503095)
-          SetAllocationSamplingRateResponse response =
-            getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
-                                                                      .setSession(getSession())
-                                                                      .setSamplingRate(samplingRate)
-                                                                      .build());
-        }
-      }
-    }
   }
 
   /**

@@ -35,10 +35,7 @@ import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.idea.transport.faketransport.commands.BeginSession;
-import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeFeatureTracker;
@@ -1424,98 +1421,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myStage.setCaptureState(CaptureState.CAPTURING);
     assertThat(myStage.getRecordingModel().isRecording()).isTrue();
 
-  }
-
-  @Test
-  public void testMemoryLiveAllocationIsDisabledIfApplicable() throws InterruptedException {
-    // Initialize all conditions to false.
-    myServices.getPersistentProfilerPreferences().setInt(MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, 1);
-    myServices.enableLiveAllocationsSampling(false);
-    addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
-    ProfilingConfiguration config = new ArtInstrumentedConfiguration("My Instrumented Config");
-    config.setDisableLiveAllocation(false);
-    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    myTransportService.setAgentStatus(Common.AgentData.getDefaultInstance());
-
-    // Live allocation sampling rate should remain the same.
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-
-    // Enable feature flag.
-    // Live allocation sampling rate should still remain the same.
-    myServices.enableLiveAllocationsSampling(true);
-    myTimer.setCurrentTimeNs(10);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-
-    // Set an O+ device.
-    // Live allocation sampling rate should still remain the same.
-    addAndSetDevice(AndroidVersion.VersionCodes.O, "FOO2");
-    myTimer.setCurrentTimeNs(20);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-
-    // Set agent status to ATTACHED.
-    // Live allocation sampling rate should still remain the same.
-    Common.AgentData agentData = Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      long sessionStreamId =
-        ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION)).getNextSessionId();
-      myTransportService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
-        .setPid(FAKE_PID)
-        .setKind(Common.Event.Kind.AGENT)
-        .setAgentData(agentData)
-        .build());
-    }
-    else {
-      myTransportService.setAgentStatus(agentData);
-    }
-    myTimer.setCurrentTimeNs(30);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
-                   .getLastSamplingRate()).isEqualTo(1);
-    }
-    else {
-      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    }
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
-                   .getLastSamplingRate()).isEqualTo(1);
-    }
-    else {
-      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    }
-
-    // Set profiling config to true.
-    // Now all conditions are met, live allocation should be disabled during capture and re-enabled after capture is stopped.
-    config.setDisableLiveAllocation(true);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    myTimer.setCurrentTimeNs(40);
-    CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
-                   .getLastSamplingRate()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
-    }
-    else {
-      assertThat(myMemoryService.getSamplingRate()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue());
-    }
-    CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, false, null);
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      assertThat(((MemoryAllocSampling)myTransportService.getRegisteredCommand(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING))
-                   .getLastSamplingRate()).isEqualTo(1);
-    }
-    else {
-      assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
-    }
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

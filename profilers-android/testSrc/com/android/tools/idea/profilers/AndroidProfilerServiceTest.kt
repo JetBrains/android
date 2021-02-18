@@ -94,7 +94,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     val state = ProfilerState();
     `when`(runConfig.profilerState).thenReturn(state);
     AndroidProfilerService.getInstance().customizeAgentConfig(configBuilder, runConfig)
-    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.SAMPLED.value)
+    assertThat(configBuilder.mem.samplingRate.samplingNumInterval).isEqualTo(LiveAllocationSamplingMode.NONE.value)
 
     state.STARTUP_PROFILING_ENABLED = true;
     state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = true;
