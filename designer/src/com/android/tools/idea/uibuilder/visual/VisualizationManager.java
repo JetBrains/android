@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
@@ -88,11 +87,6 @@ public class VisualizationManager implements Disposable {
 
   public VisualizationManager(final Project project) {
     myProject = project;
-
-    if (!StudioFlags.NELE_VISUALIZATION.get()) {
-      myToolWindowUpdateQueue = null;
-      return;
-    }
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
@@ -118,9 +112,6 @@ public class VisualizationManager implements Disposable {
   }
 
   protected void initToolWindow() {
-    if (!StudioFlags.NELE_VISUALIZATION.get()) {
-      return;
-    }
     myToolWindowForm = createPreviewForm();
     final String toolWindowId = getToolWindowId();
     myToolWindow =

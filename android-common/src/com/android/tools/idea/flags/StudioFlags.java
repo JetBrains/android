@@ -287,11 +287,6 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
-  public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
-    NELE, "visualisation", "Layout Validation Tool",
-    "Enable Layout Validation Tool to preview layout in multiple configurations at the same time",
-    true);
-
   public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
     NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
     "Enable locale mode in Layout Validation Tool to preview layout in project's locales",

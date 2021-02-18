@@ -145,7 +145,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   }
 
   private boolean isInVisualizationTool() {
-    return StudioFlags.NELE_VISUALIZATION.get() &&
-           ((NlDesignSurface)mySurface).getScreenViewProvider() == NlScreenViewProvider.VISUALIZATION;
+    return ((NlDesignSurface)mySurface).getScreenViewProvider() == NlScreenViewProvider.VISUALIZATION;
   }
 }
