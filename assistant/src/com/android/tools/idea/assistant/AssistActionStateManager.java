@@ -22,7 +22,6 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,11 +69,7 @@ public abstract class AssistActionStateManager {
    * Causes state buttons to recheck their state. Affects all buttons within the assistant.
    */
   public void refreshDependencyState(@NotNull Project project) {
-    for (Module module : getAndroidModules(project)) {
-      MessageBus bus = module.getMessageBus();
-      StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);
-      publisher.stateUpdated();
-    }
+    project.getMessageBus().syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC).stateUpdated();
   }
 
   public static List<Module> getAndroidModules(@NotNull Project project) {

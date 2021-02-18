@@ -88,7 +88,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @Override
   public void initFacet() {
-    MessageBusConnection connection = getModule().getMessageBus().connect(this);
+    MessageBusConnection connection = getModule().getProject().getMessageBus().connect(this);
     connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {

@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.impl.ModuleEx
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
@@ -96,7 +97,7 @@ class LayoutBindingModuleCache(private val module: Module) {
       }
     }
 
-    val connection = module.messageBus.connect(module)
+    val connection = (module as ModuleEx).deprecatedModuleLevelMessageBus.connect()
     connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         syncModeWithDependencies()
