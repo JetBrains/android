@@ -15,27 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.JavaProjectTestCase
 
 class VisualizationManagerTest : JavaProjectTestCase() {
 
-  fun testNotRegisterWhenFlagIsDisable() {
-    StudioFlags.NELE_VISUALIZATION.override(false)
-    val manager = VisualizationManager(project)
-    manager.initToolWindow()
-    val window = ToolWindowManager.getInstance(myProject).getToolWindow(manager.toolWindowId)
-    assertNull(window)
-    StudioFlags.NELE_VISUALIZATION.clearOverride()
-  }
-
-  fun testRegisterWhenFlagIsEnable() {
-    StudioFlags.NELE_VISUALIZATION.override(true)
+  fun testToolWindowRegisteredAfterInit() {
     val manager = VisualizationManager(project)
     manager.initToolWindow()
     val window = ToolWindowManager.getInstance(myProject).getToolWindow(manager.toolWindowId)
     assertNotNull(window)
-    StudioFlags.NELE_VISUALIZATION.clearOverride()
   }
 }
