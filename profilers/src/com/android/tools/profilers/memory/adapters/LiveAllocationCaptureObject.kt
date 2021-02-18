@@ -417,10 +417,11 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
         AllocationEvent.EventCase.FREE_DATA -> {
           // New deallocation - there should be a matching InstanceObject.
           val deallocation = event.freeData
-          assert(instanceMap.containsKey(deallocation.tag))
-          val instance = instanceMap[deallocation.tag]
-          instance.deallocTime = if (resetInstance) Long.MAX_VALUE else event.timestamp
-          deallocationList.add(instance)
+          // FIXME(b/180630877) The tag is supposed to always be in the instance map
+          instanceMap[deallocation.tag]?.let { instance ->
+            instance.deallocTime = if (resetInstance) Long.MAX_VALUE else event.timestamp
+            deallocationList.add(instance)
+          }
         }
         // ignore CLASS_DATA as they are handled via context updates.
         AllocationEvent.EventCase.CLASS_DATA -> { }
