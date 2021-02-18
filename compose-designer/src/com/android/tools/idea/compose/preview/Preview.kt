@@ -326,6 +326,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     logInteractiveSessionMetrics()
   }
 
+  private fun pauseInteractivePreview() {
+    ticker.stop()
+    surface.layoutlibSceneManagers.forEach { it.pauseSessionClock() }
+  }
+
+  private fun resumeInteractivePreview() {
+    fpsCounter.resetAndStart()
+    surface.layoutlibSceneManagers.forEach { it.resumeSessionClock() }
+    ticker.start()
+  }
+
   private val animationInspection = AtomicBoolean(false)
 
   override var animationInspectionPreviewElementInstance: PreviewElementInstance?
@@ -597,6 +608,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       else surface.activate()
 
+      if (interactiveMode.isStartingOrReady()) {
+        resumeInteractivePreview()
+      }
+
       if (refreshedWhileDeactivated.getAndSet(false)) {
         // Refresh has been called while we were deactivated, issue a refresh on activation.
         LOG.debug("Pending refresh")
@@ -612,6 +627,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     activationLock.withLock {
       // If the preview is still not active, deactivate the surface.
       if (!isActive.get()) {
+        interactivePreviewElementInstance = null
         LOG.debug("Delayed surface deactivation")
         surface.deactivate()
       }
@@ -621,7 +637,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onDeactivate() {
     activationLock.withLock {
       LOG.debug("onDeactivate")
-      interactivePreviewElementInstance = null
+      if (interactiveMode.isStartingOrReady()) {
+        pauseInteractivePreview()
+      }
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
       isActive.set(false)
 

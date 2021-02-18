@@ -23,4 +23,14 @@ public interface SessionClock {
    * Returns current time in nanoseconds.
    */
   long getTimeNanos();
+
+  /**
+   * Pause the clock.
+   */
+  void pause();
+
+  /**
+   * Resume the clock if paused.
+   */
+  void resume();
 }
