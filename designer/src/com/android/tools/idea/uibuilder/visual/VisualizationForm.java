@@ -138,12 +138,13 @@ public class VisualizationForm
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
 
-  public VisualizationForm(@NotNull Project project) {
+  public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myProject = project;
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
     myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
 
-    mySurface = NlDesignSurface.builder(myProject, myProject)
+    mySurface = NlDesignSurface.builder(myProject, VisualizationForm.this)
       .showModelNames()
       .setIsPreview(false)
       .setEditable(true)

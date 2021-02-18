@@ -55,6 +55,8 @@ import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Manages a shared visualization window on the right side of the source editor which shows a preview
@@ -69,7 +71,8 @@ public class VisualizationManager implements Disposable {
    */
   private static final int DEFAULT_WINDOW_WIDTH = 500;
 
-  @Nullable private final MergingUpdateQueue myToolWindowUpdateQueue;
+  @Nullable
+  private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
 
@@ -87,8 +90,8 @@ public class VisualizationManager implements Disposable {
 
   public VisualizationManager(final Project project) {
     myProject = project;
-    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
+    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, this);
+    final MessageBusConnection connection = project.getMessageBus().connect(this);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
   }
 
@@ -97,8 +100,14 @@ public class VisualizationManager implements Disposable {
     processFileEditorChange(FileEditorManager.getInstance(myProject).getSelectedEditor());
   }
 
+  @VisibleForTesting
   public boolean isWindowVisible() {
     return myToolWindow != null && myToolWindow.isVisible();
+  }
+
+  @TestOnly
+  public boolean isToolWindowAvailable() {
+    return myToolWindow != null && myToolWindow.isAvailable();
   }
 
   @NotNull
@@ -108,14 +117,14 @@ public class VisualizationManager implements Disposable {
 
   @NotNull
   protected VisualizationForm createPreviewForm() {
-    return new VisualizationForm(myProject);
+    return new VisualizationForm(myProject, this);
   }
 
   protected void initToolWindow() {
     myToolWindowForm = createPreviewForm();
     final String toolWindowId = getToolWindowId();
     myToolWindow =
-      ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
+      ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, this, true);
     myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW);
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
@@ -208,7 +217,7 @@ public class VisualizationManager implements Disposable {
           if (newEditor == null) {
             return;
           }
-          else if (!newEditor.getComponent().isShowing()) {
+          else if (!newEditor.getComponent().isShowing() && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
             // When the IDE starts, it opens all the previously open editors, one
             // after the other. This means that this method gets called, and for
             // each layout editor that is on top, it opens up the preview window
@@ -337,10 +346,6 @@ public class VisualizationManager implements Disposable {
   }
 
   @Nullable
-  protected ToolWindow getToolWindow() {
-    return myToolWindow;
-  }
-
   public static VisualizationManager getInstance(Project project) {
     return project.getService(VisualizationManager.class);
   }
@@ -348,6 +353,12 @@ public class VisualizationManager implements Disposable {
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public MergingUpdateQueue getToolWindowUpdateQueue() {
+    return myToolWindowUpdateQueue;
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
