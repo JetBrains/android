@@ -31,7 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ModuleResourceManagers {
+public final class ModuleResourceManagers {
   private final Module myModule;
 
   private FrameworkResourceManager myPublicFrameworkResourceManager;
@@ -48,7 +48,7 @@ public class ModuleResourceManagers {
   private ModuleResourceManagers(@NotNull Module module) {
     myModule = module;
 
-    MessageBusConnection connection = module.getMessageBus().connect(module);
+    MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       private Sdk myPrevSdk = null;
 

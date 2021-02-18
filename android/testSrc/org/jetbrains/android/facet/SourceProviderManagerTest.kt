@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ProjectTopics
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.module.impl.ModuleEx
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.junit.Rule
 import org.junit.Test
@@ -37,7 +38,7 @@ class SourceProviderManagerTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val sourceProviderManagerBeforeNotification = facet.sourceProviders
     invokeAndWaitIfNeeded {
-      projectRule.module.messageBus.syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet)
+      (projectRule.module as ModuleEx).deprecatedModuleLevelMessageBus.syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet)
     }
     val sourceProviderManagerAfterNotification = facet.sourceProviders
     assertThat(sourceProviderManagerAfterNotification).isNotSameAs(sourceProviderManagerBeforeNotification)

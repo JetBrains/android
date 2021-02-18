@@ -21,7 +21,6 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBus;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * Extension point to add state to action buttons. State should generally be based off of data available from a from an independent source.
  */
 public abstract class AssistActionStateManager {
-  public static ExtensionPointName<AssistActionStateManager> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.assistant.actionStateManager");
+  public static final ExtensionPointName<AssistActionStateManager> EP_NAME =
+    new ExtensionPointName<>("com.android.tools.idea.assistant.actionStateManager");
 
   /**
    * Gets the opaque id for a state manager. Corresponds to the stateManager field in {@code TutorialBundle.Action} and is used to identify
@@ -69,11 +68,7 @@ public abstract class AssistActionStateManager {
    * Causes state buttons to recheck their state. Affects all buttons within the assistant.
    */
   public void refreshDependencyState(@NotNull Project project) {
-    for (Module module : getAndroidModules(project)) {
-      MessageBus bus = module.getMessageBus();
-      StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);
-      publisher.stateUpdated();
-    }
+    project.getMessageBus().syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC).stateUpdated();
   }
 
   public static List<Module> getAndroidModules(@NotNull Project project) {

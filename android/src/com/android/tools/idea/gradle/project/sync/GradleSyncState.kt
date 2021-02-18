@@ -122,7 +122,8 @@ open class GradleSyncState @NonInjectable internal constructor (
     val JDK_LOCATION_WARNING_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("JDK Location different to JAVA_HOME")
 
     @JvmField
-    val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListener::class.java)
+    @Topic.AppLevel
+    val GRADLE_SYNC_TOPIC = Topic(GradleSyncListener::class.java, Topic.BroadcastDirection.NONE)
 
     /**
      * These methods allow the registering of listeners to [GradleSyncState].
