@@ -87,11 +87,11 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   @Test
   fun `sampling menu updates text when sampling mode changes`() {
     tick()
-    assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(SAMPLED)
-
-    requestFullSampling()
-    tick()
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(FULL)
+
+    requestSamplingRate(SAMPLED.value)
+    tick()
+    assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(SAMPLED)
   }
 
   @Test
@@ -153,9 +153,9 @@ class AllocationStageViewTest(private val isLive: Boolean) {
 
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-  private fun requestFullSampling() =
+  private fun requestSamplingRate(rate: Int) =
     transportService.addEventToStream(
-      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.pid, 1, 1).build())
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.pid, 1, rate).build())
 
 
 

@@ -38,6 +38,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfSampleReporter;
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.ide.util.PropertiesComponent;
@@ -130,22 +131,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   @Override
   public void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder,
                                    @Nullable AndroidRunConfigurationBase runConfig) {
-    int liveAllocationSamplingRate;
-    if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
-      // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
-      if (shouldEnableMemoryLiveAllocation(runConfig)) {
-        liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
-          IntellijProfilerPreferences.getProfilerPropertyName(MainMemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-          MainMemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-      }
-      else {
-        liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
-      }
-    }
-    else {
-      // Sampling feature is disabled, use full mode.
-      liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
-    }
+    // Disable live allocation tracking by default
+    final int liveAllocationSamplingRate = MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
     configBuilder
       .setCommon(
         configBuilder.getCommonBuilder()
@@ -174,18 +161,5 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     } else {
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);
     }
-  }
-
-  private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
-    if (runConfig == null) {
-      return true;
-    }
-    ProfilerState state = runConfig.getProfilerState();
-    if (state.isCpuStartupProfilingEnabled()) {
-      String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-      CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(runConfig.getProject()).getConfigByName(configName);
-      return startupConfig == null || !startupConfig.isDisableLiveAllocation();
-    }
-    return !state.isNativeMemoryStartupProfilingEnabled();
   }
 }

@@ -129,10 +129,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @Override
   public void enter() {
     super.enter();
-    if (isLiveAllocationTrackingSupported()) {
-      // TODO(b/172695266) disable allocation tracking by default
-      requestLiveAllocationSamplingModeUpdate(NONE);
-    }
     updateAllocationTrackingStatus();
     updateNativeAllocationTrackingStatus();
 
