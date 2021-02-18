@@ -20,6 +20,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-interface SelectMultipleDevicesDialogSupplier {
+interface DialogSupplier {
   @NotNull DialogWrapper get(@NotNull Project project, @NotNull List<@NotNull Device> devices);
 }
