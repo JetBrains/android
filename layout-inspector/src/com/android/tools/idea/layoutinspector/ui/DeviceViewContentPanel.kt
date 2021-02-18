@@ -58,6 +58,9 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   @VisibleForTesting
   lateinit var selectProcessAction: SelectProcessAction
 
+  @VisibleForTesting
+  var showEmptyText = true
+
   val model = DeviceViewPanelModel(inspectorModel)
 
   val rootLocation: Point
@@ -75,9 +78,8 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   private val emptyText: StatusText = object : StatusText(this) {
-    override fun isStatusVisible() = !model.isActive
+    override fun isStatusVisible() = !model.isActive && showEmptyText
   }
-
 
   init {
     emptyText.appendLine("No process connected")
