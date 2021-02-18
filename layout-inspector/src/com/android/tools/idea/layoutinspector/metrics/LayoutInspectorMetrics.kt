@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.metrics
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType

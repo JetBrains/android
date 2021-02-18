@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.statistics
+package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode

@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 
 /**
  * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].
