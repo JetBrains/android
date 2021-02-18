@@ -65,7 +65,7 @@ public class ModuleSourceAutogenerating {
     scheduleSourceRegenerating(AndroidAutogeneratorMode.BUILDCONFIG);
 
     myPrevSdk = ModuleRootManager.getInstance(module).getSdk();
-    module.getMessageBus().connect(facet).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    module.getProject().getMessageBus().connect(facet).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();

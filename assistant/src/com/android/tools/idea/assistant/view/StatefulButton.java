@@ -22,29 +22,18 @@ import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonPainter;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Paint;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,11 +118,9 @@ public class StatefulButton extends JPanel {
     updateButtonState();
     if (myStateManager != null) {
       // Listen for notifications that the state has been updated.
-      for (Module module : AssistActionStateManager.getAndroidModules(myProject)) {
-        MessageBusConnection connection = module.getMessageBus().connect(module);
-        myMessageBusConnections.add(connection);
-        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);
-      }
+      MessageBusConnection connection = myProject.getMessageBus().connect();
+      myMessageBusConnections.add(connection);
+      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, this::updateButtonState);
     }
 
     super.addNotify();
@@ -143,7 +130,7 @@ public class StatefulButton extends JPanel {
   public void removeNotify() {
     assert SwingUtilities.isEventDispatchThread();
 
-    myMessageBusConnections.forEach(MessageBusConnection::disconnect);
+    myMessageBusConnections.forEach(connection -> Disposer.dispose(connection));
     myMessageBusConnections.clear();
 
     super.removeNotify();
@@ -161,7 +148,7 @@ public class StatefulButton extends JPanel {
    * TODO: Determine how to update the state on card view change at minimum.
    */
   public void updateButtonState() {
-    UIUtil.invokeLaterIfNeeded(() -> {
+    EdtInvocationManager.invokeLaterIfNeeded(() -> {
       // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
       if (myStateManager == null) {
         myButton.setVisible(true);

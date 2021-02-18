@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.facet.java;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+import static com.intellij.ProjectTopics.PROJECT_ROOTS;
+import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -29,11 +38,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
-import static com.intellij.ProjectTopics.PROJECT_ROOTS;
-import static com.intellij.facet.impl.FacetUtil.saveFacetConfiguration;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Java-Gradle facet.
@@ -88,7 +92,7 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
 
   @Override
   public void initFacet() {
-    MessageBusConnection connection = getModule().getMessageBus().connect(this);
+    MessageBusConnection connection = getModule().getProject().getMessageBus().connect(this);
     connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {

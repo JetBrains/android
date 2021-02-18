@@ -23,7 +23,11 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingModeTrackingService
 import com.android.tools.idea.databinding.ViewBindingEnabledTrackingService
 import com.android.tools.idea.databinding.index.BindingLayoutType
-import com.android.tools.idea.databinding.psiclass.*
+import com.android.tools.idea.databinding.psiclass.BindingClassConfig
+import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
+import com.android.tools.idea.databinding.psiclass.LightBindingClass
+import com.android.tools.idea.databinding.psiclass.LightBrClass
+import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -32,16 +36,15 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.impl.ModuleEx
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.*
 
 private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
@@ -92,7 +95,7 @@ class LayoutBindingModuleCache(private val module: Module) {
       }
     }
 
-    val connection = module.messageBus.connect(module)
+    val connection = (module as ModuleEx).deprecatedModuleLevelMessageBus.connect()
     connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         syncModeWithDependencies()

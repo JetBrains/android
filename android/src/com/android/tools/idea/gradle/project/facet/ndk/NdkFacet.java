@@ -17,7 +17,11 @@ package com.android.tools.idea.gradle.project.facet.ndk;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.intellij.ProjectTopics;
-import com.intellij.facet.*;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.facet.impl.FacetUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -27,7 +31,6 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,8 +74,7 @@ public class NdkFacet extends Facet<NdkFacetConfiguration> {
 
   @Override
   public void initFacet() {
-    MessageBusConnection connection = getModule().getMessageBus().connect(this);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    getModule().getProject().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {

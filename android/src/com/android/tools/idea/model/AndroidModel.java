@@ -18,10 +18,10 @@ package com.android.tools.idea.model;
 import com.android.builder.model.AaptOptions;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.impl.ModuleEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;
@@ -58,7 +58,7 @@ public interface AndroidModel {
    */
   static void set(@NotNull AndroidFacet facet, @Nullable AndroidModel androidModel) {
     facet.putUserData(KEY, androidModel);
-    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
+    ((ModuleEx)facet.getModule()).getDeprecatedModuleLevelMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
   /**
