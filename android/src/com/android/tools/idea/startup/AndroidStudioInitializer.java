@@ -216,6 +216,9 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     // 'Build' > 'Compile Modules' action
     Actions.hideAction(actionManager, ACTION_COMPILE);
+
+    // Additional 'Build' action from com.jetbrains.cidr.execution.build.CidrBuildTargetAction
+    Actions.hideAction(actionManager, "Build");
   }
 
   // Fix https://code.google.com/p/android/issues/detail?id=201624
