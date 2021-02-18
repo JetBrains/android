@@ -124,11 +124,11 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotImage: BufferedImage? = null
-  private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
+  private var lastScreenshot: Screenshot? = null
   private var displayRectangle: Rectangle? = null
-  private var skinLayout: SkinLayout? = null
   private val displayTransform = AffineTransform()
+  private val screenshotShape
+    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -466,7 +466,7 @@ class EmulatorView(
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
-      screenshotImage = null
+      lastScreenshot = null
       hideLongRunningOperationIndicator()
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
@@ -529,8 +529,8 @@ class EmulatorView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
-    val displayImage = screenshotImage ?: return
-    val skin = skinLayout ?: return
+    val screenshot = lastScreenshot ?: return
+    val skin = screenshot.skinLayout
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
@@ -542,12 +542,12 @@ class EmulatorView(
 
     // Draw display.
     if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
-      g.drawImage(displayImage, null, displayRect.x, displayRect.y)
+      g.drawImage(screenshot.image, null, displayRect.x, displayRect.y)
     }
     else {
       displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
       displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
-      g.drawImage(displayImage, displayTransform, null)
+      g.drawImage(screenshot.image, displayTransform, null)
     }
 
     if (deviceFrameVisible) {
@@ -587,9 +587,6 @@ class EmulatorView(
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      if (screenshotImage == null) {
-        screenshotShape = DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
-      }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val actualSize = computeActualSize(rotation)
 
@@ -695,70 +692,81 @@ class EmulatorView(
   }
 
   private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
-    private val screenshotForProcessing = AtomicReference<RawScreenshot?>()
+    private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
-    private val displayShapeCache = CachedSkinLayout(emulator)
+    private val skinLayoutCache = SkinLayoutCache(emulator)
     private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
     private val alarm = Alarm(this)
 
     override fun onNext(response: ImageMessage) {
+      val imageFormat = response.format
+      val imageRotation = imageFormat.rotation.rotation
+
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation}")
+        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation")
       }
       if (screenshotReceiver != this) {
         return // This screenshot feed has already been cancelled.
       }
 
-      if (response.format.width == 0 || response.format.height == 0) {
+      if (imageFormat.width == 0 || imageFormat.height == 0) {
         return // Ignore empty screenshot.
       }
-
-      val screenshot = RawScreenshot(response)
 
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
-      if (screenshot.rotation != rotation) {
+      if (imageRotation != rotation) {
         invokeLaterInAnyModalityState {
-          requestScreenshotFeed(screenshot.rotation)
+          requestScreenshotFeed(imageRotation)
         }
         return
       }
 
-      screenshotForProcessing.set(screenshot)
-
-      executeOnPooledThread {
-        // If the screenshot feed has not been cancelled, update the skin and the display image.
-        if (screenshotReceiver == this) {
-          updateSkinAndDisplayImage()
-        }
-      }
-    }
-
-    @Slow
-    private fun updateSkinAndDisplayImage() {
-      val rawScreenshot = screenshotForProcessing.getAndSet(null) ?: return
-      val shape = rawScreenshot.shape
-      val skinLayout = displayShapeCache.get(shape)
       alarm.cancelAllRequests()
       val recycledImage = recycledImage.getAndSet(null)?.get()
-      val image = if (recycledImage?.width == shape.width && recycledImage.height == shape.height) {
+      val image = if (recycledImage?.width == imageFormat.width && recycledImage.height == imageFormat.height) {
         val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
-        unpackPixels(rawScreenshot.imageBytes, pixels)
+        unpackPixels(response.image, pixels)
         recycledImage
       }
       else {
-        val pixels = IntArray(shape.width * shape.height)
-        unpackPixels(rawScreenshot.imageBytes, pixels)
+        val pixels = IntArray(imageFormat.width * imageFormat.height)
+        unpackPixels(response.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
         val sampleModel =
-            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, shape.width, shape.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
         @Suppress("UndesirableClassUsage")
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
-      val screenshot = Screenshot(shape, image, skinLayout)
+      val displayShape = DisplayShape(imageFormat)
+      val screenshot = Screenshot(displayShape, image)
+      val skinLayout = skinLayoutCache.getCached(displayShape)
+      if (skinLayout == null) {
+        computeSkinLayoutOnPooledThread(screenshot)
+      }
+      else {
+        screenshot.skinLayout = skinLayout
+        updateDisplayImageOnUiThread(screenshot)
+      }
+    }
+
+    private fun computeSkinLayoutOnPooledThread(screenshotWithoutSkin: Screenshot) {
+      screenshotForProcessing.set(screenshotWithoutSkin)
+
+      executeOnPooledThread {
+        // If the screenshot feed has not been cancelled, update the skin and the display image.
+        if (screenshotReceiver == this) {
+          val screenshot = screenshotForProcessing.getAndSet(null) ?: return@executeOnPooledThread
+          screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
+          updateDisplayImageOnUiThread(screenshot)
+        }
+      }
+    }
+
+    private fun updateDisplayImageOnUiThread(screenshot: Screenshot) {
       screenshotForDisplay.set(screenshot)
 
       invokeLaterInAnyModalityState {
@@ -776,7 +784,7 @@ class EmulatorView(
       val screenshot = screenshotForDisplay.getAndSet(null) ?: return
 
       // Creation of a large BufferedImage is expensive. Recycle the old image if it has the proper size.
-      screenshotImage?.let {
+      lastScreenshot?.image?.let {
         if (it.width == screenshot.displayShape.width && it.height == screenshot.displayShape.height) {
           recycledImage.set(SofterReference(it))
           alarm.cancelAllRequests()
@@ -784,16 +792,18 @@ class EmulatorView(
         }
       }
 
-      skinLayout = screenshot.skinLayout
-      screenshotImage = screenshot.image
-      screenshotShape = screenshot.displayShape
+      lastScreenshot = screenshot
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
     }
 
-    @Slow
+    /**
+     * This takes noticeable time because it processes a lot of data but is still fast enough
+     * to be called on the gRPC thread.
+     */
+    // TODO: Consider moving to native code.
     fun unpackPixels(imageBytes: ByteString, pixels: IntArray) {
       val alpha = 0xFF shl 24
       var j = 0
@@ -810,23 +820,25 @@ class EmulatorView(
     }
   }
 
-  private class RawScreenshot(emulatorImage: ImageMessage) {
-    val shape = DisplayShape(emulatorImage.format)
-    val imageBytes: ByteString = emulatorImage.image
-    val rotation: SkinRotation
-      get() = shape.rotation
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage) {
+    lateinit var skinLayout: SkinLayout
   }
-
-  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout)
 
   /**
    * Stores the last computed scaled [SkinLayout] together with the corresponding display
    * dimensions and orientation.
    */
-  private class CachedSkinLayout(val emulator: EmulatorController) {
+  private class SkinLayoutCache(val emulator: EmulatorController) {
     var displayShape: DisplayShape? = null
     var skinLayout: SkinLayout? = null
 
+    fun getCached(displayShape: DisplayShape): SkinLayout? {
+      synchronized(this) {
+        return if (displayShape == this.displayShape) skinLayout else null
+      }
+    }
+
+    @Slow
     fun get(displayShape: DisplayShape): SkinLayout {
       synchronized(this) {
         var layout = this.skinLayout
