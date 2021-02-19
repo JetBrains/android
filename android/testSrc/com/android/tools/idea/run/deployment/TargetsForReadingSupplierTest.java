@@ -44,6 +44,19 @@ public final class TargetsForReadingSupplierTest {
   }
 
   @Test
+  public void targetsForReadingSupplierNoTargetMatches() {
+    // Arrange
+    Collection<Device> devices = Collections.emptyList();
+    RunningDeviceTarget runningDeviceTarget = new RunningDeviceTarget(DEVICE_KEY);
+
+    // Act
+    Object optionalTarget = new TargetsForReadingSupplier(devices, runningDeviceTarget, null).getDropDownTarget();
+
+    // Assert
+    assertEquals(Optional.of(runningDeviceTarget), optionalTarget);
+  }
+
+  @Test
   public void targetsForReadingSupplier() {
     // Arrange
     Device device = new VirtualDevice.Builder()

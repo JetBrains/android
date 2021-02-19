@@ -17,10 +17,8 @@ package com.android.tools.idea.run.deployment;
 
 import com.google.common.collect.Sets;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * device is stopped
  */
 final class TargetsForReadingSupplier {
-  private final @NotNull Map<@NotNull Key, @NotNull Device> myKeyToDeviceMap;
+  private final @NotNull Collection<@NotNull Device> myDevices;
   private final @NotNull Set<@NotNull Target> myTargets;
 
   TargetsForReadingSupplier(@NotNull Collection<@NotNull Device> devices,
@@ -44,11 +42,11 @@ final class TargetsForReadingSupplier {
   TargetsForReadingSupplier(@NotNull Collection<@NotNull Device> devices,
                             @NotNull Collection<@NotNull RunningDeviceTarget> runningDeviceTargets,
                             @NotNull Collection<@NotNull Target> targets) {
-    myKeyToDeviceMap = devices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
+    myDevices = devices;
     myTargets = Sets.newHashSetWithExpectedSize(devices.size());
 
     runningDeviceTargets.stream()
-      .filter(target -> myKeyToDeviceMap.get(target.getDeviceKey()).isConnected())
+      .filter(runningDeviceTarget -> isDeviceRunning(runningDeviceTarget) || noTargetMatches(targets, runningDeviceTarget))
       .forEach(myTargets::add);
 
     targets.stream()
@@ -56,12 +54,29 @@ final class TargetsForReadingSupplier {
       .forEach(myTargets::add);
   }
 
+  private static boolean noTargetMatches(@NotNull Collection<@NotNull Target> targets, @NotNull RunningDeviceTarget runningDeviceTarget) {
+    Object key = runningDeviceTarget.getDeviceKey();
+
+    return targets.stream()
+      .map(Target::getDeviceKey)
+      .noneMatch(key::equals);
+  }
+
   private @NotNull Target newRunningDeviceTargetIfDeviceIsRunning(@NotNull Target target) {
-    if (myKeyToDeviceMap.get(target.getDeviceKey()).isConnected()) {
+    if (isDeviceRunning(target)) {
       return new RunningDeviceTarget(target.getDeviceKey());
     }
 
     return target;
+  }
+
+  private boolean isDeviceRunning(@NotNull Target target) {
+    Object key = target.getDeviceKey();
+
+    return myDevices.stream()
+      .filter(Device::isConnected)
+      .map(Device::getKey)
+      .anyMatch(key::equals);
   }
 
   @NotNull Optional<@NotNull Target> getDropDownTarget() {
