@@ -18,7 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -33,20 +33,23 @@ class CpuCaptureHandlerTest {
     assertThat(model.range.isEmpty).isTrue()
     model.parse {
       assertThat(it).isNotNull()
+      assertThat(model.range.min).isEqualTo(0.0)
+      assertThat(model.range.max).isEqualTo(0.0)
     }
-    assertThat(model.range.min).isEqualTo(0.0)
-    assertThat(model.range.max).isEqualTo(0.0)
   }
 
   @Test
-  fun failureToParseShowsNotification() {
+  fun parsingFailureShowsNotificationAndTracksExceptionType() {
+    val config = PerfettoConfiguration("Test")
     val services = FakeIdeProfilerServices()
-    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123,
-                                  ProfilersTestData.DEFAULT_CONFIG, null, 0)
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)
     model.parse {
       assertThat(it).isNull()
+      assertThat(services.notification).isNotNull()
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status).isEqualTo(
+        CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR)
     }
-    assertThat(services.notification).isNotNull()
   }
 
   @Test
@@ -57,7 +60,7 @@ class CpuCaptureHandlerTest {
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("simpleperf_callchain.trace"), 123, config, null, 1)
     model.parse {
       assertThat(it).isNotNull()
+      assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
     }
-    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.profilingConfiguration).isEqualTo(config)
   }
 }

@@ -180,8 +180,8 @@ public class CpuCaptureParser {
    */
   @NotNull
   public CompletableFuture<CpuCapture> parse(
-      // Consider passing a CompletableFuture<File> instead of a File here, so we can chain all of them properly.
-      @NotNull File traceFile, long traceId, @Nullable CpuTraceType preferredProfilerType, int processIdHint, String processNameHint) {
+    // Consider passing a CompletableFuture<File> instead of a File here, so we can chain all of them properly.
+    @NotNull File traceFile, long traceId, @NotNull CpuTraceType preferredProfilerType, int processIdHint, String processNameHint) {
     if (myCaptures.containsKey(traceId)) {
       return myCaptures.get(traceId);
     }
@@ -347,7 +347,7 @@ public class CpuCaptureParser {
 
     private final long traceId;
 
-    @Nullable
+    @NotNull
     private final CpuTraceType preferredProfilerType;
 
     private final int processIdHint;
@@ -370,7 +370,7 @@ public class CpuCaptureParser {
     private static final Predicate<File> PERFETTO_FILE_TESTER = (t) -> PerfettoProducer.verifyFileHasPerfettoTraceHeader(t);
 
     private ProcessTraceAction(
-      @NotNull File traceFile, long traceId, @Nullable CpuTraceType preferredProfilerType,
+      @NotNull File traceFile, long traceId, @NotNull CpuTraceType preferredProfilerType,
       int processIdHint, @Nullable String processNameHint, @NotNull IdeProfilerServices services) {
 
       this.traceFile = traceFile;
@@ -388,9 +388,9 @@ public class CpuCaptureParser {
 
     @Nullable
     private CpuCapture parseToCapture(
-      @NotNull File traceFile, long traceId, @Nullable CpuTraceType profilerType) {
+      @NotNull File traceFile, long traceId, @NotNull CpuTraceType profilerType) {
 
-      boolean unknownType = traceTypeIsUnknown(profilerType);
+      boolean unknownType = CpuTraceType.UNSPECIFIED_TYPE.equals(profilerType);
 
       if (unknownType || profilerType == CpuTraceType.ART) {
         CpuCapture capture =
@@ -438,10 +438,6 @@ public class CpuCaptureParser {
     @NotNull
     private IdeProfilerServices getProfilerServices() {
       return services;
-    }
-
-    private static boolean traceTypeIsUnknown(@Nullable CpuTraceType profilerType) {
-      return profilerType == null || CpuTraceType.UNSPECIFIED_TYPE.equals(profilerType);
     }
 
     @Nullable
