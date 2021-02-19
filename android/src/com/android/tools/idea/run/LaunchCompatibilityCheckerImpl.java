@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import static com.intellij.util.ThreeState.NO;
-
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -25,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -76,25 +75,29 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       SwapInfo swapInfo = myEnvironment.getUserData(SwapInfo.SWAP_INFO_KEY);
       if (swapInfo != null) {
         if (device.getVersion().compareTo(AndroidVersion.VersionCodes.O, null) < 0) {
-          launchCompatibility = new LaunchCompatibility(NO, "The device needs to be running Oreo or newer.");
+          launchCompatibility =
+            new LaunchCompatibility(State.WARNING, "The device needs to be running Oreo or newer.");
         }
         else if (!device.isRunning()) {
-          launchCompatibility = new LaunchCompatibility(NO, "Please ensure the target device/emulator is running.");
+          launchCompatibility =
+            new LaunchCompatibility(State.ERROR, "Please ensure the target device/emulator is running.");
         }
         else {
           try {
             ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider();
             if (applicationIdProvider == null) {
-              return new LaunchCompatibility(NO, "Cannot get applicationId.");
+              return new LaunchCompatibility(State.ERROR, "Cannot get applicationId.");
             }
             Client client = device.getLaunchedDevice().get().getClient(applicationIdProvider.getPackageName());
             if (client == null) {
               launchCompatibility = new LaunchCompatibility(
-                NO, "App not running on device. Please first install/run the app on the target device/emulator.");
+                State.ERROR,
+                "App not running on device. Please first install/run the app on the target device/emulator.");
             }
           }
           catch (InterruptedException | ExecutionException | ApkProvisionException e) {
-            launchCompatibility = new LaunchCompatibility(NO, "Could not determine if device is compatible.");
+            launchCompatibility =
+              new LaunchCompatibility(State.WARNING, "Could not determine if device is compatible.");
           }
         }
       }
@@ -147,7 +150,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       try {
         return minSdkVersionFuture.get();
       }
-      catch (ExecutionException|InterruptedException ignored) {
+      catch (ExecutionException | InterruptedException ignored) {
         // It'd be nice to log something here, but we're constantly validating
         // launch compatibility so that would result in a lot of spam.
       }

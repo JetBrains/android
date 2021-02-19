@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ThreeState;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
@@ -195,7 +194,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     LaunchCompatibility compatibility = myChecker.validate(device);
 
     return builder
-      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
+      .setValid(!compatibility.getState().equals(LaunchCompatibility.State.ERROR))
       .setValidityReason(compatibility.getReason())
       .build();
   }
