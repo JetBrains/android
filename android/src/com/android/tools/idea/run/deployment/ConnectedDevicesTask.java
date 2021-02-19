@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -86,11 +85,8 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
       return builder.build();
     }
 
-    LaunchCompatibility compatibility = myChecker.validate(androidDevice);
-
     return builder
-      .setValid(!compatibility.getState().equals(LaunchCompatibility.State.ERROR))
-      .setValidityReason(compatibility.getReason())
+      .setLaunchCompatibility(myChecker.validate(androidDevice))
       .build();
   }
 

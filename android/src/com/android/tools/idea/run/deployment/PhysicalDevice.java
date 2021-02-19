@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
@@ -45,8 +46,7 @@ final class PhysicalDevice extends Device {
 
     return new Builder()
       .setName(getName.apply(device))
-      .setValid(device.isValid())
-      .setValidityReason(device.getValidityReason())
+      .setLaunchCompatibility(device.getLaunchCompatibility())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(device.getAndroidDevice())
@@ -62,15 +62,8 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
-    @NotNull
-    private Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    private Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    private @NotNull Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -109,7 +102,7 @@ final class PhysicalDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return isValid() ? ourValidIcon : ourInvalidIcon;
+    return getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK) ? ourValidIcon : ourInvalidIcon;
   }
 
   /**
@@ -154,8 +147,7 @@ final class PhysicalDevice extends Device {
     Device device = (Device)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice());
@@ -163,6 +155,6 @@ final class PhysicalDevice extends Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(), isValid(), getValidityReason(), getKey(), getConnectionTime(), getAndroidDevice());
+    return Objects.hash(getName(), getLaunchCompatibility(), getKey(), getConnectionTime(), getAndroidDevice());
   }
 }

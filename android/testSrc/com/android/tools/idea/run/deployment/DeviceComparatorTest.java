@@ -18,6 +18,8 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibility.State;
 import java.time.Instant;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -70,7 +72,7 @@ public final class DeviceComparatorTest {
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
-      .setValid(false)
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "reason"))
       .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();

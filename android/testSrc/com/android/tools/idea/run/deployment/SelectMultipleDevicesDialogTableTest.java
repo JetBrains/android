@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;
@@ -116,7 +118,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
-      .setValidityReason("Missing system image")
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
       .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();

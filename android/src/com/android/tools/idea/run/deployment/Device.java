@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployable.Deployable;
 import java.time.Instant;
 import java.util.Collection;
@@ -31,10 +32,8 @@ public abstract class Device {
   @NotNull
   private final String myName;
 
-  private final boolean myValid;
-
-  @Nullable
-  private final String myValidityReason;
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
 
   @NotNull
   private final Key myKey;
@@ -49,10 +48,7 @@ public abstract class Device {
     @Nullable
     String myName;
 
-    boolean myValid;
-
-    @Nullable
-    String myValidityReason;
+    @Nullable LaunchCompatibility myLaunchCompatibility;
 
     @Nullable
     Key myKey;
@@ -64,7 +60,7 @@ public abstract class Device {
     AndroidDevice myAndroidDevice;
 
     Builder() {
-      myValid = true;
+      myLaunchCompatibility = LaunchCompatibility.YES;
     }
 
     @NotNull
@@ -75,8 +71,7 @@ public abstract class Device {
     assert builder.myName != null;
     myName = builder.myName;
 
-    myValid = builder.myValid;
-    myValidityReason = builder.myValidityReason;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -87,6 +82,10 @@ public abstract class Device {
     myAndroidDevice = builder.myAndroidDevice;
   }
 
+  final @NotNull LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
   @NotNull
   abstract Icon getIcon();
 
@@ -95,15 +94,6 @@ public abstract class Device {
   @NotNull
   public final String getName() {
     return myName;
-  }
-
-  final boolean isValid() {
-    return myValid;
-  }
-
-  @Nullable
-  final String getValidityReason() {
-    return myValidityReason;
   }
 
   abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();

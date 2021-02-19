@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -191,11 +190,8 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       return builder.build();
     }
 
-    LaunchCompatibility compatibility = myChecker.validate(device);
-
     return builder
-      .setValid(!compatibility.getState().equals(LaunchCompatibility.State.ERROR))
-      .setValidityReason(compatibility.getReason())
+      .setLaunchCompatibility(myChecker.validate(device))
       .build();
   }
 }

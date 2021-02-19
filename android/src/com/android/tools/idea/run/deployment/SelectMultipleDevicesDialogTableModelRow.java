@@ -46,7 +46,7 @@ final class SelectMultipleDevicesDialogTableModelRow {
   }
 
   @NotNull String getDeviceCellText() {
-    return Optional.ofNullable(myDevice.getValidityReason())
+    return Optional.ofNullable(myDevice.getLaunchCompatibility().getReason())
       .map(reason -> "<html>" + myDevice + "<br>" + reason)
       .orElse(myDevice.getName());
   }
