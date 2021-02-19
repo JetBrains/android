@@ -48,6 +48,7 @@ import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.ExtensionRegistryLite
 import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -683,10 +684,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
  */
 private class ImageResponseMarshaller : Marshaller<Image> {
   private val reusableBuffer = ThreadLocal<Reference<ByteArray>>()
-  private val codedInputStreamCreationMethod =
-      CodedInputStream::class.java.getDeclaredMethod("newInstance", ByteArray::class.java, Int::class.javaPrimitiveType,
-                                                     Int::class.javaPrimitiveType, Boolean::class.javaPrimitiveType)
-        .apply { isAccessible = true }
 
   override fun stream(response: Image): InputStream {
     throw UnsupportedOperationException() // This marshaller is never used for serialization.
@@ -731,10 +728,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
           val position = size - remaining
           throw RuntimeException("Inaccurate size: $size != $position")
         }
-        // Use reflection to call a package-protected method that allows setting the immutable property
-        // to true. This is used together with enabling aliasing to avoid extra byte array allocation
-        // and copying in the CodedInputStream.readBytes method.
-        codedStream = codedInputStreamCreationMethod.invoke(null, buf, 0, size, true) as CodedInputStream
+        codedStream = UnsafeByteOperations.unsafeWrap(buf, 0, size).newCodedInput()
         codedStream.enableAliasing(true)
       }
       else {
