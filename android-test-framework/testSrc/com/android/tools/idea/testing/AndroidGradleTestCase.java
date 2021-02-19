@@ -32,6 +32,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -333,6 +334,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     GradleInvocationResult result = invokeGradle(getProject(), GradleBuildInvoker::generateSources);
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
     refreshProjectFiles();
+  }
+
+  protected String getMainSourceSet(String moduleName) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      return moduleName;
+    } else {
+      return moduleName + ".main";
+    }
   }
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
