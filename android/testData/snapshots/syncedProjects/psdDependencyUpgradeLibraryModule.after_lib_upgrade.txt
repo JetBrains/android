@@ -2336,7 +2336,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-        ORDER_ENTRY         : testPsdDependencyUpgradeLibraryModule.jModuleL
+        ORDER_ENTRY         : testPsdDependencyUpgradeLibraryModule.jModuleL.main
     MODULE              : testPsdDependencyUpgradeLibraryModule.moduleC
         ExternalModuleGroup : testPsdDependencyUpgradeLibraryModule
         ExternalModuleVersion         : unspecified
@@ -3344,7 +3344,7 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
-        ORDER_ENTRY         : testPsdDependencyUpgradeLibraryModule.jModuleK
+        ORDER_ENTRY         : testPsdDependencyUpgradeLibraryModule.jModuleK.main
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testPsdDependencyUpgradeLibraryModule.app

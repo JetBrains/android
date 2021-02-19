@@ -146,7 +146,7 @@ PROJECT             : My Application
             IsExported          : false
             Name                : Gradle: ./lib2/liba.jar [=]
             *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/
-        ORDER_ENTRY         : My_Application.lib
+        ORDER_ENTRY         : My_Application.lib.main
     MODULE              : My_Application.lib
         ExternalModuleGroup : My Application
         ExternalModuleVersion         : unspecified
