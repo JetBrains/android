@@ -33,6 +33,7 @@ import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.emulator.actions.getOpenManageSnapshotsDialogs
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.DebugLoggerRule
+import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.currentTime
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
@@ -315,31 +316,37 @@ class ManageSnapshotsDialogTest {
 
   @Test
   fun testIncompatibleSnapshotsDeclinedDeletion() {
+    FlightRecorder.initialize(100)
     assertThat(EmulatorSettings.getInstance().snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
     emulator.createSnapshot("valid_snapshot")
     emulator.createIncompatibleSnapshot("incompatible_snapshot1")
     emulator.createIncompatibleSnapshot("incompatible_snapshot2")
     emulator.pauseGrpc() // Pause emulator's gRPC to prevent the nested dialog from opening immediately.
 
-    val dialog = showManageSnapshotsDialog()
-    val rootPane1 = dialog.rootPane
-    val ui1 = FakeUi(rootPane1)
-    val table = ui1.getComponent<TableView<SnapshotInfo>>()
-    /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
-    createModalDialogAndInteractWithIt(emulator::resumeGrpc) { confirmationDialog ->
+    try {
+      val dialog = showManageSnapshotsDialog()
+      val rootPane1 = dialog.rootPane
+      val ui1 = FakeUi(rootPane1)
+      val table = ui1.getComponent<TableView<SnapshotInfo>>()
+      /** The "Delete incompatible snapshots?" dialog opens when gRPC is resumed. */
+      createModalDialogAndInteractWithIt(emulator::resumeGrpc) { confirmationDialog ->
+        assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
+        val rootPane2 = confirmationDialog.rootPane
+        val ui2 = FakeUi(rootPane2)
+        val doNotAskCheckBox = ui2.getComponent<JCheckBox>()
+        assertThat(doNotAskCheckBox.isSelected).isFalse()
+        doNotAskCheckBox.isSelected = true
+        val keepButton = ui2.getComponent<JButton> { it.text == "Keep" }
+        ui2.clickOn(keepButton)
+      }
       assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
-      val rootPane2 = confirmationDialog.rootPane
-      val ui2 = FakeUi(rootPane2)
-      val doNotAskCheckBox = ui2.getComponent<JCheckBox>()
-      assertThat(doNotAskCheckBox.isSelected).isFalse()
-      doNotAskCheckBox.isSelected = true
-      val keepButton = ui2.getComponent<JButton> { it.text == "Keep" }
-      ui2.clickOn(keepButton)
+      assertThat(table.items.count { !it.isCompatible }).isEqualTo(2) // The two incompatible snapshots were preserved.
+      // Close the "Manage Snapshots" dialog.
+      ui1.clickOn(rootPane1.defaultButton)
     }
-    assertThat(table.items).hasSize(4) // 1 QuickBoot + 1 valid + 2 incompatible.
-    assertThat(table.items.count { !it.isCompatible }).isEqualTo(2) // The two incompatible snapshots were preserved.
-    // Close the "Manage Snapshots" dialog.
-    ui1.clickOn(rootPane1.defaultButton)
+    finally {
+      FlightRecorder.print()
+    }
   }
 
   @Test
