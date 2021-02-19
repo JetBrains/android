@@ -474,8 +474,8 @@ PROJECT             : testTransitiveDependencies
             IsExported          : false
             Name                : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
             *CLASSES            : jar://<M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar!/
-        ORDER_ENTRY         : testTransitiveDependencies.javalib1
-        ORDER_ENTRY         : testTransitiveDependencies.javalib2
+        ORDER_ENTRY         : testTransitiveDependencies.javalib1.main
+        ORDER_ENTRY         : testTransitiveDependencies.javalib2.main
         ORDER_ENTRY         : testTransitiveDependencies.library1
         ORDER_ENTRY         : testTransitiveDependencies.library2
     MODULE              : testTransitiveDependencies.javalib1

@@ -518,8 +518,8 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1.lib
         ORDER_ENTRY         : TestCompositeLib3.lib
-        ORDER_ENTRY         : composite2
-        ORDER_ENTRY         : composite4
+        ORDER_ENTRY         : composite2.main
+        ORDER_ENTRY         : composite4.main
     MODULE              : TestCompositeLib1.lib
         ExternalModuleGroup : com.test.composite1
         ExternalModuleVersion         : 1.0
@@ -996,8 +996,8 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3.lib
-        ORDER_ENTRY         : composite2
-        ORDER_ENTRY         : composite4
+        ORDER_ENTRY         : composite2.main
+        ORDER_ENTRY         : composite4.main
     MODULE              : TestCompositeLib3
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -1514,7 +1514,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3.lib
-        ORDER_ENTRY         : composite4
+        ORDER_ENTRY         : composite4.main
     MODULE              : TestCompositeLib3.lib
         ExternalModuleGroup : com.test.composite3
         ExternalModuleVersion         : 1.0
@@ -1908,7 +1908,7 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-        ORDER_ENTRY         : composite4
+        ORDER_ENTRY         : composite4.main
     MODULE              : composite2
         ExternalModuleGroup : com.test.composite2
         ExternalModuleVersion         : 1.0
@@ -2564,8 +2564,8 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1.lib
         ORDER_ENTRY         : TestCompositeLib3.lib
-        ORDER_ENTRY         : composite2
-        ORDER_ENTRY         : composite4
+        ORDER_ENTRY         : composite2.main
+        ORDER_ENTRY         : composite4.main
         ORDER_ENTRY         : testWithCompositeBuild.lib
     MODULE              : testWithCompositeBuild.lib
         ExternalModuleGroup : com.test.composite
