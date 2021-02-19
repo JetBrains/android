@@ -137,7 +137,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
                 *  Currently default `dependsOn` edges are not correct for android source sets:
                 *  Android source sets are not declaring `dependsOn("commonMain")` by default
                 */
-               !sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)
+               sourceSet.actualPlatforms.platforms.singleOrNull() != KotlinPlatform.ANDROID
     }
 
     private fun getDependencyModuleNodes(
