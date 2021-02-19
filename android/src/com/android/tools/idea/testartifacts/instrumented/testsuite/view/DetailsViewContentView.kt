@@ -120,6 +120,9 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
 
     // Android Test Retention tab.
     myRetentionView = RetentionView()
+    logger.addImpressionWhenDisplayed(
+      myRetentionView.component,
+      ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_RETENTION_VIEW)
     myRetentionTab = TabInfo(myRetentionView.rootPanel)
     myRetentionTab.text = "Retention"
     myRetentionTab.tooltipText = "Show emulator snapshots of failed tests"
