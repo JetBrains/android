@@ -67,8 +67,8 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
 
     var errorMessage: String
     try {
-      if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") != "null") {
-        // A return value of "null" means: "debug_view_attributes" is not currently turned on for all processes on the device.
+      if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") !in listOf("null", "0")) {
+        // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
         return
       }
       val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")
