@@ -66,6 +66,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -360,6 +361,84 @@ public class MemoryClassifierViewTest {
     ClassSet selectedClass = myStage.getCaptureSelection().getSelectedClassSet();
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, comPackage}));
     assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(selectedClass);
+  }
+
+  @Test
+  public void testCsvExporting() {
+    final String CLASS_NAME_0 = "com.android.studio.Foo";
+    final String CLASS_NAME_1 = "com.google.Bar";
+    final String CLASS_NAME_2 = "com.android.studio.Baz";
+
+    FakeCaptureObject captureObject = new FakeCaptureObject.Builder()
+      .removeClassifierAttribute(CaptureObject.ClassifierAttribute.MODULE)
+      .build();
+    InstanceObject instanceFoo0 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceFoo1 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceFoo2 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceBar0 =
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4)
+        .build();
+    InstanceObject instanceBaz0 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz1 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz2 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz3 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    Set<InstanceObject> instanceObjects = new HashSet<>(
+      Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
+    captureObject.addInstanceObjects(instanceObjects);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+
+    HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
+
+
+    JTree classifierTree = myClassifierView.getTree();
+    Object root = classifierTree.getModel().getRoot();
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+
+    //noinspection unchecked
+    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    assertThat(childrenOfRoot.size()).isEqualTo(3);
+    classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
+
+    CsvExporter exporter = new CsvExporter(() -> classifierTree, () -> captureObject,
+                                           myFakeIdeProfilerComponents, myStage.getStudioProfilers().getIdeServices());
+    checkCsvOutput((CsvExporter.RunnableContextMenuItem)exporter.makeClassExportItem(), captureObject::getClassifierAttributes);
+    checkCsvOutput((CsvExporter.RunnableContextMenuItem)exporter.makeInstanceExportItem(), captureObject::getInstanceAttributes);
+  }
+
+  private static void checkCsvOutput(CsvExporter.RunnableContextMenuItem exporter, Supplier<List<?>> attributes) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    exporter.exportEntries(out);
+    String[] lines = out.toString().split("\n");
+    assertThat(lines.length).isGreaterThan(0);
+    for (String line: lines) {
+      assertThat(line.split(",").length).isEqualTo(attributes.get().size());
+    }
   }
 
   @Test

@@ -137,8 +137,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
+  private final CsvExporter myCsvExporter;
+
   public MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
     mySelection = selection;
+    myCsvExporter = new CsvExporter(() -> myTree, () -> myCaptureObject, ideProfilerComponents, selection.getIdeServices());
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
@@ -376,6 +379,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
       return null;
     });
+
+    if (mySelection.getIdeServices().getFeatureConfig().isMemoryCSVExportEnabled()) {
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeClassExportItem());
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeInstanceExportItem());
+    }
 
     List<ClassifierAttribute> attributes = myCaptureObject.getClassifierAttributes();
     myTableColumnModel = new DefaultTableColumnModel();

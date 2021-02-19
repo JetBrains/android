@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -265,6 +266,12 @@ public final class FakeCaptureObject implements CaptureObject {
     @NotNull
     public Builder setCanSafelyLoad(boolean canSafelyLoad) {
       myCanSafelyLoad = canSafelyLoad;
+      return this;
+    }
+
+    @NotNull
+    public Builder removeClassifierAttribute(ClassifierAttribute attr) {
+      myClassifierAttributes = myClassifierAttributes.stream().filter(a -> !a.equals(attr)).collect(Collectors.toList());
       return this;
     }
 
