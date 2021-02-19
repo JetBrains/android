@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.ui.tree.ui.Control
+import com.intellij.ui.treeStructure.Tree
 
 /**
  * This file contains exploratory actions meant for a user study.
@@ -69,5 +73,26 @@ object DrawablesInCallstackAction : ToggleAction("Show compose Drawables in Call
   }
 }
 
+object CompactTree : ToggleAction("Compact tree", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    event.tree()?.getClientProperty(Control.Painter.KEY) == Control.Painter.COMPACT
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.compactTree = state
+    val newPainter = if (state) Control.Painter.COMPACT else null
+    val tree = event.tree() ?: return
+    tree.putClientProperty(Control.Painter.KEY, newPainter)
+    tree.repaint()
+  }
+}
+
 private fun inspector(event: AnActionEvent): LayoutInspector? =
   event.getData(LAYOUT_INSPECTOR_DATA_KEY)
+
+private fun AnActionEvent.tree(): Tree? =
+  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT))?.tree()
+
+fun Tree.setDefaultPainter() {
+  putClientProperty(Control.Painter.KEY, if (TreeSettings.compactTree) Control.Painter.COMPACT else null)
+}

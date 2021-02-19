@@ -35,9 +35,14 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.treeStructure.Tree
 import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JScrollPane
+
+fun ToolContent<*>.tree(): Tree? =
+  (component as? JScrollPane)?.viewport?.view as? Tree
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
@@ -72,6 +77,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
+    tree()?.setDefaultPainter()
   }
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
@@ -92,7 +98,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   override fun getGearActions(): List<AnAction> {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get()) {
-      listOf(CallstackAction, DrawablesInCallstackAction)
+      listOf(CallstackAction, DrawablesInCallstackAction, CompactTree)
     }
     else {
       listOf()

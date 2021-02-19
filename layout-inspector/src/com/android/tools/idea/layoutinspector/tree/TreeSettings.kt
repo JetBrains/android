@@ -27,6 +27,9 @@ private const val DEFAULT_COMPOSE_AS_CALLSTACK = true
 private const val KEY_INCLUDE_DRAWABLES_IN_CALLSTACK = "live.layout.inspector.tree.compose.drawables"
 private const val DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK = true
 
+private const val KEY_COMPACT_TREE = "live.layout.inspector.tree.compact"
+private const val DEFAULT_COMPACT_TREE = false
+
 /**
  * Global Tree settings.
  */
@@ -46,8 +49,13 @@ object TreeSettings {
 
   var composeDrawablesInCallstack: Boolean
     get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
-            get (KEY_INCLUDE_DRAWABLES_IN_CALLSTACK, DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK)
+            get(KEY_INCLUDE_DRAWABLES_IN_CALLSTACK, DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK)
     set(value) = set(KEY_INCLUDE_DRAWABLES_IN_CALLSTACK, value, DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK)
+
+  var compactTree: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_COMPACT_TREE, DEFAULT_COMPACT_TREE)
+    set(value) = set(KEY_COMPACT_TREE, value, DEFAULT_COMPACT_TREE)
 
   private fun get(key: String, defaultValue: Boolean): Boolean =
     PropertiesComponent.getInstance().getBoolean(key, defaultValue)
