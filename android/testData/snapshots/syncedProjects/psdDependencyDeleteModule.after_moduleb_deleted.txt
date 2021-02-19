@@ -2943,7 +2943,7 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/jars/classes.jar!/
-        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK.main
     RUN_CONFIGURATION   : app
         *class*             : AndroidRunConfiguration
         ModuleName          : testPsdDependencyDeleteModule.app

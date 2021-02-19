@@ -648,7 +648,7 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : testSyncKotlinProject.contentLib
+        ORDER_ENTRY         : testSyncKotlinProject.contentLib.main
     MODULE              : testSyncKotlinProject.awesomeandroidlibrary
         ExternalModuleGroup : testSyncKotlinProject
         ExternalModuleVersion         : unspecified
