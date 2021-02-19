@@ -33,6 +33,7 @@ import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -49,7 +50,10 @@ class CpuAnalysisPanelTest {
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer),
                                     FakeTransportService(timer, true))
-  @get:Rule val myEdtRule = EdtRule()
+  @get:Rule
+  val myEdtRule = EdtRule()
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
@@ -68,10 +72,10 @@ class CpuAnalysisPanelTest {
   fun tabsUpdatedOnCaptureCompleted() {
     val observer = AspectObserver()
     val stateLatch = CountDownLatch(1)
-    stage.aspect.addDependency(observer).onChange(CpuCaptureStage.Aspect.STATE, Runnable {
+    stage.aspect.addDependency(observer).onChange(CpuCaptureStage.Aspect.STATE) {
       assertThat(panel.tabView.tabCount).isNotEqualTo(0)
       stateLatch.countDown()
-    })
+    }
     assertThat(panel.tabView.tabCount).isEqualTo(0)
     stage.enter()
     assertThat(stateLatch.await(5, TimeUnit.SECONDS)).isTrue()
