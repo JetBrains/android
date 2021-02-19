@@ -91,9 +91,9 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     // Verify that app module has dependency on direct and transitive lib modules.
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(projectName + ".lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib1.lib", COMPILE, false);
-    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("composite2", COMPILE, false);
+    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(getMainSourceSet("composite2"), COMPILE, false);
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib3.lib", COMPILE, false);
-    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("composite4", COMPILE, false);
+    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(getMainSourceSet("composite4"), COMPILE, false);
   }
 
   public void testModuleDependenciesWithIncludedAppModule() throws Exception {
@@ -102,9 +102,9 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     Module appModule = TestModuleUtil.findModule(getProject(), appModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
     assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib1.lib", COMPILE, false);
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("composite2", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(getMainSourceSet("composite2"), COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib3.lib", COMPILE, false);
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("composite4", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(getMainSourceSet("composite4"), COMPILE, false);
   }
 
   public void testGetAssembleTasks() throws Exception {

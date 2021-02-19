@@ -208,8 +208,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // dependency should be set on the module not the compiled jar.
     // 'app' -> 'javalib1' -> 'javalib2'
-    String javalib1Name = TestModuleUtil.findModule(getProject(), "javalib1").getName();
-    String javalib2Name = TestModuleUtil.findModule(getProject(), "javalib2").getName();
+    String javalib1Name = TestModuleUtil.findModule(getProject(), getMainSourceSet("javalib1")).getName();
+    String javalib2Name = TestModuleUtil.findModule(getProject(), getMainSourceSet("javalib2")).getName();
     assertAbout(moduleDependencies()).that(appModule).hasDependency(javalib1Name, COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency(javalib2Name, COMPILE, false);
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: " + javalib1Name, COMPILE);
@@ -217,8 +217,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module libModule = TestModuleUtil.findModule(getProject(), "javalib1");
-    String javalib2Name = TestModuleUtil.findModule(getProject(), "javalib2").getName();
+    Module libModule = TestModuleUtil.findModule(getProject(), getMainSourceSet("javalib1"));
+    String javalib2Name = TestModuleUtil.findModule(getProject(), getMainSourceSet("javalib2")).getName();
     assertAbout(moduleDependencies()).that(libModule).hasDependency(javalib2Name, COMPILE, false);
     assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: " + javalib2Name, COMPILE);
   }
