@@ -271,6 +271,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isMemoryCSVExportEnabled() {
+        return false;
+      }
+
+      @Override
       public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
 
       @Override

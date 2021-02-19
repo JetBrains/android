@@ -124,6 +124,11 @@ public final class StudioFlags {
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
     true);
 
+  public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = Flag.create(
+    PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
+    "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SAMPLE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "memory.livealloc.sampled", "Enable Sampled Live Allocation Tracking",
     "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
