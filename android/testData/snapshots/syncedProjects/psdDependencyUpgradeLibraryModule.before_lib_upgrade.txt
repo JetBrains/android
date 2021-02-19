@@ -513,12 +513,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleK.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleK.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleK
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/main
             JavaSource          : file://<PROJECT>/jModuleK/src/main/java
             JavaResource        : file://<PROJECT>/jModuleK/src/main/resources
@@ -568,12 +577,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleK.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleK.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleK
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources
@@ -652,12 +670,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleL.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleL.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleL
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/main
             JavaSource          : file://<PROJECT>/jModuleL/src/main/java
             JavaResource        : file://<PROJECT>/jModuleL/src/main/resources
@@ -686,12 +713,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleL.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleL.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleL
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources
@@ -749,12 +785,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleM.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleM.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleM
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/main
             JavaSource          : file://<PROJECT>/jModuleM/src/main/java
             JavaResource        : file://<PROJECT>/jModuleM/src/main/resources
@@ -783,12 +828,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleM.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleM.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleM
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources
@@ -846,12 +900,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/main
             JavaSource          : file://<PROJECT>/jModuleZ/src/main/java
             JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources
@@ -936,12 +999,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/main
             JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
             JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
@@ -963,12 +1035,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
@@ -991,12 +1072,21 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule.jModuleZ.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule.jModuleZ.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources

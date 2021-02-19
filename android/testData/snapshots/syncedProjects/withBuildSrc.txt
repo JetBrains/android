@@ -604,12 +604,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc/lib1
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib1.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib1.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc.buildSrc.lib1.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib1
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/lib1/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib1/src/main
             JavaSource          : file://<PROJECT>/buildSrc/lib1/src/main/java
             JavaResource        : file://<PROJECT>/buildSrc/lib1/src/main/resources
@@ -625,12 +634,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc/lib1
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib1.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib1.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc.buildSrc.lib1.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib1
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/lib1/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib1/src/test
             JavaSource (test)   : file://<PROJECT>/buildSrc/lib1/src/test/java
             JavaResource (test) : file://<PROJECT>/buildSrc/lib1/src/test/resources
@@ -675,12 +693,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc/lib2
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib2.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib2.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc.buildSrc.lib2.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib2
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/lib2/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib2/src/main
             JavaSource          : file://<PROJECT>/buildSrc/lib2/src/main/java
             JavaResource        : file://<PROJECT>/buildSrc/lib2/src/main/resources
@@ -695,12 +722,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc/lib2
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.lib2.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.lib2.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc.buildSrc.lib2.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib2
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/lib2/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/lib2/src/test
             JavaSource (test)   : file://<PROJECT>/buildSrc/lib2/src/test/java
             JavaResource (test) : file://<PROJECT>/buildSrc/lib2/src/test/resources
@@ -716,12 +752,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.buildSrc.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/src/main
             JavaSource          : file://<PROJECT>/buildSrc/src/main/groovy
             JavaSource          : file://<PROJECT>/buildSrc/src/main/java
@@ -787,12 +832,21 @@ PROJECT             : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc.buildSrc.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc.buildSrc.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.buildSrc.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/buildSrc/build
         CONENT_ENTRY        : file://<PROJECT>/buildSrc/src/test
             JavaSource (test)   : file://<PROJECT>/buildSrc/src/test/groovy
             JavaSource (test)   : file://<PROJECT>/buildSrc/src/test/java

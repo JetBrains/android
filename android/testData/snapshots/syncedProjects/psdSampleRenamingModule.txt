@@ -809,12 +809,21 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.jav.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.jav.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jav
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jav/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jav/src/main
             JavaSource          : file://<PROJECT>/jav/src/main/java
             JavaResource        : file://<PROJECT>/jav/src/main/resources
@@ -829,12 +838,21 @@ PROJECT             : testPsdSampleRenamingModule
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.jav.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.jav.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jav
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jav/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jav/src/test
             JavaSource (test)   : file://<PROJECT>/jav/src/test/java
             JavaResource (test) : file://<PROJECT>/jav/src/test/resources

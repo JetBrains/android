@@ -183,12 +183,21 @@ PROJECT             : My Application
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/My_Application.lib.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.lib.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/My_Application.lib.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/lib/src/main
             JavaSource          : file://<PROJECT>/lib/src/main/java
             JavaResource        : file://<PROJECT>/lib/src/main/resources
@@ -215,12 +224,21 @@ PROJECT             : My Application
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/My_Application.lib.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/My_Application.lib.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/My_Application.lib.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :lib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/lib/src/test
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources

@@ -538,12 +538,21 @@ PROJECT             : testNestedModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testNestedModule.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testNestedModule.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testNestedModule.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>/src
             JavaSource          : file://<PROJECT>/src
             JavaResource        : file://<PROJECT>/src/main/resources
@@ -558,12 +567,21 @@ PROJECT             : testNestedModule
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testNestedModule.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testNestedModule.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testNestedModule.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>/src/test
             JavaSource (test)   : file://<PROJECT>/src/test/java
             JavaResource (test) : file://<PROJECT>/src/test/resources

@@ -503,12 +503,21 @@ PROJECT             : testApiDependency
         LinkedProjectPath   : <PROJECT>/jlib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jlib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jlib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib/src/main
             JavaSource          : file://<PROJECT>/jlib/src/main/java
             JavaResource        : file://<PROJECT>/jlib/src/main/resources
@@ -537,12 +546,21 @@ PROJECT             : testApiDependency
         LinkedProjectPath   : <PROJECT>/jlib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jlib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jlib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib/src/test
             JavaSource (test)   : file://<PROJECT>/jlib/src/test/java
             JavaResource (test) : file://<PROJECT>/jlib/src/test/resources
@@ -600,12 +618,21 @@ PROJECT             : testApiDependency
         LinkedProjectPath   : <PROJECT>/jlib0
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib0.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib0.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jlib0
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jlib0/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib0/src/main
             JavaSource          : file://<PROJECT>/jlib0/src/main/java
             JavaResource        : file://<PROJECT>/jlib0/src/main/resources
@@ -635,12 +662,21 @@ PROJECT             : testApiDependency
         LinkedProjectPath   : <PROJECT>/jlib0
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency.jlib0.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency.jlib0.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jlib0
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jlib0/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib0/src/test
             JavaSource (test)   : file://<PROJECT>/jlib0/src/test/java
             JavaResource (test) : file://<PROJECT>/jlib0/src/test/resources
