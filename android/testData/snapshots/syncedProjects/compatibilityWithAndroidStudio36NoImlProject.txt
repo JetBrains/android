@@ -1421,12 +1421,21 @@ PROJECT             : AS36_noiml
         LinkedProjectPath   : <PROJECT>/libs/java_lib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.java_lib.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.java_lib.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :libs:java_lib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib/src/main
             JavaSource          : file://<PROJECT>/libs/java_lib/src/main/java
             JavaResource        : file://<PROJECT>/libs/java_lib/src/main/resources
@@ -1441,12 +1450,21 @@ PROJECT             : AS36_noiml
         LinkedProjectPath   : <PROJECT>/libs/java_lib
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs.java_lib.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs.java_lib.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/AS36_noiml.libs.java_lib.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :libs:java_lib
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib/src/test
             JavaSource (test)   : file://<PROJECT>/libs/java_lib/src/test/java
             JavaResource (test) : file://<PROJECT>/libs/java_lib/src/test/resources

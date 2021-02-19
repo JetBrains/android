@@ -513,12 +513,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleK.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleK.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleK
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/main
             JavaSource          : file://<PROJECT>/jModuleK/src/main/java
             JavaResource        : file://<PROJECT>/jModuleK/src/main/resources
@@ -568,12 +577,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleK
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleK.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleK.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleK/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleK
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources
@@ -652,12 +670,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleL.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleL.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleL
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/main
             JavaSource          : file://<PROJECT>/jModuleL/src/main/java
             JavaResource        : file://<PROJECT>/jModuleL/src/main/resources
@@ -686,12 +713,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleL
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleL.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleL.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleL/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleL
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources
@@ -749,12 +785,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleM.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleM.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleM
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/main
             JavaSource          : file://<PROJECT>/jModuleM/src/main/java
             JavaResource        : file://<PROJECT>/jModuleM/src/main/resources
@@ -783,12 +828,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleM
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleM.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleM.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleM/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleM
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources
@@ -846,12 +900,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/main
             JavaSource          : file://<PROJECT>/jModuleZ/src/main/java
             JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources
@@ -936,12 +999,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.main.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/main
             JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
             JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
@@ -963,12 +1035,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
@@ -991,12 +1072,21 @@ PROJECT             : testPsdDependencyDeleteModule
         LinkedProjectPath   : <PROJECT>/jModuleZ
         RootProjectPath     : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule.jModuleZ.test [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule.jModuleZ.test [-]
-            isCompilerPathInherited       : true
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
             isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.test.iml [-]
         ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            ExternalSource      : GRADLE
+            GradlePath          : :jModuleZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            ExternalSource      : GRADLE
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/src/test
             JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java
             JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources
