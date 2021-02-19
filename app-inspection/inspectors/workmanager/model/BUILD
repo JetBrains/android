@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.app-inspection.inspectors.workmanager.model",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/model:workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.model.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorModelTestSuite",
@@ -13,7 +12,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/.idea/libraries:studio-grpc",

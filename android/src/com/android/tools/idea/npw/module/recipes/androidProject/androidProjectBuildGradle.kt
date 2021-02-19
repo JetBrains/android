@@ -34,7 +34,7 @@ fun androidProjectBuildGradle(
     buildscript {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
             ${kotlinEapRepoBlock(kotlinVersion)}
         }
         dependencies {
@@ -62,7 +62,7 @@ fun androidProjectBuildGradleKts(
     buildscript {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
             ${kotlinEapRepoBlock(kotlinVersion)}
         }
         dependencies {

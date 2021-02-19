@@ -22,9 +22,9 @@ import com.android.repository.api.Channel;
 import com.android.repository.api.SettingsController;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.RoamingType;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
@@ -107,7 +107,7 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   }
 
   public static SettingsController getInstance() {
-    return ServiceManager.getService(StudioSettingsController.class);
+    return ApplicationManager.getApplication().getService(StudioSettingsController.class);
   }
 
   public static class PersistentState {

@@ -16,10 +16,13 @@
 package com.android.tools.idea.rendering.classloading
 
 import com.android.tools.idea.editors.literals.LiteralUsageReference
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import org.jetbrains.android.uipreview.ModuleProvider
 import org.jetbrains.annotations.TestOnly
 import java.util.WeakHashMap
 
@@ -61,10 +64,11 @@ interface ConstantRemapper : ModificationTracker {
 }
 
 /**
- * Default implementation of [ConstantRemapper].
+ * [ConstantRemapper] attached to the current [Project].
  */
-object DefaultConstantRemapper : ConstantRemapper {
-  private val LOG = Logger.getInstance(ConstantRemapper::class.java)
+@Service
+class ProjectConstantRemapper : ConstantRemapper {
+  private val log = Logger.getInstance(ConstantRemapper::class.java)
   /**
    * Replaced constants indexed by [ClassLoader] and the initial value.
    */
@@ -116,38 +120,34 @@ object DefaultConstantRemapper : ConstantRemapper {
     // Construct the lookupKey to find the constant in the constant map.
     // For lambdas, we ignore the invoke() method name in Kotlin.
     val lookupKey = "$fileName:$offset:$serializedValue"
-    LOG.debug { "Constant lookup $lookupKey (present=${classLoaderMap.containsKey(lookupKey)})" }
+    log.debug { "Constant lookup $lookupKey (present=${classLoaderMap.containsKey(lookupKey)})" }
     return classLoaderMap.getOrDefault(lookupKey, initialValue)
   }
 
   override fun hasConstants(): Boolean = perClassLoaderConstantMap.values.any { it.isNotEmpty() }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): ConstantRemapper = project.getService(ConstantRemapper::class.java)
+  }
 }
 
 /**
- * Manager that allows remapping the constants of a given [ClassLoader].
+ * Constant remapper used by the Compose preview..
  */
-object ConstantRemapperManager {
-  private var remapper: ConstantRemapper = DefaultConstantRemapper
-
-  @TestOnly
-  fun setRemapper(remapper: ConstantRemapper) {
-    this.remapper = remapper
-  }
-
-  @TestOnly
-  fun restoreDefaultRemapper() {
-    remapper = DefaultConstantRemapper
-  }
-
-  fun getConstantRemapper(): ConstantRemapper = remapper
-
+object ComposePreviewConstantRemapper {
   /**
    * Method used by the transformed classes to retrieve the value of a constant. This method
    * does not have direct uses in Studio but it will be used by the modified classes.
    */
   @JvmStatic
-  fun remapAny(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any? =
-    remapper.remapConstant(source, fileName, offset, initialValue)
+  fun remapAny(source: Any?, fileName: String, offset: Int, initialValue: Any?): Any? {
+    if (source == null) return initialValue
+    val project = (source::class.java.classLoader as? ModuleProvider)?.module?.project
+                  ?: (source as? ModuleProvider)?.module?.project // For testing, we might pass the ModuleProvider direclty.
+                  ?: return initialValue
+    return ProjectConstantRemapper.getInstance(project).remapConstant(source, fileName, offset, initialValue)
+  }
 }

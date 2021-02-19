@@ -31,7 +31,7 @@ abstract class BaseStreamingMemoryProfilerStageView<T: BaseStreamingMemoryProfil
                                                                                          stage: T)
       : BaseMemoryProfilerStageView<T>(profilersView, stage) {
 
-  protected val captureElapsedTimeLabel = JBLabel("").apply {
+  val captureElapsedTimeLabel = JBLabel("").apply {
     font = ProfilerFonts.STANDARD_FONT
     border = JBUI.Borders.emptyLeft(5)
     foreground = ProfilerColors.CPU_CAPTURE_STATUS

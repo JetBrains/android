@@ -9,7 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -33,7 +32,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />

@@ -33,11 +33,13 @@ internal class ClassPsiCallParameter(project: Project,
                                      private val model: PsiCallPropertyModel,
                                      resolvedCall: ResolvedCall<*>,
                                      descriptor: ValueParameterDescriptor,
-                                     argumentExpression: KtExpression?) : PsiCallParameterPropertyItem(project,
-                                                                                                       model,
-                                                                                                       resolvedCall,
-                                                                                                       descriptor,
-                                                                                                       argumentExpression) {
+                                     argumentExpression: KtExpression?,
+                                     initialValue: String?) : PsiCallParameterPropertyItem(project,
+                                                                                           model,
+                                                                                           resolvedCall,
+                                                                                           descriptor,
+                                                                                           argumentExpression,
+                                                                                           initialValue) {
 
   /**
    * Set a new value using their fully qualified class. Will try to add the import statement for the class, if it fails, it will default to

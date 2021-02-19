@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.ServiceManager
@@ -27,6 +28,12 @@ class InspectorBannerService {
   val DISMISS_ACTION = object : AnAction("Dismiss") {
     override fun actionPerformed(e: AnActionEvent) {
       notification = null
+    }
+  }
+
+  class LearnMoreAction(private val url: String): AnAction("Learn More") {
+    override fun actionPerformed(event: AnActionEvent) {
+      BrowserUtil.browse(url)
     }
   }
 

@@ -33,7 +33,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
@@ -56,18 +55,6 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     // We should do this during tear down, in case any test case fails or throws an exception.
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride()
     StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.clearOverride()
-  }
-
-  fun testProfilerServiceNotStartedWhenInUnifiedPipeline() {
-    StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.override(false)
-    val mockProxy = mockTransportProxy()
-    val windowManager = ToolWindowManager.getInstance(myProject)
-    val toolWindow = windowManager.registerToolWindow(AndroidProfilerToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM)
-    val factory = AndroidProfilerToolWindowFactory()
-    factory.init(toolWindow)
-
-    ApplicationManager.getApplication().messageBus.syncPublisher(TransportDeviceManager.TOPIC).customizeProxyService(mockProxy)
-    verify(mockProxy, never()).registerProxyService(any())
   }
 
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {

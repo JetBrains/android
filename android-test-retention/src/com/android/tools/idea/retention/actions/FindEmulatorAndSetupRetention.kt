@@ -19,8 +19,10 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
@@ -31,9 +33,12 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
+import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
@@ -105,7 +110,10 @@ class FindEmulatorAndSetupRetention : AnAction() {
             return
           }
           if (!avdManager.isAvdRunning(avdInfo, logWrapper)) {
-            val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+            val deviceFuture = bootEmulator(project,
+                                            avdInfo,
+                                            (dataContext.getData(EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS) ?: listOf<String>()) as List<String>
+            )
             val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
             ProgressIndicatorUtils.awaitWithCheckCanceled { device.isOnline }
           }
@@ -152,7 +160,14 @@ class FindEmulatorAndSetupRetention : AnAction() {
               }
             }
 
-            override fun deviceChanged(device: IDevice, changeMask: Int) {}
+            // Sometimes it reports back in device changed instead of connected.
+            override fun deviceChanged(device: IDevice, changeMask: Int) {
+              if (device.isOnline && emulatorSerialString == device.serialNumber) {
+                adbDevice = device;
+                deviceReadySignal.countDown()
+                AndroidDebugBridge.removeDeviceChangeListener(this)
+              }
+            }
           }
           AndroidDebugBridge.addDeviceChangeListener(deviceChangeListener)
           try {
@@ -164,6 +179,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
             indicator.fraction = LOAD_SNAPSHOT_FRACTION
             LOG.info("Snapshot loaded.")
             ProgressIndicatorUtils.awaitWithCheckCanceled(deviceReadySignal)
+            LOG.info("Device ready.")
           } finally {
             AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
           }
@@ -235,6 +251,42 @@ class FindEmulatorAndSetupRetention : AnAction() {
     val snapshotFile = event.dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY)
     event.presentation.isEnabledAndVisible = (snapshotId != null && snapshotFile != null)
   }
+}
+
+private fun bootEmulator(project: Project, avdInfo: AvdInfo, parameters: List<String>): ListenableFuture<IDevice> {
+  return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project,
+                                                                        avdInfo
+  ) { emulator, avd ->
+     EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
+  }
+}
+
+@VisibleForTesting
+fun filterEmulatorBootParameters(parameters: List<String>): List<String> {
+  val filtered = mutableListOf<String>()
+  if (parameters.isEmpty()) {
+    return filtered
+  }
+  val iterator = parameters.iterator()
+  // The first parameter is the emulator path. Skip it.
+  iterator.next()
+  while (iterator.hasNext()) {
+    when (val parameter = iterator.next()) {
+      // Skip avd name. Skip flags set by studio.
+      // Need to be careful about which flag has extra parameters.
+      "-avd", "-netdelay", "-netspeed", "-idle-grpc-timeout" -> {
+        iterator.next()
+      }
+      "-qt-hide-window", "-grpc-use-token" -> Unit
+      else -> {
+        // You can set AVD name by passing "@avd_name". So we skip it.
+        if (!parameter.startsWith("@")) {
+          filtered.add(parameter)
+        }
+      }
+    }
+  }
+  return filtered.toList()
 }
 
 @Slow
@@ -379,9 +431,9 @@ private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile
                                               .setFormat(format)
                                               .setPath(snapshotFile.absolutePath)
                                               .build())
-            snapshotIdSent = true;
+            snapshotIdSent = true
           }
-          var bytesRead = 0;
+          var bytesRead = 0
           while (clientCallStreamObserver.isReady) {
             bytesRead = inputStream.read(bytes)
             if (bytesRead <= 0) {

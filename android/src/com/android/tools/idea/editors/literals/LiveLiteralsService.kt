@@ -8,8 +8,9 @@ import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.ListenerCollection
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -33,6 +34,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executor
 
 internal val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
@@ -45,6 +47,20 @@ private val DOCUMENT_CHANGE_COALESCE_TIME_MS = StudioFlags.COMPOSE_LIVE_LITERALS
  * Interface implementing by services handling live literals.
  */
 interface LiveLiteralsMonitorHandler {
+  /**
+   * Type of device being used.
+   */
+  enum class DeviceType {
+    UNKNOWN,
+
+    /** Not a real device. Studio Compose Preview. */
+    PREVIEW,
+    /** An emulator. */
+    EMULATOR,
+    /** A device connected to Studio. */
+    PHYSICAL
+  }
+
   /**
    * Describes a problem found during deployment.
    * @param severity Severity of the problem.
@@ -68,7 +84,7 @@ interface LiveLiteralsMonitorHandler {
    * Call this method when the deployment for [deviceId] has started. This will clear all current registered
    * [Problem]s for that device.
    */
-  fun liveLiteralsMonitorStarted(deviceId: String)
+  fun liveLiteralsMonitorStarted(deviceId: String, deviceType: DeviceType)
 
   /**
    * Call this method when the monitoring for [deviceId] has stopped. For example, if the application has stopped.
@@ -76,19 +92,30 @@ interface LiveLiteralsMonitorHandler {
   fun liveLiteralsMonitorStopped(deviceId: String)
 
   /**
-   * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
-   * of the problems found while deploying literals.
+   * Call this method when the deployment of live literals has started. The pushId allows to correlate the start with the end of a push.
    */
-  fun liveLiteralPushed(deviceId: String, problems: Collection<Problem> = listOf())
+  fun liveLiteralPushStarted(deviceId: String, pushId: String)
+
+  /**
+   * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
+   * of the problems found while deploying literals. The pushId allows to correlate the start with the end of a push.
+   */
+  fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<Problem> = listOf())
 }
 
 /**
  * Project service to track live literals. The service, when [isAvailable] is true, will listen for changes of constants
  * and will notify listeners.
+ *
+ * @param project the project this service is attached to.
+ * @param availableListener listener to be called when the service becomes available.
+ * @param listenerExecutor executor to run the listener calls on.
  */
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
-                                              private val availableListener: LiteralsAvailableListener) : LiveLiteralsMonitorHandler, Disposable {
+                                              private val availableListener: LiteralsAvailableListener,
+                                              listenerExecutor: Executor,
+                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   /**
    * Interface for listeners that want to be notified when Live Literals becomes available. For example
    * when the preview or the emulator find that the current project supports them.
@@ -101,15 +128,15 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   init {
-    LiveLiteralsDeploymentReportService.getInstance(project).subscribe(this, object: LiveLiteralsDeploymentReportService.Listener {
+    deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
-        if (LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+        if (deploymentReportService.hasActiveDevices) {
           activateTracking()
         }
       }
 
       override fun onMonitorStopped(deviceId: String) {
-        if (!LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices) {
+        if (!deploymentReportService.hasActiveDevices) {
           deactivateTracking()
         }
       }
@@ -131,7 +158,8 @@ class LiveLiteralsService private constructor(private val project: Project,
         LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
       }
     }
-  })
+  }, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1),
+                                       LiveLiteralsDeploymentReportService.getInstance(project))
 
   /**
    * Class that groups all the highlighters for a given file/editor combination. This allows enabling/disabling them.
@@ -194,8 +222,12 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
 
     @TestOnly
-    fun getInstanceForTest(project: Project, parentDisposable: Disposable, availableListener: LiteralsAvailableListener = NopListener): LiveLiteralsService =
-      LiveLiteralsService(project, availableListener).also {
+    fun getInstanceForTest(project: Project,
+                           parentDisposable: Disposable,
+                           availableListener: LiteralsAvailableListener = NopListener,
+                           listenerExecutor: Executor = MoreExecutors.directExecutor()): LiveLiteralsService =
+      LiveLiteralsService(project, availableListener, listenerExecutor,
+                          LiveLiteralsDeploymentReportService.getInstanceForTesting(project, listenerExecutor)).also {
         Disposer.register(parentDisposable, it)
       }
   }
@@ -203,8 +235,10 @@ class LiveLiteralsService private constructor(private val project: Project,
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
 
   /**
-   * If true, the highlights will be shown.
+   * If true, the highlights will be shown. This must be only changed from the UI thread.
    */
+  @set:UiThread
+  @get:UiThread
   var showLiveLiteralsHighlights = false
     set(value) {
       field = value
@@ -220,8 +254,7 @@ class LiveLiteralsService private constructor(private val project: Project,
   /**
    * [ListenerCollection] for all the listeners that need to be notified when any live literal has changed value.
    */
-  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(
-    AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1))
+  private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(listenerExecutor)
 
   private val literalsManager = LiteralsManager()
   private val documentSnapshots = mutableMapOf<Document, LiteralReferenceSnapshot>()
@@ -251,7 +284,7 @@ class LiveLiteralsService private constructor(private val project: Project,
    * current project has not any Live Literals yet.
    */
   val isAvailable: Boolean
-    get() = LiveLiteralsDeploymentReportService.getInstance(project).hasActiveDevices
+    get() = deploymentReportService.hasActiveDevices
 
   @TestOnly
   fun allConstants(): Collection<LiteralReference> = documentSnapshots.flatMap { (_, snapshot) -> snapshot.all }
@@ -278,15 +311,16 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
-  @Synchronized
   private fun onDocumentsUpdated(document: Collection<Document>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
     val updateList = ArrayList<LiteralReference>()
     document.flatMap {
-      documentSnapshots[it]?.modified ?: emptyList()
+      synchronized(this@LiveLiteralsService) {
+        documentSnapshots[it]?.modified ?: emptyList()
+      }
     }.forEach {
       val constantValue = it.constantValue ?: return@forEach
       it.usages.forEach { elementPath ->
-        val constantModified = ConstantRemapperManager.getConstantRemapper().addConstant(
+        val constantModified = ProjectConstantRemapper.getInstance(project).addConstant(
           null, elementPath, it.initialConstantValue, constantValue)
         log.debug("[${it.uniqueId}] Constant updated to ${it.text} path=${elementPath}")
         if (constantModified) {
@@ -334,15 +368,15 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     // If the mouse is already within the editor hover area, activate the highlights
     if (GraphicsEnvironment.isHeadless() || editor.component.mousePosition != null) {
-      UIUtil.invokeAndWaitIfNeeded(Runnable {
+      UIUtil.invokeLaterIfNeeded {
         if (showLiveLiteralsHighlights) {
           tracker.showHighlights()
         }
-      })
+      }
     }
   }
 
-  private fun refreshHighlightTrackersVisibility() = UIUtil.invokeAndWaitIfNeeded(Runnable {
+  private fun refreshHighlightTrackersVisibility() = UIUtil.invokeLaterIfNeeded {
     trackers.forEach {
       if (showLiveLiteralsHighlights) {
         it.showHighlights()
@@ -351,7 +385,7 @@ class LiveLiteralsService private constructor(private val project: Project,
         it.hideHighlights()
       }
     }
-  })
+  }
 
   @Synchronized
   private fun activateTracking() {
@@ -362,13 +396,13 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     // Find all the active editors
     EditorFactory.getInstance().allEditors.forEach {
-      addDocumentTracking(newActivationDisposable, it, it.document)
+      if (it.project == project) addDocumentTracking(newActivationDisposable, it, it.document)
     }
 
     // Listen for all new editors opening
     EditorFactory.getInstance().addEditorFactoryListener(object : EditorFactoryListener {
       override fun editorCreated(event: EditorFactoryEvent) {
-        addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
+        if (event.editor.project == project) addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
       }
 
       override fun editorReleased(event: EditorFactoryEvent) {
@@ -380,11 +414,11 @@ class LiveLiteralsService private constructor(private val project: Project,
     setupChangeListener(project, ::onDocumentsUpdated, newActivationDisposable, updateMergingQueue)
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        ConstantRemapperManager.getConstantRemapper().clearConstants(null)
+        // The project has built successfully so we can drop the constants that we were keeping.
+        ProjectConstantRemapper.getInstance(project).clearConstants(null)
       }
 
       override fun buildFailed() {
-        ConstantRemapperManager.getConstantRemapper().clearConstants(null)
       }
 
       override fun buildStarted() {
@@ -393,34 +427,42 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
     }, newActivationDisposable)
 
-    Disposer.register(this, newActivationDisposable)
-    activationDisposable = newActivationDisposable
+    if (Disposer.tryRegister(this, newActivationDisposable)) {
+      activationDisposable = newActivationDisposable
+    }
+    else {
+      Disposer.dispose(newActivationDisposable)
+    }
 
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
-  @Synchronized
   private fun deactivateTracking() {
     log.debug("deactivateTracking")
-    trackers.clear()
-    ConstantRemapperManager.getConstantRemapper().clearConstants(null)
-    activationDisposable?.let {
+    synchronized(this) {
+      trackers.clear()
+      val previousActivationDisposable = activationDisposable
+      activationDisposable = null
+
+      previousActivationDisposable
+    }?.let {
+      // Dispose the previous activation outside of the synchronized lock
       Disposer.dispose(it)
     }
-    activationDisposable = null
-    fireOnLiteralsChanged(emptyList())
-
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
   }
 
-  override fun liveLiteralsMonitorStarted(deviceId: String) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStarted(deviceId)
+  override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) =
+    deploymentReportService.liveLiteralsMonitorStarted(deviceId, deviceType)
 
   override fun liveLiteralsMonitorStopped(deviceId: String) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralsMonitorStopped(deviceId)
+    deploymentReportService.liveLiteralsMonitorStopped(deviceId)
 
-  override fun liveLiteralPushed(deviceId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
-    LiveLiteralsDeploymentReportService.getInstance(project).liveLiteralPushed(deviceId, problems)
+  override fun liveLiteralPushStarted(deviceId: String, pushId: String) =
+    deploymentReportService.liveLiteralPushStarted(deviceId, pushId)
+
+  override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
+    deploymentReportService.liveLiteralPushed(deviceId, pushId, problems)
 
   override fun dispose() {
     deactivateTracking()

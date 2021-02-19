@@ -113,7 +113,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
         val androidFacet = AndroidFacet.getInstance(module) ?: return emptyList()
         val androidModuleModel = AndroidModuleModel.get(androidFacet) ?: return emptyList()
 
-        return androidModuleModel.getTestSourceProviders(ARTIFACT_UNIT_TEST).flatMap { it.javaDirectories }
+        return androidModuleModel.getTestSourceProviders(ARTIFACT_UNIT_TEST).flatMap { it.javaDirectories + it.kotlinDirectories }
     }
 
     private fun getIoFile(virtualFile: VirtualFile): File? {

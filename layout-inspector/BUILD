@@ -23,7 +23,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
@@ -43,7 +42,6 @@ iml_module(
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/base/dynamic-layout-inspector/common:studio.dynamic-layout-inspector.common[module]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
@@ -78,8 +76,8 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
@@ -101,7 +99,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",

@@ -42,6 +42,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -49,7 +50,6 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.scale.ScaleContext;
-import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
@@ -113,7 +113,7 @@ public class PreviewProvider implements Disposable {
 
     if (renderedItem == null) {
       Icon icon = item.getIcon();
-      image = IconUtil.toImage(icon, scaleContext);
+      image = IconLoader.toImage(icon, scaleContext);
     }
     else {
       image = ImageUtil.ensureHiDPI(renderedItem, scaleContext);

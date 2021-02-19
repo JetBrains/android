@@ -22,7 +22,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

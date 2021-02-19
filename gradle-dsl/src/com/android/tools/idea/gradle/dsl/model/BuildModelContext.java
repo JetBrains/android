@@ -268,7 +268,7 @@ public final class BuildModelContext {
       return;
     }
 
-    buildDslFile.setParsedElement(subProjectsDslElement);
+    buildDslFile.addAppliedProperty(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
       GradleDslElement element = entry.getValue();
       // TODO(b/147139838): we need to implement a sufficiently-deep copy to handle subprojects correctly: as it stands, this special-case
@@ -286,7 +286,7 @@ public final class BuildModelContext {
       }
       else {
         // TODO(b/147139838): I believe this is wrong in general (see comment above, and the referenced bug, for details)
-        buildDslFile.setParsedElement(element);
+        buildDslFile.addAppliedProperty(element);
       }
     }
   }

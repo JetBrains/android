@@ -14,4 +14,4 @@
 /build
 gradlew
 gradlew.bat
-gradle.properties
+../../snapshots/projects/simpleApplication/gradle.properties

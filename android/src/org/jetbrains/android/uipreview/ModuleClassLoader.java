@@ -20,8 +20,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
-import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
+import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
 import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
@@ -68,7 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class ModuleClassLoader extends RenderClassLoader {
+public final class ModuleClassLoader extends RenderClassLoader implements ModuleProvider {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
   /**
@@ -135,6 +135,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private final long myConstantRemapperModificationCount;
 
   /**
+   * Interface for reporting load times and general diagnostics.
+   */
+  @NotNull
+  private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
+
+  /**
    * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
    */
   private Map<String, VirtualFile> myClassFiles;
@@ -167,26 +173,26 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
                     @NotNull ClassTransform projectTransformations,
-                    @NotNull ClassTransform nonProjectTransformations) {
+                    @NotNull ClassTransform nonProjectTransformations,
+                    @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(parent, module, projectTransformations, nonProjectTransformations,
-         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(module) : ClassBinaryCache.NO_CACHE);
+         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(module) : ClassBinaryCache.NO_CACHE,
+         diagnostics);
   }
 
   private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
                     @NotNull ClassTransform projectTransformations,
                     @NotNull ClassTransform nonProjectTransformations,
-                    @NotNull ClassBinaryCache cache) {
+                    @NotNull ClassBinaryCache cache,
+                    @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
-    myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
+    myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(module.getProject()).getModificationCount();
+    myDiagnostics = diagnostics;
 
     registerResources(module);
     cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
-  }
-
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    this(parent, module, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS);
   }
 
   @NotNull
@@ -219,6 +225,19 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   @Override
+  protected byte[] rewriteClass(@NotNull String fqcn,
+                                @NotNull byte[] classData,
+                                @NotNull ClassTransform transformations,
+                                int flags) {
+    long startTimeMs = System.currentTimeMillis();
+    try {
+      return super.rewriteClass(fqcn, classData, transformations, flags);
+    } finally {
+      myDiagnostics.classRewritten(fqcn, classData.length, System.currentTimeMillis() - startTimeMs);
+    }
+  }
+
+  @Override
   public Class<?> loadClass(String name) throws ClassNotFoundException {
     if ("kotlinx.coroutines.android.AndroidDispatcherFactory".equals(name)) {
       // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
@@ -229,14 +248,26 @@ public final class ModuleClassLoader extends RenderClassLoader {
       throw new IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
     }
 
-    if (isRepackagedClass(name)) {
-      // This should not happen for "regularly" loaded classes. It will happen for classes loaded using
-      // reflection like Class.forName("kotlin.a.b.c"). In this case, we need to redirect the loading to the right
-      // class by injecting the correct name.
-      name = INTERNAL_PACKAGE + name;
-    }
+    long startTimeMs = System.currentTimeMillis();
+    myDiagnostics.classLoadStart(name);
+    boolean classLoaded = true;
+    try {
+      if (isRepackagedClass(name)) {
+        // This should not happen for "regularly" loaded classes. It will happen for classes loaded using
+        // reflection like Class.forName("kotlin.a.b.c"). In this case, we need to redirect the loading to the right
+        // class by injecting the correct name.
+        name = INTERNAL_PACKAGE + name;
+      }
 
-    return super.loadClass(name);
+      return super.loadClass(name);
+    } catch (ClassNotFoundException e) {
+      classLoaded = false;
+      throw e;
+    } finally {
+      if (classLoaded) {
+        myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
+      }
+    }
   }
 
   @Override
@@ -247,6 +278,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     Module module = myModuleReference.get();
+    long startTimeMs = System.currentTimeMillis();
+    boolean classFound = true;
+    myDiagnostics.classFindStart(name);
     try {
       if (!myInsideJarClassLoader) {
         if (module != null) {
@@ -291,7 +325,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
         return defineClassAndPackage(name, clazz, 0, clazz.length);
       }
       LOG.debug(e);
+      classFound = false;
       throw e;
+    } finally {
+      myDiagnostics.classFindEnd(name, classFound, System.currentTimeMillis() - startTimeMs);
     }
   }
 
@@ -573,5 +610,16 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   public boolean isClassLoaded(@NotNull String className) {
     return findLoadedClass(className) != null;
+  }
+
+  @Override
+  @Nullable
+  public Module getModule() {
+    return myModuleReference.get();
+  }
+
+  @NotNull
+  public ModuleClassLoaderDiagnosticsRead getStats() {
+    return myDiagnostics;
   }
 }

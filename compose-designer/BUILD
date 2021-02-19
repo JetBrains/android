@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.compose-designer",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/compose-designer:ui-animation-tooling-internal"],
     iml_files = ["intellij.android.compose-designer.iml"],
     lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
@@ -21,7 +20,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/intellij.android.compose-common[module]",
@@ -71,6 +69,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
@@ -88,7 +87,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/intellij.android.compose-common[module]",
     ],
 )

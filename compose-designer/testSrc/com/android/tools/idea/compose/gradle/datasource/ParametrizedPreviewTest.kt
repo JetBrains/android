@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.StaticPreviewProvider
@@ -48,7 +49,7 @@ class ParametrizedPreviewTest {
     RenderService.initializeRenderExecutor()
     RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
     projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = DEFAULT_KOTLIN_VERSION)
     val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
     if (!gradleInvocationResult.isBuildSuccessful) {
       Assert.fail("""

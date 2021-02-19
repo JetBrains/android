@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
@@ -27,6 +31,8 @@ import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
@@ -78,14 +84,18 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
-    val defaultResult = ExternalNameInfo(modelName, null)
+    val defaultResult = ExternalNameInfo(modelName, UNKNOWN)
     var result : ExternalNameInfo? = null
     for (e in map.entries) {
       if (e.value.property.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.semantics) {
-          VAR, VWO -> return ExternalNameInfo(e.key.first, false)
-          SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
+          VAR, VWO -> return ExternalNameInfo(e.key.first, ASSIGNMENT)
+          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, METHOD)
+          VAL -> when (e.value.property.type) {
+            MUTABLE_SET -> return ExternalNameInfo(e.key.first, AUGMENTED_ASSIGNMENT)
+            else -> Unit
+          }
           else -> Unit
         }
       }

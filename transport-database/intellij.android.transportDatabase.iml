@@ -18,8 +18,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" name="sqlite" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />

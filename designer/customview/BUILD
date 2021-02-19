@@ -21,7 +21,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
     ],
 )
 
@@ -36,6 +35,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/designer/customview:intellij.android.designer.customview[module, test]",

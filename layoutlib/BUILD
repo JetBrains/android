@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.layoutlib",
     srcs = ["src"],
-    bundled_deps = ["//prebuilts/studio/layoutlib/data:layoutlib"],
     iml_files = ["intellij.android.layoutlib.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

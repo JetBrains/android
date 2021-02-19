@@ -32,6 +32,7 @@ import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.android.tools.adtui.stdui.TooltipLayeredPane;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuCaptureStageView;
@@ -105,7 +106,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private StageView myStageView;
 
   @NotNull
-  private final ProfilerLayeredPane myLayeredPane;
+  private final TooltipLayeredPane myLayeredPane;
   /**
    * Splitter between the sessions and main profiler stage panel. We use IJ's {@link ThreeComponentsSplitter} as it supports zero-width
    * divider while still handling mouse resize properly.
@@ -154,7 +155,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     mySplitter.setLastComponent(myStageComponent);
     Disposer.register(this, mySplitter);
 
-    myLayeredPane = new ProfilerLayeredPane(mySplitter);
+    myLayeredPane = new TooltipLayeredPane(mySplitter);
     initializeSessionUi();
     initializeStageUi();
 

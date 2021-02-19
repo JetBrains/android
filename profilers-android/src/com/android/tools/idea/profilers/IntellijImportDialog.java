@@ -22,7 +22,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +51,7 @@ public class IntellijImportDialog implements ImportDialog {
       FileChooserDescriptor chooserDescriptor = FileChooserDescriptorFactory
         .createSingleFileDescriptor()
         .withFileFilter(file -> validExtensions.stream()
-          .anyMatch(extension -> Comparing.equal(file.getExtension(), extension, SystemInfo.isFileSystemCaseSensitive)))
+          .anyMatch(extension -> Comparing.equal(file.getExtension(), extension, file.isCaseSensitive())))
         .withHideIgnored(false);
       chooserDescriptor.setTitle(dialogTitleSupplier.get());
       chooserDescriptor.setDescription("Open file from");

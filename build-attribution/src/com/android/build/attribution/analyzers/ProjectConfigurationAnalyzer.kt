@@ -15,11 +15,9 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
-import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
@@ -31,26 +29,26 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
 /**
  * Analyzer for attributing project configuration time.
  */
-class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                                   taskContainer: TaskContainer,
-                                   pluginContainer: PluginContainer) : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class ProjectConfigurationAnalyzer(
+  private val pluginContainer: PluginContainer
+) : BaseAnalyzer<ProjectConfigurationAnalyzer.Result>(), BuildEventsAnalyzer {
   private val applyPluginEventPrefix = "Apply plugin"
 
   /**
    * Contains for each plugin, the sum of configuration times for this plugin over all projects
    */
-  val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
+  private val pluginsConfigurationDataMap = HashMap<PluginData, Long>()
 
   /**
    * Contains a list of project configuration data for each configured project
    */
-  val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
+  private val projectsConfigurationData = ArrayList<ProjectConfigurationData>()
 
   /**
    * Contains a list of all applied plugins for each configured project.
    * May contain internal plugins
    */
-  val allAppliedPlugins = mutableMapOf<String, List<PluginData>>()
+  private val allAppliedPlugins = mutableMapOf<String, List<PluginData>>()
 
   /**
    * Builder for configuration data of the currently being configured project
@@ -74,7 +72,7 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
       if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
         allAppliedPlugins[event.descriptor.project.projectPath] =
           (event.result as ProjectConfigurationSuccessResult).pluginApplicationResults.map {
-            getPlugin(it.plugin, event.descriptor.project.projectPath)
+            pluginContainer.getPlugin(it.plugin, event.descriptor.project.projectPath)
           }
         projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
         projectConfigurationBuilder = null
@@ -86,7 +84,8 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
           // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
           if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
             val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
-            val plugin = getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName, projectConfigurationBuilder!!.projectPath)
+            val plugin = pluginContainer.getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName,
+                                                   projectConfigurationBuilder!!.projectPath)
             val pluginConfigurationTime = event.result.endTime - event.result.startTime
 
             updatePluginConfigurationTime(plugin, pluginConfigurationTime)
@@ -127,20 +126,34 @@ class ProjectConfigurationAnalyzer(override val warningsFilter: BuildAttribution
     return null
   }
 
-  override fun onBuildStart() {
-    super.onBuildStart()
+  override fun cleanupTempState() {
     projectsConfigurationData.clear()
     pluginsConfigurationDataMap.clear()
+    allAppliedPlugins.clear()
     projectConfigurationBuilder = null
   }
 
-  override fun onBuildSuccess() {
-    // nothing to be done
-  }
+  override fun calculateResult(): Result = Result(
+    pluginsConfigurationDataMap.toMap(),
+    projectsConfigurationData.toList(),
+    allAppliedPlugins.toMap()
+  )
 
-  override fun onBuildFailure() {
-    projectsConfigurationData.clear()
-    pluginsConfigurationDataMap.clear()
-    projectConfigurationBuilder = null
-  }
+  data class Result(
+    /**
+     * Contains for each plugin, the sum of configuration times for this plugin over all projects
+     */
+    val pluginsConfigurationDataMap: Map<PluginData, Long>,
+
+    /**
+     * Contains a list of project configuration data for each configured project
+     */
+    val projectsConfigurationData: List<ProjectConfigurationData>,
+
+    /**
+     * Contains a list of all applied plugins for each configured project.
+     * May contain internal plugins
+     */
+    val allAppliedPlugins: Map<String, List<PluginData>>
+  ) : AnalyzerResult
 }

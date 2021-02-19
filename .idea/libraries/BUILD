@@ -1,18 +1,5 @@
 # managed by go/iml_to_build
 java_import(
-    name = "kotlin-stdlib-jdk8",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.0:kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.0:kotlin-stdlib-jdk8_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "truth",
     # do not sort: must match IML order
     jars = [
@@ -105,13 +92,6 @@ java_import(
 java_import(
     name = "easymock",
     jars = ["//prebuilts/tools/common/m2/repository/org/easymock/easymock/4.0.2:easymock_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "protobuf",
-    jars = ["//prebuilts/tools/common/m2/repository/com/google/protobuf/protobuf-java/3.5.1:protobuf_files"],
     visibility = ["//visibility:public"],
 )
 

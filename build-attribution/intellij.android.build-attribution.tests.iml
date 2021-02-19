@@ -7,13 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
@@ -27,5 +24,6 @@
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>
 </module>

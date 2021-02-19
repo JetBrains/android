@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.service.repo.ExternalRepository;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -50,7 +50,7 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
 
   @Override
   protected void execute(@NotNull Project project) {
-    ExternalRepository repository = ServiceManager.getService(ExternalRepository.class);
+    ExternalRepository repository = ApplicationManager.getApplication().getService(ExternalRepository.class);
     GradleVersion latest = repository.getLatest(APPENGINE_PLUGIN_GROUP_ID, APPENGINE_PLUGIN_ARTIFACT_ID);
     if (latest == null) {
       latest = DEFAULT_APPENGINE_PLUGIN_VERSION;

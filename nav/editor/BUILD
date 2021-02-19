@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.editor",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/nav/editor:eclipse-layout-kernel"],
     iml_files = ["intellij.android.nav.editor.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
@@ -24,7 +23,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/nav/editor:eclipse-layout-kernel",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
@@ -57,6 +55,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/designer:intellij.android.designer.tests[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -72,7 +71,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",

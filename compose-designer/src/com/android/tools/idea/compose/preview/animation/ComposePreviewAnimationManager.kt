@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
@@ -24,11 +25,14 @@ import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTra
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 
 private val LOG = Logger.getInstance(ComposePreviewAnimationManager::class.java)
@@ -45,9 +49,17 @@ object ComposePreviewAnimationManager {
     private set
 
   @get:VisibleForTesting
+  @GuardedBy("subscribedAnimationsLock")
   val subscribedAnimations = mutableSetOf<ComposeAnimation>()
+  private val subscribedAnimationsLock = Any()
 
   private var newInspectorOpenedCallback: (() -> Unit)? = null
+
+  internal val onSubscribedUnsubscribedExecutor =
+    if (ApplicationManager.getApplication().isUnitTestMode)
+      MoreExecutors.directExecutor()
+    else
+      AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation Subscribe/Unsubscribe Callback Handler", 1)
 
   @Slow
   fun createAnimationInspectorPanel(surface: DesignSurface, parent: Disposable, onNewInspectorOpen: () -> Unit): AnimationInspectorPanel {
@@ -72,7 +84,9 @@ object ComposePreviewAnimationManager {
     }
     currentInspector = null
     newInspectorOpenedCallback = null
-    subscribedAnimations.clear()
+    synchronized(subscribedAnimationsLock) {
+      subscribedAnimations.clear()
+    }
   }
 
   /**
@@ -98,20 +112,22 @@ object ComposePreviewAnimationManager {
     // subscribed animations, as they were tracked by the previous clock.
     inspector.animationClock?.let {
       if (it.clock != clock) {
-        val subscribedAnimationsIterator = subscribedAnimations.iterator()
-        for (subscribedAnimation in subscribedAnimationsIterator) {
-          onAnimationUnsubscribed(subscribedAnimation)
+        synchronized(subscribedAnimationsLock) {
+          val subscribedAnimationsIterator = subscribedAnimations.iterator()
+          for (subscribedAnimation in subscribedAnimationsIterator) {
+            onAnimationUnsubscribed(subscribedAnimation)
+          }
         }
         // Now update the clock
         inspector.animationClock = AnimationClock(clock)
       }
     }
 
-    if (subscribedAnimations.add(animation)) {
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
       UIUtil.invokeLaterIfNeeded {
         inspector.addTab(animation)
         if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
-          inspector.updateTransitionStates(animation, animation.states)
+          inspector.updateTransitionStates(animation, handleKnownStateTypes(animation.states))
         }
       }
     }
@@ -121,7 +137,7 @@ object ComposePreviewAnimationManager {
    * Removes the animation from the subscribed list and removes the corresponding tab in the [AnimationInspectorPanel].
    */
   fun onAnimationUnsubscribed(animation: ComposeAnimation) {
-    if (subscribedAnimations.remove(animation)) {
+    if (synchronized(subscribedAnimationsLock) { subscribedAnimations.remove(animation) }) {
       UIUtil.invokeLaterIfNeeded {
         currentInspector?.removeTab(animation)
       }
@@ -139,6 +155,16 @@ object ComposePreviewAnimationManager {
   fun invalidate() {
     currentInspector?.let { UIUtil.invokeLaterIfNeeded { it.invalidatePanel() } }
   }
+
+  /**
+   * Due to a limitation in the Compose Animation framework, we might not know all the available states for a given animation, only the
+   * initial/current one. However, we can infer all the states based on the initial one depending on its type, e.g. for a boolean we know
+   * the available states are only `true` or `false`.
+   */
+  private fun handleKnownStateTypes(originalStates: Set<Any>) = when (originalStates.iterator().next()) {
+    is Boolean -> setOf(true, false)
+    else -> originalStates
+  }
 }
 
 @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
@@ -146,7 +172,9 @@ fun animationSubscribed(clock: Any?, animation: Any?) {
   if (LOG.isDebugEnabled) {
     LOG.debug("Animation subscribed: $animation")
   }
-  (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
+    (animation as? ComposeAnimation)?.let { onAnimationSubscribed(clock, it) }
+  }
 }
 
 @Suppress("unused") // Called via reflection from PreviewAnimationClockMethodTransform
@@ -155,5 +183,7 @@ fun animationUnsubscribed(animation: Any?) {
     LOG.debug("Animation unsubscribed: $animation")
   }
   if (animation == null) return
-  (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+  ComposePreviewAnimationManager.onSubscribedUnsubscribedExecutor.execute {
+    (animation as? ComposeAnimation)?.let { onAnimationUnsubscribed(it) }
+  }
 }

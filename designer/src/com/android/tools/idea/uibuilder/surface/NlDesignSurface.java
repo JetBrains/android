@@ -863,7 +863,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   @SurfaceScale
   protected double getMinScale() {
-    return Math.max(getFitScale(true), myMinScale);
+    return myMinScale;
   }
 
   @Override

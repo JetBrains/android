@@ -24,7 +24,6 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
@@ -58,6 +57,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/mlkit:intellij.android.mlkit[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
@@ -71,7 +71,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

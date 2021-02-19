@@ -23,6 +23,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEve
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Response
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchResponse
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.UpdateScreenshotTypeResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
 import kotlin.test.fail
 
@@ -48,6 +49,9 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
         }
 
         Response.newBuilder().setStartFetchResponse(StartFetchResponse.getDefaultInstance()).build()
+      }
+      Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND -> {
+        Response.newBuilder().setUpdateScreenshotTypeResponse(UpdateScreenshotTypeResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.STOP_FETCH_COMMAND -> {
         Response.newBuilder().setStopFetchResponse(StopFetchResponse.getDefaultInstance()).build()

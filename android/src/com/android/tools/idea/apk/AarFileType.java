@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
 public class AarFileType implements FileType {
   public static final AarFileType INSTANCE = new AarFileType();
 
+  private AarFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

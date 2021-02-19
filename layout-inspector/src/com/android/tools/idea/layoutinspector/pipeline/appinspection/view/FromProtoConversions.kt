@@ -28,6 +28,7 @@ import java.awt.Shape
 fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
   return when (this) {
     LayoutInspectorViewProtocol.Screenshot.Type.SKP -> AndroidWindow.ImageType.SKP
+    LayoutInspectorViewProtocol.Screenshot.Type.BITMAP -> AndroidWindow.ImageType.BITMAP_AS_REQUESTED
     else -> AndroidWindow.ImageType.UNKNOWN
   }
 }
@@ -74,7 +75,29 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
 }
 
 fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
-  return PropertyType.values()[this.number]
+  return when (this) {
+    LayoutInspectorViewProtocol.Property.Type.STRING -> PropertyType.STRING
+    LayoutInspectorViewProtocol.Property.Type.BOOLEAN -> PropertyType.BOOLEAN
+    LayoutInspectorViewProtocol.Property.Type.BYTE -> PropertyType.BYTE
+    LayoutInspectorViewProtocol.Property.Type.CHAR -> PropertyType.CHAR
+    LayoutInspectorViewProtocol.Property.Type.DOUBLE -> PropertyType.DOUBLE
+    LayoutInspectorViewProtocol.Property.Type.FLOAT -> PropertyType.FLOAT
+    LayoutInspectorViewProtocol.Property.Type.INT16 -> PropertyType.INT16
+    LayoutInspectorViewProtocol.Property.Type.INT32 -> PropertyType.INT32
+    LayoutInspectorViewProtocol.Property.Type.INT64 -> PropertyType.INT64
+    LayoutInspectorViewProtocol.Property.Type.OBJECT -> PropertyType.OBJECT
+    LayoutInspectorViewProtocol.Property.Type.COLOR -> PropertyType.COLOR
+    LayoutInspectorViewProtocol.Property.Type.GRAVITY -> PropertyType.GRAVITY
+    LayoutInspectorViewProtocol.Property.Type.INT_ENUM -> PropertyType.INT_ENUM
+    LayoutInspectorViewProtocol.Property.Type.INT_FLAG -> PropertyType.INT_FLAG
+    LayoutInspectorViewProtocol.Property.Type.RESOURCE -> PropertyType.RESOURCE
+    LayoutInspectorViewProtocol.Property.Type.DRAWABLE -> PropertyType.DRAWABLE
+    LayoutInspectorViewProtocol.Property.Type.ANIM -> PropertyType.ANIM
+    LayoutInspectorViewProtocol.Property.Type.ANIMATOR -> PropertyType.ANIMATOR
+    LayoutInspectorViewProtocol.Property.Type.INTERPOLATOR -> PropertyType.INTERPOLATOR
+    LayoutInspectorViewProtocol.Property.Type.DIMENSION -> PropertyType.DIMENSION
+    else -> error { "Unhandled property type $this" }
+  }
 }
 
 fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {

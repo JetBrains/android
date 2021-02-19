@@ -29,6 +29,108 @@ fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage:
   )
 }
 
+fun CodeInsightTestFixture.stubComposeRuntime() {
+  addFileToProject(
+    "src/androidx/compose/runtime/Runtime.kt",
+    // language=kotlin
+    """
+    package androidx.compose.runtime
+
+    @Target(
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.TYPE_USAGE,
+        AnnotationTarget.TYPE,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.PROPERTY_GETTER
+    )
+    annotation class Composable
+
+    @Target(
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.PROPERTY_GETTER
+    )
+    annotation class ReadOnlyComposable
+
+    @Target(AnnotationTarget.TYPE)
+    annotation class DisallowComposableCalls
+
+
+    @Composable
+    inline fun <T> remember(calculation: @DisallowComposableCalls () -> T): T = calculation()
+
+    interface State<T> {
+        val value: T
+    }
+
+    interface MutableState<T> : State<T> {
+        override var value: T
+        operator fun component1(): T
+        operator fun component2(): (T) -> Unit
+    }
+
+    inline operator fun <T> MutableState<T>.setValue(thisObj: Any?, property: KProperty<*>, value: T) {
+        this.value = value
+    }
+
+    interface SnapshotMutationPolicy<T> {
+        fun equivalent(a: T, b: T): Boolean
+        fun merge(previous: T, current: T, applied: T): T? = null
+    }
+
+    private object StructuralEqualityPolicy : SnapshotMutationPolicy<Any?> {
+        override fun equivalent(a: Any?, b: Any?) = a == b
+    }
+
+    fun <T> mutableStateOf(
+        value: T,
+        policy: SnapshotMutationPolicy<T> = StructuralEqualityPolicy
+    ): MutableState<T> = SnapshotMutableStateImpl(value)
+
+    private class SnapshotMutableStateImpl<T>(override var value: T) {
+      override operator fun component1(): T = value
+      override operator fun component2(): (T) -> Unit = { value = it }
+    }
+    """.trimIndent()
+  )
+}
+
+fun CodeInsightTestFixture.stubKotlinStdlib() {
+  addFileToProject(
+    "src/kotlin/io/Console.kt",
+    // language=kotlin
+    """
+    package kotlin.io
+    fun print(message: Any?) {}
+    """.trimIndent()
+  )
+  addFileToProject(
+    "src/kotlin/collections/JVMCollections.kt",
+    // language=kotlin
+    """
+    package kotlin.collections
+
+    fun <T> listOf(element: T): List<T> = java.util.Collections.singletonList(element)
+    fun <T> listOf(vararg elements: T): List<T> = if (elements.size > 0) elements.asList() else emptyList()
+
+    inline fun <T> Iterable<T>.forEach(action: (T) -> Unit) {
+        for (element in this) action(element)
+    }
+    """.trimIndent()
+  )
+
+  addFileToProject(
+    "src/kotlin/math/Math.kt",
+    // language=kotlin
+    """
+    package kotlin.math
+
+    object Math {
+      fun random(): Float = 0.5
+    }
+    """.trimIndent()
+  )
+}
+
 fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.compose.ui.tooling.preview") {
   addFileToProject(
     "src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",

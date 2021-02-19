@@ -32,6 +32,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import java.awt.Rectangle
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -49,6 +50,7 @@ class ViewAndroidWindow(
   root: ViewNode,
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
   private val isInterrupted: () -> Boolean,
+  private val updateScreenshotType: (Screenshot.Type) -> Unit,
   // TODO(b/17089580): Add support for logging events and pass it down here
   private val logEvent: (DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) -> Unit = {})
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
@@ -105,8 +107,8 @@ class ViewAndroidWindow(
     }
     if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id == 0L) {
       // We were unable to parse the skia image. Turn on screenshot mode on the device.
-      // TODO(b/17089580): Add support for requesting screenshot mode into the ViewLayoutInspectorClient and
-      //  pass it into this class.
+      updateScreenshotType(Screenshot.Type.BITMAP)
+      // metrics will be logged when we come back with a bitmap
     }
     else {
       logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER)

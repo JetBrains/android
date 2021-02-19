@@ -34,12 +34,12 @@ import com.intellij.util.indexing.FileBasedIndex
 import com.intellij.util.indexing.FileBasedIndexExtension
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.ID
+import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
+import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil.readINT
 import com.intellij.util.io.DataInputOutputUtil.writeINT
-import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.IOUtil
-import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
 import org.jetbrains.kotlin.idea.search.projectScope
@@ -50,7 +50,7 @@ import java.io.Reader
 /**
  * File based index for data binding layout xml files.
  */
-class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
+class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
   /**
    * An entry into this index, containing information associated with a target layout file.
    */
@@ -58,17 +58,18 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
 
   companion object {
     @JvmField
-    val NAME = ID.create<String, BindingXmlData>("BindingXmlIndex")
+    val NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
 
-    private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
+    fun acceptsFile(file: VirtualFile): Boolean =
+      "xml" == file.extension &&
+      ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
 
-    private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): BindingXmlData? {
-      val index = FileBasedIndex.getInstance()
-      return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
+    private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
+      return FileBasedIndex.getInstance().getFileData(NAME, file, project).values.firstOrNull()
     }
 
-    fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, GlobalSearchScope.fileScope(project, file))
-    fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, GlobalSearchScope.fileScope(psiFile))
+    fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, project)
+    fun getDataForFile(psiFile: PsiFile) = getDataForFile(psiFile.virtualFile, psiFile.project)
 
     /**
      * Returns all entries that match a given [layoutName].
@@ -78,7 +79,7 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope): Collection<Entry> {
       val entries = mutableListOf<Entry>()
       FilenameIndex.getVirtualFilesByName(project, "$layoutName.xml", scope).forEach { file ->
-        getDataForFile(file, scope)?.let { data -> entries.add(Entry(file, data)) }
+        getDataForFile(file, project)?.let { data -> entries.add(Entry(file, data)) }
       }
       return entries
     }
@@ -88,12 +89,6 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     fun getEntriesForLayout(module: Module, layoutName: String) = getEntriesForLayout(module.project, layoutName,
                                                                                       module.moduleContentWithDependenciesScope)
   }
-
-  override fun getKeyDescriptor(): KeyDescriptor<String> {
-    return EnumeratorStringDescriptor.INSTANCE
-  }
-
-  override fun dependsOnFileContent() = true
 
   /**
    * Defines the data externalizer handling the serialization/de-serialization of indexed information.
@@ -152,138 +147,136 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     }
   }
 
-  override fun getName(): ID<String, BindingXmlData> {
+  override fun getName(): ID<Int, BindingXmlData> {
     return NAME
   }
 
-  override fun getIndexer(): DataIndexer<String, BindingXmlData, FileContent> {
-    return DataIndexer { inputData ->
-      var isDataBindingLayout = false
-      var customBindingName: String? = null
-      var viewBindingIgnore = false
-      var rootTag: String? = null
-      val variables = mutableListOf<VariableData>()
-      val imports = mutableListOf<ImportData>()
-      val viewIds = mutableListOf<ViewIdData>()
 
-      class TagData(val name: String) {
-        var importType: String? = null
-        var importAlias: String? = null
+  override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
+    return object : SingleEntryIndexer<BindingXmlData>(false) {
+      override fun computeValue(inputData: FileContent): BindingXmlData? {
+        var isDataBindingLayout = false
+        var customBindingName: String? = null
+        var viewBindingIgnore = false
+        var rootTag: String? = null
+        val variables = mutableListOf<VariableData>()
+        val imports = mutableListOf<ImportData>()
+        val viewIds = mutableListOf<ViewIdData>()
 
-        var variableName: String? = null
-        var variableType: String? = null
+        class TagData(val name: String) {
+          var importType: String? = null
+          var importAlias: String? = null
 
-        var viewClass: String? = null
-        var viewId: String? = null
-        var viewLayout: String? = null
+          var variableName: String? = null
+          var variableType: String? = null
+
+          var viewClass: String? = null
+          var viewId: String? = null
+          var viewLayout: String? = null
+        }
+
+        NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
+          val tags = mutableListOf<TagData>()
+
+          override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
+            tags.add(TagData(name))
+            if (name == TAG_LAYOUT) {
+              isDataBindingLayout = true
+            }
+
+            if (tags.size == 1) {
+              rootTag = name
+            }
+          }
+
+          override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
+            val currTag = tags.last() // We are processing a tag so we know there's at least one
+            when (currTag.name) {
+              SdkConstants.TAG_DATA ->
+                when (key) {
+                  SdkConstants.ATTR_CLASS -> customBindingName = value
+                }
+
+              SdkConstants.TAG_IMPORT ->
+                when (key) {
+                  SdkConstants.ATTR_TYPE -> currTag.importType = value
+                  SdkConstants.ATTR_ALIAS -> currTag.importAlias = value
+                }
+
+              SdkConstants.TAG_VARIABLE ->
+                when (key) {
+                  SdkConstants.ATTR_NAME -> currTag.variableName = value
+                  SdkConstants.ATTR_TYPE -> currTag.variableType = value
+                }
+
+              else -> {
+                // If here, we are a View tag, e.g. <Button>, <EditText>, <include>, <merge>, etc.
+
+                if (nsURI == SdkConstants.ANDROID_URI) {
+                  when (key) {
+                    // Used to determine view type of <View>.
+                    SdkConstants.ATTR_CLASS -> currTag.viewClass = value
+                    SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
+                  }
+                }
+                if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
+                  when (key) {
+                    // Used to determine view type of <Merge> and <Include>.
+                    SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                  }
+                }
+              }
+            }
+            if (tags.size == 1) {
+              if (nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
+                viewBindingIgnore = value.toBoolean()
+              }
+            }
+          }
+
+          override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
+            val currTag = tags.last() // We are processing a tag so we know there's at least one
+            when (currTag.name) {
+              SdkConstants.TAG_DATA -> {
+                // Nothing to do here, but case needed to avoid ending up in default branch
+              }
+
+              SdkConstants.TAG_IMPORT ->
+                if (currTag.importType != null) {
+                  imports.add(ImportData(currTag.importType!!, currTag.importAlias))
+                }
+
+              SdkConstants.TAG_VARIABLE ->
+                if (currTag.variableName != null && currTag.variableType != null) {
+                  variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
+                }
+
+              else ->
+                if (currTag.viewId != null) {
+                  // Tag should either be something like <TextView>, <Button>, etc.
+                  // OR the special-case <view class="path.to.CustomView"/>
+                  val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
+                  if (viewName != null) {
+                    viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout))
+                  }
+                }
+            }
+          }
+
+          override fun endElement(s: String?, s1: String?, s2: String?) {
+            tags.removeAt(tags.lastIndex)
+          }
+        })
+
+        val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else PLAIN_LAYOUT
+        return BindingXmlData(layoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
-
-      NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
-        val tags = mutableListOf<TagData>()
-
-        override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
-          tags.add(TagData(name))
-          if (name == TAG_LAYOUT) {
-            isDataBindingLayout = true
-          }
-
-          if (tags.size == 1) {
-            rootTag = name
-          }
-        }
-
-        override fun addAttribute(key: String, nsPrefix: String?, nsURI: String?, value: String, type: String) {
-          val currTag = tags.last() // We are processing a tag so we know there's at least one
-          when (currTag.name) {
-            SdkConstants.TAG_DATA ->
-              when (key) {
-                SdkConstants.ATTR_CLASS -> customBindingName = value
-              }
-
-            SdkConstants.TAG_IMPORT ->
-              when (key) {
-                SdkConstants.ATTR_TYPE -> currTag.importType = value
-                SdkConstants.ATTR_ALIAS -> currTag.importAlias = value
-              }
-
-            SdkConstants.TAG_VARIABLE ->
-              when (key) {
-                SdkConstants.ATTR_NAME -> currTag.variableName = value
-                SdkConstants.ATTR_TYPE -> currTag.variableType = value
-              }
-
-            else -> {
-              // If here, we are a View tag, e.g. <Button>, <EditText>, <include>, <merge>, etc.
-
-              if (nsURI == SdkConstants.ANDROID_URI) {
-                when (key) {
-                  // Used to determine view type of <View>.
-                  SdkConstants.ATTR_CLASS -> currTag.viewClass = value
-                  SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
-                }
-              }
-              if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
-                when (key) {
-                  // Used to determine view type of <Merge> and <Include>.
-                  SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
-                }
-              }
-            }
-          }
-          if (tags.size == 1) {
-            if (nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
-              viewBindingIgnore = value.toBoolean()
-            }
-          }
-        }
-
-        override fun elementAttributesProcessed(name: String, nsPrefix: String?, nsURI: String?) {
-          val currTag = tags.last() // We are processing a tag so we know there's at least one
-          when (currTag.name) {
-            SdkConstants.TAG_DATA -> {
-              // Nothing to do here, but case needed to avoid ending up in default branch
-            }
-
-            SdkConstants.TAG_IMPORT ->
-              if (currTag.importType != null) {
-                imports.add(ImportData(currTag.importType!!, currTag.importAlias))
-              }
-
-            SdkConstants.TAG_VARIABLE ->
-              if (currTag.variableName != null && currTag.variableType != null) {
-                variables.add(VariableData(currTag.variableName!!, currTag.variableType!!))
-              }
-
-            else ->
-              if (currTag.viewId != null) {
-                // Tag should either be something like <TextView>, <Button>, etc.
-                // OR the special-case <view class="path.to.CustomView"/>
-                val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
-                if (viewName != null) {
-                  viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout))
-                }
-              }
-            }
-        }
-
-        override fun endElement(s: String?, s1: String?, s2: String?) {
-          tags.removeAt(tags.lastIndex)
-        }
-      })
-
-      val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else PLAIN_LAYOUT
-      mapOf(getKeyForFile(inputData.file) to
-              BindingXmlData(layoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds))
     }
   }
 
   override fun getInputFilter(): FileBasedIndex.InputFilter {
     return object : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
-      override fun acceptInput(file: VirtualFile): Boolean {
-        return "xml" == file.extension
-               && ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
-               && XmlFileType.INSTANCE == file.fileType
-      }
+      override fun acceptInput(file: VirtualFile): Boolean = acceptsFile(file)
     }
   }
 

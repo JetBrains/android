@@ -13,16 +13,6 @@ filegroup(
 )
 
 filegroup(
-    name = "bundled-libs",
-    srcs = glob([
-        # TODO: Figure out why we need to bundle these if they
-        # are not needed to compile.
-        "javawriter-2.2.1.jar",
-    ]),
-    visibility = ["//visibility:public"],
-)
-
-filegroup(
     name = "sample-data",
     srcs = glob(["sampleData/**"]),
     visibility = ["//visibility:public"],

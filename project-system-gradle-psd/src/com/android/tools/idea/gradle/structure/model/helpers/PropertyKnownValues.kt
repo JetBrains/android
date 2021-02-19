@@ -33,9 +33,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function

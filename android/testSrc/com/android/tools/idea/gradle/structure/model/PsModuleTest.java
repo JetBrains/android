@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
-import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory;
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -25,16 +26,21 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.io.IOException;
 import org.hamcrest.Matcher;
 
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PsModuleTest extends AndroidGradleTestCase {
 
@@ -79,6 +85,26 @@ public class PsModuleTest extends AndroidGradleTestCase {
         .map(v -> is(v.toURI().toString()))
         .collect(toList());
     assertThat(mavenRepositories, hasItem(anyOf(localRepositoryMatchers)));
+  }
+
+  public void testToArtifactRepository() throws IOException {
+    assertNotNull(PsModuleKt.toArtifactRepository(createLocalMavenRepository("file://")));
+    assertNotNull(PsModuleKt.toArtifactRepository(createLocalMavenRepository("file:")));
+    assertNotNull(PsModuleKt.toArtifactRepository(createLocalMavenRepository("")));
+  }
+
+  @NotNull
+  private MavenRepositoryModel createLocalMavenRepository(@NotNull String protocol) throws IOException {
+    String tempDir = FileUtil.generateRandomTemporaryPath().getAbsolutePath();
+    MavenRepositoryModel model = mock(MavenRepositoryModel.class);
+    ResolvedPropertyModel urlModel = mock(ResolvedPropertyModel.class);
+    ResolvedPropertyModel nameModel = mock(ResolvedPropertyModel.class);
+    when(model.name()).thenReturn(nameModel);
+    when(model.url()).thenReturn(urlModel);
+    when(model.getType()).thenReturn(RepositoryModel.RepositoryType.MAVEN);
+    when(urlModel.forceString()).thenReturn(protocol + tempDir);
+    when(nameModel.forceString()).thenReturn("");
+    return model;
   }
 
   private Document getDocument() {

@@ -19,8 +19,6 @@
 package com.android.tools.idea.welcome
 
 import com.android.io.CancellableFileIo
-import com.android.repository.io.FileOp
-import java.io.File
 import java.nio.file.Path
 
 /**

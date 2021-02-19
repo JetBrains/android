@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.actions.DropDownAction;
@@ -28,8 +29,10 @@ import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -68,9 +71,12 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -82,11 +88,10 @@ import org.jetbrains.annotations.Nullable;
  * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a
  * convenient way to user to preview the layout in different devices.
  */
-public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
+public class VisualizationForm
+  implements Disposable, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
-
-  private static final String RENDERING_MESSAGE = "Rendering Previews...";
 
   /**
    * horizontal gap between different previews
@@ -102,12 +107,18 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final JPanel myRoot = new JPanel(new BorderLayout());
-  private VirtualFile myFile;
+  @Nullable private VirtualFile myFile;
+  private final ReentrantLock myResourceNotifyingFilesLock = new ReentrantLock();
+  @GuardedBy("myResourceNotifyingFilesLock")
+  private final Set<VirtualFile> myResourceNotifyingFiles = new HashSet<>();
   private boolean isActive = false;
   private JComponent myContentPanel;
   private JComponent myActionToolbarPanel;
 
-  @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
+  private final ReentrantLock myCancelRenderingTaskLock = new ReentrantLock();
+  @GuardedBy("myCancelRenderingTaskLock")
+  @Nullable
+  private Runnable myCancelRenderingTask = null;
 
   /**
    * Contains the editor that is currently being loaded.
@@ -138,14 +149,17 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setEditable(true)
       .setSceneManagerProvider((surface, model) -> {
         LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, LayoutScannerConfiguration.getDISABLED());
+        sceneManager.setListenResourceChange(false);
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration());
+        sceneManager.setRerenderWhenModelDerivedDataChanged(false);
+        sceneManager.setUpdateAndRenderWhenActivated(false);
         sceneManager.setUseImagePool(false);
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
         sceneManager.setQuality(0.0f);
         return sceneManager;
       })
-      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface, () -> myCurrentModelsProvider))
-      .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
+      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface)surface, () -> myCurrentModelsProvider))
+      .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
@@ -237,7 +251,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @SuppressWarnings("unused") // Used by Kotlin plugin
   @Nullable
   public JComponent getToolbarComponent() {
-     return null;
+    return null;
   }
 
   @NotNull
@@ -248,12 +262,23 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void dispose() {
     deactivate();
+    Set<VirtualFile> registeredFiles;
+    myResourceNotifyingFilesLock.lock();
+    try {
+      registeredFiles = new HashSet<>(myResourceNotifyingFiles);
+      myResourceNotifyingFiles.clear();
+    }
+    finally {
+      myResourceNotifyingFilesLock.unlock();
+    }
+    for (VirtualFile file : registeredFiles) {
+      unregisterResourceNotification(file);
+    }
     removeAndDisposeModels(mySurface.getModels());
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
     for (NlModel model : models) {
-      model.deactivate(this);
       mySurface.removeModel(model);
       Disposer.dispose(model);
     }
@@ -325,17 +350,14 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   private void initNeleModel() {
-    DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
+    DumbService.getInstance(myProject).smartInvokeLater(this::initNeleModelWhenSmart);
   }
 
   @UiThread
   private void initNeleModelWhenSmart() {
     setNoActiveModel();
 
-    if (myCancelPreviousAddModelsRequestTask != null) {
-      myCancelPreviousAddModelsRequestTask.run();
-      myCancelPreviousAddModelsRequestTask = null;
-    }
+    interruptRendering();
 
     if (myFile == null) {
       return;
@@ -363,49 +385,44 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         }
         return models;
       }, AppExecutorUtil.getAppExecutorService()).thenAcceptAsync(models -> {
-        if (models == null || isRequestCancelled.get()) {
-          return;
+      if (models == null || isRequestCancelled.get()) {
+        unregisterResourceNotification(myFile);
+        myFile = null;
+        return;
+      }
+      myFile = file.getVirtualFile();
+      myWorkBench.showContent();
+
+      interruptRendering();
+
+      ApplicationManager.getApplication().invokeLater(() -> mySurface.registerIndicator(myProgressIndicator));
+      // In visualization tool, we add model and layout the scroll pane before rendering
+      models.forEach(mySurface::addModelWithoutRender);
+      // Re-layout and set scale before rendering. This may be processed delayed but we have known the preview number and sizes because the
+      // models are added, so it would layout correctly.
+      ApplicationManager.getApplication().invokeLater(() -> {
+        mySurface.invalidate();
+        double lastScaling = VisualizationToolProjectSettings.getInstance(myProject).getProjectState().getScale();
+        if (!mySurface.setScale(lastScaling)) {
+          // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
+          // configuration set.
+          mySurface.revalidateScrollArea();
         }
-        myWorkBench.showContent();
+      });
 
-        if (myCancelPreviousAddModelsRequestTask != null) {
-          myCancelPreviousAddModelsRequestTask.run();
+      // We render the model sequentially to avoid memory and performance issue.
+      CompletableFuture<Void> renderFuture = renderCurrentModels();
+
+      renderFuture.thenRunAsync(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(myProgressIndicator));
+        if (!isRequestCancelled.get() && !facet.isDisposed()) {
+          activateEditor(!models.isEmpty());
         }
-
-        AtomicBoolean isAddingModelCanceled = new AtomicBoolean(false);
-        ApplicationManager.getApplication().invokeLater(() -> mySurface.registerIndicator(myProgressIndicator));
-        // We want to add model sequentially so we can interrupt them if needed.
-        // When adding a model the render request is triggered. Stop adding remaining models avoids unnecessary render requests.
-        CompletableFuture<Void> addModelFuture = CompletableFuture.completedFuture(null);
-        for (NlModel model : models) {
-          addModelFuture = addModelFuture.thenCompose(it -> {
-            if (isAddingModelCanceled.get()) {
-              return CompletableFuture.completedFuture(null);
-            }
-            else {
-              return mySurface.addAndRenderModel(model);
-            }
-          });
+        else {
+          removeAndDisposeModels(models);
         }
-
-        myCancelPreviousAddModelsRequestTask = () -> isAddingModelCanceled.set(true);
-
-        addModelFuture.thenRunAsync(() -> {
-          ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(myProgressIndicator));
-          if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
-            activeModels(models);
-            double lastScaling = VisualizationToolProjectSettings.getInstance(myProject).getProjectState().getScale();
-            if (!mySurface.setScale(lastScaling)) {
-              // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
-              // configuration set.
-              mySurface.revalidateScrollArea();
-            }
-          }
-          else {
-            removeAndDisposeModels(models);
-          }
-        }, EdtExecutorService.getInstance());
       }, EdtExecutorService.getInstance());
+    }, EdtExecutorService.getInstance());
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
@@ -434,21 +451,138 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     removeAndDisposeModels(mySurface.getModels());
   }
 
-  private void activeModels(@NotNull List<NlModel> models) {
+  private void activateEditor(boolean hasModel) {
     myCancelPendingModelLoad.set(true);
-    if (models.isEmpty()) {
+    if (!hasModel) {
       setEditor(null);
       myWorkBench.setFileEditor(null);
     }
     else {
-      myFile = models.get(0).getVirtualFile();
       setEditor(myPendingEditor);
       myPendingEditor = null;
 
-      for (NlModel model : models) {
-        model.activate(this);
-      }
+      registerResourceNotification(myFile);
+
       myWorkBench.setFileEditor(myEditor);
+    }
+  }
+
+  private void registerResourceNotification(@Nullable VirtualFile file) {
+    if (file == null) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(file, myProject);
+    if (facet != null) {
+      myResourceNotifyingFilesLock.lock();
+      try {
+        if (!myResourceNotifyingFiles.add(file)) {
+          // File is registered already.
+          return;
+        }
+      }
+      finally {
+        myResourceNotifyingFilesLock.unlock();
+      }
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
+      manager.addListener(this, facet, file, null);
+    }
+  }
+
+  private void unregisterResourceNotification(@Nullable VirtualFile file) {
+    if (file == null) {
+      return;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(file, myProject);
+    if (facet != null) {
+      myResourceNotifyingFilesLock.lock();
+      try {
+        if (!myResourceNotifyingFiles.remove(file)) {
+          // File is not registered.
+          return;
+        }
+      }
+      finally {
+        myResourceNotifyingFilesLock.unlock();
+      }
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myProject);
+      manager.removeListener(this, facet, myFile, null);
+    }
+  }
+
+  @Override
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+    boolean needsRenderModels = false;
+    checkReasonLoop: for (ResourceNotificationManager.Reason reason : reasons) {
+      switch (reason) {
+        case RESOURCE_EDIT:
+        case EDIT:
+        case IMAGE_RESOURCE_CHANGED:
+        case GRADLE_SYNC:
+        case PROJECT_BUILD:
+        case VARIANT_CHANGED:
+        case SDK_CHANGED:
+        case CONFIGURATION_CHANGED:
+          needsRenderModels = true;
+          break checkReasonLoop;
+        default:
+          // Do nothing.
+      }
+    }
+    if (needsRenderModels) {
+      // Show and hide progress indicator during rendering.
+      ApplicationManager.getApplication().invokeLater(() -> mySurface.registerIndicator(myProgressIndicator));
+      renderCurrentModels().thenRun(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(myProgressIndicator));
+      });
+    }
+  }
+
+  @NotNull
+  private CompletableFuture<Void> renderCurrentModels() {
+    interruptRendering();
+    AtomicBoolean isRenderingCanceled = new AtomicBoolean(false);
+    Runnable cancelTask = () -> isRenderingCanceled.set(true);
+    myCancelRenderingTaskLock.lock();
+    try {
+      myCancelRenderingTask = cancelTask;
+    }
+    finally {
+      myCancelRenderingTaskLock.unlock();
+    }
+    CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    // This render the added components.
+    for (SceneManager manager : mySurface.getSceneManagers()) {
+      renderFuture = renderFuture.thenCompose(it -> {
+        if (isRenderingCanceled.get()) {
+          return CompletableFuture.completedFuture(null);
+        }
+        else {
+          CompletableFuture<Void> modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
+          if (isRenderingCanceled.get()) {
+            return CompletableFuture.completedFuture(null);
+          }
+          else {
+            return modelUpdateFuture.thenCompose(nothing -> manager.requestRender());
+          }
+        }
+      });
+    }
+    return renderFuture;
+  }
+
+  private void interruptRendering() {
+    Runnable task;
+    myCancelRenderingTaskLock.lock();
+    try {
+      task = myCancelRenderingTask;
+    }
+    finally {
+      myCancelRenderingTaskLock.unlock();
+    }
+    if (task != null) {
+      task.run();
     }
   }
 
@@ -465,6 +599,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       return;
     }
 
+    registerResourceNotification(myFile);
+
     isActive = true;
     initPreviewForm();
     mySurface.activate();
@@ -476,6 +612,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
    * this preview until {@link #activate()} is called.
    */
   public void deactivate() {
+    interruptRendering();
     if (!isActive) {
       return;
     }
@@ -483,6 +620,9 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     myCancelPendingModelLoad.set(true);
     mySurface.deactivate();
     isActive = false;
+
+    unregisterResourceNotification(myFile);
+
     if (myContentPanel != null) {
       setNoActiveModel();
     }
@@ -577,7 +717,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
 
       mySurface.getModels().stream()
-        .map(model -> mySurface.getSceneManager(model))
+        .map(mySurface::getSceneManager)
         .filter(manager -> manager instanceof LayoutlibSceneManager)
         .forEach(manager -> ((LayoutlibSceneManager)manager).setShowDecorations(state));
 
@@ -590,7 +730,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
-    @NotNull private DesignSurface mySurface;
+    @NotNull private final DesignSurface mySurface;
 
     private VisualizationTraversalPolicy(@NotNull DesignSurface surface) {
       mySurface = surface;

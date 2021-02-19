@@ -1,12 +1,32 @@
+// Note: see com.jetbrains.pluginverifier.filtering.IgnoreCondition for possible line formats.
+
 // Referenced by experimental code only (presumably unreachable).
-org.jetbrains.kotlin::Package 'io.ktor' is not found
-org.jetbrains.kotlin::Package 'kotlinx.coroutines.io' is not found
-org.jetbrains.kotlin::Package 'kotlinx.io' is not found
+Package 'io.ktor' is not found
+Package 'kotlinx.coroutines.io' is not found
+Package 'kotlinx.io' is not found
 
 // Referenced by, e.g., kotlin-android-extensions-runtime (which is injected into apps).
-org.jetbrains.kotlin::Package 'android' is not found
-org.jetbrains.kotlin::Package 'android.os' is not found
-org.jetbrains.kotlin::Package 'android.view' is not found
+Package 'android' is not found
+Package 'android.os' is not found
+Package 'android.view' is not found
 
 // Referenced by fir (which is currently unused).
-org.jetbrains.kotlin::Package 'org.jetbrains.kotlin.ir.interpreter' is not found
+Package 'org.jetbrains.kotlin.ir.interpreter' is not found
+
+// Referenced from PlainTextMessageRenderer, which already handles UnsatisfiedLinkError gracefully.
+Package 'org.fusesource' is not found
+
+// The incremental compiler is referenced, but not reachable in the IDE.
+.*org.jetbrains.kotlin.incremental.*
+
+// The JavaScript compiler is referenced, but not reachable in the IDE.
+Package 'org.jetbrains.kotlin.backend.wasm' is not found
+Package 'org.jetbrains.kotlin.js.dce' is not found
+Package 'org.jetbrains.kotlin.ir.backend.js' is not found
+
+// Used only by the CLI compiler (with the experimental "compile java" or "use javac" options).
+Package 'org.jetbrains.kotlin.javac' is not found
+
+// We do not bundle the Maven plugin (and Kotlin's dependency on Maven is optional).
+Package 'org.jetbrains.idea.maven.plugins' is not found
+Package 'org.jetbrains.idea.maven.project' is not found

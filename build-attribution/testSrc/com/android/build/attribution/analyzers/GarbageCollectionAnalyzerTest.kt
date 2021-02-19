@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
@@ -27,15 +26,17 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testAnalyzer() {
-    val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter(), TaskContainer(), PluginContainer())
-    val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
-                                                       analyzersProxy.getBuildAttributionReportAnalyzers())
+    val taskContainer = TaskContainer()
+    val pluginContainer = PluginContainer()
+    val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+    val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
+
 
     analyzersWrapper.onBuildStart()
     analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(
       garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
       javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList())
-    ))
+    ), analyzersProxy)
 
     assertThat(analyzersProxy.getTotalGarbageCollectionTimeMs()).isEqualTo(700)
 
@@ -50,21 +51,22 @@ class GarbageCollectionAnalyzerTest {
 
   @Test
   fun testJava8VersionParsed() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
+    val analyzer = GarbageCollectionAnalyzer()
 
     analyzer.onBuildStart()
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(version = "1.8.1")))
 
-    assertThat(analyzer.javaVersion).isEqualTo(8)
+    assertThat(analyzer.result.javaVersion).isEqualTo(8)
   }
 
   @Test
   fun testGcParameterDetected() {
-    val analyzer = GarbageCollectionAnalyzer(BuildAttributionWarningsFilter())
+    val analyzer = GarbageCollectionAnalyzer()
 
     analyzer.onBuildStart()
-    analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
+    analyzer.receiveBuildAttributionReport(
+      AndroidGradlePluginAttributionData(javaInfo = JavaInfo(vmArguments = listOf("-Xmx8G", "-XX:+UseSerialGC"))))
 
-    assertThat(analyzer.isSettingSet).isTrue()
+    assertThat(analyzer.result.isSettingSet).isTrue()
   }
 }

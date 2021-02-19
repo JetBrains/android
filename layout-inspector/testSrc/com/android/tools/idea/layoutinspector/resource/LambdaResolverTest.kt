@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -61,7 +62,8 @@ class LambdaResolverTest {
          number * number
        }
        """.trimIndent())
-    checkLambda("l3$1", 8, 8, null, null) // A function reference should not be found as a lambda expr
+    checkLambda("l3$1", 8, 8, "MyLambdas.kt:unknown", null) // A function reference should not be found as a lambda expr
+    checkLambda("i$1", 100, 120, "MyLambdas.kt:unknown", null) // Lambda of inline function (lines are out of range)
   }
 
   @Test
@@ -73,10 +75,18 @@ class LambdaResolverTest {
     check("$6$1", "f5", 25, 25, "MyLambdas.kt:25", "::f5")
     check("$6$2", "f6", 25, 25, "MyLambdas.kt:25", "::f6")
     check("$8", "f6", 26, 26, "MyLambdas.kt:26", "::f6")
-    check("l1$1", "f1", 3, 3, null, null) // A lambda expression should not be found as a fct ref
+    check("l1$1", "f1", 3, 3, "MyLambdas.kt:unknown", null) // A lambda expression should not be found as a fct ref
   }
 
-  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedLocation: String?, expectedText: String?) =
+  @Test
+  fun testFindLambdaFromUnknownFile() {
+    val resourceLookup = ResourceLookup(projectRule.project)
+    val result = resourceLookup.findLambdaLocation("com.example", "MyOtherFile.kt", "l$1", "", 102, 107)
+    assertThat(result.source).isEqualTo("MyOtherFile.kt:unknown")
+    assertThat(result.navigatable).isNull()
+  }
+
+  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedLocation: String, expectedText: String?) =
     check(lambdaName, functionName = "", startLine, endLine, expectedLocation, expectedText)
 
   private fun check(
@@ -89,12 +99,12 @@ class LambdaResolverTest {
   ) {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result = resourceLookup.findLambdaLocation("com.example", "MyLambdas.kt", lambdaName, functionName, startLine, endLine)
-    if (expectedLocation == null) {
-      assertThat(result).isNull()
+    assertThat(result.source).isEqualTo(expectedLocation)
+    if (expectedText == null) {
+      assertThat(result.navigatable as? PsiFile).isNotNull()
     }
     else {
-      assertThat(result?.source).isEqualTo(expectedLocation)
-      assertThat((result?.navigatable as? PsiElement)?.text).isEqualTo(expectedText)
+      assertThat((result.navigatable as? PsiElement)?.text).isEqualTo(expectedText)
     }
   }
 }

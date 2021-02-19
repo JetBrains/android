@@ -19,7 +19,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,7 +41,7 @@ public class SyncIssuesReporter {
 
   @NotNull
   public static SyncIssuesReporter getInstance() {
-    return ServiceManager.getService(SyncIssuesReporter.class);
+    return ApplicationManager.getApplication().getService(SyncIssuesReporter.class);
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA

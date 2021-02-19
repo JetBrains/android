@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
 public class DexFileType implements FileType {
   public static final DexFileType INSTANCE = new DexFileType();
 
+  private DexFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

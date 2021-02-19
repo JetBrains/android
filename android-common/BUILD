@@ -24,7 +24,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
     ],

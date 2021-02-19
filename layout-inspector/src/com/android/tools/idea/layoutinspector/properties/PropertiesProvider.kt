@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.SdkConstants.ATTR_HEIGHT
+import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -62,12 +63,18 @@ object EmptyPropertiesProvider : PropertiesProvider {
 /**
  * Add a few fabricated internal attributes.
  */
-fun addInternalProperties(table: PropertiesTable<InspectorPropertyItem>, view: ViewNode, lookup: ViewNodeAndResourceLookup) {
+fun addInternalProperties(
+  table: PropertiesTable<InspectorPropertyItem>,
+  view: ViewNode,
+  attrId: String?,
+  lookup: ViewNodeAndResourceLookup
+) {
   add(table, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
   add(table, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, view.drawId, lookup)
   add(table, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, view.drawId, lookup)
   add(table, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, view.drawId, lookup)
   add(table, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, view.drawId, lookup)
+  attrId?.let { add(table, ATTR_ID, Type.STRING, it, VIEW, view.drawId, lookup) }
 }
 
 private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: Type, value: String?, section: PropertySection, id: Long,

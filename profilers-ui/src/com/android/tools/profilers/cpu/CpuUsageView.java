@@ -32,6 +32,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
@@ -40,7 +41,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerLayeredPane;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
@@ -74,7 +74,7 @@ abstract class CpuUsageView extends JBPanel {
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
     myRangeSelectionComponent = new RangeSelectionComponent(myStage.getRangeSelectionModel(), true);
-    myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myRangeSelectionComponent.setCursorSetter(AdtUiUtils::setTooltipCursor);
     // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
     // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus
     // to the selection component.

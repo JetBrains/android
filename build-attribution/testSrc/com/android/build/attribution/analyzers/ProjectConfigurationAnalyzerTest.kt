@@ -15,12 +15,10 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
-import com.android.build.attribution.data.TaskContainer
 import com.google.common.truth.Truth.assertThat
 import org.gradle.tooling.events.BinaryPluginIdentifier
 import org.gradle.tooling.events.FinishEvent
@@ -29,8 +27,7 @@ import org.junit.Test
 
 class ProjectConfigurationAnalyzerTest {
 
-  private val warningsFilter = BuildAttributionWarningsFilter()
-  private val analyzer = ProjectConfigurationAnalyzer(warningsFilter, TaskContainer(), PluginContainer())
+  private val analyzer = ProjectConfigurationAnalyzer(PluginContainer())
 
   private val pluginA = createBinaryPluginIdentifierStub("pluginA")
   private val pluginB = createBinaryPluginIdentifierStub("pluginB")
@@ -128,16 +125,15 @@ class ProjectConfigurationAnalyzerTest {
 
     analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", 0, 4500))
 
-    analyzer.onBuildSuccess()
   }
 
   @Test
   fun testProjectConfigurationAnalyzer() {
     sendProjectConfigurationEventsToAnalyzer()
 
-    assertThat(analyzer.projectsConfigurationData).hasSize(1)
+    assertThat(analyzer.result.projectsConfigurationData).hasSize(1)
 
-    val configurationData = analyzer.projectsConfigurationData[0]
+    val configurationData = analyzer.result.projectsConfigurationData[0]
 
     assertThat(configurationData.projectPath).isEqualTo(":app")
 
@@ -147,7 +143,9 @@ class ProjectConfigurationAnalyzerTest {
                                               PluginConfigurationData(PluginData(pluginE, ""), 200))
 
     assertThat(
-      analyzer.pluginsConfigurationDataMap.map { (plugin, time) -> PluginConfigurationData(plugin, time) }).containsExactlyElementsIn(
+      analyzer.result.pluginsConfigurationDataMap.map { (plugin, time) ->
+        PluginConfigurationData(plugin, time)
+      }).containsExactlyElementsIn(
       expectedPluginsConfiguration)
 
     assertThat(configurationData.pluginsConfigurationData).containsExactlyElementsIn(expectedPluginsConfiguration)

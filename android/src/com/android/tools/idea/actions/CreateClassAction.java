@@ -150,8 +150,11 @@ public final class CreateClassAction extends AnAction {
 
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     List<VirtualFile> files = ImmutableList.copyOf(Iterables.concat(sourceProviderManager.getSources().getJavaDirectories(),
+                                                                    sourceProviderManager.getSources().getKotlinDirectories(),
                                                                     sourceProviderManager.getUnitTestSources().getJavaDirectories(),
-                                                                    sourceProviderManager.getAndroidTestSources().getJavaDirectories()));
+                                                                    sourceProviderManager.getUnitTestSources().getKotlinDirectories(),
+                                                                    sourceProviderManager.getAndroidTestSources().getJavaDirectories(),
+                                                                    sourceProviderManager.getAndroidTestSources().getKotlinDirectories()));
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();

@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.debuggers",
     srcs = ["src"],
-    bundled_deps = ["//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9:kotlinx-coroutines-guava"],
     iml_files = ["intellij.android.debuggers.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
@@ -12,7 +11,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -27,7 +25,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
@@ -48,6 +45,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
@@ -65,7 +63,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",

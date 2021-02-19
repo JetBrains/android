@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 
 /**
  * Acquires a file cache instance for ResourceFolderRepository.
@@ -23,6 +23,6 @@ import com.intellij.openapi.components.ServiceManager;
 public class ResourceFolderRepositoryFileCacheService {
 
   static ResourceFolderRepositoryFileCache get() {
-    return ServiceManager.getService(ResourceFolderRepositoryFileCache.class);
+    return ApplicationManager.getApplication().getService(ResourceFolderRepositoryFileCache.class);
   }
 }

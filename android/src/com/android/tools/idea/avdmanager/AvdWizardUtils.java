@@ -34,7 +34,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
-import com.android.repository.io.FileOp;
 import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;

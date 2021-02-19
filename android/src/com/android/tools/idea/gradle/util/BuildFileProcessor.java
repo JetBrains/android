@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +39,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 public class BuildFileProcessor {
   @NotNull
   public static BuildFileProcessor getInstance() {
-    return ServiceManager.getService(BuildFileProcessor.class);
+    return ApplicationManager.getApplication().getService(BuildFileProcessor.class);
   }
 
   /**

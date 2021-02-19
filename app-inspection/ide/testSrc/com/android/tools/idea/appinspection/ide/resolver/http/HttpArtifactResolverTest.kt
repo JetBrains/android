@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.http
 
+import com.android.repository.api.Checksum
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
 import com.android.testutils.TestUtils.resolveWorkspacePath
@@ -40,10 +41,10 @@ class HttpArtifactResolverTest {
   private val fakeDownloader = object : Downloader {
     override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
     override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
-    override fun downloadFully(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {}
+    override fun downloadFully(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {}
     override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
-    override fun downloadFullyWithCaching(url: URL, target: Path, checksum: String?, indicator: ProgressIndicator) {
+    override fun downloadFullyWithCaching(url: URL, target: Path, checksum: Checksum?, indicator: ProgressIndicator) {
       // Fake download by resolving the URL against the local testData directory.
       val srcFile = testData.resolve(url.path.substringAfter('/'))
       Files.copy(srcFile, target)

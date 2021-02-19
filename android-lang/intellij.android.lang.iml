@@ -14,7 +14,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />

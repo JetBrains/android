@@ -13,14 +13,12 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -57,6 +55,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",

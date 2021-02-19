@@ -82,7 +82,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -107,6 +109,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
   private lateinit var databaseDownloadTestFixture: DatabaseDownloadTestFixture
+  private lateinit var databaseLockingTestFixture: DatabaseLockingTestFixture
 
   private lateinit var edtExecutor: Executor
   private lateinit var taskExecutor: Executor
@@ -133,7 +136,11 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     initAdbFileProvider(project)
     sqliteCliClient = SqliteCliClientImpl(SqliteCliProviderImpl(project).getSqliteCli()!!, taskExecutor.asCoroutineDispatcher())
-    databaseRepository = OpenDatabaseRepository(project, taskExecutor)
+    OpenDatabaseRepository(project, taskExecutor).let {
+      databaseRepository = it
+      databaseLockingTestFixture = DatabaseLockingTestFixture(it)
+      databaseLockingTestFixture.setUp()
+    }
 
     view = FakeExportToFileDialogView()
     controller = ExportToFileController(
@@ -143,6 +150,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       databaseRepository,
       databaseDownloadTestFixture::downloadDatabase,
       { databaseDownloadTestFixture.deleteDatabase(it) },
+      { databaseLockingTestFixture.acquireDatabaseLock(it) },
+      { databaseLockingTestFixture.releaseDatabaseLock(it) },
       taskExecutor,
       edtExecutor,
       exportProcessedListener::onExportComplete,
@@ -156,6 +165,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     databaseDownloadTestFixture.tearDown()
     runDispatching { databaseRepository.clear() }
     tempDirTestFixture.tearDown()
+    databaseLockingTestFixture.tearDown()
     super.tearDown()
   }
 
@@ -276,6 +286,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     awaitExportComplete(5000L)
 
     verifyExportCallbacks()
+    exportRequest.srcDatabase.let { db -> assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId) }
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
     assertThat(actualFiles).isEqualTo(expectedOutput.map { it.path }.sorted())
@@ -549,6 +560,45 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
   private fun createFile(dbFileName: String): Path = downloadFolder.resolve(dbFileName).also { it.createFile() }
 
   private fun Path.toVirtualFile(): VirtualFile = VfsUtil.findFile(this, true)!!
+}
+
+/**
+ * Simulates database locking.
+ *
+ * Additionally, ensures that:
+ * - locks are only requested for [LiveSqliteDatabaseId]s,
+ * - [releaseDatabaseLock] only accepts locks issued by [acquireDatabaseLock],
+ * - a lock can only be released once,
+ * - all locks are released by the time [tearDown] is called.
+ */
+private class DatabaseLockingTestFixture(private val databaseRepository: OpenDatabaseRepository) : IdeaTestFixture {
+  private lateinit var nextLockId: AtomicInteger
+  private lateinit var lockIdToDatabase: ConcurrentHashMap<Int, SqliteDatabaseId>
+  private lateinit var lockHistory: ConcurrentHashMap<SqliteDatabaseId, Unit> // using the map as a set
+
+  override fun setUp() {
+    nextLockId = AtomicInteger(1)
+    lockIdToDatabase = ConcurrentHashMap()
+    lockHistory = ConcurrentHashMap()
+  }
+
+  override fun tearDown() {
+    assertThat(lockIdToDatabase.isEmpty())
+  }
+
+  fun acquireDatabaseLock(databaseId: Int): Int {
+    val db = databaseRepository.openDatabases.filterIsInstance<LiveSqliteDatabaseId>().single { it.connectionId == databaseId }
+    val lock = nextLockId.getAndIncrement()
+    lockIdToDatabase.put(lock, db) ?: return lock
+    throw IllegalStateException()
+  }
+
+  fun releaseDatabaseLock(lockId: Int) {
+    val db = lockIdToDatabase.remove(lockId) ?: throw IllegalStateException()
+    lockHistory[db] = Unit // presence of the key in the map is sufficient to indicate that the db was locked
+  }
+
+  fun wasLocked(db: SqliteDatabaseId): Boolean = lockHistory.containsKey(db)
 }
 
 /** Allows to track the outcome of an [ExportRequest] submitted to an [ExportToFileController]. */

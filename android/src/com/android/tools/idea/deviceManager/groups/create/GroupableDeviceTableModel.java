@@ -16,12 +16,17 @@
 package com.android.tools.idea.deviceManager.groups.create;
 
 import com.android.tools.idea.deviceManager.groups.GroupableDevice;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class GroupableDeviceTableModel extends AbstractTableModel {
   private final @NotNull List<@NotNull GroupableDevice> myGroupableDevices;
+
+  GroupableDeviceTableModel() {
+    this(new ArrayList<>());
+  }
 
   GroupableDeviceTableModel(@NotNull List<@NotNull GroupableDevice> avds) {
     myGroupableDevices = avds;
@@ -89,5 +94,9 @@ final class GroupableDeviceTableModel extends AbstractTableModel {
   void removeRow(int modelRowIndex) {
     myGroupableDevices.remove(modelRowIndex);
     fireTableRowsDeleted(modelRowIndex, modelRowIndex);
+  }
+
+  @NotNull List<@NotNull GroupableDevice> getGroupableDevices() {
+    return myGroupableDevices;
   }
 }

@@ -23,7 +23,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -79,6 +78,6 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
 
   private static FileChooserDescriptor createFileDescriptor(@NotNull String... extensions) {
     return FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(
-        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, SystemInfo.isFileSystemCaseSensitive)));
+        file -> Arrays.stream(extensions).anyMatch(e -> Comparing.equal(file.getExtension(), e, file.isCaseSensitive())));
   }
 }

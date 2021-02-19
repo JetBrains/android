@@ -24,12 +24,12 @@ import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialo
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
 class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     companion object {
-    @JvmStatic fun getInstance() = ServiceManager.getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
+    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
   }
 
   override fun createTableView() = TableViewImpl()

@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.Key;
@@ -35,7 +35,7 @@ public class GuiTestingService {
   private GuiTestSuiteState myGuiTestSuiteState;
 
   public static GuiTestingService getInstance() {
-    return ServiceManager.getService(GuiTestingService.class);
+    return ApplicationManager.getApplication().getService(GuiTestingService.class);
   }
 
   private GuiTestingService() {

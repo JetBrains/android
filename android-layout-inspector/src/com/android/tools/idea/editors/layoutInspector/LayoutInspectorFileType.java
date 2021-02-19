@@ -29,6 +29,9 @@ public class LayoutInspectorFileType implements FileType {
   public static final String EXT_LAYOUT_INSPECTOR = "li";
   public static final String DOT_EXT_LAYOUT_INSPECTOR = ".li";
 
+  private LayoutInspectorFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

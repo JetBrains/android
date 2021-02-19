@@ -17,22 +17,35 @@ package com.android.tools.idea.editors.literals.actions
 
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
+import com.android.tools.idea.editors.literals.internal.DeployRecordStats
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.AppExecutorUtil
+import java.awt.BorderLayout
 import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
+import javax.swing.Action
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTextArea
 import kotlin.random.Random
 
 private const val FAKE_DEVICE_ID = "internal_fake_device"
+private val pushIdCounter = AtomicLong(0)
 
 private fun simulateDeployment(project: Project, problems: Collection<LiveLiteralsMonitorHandler.Problem> = listOf()) {
   val randomTimeMs = Random.nextInt(100, 1200).toLong()
+  val pushId = pushIdCounter.getAndIncrement().toString(16)
 
-  LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(FAKE_DEVICE_ID)
+  LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(FAKE_DEVICE_ID, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+  LiveLiteralsService.getInstance(project).liveLiteralPushStarted(FAKE_DEVICE_ID, pushId)
   AppExecutorUtil.getAppScheduledExecutorService().schedule(Callable {
-    LiveLiteralsService.getInstance(project).liveLiteralPushed(FAKE_DEVICE_ID, problems)
+    LiveLiteralsService.getInstance(project).liveLiteralPushed(FAKE_DEVICE_ID, pushId, problems)
   }, randomTimeMs, TimeUnit.MILLISECONDS)
 }
 
@@ -59,5 +72,69 @@ internal class InternalSimulateFailedLiteralDeployment: AnAction("Simulate Faile
     val project = e.project ?: return
 
     simulateDeployment(project, listOf(LiveLiteralsMonitorHandler.Problem.error("Failed to deploy")))
+  }
+}
+
+/**
+ * Dialog displaying the given string.
+ */
+private class ShowReportDialog(content: String) : DialogWrapper(false) {
+  private val textArea: JTextArea = JTextArea(30, 130).apply {
+    text = content
+    isEditable = false
+    caretPosition = 0
+  }
+
+  init {
+    title = "Live Literals Deployment Stats"
+    isModal = true
+    init()
+  }
+
+  override fun createActions(): Array<Action> = arrayOf(okAction)
+
+  override fun createCenterPanel(): JComponent = JPanel(BorderLayout()).apply {
+    add(JBScrollPane(textArea), BorderLayout.CENTER)
+  }
+}
+
+/**
+ * Action that shows a dialog with the latest collected Live Literals stats.
+ */
+@Suppress("ComponentNotRegistered")
+internal class ShowLiteralStats: AnAction("Show Live Literals Stats") {
+  private fun DeployRecordStats.toDebugString(title: String) = """
+$title
+
+90th percentile = ${deployTime(90)}ms
+99th percentile = ${deployTime(99)}ms
+avg = ${deployTime(50)}ms
+
+last deployments ms = [${lastDeploymentTimesMs().joinToString { "${it}ms" }}]
+"""
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val diag = LiveLiteralsDiagnosticsManager.getReadInstance(project)
+    val deviceIds = diag.lastRecordedDevices()
+    val perDevice = if (deviceIds.size > 1) {
+      """
+        ${
+        deviceIds.joinToString("\n\n") {
+          diag.lastDeploymentStatsForDevice(it).toDebugString("== Stats for device $it ===")
+        }
+      }
+      """.trimIndent()
+    }
+    else ""
+    val content = """
+      total successful = ${diag.successfulDeploymentCount()}
+      total failed = ${diag.failedDeploymentCount()}
+
+      ${diag.lastDeploymentStats().toDebugString("== Stats for all devices ===")}
+
+      $perDevice
+    """.trimIndent()
+    ShowReportDialog(content).show()
   }
 }

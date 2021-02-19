@@ -29,7 +29,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
@@ -79,7 +78,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -101,7 +99,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
@@ -110,5 +107,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib[test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )

@@ -133,6 +133,7 @@ open class TemplateTest : AndroidGradleTestCase() {
     projectData.language = Language.Kotlin
     // Use the Kotlin version for tests
     projectData.kotlinVersion = TestUtils.getKotlinVersionForTests()
+    projectData.kotlinVersion = "1.4.30" // b/178380249 - Temporary until 1.4.30 is the default for all tests
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(

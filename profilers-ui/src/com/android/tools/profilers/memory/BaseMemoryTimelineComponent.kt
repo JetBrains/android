@@ -26,23 +26,25 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.chart.linechart.OverlayComponent
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
+import com.android.tools.adtui.stdui.StreamingScrollbar
 import com.android.tools.profilers.ProfilerColors
-import com.android.tools.profilers.ProfilerLayeredPane
 import com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH
 import com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER
 import com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING
 import com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING
 import com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN
-import com.android.tools.profilers.ProfilerScrollbar
 import com.android.tools.profilers.StageView
 import com.android.tools.profilers.event.EventMonitorView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
@@ -100,7 +102,8 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
 
   protected open fun shouldShowTooltip() = true
 
-  protected open fun makeScrollbar(): JComponent? = ProfilerScrollbar(stage.timeline, this)
+  protected open fun makeScrollbar(): JComponent? =
+    StreamingScrollbar(stage.timeline, this)
 
   protected fun registerRenderer(renderer: AbstractDurationDataRenderer) {
     lineChart.addCustomRenderer(renderer)
@@ -192,7 +195,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       }.build()
 
   private fun makeRangeSelectionComponent() = RangeSelectionComponent(stage.rangeSelectionModel).apply {
-    setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane)
+    setCursorSetter(AdtUiUtils::setTooltipCursor)
   }
 
   companion object {

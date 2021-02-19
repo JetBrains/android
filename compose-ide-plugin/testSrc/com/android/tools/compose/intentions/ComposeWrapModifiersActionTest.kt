@@ -19,6 +19,7 @@ import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
+import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -50,7 +51,7 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureTestCase() {
     """.trimIndent()
     )
 
-    val settings = KotlinCodeStyleSettings.getInstance(project)
+    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
   

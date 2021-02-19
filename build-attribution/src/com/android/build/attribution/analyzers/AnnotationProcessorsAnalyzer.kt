@@ -15,9 +15,7 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -27,18 +25,17 @@ import java.time.Duration
 /**
  * Analyzer for reporting non incremental annotation processors and the annotation processors compilation time.
  */
-class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                                   taskContainer: TaskContainer,
-                                   pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class AnnotationProcessorsAnalyzer(
+  private val taskContainer: TaskContainer,
+) : BaseAnalyzer<AnnotationProcessorsAnalyzer.Result>(),
+    BuildEventsAnalyzer {
   private val annotationProcessorsMap = HashMap<String, Duration>()
   private val nonIncrementalAnnotationProcessorsSet = HashSet<String>()
 
   /**
    * Sums up the compilation time for annotation processors for all sub-projects.
    */
-  private fun updateAnnotationProcessorCompilationTime(className: String,
-                                                       compilationDuration: Duration) {
+  private fun updateAnnotationProcessorCompilationTime(className: String, compilationDuration: Duration) {
     val currentDuration = annotationProcessorsMap.getOrDefault(className, Duration.ZERO)
     annotationProcessorsMap[className] = currentDuration + compilationDuration
   }
@@ -50,8 +47,7 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
         result.annotationProcessorResults?.forEach {
           updateAnnotationProcessorCompilationTime(it.className, it.duration)
 
-          if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN &&
-              warningsFilter.applyNonIncrementalAnnotationProcessorFilter(it.className)) {
+          if (it.type == JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.UNKNOWN) {
             nonIncrementalAnnotationProcessorsSet.add(it.className)
           }
         }
@@ -59,28 +55,24 @@ class AnnotationProcessorsAnalyzer(override val warningsFilter: BuildAttribution
     }
   }
 
-  override fun onBuildStart() {
+  override fun cleanupTempState() {
     annotationProcessorsMap.clear()
     nonIncrementalAnnotationProcessorsSet.clear()
   }
 
-  override fun onBuildSuccess() {
-    if (anyTask(::isKaptTask)) {
+  override fun calculateResult(): Result {
+    if (taskContainer.any(::isKaptTask)) {
       // TODO(b/159108417): get data about annotation processors incrementality from kapt
       nonIncrementalAnnotationProcessorsSet.clear()
     }
+    return Result(
+      annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) },
+      nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
+    )
   }
 
-  override fun onBuildFailure() {
-    annotationProcessorsMap.clear()
-    nonIncrementalAnnotationProcessorsSet.clear()
-  }
-
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return annotationProcessorsMap.map { AnnotationProcessorData(it.key, it.value) }
-  }
-
-  fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
-    return nonIncrementalAnnotationProcessorsSet.map { AnnotationProcessorData(it, annotationProcessorsMap[it]!!) }
-  }
+  data class Result(
+    val annotationProcessorsData: List<AnnotationProcessorData>,
+    val nonIncrementalAnnotationProcessorsData: List<AnnotationProcessorData>
+  ) : AnalyzerResult
 }

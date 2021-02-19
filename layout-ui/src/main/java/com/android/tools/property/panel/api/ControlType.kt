@@ -28,4 +28,5 @@ enum class ControlType {
   THREE_STATE_BOOLEAN,
   FLAG_EDITOR,
   COLOR_EDITOR,
+  LINK_EDITOR,
 }

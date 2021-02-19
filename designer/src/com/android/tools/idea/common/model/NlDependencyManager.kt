@@ -27,8 +27,8 @@ import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
-import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -41,7 +41,7 @@ class NlDependencyManager private constructor() {
 
   companion object {
     @JvmStatic
-    fun getInstance(): NlDependencyManager = ServiceManager.getService(NlDependencyManager::class.java)
+    fun getInstance(): NlDependencyManager = ApplicationManager.getApplication().getService(NlDependencyManager::class.java)
   }
 
   /**

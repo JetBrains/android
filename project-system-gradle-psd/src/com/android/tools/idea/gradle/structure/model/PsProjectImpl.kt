@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory
-import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.model.meta.getValue
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result

@@ -16,13 +16,11 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
@@ -45,13 +43,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",

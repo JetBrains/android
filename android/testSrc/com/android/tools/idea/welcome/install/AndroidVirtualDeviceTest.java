@@ -134,7 +134,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
     Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true, fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
     final AvdInfo avdInfo = createAvd(avd, sdkHandler);
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
@@ -158,7 +158,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     Map<String, RemotePackage> remotes = Maps.newHashMap();
 
-    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true, fop);
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
 
     // No SDK installed -> Not selected by default
     assertFalse(avd.isSelectedByDefault());
@@ -169,7 +169,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     // SDK installed, System image, but no AVD -> Selected by default
     remotes.put("platforms;android-23", remotePlatform);
-    avd = new AndroidVirtualDevice(remotes, true, fop);
+    avd = new AndroidVirtualDevice(remotes, true);
     avd.sdkHandler = sdkHandler;
     assertTrue(avd.isSelectedByDefault());
 

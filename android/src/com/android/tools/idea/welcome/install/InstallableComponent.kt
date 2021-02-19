@@ -17,7 +17,6 @@ package com.android.tools.idea.welcome.install
 
 import com.android.repository.api.UpdatablePackage
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.repository.io.FileOp
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty

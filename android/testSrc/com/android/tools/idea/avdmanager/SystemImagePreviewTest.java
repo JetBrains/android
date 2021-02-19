@@ -56,7 +56,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgMarshmallow = new FakePackage.FakeLocalPackage(marshmallowPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsMarshmallow =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsMarshmallow.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsMarshmallow.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
@@ -68,7 +68,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgPreview = new FakePackage.FakeLocalPackage(previewPath, fileOp);
     DetailsTypes.SysImgDetailsType detailsPreview =
       AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    detailsPreview.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    detailsPreview.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     detailsPreview.setAbi("x86");
     detailsPreview.setVendor(IdDisplay.create("google", "Google"));
     detailsPreview.setApiLevel(99);

@@ -58,7 +58,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -68,12 +67,13 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle.tests[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )

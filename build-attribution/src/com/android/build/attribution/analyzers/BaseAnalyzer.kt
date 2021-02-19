@@ -15,40 +15,60 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.PluginData
-import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import org.gradle.language.base.plugins.LifecycleBasePlugin
-import org.gradle.tooling.events.PluginIdentifier
-import org.gradle.tooling.events.task.TaskFinishEvent
 
-abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private val pluginContainer: PluginContainer) {
-  open fun onBuildStart() {
-    taskContainer.clear()
-    pluginContainer.clear()
-  }
+/**
+ * This is a marker interface for the output of any build analyzer.
+ */
+interface AnalyzerResult
 
-  protected fun getPlugin(pluginType: PluginData.PluginType, displayName: String, projectPath: String): PluginData {
-    if (pluginType == PluginData.PluginType.SCRIPT) {
-      return pluginContainer.getPlugin(pluginType, "$projectPath:$displayName")
+/**
+ * Base class for all build analyzers, provides logic for computing the final result lazily and caching it,
+ * requests cleaning internal temporal state when it is not needed anymore.
+ * Sub-classes should implement the result computation and cleaning internal state logic.
+ * Any new analyzer should extend this.
+ *
+ * The general flow for each analyzer would be:
+ * 1) collect all data required from events and other input sources in internal variables.
+ * 2) convert this collected data into a final result object in [calculatingResult] when requested.
+ * 3) clean up collected temporal data in [cleanupTempState], called automatically when data is no more needed.
+ */
+abstract class BaseAnalyzer<T : AnalyzerResult> {
+
+  /** Cache for calculated result. */
+  private var _result: T? = null
+
+  /** Marks that result computation is in progress to detect dependency cycles. */
+  private var calculatingResult = false
+
+  val result: T
+    get() {
+      ensureResultCalculated()
+      return _result!!
     }
-    return pluginContainer.getPlugin(pluginType, displayName)
+
+  fun ensureResultCalculated() {
+    if (calculatingResult) throw ResultComputationLoopException()
+    if (_result == null) {
+      calculatingResult = true
+      _result = calculateResult()
+      cleanupTempState()
+      calculatingResult = false
+    }
   }
 
-  protected fun getPlugin(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData {
-    return pluginContainer.getPlugin(pluginIdentifier, projectPath)
+  protected abstract fun calculateResult(): T
+
+  abstract fun cleanupTempState()
+
+  fun onBuildStart() {
+    _result = null
+    calculatingResult = false
+    cleanupTempState()
   }
 
-  protected fun getTask(taskPath: String): TaskData? {
-    return taskContainer.getTask(taskPath)
-  }
-
-  protected fun getTask(event: TaskFinishEvent): TaskData {
-    return taskContainer.getTask(event, pluginContainer)
-  }
-
-  protected fun anyTask(predicate: (TaskData) -> Boolean) = taskContainer.any(predicate)
+  fun onBuildFailure() = cleanupTempState()
 
   /**
    * Filter to ignore certain tasks or tasks from certain plugins.
@@ -63,4 +83,6 @@ abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private va
            // ignore custom delete tasks
            task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName
   }
+
+  class ResultComputationLoopException : Exception("Loop detected in build analyzer computation dependencies, see stacktrace.")
 }

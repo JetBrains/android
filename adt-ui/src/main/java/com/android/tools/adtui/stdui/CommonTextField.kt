@@ -73,7 +73,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     isFocusable = true
     setFromModel()
 
-    editorModel.addListener(ValueChangedListener { updateFromModel() })
+    editorModel.addListener { updateFromModel() }
     document.addDocumentListener(object: DocumentAdapter() {
       override fun textChanged(event: DocumentEvent) {
         if (!updatingFromModel) {
@@ -151,7 +151,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     // otherwise set the property on this text field.
     val component = getComponentWithErrorBorder() ?: return
     val current = component.getClientProperty(OUTLINE_PROPERTY)
-    val (code, _) = editorModel.editingSupport.validation(editorModel.text)
+    val (code, _) = editorModel.editingSupport.validation(text)
     val newOutline = code.outline
     if (current != newOutline) {
       component.putClientProperty(OUTLINE_PROPERTY, newOutline)

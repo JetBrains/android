@@ -164,6 +164,7 @@
     <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">
       <action internal="true" id="LiveLiterals.SimulateSuccessfulDeployment" class="com.android.tools.idea.editors.literals.actions.InternalSimulateSuccessfulLiteralDeployment" />
       <action internal="true" id="LiveLiterals.SimulateErrorDeployment" class="com.android.tools.idea.editors.literals.actions.InternalSimulateFailedLiteralDeployment" />
+      <action internal="true" id="LiveLiterals.ShowStats" class="com.android.tools.idea.editors.literals.actions.ShowLiteralStats" />
 
       <add-to-group group-id="Internal.Android"/>
     </group>
@@ -209,7 +210,7 @@
     </action>
     <action id="AndroidMigrateToNonTransitiveRClassesAction"
             class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
-            text="Migrate to Non-Transitive R Classes"
+            text="Migrate to Non-Transitive R Classes..."
             description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
@@ -236,7 +237,7 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add light-to-left (RTL) support where possible">
+            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
@@ -482,6 +483,7 @@
 
     <postStartupActivity implementation="com.android.tools.idea.stats.CompletionStats$MyStartupActivity"/>
     <completion.contributor language="JAVA"
+                            id="AndroidJavaCompletionContributor"
                             implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor"
                             order="first"/>
     <completion.contributor language="JAVA"
@@ -497,6 +499,9 @@
     <completion.contributor language="kotlin"
                             implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorKotlin"
                             order="first, before KotlinCompletionContributor"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorJava"
+                            order="first, before AndroidJavaCompletionContributor"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 
@@ -699,6 +704,8 @@
     <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
     <statusBarWidgetFactory id="LiveLiterals" implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory"/>
 
+    <projectService serviceImplementation="com.android.tools.idea.rendering.classloading.ProjectConstantRemapper"
+                    serviceInterface="com.android.tools.idea.rendering.classloading.ConstantRemapper" />
     <applicationConfigurable provider="com.android.tools.idea.editors.literals.ui.LiveLiteralsConfigurableProvider"
                              key="live.literals.configurable.display.name" bundle="messages.AndroidBundle" groupId="editor"/>
     <colorSettingsPage implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsHighlightColorConfigurable"/>

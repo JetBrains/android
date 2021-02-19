@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
@@ -31,10 +30,12 @@ import kotlin.math.max
 /**
  * An analyzer for calculating the critical path, that is the path of tasks determining the total build duration.
  */
-class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarningsFilter,
-                           taskContainer: TaskContainer,
-                           pluginContainer: PluginContainer)
-  : BaseAnalyzer(taskContainer, pluginContainer), BuildEventsAnalyzer {
+class CriticalPathAnalyzer(
+  private val taskContainer: TaskContainer,
+  private val pluginContainer: PluginContainer
+) : BaseAnalyzer<CriticalPathAnalyzer.Result>(),
+    BuildEventsAnalyzer,
+    PostBuildProcessAnalyzer {
   private val tasksSet = HashSet<TaskData>()
 
   /**
@@ -42,14 +43,11 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
    */
   private val dependenciesMap = HashMap<TaskData, List<TaskData>>()
 
-  val tasksDeterminingBuildDuration = ArrayList<TaskData>()
-  val pluginsDeterminingBuildDuration = ArrayList<PluginBuildData>()
+  private val tasksDeterminingBuildDuration = ArrayList<TaskData>()
+  private val pluginsDeterminingBuildDuration = ArrayList<PluginBuildData>()
 
-  var buildStartedTimestamp = Long.MAX_VALUE
-    private set
-
-  var buildFinishedTimestamp = Long.MIN_VALUE
-    private set
+  private var buildStartedTimestamp = Long.MAX_VALUE
+  private var buildFinishedTimestamp = Long.MIN_VALUE
 
   override fun receiveEvent(event: ProgressEvent) {
     // Since we stopped listening to generic events, we don't get build finished event. But we can calculate the build time from the start
@@ -60,12 +58,12 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     }
 
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
-      val task = getTask(event)
+      val task = taskContainer.getTask(event, pluginContainer)
       val dependenciesList = ArrayList<TaskData>()
 
       event.descriptor.dependencies.forEach { dependency ->
         if (dependency is TaskOperationDescriptor) {
-          getTask(dependency.taskPath)?.let {
+          taskContainer.getTask(dependency.taskPath)?.let {
             dependenciesList.add(it)
           }
         }
@@ -349,8 +347,7 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     pluginsDeterminingBuildDuration.sortByDescending { it.buildDuration }
   }
 
-  override fun onBuildStart() {
-    super.onBuildStart()
+  override fun cleanupTempState() {
     tasksSet.clear()
     dependenciesMap.clear()
     tasksDeterminingBuildDuration.clear()
@@ -359,15 +356,25 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     buildFinishedTimestamp = Long.MIN_VALUE
   }
 
-  override fun onBuildSuccess() {
-    calculateTasksDeterminingBuildDuration(calculateTasksCriticalPathBasedOnDependencies())
-    calculatePluginsDeterminingBuildDuration()
-    tasksSet.clear()
-    dependenciesMap.clear()
+  override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult) {
+    ensureResultCalculated()
   }
 
-  override fun onBuildFailure() {
-    tasksSet.clear()
-    dependenciesMap.clear()
+  override fun calculateResult(): Result {
+    calculateTasksDeterminingBuildDuration(calculateTasksCriticalPathBasedOnDependencies())
+    calculatePluginsDeterminingBuildDuration()
+    return Result(
+      tasksDeterminingBuildDuration.toList(),
+      pluginsDeterminingBuildDuration.toList(),
+      buildStartedTimestamp,
+      buildFinishedTimestamp
+    )
   }
+
+  data class Result(
+    val tasksDeterminingBuildDuration: List<TaskData>,
+    val pluginsDeterminingBuildDuration: List<PluginBuildData>,
+    val buildStartedTimestamp: Long,
+    val buildFinishedTimestamp: Long
+  ) : AnalyzerResult
 }

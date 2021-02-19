@@ -14,7 +14,6 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
     ],
@@ -29,6 +28,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",

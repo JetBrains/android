@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import javax.swing.Icon;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,7 +37,13 @@ public class IssueNotificationAction extends ToggleAction {
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
   private static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR);
 
-  private IssueNotificationAction() {
+  /**
+   * Returns the icon and description to be used when the surface is active but there are no errors.
+   * Both can be null to allow using the {@link IssueNotificationAction} defaults.
+   */
+  @NotNull
+  protected Pair<Icon, String> getNoErrorsIconAndDescription(@NotNull AnActionEvent event) {
+    return new Pair<>(null, null);
   }
 
   @NotNull
@@ -62,8 +69,19 @@ public class IssueNotificationAction extends ToggleAction {
       event.getPresentation().setEnabled(true);
       IssueModel issueModel = surface.getIssueModel();
       int markerCount = issueModel.getIssueCount();
+
       presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      presentation.setIcon(getIssueTypeIcon(issueModel));
+      Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
+      if (iconAndDescription.getSecond() != null) {
+        presentation.setText(iconAndDescription.getSecond());
+      }
+
+      if (iconAndDescription.getFirst() == null) {
+        presentation.setIcon(getIssueTypeIcon(issueModel));
+      }
+      else {
+        presentation.setIcon(iconAndDescription.getFirst());
+      }
     }
   }
 

@@ -425,7 +425,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       entry = (KeyStore.PrivateKeyEntry)keyStore.getEntry(alias, new KeyStore.PasswordProtection(keyPassword));
     }
     catch (Exception e) {
-      throw new CommitStepException("Error: " + e.getMessage());
+      throw new CommitStepException(AndroidBundle.message("android.extract.package.error.0.message", e.getLocalizedMessage()));
     }
     if (entry == null) {
       throw new CommitStepException(AndroidBundle.message("android.extract.package.cannot.find.key.error", alias));

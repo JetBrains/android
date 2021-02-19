@@ -15,8 +15,6 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
-        "//tools/adt/idea/.idea/libraries:protobuf",
     ],
 )
 
@@ -42,6 +40,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -51,7 +50,6 @@ iml_module(
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:aapt-proto[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

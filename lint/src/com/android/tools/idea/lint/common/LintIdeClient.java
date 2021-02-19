@@ -37,9 +37,12 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
+import com.android.tools.lint.detector.api.Constraint;
 import com.android.tools.lint.detector.api.Context;
+import com.android.tools.lint.detector.api.Incident;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.LintMap;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Severity;
@@ -297,36 +300,47 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  public void report(@NonNull Context context,
-                     @NonNull Issue issue,
-                     @NonNull Severity severity,
-                     @NonNull Location location,
-                     @NonNull String message,
-                     @NonNull TextFormat format,
-                     @Nullable LintFix extraData) {
+  public void report(@NotNull Context context, @NotNull Incident incident, @NotNull Constraint constraint) {
+    // We don't support (or need!) partial analysis from the IDE
+    assert false;
+  }
+
+  @Override
+  public void report(@NotNull Context context, @NotNull Incident incident, @NotNull LintMap map) {
+    // We don't support (or need!) partial analysis from the IDE
+    assert false;
+  }
+
+  @Override
+  public void report(@NotNull Context context,
+                     @NotNull Incident incident,
+                     @NotNull TextFormat format) {
     if (myLintResult instanceof LintEditorResult) {
-      report((LintEditorResult)myLintResult, context, issue, severity, location, message, format, extraData);
+      report((LintEditorResult)myLintResult, context, incident, format);
     }
     else if (myLintResult instanceof LintBatchResult) {
-      report((LintBatchResult)myLintResult, context, issue, severity, location, message, format, extraData);
+      report((LintBatchResult)myLintResult, context, incident, format);
     }
     else if (myLintResult instanceof LintIgnoredResult) {
       // Ignore
     }
     else {
-      assert false : message;
+      assert false : incident.getMessage();
     }
   }
 
   public void report(
     @NonNull LintEditorResult lintResult,
     @NonNull Context context,
-    @NonNull Issue issue,
-    @NonNull Severity severity,
-    @NonNull Location location,
-    @NonNull String message,
-    @NonNull TextFormat format,
-    @Nullable LintFix quickfixData) {
+    @NonNull Incident incident,
+    @NonNull TextFormat format
+  ) {
+    Issue issue = incident.getIssue();
+    Severity severity = incident.getSeverity();
+    Location location = incident.getLocation();
+    String message = incident.getMessage();
+    LintFix quickfixData = incident.getFix();
+
     File file = location.getFile();
     VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
@@ -352,12 +366,14 @@ public class LintIdeClient extends LintClient implements Disposable {
   public void report(
     @NonNull LintBatchResult state,
     @NonNull Context context,
-    @NonNull Issue issue,
-    @NonNull Severity severity,
-    @NonNull Location location,
-    @NonNull String message,
-    @NonNull TextFormat format,
-    @Nullable LintFix quickfixData) {
+    @NonNull Incident incident,
+    @NonNull TextFormat format
+  ) {
+    Issue issue = incident.getIssue();
+    Severity severity = incident.getSeverity();
+    Location location = incident.getLocation();
+    String message = incident.getMessage();
+    LintFix quickfixData = incident.getFix();
 
     AnalysisScope scope = state.getScope();
     Map<Issue, Map<File, List<LintProblemData>>> myProblemMap = state.getProblemMap();

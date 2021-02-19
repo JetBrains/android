@@ -19,18 +19,19 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.GoogleRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.LocalMavenRepository
-import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.repositories.search.GoogleRepository
+import com.android.tools.idea.gradle.repositories.search.JCenterRepository
+import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository
+import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository.Companion.maybeCreateLocalMavenRepository
+import com.android.tools.idea.gradle.repositories.search.MavenCentralRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.EventDispatcher
+import com.intellij.util.Url
 import com.intellij.util.Urls
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.io.File
@@ -355,22 +356,9 @@ fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
   return when (type) {
     RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
     RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
-    RepositoryModel.RepositoryType.MAVEN -> maybeCreateLocalMavenRepository(
-      this as MavenRepositoryModel)
+    RepositoryModel.RepositoryType.MAVEN ->
+      maybeCreateLocalMavenRepository((this as MavenRepositoryModel).url().forceString(), this.name().forceString())
     RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> GoogleRepository
     RepositoryModel.RepositoryType.FLAT_DIR -> null
   }
-}
-
-private fun maybeCreateLocalMavenRepository(mavenRepositoryModel: MavenRepositoryModel): LocalMavenRepository? {
-  val repositoryUrl = mavenRepositoryModel.url().forceString()
-  val parsedRepositoryUrl = Urls.parse(repositoryUrl, false)
-  if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem) {
-    val repositoryPath = parsedRepositoryUrl.path
-    val repositoryRootFile = File(repositoryPath)
-    if (repositoryRootFile.isAbsolute) {
-      return LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString())
-    }
-  }
-  return null
 }

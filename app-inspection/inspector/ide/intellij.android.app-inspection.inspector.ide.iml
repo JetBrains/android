@@ -8,7 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
   </component>

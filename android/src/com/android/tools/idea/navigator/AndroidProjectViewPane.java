@@ -429,7 +429,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
     MyProjectViewTree(DefaultTreeModel treeModel) {
-      super(AndroidProjectViewPane.this.myProject, treeModel);
+      super(treeModel);
     }
 
     @Nullable

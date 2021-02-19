@@ -25,5 +25,20 @@ fun LayoutInspectorComposeProtocol.Quad.toShape(): Shape {
 }
 
 fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
-  return PropertyType.values()[this.number]
+  return when(this) {
+    LayoutInspectorComposeProtocol.Parameter.Type.STRING -> PropertyType.STRING
+    LayoutInspectorComposeProtocol.Parameter.Type.BOOLEAN -> PropertyType.BOOLEAN
+    LayoutInspectorComposeProtocol.Parameter.Type.DOUBLE -> PropertyType.DOUBLE
+    LayoutInspectorComposeProtocol.Parameter.Type.FLOAT -> PropertyType.FLOAT
+    LayoutInspectorComposeProtocol.Parameter.Type.INT32 -> PropertyType.INT32
+    LayoutInspectorComposeProtocol.Parameter.Type.INT64 -> PropertyType.INT64
+    LayoutInspectorComposeProtocol.Parameter.Type.COLOR -> PropertyType.COLOR
+    LayoutInspectorComposeProtocol.Parameter.Type.RESOURCE -> PropertyType.RESOURCE
+    LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_DP -> PropertyType.DIMENSION_DP
+    LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_SP -> PropertyType.DIMENSION_SP
+    LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_EM -> PropertyType.DIMENSION_EM
+    LayoutInspectorComposeProtocol.Parameter.Type.LAMBDA -> PropertyType.LAMBDA
+    LayoutInspectorComposeProtocol.Parameter.Type.FUNCTION_REFERENCE -> PropertyType.FUNCTION_REFERENCE
+    else -> error { "Unhandled parameter type $this"}
+  }
 }

@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
@@ -391,6 +393,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     when {
       expression.operationToken == KtTokens.EQ -> processAssignment(expression, parent)
+      expression.operationToken == KtTokens.PLUSEQ -> processAugmentedAssignment(expression, parent)
       // TODO(b/165576187): this allows us to parse plugins with versions, but the association between the Dsl and Psi is not ideal
       //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator).
       listOf("version", "apply").contains(expression.operationReference.getReferencedName()) ->
@@ -450,10 +453,39 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
     else {
       val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
 
       parentBlock.setParsedElement(propertyElement)
+    }
+  }
+
+  // TODO(xof): when the dust settles, see if this is similar enough to processAssignment() above.
+  private fun processAugmentedAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
+    val left = expression.left ?: return
+    val right = expression.right ?: return
+    var parentBlock = parent
+    val name = GradleNameElement.from(left, this)
+    if (name.isEmpty) return
+    if (name.isQualified) {
+      val nestedElement = getPropertiesElement(name.qualifyingParts(), parent, null) ?: return
+      parentBlock = nestedElement
+    }
+
+    val matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name())
+    if (matcher.find()) {
+      // foo["bar"] += "baz"
+      // foo["bar"] += 3
+      return
+    }
+    else {
+      // foo += "baz"
+      // foo += listOf("baz", "quux")
+      val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+      propertyElement.externalSyntax = AUGMENTED_ASSIGNMENT
+      propertyElement.elementType = REGULAR
+
+      parentBlock.augmentParsedElement(propertyElement)
     }
   }
 
@@ -491,7 +523,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
-      propertyElement.setUseAssignment(true)
+      propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
       ext.setParsedElement(propertyElement)
     }

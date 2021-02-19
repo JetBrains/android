@@ -23,18 +23,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.android.tools.idea.tests.gui.framework.waitForIdle
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import com.intellij.util.ui.AsyncProcessIcon
 import org.fest.swing.core.matcher.DialogMatcher
 import org.fest.swing.core.matcher.JButtonMatcher
-import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.finder.WindowFinder
 import org.fest.swing.timing.Wait
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,6 +47,13 @@ class LocalApkProjTest {
    */
   @get:Rule
   val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+
+  @Before
+  fun removeExistingApkProjects() {
+    // An ~/ApkProjects directory will show us a dialog in the middle of the test
+    // to overwrite the directory. Delete the directory now so it won't trip the test.
+    CreateAPKProjectTestUtil.removeApkProjectsDirectory()
+  }
 
   /**
    * Verifies source code directories are set for locally built APKs.
@@ -131,38 +135,10 @@ class LocalApkProjTest {
     // VirtualFile before we open the dialog:
     val apkFile = VfsUtil.findFileByIoFile(apk, true) ?: throw IllegalStateException("${apk.absolutePath} does not exist")
 
-    val chooseApkFile = try {
-      welcomeFrame.profileOrDebugApk()
-    } catch(timeout: WaitTimedOutError) {
-      // TODO: http://b/130681637
-      // Likely took too long for the spinner icon to go away. This is a non-critical bug that
-      // should not fail a critical user journey test, so we ignore the error and continue
-      // waiting.
-      val robot = welcomeFrame.robot()
-      val fileDialog = FileChooserDialogFixture.findDialog(robot, "Select APK File")
-
-      // If the progress icon is missing, then we should expect that the file dialog is now
-      // ready!
-      val progressIcons = robot.finder().findAll(fileDialog.target(), Matchers.byType(AsyncProcessIcon::class.java))
-      if (progressIcons.isNotEmpty()) {
-        Wait.seconds(300)
-          .expecting("spinner icon to go away")
-          .until {
-            GuiQuery.getNonNull {
-              !progressIcons.first().isRunning
-            }
-          }
-        // progress icon went away! We are ready to proceed!
-      }
-      fileDialog
-    }
-
     // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
-    chooseApkFile.select(apkFile)
+    welcomeFrame.profileOrDebugApk(apk)
+      .select(apkFile)
       .clickOkAndWaitToClose()
-    waitForIdle()
-    guiTest.waitForBackgroundTasks()
-    waitForIdle()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {

@@ -61,14 +61,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/profilers/CloseButton.java"
-            line="32"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
             line="44"/>
     </issue>

@@ -3,20 +3,13 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
-    <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="analytics" />
     <orderEntry type="module" module-name="analytics-publisher" />
@@ -109,7 +102,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="emulator-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
@@ -153,5 +145,21 @@
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="library" name="studio-plugin-webp" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

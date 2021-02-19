@@ -125,7 +125,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
+    nlModel.surface.sceneManager!!.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
     nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
@@ -146,6 +146,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     nlModel.notifyLiveUpdate(false)
+    nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
@@ -164,6 +165,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     textView.fireLiveChangeEvent()
+    nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
@@ -211,6 +213,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // Value changed notification is expected since the default values have changed
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.fireRenderCompleted()
+    nlModel.updateQueue.flush()
     LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }

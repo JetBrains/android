@@ -33,13 +33,14 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Assume
 import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
@@ -65,7 +66,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   private fun newLiteral(parent: GradleDslElement, name: String, value: Any): GradleDslLiteral {
     val newElement = GradleDslLiteral(parent, GradleNameElement.create(name))
     newElement.setValue(value)
-    newElement.setUseAssignment(true)
+    newElement.externalSyntax = ASSIGNMENT
     newElement.elementType = REGULAR
     return newElement
   }
@@ -724,6 +725,31 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddExtBlockAfterPlugins() {
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED)
+  }
+
+  @Test
+  fun testAddExtBlockAfterPluginsWithAllprojects() {
+    writeToSettingsFile(subModuleSettingsText)
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_WITH_ALLPROJECTS)
+    writeToSubModuleBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+
+    val subModuleBuildModel = subModuleGradleBuildModel
+    assertEquals("sourceCompatibility", LanguageLevel.JDK_1_5, subModuleBuildModel.java().sourceCompatibility().toLanguageLevel())
+    subModuleBuildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(subModuleBuildModel)
+    verifyFileContents(mySubModuleBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED)
+  }
+
+  @Test
   fun testAddExtBlockAfterMultipleApplies() {
     writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES)
 
@@ -758,6 +784,30 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     val propertyModel = buildModel.ext().findProperty("value")
     verifyPropertyModel(propertyModel.resolve(), STRING_TYPE, "com.android.support:appcompat-v7:1.0", STRING, REGULAR, 1)
+  }
+
+  @Test
+  fun testAddConfigurationsBeforeDependencies() {
+    writeToBuildFile(TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES)
+
+    val buildModel = gradleBuildModel
+    val configurationsModel = buildModel.configurations()
+    configurationsModel.addConfiguration("paidReleaseImplementation")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_EXPECTED)
+  }
+
+  @Test
+  fun testAddConfigurationsBeforeDependenciesWithAllprojects() {
+    writeToSettingsFile(subModuleSettingsText)
+    writeToBuildFile(TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_WITH_ALLPROJECTS)
+    writeToSubModuleBuildFile(TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES)
+
+    val buildModel = subModuleGradleBuildModel
+    val configurationsModel = buildModel.configurations()
+    configurationsModel.addConfiguration("paidReleaseImplementation")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(mySubModuleBuildFile, TestFile.ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_EXPECTED)
   }
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {
@@ -808,11 +858,17 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_QUALIFIED_DEPENDENCY_WITH_EXISTING_REFERENCE_EXPECTED("addQualifiedDependencyWithExistingReferenceExpected"),
     ADD_EXT_BLOCK_AFTER_APPLY("addExtBlockAfterApply"),
     ADD_EXT_BLOCK_AFTER_APPLY_EXPECTED("addExtBlockAfterApplyExpected"),
+    ADD_EXT_BLOCK_AFTER_PLUGINS("addExtBlockAfterPlugins"),
+    ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED("addExtBlockAfterPluginsExpected"),
+    ADD_EXT_BLOCK_AFTER_PLUGINS_WITH_ALLPROJECTS("addExtBlockAfterPluginsWithAllprojects"),
     ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES("addExtBlockAfterMultipleApplies"),
     ADD_EXT_BLOCK_AFTER_MULTIPLE_APPLIES_EXPECTED("addExtBlockAfterMultipleAppliesExpected"),
     ADD_EXT_BLOCK_TO_TOP("addExtBlockToTop"),
     ADD_EXT_BLOCK_TO_TOP_EXPECTED("addExtBlockToTopExpected"),
     EXT_REFERENCE_TO_VAR("extReferenceToVar"),
+    ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES("addConfigurationsBeforeDependencies"),
+    ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_EXPECTED("addConfigurationsBeforeDependenciesExpected"),
+    ADD_CONFIGURATIONS_BEFORE_DEPENDENCIES_WITH_ALLPROJECTS("addConfigurationsBeforeDependenciesWithAllprojects"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

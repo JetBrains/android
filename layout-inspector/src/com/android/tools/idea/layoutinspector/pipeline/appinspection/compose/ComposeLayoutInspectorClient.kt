@@ -26,6 +26,8 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.cancel
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Command
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersCommand
@@ -41,8 +43,17 @@ private val JAR = AppInspectorJar("compose-ui-inspection.jar",
                                   developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
 
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
-  "androidx.compose.ui", "ui", "1.0.0-alpha11", ArtifactCoordinate.Type.AAR
+  "androidx.compose.ui", "ui", "1.0.0-alpha13", ArtifactCoordinate.Type.AAR
 )
+
+@VisibleForTesting
+val INCOMPATIBLE_LIBRARY_MESSAGE =
+  "Inspecting Compose layouts is available only when connecting to apps using $MINIMUM_COMPOSE_COORDINATE or higher."
+
+@VisibleForTesting
+const val PROGUARDED_LIBRARY_MESSAGE = "Inspecting Compose layouts might not work properly with code shrinking enabled."
+
+private const val PROGUARD_LEARN_MORE = "https://d.android.com/r/studio-ui/layout-inspector/code-shrinking"
 
 /**
  * The client responsible for interacting with the compose layout inspector running on the target
@@ -68,11 +79,14 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
         ComposeLayoutInspectorClient(model, messenger)
       }
       catch (ignored: AppInspectionVersionIncompatibleException) {
-        // TODO(b/177702041): Show a banner to the user that they should upgrade their version of the compose library
+        InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
         null
       }
       catch (ignored: AppInspectionAppProguardedException) {
-        // TODO(b/177702041): Show a banner to the user that inspection isn't available if their library was aggressively proguarded
+        val banner = InspectorBannerService.getInstance(model.project)
+        banner.setNotification(
+          PROGUARDED_LIBRARY_MESSAGE,
+          listOf(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE), banner.DISMISS_ACTION))
         null
       }
       catch (ignored: AppInspectionException) {

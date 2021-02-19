@@ -34,6 +34,7 @@ import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -345,6 +346,13 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * [onDeactivate] might be called multiple times.
    */
   fun onInit() {
+    // If we initialize during non smart mode, it can be that the representations can not be calculated correctly just yet.
+    // In that case, we will force a second refresh after we are in smart mode.
+    if (DumbService.getInstance(project).isDumb) {
+      DumbService.getInstance(project).runWhenSmart {
+        updateRepresentations()
+      }
+    }
     updateRepresentations()
   }
 

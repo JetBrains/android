@@ -12,7 +12,6 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -34,6 +33,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

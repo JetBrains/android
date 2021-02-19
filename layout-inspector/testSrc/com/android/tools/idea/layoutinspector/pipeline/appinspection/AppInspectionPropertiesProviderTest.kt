@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Element
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Parameter
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ParameterGroup
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Property
@@ -38,6 +39,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -266,6 +268,7 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(4, "Surface"),
       ComposableString(5, "Button"),
       ComposableString(6, "Text"),
+      ComposableString(7, "DataObjectComposable"),
 
       // parameter names
       // TODO(b/177231212): Test remaining parameter types
@@ -282,10 +285,15 @@ class AppInspectionPropertiesProviderTest {
       // placeholder for DIMENSION_EM parameter
       ComposableString(112, "onTextLayout"), // LAMBDA
       // placeholder for FUNCTION_REFERENCE parameter
+      ComposableString(114, "dataObject"),
+      ComposableString(115, "intProperty"),
+      ComposableString(116, "stringProperty"),
 
       // parameter values
       ComposableString(201, "placeholder"),
       ComposableString(202, "lambda"),
+      ComposableString(203, "PojoClass"),
+      ComposableString(204, "stringValue"),
     )
 
     // Composable tree that lives under ComposeView
@@ -309,6 +317,13 @@ class AppInspectionPropertiesProviderTest {
             filename = 2
             name = 6
           }
+        }
+
+        ComposableNode {
+          id = -5
+          packageHash = 1
+          filename = 3
+          name = 7
         }
       }
     }
@@ -364,6 +379,24 @@ class AppInspectionPropertiesProviderTest {
           }
         }
       },
+      ParameterGroup {
+        composableId = -5
+        Parameter {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 114
+          int32Value = 203
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 116
+            int32Value = 204
+          }
+          Element {
+            type = ComposeProtocol.Parameter.Type.INT32
+            name = 115
+            int32Value = 812
+          }
+        }
+      }
     )
 
     /**
@@ -719,7 +752,19 @@ class AppInspectionPropertiesProviderTest {
         assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
         // TODO(b/179324422): Investigate DIMENSION_SP formatting
         assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ Lambda", namespace = "")
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ", namespace = "")
+      }
+    }
+
+    inspectorRule.inspectorModel[-5]!!.let { targetNode ->
+      provider.requestProperties(targetNode).get()
+      val result = resultQueue.take()
+      assertThat(result.view).isSameAs(targetNode)
+      result.table.run {
+        assertProperty("dataObject", PropertyType.STRING, "PojoClass")
+        val groupItem = this.first as InspectorGroupPropertyItem
+        assertProperty(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
+        assertProperty(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
       }
     }
   }
@@ -809,8 +854,16 @@ class AppInspectionPropertiesProviderTest {
     value: String,
     group: PropertySection = PropertySection.DEFAULT,
     namespace: String = ANDROID_URI,
+  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+
+
+  private fun assertProperty(
+    property: InspectorPropertyItem, name: String,
+    type: PropertyType,
+    value: String,
+    group: PropertySection = PropertySection.DEFAULT,
+    namespace: String = ANDROID_URI,
   ) {
-    val property = this[namespace, name]
     assertThat(property.name).isEqualTo(name)
     assertThat(property.attrName).isEqualTo(name)
     assertThat(property.namespace).isEqualTo(namespace)

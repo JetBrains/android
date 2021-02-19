@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.debuggers" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
@@ -26,7 +27,6 @@
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

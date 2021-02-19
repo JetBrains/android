@@ -19,8 +19,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 public class EmbeddedDistributionPaths {
   @NotNull
   public static EmbeddedDistributionPaths getInstance() {
-    return ServiceManager.getService(EmbeddedDistributionPaths.class);
+    return ApplicationManager.getApplication().getService(EmbeddedDistributionPaths.class);
   }
 
   @NotNull

@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.execution.impl.ConsoleBuffer;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -202,7 +201,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   @NotNull
   public static AndroidLogcatService getInstance() {
-    return ServiceManager.getService(AndroidLogcatService.class);
+    return ApplicationManager.getApplication().getService(AndroidLogcatService.class);
   }
 
   @TestOnly

@@ -16,7 +16,6 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionManagerImpl
-import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskContainer
@@ -32,6 +31,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class CriticalPathAnalyzerTest {
 
@@ -51,12 +51,14 @@ class CriticalPathAnalyzerTest {
   @Test
   fun testCriticalPathAnalyzer() {
     val pluginContainer = PluginContainer()
-    val analyzer = CriticalPathAnalyzer(BuildAttributionWarningsFilter(), TaskContainer(), pluginContainer)
+    val taskContainer = TaskContainer()
+    val analyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
+    val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
 
     val pluginA = createBinaryPluginIdentifierStub("pluginA")
     val pluginB = createBinaryPluginIdentifierStub("pluginB")
 
-    analyzer.onBuildStart()
+    wrapper.onBuildStart()
 
     // Given tasks (A, B, C, D, E, F, CLEAN, MID1, MID2, MID3, LAST) with the following dependencies and execution times
     // SAMPLE(0) -> A(10) -> B(20) -> D(20) -> F(10)
@@ -84,29 +86,29 @@ class CriticalPathAnalyzerTest {
     var taskF = createTaskFinishEventStub(":lib:taskF", pluginB, listOf(taskD), 80, 90)
     val taskLast = createTaskFinishEventStub(":lib:taskLast", pluginA, emptyList(), 100, 117)
 
-    analyzer.receiveEvent(sampleTask)
-    analyzer.receiveEvent(taskClean)
-    analyzer.receiveEvent(taskA)
-    analyzer.receiveEvent(taskMid1)
-    analyzer.receiveEvent(taskMid2)
-    analyzer.receiveEvent(taskMid3)
-    analyzer.receiveEvent(taskB)
-    analyzer.receiveEvent(taskC)
-    analyzer.receiveEvent(taskD)
-    analyzer.receiveEvent(taskE)
-    analyzer.receiveEvent(taskF)
-    analyzer.receiveEvent(taskLast)
+    wrapper.receiveEvent(sampleTask)
+    wrapper.receiveEvent(taskClean)
+    wrapper.receiveEvent(taskA)
+    wrapper.receiveEvent(taskMid1)
+    wrapper.receiveEvent(taskMid2)
+    wrapper.receiveEvent(taskMid3)
+    wrapper.receiveEvent(taskB)
+    wrapper.receiveEvent(taskC)
+    wrapper.receiveEvent(taskD)
+    wrapper.receiveEvent(taskE)
+    wrapper.receiveEvent(taskF)
+    wrapper.receiveEvent(taskLast)
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess()
+    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
 
     // Then the analyzer should find this critical path
     // SAMPLE(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
 
-    assertThat(analyzer.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(100)
+    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(100)
 
-    assertThat(analyzer.tasksDeterminingBuildDuration).isEqualTo(
+    assertThat(analyzer.result.tasksDeterminingBuildDuration).isEqualTo(
       listOf(TaskData.createTaskData(sampleTask, pluginContainer),
              TaskData.createTaskData(taskClean, pluginContainer),
              TaskData.createTaskData(taskA, pluginContainer),
@@ -117,20 +119,20 @@ class CriticalPathAnalyzerTest {
              TaskData.createTaskData(taskF, pluginContainer),
              TaskData.createTaskData(taskLast, pluginContainer)))
 
-    assertThat(analyzer.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginA, ""))
-    assertThat(analyzer.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(66)
-    assertThat(analyzer.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginB, ""))
-    assertThat(analyzer.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(34)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(66)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(34)
 
 
     // A subsequent build has started, the analyzer should reset its state and prepare for the next build data
-    analyzer.onBuildStart()
+    wrapper.onBuildStart()
 
     // Given tasks (A, B, C, D, E, F) with the following dependencies and execution times
-    // A(10) -> B(5) -> D(25) -> F(10)
-    // |                V
-    // -------> C(40)   --> E(15)
+    // A(0-10) -> B(10-15) -> D(15-40) -> F(40-50)
+    // |              \-----------------> E(40--55)
+    // ---------> C(10-------------------------50)
 
     taskA = createTaskFinishEventStub(":app:taskA", pluginA, emptyList(), 0, 10)
     taskB = createTaskFinishEventStub(":app:taskB", pluginB, listOf(taskA), 10, 15)
@@ -139,34 +141,33 @@ class CriticalPathAnalyzerTest {
     taskE = createTaskFinishEventStub(":app:taskE", pluginA, listOf(taskD), 40, 55)
     taskF = createTaskFinishEventStub(":lib:taskF", pluginB, listOf(taskD), 40, 50)
 
-    analyzer.receiveEvent(taskA)
-    analyzer.receiveEvent(taskB)
-    analyzer.receiveEvent(taskC)
-    analyzer.receiveEvent(taskD)
-    analyzer.receiveEvent(taskE)
-    analyzer.receiveEvent(taskF)
+    wrapper.receiveEvent(taskA)
+    wrapper.receiveEvent(taskB)
+    wrapper.receiveEvent(taskC)
+    wrapper.receiveEvent(taskD)
+    wrapper.receiveEvent(taskE)
+    wrapper.receiveEvent(taskF)
 
     // When the build is finished successfully and the analyzer is run
 
-    analyzer.onBuildSuccess()
+    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
 
     // Then the analyzer should find this critical path
     // A(10) -> B(5) -> D(25)
-    //                  V
-    //                  --> E(15)
+    //                   \--> E(15)
 
-    assertThat(analyzer.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(55)
+    assertThat(analyzer.result.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(55)
 
-    assertThat(analyzer.tasksDeterminingBuildDuration).isEqualTo(
+    assertThat(analyzer.result.tasksDeterminingBuildDuration).isEqualTo(
       listOf(TaskData.createTaskData(taskA, pluginContainer), TaskData.createTaskData(taskB, pluginContainer),
              TaskData.createTaskData(taskD, pluginContainer),
              TaskData.createTaskData(taskE, pluginContainer)))
 
-    assertThat(analyzer.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginB, ""))
-    assertThat(analyzer.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(30)
-    assertThat(analyzer.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginA, ""))
-    assertThat(analyzer.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(25)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(30)
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(25)
   }
 
   @Test

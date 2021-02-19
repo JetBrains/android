@@ -1,7 +1,6 @@
 package google.simpleapplication
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -10,9 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.AmbientTextStyle
 import androidx.compose.material.Button
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +58,7 @@ fun ComplexPreview() {
           else {
             longText
           },
-          style = AmbientTextStyle.current.copy(color = Color.White)
+          style = LocalTextStyle.current.copy(color = Color.White)
         )
       }
     }

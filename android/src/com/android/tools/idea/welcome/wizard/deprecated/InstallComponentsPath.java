@@ -21,8 +21,6 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;

@@ -2,6 +2,8 @@ package com.android.tools.idea.editors.literals
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.executeAndSave
+import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -13,6 +15,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class LiveLiteralsServiceTest {
   @get:Rule
@@ -31,7 +35,6 @@ internal class LiveLiteralsServiceTest {
       override fun onAvailable() {
         isAvailable = true
       }
-
     })
 
   @Before
@@ -76,7 +79,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertTrue(isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
@@ -86,7 +89,7 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice")
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -99,5 +102,50 @@ internal class LiveLiteralsServiceTest {
     // Close the second editor
     UIUtil.invokeAndWaitIfNeeded(Runnable { FileEditorManager.getInstance(project).closeFile(file2.virtualFile) })
     assertEquals(9, liveLiteralsService.allConstants().size)
+  }
+
+  @Test
+  fun `listener notification`() {
+    // Setup
+    val latch = CountDownLatch(1)
+    val modifications = mutableListOf<LiteralReference>()
+    val liveLiteralsService = getTestLiveLiteralsService()
+    liveLiteralsService.addOnLiteralsChangedListener(projectRule.fixture.testRootDisposable) {
+      modifications.addAll(it)
+      latch.countDown()
+    }
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    assertFalse(liveLiteralsService.allConstants().isEmpty())
+
+    // Run test
+    projectRule.fixture.editor.executeAndSave {
+      replaceText("ClassHello", "ClassBye")
+      replaceText("999", "555")
+    }
+
+    // Wait for the modification to be notified
+    latch.await(5, TimeUnit.SECONDS)
+    assertEquals(2, modifications.size)
+  }
+
+  @Test
+  fun `listener is only called when live literals are available`() {
+    var changeListenerCalls = 0
+    val liveLiteralsService = getTestLiveLiteralsService()
+    liveLiteralsService.addOnLiteralsChangedListener(projectRule.fixture.testRootDisposable) {
+      changeListenerCalls++
+    }
+    assertTrue(liveLiteralsService.allConstants().isEmpty())
+    assertFalse(isAvailable)
+    assertEquals(0, changeListenerCalls)
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    assertFalse("Live Literals should not be available since there are no constants", isAvailable)
+    assertEquals(0, changeListenerCalls)
+    assertTrue(liveLiteralsService.allConstants().isEmpty())
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+
+    liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
+    assertEquals(0, changeListenerCalls)
   }
 }

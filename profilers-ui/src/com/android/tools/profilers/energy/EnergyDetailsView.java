@@ -15,21 +15,22 @@
  */
 package com.android.tools.profilers.energy;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.profilers.CloseButton;
+import com.android.tools.adtui.stdui.CloseButton;
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBEmptyBorder;
+import java.awt.BorderLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 /**
  * Detailed information view of energy duration, for wake locks, alarms, etc.

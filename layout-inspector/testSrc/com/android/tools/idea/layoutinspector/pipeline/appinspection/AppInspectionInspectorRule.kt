@@ -21,6 +21,7 @@ import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
+import com.android.tools.idea.appinspection.test.createResponse
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -96,6 +97,9 @@ class AppInspectionInspectorRule : TestRule {
 
     val composeInspectorHandler = TestAppInspectorCommandHandler(
       timer,
+      createInspectorResponse = { createCommand ->
+        createCommand.createResponse(composeInspector.createResponseStatus)
+      },
       rawInspectorResponse = { rawCommand ->
         val composeCommand = ComposeProtocol.Command.parseFrom(rawCommand.content)
         val composeResponse = composeInspector.handleCommand(composeCommand)

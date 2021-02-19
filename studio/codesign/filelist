@@ -3,13 +3,11 @@
 # macOS app bundle.
 %prefix%Contents/lib/grpc-netty-shaded-1.21.1.jar
 %prefix%Contents/lib/pty4j-0.11.1.jar
-%prefix%Contents/lib/sqlite-jdbc-3.21.0.1.jar
+%prefix%Contents/plugins/android/lib/sqlite-jdbc-3.21.0.1.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
 %prefix%Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 %prefix%Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
-%prefix%Contents/plugins/Kotlin/lib/kotlin-compiler-client-embeddable.jar
-%prefix%Contents/plugins/Kotlin/lib/kotlin-daemon-client-new.jar
-%prefix%Contents/plugins/Kotlin/lib/kotlin-daemon-client.jar
-%prefix%Contents/plugins/gradle/lib/gradle-api-6.5.1-java7-sp2.jar
+%prefix%Contents/plugins/Kotlin/lib/kotlin-plugin.jar
+%prefix%Contents/plugins/gradle/lib/gradle-api-6.8.jar
 %prefix%Contents/plugins/java/lib/debugger-memory-agent-1.0.29.jar
 %prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar

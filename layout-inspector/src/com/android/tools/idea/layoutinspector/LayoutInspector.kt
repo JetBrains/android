@@ -46,7 +46,7 @@ class LayoutInspector(
 
   val currentClient: InspectorClient get() = launcher.activeClient
 
-  private val composeDependencyChecker = ComposeDependencyChecker(layoutInspectorModel.project)
+  private val composeDependencyChecker = ComposeDependencyChecker(layoutInspectorModel)
 
   private val latestLoadTime = AtomicLong(-1)
 

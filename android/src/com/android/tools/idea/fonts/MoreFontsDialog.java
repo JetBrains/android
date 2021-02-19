@@ -425,7 +425,7 @@ public class MoreFontsDialog extends DialogWrapper {
       for (int i = 0; i < batches; i ++) {
         final int batchStart = i * FONT_CACHE_LOAD_BATCH_SIZE;
         final int batchEnd = Math.min((i + 1) * FONT_CACHE_LOAD_BATCH_SIZE, familyCount);
-        ForkJoinPool.commonPool().submit(() -> {
+        ForkJoinPool.commonPool().execute(() -> {
           for (int j = batchStart; j < batchEnd; j++) {
             FontFamily family = families.get(j);
             Font addedFont = getMenuFontFromFamily(family);

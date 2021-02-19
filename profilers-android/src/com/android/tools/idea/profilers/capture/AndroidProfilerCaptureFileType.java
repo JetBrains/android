@@ -37,7 +37,7 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
 
   @Override
   public boolean isReadOnly() {
-    return true;
+    return false;
   }
 
   @Nullable

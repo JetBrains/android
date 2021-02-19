@@ -38,16 +38,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
-import com.intellij.ui.JBTabsPaneImpl
-import com.intellij.ui.TabbedPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.tabs.TabInfo
+import com.intellij.ui.tabs.TabsListener
+import com.intellij.ui.tabs.impl.JBEditorTabsBorder
+import com.intellij.ui.tabs.impl.JBTabsImpl
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -64,12 +69,12 @@ import java.awt.event.MouseEvent
 import java.time.Duration
 import java.util.Dictionary
 import java.util.Hashtable
+import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JSlider
-import javax.swing.JTabbedPane.TOP
 import javax.swing.border.MatteBorder
 import javax.swing.plaf.basic.BasicSliderUI
 import javax.swing.text.DefaultCaret
@@ -106,20 +111,23 @@ private const val DEFAULT_MAX_DURATION_MS = 10000L
 class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(TabularLayout("Fit,*", "Fit,*")), Disposable {
 
   /**
-   * [TabbedPane] where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but
-   * have their own playback toolbar, from/to state combo boxes and animated properties panel.
+   * Tabs panel where each tab represents a single animation being inspected. All tabs share the same [TransitionDurationTimeline], but have
+   * their own playback toolbar, from/to state combo boxes and animated properties panel.
    */
   @VisibleForTesting
-  val tabbedPane = JBTabsPaneImpl(surface.project, TOP, this).apply {
-    addChangeListener {
-      if (selectedIndex < 0) return@addChangeListener
-
-      (getComponentAt(selectedIndex) as? AnimationTab)?.let { tab ->
+  val tabbedPane = object : JBTabsImpl(surface.project, IdeFocusManager.getInstance(surface.project), this) {
+    // By default, JBTabsImpl uses JBDefaultTabsBorder, which doesn't add a border if there is only one tab.
+    override fun createTabBorder() = JBEditorTabsBorder(this)
+  }.apply {
+    addListener(object : TabsListener {
+      override fun selectionChanged(oldSelection: TabInfo?, newSelection: TabInfo?) {
+        super.selectionChanged(oldSelection, newSelection)
+        val tab = newSelection?.component as? AnimationTab ?: return
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
         timeline.selectedTab = tab
       }
-    }
+    })
   }
 
   /**
@@ -153,6 +161,11 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    * Wrapper of the `PreviewAnimationClock` that animations inspected in this panel are subscribed to. Null when there are no animations.
    */
   internal var animationClock: AnimationClock? = null
+
+  /**
+   * Executor responsible for updating animation states off EDT.
+   */
+  private val updateAnimationStatesExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("Animation States Updater", 1)
 
   init {
     name = "Animation Preview"
@@ -188,14 +201,46 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>) {
     animationTabs[animation]?.let { tab ->
-      tab.isUpdatingAnimationStates = true
       tab.updateStateComboboxes(states.toTypedArray())
-      tab.updateAnimationStartAndEndStates()
       tab.endStateComboBox.selectedIndex = 1.coerceIn(0, tab.endStateComboBox.itemCount)
-      tab.isUpdatingAnimationStates = false
+      // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
+      updateAnimationStatesExecutor.execute {
+        // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
+        // This is necessary here because it's the first time the animation mutable states will be written, when setting the clock, and
+        // read, when getting its duration. These operations takes longer than the default 30ms timeout the first time they're executed.
+        tab.updateAnimationStartAndEndStates(longTimeout = true)
+        // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
+        // Note: this is called only once per tab, in this method, when creating the tab.
+        tab.setupAnimationStatesComboBoxListeners()
+      }
     }
-    timeline.jumpToStart()
-    timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
+  }
+
+  /**
+   * Update the timeline window size, which is usually the duration of the longest animation being tracked. However, repeatable animations
+   * are handled differently because they can have a large number of iterations resulting in a unrealistic duration. In that case, we take
+   * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
+   * iterations.
+   */
+  fun updateTimelineWindowSize(longTimeout: Boolean = false) {
+    val clock = animationClock ?: return
+
+    var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
+    if (!executeOnRenderThread(longTimeout) {
+        maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long
+      }) return
+    timeline.updateMaxDuration(maxDurationPerIteration)
+
+    var maxDuration = DEFAULT_MAX_DURATION_MS
+    if (!executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
+
+    timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
+      // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
+      // so we need to add as many loops to the timeline as necessary to display all the iterations.
+      ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
+    }
+    // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
+    else 1
   }
 
   /**
@@ -238,29 +283,20 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
                     else -> message("animation.inspector.tab.default.title")
                   }
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
-    tabbedPane.insertTab("$tabName #${tabNamesCount[tabName]}", null, animationTab, null, tabbedPane.tabCount)
+    tabbedPane.addTab(TabInfo(animationTab).setText("$tabName #${tabNamesCount[tabName]}"), tabbedPane.tabCount)
+    timeline.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
   }
 
   /**
    * Removes the [AnimationTab] corresponding to the given [animation] from [tabbedPane].
    */
   internal fun removeTab(animation: ComposeAnimation) {
-    tabbedPane.remove(animationTabs[animation])
+    tabbedPane.tabs.find { (it.component as? AnimationTab)?.animation === animation }?.let { tabbedPane.removeTab(it) }
     animationTabs.remove(animation)
 
     if (tabbedPane.tabCount == 0) {
       // There are no more tabs. Replace the TabbedPane with the placeholder panel.
       showNoAnimationsPanel()
-    }
-  }
-
-  private fun TabbedPane.remove(animationTab: AnimationTab?) {
-    if (animationTab == null) return
-    for (i in 0 until tabCount) {
-      if (animationTab === getComponentAt(i)) {
-        removeTabAt(i)
-        return
-      }
     }
   }
 
@@ -280,32 +316,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   private inner class AnimationTab(val animation: ComposeAnimation) : JPanel(TabularLayout("Fit,*,Fit", "Fit,*")) {
 
-    /**
-     * Listens to [startStateComboBox] changes.
-     */
-    private val startStateChangeListener = ActionListener {
-      if (isSwappingStates) {
-        // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
-        // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
-        return@ActionListener
-      }
-      if (!isUpdatingAnimationStates) {
-        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
-      }
-      updateAnimationStartAndEndStates()
-    }
-
-    /**
-     * Listens to [endStateComboBox] changes.
-     */
-    private val endStateChangeListener = ActionListener {
-      if (!isUpdatingAnimationStates && !isSwappingStates) {
-        // Only log end state changes if not swapping states, which has its own tracking.
-        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
-      }
-      updateAnimationStartAndEndStates()
-    }
-
     private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
     val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
 
@@ -313,12 +323,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
      */
     private var isSwappingStates = false
-
-    /**
-     * Flag to be used when updating the available start and end states, since it might trigger changes in the comboboxes that we don't want
-     * to track, as they're not performed by the user.
-     */
-    var isUpdatingAnimationStates = false
 
     /**
      * Displays the animated properties and their value at the current timeline time.
@@ -330,7 +334,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Horizontal [JBSplitter] comprising of the animated properties panel and the animation timeline.
      */
-    private val propertiesTimelineSplitter = JBSplitter(0.2f).apply {
+    private val propertiesTimelineSplitter = JBSplitter(0.45f).apply {
       firstComponent = createAnimatedPropertiesPanel()
       secondComponent = timelinePanel
       dividerWidth = 1
@@ -351,42 +355,16 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     /**
      * Updates the actual animation in Compose to set its start and end states to the ones selected in the respective combo boxes.
      */
-    fun updateAnimationStartAndEndStates() {
+    fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      if (!surface.executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
+      if (!executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
 
-      timeline.jumpToStart()
-      timeline.setClockTime(0) // Make sure that clock time is actually set in case timeline was already in 0.
-
-      updateTimelineWindowSize()
-    }
-
-    /**
-     * Update the timeline window size, which is usually the duration of the longest animation being tracked. However, repeatable animations
-     * are handled differently because they can have a large number of iterations resulting in a unrealistic duration. In that case, we take
-     * the longest iteration instead to represent the window size and set the timeline max loop count to be large enough to display all the
-     * iterations.
-     */
-    fun updateTimelineWindowSize() {
-      val clock = animationClock ?: return
-
-      var maxDurationPerIteration = DEFAULT_MAX_DURATION_MS
-      if (!surface.executeOnRenderThread { maxDurationPerIteration = clock.getMaxDurationPerIteration.invoke(clock.clock) as Long }) return
-      timeline.updateMaxDuration(maxDurationPerIteration)
-
-      var maxDuration = DEFAULT_MAX_DURATION_MS
-      if (!surface.executeOnRenderThread { maxDuration = clock.getMaxDurationFunction.invoke(clock.clock) as Long }) return
-
-      timeline.maxLoopCount = if (maxDuration > maxDurationPerIteration) {
-        // The max duration is longer than the max duration per iteration. This means that a repeatable animation has multiple iterations,
-        // so we need to add as many loops to the timeline as necessary to display all the iterations.
-        ceil(maxDuration / maxDurationPerIteration.toDouble()).toLong()
-      }
-      // Otherwise, the max duration fits the window, so we just need one loop that keeps repeating when loop mode is active.
-      else 1
+      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
+      timeline.setClockTime(0, longTimeout) // Make sure that clock time is actually set in case timeline was already in 0.
+      updateTimelineWindowSize(longTimeout)
     }
 
     /**
@@ -410,9 +388,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
      * Creates a couple of comboboxes representing the start and end states of the animation.
      */
     private fun createAnimationStateComboboxes(): JComponent {
-      startStateComboBox.addActionListener(startStateChangeListener)
-      endStateComboBox.addActionListener(endStateChangeListener)
-
       val states = arrayOf(message("animation.inspector.states.combobox.placeholder.message"))
       val statesToolbar = JPanel(TabularLayout("Fit,Fit,Fit,Fit"))
       startStateComboBox.model = DefaultComboBoxModel(states)
@@ -428,6 +403,28 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       statesToolbar.add(JBLabel(message("animation.inspector.state.to.label")), TabularLayout.Constraint(0, 2))
       statesToolbar.add(endStateComboBox, TabularLayout.Constraint(0, 3))
       return statesToolbar
+    }
+
+    /**
+     * Sets up change listeners for [startStateComboBox] and [endStateComboBox].
+     */
+    fun setupAnimationStatesComboBoxListeners() {
+      startStateComboBox.addActionListener(ActionListener {
+        if (isSwappingStates) {
+          // The is no need to trigger the callback, since we're going to make a follow up call to update the end state.
+          // Also, we only log start state changes if not swapping states, which has its own tracking. Therefore, we can early return here.
+          return@ActionListener
+        }
+        logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
+        updateAnimationStartAndEndStates()
+      })
+      endStateComboBox.addActionListener(ActionListener {
+        if (!isSwappingStates) {
+          // Only log end state changes if not swapping states, which has its own tracking.
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+        }
+        updateAnimationStartAndEndStates()
+      })
     }
 
     fun updateStateComboboxes(states: Array<Any>) {
@@ -719,11 +716,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   private inner class TransitionDurationTimeline : JPanel(BorderLayout()) {
 
     var selectedTab: AnimationTab? = null
-      set(value) {
-        field = value
-        // Sets the clock time in compose so the animation corresponding to the selected tab can animate to the correct time.
-        setClockTime(slider.value)
-      }
     var cachedVal = -1
 
     /**
@@ -756,20 +748,27 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       override fun setMaximum(maximum: Int) {
         super.setMaximum(maximum)
         updateMajorTicks()
+        updateMinorTicks()
       }
 
       fun updateMajorTicks() {
-        // First, calculate where the major ticks and labels are going to be painted, based on the maximum.
-        val tickIncrement = maximum / 5
+        // First, calculate where the labels are going to be painted, based on the maximum. We won't paint the major ticks themselves, as
+        // minor ticks will be painted instead. The major ticks spacing is only set so the labels are painted in the right place.
+        val tickIncrement = maximum / 2 // One label in start, middle and end.
         setMajorTickSpacing(tickIncrement)
         // Now, add the "ms" suffix to each label.
-        if (tickIncrement == 0) {
+        labelTable = if (tickIncrement == 0) {
           // Handle the special case where maximum == 0 and we only have the "0ms" label.
-          labelTable = createMsLabelTable(labelTable)
+          createMsLabelTable(labelTable)
         }
         else {
-          labelTable = createMsLabelTable(createStandardLabels(tickIncrement))
+          createMsLabelTable(createStandardLabels(tickIncrement))
         }
+      }
+
+      fun updateMinorTicks() {
+        // Split the timeline into 6 blocks, i.e. 7 vertical lines (without label) including start and end.
+        setMinorTickSpacing(maximum / 6)
       }
 
     }.apply {
@@ -795,7 +794,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       slider.maximum = durationMs.toInt()
     }
 
-    fun setClockTime(newValue: Int) {
+    fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
       val clock = animationClock ?: return
       val tab = selectedTab ?: return
 
@@ -805,7 +804,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         clockTimeMs += slider.maximum * loopCount
       }
 
-      if (!surface.executeOnRenderThread { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
+      if (!executeOnRenderThread(longTimeout) { clock.setClockTimeFunction.invoke(clock.clock, clockTimeMs) }) return
       tab.updateProperties()
     }
 
@@ -838,7 +837,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         val key = keys.nextElement()
         labelTable[key] = object : JBLabel("$key ms") {
           // Setting the enabled property to false is not enough because BasicSliderUI will check if the slider itself is enabled when
-          // paiting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
+          // painting the labels and set the label enable status to match the slider's. Thus, we force the label color to the disabled one.
           override fun getForeground() = UIUtil.getLabelDisabledForeground()
         }
       }
@@ -905,7 +904,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         //        |   |
         //         \ /
         // We add 5 points with the following coordinates:
-        // (x, y): bottom of the scrubbler handle
+        // (x, y): bottom of the scrubber handle
         // (x - halfWidth, y - halfHeight): where the scrubber angled part meets the vertical one (left side)
         // (x - halfWidth, y - Height): top-left point of the scrubber, where there is a right angle
         // (x + halfWidth, y - Height): top-right point of the scrubber, where there is a right angle
@@ -923,9 +922,13 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       }
 
       override fun paintMajorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
+        // Major ticks should not be painted.
+      }
+
+      override fun paintMinorTickForHorizSlider(g: Graphics, tickBounds: Rectangle, x: Int) {
         g as Graphics2D
         g.color = JBColor.border()
-        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height);
+        g.drawLine(x, tickRect.y + TIMELINE_HEADER_HEIGHT, x, tickRect.height)
       }
 
       override fun createTrackListener(slider: JSlider) = TimelineTrackListener()
@@ -972,8 +975,17 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     }
   }
 
-  private fun DesignSurface.executeOnRenderThread(callback: () -> Unit) =
-    surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender {
+  private fun executeOnRenderThread(useLongTimeout: Boolean = false, callback: () -> Unit): Boolean {
+    val (time, timeUnit) = if (useLongTimeout) {
+      // Make sure we don't block the UI thread when setting a large timeout
+      ApplicationManager.getApplication().assertIsNonDispatchThread()
+      5L to TimeUnit.SECONDS
+    }
+    else {
+      30L to TimeUnit.MILLISECONDS
+    }
+    return surface.layoutlibSceneManagers.singleOrNull()?.executeCallbacksAndRequestRender(time, timeUnit) {
       callback()
     } ?: false
+  }
 }

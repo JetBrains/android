@@ -16,13 +16,11 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
     <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
@@ -38,5 +36,6 @@
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="library" name="asm-tools" level="project" />
   </component>
 </module>

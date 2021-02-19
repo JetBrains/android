@@ -41,6 +41,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
+    {"androidResources", AndroidResourcesDslElement.ANDROID_RESOURCES},
     {"adbOptions", AdbOptionsDslElement.ADB_OPTIONS},
     {"buildFeatures", BuildFeaturesDslElement.BUILD_FEATURES},
     {"buildTypes", BuildTypesDslElement.BUILD_TYPES},

@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
 import com.android.tools.adtui.model.formatter.TimeFormatter
-import com.android.tools.profilers.CloseButton
+import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.intellij.ui.JBSplitter
@@ -59,7 +59,7 @@ class HeapDumpStageView(profilersView: StudioProfilersView, stage: HeapDumpStage
     val headingPanel = JPanel(BorderLayout()).apply {
       border = DEFAULT_HORIZONTAL_BORDERS
       add(title, BorderLayout.WEST)
-      add(CloseButton{ stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
+      add(CloseButton { stage.captureSelection.selectClassSet(null) }, BorderLayout.EAST)
     }
     add(headingPanel, BorderLayout.NORTH)
     add(instanceDetailsSplitter, BorderLayout.CENTER)

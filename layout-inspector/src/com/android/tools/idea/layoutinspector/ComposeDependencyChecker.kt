@@ -16,27 +16,29 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService.LearnMoreAction
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.addDependenciesWithUiConfirmation
 import com.android.tools.idea.util.dependsOn
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
-const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-inspector-add-dependency"
+private const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-inspector-add-dependency"
 
 /**
  * The layout inspector can only show compose nodes if the compose tooling library is
  * included in the app. The layout inspector is able to show more detailed parameter
  * information if the kotlin reflection library.
  */
-class ComposeDependencyChecker(private val project: Project) {
+class ComposeDependencyChecker(private val model: InspectorModel) {
 
   fun performCheck(client: InspectorClient) {
     if (!isRunningCurrentProject(client)) {
@@ -45,7 +47,7 @@ class ComposeDependencyChecker(private val project: Project) {
     var addToolingLibrary = false
     var addReflectionLibrary = false
     val operations = mutableListOf<() -> Unit>()
-    project.allModules().forEach next@{ module ->
+    model.project.allModules().forEach next@{ module ->
       val moduleSystem = module.getModuleSystem()
       val runtimeVersion = moduleSystem.getResolvedDependency(GoogleMavenArtifactId.COMPOSE_RUNTIME.getCoordinate("+"))?.version
       if (!moduleSystem.usesCompose || runtimeVersion == null) {
@@ -60,18 +62,17 @@ class ComposeDependencyChecker(private val project: Project) {
         }
       }
       if (!module.dependsOn(GoogleMavenArtifactId.KOTLIN_REFLECT)) {
-        missing.add(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate("+"))
+        val kotlinVersion = moduleSystem.getResolvedDependency(GoogleMavenArtifactId.KOTLIN_STDLIB.getCoordinate("+"))?.version
+        missing.add(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate(kotlinVersion?.toString() ?: "+"))
         addReflectionLibrary = true
+        model.stats.compose.reflectionLibraryAvailable = false
       }
       if (missing.isNotEmpty()) {
         // Only sync once:
         // Add the first operation with requestSync=true and perform the operation in reversed order below.
 
-        // Temporary disable the actual library addition:
-        //     val sync = operations.isEmpty()
-        //     operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
-        operations.add {}
-        // End temporary change
+        val sync = operations.isEmpty()
+        operations.add { module.addDependenciesWithUiConfirmation(missing, promptUserBeforeAdding = false, requestSync = sync) }
       }
     }
 
@@ -80,23 +81,16 @@ class ComposeDependencyChecker(private val project: Project) {
     }
 
     val message = createMessage(addToolingLibrary, addReflectionLibrary)
-    val bannerService = InspectorBannerService.getInstance(project)
-    val learnMore = object : AnAction("Learn more") {
+    val bannerService = InspectorBannerService.getInstance(model.project)
+    val addToProject = object : AnAction("Add to Project") {
       override fun actionPerformed(event: AnActionEvent) {
-        BrowserUtil.browse(LEARN_MORE_LINK)
+        ApplicationManager.getApplication().invokeAndWait {
+          operations.reversed().forEach { it() }
+          bannerService.notification = null
+        }
       }
     }
-    // Temporary disable the actual library addition:
-    //val addToProject = object : AnAction("Add to Project") {
-    //  override fun actionPerformed(event: AnActionEvent) {
-    //    ApplicationManager.getApplication().invokeAndWait {
-    //      operations.reversed().forEach { it() }
-    //      bannerService.notification = null
-    //    }
-    //  }
-    //}
-    // End temporary change
-    bannerService.setNotification(message, listOf(learnMore, bannerService.DISMISS_ACTION))
+    bannerService.setNotification(message, listOf(addToProject, LearnMoreAction(LEARN_MORE_LINK), bannerService.DISMISS_ACTION))
   }
 
   private fun createMessage(addToolingLibrary: Boolean, addReflectionLibrary: Boolean): String {
@@ -108,7 +102,7 @@ class ComposeDependencyChecker(private val project: Project) {
   }
 
   private fun isRunningCurrentProject(client: InspectorClient): Boolean =
-    project.allModules().any { module ->
+    model.project.allModules().any { module ->
       val facet = AndroidFacet.getInstance(module)
       val manifest = facet?.let { Manifest.getMainManifest(it) }
       val packageName = manifest?.`package`?.stringValue

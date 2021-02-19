@@ -8,6 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
@@ -29,5 +30,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.compose-common" />
+    <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
   </component>
 </module>

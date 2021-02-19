@@ -46,15 +46,24 @@ import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierAr
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
+import org.jetbrains.kotlin.gradle.KotlinGradleModel
+import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.util.LinkedList
+
+interface GradleInjectedSyncActionRunner {
+  fun <T> runActions(actions: List<(BuildController) -> T>): List<T>
+  fun <T> runAction(action: (BuildController) -> T): T
+}
 
 @UsedInBuildAction
 class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : ProjectImportModelProvider {
@@ -77,6 +86,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     if (remainingIncludedBuildModels == 0) {
       Worker(
         controller,
+        syncOptions,
         buildModels,
         // Consumers for different build models are all equal except they aggregate statistics to different targets. We cannot request all
         // models we need until we have enough information to do it. In the case of a composite builds all model fetching time will be
@@ -97,13 +107,15 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
   }
 
-  private inner class Worker(
-    private val controller: BuildController,
+  private class Worker(
+    controller: BuildController,
+    private val syncOptions: SyncActionOptions,
     private val buildModels: List<GradleBuild>, // Always not empty.
     private val consumer: ProjectImportModelProvider.BuildModelConsumer
   ) {
-    private val modulesById: MutableMap<String, AndroidModule> = HashMap()
+    private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
     private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+    private val actionRunner = createActionRunner(controller)
     private val modelCache = ModelCache.create(buildFolderPaths)
 
     fun populateBuildModels() {
@@ -114,7 +126,11 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
               populateAndroidModels(syncOptions)
             }
             is NativeVariantsSyncActionOptions -> {
-              consumer.consume(buildModels.first(), controller.getModel(IdeaProject::class.java), IdeaProject::class.java)
+              consumer.consume(
+                buildModels.first(),
+                actionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
+                IdeaProject::class.java
+              )
               fetchNativeVariantsAndroidModels(syncOptions, buildFolderPaths)
             }
             // Note: No more cases.
@@ -149,110 +165,135 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
      * All of the requested models are registered back to the external project system via the
      * [ProjectImportModelProvider.BuildModelConsumer] callback.
      */
-    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<AndroidModule> {
+    private fun populateAndroidModels(syncOptions: SyncProjectActionOptions): List<GradleModule> {
       val isFullSync = when (syncOptions) {
         is FullSyncActionOptions -> true
         is SingleVariantSyncActionOptions -> false
         // Note: No other cases.
       }
-      val androidModules: MutableList<AndroidModule> = mutableListOf()
-      buildModels.projects.forEach { gradleProject ->
-        val androidProject = findParameterizedAndroidModel(
-          gradleProject,
-          AndroidProject::class.java,
-          shouldBuildVariant = isFullSync
-        )
-        if (androidProject != null) {
-          val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
-          val nativeAndroidProject: NativeAndroidProject? =
-            if (nativeModule != null) null
-            else findParameterizedAndroidModel(
+      val modules: List<GradleModule> = actionRunner.runActions(
+        buildModels.projects.map { gradleProject ->
+          fun(controller: BuildController): GradleModule {
+            val androidProject = controller.findParameterizedAndroidModel(
               gradleProject,
-              NativeAndroidProject::class.java,
+              AndroidProject::class.java,
               shouldBuildVariant = isFullSync
             )
+            if (androidProject != null) {
+              // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
+              val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+              val nativeAndroidProject: NativeAndroidProject? =
+                if (nativeModule == null)
+                  controller.findParameterizedAndroidModel(
+                    gradleProject,
+                    NativeAndroidProject::class.java,
+                    shouldBuildVariant = isFullSync
+                  )
+                else null
 
-          val module = createAndroidModule(
-            gradleProject,
-            androidProject,
-            nativeAndroidProject,
-            nativeModule,
-            modelCache
-          )
-          modulesById[module.id] = module
-          androidModules.add(module)
-        }
-      }
+              return createAndroidModule(
+                gradleProject,
+                androidProject,
+                nativeAndroidProject,
+                nativeModule,
+                modelCache
+              )
+            }
+            val kotlinGradleModel = controller.findModel(gradleProject, KotlinGradleModel::class.java)
+            return JavaModule(gradleProject, kotlinGradleModel)
+          }
+        }.toList()
+      )
+
+      modules.filterIsInstance<AndroidModule>().forEach { androidModulesById[it.id] = it }
 
       if (syncOptions is SingleVariantSyncActionOptions) {
         // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
         // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
         // e.g the ones that should be selected by the IDE.
-        chooseSelectedVariants(androidModules, syncOptions)
+        chooseSelectedVariants(modules.filterIsInstance<AndroidModule>(), syncOptions)
       }
 
       // AdditionalClassifierArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
       getAdditionalClassifierArtifactsModel(
-        controller,
-        androidModules,
+        actionRunner,
+        modules.filterIsInstance<AndroidModule>(),
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
         syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources
       )
 
-      return androidModules
+      return modules
     }
 
-    private fun fetchNativeVariantsAndroidModels(syncOptions: NativeVariantsSyncActionOptions, buildFolderPaths: BuildFolderPaths): List<GradleModule> {
+    private fun fetchNativeVariantsAndroidModels(
+      syncOptions: NativeVariantsSyncActionOptions,
+      buildFolderPaths: BuildFolderPaths
+    ): List<GradleModule> {
       val modelCache = ModelCache.create(buildFolderPaths)
-      return buildModels.projects.mapNotNull { gradleProject ->
-        val projectIdentifier = gradleProject.projectIdentifier
-        val moduleId = createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, projectIdentifier.projectPath)
-        val variantName = syncOptions.moduleVariants[moduleId] ?: return@mapNotNull null
+      return actionRunner.runActions(
+        buildModels.projects.map { gradleProject ->
+          fun(controller: BuildController): GradleModule? {
+            val projectIdentifier = gradleProject.projectIdentifier
+            val moduleId = createUniqueModuleId(projectIdentifier.buildIdentifier.rootDir, projectIdentifier.projectPath)
+            val variantName = syncOptions.moduleVariants[moduleId] ?: return null
 
-        fun tryV2(): NativeVariantsAndroidModule? {
-          controller.findModel(gradleProject, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
-            it.variantsToGenerateBuildInformation = listOf(variantName)
-            it.abisToGenerateBuildInformation = syncOptions.requestedAbis.toList()
-          } ?: return null
-          return NativeVariantsAndroidModule.createV2(gradleProject)
-        }
+            fun tryV2(): NativeVariantsAndroidModule? {
+              controller.findModel(gradleProject, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+                it.variantsToGenerateBuildInformation = listOf(variantName)
+                it.abisToGenerateBuildInformation = syncOptions.requestedAbis.toList()
+              } ?: return null
+              return NativeVariantsAndroidModule.createV2(gradleProject)
+            }
 
-        fun fetchV1Abi(abi: String): IdeNativeVariantAbi? {
-          return modelCache.nativeVariantAbiFrom(
-            controller.findModel(gradleProject, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
-              parameter.setVariantName(variantName)
-              parameter.setAbiName(abi)
-            } ?: return null)
-        }
+            fun fetchV1Abi(abi: String): IdeNativeVariantAbi? {
+              val model = controller.findModel(
+                gradleProject,
+                NativeVariantAbi::class.java,
+                ModelBuilderParameter::class.java
+              ) { parameter ->
+                parameter.setVariantName(variantName)
+                parameter.setAbiName(abi)
+              } ?: return null
+              return modelCache.nativeVariantAbiFrom(model)
+            }
 
-        fun tryV1(): NativeVariantsAndroidModule {
-          return NativeVariantsAndroidModule.createV1(gradleProject, syncOptions.requestedAbis.mapNotNull { abi -> fetchV1Abi(abi) })
-        }
+            fun tryV1(): NativeVariantsAndroidModule {
+              return NativeVariantsAndroidModule.createV1(gradleProject, syncOptions.requestedAbis.mapNotNull { abi -> fetchV1Abi(abi) })
+            }
 
-        tryV2() ?: tryV1()
-      }.toList()
+            return tryV2() ?: tryV1()
+          }
+        }.toList()
+      )
+        .filterNotNull()
     }
 
     private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
-      androidModules.forEach { module ->
-        val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
-        if (syncIssues != null) {
-          module.setSyncIssues(syncIssues.syncIssues.toSyncIssueData())
+      actionRunner.runActions(
+        androidModules.map { module ->
+          fun(controller: BuildController) {
+            val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
+            if (syncIssues != null) {
+              // It is FINE to assign on the worker thread since we operate at one module at a time and the same AndroidModule instance
+              // cannot accessed from multiple worker threads.
+              module.setSyncIssues(syncIssues.syncIssues.toSyncIssueData())
+            }
+          }
         }
-      }
+      )
     }
 
     /**
      * Gets the [AndroidProject] or [NativeAndroidProject] (based on [modelType]) for the given [BasicGradleProject].
      */
-    private fun <T> findParameterizedAndroidModel(
+    private fun <T> BuildController.findParameterizedAndroidModel(
       project: BasicGradleProject,
       modelType: Class<T>,
       shouldBuildVariant: Boolean
     ): T? {
       if (!shouldBuildVariant) {
         try {
-          val model = controller.getModel(project, modelType, ModelBuilderParameter::class.java) { parameter ->
+          val model = getModel(project, modelType, ModelBuilderParameter::class.java) { parameter ->
             parameter.shouldBuildVariant = false
           }
           if (model != null) return model
@@ -261,22 +302,22 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
           // Using old version of Gradle. Fall back to full variants sync for this module.
         }
       }
-      return controller.findModel(project, modelType)
+      return findModel(project, modelType)
     }
 
     private fun BuildController.getNativeModuleFromGradle(project: BasicGradleProject, syncAllVariantsAndAbis: Boolean): NativeModule? {
-      try {
+      return try {
         if (!syncAllVariantsAndAbis) {
           // With single variant mode, we first only collect basic project information. The more complex information will be collected later
           // for the selected variant and ABI.
-          return getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+          getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
             it.variantsToGenerateBuildInformation = emptyList()
             it.abisToGenerateBuildInformation = emptyList()
           }
         }
         else {
           // If single variant is not enabled, we sync all variant and ABIs at once.
-          return getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
+          getModel(project, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
             it.variantsToGenerateBuildInformation = null
             it.abisToGenerateBuildInformation = null
           }
@@ -284,7 +325,18 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       }
       catch (e: UnsupportedVersionException) {
         // Using old version of Gradle that does not support V2 models.
-        return null
+        null
+      }
+    }
+
+    private fun BuildController.isKotlinMppProject(root: Model) = findModel(root, KotlinMPPGradleModel::class.java) != null
+
+    private fun BuildController.findKotlinGradleModelForAndroidProject(root: Model, variantName: String): KotlinGradleModel? {
+      // Do not apply single-variant sync optimization to Kotlin multi-platform projects. We do not know the exact set of source sets
+      // that needs to be processed.
+      return if (isKotlinMppProject(root)) findModel(root, KotlinGradleModel::class.java)
+      else findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+        it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
       }
     }
 
@@ -316,11 +368,13 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
           if (propagatedToModules.isNotEmpty()) propagatedToModules.removeFirst() else allModulesToSetUp.removeFirst()
         if (!visitedModules.add(moduleConfiguration.id)) continue
 
-        val moduleDependencies = syncVariantAndGetModuleDependencies(
-          moduleConfiguration,
-          syncOptions.selectedVariants
+        val result = actionRunner.runAction(
+          getVariantAndModuleDependenciesAction(moduleConfiguration, syncOptions.selectedVariants)
         ) ?: continue
-        propagatedToModules.addAll(moduleDependencies)
+
+        result.module.addVariant(result.ideVariant)
+        result.nativeVariantAbi?.let { result.module.addNativeVariant(it) }
+        propagatedToModules.addAll(result.moduleDependencies)
       }
     }
 
@@ -334,7 +388,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         .asSequence()
         .filter { it.fetchedVariantNames.isEmpty() }
         .mapNotNull { module -> selectedOrDefaultModuleConfiguration(module, syncOptions)?.let { module to it } }
-        .sortedBy { (module, moduleConfiguration) ->
+        .sortedBy { (module, _) ->
           when {
             module.id == syncOptions.moduleIdWithVariantSwitched -> 0
             // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
@@ -371,99 +425,129 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
              ?: androidModule.defaultVariantName
     }
 
-    private fun syncVariantAndGetModuleDependencies(
+    private class SyncVariantResult(
+      val module: AndroidModule,
+      val ideVariant: IdeVariant,
+      val nativeVariantAbi: IdeNativeVariantAbi?,
+      val moduleDependencies: List<ModuleConfiguration>
+    )
+
+    /**
+     * Given a [moduleConfiguration] returns an action that fetches variant specific models for the given module+variant and returns the set
+     * of [SyncVariantResult]s containing the fetched models and describing resolved module configurations for the given module.
+     */
+    private fun getVariantAndModuleDependenciesAction(
       moduleConfiguration: ModuleConfiguration,
       selectedVariants: SelectedVariants
-    ): List<ModuleConfiguration>? {
+    ): (BuildController) -> SyncVariantResult? {
       val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
-      val module = modulesById[moduleConfiguration.id]
-                   ?: return null
-      val variant = syncAndAddVariant(module, moduleConfiguration.variant) ?: return null
-      val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
-      if (abiToRequest != null) {
-        syncAndAddNativeVariantAbi(module, variant.name, abiToRequest)
-      }
-      val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, variant)
-      val variantDiffChange = VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails,
-                                                                                   base = selectedVariantDetails)
+      val module = androidModulesById[moduleConfiguration.id] ?: return { null }
+      return fun(controller: BuildController): SyncVariantResult? {
+        val variant = controller.findVariantModel(module, moduleConfiguration.variant) ?: return null
+        module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variant.name)
+        val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
+        val nativeVariantAbi = abiToRequest
+          ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) }
 
-      fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
-        val dependencyModule = modulesById[dependencyModuleId] ?: return null
-        val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
-        val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
+        val ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion)
+        val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant)
+        val variantDiffChange =
+          VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
 
-        val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-          variantDiffChange ?: VariantSelectionChange.EMPTY)
-                                        ?: return null
+        fun propagateVariantSelectionChangeFallback(dependencyModuleId: String): ModuleConfiguration? {
+          val dependencyModule = androidModulesById[dependencyModuleId] ?: return null
+          val dependencyModuleCurrentlySelectedVariant = selectedVariants.selectedVariants[dependencyModuleId]
+          val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
 
-        // Make sure the variant name we guessed in fact exists.
-        if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
+          val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
+            variantDiffChange ?: VariantSelectionChange.EMPTY)
+                                          ?: return null
 
-        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToRequest)
-      }
+          // Make sure the variant name we guessed in fact exists.
+          if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
 
-      fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
-        return variant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
-          val dependencyProject = moduleDependency.projectPath ?: return@mapNotNull null
-          val dependencyModuleId = createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
-          val dependencyVariant = moduleDependency.variant
-          if (dependencyVariant != null) {
-            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToRequest)
-          }
-          else {
-            propagateVariantSelectionChangeFallback(dependencyModuleId)
+          return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToRequest)
+        }
+
+        fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
+          return ideVariant.mainArtifact.level2Dependencies.moduleDependencies.mapNotNull { moduleDependency ->
+            val dependencyProject = moduleDependency.projectPath
+            val dependencyModuleId = createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
+            val dependencyVariant = moduleDependency.variant
+            if (dependencyVariant != null) {
+              ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToRequest)
+            }
+            else {
+              propagateVariantSelectionChangeFallback(dependencyModuleId)
+            }
           }
         }
-      }
 
-      /**
-       * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
-       * real dependencies of each feature module variant are we can only guess.
-       */
-      fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
-        val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
-        return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
-          val featureModuleId = createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
-          propagateVariantSelectionChangeFallback(featureModuleId)
+        /**
+         * Attempt to propagate variant changes to feature modules. This is not guaranteed to be correct, but since we do not know what the
+         * real dependencies of each feature module variant are we can only guess.
+         */
+        fun generateDynamicFeatureDependencies(): List<ModuleConfiguration> {
+          val rootProjectGradleDirectory = module.gradleProject.projectIdentifier.buildIdentifier.rootDir
+          return module.androidProject.dynamicFeatures.mapNotNull { featureModuleGradlePath ->
+            val featureModuleId = createUniqueModuleId(rootProjectGradleDirectory, featureModuleGradlePath)
+            propagateVariantSelectionChangeFallback(featureModuleId)
+          }
         }
-      }
 
-      return (generateDirectModuleDependencies() + generateDynamicFeatureDependencies())
+        return SyncVariantResult(
+          module,
+          ideVariant,
+          nativeVariantAbi,
+          generateDirectModuleDependencies() + generateDynamicFeatureDependencies()
+        )
+      }
     }
 
-    private fun syncAndAddVariant(
+    private fun BuildController.findVariantModel(
       module: AndroidModule,
       variantName: String
-    ): IdeVariant? {
-      val variant = controller.findModel(module.findModelRoot, Variant::class.java, ModelBuilderParameter::class.java) { parameter ->
+    ): Variant? {
+      return findModel(
+        module.findModelRoot,
+        Variant::class.java,
+        ModelBuilderParameter::class.java
+      ) { parameter ->
         parameter.setVariantName(variantName)
       }
-      return variant?.let { module.addVariant(modelCache.variantFrom(module.androidProject, it, module.modelVersion)) }
     }
 
-    private fun syncAndAddNativeVariantAbi(
+    private fun BuildController.findNativeVariantAbiModel(
+      modelCache: ModelCache,
       module: AndroidModule,
       variantName: String,
       abiToRequest: String
-    ) {
-      if (module.nativeModelVersion == NativeModelVersion.V2) {
+    ): IdeNativeVariantAbi? {
+      return if (module.nativeModelVersion == NativeModelVersion.V2) {
         // V2 model is available, trigger the sync with V2 API
-        controller.findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) {
-          it.variantsToGenerateBuildInformation = listOf(variantName)
-          it.abisToGenerateBuildInformation = listOf(abiToRequest)
+        // NOTE: Even though we drop the value returned the side effects of this code are important. Native sync creates file on the disk
+        // which are later used.
+        findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) { parameter ->
+          parameter.variantsToGenerateBuildInformation = listOf(variantName)
+          parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
         }
+        null
       }
       else {
         // Fallback to V1 models otherwise.
-        controller.findModel(module.findModelRoot, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
+        val model = findModel(module.findModelRoot, NativeVariantAbi::class.java, ModelBuilderParameter::class.java) { parameter ->
           parameter.setVariantName(variantName)
           parameter.setAbiName(abiToRequest)
-        }?.also {
-          module.addNativeVariant(modelCache.nativeVariantAbiFrom(it))
         }
+        model?.let { modelCache.nativeVariantAbiFrom(model) }
       }
     }
 
+    /**
+     * [selectedAbi] if null or the abi doesn't exist a default will be picked. This default will be "x86" if
+     *               it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
+     *               chosen.
+     */
     private fun chooseAbiToRequest(
       module: AndroidModule,
       variantName: String,
@@ -540,5 +624,19 @@ private fun Collection<SyncIssue>.toSyncIssueData(): List<SyncIssueData> {
       severity = syncIssue.severity,
       type = syncIssue.type
     )
+  }
+}
+
+private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
+
+private fun createActionRunner(controller: BuildController): GradleInjectedSyncActionRunner {
+  return object : GradleInjectedSyncActionRunner {
+    override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
+      return actions.map { it(controller) }
+    }
+
+    override fun <T> runAction(action: (BuildController) -> T): T {
+      return action(controller)
+    }
   }
 }

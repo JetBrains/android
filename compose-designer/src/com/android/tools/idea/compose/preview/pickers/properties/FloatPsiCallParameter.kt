@@ -13,14 +13,16 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  * Adds the Float suffix 'f' when displaying values.
  */
 internal class FloatPsiCallParameter(project: Project,
-                            model: PsiCallPropertyModel,
-                            resolvedCall: ResolvedCall<*>,
-                            descriptor: ValueParameterDescriptor,
-                            argumentExpression: KtExpression?) : PsiCallParameterPropertyItem(project,
-                                                                                              model,
-                                                                                              resolvedCall,
-                                                                                              descriptor,
-                                                                                              argumentExpression
+                                     model: PsiCallPropertyModel,
+                                     resolvedCall: ResolvedCall<*>,
+                                     descriptor: ValueParameterDescriptor,
+                                     argumentExpression: KtExpression?,
+                                     initialValue: String?) : PsiCallParameterPropertyItem(project,
+                                                                                           model,
+                                                                                           resolvedCall,
+                                                                                           descriptor,
+                                                                                           argumentExpression,
+                                                                                           initialValue
 ) {
   override var value: String?
     get() = argumentExpression?.constantValueOrNull(argumentExpression?.analyze())?.value?.let {

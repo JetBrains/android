@@ -34,15 +34,15 @@ import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.StreamingTimeline;
+import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
-import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
@@ -129,7 +129,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
     RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel());
-    selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    selection.setCursorSetter(AdtUiUtils::setTooltipCursor);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline,
                                                               getTooltipPanel(),
                                                               getProfilersView().getComponent(),
@@ -143,7 +143,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    ProfilerScrollbar scrollbar = new ProfilerScrollbar(timeline, panel);
+    StreamingScrollbar scrollbar = new StreamingScrollbar(timeline, panel);
     panel.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
     JComponent timeAxis = buildTimeAxis(profilers);

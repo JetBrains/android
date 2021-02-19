@@ -15,7 +15,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
@@ -59,6 +58,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
@@ -71,7 +71,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",

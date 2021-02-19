@@ -19,6 +19,11 @@ MODULE: AS36_noiml.app
                 file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            KotlinDirectoryUrls:
+                file://./app/src/main/java
+                file://./app/src/main/kotlin
+            KotlinDirectories:
+                file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -43,6 +48,9 @@ MODULE: AS36_noiml.app
                 ./app/src/main/assets
             JavaDirectories:
                 ./app/src/main/java
+            KotlinDirectories:
+                ./app/src/main/java
+                ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -65,6 +73,9 @@ MODULE: AS36_noiml.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -86,6 +97,9 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -108,6 +122,9 @@ MODULE: AS36_noiml.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -129,6 +146,9 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -150,6 +170,9 @@ MODULE: AS36_noiml.app
                     ./app/src/release/assets
                 JavaDirectories:
                     ./app/src/release/java
+                KotlinDirectories:
+                    ./app/src/release/java
+                    ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 RenderscriptDirectories:
@@ -172,6 +195,9 @@ MODULE: AS36_noiml.app
                     ./app/src/test/assets
                 JavaDirectories:
                     ./app/src/test/java
+                KotlinDirectories:
+                    ./app/src/test/java
+                    ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -193,6 +219,9 @@ MODULE: AS36_noiml.app
                     ./app/src/testDebug/assets
                 JavaDirectories:
                     ./app/src/testDebug/java
+                KotlinDirectories:
+                    ./app/src/testDebug/java
+                    ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -215,6 +244,9 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTest/assets
                 JavaDirectories:
                     ./app/src/androidTest/java
+                KotlinDirectories:
+                    ./app/src/androidTest/java
+                    ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -236,6 +268,9 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestDebug/java
+                    ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -275,6 +310,13 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/debug/jniLibs
@@ -317,6 +359,13 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testDebug/jniLibs
@@ -357,6 +406,13 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTestDebug/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
@@ -394,6 +450,11 @@ MODULE: AS36_noiml.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -420,6 +481,9 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -444,6 +508,9 @@ MODULE: AS36_noiml.app
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
                     file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -475,6 +542,11 @@ MODULE: AS36_noiml.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -501,6 +573,9 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -530,6 +605,11 @@ MODULE: AS36_noiml.app
                     file://./app/src/test/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -554,6 +634,9 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -583,6 +666,11 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTest/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -607,6 +695,9 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -638,6 +729,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                 file://./features/dynamicfeature/src/main/assets
             JavaDirectoryUrls:
                 file://./features/dynamicfeature/src/main/java
+            KotlinDirectoryUrls:
+                file://./features/dynamicfeature/src/main/java
+                file://./features/dynamicfeature/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./features/dynamicfeature/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -660,6 +754,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ./features/dynamicfeature/src/main/assets
             JavaDirectories:
                 ./features/dynamicfeature/src/main/java
+            KotlinDirectories:
+                ./features/dynamicfeature/src/main/java
+                ./features/dynamicfeature/src/main/kotlin
             JniLibsDirectories:
                 ./features/dynamicfeature/src/main/jniLibs
             RenderscriptDirectories:
@@ -682,6 +779,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/main/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/main/java
+                    ./features/dynamicfeature/src/main/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/main/jniLibs
                 RenderscriptDirectories:
@@ -703,6 +803,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/debug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/debug/java
+                    ./features/dynamicfeature/src/debug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -725,6 +828,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/main/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/main/java
+                    ./features/dynamicfeature/src/main/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/main/jniLibs
                 RenderscriptDirectories:
@@ -746,6 +852,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/debug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/debug/java
+                    ./features/dynamicfeature/src/debug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -767,6 +876,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/release/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/release/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/release/java
+                    ./features/dynamicfeature/src/release/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/release/jniLibs
                 RenderscriptDirectories:
@@ -789,6 +901,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/test/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/test/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/test/java
+                    ./features/dynamicfeature/src/test/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/test/jniLibs
                 RenderscriptDirectories:
@@ -810,6 +925,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/testDebug/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/testDebug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/testDebug/java
+                    ./features/dynamicfeature/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -832,6 +950,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTest/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/androidTest/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/androidTest/java
+                    ./features/dynamicfeature/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -853,6 +974,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTestDebug/assets
                 JavaDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature/src/androidTestDebug/java
+                    ./features/dynamicfeature/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -890,6 +1014,11 @@ MODULE: AS36_noiml.features.dynamicfeature
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/main/java
                     file://./features/dynamicfeature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/main/java
+                    file://./features/dynamicfeature/src/main/kotlin
+                    file://./features/dynamicfeature/src/debug/java
+                    file://./features/dynamicfeature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/jniLibs
                     file://./features/dynamicfeature/src/debug/jniLibs
@@ -926,6 +1055,11 @@ MODULE: AS36_noiml.features.dynamicfeature
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/test/java
                     file://./features/dynamicfeature/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/test/java
+                    file://./features/dynamicfeature/src/test/kotlin
+                    file://./features/dynamicfeature/src/testDebug/java
+                    file://./features/dynamicfeature/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/test/jniLibs
                     file://./features/dynamicfeature/src/testDebug/jniLibs
@@ -962,6 +1096,11 @@ MODULE: AS36_noiml.features.dynamicfeature
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/java
                     file://./features/dynamicfeature/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/androidTest/java
+                    file://./features/dynamicfeature/src/androidTest/kotlin
+                    file://./features/dynamicfeature/src/androidTestDebug/java
+                    file://./features/dynamicfeature/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/jniLibs
                     file://./features/dynamicfeature/src/androidTestDebug/jniLibs
@@ -997,6 +1136,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/main/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/main/java
+                    file://./features/dynamicfeature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1021,6 +1163,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/debug/java
+                    file://./features/dynamicfeature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1045,6 +1190,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/release/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/release/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/release/java
+                    file://./features/dynamicfeature/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1074,6 +1222,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/main/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/main/java
+                    file://./features/dynamicfeature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1098,6 +1249,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/debug/java
+                    file://./features/dynamicfeature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1123,6 +1277,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/test/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/test/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/test/java
+                    file://./features/dynamicfeature/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1147,6 +1304,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/testDebug/java
+                    file://./features/dynamicfeature/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1172,6 +1332,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/androidTest/java
+                    file://./features/dynamicfeature/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1196,6 +1359,9 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature/src/androidTestDebug/java
+                    file://./features/dynamicfeature/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1226,6 +1392,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 file://./features/dynamicfeature2/src/main/assets
             JavaDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/java
+            KotlinDirectoryUrls:
+                file://./features/dynamicfeature2/src/main/java
+                file://./features/dynamicfeature2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -1248,6 +1417,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ./features/dynamicfeature2/src/main/assets
             JavaDirectories:
                 ./features/dynamicfeature2/src/main/java
+            KotlinDirectories:
+                ./features/dynamicfeature2/src/main/java
+                ./features/dynamicfeature2/src/main/kotlin
             JniLibsDirectories:
                 ./features/dynamicfeature2/src/main/jniLibs
             RenderscriptDirectories:
@@ -1270,6 +1442,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/main/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/main/java
+                    ./features/dynamicfeature2/src/main/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1291,6 +1466,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/debug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/debug/java
+                    ./features/dynamicfeature2/src/debug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1313,6 +1491,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/main/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/main/java
+                    ./features/dynamicfeature2/src/main/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1334,6 +1515,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/debug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/debug/java
+                    ./features/dynamicfeature2/src/debug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1355,6 +1539,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/release/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/release/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/release/java
+                    ./features/dynamicfeature2/src/release/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/release/jniLibs
                 RenderscriptDirectories:
@@ -1377,6 +1564,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/test/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/test/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/test/java
+                    ./features/dynamicfeature2/src/test/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/test/jniLibs
                 RenderscriptDirectories:
@@ -1398,6 +1588,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/testDebug/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/testDebug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/testDebug/java
+                    ./features/dynamicfeature2/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -1420,6 +1613,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTest/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/androidTest/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/androidTest/java
+                    ./features/dynamicfeature2/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -1441,6 +1637,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTestDebug/assets
                 JavaDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./features/dynamicfeature2/src/androidTestDebug/java
+                    ./features/dynamicfeature2/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -1478,6 +1677,11 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/java
                     file://./features/dynamicfeature2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/main/java
+                    file://./features/dynamicfeature2/src/main/kotlin
+                    file://./features/dynamicfeature2/src/debug/java
+                    file://./features/dynamicfeature2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/jniLibs
                     file://./features/dynamicfeature2/src/debug/jniLibs
@@ -1514,6 +1718,11 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/java
                     file://./features/dynamicfeature2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/test/java
+                    file://./features/dynamicfeature2/src/test/kotlin
+                    file://./features/dynamicfeature2/src/testDebug/java
+                    file://./features/dynamicfeature2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/jniLibs
                     file://./features/dynamicfeature2/src/testDebug/jniLibs
@@ -1550,6 +1759,11 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/java
                     file://./features/dynamicfeature2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/androidTest/java
+                    file://./features/dynamicfeature2/src/androidTest/kotlin
+                    file://./features/dynamicfeature2/src/androidTestDebug/java
+                    file://./features/dynamicfeature2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/jniLibs
                     file://./features/dynamicfeature2/src/androidTestDebug/jniLibs
@@ -1585,6 +1799,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/main/java
+                    file://./features/dynamicfeature2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1609,6 +1826,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/debug/java
+                    file://./features/dynamicfeature2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1633,6 +1853,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/release/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/release/java
+                    file://./features/dynamicfeature2/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1662,6 +1885,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/main/java
+                    file://./features/dynamicfeature2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1686,6 +1912,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/debug/java
+                    file://./features/dynamicfeature2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1711,6 +1940,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/test/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/test/java
+                    file://./features/dynamicfeature2/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1735,6 +1967,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/testDebug/java
+                    file://./features/dynamicfeature2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1760,6 +1995,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/androidTest/java
+                    file://./features/dynamicfeature2/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1784,6 +2022,9 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./features/dynamicfeature2/src/androidTestDebug/java
+                    file://./features/dynamicfeature2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1817,6 +2058,11 @@ MODULE: AS36_noiml.libs.android_library
                 file://./libs/android_library/src/main/java
             JavaDirectories:
                 file://./libs/android_library/src/main/java
+            KotlinDirectoryUrls:
+                file://./libs/android_library/src/main/java
+                file://./libs/android_library/src/main/kotlin
+            KotlinDirectories:
+                file://./libs/android_library/src/main/java
             JniLibsDirectoryUrls:
                 file://./libs/android_library/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -1841,6 +2087,9 @@ MODULE: AS36_noiml.libs.android_library
                 ./libs/android_library/src/main/assets
             JavaDirectories:
                 ./libs/android_library/src/main/java
+            KotlinDirectories:
+                ./libs/android_library/src/main/java
+                ./libs/android_library/src/main/kotlin
             JniLibsDirectories:
                 ./libs/android_library/src/main/jniLibs
             RenderscriptDirectories:
@@ -1863,6 +2112,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/assets
                 JavaDirectories:
                     ./libs/android_library/src/main/java
+                KotlinDirectories:
+                    ./libs/android_library/src/main/java
+                    ./libs/android_library/src/main/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1884,6 +2136,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/assets
                 JavaDirectories:
                     ./libs/android_library/src/debug/java
+                KotlinDirectories:
+                    ./libs/android_library/src/debug/java
+                    ./libs/android_library/src/debug/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1906,6 +2161,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/assets
                 JavaDirectories:
                     ./libs/android_library/src/main/java
+                KotlinDirectories:
+                    ./libs/android_library/src/main/java
+                    ./libs/android_library/src/main/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1927,6 +2185,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/assets
                 JavaDirectories:
                     ./libs/android_library/src/debug/java
+                KotlinDirectories:
+                    ./libs/android_library/src/debug/java
+                    ./libs/android_library/src/debug/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1948,6 +2209,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/release/assets
                 JavaDirectories:
                     ./libs/android_library/src/release/java
+                KotlinDirectories:
+                    ./libs/android_library/src/release/java
+                    ./libs/android_library/src/release/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/release/jniLibs
                 RenderscriptDirectories:
@@ -1970,6 +2234,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/test/assets
                 JavaDirectories:
                     ./libs/android_library/src/test/java
+                KotlinDirectories:
+                    ./libs/android_library/src/test/java
+                    ./libs/android_library/src/test/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/test/jniLibs
                 RenderscriptDirectories:
@@ -1991,6 +2258,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/testDebug/assets
                 JavaDirectories:
                     ./libs/android_library/src/testDebug/java
+                KotlinDirectories:
+                    ./libs/android_library/src/testDebug/java
+                    ./libs/android_library/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -2013,6 +2283,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTest/assets
                 JavaDirectories:
                     ./libs/android_library/src/androidTest/java
+                KotlinDirectories:
+                    ./libs/android_library/src/androidTest/java
+                    ./libs/android_library/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -2034,6 +2307,9 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTestDebug/assets
                 JavaDirectories:
                     ./libs/android_library/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./libs/android_library/src/androidTestDebug/java
+                    ./libs/android_library/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./libs/android_library/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -2073,6 +2349,13 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/java
                 JavaDirectories:
                     file://./libs/android_library/src/main/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/main/java
+                    file://./libs/android_library/src/main/kotlin
+                    file://./libs/android_library/src/debug/java
+                    file://./libs/android_library/src/debug/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/main/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/main/jniLibs
                     file://./libs/android_library/src/debug/jniLibs
@@ -2115,6 +2398,13 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug/java
                 JavaDirectories:
                     file://./libs/android_library/src/test/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/test/java
+                    file://./libs/android_library/src/test/kotlin
+                    file://./libs/android_library/src/testDebug/java
+                    file://./libs/android_library/src/testDebug/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/test/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/test/jniLibs
                     file://./libs/android_library/src/testDebug/jniLibs
@@ -2155,6 +2445,13 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/java
                 JavaDirectories:
                     file://./libs/android_library/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/androidTest/java
+                    file://./libs/android_library/src/androidTest/kotlin
+                    file://./libs/android_library/src/androidTestDebug/java
+                    file://./libs/android_library/src/androidTestDebug/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/androidTest/jniLibs
                     file://./libs/android_library/src/androidTestDebug/jniLibs
@@ -2192,6 +2489,11 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main/java
                 JavaDirectories:
                     file://./libs/android_library/src/main/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/main/java
+                    file://./libs/android_library/src/main/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/main/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2218,6 +2520,9 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/assets
                 JavaDirectoryUrls:
                     file://./libs/android_library/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/debug/java
+                    file://./libs/android_library/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2242,6 +2547,9 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/release/assets
                 JavaDirectoryUrls:
                     file://./libs/android_library/src/release/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/release/java
+                    file://./libs/android_library/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2273,6 +2581,11 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main/java
                 JavaDirectories:
                     file://./libs/android_library/src/main/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/main/java
+                    file://./libs/android_library/src/main/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/main/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2299,6 +2612,9 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/assets
                 JavaDirectoryUrls:
                     file://./libs/android_library/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/debug/java
+                    file://./libs/android_library/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2328,6 +2644,11 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/test/java
                 JavaDirectories:
                     file://./libs/android_library/src/test/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/test/java
+                    file://./libs/android_library/src/test/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/test/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2352,6 +2673,9 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./libs/android_library/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/testDebug/java
+                    file://./libs/android_library/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2381,6 +2705,11 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTest/java
                 JavaDirectories:
                     file://./libs/android_library/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/androidTest/java
+                    file://./libs/android_library/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./libs/android_library/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2405,6 +2734,9 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./libs/android_library/src/androidTestDebug/java
+                    file://./libs/android_library/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:

@@ -10,12 +10,10 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
@@ -25,6 +23,8 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
@@ -37,6 +37,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],

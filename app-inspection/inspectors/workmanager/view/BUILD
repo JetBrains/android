@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.app-inspection.inspectors.workmanager.view",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/app-inspection/inspectors/workmanager/view:workmanager-inspector-proto"],
     iml_files = ["intellij.android.app-inspection.inspectors.workmanager.view.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
@@ -12,7 +11,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model[module]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
@@ -36,7 +34,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model[module, test]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

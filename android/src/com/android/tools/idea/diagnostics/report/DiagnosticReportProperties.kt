@@ -17,9 +17,9 @@ package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
-import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.ide.plugins.PluginManager
+import com.intellij.openapi.extensions.PluginId
 import java.lang.management.ManagementFactory
-import java.util.Arrays
 
 data class DiagnosticReportProperties(
   val uptime: Long = ManagementFactory.getRuntimeMXBean().uptime,
@@ -34,21 +34,13 @@ data class DiagnosticReportProperties(
     kotlinVersion?.let { map["kotlinVersion"] = it }
     return map
   }
+}
 
-  companion object {
-    private fun computeKotlinVersion(): String? {
-      return try {
-        Arrays.stream(PluginManagerCore.getPlugins())
-          .filter { d ->
-            "org.jetbrains.kotlin" == d.pluginId?.idString && d.isEnabled
-          }
-          .findFirst()
-          .map { d -> d.version }
-          .orElse(null)
-      }
-      catch (ignored: Throwable) {
-        null
-      }
-    }
+private fun computeKotlinVersion(): String? {
+  return try {
+    PluginManager.getInstance().findEnabledPlugin(PluginId.getId("org.jetbrains.kotlin"))?.version
+  }
+  catch (ignored: Throwable) {
+    null
   }
 }

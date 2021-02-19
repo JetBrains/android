@@ -33,4 +33,16 @@ public class CreateDeviceGroupPanel {
   private void createUIComponents() {
     myAddDevicesToGroupPanel = new AddDevicesToGroupPanel();
   }
+
+  @NotNull AddDevicesToGroupPanel getAddDevicesToGroupPanel() {
+    return myAddDevicesToGroupPanel;
+  }
+
+  @NotNull String getNameValue() {
+    return myNameTextField.getText();
+  }
+
+  @NotNull String getDescriptionValue() {
+    return myDescriptionTextArea.getText();
+  }
 }

@@ -146,6 +146,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -180,6 +181,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
 
+  private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
+    Key.create("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY");
   public static final Key<ProjectResolutionMode> REQUESTED_PROJECT_RESOLUTION_MODE_KEY = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE");
   static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
@@ -200,6 +203,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     myCommandLineArgs = commandLineArgs;
     myProjectFinder = projectFinder;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
+  }
+
+  @Override
+  public void setProjectResolverContext(@NotNull ProjectResolverContext projectResolverContext) {
+    // Setting this flag on the `projectResolverContext` tells the Kotlin IDE plugin that we are requesting `KotlinGradleModel` for all
+    // modules. This is to be able to provide additional arguments to the model builder and avoid unnecessary processing of currently the
+    // inactive build variants.
+    projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY, true);
+    super.setProjectResolverContext(projectResolverContext);
   }
 
   @Override

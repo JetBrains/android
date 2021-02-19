@@ -27,8 +27,11 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.Topic
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -43,7 +46,14 @@ private fun LiveLiteralsMonitorHandler.Problem.Severity.toNotificationSeverity()
 
 @VisibleForTesting
 @Service
-class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLiteralsMonitorHandler, ModificationTracker, Disposable {
+class LiveLiteralsDeploymentReportService private constructor(private val project: Project,
+                                                              listenerExecutor: Executor?) : LiveLiteralsMonitorHandler, ModificationTracker, Disposable {
+  private val listenerExecutor = listenerExecutor ?: AppExecutorUtil.createBoundedApplicationPoolExecutor("Listener executor",
+                                                                                                          AppExecutorUtil.getAppExecutorService(),
+                                                                                                          1, this)
+
+  constructor(project: Project) : this(project, null)
+
   /**
    * Interface for listeners of literals deployment notifications.
    */
@@ -76,6 +86,10 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
   /** Map containing deployment problems recorded for a given device id. */
   @GuardedBy("serviceLock")
   private val problemsMap = mutableMapOf<String, Collection<LiveLiteralsMonitorHandler.Problem>>()
+
+  /** Map containing deployment problems recorded for a given device id. */
+  @GuardedBy("serviceLock")
+  private val pushedStarted = mutableMapOf<String, Long>()
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
 
@@ -111,7 +125,7 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
    * Call this method when the deployment for [deviceId] has started. This will clear all current registered
    * Problems for that device.
    */
-  override fun liveLiteralsMonitorStarted(deviceId: String) {
+  override fun liveLiteralsMonitorStarted(deviceId: String, deviceType: LiveLiteralsMonitorHandler.DeviceType) {
     if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
 
     var started: Boolean
@@ -120,13 +134,17 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
       if (started) {
         log.debug { "Monitor started for '$deviceId' deviceCount=${activeDevices.size}"}
         problemsMap.remove(deviceId)
+        pushedStarted[deviceId] = System.currentTimeMillis()
       }
     }
 
     if (started) {
       modificationTracker.incModificationCount()
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStarted(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStarted(deviceId)
+      }
     }
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStarted(deviceId, deviceType)
   }
 
   /**
@@ -147,15 +165,24 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     }
 
     if (stopped) {
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStopped(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onMonitorStopped(deviceId)
+      }
     }
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralsMonitorStopped(deviceId)
+  }
+
+  override fun liveLiteralPushStarted(deviceId: String, pushId: String) {
+    if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
+    log.debug("Device '$deviceId' pushed started.")
+    LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushStarted(deviceId, pushId)
   }
 
   /**
    * Call this method when the deployment for [deviceId] has finished. [problems] includes a list
    * of the problems found while deploying literals.
    */
-  override fun liveLiteralPushed(deviceId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) {
+  override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) {
     if (!StudioFlags.COMPOSE_LIVE_LITERALS.get()) return
 
     var isActive: Boolean
@@ -170,12 +197,16 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
     }
 
     if (isActive) {
+      LiveLiteralsDiagnosticsManager.getWriteInstance(project).liveLiteralPushed(deviceId, pushId, problems)
+
       // Log all the problems to the event log
       problems.forEach {
         PROBLEM_NOTIFICATION_GROUP.createNotification("[${it.severity}] ${it.content}", it.severity.toNotificationSeverity())
           .notify(project)
       }
-      project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onLiveLiteralsPushed(deviceId)
+      listenerExecutor.execute {
+        project.messageBus.syncPublisher(LITERALS_DEPLOYED_TOPIC).onLiveLiteralsPushed(deviceId)
+      }
     }
   }
 
@@ -195,6 +226,10 @@ class LiveLiteralsDeploymentReportService(private val project: Project) : LiveLi
 
     fun getInstance(project: Project): LiveLiteralsDeploymentReportService =
       project.getService(LiveLiteralsDeploymentReportService::class.java)
+
+    @TestOnly
+    fun getInstanceForTesting(project: Project, listenerExecutor: Executor): LiveLiteralsDeploymentReportService =
+      LiveLiteralsDeploymentReportService(project, listenerExecutor)
   }
 
   override fun dispose() {

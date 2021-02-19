@@ -120,7 +120,7 @@ class ResourceLookup(private val project: Project) {
     functionName: String,
     startLine: Int,
     endLine: Int
-  ): SourceLocation? =
+  ): SourceLocation =
     composeResolver.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLine, endLine)
 
   /**

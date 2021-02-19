@@ -18,7 +18,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],
@@ -40,12 +39,12 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

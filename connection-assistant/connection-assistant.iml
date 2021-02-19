@@ -12,14 +12,12 @@
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="usb-devices" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

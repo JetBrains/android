@@ -50,11 +50,13 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.TouchEventResult;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -92,12 +94,14 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Rectangle;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -121,6 +125,133 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class LayoutlibSceneManager extends SceneManager {
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
+
+  @VisibleForTesting
+  public static final String[] INTERACTIVE_CLASSES_TO_PRELOAD = {
+    // As of Compose alpha12
+    // First touch event
+    "android.view.MotionEvent",
+    "androidx.compose.ui.input.pointer.PointerId",
+    "androidx.compose.ui.input.pointer.MotionEventAdapterKt",
+    "android.view.MotionEvent$PointerCoords",
+    "androidx.compose.ui.input.pointer.PointerType",
+    "androidx.compose.ui.input.pointer.PointerInputEventData",
+    "androidx.compose.ui.input.pointer.PointerInputEvent",
+    "androidx.compose.ui.input.pointer.PointerInputChangeEventProducer$PointerInputData",
+    "androidx.compose.ui.input.pointer.PointerInputChange",
+    "androidx.compose.ui.input.pointer.ConsumedData",
+    "androidx.compose.ui.input.pointer.InternalPointerEvent",
+    "androidx.compose.ui.input.pointer.PointerEventKt",
+    "androidx.compose.ui.input.pointer.Node",
+    "androidx.compose.ui.input.pointer.HitPathTracker$CustomEventDispatcherImpl",
+    "androidx.compose.ui.input.pointer.CustomEventDispatcher",
+    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$1",
+    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$2",
+    "androidx.compose.ui.input.pointer.NodeParent$removeDetachedPointerInputFilters$3",
+    "androidx.compose.ui.input.pointer.PointerEventPass",
+    "androidx.compose.ui.input.pointer.PointerEvent",
+    "androidx.compose.ui.gesture.GestureUtilsKt",
+    "androidx.compose.ui.input.pointer.PointerInputEventProcessorKt",
+    "androidx.compose.ui.input.pointer.ProcessResult",
+    // First callback execution after touch event
+    "androidx.compose.runtime.snapshots.SnapshotStateObserver$applyObserver$1$2",
+    "androidx.compose.ui.platform.AndroidComposeViewKt$sam$java_lang_Runnable$0",
+    "androidx.compose.runtime.Invalidation",
+    "androidx.compose.runtime.InvalidationResult",
+    "androidx.compose.runtime.Recomposer$runRecomposeAndApplyChanges$2$4",
+    "androidx.compose.runtime.PausableMonotonicFrameClock$withFrameNanos$1",
+    "androidx.compose.ui.platform.AndroidUiFrameClock$withFrameNanos$2$callback$1",
+    "androidx.compose.ui.platform.AndroidUiFrameClock$withFrameNanos$2$1",
+    "kotlinx.coroutines.InvokeOnCancel",
+    "androidx.compose.runtime.ComposerImpl$updateValue$2",
+    "androidx.compose.runtime.ComposerImpl$realizeOperationLocation$2",
+    "androidx.compose.runtime.ComposerImpl$realizeDowns$1",
+    "androidx.compose.runtime.ComposerImpl$realizeUps$1",
+    "androidx.compose.ui.platform.JvmActualsKt",
+    "kotlinx.coroutines.JobCancellationException",
+    "kotlinx.coroutines.CopyableThrowable",
+    "kotlinx.coroutines.DebugStringsKt",
+    // Animation
+    "androidx.compose.material.ElevationDefaults",
+    "androidx.compose.animation.core.AnimationKt",
+    "androidx.compose.animation.core.TargetBasedAnimation",
+    "androidx.compose.animation.core.Animation",
+    "androidx.compose.animation.core.VectorizedTweenSpec",
+    "androidx.compose.animation.core.VectorizedDurationBasedAnimationSpec",
+    "androidx.compose.animation.core.VectorizedFiniteAnimationSpec",
+    "androidx.compose.animation.core.VectorizedAnimationSpec",
+    "androidx.compose.animation.core.VectorizedFloatAnimationSpec",
+    "androidx.compose.animation.core.FloatTweenSpec",
+    "androidx.compose.animation.core.FloatAnimationSpec",
+    "androidx.compose.animation.core.VectorizedFloatAnimationSpec$1",
+    "androidx.compose.animation.core.Animations",
+    "androidx.compose.animation.core.VectorizedDurationBasedAnimationSpec$DefaultImpls",
+    "androidx.compose.animation.core.VectorizedFiniteAnimationSpec$DefaultImpls",
+    "androidx.compose.animation.core.VectorizedAnimationSpec$DefaultImpls",
+    "androidx.compose.animation.core.Animatable$runAnimation$2",
+    "kotlin.jvm.internal.Ref$BooleanRef",
+    "androidx.compose.animation.core.Animatable$runAnimation$2$1",
+    "androidx.compose.animation.core.SuspendAnimationKt",
+    "androidx.compose.animation.core.SuspendAnimationKt$animate$4",
+    "androidx.compose.animation.core.Animation$DefaultImpls",
+    "androidx.compose.animation.core.SuspendAnimationKt$animate$startTimeNanosSpecified$1",
+    "androidx.compose.runtime.MonotonicFrameClockKt",
+    "androidx.compose.runtime.BroadcastFrameClock$FrameAwaiter",
+    "androidx.compose.runtime.BroadcastFrameClock$withFrameNanos$2$1",
+    "androidx.compose.material.ripple.RippleAnimation",
+    "androidx.compose.material.ripple.RippleIndicationInstance$addRipple$ripple$1",
+    "androidx.compose.animation.core.AnimationVector2D",
+    "androidx.compose.material.ripple.RippleAnimation$1",
+    "kotlinx.collections.immutable.internal.ListImplementation",
+    "androidx.compose.ui.graphics.ClipOp",
+    "androidx.compose.ui.graphics.AndroidCanvas$WhenMappings",
+    "androidx.compose.ui.graphics.PointMode",
+    "android.graphics.Region$Op",
+    "androidx.compose.ui.input.pointer.NodeParent$removePointerId$2",
+    "androidx.compose.animation.core.AnimationScope",
+    "androidx.compose.animation.core.SuspendAnimationKt$animate$6",
+    "androidx.compose.animation.core.SuspendAnimationKt$animate$7",
+    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2",
+    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$1",
+    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$2",
+    "androidx.compose.material.ripple.RippleAnimation$fadeIn$2$3",
+    "kotlinx.coroutines.JobSupport$ChildCompletion",
+    "androidx.compose.animation.core.AnimationSpecKt",
+    "kotlinx.coroutines.internal.StackTraceRecoveryKt",
+    "kotlin.coroutines.jvm.internal.BaseContinuationImpl",
+    "kotlinx.coroutines.internal.StackTraceRecoveryKt",
+    "kotlinx.coroutines.internal.ExceptionsConstuctorKt",
+    "kotlin.jvm.JvmClassMappingKt",
+    "kotlin.jvm.internal.ClassReference",
+    "kotlin.jvm.internal.ClassReference$Companion",
+    "kotlin.jvm.functions.Function12",
+    "kotlin.jvm.functions.Function22",
+    "java.util.concurrent.locks.ReentrantReadWriteLock",
+    "java.util.ArrayDeque",
+    "kotlin.coroutines.jvm.internal.DebugMetadataKt",
+    "kotlin.coroutines.jvm.internal.DebugMetadata",
+    "java.lang.annotation.Annotation",
+    "kotlin.annotation.Target",
+    "java.lang.annotation.Retention",
+    "java.lang.annotation.RetentionPolicy",
+    "java.lang.annotation.Target",
+    "kotlin.Metadata",
+    "java.lang.reflect.Proxy",
+    "java.lang.reflect.UndeclaredThrowableException",
+    "java.lang.NoSuchMethodError",
+    "java.lang.NoClassDefFoundError",
+    "java.lang.reflect.InvocationHandler",
+    "kotlin.annotation.Retention",
+    "kotlin.coroutines.jvm.internal.ModuleNameRetriever",
+    "kotlin.coroutines.jvm.internal.ModuleNameRetriever$Cache",
+    "java.lang.ClassLoader",
+    "java.lang.Module",
+    "java.lang.module.ModuleDescriptor",
+    "kotlinx.coroutines.TimeoutCancellationException",
+    "java.util.IdentityHashMap",
+    "androidx.compose.animation.core.AnimationEndReason",
+    "androidx.compose.animation.core.AnimationResult",
+  };
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -189,9 +320,26 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean myUsePrivateClassLoader = false;
 
   /**
+   * If true, listen the resource change.
+   */
+  private boolean myListenResourceChange = true;
+
+  /**
    * If true, the render will paint the system decorations (status and navigation bards)
    */
   private boolean useShowDecorations;
+
+  /**
+   * If true, automatically re-render when {@link ModelListener#modelDerivedDataChanged(NlModel)} is triggered. Which happens after model is
+   * inflated.
+   */
+  private boolean myRerenderWhenModelDerivedDataChanged = true;
+
+  /**
+   * If true, automatically update (if needed) and re-render when being activated. Which happens after {@link #activate(Object)} is called.
+   * Note that if the it is activated already, then it will not re-render.
+   */
+  private boolean myUpdateAndRenderWhenActivated = true;
 
   /**
    * If true, the scene is interactive.
@@ -568,7 +716,16 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
+      // After the model derived data is changed, we need to update the selection in Edt thread.
+      // Changing selection should run in UI thread to avoid avoid race condition.
       NlDesignSurface surface = getDesignSurface();
+      if (!myRerenderWhenModelDerivedDataChanged) {
+        CompletableFuture.runAsync(() -> {
+          // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
+          mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection());
+        }, EdtExecutorService.getInstance());
+        return;
+      }
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
       if (false && surface.getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
         requestLayout(true);
@@ -576,7 +733,6 @@ public class LayoutlibSceneManager extends SceneManager {
       else {
         requestRender(getTriggerFromChangeType(model.getLastChangeType()))
           .thenRunAsync(() ->
-            // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
       }
@@ -711,7 +867,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Asynchronously inflates the model and updates the view hierarchy
+   * Schedule asynchronously model inflating and view hierarchy updating.
    */
   protected void requestModelUpdate() {
     if (isDisposed.get()) {
@@ -767,11 +923,28 @@ public class LayoutlibSceneManager extends SceneManager {
     useShrinkRendering = enabled;
   }
 
+  /**
+   * If true, register the {@link com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener} which calls
+   * {@link #resourcesChanged(Set)} when any resource is changed.
+   * By default it is enabled.
+   */
+  public void setListenResourceChange(boolean enabled) {
+    myListenResourceChange = enabled;
+  }
+
   public void setShowDecorations(boolean enabled) {
     if (useShowDecorations != enabled) {
       useShowDecorations = enabled;
       forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
     }
+  }
+
+  public void setRerenderWhenModelDerivedDataChanged(boolean enabled) {
+    myRerenderWhenModelDerivedDataChanged = enabled;
+  }
+
+  public void setUpdateAndRenderWhenActivated(boolean enable) {
+    myUpdateAndRenderWhenActivated = enable;
   }
 
   public boolean isShowingDecorations() {
@@ -952,6 +1125,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
+      .withLayoutScannerOptimization(myLayoutScannerConfig.isScannerAlwaysOn())
       .withLogger(logger);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
@@ -1066,6 +1240,10 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.usePrivateClassLoader();
     }
 
+    if (myIsInteractive) {
+      taskBuilder.preloadClasses(Arrays.asList(INTERACTIVE_CLASSES_TO_PRELOAD));
+    }
+
     taskBuilder
       .setProjectClassesTransform(myAdditionalProjectTransform)
       .setNonProjectClassesTransform(myAdditionalNonProjectTransform)
@@ -1086,8 +1264,10 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Asynchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
+   *
+   * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
-  protected CompletableFuture<Void> updateModel() {
+  public CompletableFuture<Void> updateModel() {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1463,14 +1643,14 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks() {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks() {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
     }
 
     synchronized (myRenderingTaskLock) {
       if (myRenderTask == null) {
-        return CompletableFuture.completedFuture(false);
+        return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
       }
       return myRenderTask.executeCallbacks(currentTimeNanos());
     }
@@ -1490,7 +1670,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(
+  public CompletableFuture<TouchEventResult> triggerTouchEvent(
     @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacks after LayoutlibSceneManager has been disposed");
@@ -1506,14 +1686,22 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Executes the given {@link Runnable} callback synchronously. Then calls {@link #executeCallbacks()} and requests render afterwards.
-   * Returns true if the callback was executed successfully and on time, and the render was requested.
+   * Executes the given {@link Runnable} callback synchronously with a 30ms timeout.
    */
   public boolean executeCallbacksAndRequestRender(@Nullable Runnable callback) {
+    return executeCallbacksAndRequestRender(30, TimeUnit.MILLISECONDS, callback);
+  }
+
+  /**
+   * Executes the given {@link Runnable} callback synchronously with the given timeout. Then calls {@link #executeCallbacks()} and requests
+   * render afterwards. Callers must be aware that long timeouts should only be passed when not on EDT, otherwise the UI will freeze.
+   * Returns true if the callback was executed successfully and on time, and render was requested.
+   */
+  public boolean executeCallbacksAndRequestRender(long timeout, TimeUnit timeoutUnit, @Nullable Runnable callback) {
     try {
       if (callback != null) {
         RenderService.getRenderAsyncActionExecutor()
-          .runAsyncActionWithTimeout(30, TimeUnit.MILLISECONDS, Executors.callable(callback)).get(30, TimeUnit.MILLISECONDS);
+          .runAsyncActionWithTimeout(timeout, timeoutUnit, Executors.callable(callback)).get(timeout, timeoutUnit);
       }
       executeCallbacks().thenCompose(b -> requestRender());
       return true;
@@ -1588,7 +1776,7 @@ public class LayoutlibSceneManager extends SceneManager {
   public boolean activate(@NotNull Object source) {
     boolean active = super.activate(source);
 
-    if (active) {
+    if (active && myUpdateAndRenderWhenActivated) {
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getModel().getProject());
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
@@ -1614,6 +1802,13 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     return deactivated;
+  }
+
+  @Override
+  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reasons) {
+    if (myListenResourceChange) {
+      super.resourcesChanged(reasons);
+    }
   }
 
   /**

@@ -85,7 +85,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+public class NlModel implements Disposable, ModificationTracker {
 
   /**
    * Responsible for updating {@link NlModel} once results from LayoutLibSceneManager is available as {@link TagSnapshotTreeNode}.
@@ -101,9 +101,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
-  private final VirtualFile myFile;
+  @NotNull private final VirtualFile myFile;
 
-  private final Configuration myConfiguration;
+  @NotNull private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
   private String myModelDisplayName;
@@ -233,8 +233,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (myConfiguration.getModificationCount() != myConfigurationModificationCount) {
         updateTheme();
       }
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-      manager.addListener(this, myFacet, myFile, myConfiguration);
       myListeners.forEach(listener -> listener.modelActivated(this));
       return true;
     }
@@ -254,8 +252,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   private void deactivate() {
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-    manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
   }
 
@@ -908,36 +904,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Override
   public String toString() {
     return NlModel.class.getSimpleName() + " for " + myFile;
-  }
-
-  // ---- Implements ResourceNotificationManager.ResourceChangeListener ----
-
-  @Override
-  public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-    for (ResourceNotificationManager.Reason r : reason) {
-      switch (r) {
-        case RESOURCE_EDIT:
-          notifyModifiedViaUpdateQueue(ChangeType.RESOURCE_EDIT);
-          break;
-        case EDIT:
-          notifyModifiedViaUpdateQueue(ChangeType.EDIT);
-          break;
-        case IMAGE_RESOURCE_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(getConfiguration()));
-          notifyModified(ChangeType.RESOURCE_CHANGED);
-          break;
-        case GRADLE_SYNC:
-        case PROJECT_BUILD:
-        case VARIANT_CHANGED:
-        case SDK_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(getConfiguration()));
-          notifyModified(ChangeType.BUILD);
-          break;
-        case CONFIGURATION_CHANGED:
-          notifyModified(ChangeType.CONFIGURATION_CHANGE);
-          break;
-      }
-    }
   }
 
   // ---- Implements ModificationTracker ----

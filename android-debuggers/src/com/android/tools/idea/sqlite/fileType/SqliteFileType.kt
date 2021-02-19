@@ -37,8 +37,6 @@ object SqliteFileType : INativeFileType {
 
   override fun isBinary() = true
 
-  override fun isReadOnly() = false
-
   override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
 
   override fun openFileInAssociatedApplication(project: Project, file: VirtualFile): Boolean {

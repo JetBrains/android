@@ -137,7 +137,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
     }
     try {
       Path patchFile = tempDir.resolve(PATCH_JAR_FN);
-      getDownloader().downloadFullyWithCaching(url, patchFile, patch.getChecksum(), progress);
+      getDownloader().downloadFullyWithCaching(url, patchFile, patch.getTypedChecksum(), progress);
       return patchFile;
     }
     catch (IOException e) {

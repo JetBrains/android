@@ -3,6 +3,7 @@ package com.android.tools.idea.editors
 import com.android.annotations.concurrency.GuardedBy
 import com.intellij.AppTopics
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
@@ -112,7 +113,8 @@ fun setupChangeListener(
                                                       false).setRestartTimerOnAdd(true),
   timeNanosProvider: () -> Long = { System.nanoTime() }) {
   val documentManager = PsiDocumentManager.getInstance(project)
-  documentManager.getDocument(psiFile)!!.addDocumentListener(
+  val document = ReadAction.compute<Document, Throwable> { documentManager.getDocument(psiFile)!! }
+  document.addDocumentListener(
     DocumentChangeListener({ _, lastUpdatedNanos -> onDocumentUpdated(lastUpdatedNanos) }, documentManager, mergeQueue, timeNanosProvider),
     parentDisposable)
 }

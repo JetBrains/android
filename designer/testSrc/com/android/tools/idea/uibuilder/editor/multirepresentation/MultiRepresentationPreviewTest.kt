@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -486,6 +488,29 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
 
     assertNotNull(multiPreview.currentRepresentation)
     assertNotEmpty(multiPreview.representationNames)
+  }
+
+  // Regression test for http://b/176468484
+  fun testInitializationDuringDumbMode() {
+    val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
+    myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
+
+    DumbServiceImpl.getInstance(project).isDumb = true
+    val provider = TestPreviewRepresentationProvider("Accepting", false)
+    multiPreview = UpdatableMultiRepresentationPreview(
+      sampleFile,
+      myFixture.editor,
+      listOf(provider))
+
+    assertNull(multiPreview.currentRepresentation)
+    assertTrue("Initialization done during dumb mode would not be able to find 'Accepting'",
+               multiPreview.representationNames.isEmpty())
+    provider.isAccept = true
+    DumbServiceImpl.getInstance(project).isDumb = false
+
+    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
+    assertEquals("Accepting", multiPreview.currentRepresentationName)
+    assertEquals("Accepting", multiPreview.currentState.selectedRepresentationName)
   }
 }
 

@@ -11,11 +11,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:transport-proto",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",

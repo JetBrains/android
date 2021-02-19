@@ -173,7 +173,8 @@ public final class SystemImageDescription {
         }
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
-        tag = ((DetailsTypes.SysImgDetailsType)details).getTag();
+        // TODO: support multi-tag
+        tag = ((DetailsTypes.SysImgDetailsType)details).getTags().get(0);
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
         abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
       }

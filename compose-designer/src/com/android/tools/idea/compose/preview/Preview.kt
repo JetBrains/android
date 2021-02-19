@@ -39,6 +39,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
@@ -86,6 +87,7 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
@@ -338,6 +340,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           previewElementProvider.instanceFilter = value
           animationInspection.set(true)
           composeWorkBench.hasComponentsOverlay = false
+          composeWorkBench.isAnimationPreview = true
 
           // Open the animation inspection panel
           composeWorkBench.bottomPanel = ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, this) {
@@ -364,14 +367,24 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     ComposePreviewAnimationManager.closeCurrentInspector()
     // Swap the components back
     composeWorkBench.bottomPanel = null
+    composeWorkBench.isAnimationPreview = false
     previewElementProvider.instanceFilter = null
   }
 
+  /**
+   * Counter used to generate unique push ids.
+   */
+  private val pushIdCounter = AtomicLong()
   private val liveLiteralsManager = LiveLiteralsService.getInstance(project).apply {
-    addOnLiteralsChangedListener(this) {
+    addOnLiteralsChangedListener(this@ComposePreviewRepresentation) {
+      // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
+      val pushId = pushIdCounter.getAndIncrement().toString(16)
+      LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
       surface.layoutlibSceneManagers.forEach {
         it.forceReinflate()
-        it.requestRender()
+        it.requestRender().whenComplete { _, _ ->
+          LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+        }
       }
     }
   }
@@ -379,7 +392,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var hasLiveLiterals: Boolean = false
     private set(value) {
       field = value
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId)
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
 
   override val isLiveLiteralsEnabled: Boolean
@@ -572,6 +585,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onActivate() {
     activationLock.withLock {
       LOG.debug("onActivate")
+
+      if (hasLiveLiterals) {
+        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+      }
+
       isActive.set(true)
       if (isFirstActivation) {
         isFirstActivation = false

@@ -19,6 +19,11 @@ MODULE: testNestedProjects.app
                 file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            KotlinDirectoryUrls:
+                file://./app/src/main/java
+                file://./app/src/main/kotlin
+            KotlinDirectories:
+                file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -43,6 +48,9 @@ MODULE: testNestedProjects.app
                 ./app/src/main/assets
             JavaDirectories:
                 ./app/src/main/java
+            KotlinDirectories:
+                ./app/src/main/java
+                ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -65,6 +73,9 @@ MODULE: testNestedProjects.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -86,6 +97,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/assets
                 JavaDirectories:
                     ./app/src/basic/java
+                KotlinDirectories:
+                    ./app/src/basic/java
+                    ./app/src/basic/kotlin
                 JniLibsDirectories:
                     ./app/src/basic/jniLibs
                 RenderscriptDirectories:
@@ -107,6 +121,9 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/assets
                 JavaDirectories:
                     ./app/src/bar/java
+                KotlinDirectories:
+                    ./app/src/bar/java
+                    ./app/src/bar/kotlin
                 JniLibsDirectories:
                     ./app/src/bar/jniLibs
                 RenderscriptDirectories:
@@ -128,6 +145,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/assets
                 JavaDirectories:
                     ./app/src/basicBar/java
+                KotlinDirectories:
+                    ./app/src/basicBar/java
+                    ./app/src/basicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBar/jniLibs
                 RenderscriptDirectories:
@@ -149,6 +169,9 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -170,6 +193,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/assets
                 JavaDirectories:
                     ./app/src/basicBarDebug/java
+                KotlinDirectories:
+                    ./app/src/basicBarDebug/java
+                    ./app/src/basicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBarDebug/jniLibs
                 RenderscriptDirectories:
@@ -192,6 +218,9 @@ MODULE: testNestedProjects.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/java
+                    ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -213,6 +242,9 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/assets
                 JavaDirectories:
                     ./app/src/bar/java
+                KotlinDirectories:
+                    ./app/src/bar/java
+                    ./app/src/bar/kotlin
                 JniLibsDirectories:
                     ./app/src/bar/jniLibs
                 RenderscriptDirectories:
@@ -234,6 +266,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/assets
                 JavaDirectories:
                     ./app/src/basic/java
+                KotlinDirectories:
+                    ./app/src/basic/java
+                    ./app/src/basic/kotlin
                 JniLibsDirectories:
                     ./app/src/basic/jniLibs
                 RenderscriptDirectories:
@@ -255,6 +290,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/assets
                 JavaDirectories:
                     ./app/src/basicBar/java
+                KotlinDirectories:
+                    ./app/src/basicBar/java
+                    ./app/src/basicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBar/jniLibs
                 RenderscriptDirectories:
@@ -276,6 +314,9 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/assets
                 JavaDirectories:
                     ./app/src/basicBarDebug/java
+                KotlinDirectories:
+                    ./app/src/basicBarDebug/java
+                    ./app/src/basicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/basicBarDebug/jniLibs
                 RenderscriptDirectories:
@@ -297,6 +338,9 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/java
+                    ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -318,6 +362,9 @@ MODULE: testNestedProjects.app
                     ./app/src/otherBar/assets
                 JavaDirectories:
                     ./app/src/otherBar/java
+                KotlinDirectories:
+                    ./app/src/otherBar/java
+                    ./app/src/otherBar/kotlin
                 JniLibsDirectories:
                     ./app/src/otherBar/jniLibs
                 RenderscriptDirectories:
@@ -339,6 +386,9 @@ MODULE: testNestedProjects.app
                     ./app/src/paid/assets
                 JavaDirectories:
                     ./app/src/paid/java
+                KotlinDirectories:
+                    ./app/src/paid/java
+                    ./app/src/paid/kotlin
                 JniLibsDirectories:
                     ./app/src/paid/jniLibs
                 RenderscriptDirectories:
@@ -360,6 +410,9 @@ MODULE: testNestedProjects.app
                     ./app/src/release/assets
                 JavaDirectories:
                     ./app/src/release/java
+                KotlinDirectories:
+                    ./app/src/release/java
+                    ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
                 RenderscriptDirectories:
@@ -381,6 +434,9 @@ MODULE: testNestedProjects.app
                     ./app/src/specialRelease/assets
                 JavaDirectories:
                     ./app/src/specialRelease/java
+                KotlinDirectories:
+                    ./app/src/specialRelease/java
+                    ./app/src/specialRelease/kotlin
                 JniLibsDirectories:
                     ./app/src/specialRelease/jniLibs
                 RenderscriptDirectories:
@@ -403,6 +459,9 @@ MODULE: testNestedProjects.app
                     ./app/src/test/assets
                 JavaDirectories:
                     ./app/src/test/java
+                KotlinDirectories:
+                    ./app/src/test/java
+                    ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -424,6 +483,9 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasic/assets
                 JavaDirectories:
                     ./app/src/testBasic/java
+                KotlinDirectories:
+                    ./app/src/testBasic/java
+                    ./app/src/testBasic/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasic/jniLibs
                 RenderscriptDirectories:
@@ -445,6 +507,9 @@ MODULE: testNestedProjects.app
                     ./app/src/testBar/assets
                 JavaDirectories:
                     ./app/src/testBar/java
+                KotlinDirectories:
+                    ./app/src/testBar/java
+                    ./app/src/testBar/kotlin
                 JniLibsDirectories:
                     ./app/src/testBar/jniLibs
                 RenderscriptDirectories:
@@ -466,6 +531,9 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBar/assets
                 JavaDirectories:
                     ./app/src/testBasicBar/java
+                KotlinDirectories:
+                    ./app/src/testBasicBar/java
+                    ./app/src/testBasicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasicBar/jniLibs
                 RenderscriptDirectories:
@@ -487,6 +555,9 @@ MODULE: testNestedProjects.app
                     ./app/src/testDebug/assets
                 JavaDirectories:
                     ./app/src/testDebug/java
+                KotlinDirectories:
+                    ./app/src/testDebug/java
+                    ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -508,6 +579,9 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBarDebug/assets
                 JavaDirectories:
                     ./app/src/testBasicBarDebug/java
+                KotlinDirectories:
+                    ./app/src/testBasicBarDebug/java
+                    ./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testBasicBarDebug/jniLibs
                 RenderscriptDirectories:
@@ -530,6 +604,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTest/assets
                 JavaDirectories:
                     ./app/src/androidTest/java
+                KotlinDirectories:
+                    ./app/src/androidTest/java
+                    ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -551,6 +628,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasic/assets
                 JavaDirectories:
                     ./app/src/androidTestBasic/java
+                KotlinDirectories:
+                    ./app/src/androidTestBasic/java
+                    ./app/src/androidTestBasic/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasic/jniLibs
                 RenderscriptDirectories:
@@ -572,6 +652,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBar/assets
                 JavaDirectories:
                     ./app/src/androidTestBar/java
+                KotlinDirectories:
+                    ./app/src/androidTestBar/java
+                    ./app/src/androidTestBar/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBar/jniLibs
                 RenderscriptDirectories:
@@ -593,6 +676,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBar/assets
                 JavaDirectories:
                     ./app/src/androidTestBasicBar/java
+                KotlinDirectories:
+                    ./app/src/androidTestBasicBar/java
+                    ./app/src/androidTestBasicBar/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasicBar/jniLibs
                 RenderscriptDirectories:
@@ -614,6 +700,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestDebug/java
+                    ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -635,6 +724,9 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBarDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestBasicBarDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestBasicBarDebug/java
+                    ./app/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestBasicBarDebug/jniLibs
                 RenderscriptDirectories:
@@ -694,6 +786,21 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBarDebug/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                    file://./app/src/basic/java
+                    file://./app/src/basic/kotlin
+                    file://./app/src/bar/java
+                    file://./app/src/bar/kotlin
+                    file://./app/src/basicBar/java
+                    file://./app/src/basicBar/kotlin
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
+                    file://./app/src/basicBarDebug/java
+                    file://./app/src/basicBarDebug/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/basic/jniLibs
@@ -776,6 +883,19 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBar/java
                     file://./app/src/testDebug/java
                     file://./app/src/testBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
+                    file://./app/src/testBasic/java
+                    file://./app/src/testBasic/kotlin
+                    file://./app/src/testBar/java
+                    file://./app/src/testBar/kotlin
+                    file://./app/src/testBasicBar/java
+                    file://./app/src/testBasicBar/kotlin
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
+                    file://./app/src/testBasicBarDebug/java
+                    file://./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testBasic/jniLibs
@@ -856,6 +976,19 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBar/java
                     file://./app/src/androidTestDebug/java
                     file://./app/src/androidTestBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTestBasic/java
+                    file://./app/src/androidTestBasic/kotlin
+                    file://./app/src/androidTestBar/java
+                    file://./app/src/androidTestBar/kotlin
+                    file://./app/src/androidTestBasicBar/java
+                    file://./app/src/androidTestBasicBar/kotlin
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTestBasicBarDebug/java
+                    file://./app/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestBasic/jniLibs
@@ -917,6 +1050,11 @@ MODULE: testNestedProjects.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -943,6 +1081,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/bar/assets
                 JavaDirectoryUrls:
                     file://./app/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/bar/java
+                    file://./app/src/bar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/bar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -967,6 +1108,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basic/assets
                 JavaDirectoryUrls:
                     file://./app/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basic/java
+                    file://./app/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -991,6 +1135,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBar/java
+                    file://./app/src/basicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1015,6 +1162,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBarDebug/java
+                    file://./app/src/basicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBarDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1039,6 +1189,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1063,6 +1216,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/otherBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/otherBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/otherBar/java
+                    file://./app/src/otherBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/otherBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1093,6 +1249,11 @@ MODULE: testNestedProjects.app
                     file://./app/src/paid/java
                 JavaDirectories:
                     file://./app/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./app/src/paid/java
+                    file://./app/src/paid/kotlin
+                KotlinDirectories:
+                    file://./app/src/paid/java
                 JniLibsDirectoryUrls:
                     file://./app/src/paid/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1119,6 +1280,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
                     file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/java
+                    file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1143,6 +1307,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/specialRelease/assets
                 JavaDirectoryUrls:
                     file://./app/src/specialRelease/java
+                KotlinDirectoryUrls:
+                    file://./app/src/specialRelease/java
+                    file://./app/src/specialRelease/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/specialRelease/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1174,6 +1341,11 @@ MODULE: testNestedProjects.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/main/kotlin
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1200,6 +1372,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basic/assets
                 JavaDirectoryUrls:
                     file://./app/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basic/java
+                    file://./app/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1224,6 +1399,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/bar/assets
                 JavaDirectoryUrls:
                     file://./app/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/bar/java
+                    file://./app/src/bar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/bar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1248,6 +1426,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBar/java
+                    file://./app/src/basicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1272,6 +1453,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/java
+                    file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1296,6 +1480,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/basicBarDebug/java
+                    file://./app/src/basicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/basicBarDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1321,6 +1508,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1345,6 +1535,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasic/assets
                 JavaDirectoryUrls:
                     file://./app/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasic/java
+                    file://./app/src/testBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1369,6 +1562,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/testBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBar/java
+                    file://./app/src/testBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1393,6 +1589,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/testBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasicBar/java
+                    file://./app/src/testBasicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasicBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1417,6 +1616,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/java
+                    file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1441,6 +1643,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testBasicBarDebug/java
+                    file://./app/src/testBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testBasicBarDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1466,6 +1671,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1490,6 +1698,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasic/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasic/java
+                    file://./app/src/androidTestBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1514,6 +1725,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBar/java
+                    file://./app/src/androidTestBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1538,6 +1752,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBar/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasicBar/java
+                    file://./app/src/androidTestBasicBar/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasicBar/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1562,6 +1779,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                    file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1586,6 +1806,9 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestBasicBarDebug/java
+                    file://./app/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1616,6 +1839,9 @@ MODULE: testNestedProjects.dyn_feature
                 file://./dyn_feature/src/main/assets
             JavaDirectoryUrls:
                 file://./dyn_feature/src/main/java
+            KotlinDirectoryUrls:
+                file://./dyn_feature/src/main/java
+                file://./dyn_feature/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./dyn_feature/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -1638,6 +1864,9 @@ MODULE: testNestedProjects.dyn_feature
                 ./dyn_feature/src/main/assets
             JavaDirectories:
                 ./dyn_feature/src/main/java
+            KotlinDirectories:
+                ./dyn_feature/src/main/java
+                ./dyn_feature/src/main/kotlin
             JniLibsDirectories:
                 ./dyn_feature/src/main/jniLibs
             RenderscriptDirectories:
@@ -1660,6 +1889,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/assets
                 JavaDirectories:
                     ./dyn_feature/src/main/java
+                KotlinDirectories:
+                    ./dyn_feature/src/main/java
+                    ./dyn_feature/src/main/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1681,6 +1913,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/assets
                 JavaDirectories:
                     ./dyn_feature/src/debug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/debug/java
+                    ./dyn_feature/src/debug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1703,6 +1938,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/assets
                 JavaDirectories:
                     ./dyn_feature/src/main/java
+                KotlinDirectories:
+                    ./dyn_feature/src/main/java
+                    ./dyn_feature/src/main/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1724,6 +1962,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/assets
                 JavaDirectories:
                     ./dyn_feature/src/debug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/debug/java
+                    ./dyn_feature/src/debug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1745,6 +1986,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/release/assets
                 JavaDirectories:
                     ./dyn_feature/src/release/java
+                KotlinDirectories:
+                    ./dyn_feature/src/release/java
+                    ./dyn_feature/src/release/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/release/jniLibs
                 RenderscriptDirectories:
@@ -1767,6 +2011,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/test/assets
                 JavaDirectories:
                     ./dyn_feature/src/test/java
+                KotlinDirectories:
+                    ./dyn_feature/src/test/java
+                    ./dyn_feature/src/test/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/test/jniLibs
                 RenderscriptDirectories:
@@ -1788,6 +2035,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/testDebug/assets
                 JavaDirectories:
                     ./dyn_feature/src/testDebug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/testDebug/java
+                    ./dyn_feature/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -1810,6 +2060,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTest/assets
                 JavaDirectories:
                     ./dyn_feature/src/androidTest/java
+                KotlinDirectories:
+                    ./dyn_feature/src/androidTest/java
+                    ./dyn_feature/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -1831,6 +2084,9 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTestDebug/assets
                 JavaDirectories:
                     ./dyn_feature/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/androidTestDebug/java
+                    ./dyn_feature/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./dyn_feature/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -1868,6 +2124,11 @@ MODULE: testNestedProjects.dyn_feature
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/main/java
                     file://./dyn_feature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/main/kotlin
+                    file://./dyn_feature/src/debug/java
+                    file://./dyn_feature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
                     file://./dyn_feature/src/debug/jniLibs
@@ -1904,6 +2165,11 @@ MODULE: testNestedProjects.dyn_feature
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/test/java
                     file://./dyn_feature/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/test/java
+                    file://./dyn_feature/src/test/kotlin
+                    file://./dyn_feature/src/testDebug/java
+                    file://./dyn_feature/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/test/jniLibs
                     file://./dyn_feature/src/testDebug/jniLibs
@@ -1940,6 +2206,11 @@ MODULE: testNestedProjects.dyn_feature
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/androidTest/java
                     file://./dyn_feature/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                    file://./dyn_feature/src/androidTest/kotlin
+                    file://./dyn_feature/src/androidTestDebug/java
+                    file://./dyn_feature/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/jniLibs
                     file://./dyn_feature/src/androidTestDebug/jniLibs
@@ -1975,6 +2246,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/main/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/main/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1999,6 +2273,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/debug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/debug/java
+                    file://./dyn_feature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2023,6 +2300,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/release/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/release/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/release/java
+                    file://./dyn_feature/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2052,6 +2332,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/main/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/main/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2076,6 +2359,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/debug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/debug/java
+                    file://./dyn_feature/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2101,6 +2387,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/test/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/test/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/test/java
+                    file://./dyn_feature/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2125,6 +2414,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testDebug/java
+                    file://./dyn_feature/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2150,6 +2442,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                    file://./dyn_feature/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2174,6 +2469,9 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/java
+                    file://./dyn_feature/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2207,6 +2505,11 @@ MODULE: testNestedProjects.lib
                 file://./lib/src/main/java
             JavaDirectories:
                 file://./lib/src/main/java
+            KotlinDirectoryUrls:
+                file://./lib/src/main/java
+                file://./lib/src/main/kotlin
+            KotlinDirectories:
+                file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -2231,6 +2534,9 @@ MODULE: testNestedProjects.lib
                 ./lib/src/main/assets
             JavaDirectories:
                 ./lib/src/main/java
+            KotlinDirectories:
+                ./lib/src/main/java
+                ./lib/src/main/kotlin
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
             RenderscriptDirectories:
@@ -2253,6 +2559,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/assets
                 JavaDirectories:
                     ./lib/src/main/java
+                KotlinDirectories:
+                    ./lib/src/main/java
+                    ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2274,6 +2583,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/assets
                 JavaDirectories:
                     ./lib/src/debug/java
+                KotlinDirectories:
+                    ./lib/src/debug/java
+                    ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2296,6 +2608,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/assets
                 JavaDirectories:
                     ./lib/src/main/java
+                KotlinDirectories:
+                    ./lib/src/main/java
+                    ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2317,6 +2632,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/assets
                 JavaDirectories:
                     ./lib/src/debug/java
+                KotlinDirectories:
+                    ./lib/src/debug/java
+                    ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2338,6 +2656,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/release/assets
                 JavaDirectories:
                     ./lib/src/release/java
+                KotlinDirectories:
+                    ./lib/src/release/java
+                    ./lib/src/release/kotlin
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
                 RenderscriptDirectories:
@@ -2360,6 +2681,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/test/assets
                 JavaDirectories:
                     ./lib/src/test/java
+                KotlinDirectories:
+                    ./lib/src/test/java
+                    ./lib/src/test/kotlin
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
                 RenderscriptDirectories:
@@ -2381,6 +2705,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/testDebug/assets
                 JavaDirectories:
                     ./lib/src/testDebug/java
+                KotlinDirectories:
+                    ./lib/src/testDebug/java
+                    ./lib/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -2403,6 +2730,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTest/assets
                 JavaDirectories:
                     ./lib/src/androidTest/java
+                KotlinDirectories:
+                    ./lib/src/androidTest/java
+                    ./lib/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -2424,6 +2754,9 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTestDebug/assets
                 JavaDirectories:
                     ./lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./lib/src/androidTestDebug/java
+                    ./lib/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -2463,6 +2796,13 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/debug/java
                 JavaDirectories:
                     file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/java
+                    file://./lib/src/main/kotlin
+                    file://./lib/src/debug/java
+                    file://./lib/src/debug/kotlin
+                KotlinDirectories:
+                    file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
@@ -2501,6 +2841,11 @@ MODULE: testNestedProjects.lib
                 JavaDirectoryUrls:
                     file://./lib/src/test/java
                     file://./lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/test/java
+                    file://./lib/src/test/kotlin
+                    file://./lib/src/testDebug/java
+                    file://./lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
@@ -2537,6 +2882,11 @@ MODULE: testNestedProjects.lib
                 JavaDirectoryUrls:
                     file://./lib/src/androidTest/java
                     file://./lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                    file://./lib/src/androidTest/kotlin
+                    file://./lib/src/androidTestDebug/java
+                    file://./lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
@@ -2574,6 +2924,11 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/main/java
                 JavaDirectories:
                     file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/java
+                    file://./lib/src/main/kotlin
+                KotlinDirectories:
+                    file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2600,6 +2955,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/debug/java
+                    file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2624,6 +2982,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/release/assets
                 JavaDirectoryUrls:
                     file://./lib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/release/java
+                    file://./lib/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2655,6 +3016,11 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/main/java
                 JavaDirectories:
                     file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/java
+                    file://./lib/src/main/kotlin
+                KotlinDirectories:
+                    file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2681,6 +3047,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/debug/java
+                    file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2706,6 +3075,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/test/assets
                 JavaDirectoryUrls:
                     file://./lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/test/java
+                    file://./lib/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2730,6 +3102,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testDebug/java
+                    file://./lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2755,6 +3130,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                    file://./lib/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2779,6 +3157,9 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTestDebug/java
+                    file://./lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2809,6 +3190,9 @@ MODULE: testNestedProjects.nested1
                 file://./nested1/src/main/assets
             JavaDirectoryUrls:
                 file://./nested1/src/main/java
+            KotlinDirectoryUrls:
+                file://./nested1/src/main/java
+                file://./nested1/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested1/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -2831,6 +3215,9 @@ MODULE: testNestedProjects.nested1
                 ./nested1/src/main/assets
             JavaDirectories:
                 ./nested1/src/main/java
+            KotlinDirectories:
+                ./nested1/src/main/java
+                ./nested1/src/main/kotlin
             JniLibsDirectories:
                 ./nested1/src/main/jniLibs
             RenderscriptDirectories:
@@ -2853,6 +3240,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/assets
                 JavaDirectories:
                     ./nested1/src/main/java
+                KotlinDirectories:
+                    ./nested1/src/main/java
+                    ./nested1/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2874,6 +3264,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/assets
                 JavaDirectories:
                     ./nested1/src/debug/java
+                KotlinDirectories:
+                    ./nested1/src/debug/java
+                    ./nested1/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2896,6 +3289,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/assets
                 JavaDirectories:
                     ./nested1/src/main/java
+                KotlinDirectories:
+                    ./nested1/src/main/java
+                    ./nested1/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2917,6 +3313,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/assets
                 JavaDirectories:
                     ./nested1/src/debug/java
+                KotlinDirectories:
+                    ./nested1/src/debug/java
+                    ./nested1/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2938,6 +3337,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/release/assets
                 JavaDirectories:
                     ./nested1/src/release/java
+                KotlinDirectories:
+                    ./nested1/src/release/java
+                    ./nested1/src/release/kotlin
                 JniLibsDirectories:
                     ./nested1/src/release/jniLibs
                 RenderscriptDirectories:
@@ -2960,6 +3362,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/test/assets
                 JavaDirectories:
                     ./nested1/src/test/java
+                KotlinDirectories:
+                    ./nested1/src/test/java
+                    ./nested1/src/test/kotlin
                 JniLibsDirectories:
                     ./nested1/src/test/jniLibs
                 RenderscriptDirectories:
@@ -2981,6 +3386,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/testDebug/assets
                 JavaDirectories:
                     ./nested1/src/testDebug/java
+                KotlinDirectories:
+                    ./nested1/src/testDebug/java
+                    ./nested1/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -3003,6 +3411,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTest/assets
                 JavaDirectories:
                     ./nested1/src/androidTest/java
+                KotlinDirectories:
+                    ./nested1/src/androidTest/java
+                    ./nested1/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested1/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -3024,6 +3435,9 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTestDebug/assets
                 JavaDirectories:
                     ./nested1/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./nested1/src/androidTestDebug/java
+                    ./nested1/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -3061,6 +3475,11 @@ MODULE: testNestedProjects.nested1
                 JavaDirectoryUrls:
                     file://./nested1/src/main/java
                     file://./nested1/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/main/java
+                    file://./nested1/src/main/kotlin
+                    file://./nested1/src/debug/java
+                    file://./nested1/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
                     file://./nested1/src/debug/jniLibs
@@ -3097,6 +3516,11 @@ MODULE: testNestedProjects.nested1
                 JavaDirectoryUrls:
                     file://./nested1/src/test/java
                     file://./nested1/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/test/java
+                    file://./nested1/src/test/kotlin
+                    file://./nested1/src/testDebug/java
+                    file://./nested1/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/test/jniLibs
                     file://./nested1/src/testDebug/jniLibs
@@ -3133,6 +3557,11 @@ MODULE: testNestedProjects.nested1
                 JavaDirectoryUrls:
                     file://./nested1/src/androidTest/java
                     file://./nested1/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                    file://./nested1/src/androidTest/kotlin
+                    file://./nested1/src/androidTestDebug/java
+                    file://./nested1/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTest/jniLibs
                     file://./nested1/src/androidTestDebug/jniLibs
@@ -3168,6 +3597,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/main/java
+                    file://./nested1/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3192,6 +3624,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/debug/java
+                    file://./nested1/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3216,6 +3651,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/release/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/release/java
+                    file://./nested1/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3245,6 +3683,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/main/java
+                    file://./nested1/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3269,6 +3710,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/debug/java
+                    file://./nested1/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3294,6 +3738,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/test/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/test/java
+                    file://./nested1/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3318,6 +3765,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/testDebug/java
+                    file://./nested1/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3343,6 +3793,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                    file://./nested1/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3367,6 +3820,9 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./nested1/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/java
+                    file://./nested1/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3397,6 +3853,9 @@ MODULE: testNestedProjects.nested1.deep
                 file://./nested1/deep/src/main/assets
             JavaDirectoryUrls:
                 file://./nested1/deep/src/main/java
+            KotlinDirectoryUrls:
+                file://./nested1/deep/src/main/java
+                file://./nested1/deep/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested1/deep/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -3419,6 +3878,9 @@ MODULE: testNestedProjects.nested1.deep
                 ./nested1/deep/src/main/assets
             JavaDirectories:
                 ./nested1/deep/src/main/java
+            KotlinDirectories:
+                ./nested1/deep/src/main/java
+                ./nested1/deep/src/main/kotlin
             JniLibsDirectories:
                 ./nested1/deep/src/main/jniLibs
             RenderscriptDirectories:
@@ -3441,6 +3903,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/assets
                 JavaDirectories:
                     ./nested1/deep/src/main/java
+                KotlinDirectories:
+                    ./nested1/deep/src/main/java
+                    ./nested1/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/main/jniLibs
                 RenderscriptDirectories:
@@ -3462,6 +3927,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/assets
                 JavaDirectories:
                     ./nested1/deep/src/debug/java
+                KotlinDirectories:
+                    ./nested1/deep/src/debug/java
+                    ./nested1/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -3484,6 +3952,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/assets
                 JavaDirectories:
                     ./nested1/deep/src/main/java
+                KotlinDirectories:
+                    ./nested1/deep/src/main/java
+                    ./nested1/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/main/jniLibs
                 RenderscriptDirectories:
@@ -3505,6 +3976,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/assets
                 JavaDirectories:
                     ./nested1/deep/src/debug/java
+                KotlinDirectories:
+                    ./nested1/deep/src/debug/java
+                    ./nested1/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -3526,6 +4000,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/release/assets
                 JavaDirectories:
                     ./nested1/deep/src/release/java
+                KotlinDirectories:
+                    ./nested1/deep/src/release/java
+                    ./nested1/deep/src/release/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/release/jniLibs
                 RenderscriptDirectories:
@@ -3548,6 +4025,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/test/assets
                 JavaDirectories:
                     ./nested1/deep/src/test/java
+                KotlinDirectories:
+                    ./nested1/deep/src/test/java
+                    ./nested1/deep/src/test/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/test/jniLibs
                 RenderscriptDirectories:
@@ -3569,6 +4049,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/testDebug/assets
                 JavaDirectories:
                     ./nested1/deep/src/testDebug/java
+                KotlinDirectories:
+                    ./nested1/deep/src/testDebug/java
+                    ./nested1/deep/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -3591,6 +4074,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTest/assets
                 JavaDirectories:
                     ./nested1/deep/src/androidTest/java
+                KotlinDirectories:
+                    ./nested1/deep/src/androidTest/java
+                    ./nested1/deep/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -3612,6 +4098,9 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTestDebug/assets
                 JavaDirectories:
                     ./nested1/deep/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./nested1/deep/src/androidTestDebug/java
+                    ./nested1/deep/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested1/deep/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -3649,6 +4138,11 @@ MODULE: testNestedProjects.nested1.deep
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/main/java
                     file://./nested1/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                    file://./nested1/deep/src/main/kotlin
+                    file://./nested1/deep/src/debug/java
+                    file://./nested1/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
                     file://./nested1/deep/src/debug/jniLibs
@@ -3685,6 +4179,11 @@ MODULE: testNestedProjects.nested1.deep
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/test/java
                     file://./nested1/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/test/java
+                    file://./nested1/deep/src/test/kotlin
+                    file://./nested1/deep/src/testDebug/java
+                    file://./nested1/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/test/jniLibs
                     file://./nested1/deep/src/testDebug/jniLibs
@@ -3721,6 +4220,11 @@ MODULE: testNestedProjects.nested1.deep
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/androidTest/java
                     file://./nested1/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                    file://./nested1/deep/src/androidTest/kotlin
+                    file://./nested1/deep/src/androidTestDebug/java
+                    file://./nested1/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/jniLibs
                     file://./nested1/deep/src/androidTestDebug/jniLibs
@@ -3756,6 +4260,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                    file://./nested1/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3780,6 +4287,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/debug/java
+                    file://./nested1/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3804,6 +4314,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/release/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/release/java
+                    file://./nested1/deep/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3833,6 +4346,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                    file://./nested1/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3857,6 +4373,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/debug/java
+                    file://./nested1/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3882,6 +4401,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/test/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/test/java
+                    file://./nested1/deep/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3906,6 +4428,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/testDebug/java
+                    file://./nested1/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3931,6 +4456,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                    file://./nested1/deep/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3955,6 +4483,9 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/java
+                    file://./nested1/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3985,6 +4516,9 @@ MODULE: testNestedProjects.nested2
                 file://./nested2/src/main/assets
             JavaDirectoryUrls:
                 file://./nested2/src/main/java
+            KotlinDirectoryUrls:
+                file://./nested2/src/main/java
+                file://./nested2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -4007,6 +4541,9 @@ MODULE: testNestedProjects.nested2
                 ./nested2/src/main/assets
             JavaDirectories:
                 ./nested2/src/main/java
+            KotlinDirectories:
+                ./nested2/src/main/java
+                ./nested2/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/src/main/jniLibs
             RenderscriptDirectories:
@@ -4029,6 +4566,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/assets
                 JavaDirectories:
                     ./nested2/src/main/java
+                KotlinDirectories:
+                    ./nested2/src/main/java
+                    ./nested2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -4050,6 +4590,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/assets
                 JavaDirectories:
                     ./nested2/src/basic/java
+                KotlinDirectories:
+                    ./nested2/src/basic/java
+                    ./nested2/src/basic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basic/jniLibs
                 RenderscriptDirectories:
@@ -4071,6 +4614,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/assets
                 JavaDirectories:
                     ./nested2/src/debug/java
+                KotlinDirectories:
+                    ./nested2/src/debug/java
+                    ./nested2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -4092,6 +4638,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/assets
                 JavaDirectories:
                     ./nested2/src/basicDebug/java
+                KotlinDirectories:
+                    ./nested2/src/basicDebug/java
+                    ./nested2/src/basicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basicDebug/jniLibs
                 RenderscriptDirectories:
@@ -4114,6 +4663,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/assets
                 JavaDirectories:
                     ./nested2/src/main/java
+                KotlinDirectories:
+                    ./nested2/src/main/java
+                    ./nested2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -4135,6 +4687,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/assets
                 JavaDirectories:
                     ./nested2/src/basic/java
+                KotlinDirectories:
+                    ./nested2/src/basic/java
+                    ./nested2/src/basic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basic/jniLibs
                 RenderscriptDirectories:
@@ -4156,6 +4711,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/assets
                 JavaDirectories:
                     ./nested2/src/basicDebug/java
+                KotlinDirectories:
+                    ./nested2/src/basicDebug/java
+                    ./nested2/src/basicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/basicDebug/jniLibs
                 RenderscriptDirectories:
@@ -4177,6 +4735,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/assets
                 JavaDirectories:
                     ./nested2/src/debug/java
+                KotlinDirectories:
+                    ./nested2/src/debug/java
+                    ./nested2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -4198,6 +4759,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/paid/assets
                 JavaDirectories:
                     ./nested2/src/paid/java
+                KotlinDirectories:
+                    ./nested2/src/paid/java
+                    ./nested2/src/paid/kotlin
                 JniLibsDirectories:
                     ./nested2/src/paid/jniLibs
                 RenderscriptDirectories:
@@ -4219,6 +4783,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/release/assets
                 JavaDirectories:
                     ./nested2/src/release/java
+                KotlinDirectories:
+                    ./nested2/src/release/java
+                    ./nested2/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/src/release/jniLibs
                 RenderscriptDirectories:
@@ -4241,6 +4808,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/test/assets
                 JavaDirectories:
                     ./nested2/src/test/java
+                KotlinDirectories:
+                    ./nested2/src/test/java
+                    ./nested2/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/src/test/jniLibs
                 RenderscriptDirectories:
@@ -4262,6 +4832,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasic/assets
                 JavaDirectories:
                     ./nested2/src/testBasic/java
+                KotlinDirectories:
+                    ./nested2/src/testBasic/java
+                    ./nested2/src/testBasic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testBasic/jniLibs
                 RenderscriptDirectories:
@@ -4283,6 +4856,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testDebug/assets
                 JavaDirectories:
                     ./nested2/src/testDebug/java
+                KotlinDirectories:
+                    ./nested2/src/testDebug/java
+                    ./nested2/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -4304,6 +4880,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasicDebug/assets
                 JavaDirectories:
                     ./nested2/src/testBasicDebug/java
+                KotlinDirectories:
+                    ./nested2/src/testBasicDebug/java
+                    ./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/testBasicDebug/jniLibs
                 RenderscriptDirectories:
@@ -4326,6 +4905,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTest/assets
                 JavaDirectories:
                     ./nested2/src/androidTest/java
+                KotlinDirectories:
+                    ./nested2/src/androidTest/java
+                    ./nested2/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -4347,6 +4929,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasic/assets
                 JavaDirectories:
                     ./nested2/src/androidTestBasic/java
+                KotlinDirectories:
+                    ./nested2/src/androidTestBasic/java
+                    ./nested2/src/androidTestBasic/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestBasic/jniLibs
                 RenderscriptDirectories:
@@ -4368,6 +4953,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestDebug/assets
                 JavaDirectories:
                     ./nested2/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./nested2/src/androidTestDebug/java
+                    ./nested2/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -4389,6 +4977,9 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasicDebug/assets
                 JavaDirectories:
                     ./nested2/src/androidTestBasicDebug/java
+                KotlinDirectories:
+                    ./nested2/src/androidTestBasicDebug/java
+                    ./nested2/src/androidTestBasicDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/src/androidTestBasicDebug/jniLibs
                 RenderscriptDirectories:
@@ -4436,6 +5027,15 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/java
                     file://./nested2/src/debug/java
                     file://./nested2/src/basicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/main/java
+                    file://./nested2/src/main/kotlin
+                    file://./nested2/src/basic/java
+                    file://./nested2/src/basic/kotlin
+                    file://./nested2/src/debug/java
+                    file://./nested2/src/debug/kotlin
+                    file://./nested2/src/basicDebug/java
+                    file://./nested2/src/basicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/main/jniLibs
                     file://./nested2/src/basic/jniLibs
@@ -4494,6 +5094,15 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasic/java
                     file://./nested2/src/testDebug/java
                     file://./nested2/src/testBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/test/java
+                    file://./nested2/src/test/kotlin
+                    file://./nested2/src/testBasic/java
+                    file://./nested2/src/testBasic/kotlin
+                    file://./nested2/src/testDebug/java
+                    file://./nested2/src/testDebug/kotlin
+                    file://./nested2/src/testBasicDebug/java
+                    file://./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/test/jniLibs
                     file://./nested2/src/testBasic/jniLibs
@@ -4552,6 +5161,15 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasic/java
                     file://./nested2/src/androidTestDebug/java
                     file://./nested2/src/androidTestBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                    file://./nested2/src/androidTest/kotlin
+                    file://./nested2/src/androidTestBasic/java
+                    file://./nested2/src/androidTestBasic/kotlin
+                    file://./nested2/src/androidTestDebug/java
+                    file://./nested2/src/androidTestDebug/kotlin
+                    file://./nested2/src/androidTestBasicDebug/java
+                    file://./nested2/src/androidTestBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTest/jniLibs
                     file://./nested2/src/androidTestBasic/jniLibs
@@ -4599,6 +5217,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/main/java
+                    file://./nested2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4623,6 +5244,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basic/java
+                    file://./nested2/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4647,6 +5271,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basicDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/basicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basicDebug/java
+                    file://./nested2/src/basicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basicDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4671,6 +5298,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/debug/java
+                    file://./nested2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4695,6 +5325,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/paid/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/paid/java
+                    file://./nested2/src/paid/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/paid/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4719,6 +5352,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/release/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/release/java
+                    file://./nested2/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4748,6 +5384,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/main/java
+                    file://./nested2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4772,6 +5411,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basic/java
+                    file://./nested2/src/basic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4796,6 +5438,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/debug/java
+                    file://./nested2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4820,6 +5465,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basicDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/basicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/basicDebug/java
+                    file://./nested2/src/basicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/basicDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4845,6 +5493,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/test/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/test/java
+                    file://./nested2/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4869,6 +5520,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasic/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testBasic/java
+                    file://./nested2/src/testBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testBasic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4893,6 +5547,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testDebug/java
+                    file://./nested2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4917,6 +5574,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasicDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/testBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/testBasicDebug/java
+                    file://./nested2/src/testBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/testBasicDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4942,6 +5602,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                    file://./nested2/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4966,6 +5629,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasic/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/java
+                    file://./nested2/src/androidTestBasic/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestBasic/jniLibs
                 RenderscriptDirectoryUrls:
@@ -4990,6 +5656,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/java
+                    file://./nested2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5014,6 +5683,9 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasicDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/src/androidTestBasicDebug/java
+                    file://./nested2/src/androidTestBasicDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5044,6 +5716,9 @@ MODULE: testNestedProjects.nested2.deep
                 file://./nested2/deep/src/main/assets
             JavaDirectoryUrls:
                 file://./nested2/deep/src/main/java
+            KotlinDirectoryUrls:
+                file://./nested2/deep/src/main/java
+                file://./nested2/deep/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/deep/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -5066,6 +5741,9 @@ MODULE: testNestedProjects.nested2.deep
                 ./nested2/deep/src/main/assets
             JavaDirectories:
                 ./nested2/deep/src/main/java
+            KotlinDirectories:
+                ./nested2/deep/src/main/java
+                ./nested2/deep/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/deep/src/main/jniLibs
             RenderscriptDirectories:
@@ -5088,6 +5766,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/assets
                 JavaDirectories:
                     ./nested2/deep/src/main/java
+                KotlinDirectories:
+                    ./nested2/deep/src/main/java
+                    ./nested2/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/main/jniLibs
                 RenderscriptDirectories:
@@ -5109,6 +5790,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/assets
                 JavaDirectories:
                     ./nested2/deep/src/debug/java
+                KotlinDirectories:
+                    ./nested2/deep/src/debug/java
+                    ./nested2/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -5131,6 +5815,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/assets
                 JavaDirectories:
                     ./nested2/deep/src/main/java
+                KotlinDirectories:
+                    ./nested2/deep/src/main/java
+                    ./nested2/deep/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/main/jniLibs
                 RenderscriptDirectories:
@@ -5152,6 +5839,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/assets
                 JavaDirectories:
                     ./nested2/deep/src/debug/java
+                KotlinDirectories:
+                    ./nested2/deep/src/debug/java
+                    ./nested2/deep/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -5173,6 +5863,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/release/assets
                 JavaDirectories:
                     ./nested2/deep/src/release/java
+                KotlinDirectories:
+                    ./nested2/deep/src/release/java
+                    ./nested2/deep/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/release/jniLibs
                 RenderscriptDirectories:
@@ -5195,6 +5888,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/test/assets
                 JavaDirectories:
                     ./nested2/deep/src/test/java
+                KotlinDirectories:
+                    ./nested2/deep/src/test/java
+                    ./nested2/deep/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/test/jniLibs
                 RenderscriptDirectories:
@@ -5216,6 +5912,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/testDebug/assets
                 JavaDirectories:
                     ./nested2/deep/src/testDebug/java
+                KotlinDirectories:
+                    ./nested2/deep/src/testDebug/java
+                    ./nested2/deep/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -5238,6 +5937,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTest/assets
                 JavaDirectories:
                     ./nested2/deep/src/androidTest/java
+                KotlinDirectories:
+                    ./nested2/deep/src/androidTest/java
+                    ./nested2/deep/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -5259,6 +5961,9 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTestDebug/assets
                 JavaDirectories:
                     ./nested2/deep/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./nested2/deep/src/androidTestDebug/java
+                    ./nested2/deep/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/deep/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -5296,6 +6001,11 @@ MODULE: testNestedProjects.nested2.deep
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/main/java
                     file://./nested2/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                    file://./nested2/deep/src/main/kotlin
+                    file://./nested2/deep/src/debug/java
+                    file://./nested2/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
                     file://./nested2/deep/src/debug/jniLibs
@@ -5332,6 +6042,11 @@ MODULE: testNestedProjects.nested2.deep
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/test/java
                     file://./nested2/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/test/java
+                    file://./nested2/deep/src/test/kotlin
+                    file://./nested2/deep/src/testDebug/java
+                    file://./nested2/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/test/jniLibs
                     file://./nested2/deep/src/testDebug/jniLibs
@@ -5368,6 +6083,11 @@ MODULE: testNestedProjects.nested2.deep
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/androidTest/java
                     file://./nested2/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                    file://./nested2/deep/src/androidTest/kotlin
+                    file://./nested2/deep/src/androidTestDebug/java
+                    file://./nested2/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/jniLibs
                     file://./nested2/deep/src/androidTestDebug/jniLibs
@@ -5403,6 +6123,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                    file://./nested2/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5427,6 +6150,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/debug/java
+                    file://./nested2/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5451,6 +6177,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/release/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/release/java
+                    file://./nested2/deep/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5480,6 +6209,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                    file://./nested2/deep/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5504,6 +6236,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/debug/java
+                    file://./nested2/deep/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5529,6 +6264,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/test/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/test/java
+                    file://./nested2/deep/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5553,6 +6291,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/testDebug/java
+                    file://./nested2/deep/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5578,6 +6319,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                    file://./nested2/deep/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5602,6 +6346,9 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/java
+                    file://./nested2/deep/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -5633,6 +6380,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 file://./nested2/trans/deep2/src/main/assets
             JavaDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/java
+            KotlinDirectoryUrls:
+                file://./nested2/trans/deep2/src/main/java
+                file://./nested2/trans/deep2/src/main/kotlin
             JniLibsDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -5655,6 +6405,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/assets
             JavaDirectories:
                 ./nested2/trans/deep2/src/main/java
+            KotlinDirectories:
+                ./nested2/trans/deep2/src/main/java
+                ./nested2/trans/deep2/src/main/kotlin
             JniLibsDirectories:
                 ./nested2/trans/deep2/src/main/jniLibs
             RenderscriptDirectories:
@@ -5677,6 +6430,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/main/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/main/java
+                    ./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -5698,6 +6454,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/debug/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/debug/java
+                    ./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -5720,6 +6479,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/main/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/main/java
+                    ./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/main/jniLibs
                 RenderscriptDirectories:
@@ -5741,6 +6503,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/debug/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/debug/java
+                    ./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -5762,6 +6527,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/release/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/release/java
+                    ./nested2/trans/deep2/src/release/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/release/jniLibs
                 RenderscriptDirectories:
@@ -5784,6 +6552,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/test/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/test/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/test/java
+                    ./nested2/trans/deep2/src/test/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/test/jniLibs
                 RenderscriptDirectories:
@@ -5805,6 +6576,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/testDebug/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/testDebug/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/testDebug/java
+                    ./nested2/trans/deep2/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -5827,6 +6601,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTest/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/androidTest/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/androidTest/java
+                    ./nested2/trans/deep2/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -5848,6 +6625,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTestDebug/assets
                 JavaDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/java
+                    ./nested2/trans/deep2/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -5885,6 +6665,11 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/java
                     file://./nested2/trans/deep2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                    file://./nested2/trans/deep2/src/main/kotlin
+                    file://./nested2/trans/deep2/src/debug/java
+                    file://./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
                     file://./nested2/trans/deep2/src/debug/jniLibs
@@ -5921,6 +6706,11 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/java
                     file://./nested2/trans/deep2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/java
+                    file://./nested2/trans/deep2/src/test/kotlin
+                    file://./nested2/trans/deep2/src/testDebug/java
+                    file://./nested2/trans/deep2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/jniLibs
                     file://./nested2/trans/deep2/src/testDebug/jniLibs
@@ -5957,6 +6747,11 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/java
                     file://./nested2/trans/deep2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                    file://./nested2/trans/deep2/src/androidTest/kotlin
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                    file://./nested2/trans/deep2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/jniLibs
                     file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
@@ -5992,6 +6787,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                    file://./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6016,6 +6814,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/java
+                    file://./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6040,6 +6841,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release/java
+                    file://./nested2/trans/deep2/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6069,6 +6873,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                    file://./nested2/trans/deep2/src/main/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6093,6 +6900,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug/java
+                    file://./nested2/trans/deep2/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6118,6 +6928,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/java
+                    file://./nested2/trans/deep2/src/test/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6142,6 +6955,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug/java
+                    file://./nested2/trans/deep2/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6167,6 +6983,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                    file://./nested2/trans/deep2/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -6191,6 +7010,9 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                    file://./nested2/trans/deep2/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:

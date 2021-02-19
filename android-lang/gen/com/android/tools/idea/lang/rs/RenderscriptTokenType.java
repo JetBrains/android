@@ -36,9 +36,4 @@ public class RenderscriptTokenType extends IElementType {
   public RenderscriptTokenType(@NotNull @NonNls String debugName) {
     super(debugName, RenderscriptLanguage.INSTANCE);
   }
-
-  @Override
-  public String toString() {
-    return super.toString();
-  }
 }

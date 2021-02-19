@@ -15,10 +15,22 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.resource.SourceLocation
+import com.android.tools.property.panel.api.LinkPropertyItem
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.JBInsets
+import com.intellij.util.ui.UIUtil
+import org.jetbrains.kotlin.idea.util.application.invokeLater
+import java.util.concurrent.TimeUnit
 
 /**
- * A [PropertyItem] for a lambda parameter from Compose.
+ * A [LinkPropertyItem] for a lambda parameter from Compose.
  *
  * @param name the parameter name
  * @param viewId the compose node this parameter belongs to
@@ -38,27 +50,49 @@ class LambdaPropertyItem(
   val startLineNumber: Int,
   val endLineNumber: Int,
   lookup: ViewNodeAndResourceLookup
-): InspectorGroupPropertyItem(
+): InspectorPropertyItem(
   namespace = "",
+  attrName = name,
   name = name,
-  type = PropertyType.LAMBDA,
-  value = "λ Lambda",
-  classLocation = null,
+  initialType = PropertyType.LAMBDA,
+  initialValue = "λ",
   group = PropertySection.DEFAULT,
   source = null,
   viewId = viewId,
-  lookup = lookup,
-  children = emptyList()
-) {
-  private var lookupDone = false
-  private var location: SourceLocation? = null
+  lookup = lookup
+), LinkPropertyItem {
+  override val link = object : AnAction("$fileName:$startLineNumber") {
+    override fun actionPerformed(event: AnActionEvent) {
+      val location =
+        lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
+      templatePresentation.text = location.source
+      location.navigatable?.let {
+        if (it.canNavigate()) {
+          invokeLater {
+            // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
+            it.navigate(true)
+            lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
+            if (location.source.endsWith(":unknown")) {
+              showBalloonError("Could not determine exact source location", event)
+            }
+          }
+          return
+        }
+      }
+      showBalloonError("Could not determine source location", event)
+    }
+  }
 
-  override val classLocation: SourceLocation?
-    get() = if (lookupDone) location else findLocation()
-
-  private fun findLocation(): SourceLocation? {
-    lookupDone = true
-    location = lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
-    return location
+  @Suppress("SameParameterValue")
+  private fun showBalloonError(content: String, event: AnActionEvent) {
+    val globalScheme = EditorColorsManager.getInstance().globalScheme
+    val background = globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND) ?: UIUtil.getToolTipBackground()
+    val balloon = JBPopupFactory.getInstance()
+      .createHtmlTextBalloonBuilder(content, AllIcons.General.BalloonWarning, background, null)
+      .setBorderColor(JBColor.border())
+      .setBorderInsets(JBInsets.create(4, 4))
+      .setFadeoutTime(TimeUnit.SECONDS.toMillis(4))
+      .createBalloon()
+    balloon.show(JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext), Balloon.Position.above)
   }
 }

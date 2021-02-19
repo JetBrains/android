@@ -248,7 +248,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
-    final Insets insets = SystemInfo.isMacOSLeopard ? JBUI.emptyInsets() : JBUI.insetsTop(8);
+    final Insets insets = SystemInfo.isMac ? JBUI.emptyInsets() : JBUI.insetsTop(8);
 
     if (actions.length > 0) {
       int gridX = 0;
@@ -294,7 +294,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
       }
     }
 
-    JPanel buttonsPanel = new JPanel(new GridLayout(1, actions.length, SystemInfo.isMacOSLeopard ? 0 : 5, 0));
+    JPanel buttonsPanel = new JPanel(new GridLayout(1, actions.length, SystemInfo.isMac ? 0 : 5, 0));
     for (final Action action : actions) {
       JButton button = createJButtonForAction(action);
       final Object value = action.getValue(Action.MNEMONIC_KEY);

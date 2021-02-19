@@ -36,14 +36,10 @@ import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -52,7 +48,6 @@ import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.swing.KeyStroke;
 import javax.swing.tree.TreeModel;
 import org.apache.commons.lang3.StringUtils;
 import org.fest.swing.core.MouseButton;
@@ -61,7 +56,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.fixture.JTreePathFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -99,14 +93,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
   private void changePane(@NotNull String paneName) {
     myToolWindow.getComponent().requestFocusInWindow();
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
-    if (SystemInfo.isMac) {
-      myRobot.click(projectDropDown.getParent());
-    }
-    else {
-      Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
-      KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
-      myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
-    }
+    myRobot.click(projectDropDown.getParent());
 
     String paneFullName = "Content name=" + paneName;
     GuiTests.clickPopupMenuItemMatching(s -> s.equals(paneFullName), projectDropDown, myRobot);

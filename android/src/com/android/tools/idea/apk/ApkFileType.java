@@ -28,6 +28,9 @@ import static com.android.SdkConstants.EXT_ANDROID_PACKAGE;
 public class ApkFileType implements FileType {
   public static final ApkFileType INSTANCE = new ApkFileType();
 
+  private ApkFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

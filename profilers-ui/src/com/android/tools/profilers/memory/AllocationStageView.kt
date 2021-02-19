@@ -9,8 +9,8 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.profilers.CloseButton
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerCombobox
 import com.android.tools.profilers.ProfilerComboboxCellRenderer
@@ -20,6 +20,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
@@ -31,6 +32,7 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.util.concurrent.TimeUnit
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -118,13 +120,19 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
       }
     }
 
-    val elapsedUs = (stage.minTrackingTimeUs - stage.timeline.dataRange.min).toLong()
-    captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
+    fun updateLabel() {
+      val elapsedUs = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
+      captureElapsedTimeLabel.text = "Recorded Java / Kotlin Allocations: ${TimeFormatter.getSimplifiedClockString(elapsedUs)}"
+    }
 
     stage.captureSelection.aspect.addDependency(this)
       .onChange(CaptureSelectionAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
     stage.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE, ::adjustSelectAllButton)
-    stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE, ::adjustSelectAllButton)
+    stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE) {
+      adjustSelectAllButton()
+      updateLabel()
+    }
+    updateLabel()
     updateInstanceDetailsSplitter()
     component.add(mainPanel, BorderLayout.CENTER)
   }
@@ -221,6 +229,6 @@ class AllocationSamplingMenu(private val stage: AllocationStage): JBPanel<Alloca
 
   private fun onSamplingModeChanged() = when (val mode = stage.liveAllocationSamplingMode) {
     FULL, SAMPLED -> { combobox.model.selectedItem = mode }
-    else -> logger.error("Allocation sampling mode set to $mode when viewing live allocations")
+    NONE -> {}
   }
 }

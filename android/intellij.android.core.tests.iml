@@ -10,14 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-java-ide-customization" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-plugin-java-i18n" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
-    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
@@ -75,7 +68,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="emulator-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
@@ -123,5 +115,22 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.server-flags" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-ide-customization" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-java-i18n" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
   </component>
 </module>

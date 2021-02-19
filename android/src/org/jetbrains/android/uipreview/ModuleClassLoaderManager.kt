@@ -32,6 +32,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
+import org.jetbrains.annotations.TestOnly
 import java.lang.IllegalStateException
 import java.util.Collections
 import java.util.WeakHashMap
@@ -79,6 +80,10 @@ class ModuleClassLoaderManager {
   private val cache: MutableMap<Module, ModuleClassLoader> = WeakHashMap()
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
   private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = HashMap()
+  private var captureDiagnostics = false
+
+  @TestOnly
+  fun hasAllocatedSharedClassLoaders() = holders.isNotEmpty()
 
   /**
    * Returns a project class loader to use for rendering. May cache instances across render sessions.
@@ -128,7 +133,8 @@ class ModuleClassLoaderManager {
       // Make sure the helper service is initialized
       module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
-      moduleClassLoader = ModuleClassLoader(parent, module, combinedProjectTransformations, combinedNonProjectTransformations)
+      val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
+      moduleClassLoader = ModuleClassLoader(parent, module, combinedProjectTransformations, combinedNonProjectTransformations, diagnostics)
       cache[module] = moduleClassLoader
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
@@ -152,9 +158,11 @@ class ModuleClassLoaderManager {
     // Make sure the helper service is initialized
     module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
+    val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
     return ModuleClassLoader(parent, module,
                       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation),
-                      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)).apply {
+                      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation),
+                             diagnostics).apply {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
   }
@@ -216,6 +224,16 @@ class ModuleClassLoaderManager {
     }
 
     disposeClassLoaderThreadLocals(moduleClassLoader)
+  }
+
+  /**
+   * If set to true, any class loaders instantiated after this call will record diagnostics about the load
+   * time and load counts.
+   */
+  @TestOnly
+  @Synchronized
+  fun setCaptureClassLoadingDiagnostics(enabled: Boolean) {
+    captureDiagnostics = enabled
   }
 
   companion object {

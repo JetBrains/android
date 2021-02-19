@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.sqlite
 
-import androidx.sqlite.inspection.SqliteInspectorProtocol
+import androidx.sqlite.inspection.SqliteInspectorProtocol.AcquireDatabaseLockCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.ReleaseDatabaseLockCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Event
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
+import androidx.sqlite.inspection.SqliteInspectorProtocol.KeepDatabasesOpenCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.TrackDatabasesCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
@@ -50,7 +56,7 @@ class DatabaseInspectorClient constructor(
   private val taskExecutor: Executor,
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
-) {
+) : DatabaseInspectorClientCommandsChannel {
   private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
   init {
@@ -63,7 +69,7 @@ class DatabaseInspectorClient constructor(
 
   @VisibleForTesting
   fun onRawEvent(eventData: ByteArray) {
-    val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
+    val event = Event.parseFrom(eventData)
     when {
       event.hasDatabaseOpened() -> {
         val openedDatabase = event.databaseOpened
@@ -94,9 +100,7 @@ class DatabaseInspectorClient constructor(
    */
   suspend fun startTrackingDatabaseConnections() {
     dbMessenger.sendCommand(
-      SqliteInspectorProtocol.Command.newBuilder()
-        .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
-        .build()
+      Command.newBuilder().setTrackDatabases(TrackDatabasesCommand.getDefaultInstance())
     )
   }
 
@@ -105,17 +109,40 @@ class DatabaseInspectorClient constructor(
    * even after the app closes them.
    * Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
    */
-  fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
+  override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
     val response = dbMessenger.sendCommandAsync(
-      SqliteInspectorProtocol.Command.newBuilder()
-        .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen).build())
-        .build()
+      Command.newBuilder().setKeepDatabasesOpen(KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen))
     )
 
     return response.transform(taskExecutor) {
       return@transform when (it.oneOfCase) {
-        SqliteInspectorProtocol.Response.OneOfCase.KEEP_DATABASES_OPEN -> keepOpen
+        Response.OneOfCase.KEEP_DATABASES_OPEN -> keepOpen
         else -> null
+      }
+    }
+  }
+
+  override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> {
+    return dbMessenger.sendCommandAsync(
+      Command.newBuilder()
+        .setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId))
+    ).transform(taskExecutor) { response ->
+      when (response.oneOfCase) {
+        Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> response.acquireDatabaseLock.lockId
+        Response.OneOfCase.ERROR_OCCURRED -> null // TODO(161081452): log the error
+        else -> null // TODO(161081452): log an error
+      }
+    }
+  }
+
+  override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> {
+    return dbMessenger.sendCommandAsync(
+      Command.newBuilder().setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId))
+    ).transform(taskExecutor) { response ->
+      when (response.oneOfCase) {
+        Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> Unit
+        Response.OneOfCase.ERROR_OCCURRED -> Unit // TODO(161081452): log the error
+        else -> Unit // TODO(161081452): log an error
       }
     }
   }

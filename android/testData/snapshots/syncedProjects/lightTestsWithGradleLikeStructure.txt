@@ -1,25 +1,25 @@
-PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
-    PROJECT_JDK         : <JAVA_VERSION>
-        Version             : version <JDK_VERSION>
-    MODULE              : LightSyncBasedTestsWithGradleLikeStructureTest
-        LinkedProjectId     : LightSyncBasedTestsWithGradleLikeStructureTest
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
+PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
+    PROJECT_JDK                   : <JAVA_VERSION>
+        Version                       : version <JDK_VERSION>
+    MODULE                        : LightSyncBasedTestsWithGradleLikeStructureTest
+        LinkedProjectId               : LightSyncBasedTestsWithGradleLikeStructureTest
+        LinkedProjectPath             : <PROJECT>
+        RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/LightSyncBasedTestsWithGradleLikeStructureTest.iml [-]
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android
-            TypeId              : android
-            ExternalSource      : GRADLE
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/LightSyncBasedTestsWithGradleLikeStructureTest.iml [-]
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
-            AssembleTaskName    : assembleDebug
-            CompileJavaTaskName : compileDebugSources
-            - AfterSyncTask     : ideSetupTask1
-            - AfterSyncTask     : ideSetupTask2
+            AssembleTaskName              : assembleDebug
+            CompileJavaTaskName           : compileDebugSources
+            - AfterSyncTask               : ideSetupTask1
+            - AfterSyncTask               : ideSetupTask2
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -32,28 +32,29 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
             UseCustomCompilerManifest     : false
-            ProjectType         : 0
+            ProjectType                   : 0
             RunProcessResourcesMavenTask  : true
-            PackTestCode        : false
-            RunProguard         : false
+            PackTestCode                  : false
+            RunProguard                   : false
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             EnableManifestMerging         : false
-            EnablePreDexing     : true
+            EnablePreDexing               : true
             CompileCustomGeneratedSources : true
             EnableSourcesAutogeneration   : true
-            EnableMultiDex      : false
-            MinimalMainDex      : false
+            EnableMultiDex                : false
+            MinimalMainDex                : false
             IncludeAssetsFromLibraries    : false
-            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            ExternalSource      : GRADLE
-            GradlePath          : :
-        CONENT_ENTRY        : file://<PROJECT>
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
+            GradlePath                    : :
+        CONENT_ENTRY                  : file://<PROJECT>
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/renderscript [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/res [-]
@@ -62,6 +63,7 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/renderscript [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/debug/res [-]
@@ -70,6 +72,7 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/ml [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/main/renderscript [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/src/main/res [-]
@@ -78,18 +81,19 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/ml [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/renderscript [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/test/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/test/shaders [-]
-        JDK                 : <NAME_CUT> Android SDK
-        *isInherited        : false
-            SdkType             : Android SDK
-            HomePath            : <ANDROID_SDK>
-            VersionString       : version <JDK_VERSION>
-        ORDER_ENTRY         : <Module source>
-    RUN_CONFIGURATION   : LightSyncBasedTestsWithGradleLikeStructureTest
-        *class*             : AndroidRunConfiguration
-        ModuleName          : LightSyncBasedTestsWithGradleLikeStructureTest
-        Module              : LightSyncBasedTestsWithGradleLikeStructureTest
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+    RUN_CONFIGURATION             : LightSyncBasedTestsWithGradleLikeStructureTest
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : LightSyncBasedTestsWithGradleLikeStructureTest
+        Module                        : LightSyncBasedTestsWithGradleLikeStructureTest

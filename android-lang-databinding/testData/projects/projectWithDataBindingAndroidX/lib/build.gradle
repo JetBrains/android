@@ -22,6 +22,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.activity:activity:+'
     implementation 'androidx.appcompat:appcompat:+'
     implementation 'androidx.constraintlayout:constraintlayout:+'
 }

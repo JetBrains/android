@@ -21,6 +21,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,7 +48,7 @@ public final class StudioFlags {
     else {
       userOverrides = new DefaultFlagOverrides();
     }
-    return new Flags(userOverrides, new PropertyOverrides());
+    return new Flags(userOverrides, new PropertyOverrides(), new ServerFlagOverrides());
   }
 
   //region New Project Wizard
@@ -294,7 +295,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
     NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
     "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
@@ -704,9 +705,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag.create(
     NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
     "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
-  public static final Flag<Boolean> LLDB_ASSEMBLY_DEBUGGING = Flag.create(
-    NDK, "debugging.assembly", "Enable assembly debugging",
-    "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
 
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
@@ -731,6 +729,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_SHOW_FILES_UNKNOWN_TO_CMAKE = Flag.create(
     NDK, "ndk.projectview.showfilessunknowntocmake", "Enable option to show files unknown to CMake",
     "If enabled, for projects using CMake, Android project view menu would show an option to `Show Files Unknown To CMake`.",
+    true
+  );
+
+  public static final Flag<Boolean> ENABLE_LLDB_NATVIS = Flag.create(
+    NDK, "lldb.natvis", "Use NatVis visualizers in native debugger",
+    "If enabled, native debugger formats variables using NatVis files found in the project.",
     true
   );
   //endregion
@@ -997,14 +1001,14 @@ public final class StudioFlags {
     COMPOSE, "preview.live.literals",
     "Enable the live literals",
     "If enabled, the live literals feature is enabled",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_LITERALS = Flag.create(
     COMPOSE, "deploy.live.literals.deploy",
     "Enable live literals deploy",
     "If enabled, literals within Composable functions are instantly deployed to device",
-    false
+    true
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
@@ -1025,7 +1029,7 @@ public final class StudioFlags {
     COMPOSE, "preview.element.picker.enable",
     "Enable @Preview picker",
     "If enabled, the picker for @Preview elements will be available",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_BLUEPRINT_MODE = Flag.create(
@@ -1125,6 +1129,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
     DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
     "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
+    false
+  );
+  public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_GROUPS = Flag.create(
+    DEVICE_MANAGER, "enable.device.manager.groups", "Enable groups tab",
+    "Enables the device groups tab in the new Device Manager",
     false
   );
   // endregion

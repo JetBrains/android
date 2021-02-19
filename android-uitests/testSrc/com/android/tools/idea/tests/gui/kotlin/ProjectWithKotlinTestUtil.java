@@ -52,7 +52,7 @@ public class ProjectWithKotlinTestUtil {
   public static final String JAVA = "java";
   public static final String MENU_FILE = "File";
   public static final String MENU_NEW = "New";
-  public static final String KOTLIN_FILE_CLASS = "Kotlin File/Class";
+  public static final String KOTLIN_FILE_CLASS = "Kotlin Class/File";
   public static final String INTERFACE_NAME = "KotlinInterface";
   public static final String ENUM_NAME = "KotlinEnum";
   public static final String OBJECT_NAME = "KotlinObject";

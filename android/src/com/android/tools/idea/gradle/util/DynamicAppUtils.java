@@ -377,7 +377,7 @@ public class DynamicAppUtils {
 
     // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
     // they don't support install on demand, meaning all languages should be installed.
-    return minTargetDeviceVersion == null || minTargetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
+    return minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**

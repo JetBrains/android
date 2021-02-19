@@ -135,7 +135,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q1Path = "system-images;android-q1;google_apis;x86";
     FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path, mFileOp);
     DetailsTypes.SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q1Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
     mFileOp.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
@@ -143,7 +143,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2Path = "system-images;android-q2;google_apis;x86";
     FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
     mFileOp.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support
@@ -153,7 +153,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
     FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path, mFileOp);
     DetailsTypes.SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
-    q2_64Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
     mFileOp.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
     // Add a file that indicates QEMU-2 support

@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.DexDslElement.DEX;
+import static com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.JniLibsDslElement.JNI_LIBS;
+import static com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.ResourcesDslElement.RESOURCES;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.DexModel;
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.JniLibsModel;
+import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.ResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.packagingOptions.DexModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.packagingOptions.JniLibsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.packagingOptions.ResourcesModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.DexDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.JniLibsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.ResourcesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -57,5 +69,23 @@ public class PackagingOptionsModelImpl extends GradleDslBlockModel implements Pa
   @NotNull
   public ResolvedPropertyModel pickFirsts() {
     return getModelForProperty(PICK_FIRSTS);
+  }
+
+  @Override
+  public @NotNull DexModel dex() {
+    DexDslElement element = myDslElement.ensurePropertyElement(DEX);
+    return new DexModelImpl(element);
+  }
+
+  @Override
+  public @NotNull JniLibsModel jniLibs() {
+    JniLibsDslElement element = myDslElement.ensurePropertyElement(JNI_LIBS);
+    return new JniLibsModelImpl(element);
+  }
+
+  @Override
+  public @NotNull ResourcesModel resources() {
+    ResourcesDslElement element = myDslElement.ensurePropertyElement(RESOURCES);
+    return new ResourcesModelImpl(element);
   }
 }

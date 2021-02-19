@@ -21,8 +21,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:sqlite",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

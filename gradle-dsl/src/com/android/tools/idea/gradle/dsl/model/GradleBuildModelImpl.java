@@ -116,7 +116,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // If no plugins declaration exist, create a PluginDslElement to apply plugins
     if (pluginsDslElement == null && applyDslElement == null) {
       int at = 0;
-      List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+      List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
       if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
         at += 1;
       }
@@ -164,7 +164,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // with an apply operator; we must always find the plugins block.
 
     int at = 0;
-    List<GradleDslElement> elements = myGradleDslFile.getAllElements();
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
     if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
       at += 1;
     }
@@ -256,9 +256,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   public ExtModel ext() {
     int at = 0;
-    List<GradleDslElement> elements = myGradleDslFile.getAllElements();
-    if (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) {
-      at += 1;
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+    if (!elements.isEmpty()) {
+      GradleDslElement firstElement = elements.get(0);
+      if (firstElement instanceof ApplyDslElement || firstElement instanceof PluginsDslElement) {
+        at += 1;
+      }
     }
     ExtDslElement extDslElement = myGradleDslFile.ensurePropertyElementAt(EXT, at);
     return new ExtModelImpl(extDslElement);

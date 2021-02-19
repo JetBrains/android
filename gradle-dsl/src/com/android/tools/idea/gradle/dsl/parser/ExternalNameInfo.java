@@ -21,15 +21,24 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ExternalNameInfo {
+  public enum ExternalNameSyntax {
+    /** The external name is used as a method name. */
+    METHOD,
+    /** The external name is used on the left-hand side of an assignment. */
+    ASSIGNMENT,
+    /** The external name is used on the left-hand side of an augmented assignment. */
+    AUGMENTED_ASSIGNMENT,
+    /** The external name is used in an unknown or backend-dependent context. */
+    UNKNOWN
+  }
   /**
    * a list each element of which is the name in the external Dsl language of an element of the Dsl hierarchy.
    */
   @NotNull public final List<String> externalNameParts;
   /**
-   * a tri-state boolean, indicating that this external name is used as a method (true), is used as a property (false), or
-   * uncertainty (null).
+   * A value to indicate the syntactic form the name is found in (or should be written as).
    */
-  @Nullable public final Boolean asMethod;
+  @NotNull public final ExternalNameSyntax syntax;
   /**
    * a boolean indicating whether this name should be emitted verbatim by the Dsl writer, or whether any hierarchical parts
    * should be quoted if necessary for the Dsl language's identifier syntax.  This should only be set to false in internal
@@ -37,15 +46,15 @@ public class ExternalNameInfo {
    */
   public final boolean verbatim;
 
-  public ExternalNameInfo(@NotNull String externalName, @Nullable Boolean asMethod) {
+  public ExternalNameInfo(@NotNull String externalName, @NotNull ExternalNameSyntax syntax) {
     this.externalNameParts = Arrays.asList(externalName);
-    this.asMethod = asMethod;
+    this.syntax = syntax;
     this.verbatim = false;
   }
 
-  public ExternalNameInfo(@NotNull List<String> externalNameParts, @Nullable Boolean asMethod, boolean verbatim) {
+  public ExternalNameInfo(@NotNull List<String> externalNameParts, @NotNull ExternalNameSyntax syntax, boolean verbatim) {
     this.externalNameParts = externalNameParts;
-    this.asMethod = asMethod;
+    this.syntax = syntax;
     this.verbatim = verbatim;
   }
 }

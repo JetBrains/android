@@ -30,12 +30,14 @@ import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.SnapshotFilter
 import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
 import com.android.emulator.control.UiControllerGrpc
+import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
@@ -392,6 +394,28 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     emulatorController.setDisplayConfigurations(
         displayConfigurations, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetDisplayConfigurationsMethod()))
+  }
+
+  /**
+   * Changes orientation of the virtual scene camera.
+   */
+  fun rotateVirtualSceneCamera(cameraRotation: RotationRadian, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("rotateVirtualSceneCamera(${shortDebugString(cameraRotation)})")
+    }
+    emulatorController.rotateVirtualSceneCamera(
+        cameraRotation, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getRotateVirtualSceneCameraMethod()))
+  }
+
+  /**
+   * Changes velocity of the virtual scene camera.
+   */
+  fun setVirtualSceneCameraVelocity(cameraVelocity: Velocity, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setVirtualSceneCameraVelocity(${shortDebugString(cameraVelocity)})")
+    }
+    emulatorController.setVirtualSceneCameraVelocity(
+        cameraVelocity, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVirtualSceneCameraVelocityMethod()))
   }
 
   /**

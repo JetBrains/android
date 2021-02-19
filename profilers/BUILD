@@ -12,7 +12,6 @@ filegroup(
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    bundled_deps = ["//tools/adt/idea/profilers:traceprocessor-proto"],
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
@@ -35,13 +34,11 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
@@ -49,6 +46,7 @@ iml_module(
         "//tools/adt/idea/profilers:traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
     ],
 )
 

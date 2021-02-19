@@ -19,11 +19,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.AsyncProcessIcon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -36,11 +34,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
-    FileChooserDialogFixture dialog = new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
-    AsyncProcessIcon progressIcon = GuiTests.waitUntilShowing(robot, dialog.target(), Matchers.byType(AsyncProcessIcon.class));
-    // TODO: http://b/72834057 Consider a different way of waiting for this.
-    Wait.seconds(15).expecting("the progress icon to stop").until(() -> !progressIcon.isRunning());
-    return dialog;
+    return new FileChooserDialogFixture(robot, find(robot, FileChooserDialogImpl.class, matcher));
   }
 
   @NotNull
@@ -61,7 +55,7 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
   public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
     JTextField pathTextField =
       GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(JTextField.class, "FileChooserDialogImpl.myPathTextField"));
-    new JTextComponentFixture(robot(), pathTextField).enterText(file.getPath());
+    new JTextComponentFixture(robot(), pathTextField).setText(file.getPath());
     return this;
   }
 
@@ -73,16 +67,8 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public FileChooserDialogFixture clickOkAndWaitToClose() {
-    JButton button = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JButton.class, "OK"));
-
-    Wait.seconds(5).expecting("OK button clicked && disappear").until(() -> {
-      if (button.isEnabled() && button.isShowing()) {
-        GuiTask.execute(() -> button.doClick());
-        return GuiQuery.getNonNull(() -> !target().isShowing());
-      } else {
-        return false;
-      }
-    });
+    clickOk();
+    Wait.seconds(5).expecting("OK button clicked && disappear").until(() -> GuiQuery.getNonNull(() -> !target().isShowing()));
 
     return this;
   }

@@ -128,12 +128,12 @@ final class PhysicalDevice extends Device {
 
   @Override
   @NotNull Target getDefaultTarget() {
-    return new PhysicalDeviceTarget((SerialNumber)getKey());
+    return new RunningDeviceTarget(getKey());
   }
 
   @Override
   @NotNull Collection<@NotNull Target> getTargets() {
-    return Collections.singletonList(new PhysicalDeviceTarget((SerialNumber)getKey()));
+    return Collections.singletonList(new RunningDeviceTarget(getKey()));
   }
 
   @NotNull

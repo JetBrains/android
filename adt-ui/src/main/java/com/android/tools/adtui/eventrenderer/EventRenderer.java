@@ -16,8 +16,8 @@
 package com.android.tools.adtui.eventrenderer;
 
 import com.android.tools.adtui.model.event.EventAction;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.scale.ScaleContext;
-import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public interface EventRenderer<E> {
    * @param g2d Graphics object to be used for painting the icon, used to get the appropriate scaling.
    */
   static ImageIcon createImageIconWithBackgroundBorder(Icon icon, int margin, Color borderColor, Graphics2D g2d) {
-    BufferedImage originalImage = ImageUtil.toBufferedImage(IconUtil.toImage(icon, ScaleContext.create(g2d)));
+    BufferedImage originalImage = ImageUtil.toBufferedImage(IconLoader.toImage(icon, ScaleContext.create(g2d)));
     // Border image has a bigger size to fit the extra border
     BufferedImage borderImage =
       ImageUtil.createImage(g2d, icon.getIconWidth() + margin * 2, icon.getIconHeight() + margin * 2, BufferedImage.TYPE_INT_ARGB);

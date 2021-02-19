@@ -29,6 +29,7 @@ import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.gradle.model.IdeModuleLibrary
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.getModuleName
@@ -249,7 +250,7 @@ private fun computeModuleIdForLibraryTarget(
   library: IdeModuleLibrary,
   projectData: ProjectData?,
   compositeData: CompositeBuildData?
-) : String? {
+) : String {
   // If we don't have a ProjectData or CompositeData we assume that the target module is contained within the
   // main Gradle build.
   if (projectData == null) {
@@ -282,7 +283,7 @@ private class AndroidDependenciesSetupContext(
   private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>
 ) {
 
-  private abstract inner class WorkItem<T : IdeLibrary>() {
+  private abstract inner class WorkItem<T : IdeLibrary> {
     abstract fun isAlreadyProcessed(): Boolean
     protected abstract fun setupTarget()
     protected abstract fun createDependencyData(scope: DependencyScope)
@@ -364,10 +365,32 @@ private class AndroidDependenciesSetupContext(
   }
 
   private fun createModuleLibraryWorkItem(library: IdeModuleLibrary): ModuleLibraryWorkItem? {
-    if (library.projectPath.isNullOrEmpty()) return null
-    val targetModuleId = computeModuleIdForLibraryTarget(library, projectDataNode.data, compositeData) ?: return null
-    val targetData = idToModuleData(targetModuleId) ?: return null
-    return ModuleLibraryWorkItem(targetModuleId, targetData)
+    if (library.projectPath.isEmpty()) return null
+    val targetModuleId = computeModuleIdForLibraryTarget(library, projectDataNode.data, compositeData)
+    // If we aren't using module per source set then we short cut here as the current implementation takes a long time
+    if (!StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+      val targetData = idToModuleData(targetModuleId) ?: return null
+      return ModuleLibraryWorkItem(targetModuleId, targetData)
+    }
+
+    // TODO: This is really slow, we need to modify the platform so that the GradleExecutionWorkspace makes the data node accessible
+    val targetDataNode = ExternalSystemApiUtil.find(projectDataNode, ProjectKeys.MODULE) { moduleDataNode ->
+      moduleDataNode.data.id == targetModuleId
+    } ?: return null
+
+    val sourceSets = ExternalSystemApiUtil.findAll(targetDataNode, GradleSourceSetData.KEY)
+    // TODO: Get the correct source set to depend on from Gradle
+    val sourceSet = sourceSets.firstOrNull {
+      it.data.moduleName == "main"
+    } ?: sourceSets.firstOrNull {
+      !it.data.moduleName.contains("test")
+    }
+
+    return if (sourceSet != null) {
+      ModuleLibraryWorkItem(sourceSet.data.id, sourceSet.data)
+    } else {
+      ModuleLibraryWorkItem(targetModuleId, targetDataNode.data)
+    }
   }
 
   fun setupForArtifact(artifact: IdeBaseArtifact, scope: DependencyScope) {
@@ -530,19 +553,11 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   populateDependenciesFromArtifact(findSourceSetDataForArtifact(variant.mainArtifact), variant.mainArtifact,
                                    DependencyScope.COMPILE)
   variant.unitTestArtifact?.also {
-    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST);
+    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
   variant.androidTestArtifact?.also {
-    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST);
+    populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
-
-  // Workaround for now, we set each root module to export a dependencies to its main artifacts module.
-  val mainModuleNode = findSourceSetDataForArtifact(variant.mainArtifact)
-  val moduleDependencyData = ModuleDependencyData(this.data, mainModuleNode.data)
-  moduleDependencyData.scope = DependencyScope.COMPILE
-  moduleDependencyData.isExported = true
-  moduleDependencyData.order = 0
-  createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
 }
 
 fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact) : DataNode<GradleSourceSetData> {

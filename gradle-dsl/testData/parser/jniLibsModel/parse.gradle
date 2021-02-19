@@ -1,0 +1,12 @@
+android {
+  packagingOptions {
+    jniLibs {
+      useLegacyPackaging true
+      excludes += 'foo'
+      pickFirsts += ['bar', 'baz']
+      keepDebugSymbols += 'a'
+      keepDebugSymbols += 'b'
+      keepDebugSymbols += 'c'
+    }
+  }
+}

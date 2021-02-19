@@ -10,7 +10,6 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -30,7 +29,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="dynamic-layout-inspector.common" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />

@@ -34,6 +34,6 @@ public final class DefaultEmulatorCommandBuilderFactory implements EmulatorComma
       return new BootWithSnapshotEmulatorCommandBuilder(emulator, avd, snapshot);
     }
 
-    return new QuickBootEmulatorCommandBuilder(emulator, avd);
+    return new EmulatorCommandBuilder(emulator, avd);
   }
 }

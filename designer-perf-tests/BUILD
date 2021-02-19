@@ -27,12 +27,14 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_resources = ["testData"],
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
-    test_timeout = "eternal",
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -45,5 +47,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib",
         "//tools/adt/idea/intellij.android.compose-common[module]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
     ],
 )

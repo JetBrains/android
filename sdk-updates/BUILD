@@ -18,7 +18,6 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
@@ -40,6 +39,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",

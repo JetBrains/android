@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,25 +29,30 @@ import org.jetbrains.annotations.Nullable;
 public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOptionsModel {
   @NonNls public static final String ABORT_ON_ERROR = "mAbortOnError";
   @NonNls public static final String ABSOLUTE_PATHS = "mAbsolutePaths";
-  @NonNls public static final String CHECK = "mCheck";
+  // A note for the unwary: the CHECK property (and similar below) can be modelled for our purposes as a mutable set, given that the
+  // only entries for it in our property tables is for the varargs augmenting method.  Behind the scenes, it is implemented as a set of
+  // entries in a hash table, keyed by the individual values passed to the check() Dsl function, so assignment (or augmented assignment)
+  // will not work.
+  @NonNls public static final ModelPropertyDescription CHECK = new ModelPropertyDescription("mCheck", MUTABLE_SET);
   @NonNls public static final String CHECK_ALL_WARNINGS = "mCheckAllWarnings";
   @NonNls public static final String CHECK_RELEASE_BUILDS = "mCheckReleaseBuilds";
-  @NonNls public static final String DISABLE = "mDisable";
-  @NonNls public static final String ENABLE = "mEnable";
-  @NonNls public static final String ERROR = "mError";
+  @NonNls public static final ModelPropertyDescription DISABLE = new ModelPropertyDescription("mDisable", MUTABLE_SET);
+  @NonNls public static final ModelPropertyDescription ENABLE = new ModelPropertyDescription("mEnable", MUTABLE_SET);
+  @NonNls public static final ModelPropertyDescription ERROR = new ModelPropertyDescription("mError", MUTABLE_SET);
   @NonNls public static final String EXPLAIN_ISSUES = "mExplainIssues";
-  @NonNls public static final String FATAL = "mFatal";
+  @NonNls public static final ModelPropertyDescription FATAL = new ModelPropertyDescription("mFatal", MUTABLE_SET);
   @NonNls public static final String HTML_OUTPUT = "mHtmlOutput";
   @NonNls public static final String HTML_REPORT = "mHtmlReport";
-  @NonNls public static final String IGNORE = "mIgnore";
+  @NonNls public static final ModelPropertyDescription IGNORE = new ModelPropertyDescription("mIgnore", MUTABLE_SET);
   @NonNls public static final String IGNORE_WARNINGS = "mIgnoreWarnings";
+  @NonNls public static final ModelPropertyDescription INFORMATIONAL = new ModelPropertyDescription("mInformational", MUTABLE_SET);
   @NonNls public static final String LINT_CONFIG = "mLintConfig";
   @NonNls public static final String NO_LINES = "mNoLines";
   @NonNls public static final String QUIET = "mQuiet";
   @NonNls public static final String SHOW_ALL = "mShowAll";
   @NonNls public static final String TEXT_OUTPUT = "mTextOutput";
   @NonNls public static final String TEXT_REPORT = "mTextReport";
-  @NonNls public static final String WARNING = "mWarning";
+  @NonNls public static final ModelPropertyDescription WARNING = new ModelPropertyDescription("mWarning", MUTABLE_SET);
   @NonNls public static final String WARNINGS_AS_ERRORS = "mWarningsAsErrors";
   @NonNls public static final String XML_OUTPUT = "mXmlOutput";
   @NonNls public static final String XML_REPORT = "mXmlReport";
@@ -135,6 +143,12 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NotNull
   public ResolvedPropertyModel ignoreWarnings() {
     return getModelForProperty(IGNORE_WARNINGS);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel informational() {
+    return getModelForProperty(INFORMATIONAL);
   }
 
   @Override

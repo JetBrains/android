@@ -60,7 +60,7 @@ class ComposePreviewRepresentationProviderTest {
 
   @Test
   fun testDefaultLayout() {
-    val previewFile = fixture.addFileToProject(
+    val previewFile = fixture.addFileToProjectAndInvalidate(
       "Preview.kt",
       // language=kotlin
       """
@@ -78,7 +78,7 @@ class ComposePreviewRepresentationProviderTest {
         fun Preview2() {
         }
       """.trimIndent())
-    val composableFile = fixture.addFileToProject(
+    val composableFile = fixture.addFileToProjectAndInvalidate(
       "Composable.kt",
       // language=kotlin
       """
@@ -94,7 +94,7 @@ class ComposePreviewRepresentationProviderTest {
         fun Composable2() {
         }
       """.trimIndent())
-    val kotlinFile = fixture.addFileToProject(
+    val kotlinFile = fixture.addFileToProjectAndInvalidate(
       "Kotlin.kt",
       // language=kotlin
       """
@@ -105,7 +105,7 @@ class ComposePreviewRepresentationProviderTest {
         fun helloMethod() {
         }
       """.trimIndent())
-    val kotlinWithNoComposable = fixture.addFileToProject(
+    val kotlinWithNoComposable = fixture.addFileToProjectAndInvalidate(
       "RegularKotlin.kt",
       // language=kotlin
       """

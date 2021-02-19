@@ -26,7 +26,6 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <storageComponentContainerContributor implementation="com.android.tools.compose.TryCatchComposableChecker"/>
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
     <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
     <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
@@ -68,6 +67,7 @@
     <defaultLiveTemplates file="templates/AndroidComposePreview.xml"/>
 
     <codeCompletionConfigurable instance="com.android.tools.compose.ComposeCodeCompletionConfigurable"/>
+    <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
@@ -93,6 +93,8 @@
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
 
     <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
+
+    <automaticRenamerFactory implementation="com.android.tools.compose.ComposableElementAutomaticRenamerFactory"/>
 
   </extensions>
 

@@ -57,4 +57,6 @@ class LiveLiteralsConfigurableProvider: ConfigurableProvider() {
     LiveLiteralsConfigurable()
   else
     null
+
+  override fun canCreateConfigurable(): Boolean = StudioFlags.COMPOSE_LIVE_LITERALS.get()
 }

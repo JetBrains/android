@@ -1072,6 +1072,11 @@ private class AndroidTestResultsRow(override val methodName: String,
   override fun getBenchmark(device: AndroidDevice): String = myTestCases[device.id]?.benchmark ?: ""
 
   /**
+   * Returns the retention info artifact from Android Test Retention if available.
+   */
+  override fun getRetentionInfo(device: AndroidDevice): File? = myTestCases[device.id]?.retentionInfo
+
+  /**
    * Returns the snapshot artifact from Android Test Retention if available.
    */
   override fun getRetentionSnapshot(device: AndroidDevice): File? = myTestCases[device.id]?.retentionSnapshot
@@ -1241,6 +1246,7 @@ private class AggregationRow(override val packageName: String = "",
       }
     }
   }
+  override fun getRetentionInfo(device: AndroidDevice): File? = null
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
   /**

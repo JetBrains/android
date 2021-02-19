@@ -27,29 +27,28 @@ import org.jetbrains.kotlin.resolve.source.getPsi
  * @param resolvedCall the parent [ResolvedCall] that contains this parameter.
  * @param descriptor the [ValueParameterDescriptor] of this parameter, containing the parameter metadata.
  * @param argumentExpression the initial [KtExpression] for the argument when this parameter was initialized.
+ * @param defaultValue the default value string for the parameter, this is the value that the parameter takes when it does not have a
+ *          user-assigned value
  */
 internal open class PsiCallParameterPropertyItem(
   val project: Project,
   private val model: PsiCallPropertyModel,
   private val resolvedCall: ResolvedCall<*>,
   private val descriptor: ValueParameterDescriptor,
-  protected var argumentExpression: KtExpression?) : PsiPropertyItem {
+  protected var argumentExpression: KtExpression?,
+  override val defaultValue: String?) : PsiPropertyItem {
 
   override var name: String
     get() = descriptor.name.identifier
     // We do not support editing property names.
     set(_) {}
 
-  override val defaultValue: String? by lazy {
-    (descriptor.source.getPsi() as? KtParameter)?.defaultValue?.tryEvaluateConstantAsText()
-  }
-
   override fun isSameProperty(qualifiedName: String): Boolean = false
 
   override val namespace: String = ""
 
   override var value: String? = null
-    get() = argumentExpression?.tryEvaluateConstantAsText() ?: defaultValue
+    get() = argumentExpression?.tryEvaluateConstantAsText()
     set(value) {
       if (value != field) {
         field = value

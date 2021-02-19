@@ -113,6 +113,12 @@ interface LayoutScannerConfiguration {
   /** Returns true if it layout scanner should be enabled. False otherwise. */
   var isLayoutScannerEnabled: Boolean
 
+  /**
+   * New experimental settings to always enable scanner instead of only when it is user triggered.
+   * It takes effect only when [isLayoutScannerEnabled] is already on.
+   */
+  var isScannerAlwaysOn: Boolean
+
   companion object {
 
     /** Configuration for when layout scanner is not applicable. */
@@ -121,6 +127,10 @@ interface LayoutScannerConfiguration {
       override var isLayoutScannerEnabled: Boolean
         get() = false
         set(value) { }
+
+      override var isScannerAlwaysOn: Boolean
+        get() = false
+        set(value) {}
     }
   }
 }
@@ -129,4 +139,7 @@ interface LayoutScannerConfiguration {
 class LayoutScannerEnabled : LayoutScannerConfiguration {
 
   override var isLayoutScannerEnabled: Boolean = false
+
+  // TODO: After removing the button, enable this based on flags. Default to false while we transition.
+  override var isScannerAlwaysOn: Boolean = false
 }

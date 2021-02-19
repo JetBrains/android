@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.editors.literals.ui
 
-import com.android.tools.adtui.common.AdtUiUtilsKt.Companion.showAbove
-import com.android.tools.adtui.ui.ClickableLabel
+import com.android.tools.adtui.common.AdtUiUtils.showAbove
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.actions.CustomizeLiveLiteralsThemeAction
 import com.android.tools.idea.editors.literals.actions.ShowLiveLiteralsProblemAction
 import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsStatusAction
 import com.android.tools.idea.editors.literals.actions.UpdateHighlightsKeymapAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.application.subscribe
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -30,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -38,14 +40,19 @@ import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.openapi.wm.WindowManager
+import com.intellij.ui.ClickListener
 import com.intellij.ui.GotItTooltip
 import com.intellij.ui.LayeredIcon
 import com.intellij.util.IconUtil
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Point
+import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 
 private val AVAILABLE_ICON = StudioIcons.Shell.StatusBar.LIVE_LITERALS
 private val NOT_AVAILABLE_ICON = IconUtil.desaturate(AVAILABLE_ICON)
@@ -53,38 +60,40 @@ private val ERROR_ICON = LayeredIcon(StudioIcons.Shell.StatusBar.LIVE_LITERALS, 
 private const val WIDGET_ID = "LiveLiteralsWidget"
 
 private class LiveLiteralsAvailableIndicator(private val project: Project) :
-  CustomStatusBarWidget, StatusBarWidget.Multiframe, ClickableLabel() {
+  CustomStatusBarWidget, StatusBarWidget.Multiframe, JLabel() {
   private val literalsService = LiveLiteralsService.getInstance(project)
   private val deployReportingService = LiveLiteralsDeploymentReportService.getInstance(project)
   private var statusBar: StatusBar? = null
+  /** Will be set to true the first time this indicator receives a notification from a device being available. */
+  private var hasEverBeenActive = false
 
   init {
-    addActionListener {
-      if (!literalsService.isEnabled) {
-        // When the feature is not enable, this widget should not be visible so log a warning
-        Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Live Literals feature is not enabled")
-        return@addActionListener
+    isVisible = false
+    object : ClickListener() {
+      override fun onClick(event: MouseEvent, clickCount: Int): Boolean {
+        onClick()
+        return true
+      }
+    }.installOn(this, false)
+    deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
+      override fun onMonitorStarted(deviceId: String) {
+        hasEverBeenActive = true
+        LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       }
 
-      if (!literalsService.isAvailable) return@addActionListener
-
-      JBPopupFactory.getInstance().createActionGroupPopup(null,
-                                                          DefaultActionGroup(
-                                                            ToggleLiveLiteralsStatusAction(),
-                                                            ShowLiveLiteralsProblemAction(),
-                                                            UpdateHighlightsKeymapAction(),
-                                                            CustomizeLiveLiteralsThemeAction()
-                                                          ),
-                                                          DataManager.getInstance().getDataContext(component),
-                                                          JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
-                                                          true).showAbove(component)
-    }
-
-    deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
-      override fun onMonitorStarted(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       override fun onMonitorStopped(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       override fun onLiveLiteralsPushed(deviceId: String) = LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
     })
+    DumbService.DUMB_MODE.subscribe(this, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        if (project.isDisposed) return
+        LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
+      }
+    })
+  }
+
+  private fun isComposeProject() = project.cacheInvalidatingOnRootModifications {
+    project.allModules().any { it.getModuleSystem().usesCompose }
   }
 
   override fun ID(): String = WIDGET_ID
@@ -96,15 +105,42 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
 
   override fun copy(): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
 
+  private fun onClick() {
+    if (!literalsService.isEnabled) {
+      // When the feature is not enable, this widget should not be visible so log a warning
+      Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Live Literals feature is not enabled")
+      return
+    }
+
+    if (!literalsService.isAvailable) return
+
+    JBPopupFactory.getInstance().createActionGroupPopup(null,
+                                                        DefaultActionGroup(
+                                                          ToggleLiveLiteralsStatusAction(),
+                                                          ShowLiveLiteralsProblemAction(),
+                                                          UpdateHighlightsKeymapAction(),
+                                                          CustomizeLiveLiteralsThemeAction()
+                                                        ),
+                                                        DataManager.getInstance().getDataContext(component),
+                                                        JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+                                                        true).showAbove(component)
+  }
+
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> = when {
-    !literalsService.isEnabled -> message("live.literals.is.disabled") to null // Live literals is completely disabled
+    !isComposeProject() || !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
     !literalsService.isAvailable -> message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
     deployReportingService.hasProblems -> message("live.literals.is.enabled") to ERROR_ICON
     else -> message("live.literals.is.enabled") to AVAILABLE_ICON
   }
 
   override fun getToolTipText(): String = getIconAndTextForCurrentState().first
-  override fun getIcon(): Icon? = getIconAndTextForCurrentState().second
+
+  fun updateWidget() {
+    icon = getIconAndTextForCurrentState().second
+    isVisible = icon != null
+    revalidate()
+    repaint()
+  }
 
   fun showAvailablePopup(invokedByUser: Boolean = false) {
     val highlightAction = ActionManager.getInstance().getAction("Compose.Live.Literals.ToggleHighlight")
@@ -114,7 +150,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     val toggleLiteralsActionName = "\"${highlightAction.templateText}\"$shortcutLabel"
     GotItTooltip("android.live.literals.popup", message("live.literals.is.available", toggleLiteralsActionName), this)
       .withLink(message("live.literals.is.available.disable.hint")) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(null, message("live.literals.configurable.display.name"))
+        ShowSettingsUtil.getInstance().showSettingsDialog(null, LiveLiteralsConfigurable::class.java)
       }
       .withShowCount(if (invokedByUser) Int.MAX_VALUE else 1)
       .show(this) { Point(0, 0) }
@@ -134,12 +170,15 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
   override fun canBeEnabledOn(statusBar: StatusBar): Boolean = true
 
   companion object {
+    private fun findLiveLiteralsIndicator(project: Project): LiveLiteralsAvailableIndicator? =
+      WindowManager.getInstance()?.getStatusBar(project)?.getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator
+
     fun showIsAvailablePopup(project: Project) {
-      (WindowManager.getInstance().getStatusBar(project).getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator)?.showAvailablePopup()
+      findLiveLiteralsIndicator(project)?.showAvailablePopup()
     }
 
     fun updateWidget(project: Project) {
-      WindowManager.getInstance().getStatusBar(project)?.updateWidget(WIDGET_ID)
+      findLiveLiteralsIndicator(project)?.updateWidget()
     }
 
     fun updateAllWidgets() {

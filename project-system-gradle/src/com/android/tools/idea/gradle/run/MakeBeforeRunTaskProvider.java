@@ -544,7 +544,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   private static List<String> getProfilingOptions(@NotNull AndroidRunConfigurationBase configuration,
                                                   @Nullable AndroidDeviceSpec targetDeviceSpec)
     throws IOException {
-    if (targetDeviceSpec == null) {
+    if (targetDeviceSpec == null || targetDeviceSpec.getMinVersion() == null) {
       return emptyList();
     }
 

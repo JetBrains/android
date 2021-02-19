@@ -3,6 +3,7 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.adapters.CaptureObject
@@ -94,7 +95,11 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
 
   private fun startTracking() {
     if (liveAllocationSamplingMode != NONE) {
-      minTrackingTimeUs = timeline.dataRange.max
+      val now = timeline.dataRange.max
+      minTrackingTimeUs =
+        AllocationSamplingRateDataSeries(studioProfilers.client, sessionData, true).getDataForRange(timeline.dataRange)
+          .last { it.x.toDouble() <= now && getModeFromFrequency(it.value.currentRate.samplingNumInterval) != NONE }
+          .x.toDouble()
       timeline.selectionRange.set(minTrackingTimeUs, minTrackingTimeUs)
       timeline.viewRange.set(minTrackingTimeUs, minTrackingTimeUs)
       timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE, ::onNewData)

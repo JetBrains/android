@@ -1,28 +1,28 @@
-MODULE              : project
-MODULE              : project.app
-    Dir                 : <ROOT>/app
-    ModulePath          : app
-    Type                : APP
-    MavenName           : project:app:
-    GradleVersion       : <AGP_VERSION>
-    BuildFolder         : <ROOT>/app/build
-    - BootClassPath     : <ANDROID_SDK>/platforms/android-30/android.jar
-    JavaSourceLevel     : 1.8
-    CompileTarget       : android-30
+MODULE                        : project
+MODULE                        : project.app
+    Dir                           : <ROOT>/app
+    ModulePath                    : app
+    Type                          : APP
+    MavenName                     : project:app:
+    GradleVersion                 : <AGP_VERSION>
+    BuildFolder                   : <ROOT>/app/build
+    - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
+    JavaSourceLevel               : 1.8
+    CompileTarget                 : android-30
     LintOptions
-        AbortOnError        : true
-        AbsolutePaths       : true
-        ExplainIssues       : true
-        HtmlReport          : true
-        XmlReport           : true
-        CheckReleaseBuilds  : true
-    LintModelVariant    : debug
+        AbortOnError                  : true
+        AbsolutePaths                 : true
+        ExplainIssues                 : true
+        HtmlReport                    : true
+        XmlReport                     : true
+        CheckReleaseBuilds            : true
+    LintModelVariant              : debug
         BuildFeatures
-            ViewBinding         : false
+            ViewBinding                   : false
             CoreLibraryDesugaringEnabled  : false
-            NamespacingMode     : DISABLED
+            NamespacingMode               : DISABLED
         MainArtifact
-            ApplicationId       :
+            ApplicationId                 :
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -32,17 +32,17 @@ MODULE              : project.app
             Dependencies
                 CompileDependencies
                 PackageDependencies
-            - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debug/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
-                    artifacts::app      : null => artifacts::app:unspecified
+                    artifacts::app                : null => artifacts::app:unspecified
                 PackageDependencies
-                    artifacts::app      : null => artifacts::app:unspecified
-            - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-        ApplicationId       :
+                    artifacts::app                : null => artifacts::app:unspecified
+            - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+            - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+        ApplicationId                 :
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -51,41 +51,41 @@ MODULE              : project.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
         Dependencies
             CompileDependencies
-                artifacts::app      : null => artifacts::app:unspecified
+                artifacts::app                : null => artifacts::app:unspecified
             PackageDependencies
-                artifacts::app      : null => artifacts::app:unspecified
-        - ClassOutputs      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs      : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-        MinSdkVersion       : API 16
-        TargetSdkVersion    : API 30
+                artifacts::app                : null => artifacts::app:unspecified
+        - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+        - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 16
+        TargetSdkVersion              : API 30
         SourceProviders
-            ManifestFile        : <ROOT>/app/src/main/AndroidManifest.xml
-            - JavaDirectories   : <ROOT>/app/src/main/java
-            - ResDirectories    : <ROOT>/app/src/main/res
-            - AssetsDirectories : <ROOT>/app/src/main/assets [-]
-            ManifestFile        : <ROOT>/app/src/debug/AndroidManifest.xml [-]
-            - JavaDirectories   : <ROOT>/app/src/debug/java [-]
-            - ResDirectories    : <ROOT>/app/src/debug/res [-]
-            - AssetsDirectories : <ROOT>/app/src/debug/assets [-]
+            ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
+            - JavaDirectories             : <ROOT>/app/src/main/java
+            - ResDirectories              : <ROOT>/app/src/main/res
+            - AssetsDirectories           : <ROOT>/app/src/main/assets [-]
+            ManifestFile                  : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/debug/java [-]
+            - ResDirectories              : <ROOT>/app/src/debug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/debug/assets [-]
         TestSourceProviders
-            ManifestFile        : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
-            - JavaDirectories   : <ROOT>/app/src/androidTest/java [-]
-            - ResDirectories    : <ROOT>/app/src/androidTest/res [-]
-            - AssetsDirectories : <ROOT>/app/src/androidTest/assets [-]
-            ManifestFile        : <ROOT>/app/src/test/AndroidManifest.xml [-]
-            - JavaDirectories   : <ROOT>/app/src/test/java [-]
-            - ResDirectories    : <ROOT>/app/src/test/res [-]
-            - AssetsDirectories : <ROOT>/app/src/test/assets [-]
-            ManifestFile        : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
-            - JavaDirectories   : <ROOT>/app/src/androidTestDebug/java [-]
-            - ResDirectories    : <ROOT>/app/src/androidTestDebug/res [-]
-            - AssetsDirectories : <ROOT>/app/src/androidTestDebug/assets [-]
-            ManifestFile        : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
-            - JavaDirectories   : <ROOT>/app/src/testDebug/java [-]
-            - ResDirectories    : <ROOT>/app/src/testDebug/res [-]
-            - AssetsDirectories : <ROOT>/app/src/testDebug/assets [-]
-        Debuggable          : true
+            ManifestFile                  : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTest/java [-]
+            - ResDirectories              : <ROOT>/app/src/androidTest/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTest/assets [-]
+            ManifestFile                  : <ROOT>/app/src/test/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/test/java [-]
+            - ResDirectories              : <ROOT>/app/src/test/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/test/assets [-]
+            ManifestFile                  : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+            - ResDirectories              : <ROOT>/app/src/androidTestDebug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/androidTestDebug/assets [-]
+            ManifestFile                  : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+            - JavaDirectories             : <ROOT>/app/src/testDebug/java [-]
+            - ResDirectories              : <ROOT>/app/src/testDebug/res [-]
+            - AssetsDirectories           : <ROOT>/app/src/testDebug/assets [-]
+        Debuggable                    : true
         LibraryResolver
-            LintModelLibrary    : LocalLibrary(:app)
-                ArtifactAddress     : artifacts::app:unspecified
-                ProjectPath         : :app
+            LintModelLibrary              : LocalLibrary(:app)
+                ArtifactAddress               : artifacts::app:unspecified
+                ProjectPath                   : :app

@@ -52,7 +52,6 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
-import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
@@ -71,8 +70,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulato
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.ColdBootNowEmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandBuilderFactory;
+import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
-import com.android.tools.idea.avdmanager.emulatorcommand.QuickBootEmulatorCommandBuilder;
 import com.android.tools.idea.emulator.EmulatorSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -120,7 +119,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -177,9 +175,6 @@ public class AvdManagerConnection {
   private final AndroidSdkHandler mySdkHandler;
 
   @NotNull
-  private final FileOp myFileOp;
-
-  @NotNull
   private final ListeningExecutorService myEdtListeningExecutorService;
 
   @Nullable
@@ -210,7 +205,6 @@ public class AvdManagerConnection {
   @VisibleForTesting
   public AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler, @NotNull ListeningExecutorService edtListeningExecutorService) {
     mySdkHandler = sdkHandler;
-    myFileOp = sdkHandler == null ? FileOpUtils.create() : sdkHandler.getFileOp();
     myEdtListeningExecutorService = edtListeningExecutorService;
   }
 
@@ -268,7 +262,7 @@ public class AvdManagerConnection {
     if (CancellableFileIo.notExists(binaryFile)) {
       return null;
     }
-    return myFileOp.toFile(binaryFile);
+    return FileOpUtils.toFile(binaryFile);
   }
 
   @Nullable
@@ -421,7 +415,7 @@ public class AvdManagerConnection {
   }
 
   public @NotNull ListenableFuture<@NotNull IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd) {
-    return startAvd(project, avd, QuickBootEmulatorCommandBuilder::new);
+    return startAvd(project, avd, EmulatorCommandBuilder::new);
   }
 
   public @NotNull ListenableFuture<@NotNull IDevice> bootWithSnapshot(@NotNull Project project,
@@ -430,27 +424,25 @@ public class AvdManagerConnection {
     return startAvd(project, avd, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
-  @NotNull
-  public ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, new DefaultEmulatorCommandBuilderFactory());
   }
 
-  @NotNull
-  ListenableFuture<IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvdWithColdBoot(@Nullable Project project, @NotNull AvdInfo info) {
     return startAvd(project, info, ColdBootNowEmulatorCommandBuilder::new);
   }
 
-  private @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project,
-                                                      @NotNull AvdInfo info,
-                                                      @NotNull EmulatorCommandBuilderFactory factory) {
+  public @NotNull ListenableFuture<@NotNull IDevice> startAvd(@Nullable Project project,
+                                                              @NotNull AvdInfo info,
+                                                              @NotNull EmulatorCommandBuilderFactory factory) {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
+    assert mySdkHandler != null;
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      FileSystem fileSystem = myFileOp.getFileSystem();
-      DeviceSkinUpdater.updateSkins(fileSystem.getPath(skinPath), null);
+      DeviceSkinUpdater.updateSkins(mySdkHandler.toCompatiblePath(skinPath), null);
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
@@ -885,15 +877,16 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return null;
     }
+    assert mySdkHandler != null;
 
     Path avdFolder;
     try {
       if (currentInfo != null) {
-        avdFolder = myFileOp.toPath(currentInfo.getDataFolderPath());
+        avdFolder = mySdkHandler.toCompatiblePath(currentInfo.getDataFolderPath());
       }
       else {
         assert myAvdManager != null;
-        avdFolder = myFileOp.toPath(AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, myFileOp, true));
+        avdFolder = mySdkHandler.toCompatiblePath(AvdInfo.getDefaultAvdFolder(myAvdManager, avdName, mySdkHandler.getFileOp(), true));
       }
     }
     catch (Throwable e) {
@@ -907,9 +900,9 @@ public class AvdManagerConnection {
 
     if (skinFolder == null && isCircular) {
       File skin = getRoundSkin(systemImageDescription);
-      skinFolder = skin == null ? null : myFileOp.toPath(skin);
+      skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && FileUtil.filesEqual(myFileOp.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
+    if (skinFolder != null && FileUtil.filesEqual(FileOpUtils.toFile(skinFolder), AvdWizardUtils.NO_SKIN)) {
       skinFolder = null;
     }
     if (skinFolder == null) {
@@ -997,7 +990,7 @@ public class AvdManagerConnection {
     Path[] skins = systemImageDescription.getSkins();
     for (Path skin : skins) {
       if (skin.getFileName().toString().contains("Round")) {
-        return myFileOp.toFile(skin);
+        return FileOpUtils.toFile(skin);
       }
     }
     return null;
@@ -1089,16 +1082,18 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
+    assert mySdkHandler != null;
     // Delete the current user data file
     File userdataImage = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_QEMU_IMG);
-    if (myFileOp.exists(userdataImage)) {
-      if (!myFileOp.delete(userdataImage)) {
+    Path path = mySdkHandler.toCompatiblePath(userdataImage);
+    if (Files.exists(path)) {
+      if (!FileOpUtils.deleteFileOrFolder(path)) {
         return false;
       }
     }
     // Delete the snapshots directory
     File snapshotDirectory = new File(avdInfo.getDataFolderPath(), AvdManager.SNAPSHOTS_DIRECTORY);
-    myFileOp.deleteFileOrFolder(snapshotDirectory);
+    FileOpUtils.deleteFileOrFolder(mySdkHandler.toCompatiblePath(snapshotDirectory));
 
     return true;
   }

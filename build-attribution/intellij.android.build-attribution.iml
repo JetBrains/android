@@ -9,9 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
@@ -19,5 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>
 </module>

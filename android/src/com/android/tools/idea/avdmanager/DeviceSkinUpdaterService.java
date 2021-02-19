@@ -30,8 +30,8 @@ import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.nio.file.Path;
@@ -59,7 +59,7 @@ public final class DeviceSkinUpdaterService {
   }
 
   public static @NotNull DeviceSkinUpdaterService getInstance() {
-    return ServiceManager.getService(DeviceSkinUpdaterService.class);
+    return ApplicationManager.getApplication().getService(DeviceSkinUpdaterService.class);
   }
 
   @NotNull Executor getExecutor() {

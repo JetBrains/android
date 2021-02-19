@@ -34,6 +34,7 @@ import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto.IceboxOutput
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
@@ -42,6 +43,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
@@ -78,6 +80,7 @@ import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
 import kotlin.concurrent.withLock
 
@@ -120,7 +123,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         EMULATOR_SNAPSHOT_ID_KEY.name -> snapshotId
         EMULATOR_SNAPSHOT_FILE_KEY.name -> snapshotFile
         EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS.name -> snapshotProto?.launchParametersList
-        PACKAGE_NAME_KEY.name -> packageName
+        PACKAGE_NAME_KEY.name -> retentionInfo?.appPackage?:classPackageName
         RETENTION_AUTO_CONNECT_DEBUGGER_KEY.name -> true
         RETENTION_ON_FINISH_KEY.name -> Runnable { myRetentionDebugButton.isEnabled = true }
         DEVICE_NAME_KEY.name -> androidDevice!!.deviceName
@@ -129,19 +132,26 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
   }
 
-  private var packageName = ""
+  private var classPackageName = ""
+  private var retentionInfo: IceboxOutput? = null
+  // TODO(b/179519137): fix the paddings.
+  @VisibleForTesting
+  val myRetentionDebugLoading = JLabel("Validating snapshot", AnimatedIcon.Default(), SwingConstants.LEFT)
   @VisibleForTesting
   val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
+      isVisible = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
         AnActionEvent.createFromDataContext("", null, dataContext))
     }
+    border = BorderFactory.createEmptyBorder()
     isBorderPainted = false
   }
   @VisibleForTesting
   val myRetentionHelperLabel = JLabel(AllIcons.General.ContextHelp).apply {
+    isVisible = false
     HelpTooltip().setDescription(
       "Debug from the retention state will load the snapshot at the point of failure, and attach to the debugger."
     ).installOn(this)
@@ -176,6 +186,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   private val myLayoutPanel = panel {
     row {
       cell {
+        myRetentionDebugLoading()
         myRetentionDebugButton()
         myRetentionHelperLabel()
       }
@@ -219,13 +230,16 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   val rootPanel: JPanel
     get() = myRetentionPanel
 
-  private data class CachedData(val loadable: Boolean, val reason: String?, val image: Image?,
-    val snapshotProto: SnapshotOuterClass.Snapshot?)
+  private data class CachedData(val state: RetentionViewState, val image: Image?, val snapshotProto: SnapshotOuterClass.Snapshot?)
   // Please only access it in AppUIUtil.invokeOnEdt
   private val cachedDataMap = HashMap<String, CachedData>()
 
+  // Get the name of the APP being tested.
+  @VisibleForTesting
+  val appName: String get() = myRetentionPanel.getData(PACKAGE_NAME_KEY.name) as String
+
   fun setPackageName(packageName: String) {
-    this.packageName = packageName
+    this.classPackageName = packageName
   }
 
   @AnyThread
@@ -244,6 +258,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         myImageLabel.icon = ImageIcon(newImage)
         myInnerPanel.revalidate()
       }
+    }
+  }
+
+  @AnyThread
+  fun setRetentionInfoFile(retentionInfoFile: File?) {
+    if (retentionInfoFile == null) {
+      retentionInfo = null
+    } else {
+      retentionInfo = IceboxOutput.parseFrom(retentionInfoFile.inputStream())
     }
   }
 
@@ -283,6 +306,15 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
   }
 
+  @UiThread
+  private fun updateDebugButton(state: RetentionViewState) {
+    myRetentionDebugLoading.isVisible = state.isValidating
+    myRetentionDebugButton.isVisible = !state.isValidating
+    myRetentionHelperLabel.isVisible = !state.isValidating
+    myRetentionDebugButton.isEnabled = state.loadable
+    myRetentionDebugButton.toolTipText = state.reason
+  }
+
   @VisibleForTesting
   fun scanSnapshotFileContent(snapshotFile: File?,
                               isCancelled: () -> Boolean) {
@@ -295,8 +327,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           if (isCancelled()) {
             return@invokeOnEdt
           }
-          myRetentionDebugButton.isEnabled = false
-          myRetentionDebugButton.toolTipText = "No snapshot file found."
+          updateDebugButton(SNAPSHOT_FILE_NOT_FOUND)
         }
         return
       }
@@ -310,8 +341,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }
         if (cachedDataMap.containsKey(snapshotFile.absolutePath)) {
           cachedDataMap[snapshotFile.absolutePath].also {
-            myRetentionDebugButton.isEnabled = it!!.loadable
-            myRetentionDebugButton.toolTipText = it!!.reason
+            updateDebugButton(it!!.state)
             myRetentionPanel.snapshotProto = it!!.snapshotProto
             it!!.image?.also { image ->
               this.image = image
@@ -323,8 +353,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
           waitForCheck.countDown()
           return@invokeOnEdt
         }
-        myRetentionDebugButton.isEnabled = false
-        myRetentionDebugButton.toolTipText = "Validating snapshot file, please wait..."
+        updateDebugButton(VALIDATING_SNAPSHOT)
         waitForCheck.countDown()
       }
       waitForCheck.await()
@@ -363,12 +392,12 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       myRetentionPanel.snapshotProto = snapshotProto
       if (snapshotProto == null) {
         AppUIUtil.invokeOnEdt {
-          val tooltip = "Snapshot protobuf not found, expected path: ${snapshotFile.name}:snapshot.pb"
-          cachedDataMap[snapshotFile.absolutePath] = CachedData(false, tooltip, image, null)
+          val state = SnapshotProtoFileNotFound(snapshotFile.name)
+          cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, null)
           if (isCancelled()) {
             return@invokeOnEdt
           }
-          myRetentionDebugButton.toolTipText = tooltip
+          updateDebugButton(state)
         }
         return
       }
@@ -376,12 +405,12 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       val emulatorBinary = emulatorPackage?.location?.resolve(SdkConstants.FN_EMULATOR)?.let { androidSdkHandler.fileOp.toFile(it) }
       if (emulatorBinary == null || !androidSdkHandler.fileOp.exists(emulatorBinary)) {
         AppUIUtil.invokeOnEdt {
-          val tooltip = "Missing emulator executables. Please download the emulator from SDK manager."
-          cachedDataMap[snapshotFile.absolutePath] = CachedData(false, tooltip, image, snapshotProto)
+          val state = EMULATOR_EXEC_NOT_FOUND
+          cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
           if (isCancelled()) {
             return@invokeOnEdt
           }
-          myRetentionDebugButton.toolTipText = tooltip
+          updateDebugButton(state)
         }
         return
       }
@@ -404,37 +433,37 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }.let {
           if (it) {
             AppUIUtil.invokeOnEdt {
-              val tooltip = "Snapshot not loadable, reason: ${lines.joinToString(" ")}"
-              cachedDataMap[snapshotFile.absolutePath] = CachedData(false, tooltip, image, snapshotProto)
+              val state = Unloadable(lines.joinToString(" " ))
+              cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
               if (isCancelled()) {
                 return@invokeOnEdt
               }
-              myRetentionDebugButton.toolTipText = tooltip
+              updateDebugButton(state)
             }
             return
           }
         }
       }
       AppUIUtil.invokeOnEdt {
-        cachedDataMap[snapshotFile.absolutePath] = CachedData(true, null, image, snapshotProto)
+        val state = LOADABLE
+        cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
         if (isCancelled()) {
           return@invokeOnEdt
         }
-        myRetentionDebugButton.toolTipText = null
-        myRetentionDebugButton.isEnabled = true
+        updateDebugButton(state)
       }
     } catch (e: IOException) {
       LOG.warn(
         "Failed to parse retention snapshot", e)
       AppUIUtil.invokeOnEdt {
-        val tooltip = "Failed to parse retention snapshot"
+        val state = UNKNOWN_FAILURE
         if (snapshotFile != null) {
-          cachedDataMap[snapshotFile.absolutePath] = CachedData(false, tooltip, image, null)
+          cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, null)
         }
         if (isCancelled()) {
           return@invokeOnEdt
         }
-        myRetentionDebugButton.toolTipText = tooltip
+        updateDebugButton(state)
       }
     }
   }
@@ -486,4 +515,22 @@ private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(thi
 
 private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
 
-data class CompatibleResult(val compatible: Boolean, val reason: String? = null)
+
+private sealed class RetentionViewState(val isValidating: Boolean, val loadable: Boolean, val reason: String? = null)
+
+private object VALIDATING_SNAPSHOT: RetentionViewState(true, false, "Validating snapshot file, please wait...")
+private object SNAPSHOT_FILE_NOT_FOUND: RetentionViewState(false, false, "No snapshot file found.")
+private object EMULATOR_EXEC_NOT_FOUND: RetentionViewState(false,
+                                                           false,
+                                                           "Missing emulator executables. Please download the emulator from SDK manager.")
+private object UNKNOWN_FAILURE: RetentionViewState(false, false, "Failed to parse retention snapshot")
+private object LOADABLE: RetentionViewState(false, true, null)
+private class SnapshotProtoFileNotFound(snapshotFileName: String): RetentionViewState(false,
+                                                                                      false,
+                                                                                      "Snapshot protobuf not found, expectedPath ${snapshotFileName}:snapshot.pb\"")
+private class Unloadable(reason: String): RetentionViewState(false,
+                                                             false,
+                                                             "Snapshot not loadable, reason: $reason")
+
+
+

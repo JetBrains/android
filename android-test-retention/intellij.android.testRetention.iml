@@ -13,7 +13,6 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.emulator" />
     <orderEntry type="library" name="emulator-proto" level="project" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
   </component>

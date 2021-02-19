@@ -80,4 +80,6 @@ public interface Application extends ManifestElement {
   List<MetaData> getMetaDatas();
 
   Profileable getProfileable();
+
+  List<Property> getProperties();
 }

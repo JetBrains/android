@@ -94,6 +94,6 @@ class DataBindingAnnotationsService(val module: Module) {
       }
       .flatten()
       .mapNotNull { it.stringValue() }
-      .toSet()
+      .toSortedSet()
   }
 }

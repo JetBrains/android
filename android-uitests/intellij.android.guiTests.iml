@@ -7,7 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
@@ -60,7 +59,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
@@ -71,5 +69,6 @@
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="studio" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>
 </module>

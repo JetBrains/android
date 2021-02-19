@@ -129,6 +129,7 @@ class SourceProviderUtilTest {
     root: File = moduleRoot.resolve(name),
     manifestFile: File = File("AndroidManifest.xml"),
     javaDirectories: List<File> = listOf(File("java")),
+    kotlinDirectories: List<File> = listOf(File("java"), File("kotlin")),
     resourcesDirectories: List<File> = listOf(File("resources")),
     aidlDirectories: List<File> = listOf(File("aidl")),
     renderScriptDirectories: List<File> = listOf(File("rs")),
@@ -144,6 +145,7 @@ class SourceProviderUtilTest {
       core = object : NamedIdeaSourceProviderImpl.Core {
         override val manifestFileUrl: String get() = root.resolve(manifestFile).toIdeaUrl()
         override val javaDirectoryUrls: Sequence<String> get() = javaDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
+        override val kotlinDirectoryUrls: Sequence<String> get() = kotlinDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val resourcesDirectoryUrls: Sequence<String> get() = resourcesDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val aidlDirectoryUrls: Sequence<String> get() = aidlDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()
         override val renderscriptDirectoryUrls: Sequence<String> get() = renderScriptDirectories.map { root.resolve(it).toIdeaUrl() }.asSequence()

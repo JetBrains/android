@@ -369,6 +369,7 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
     ARTIFACT_NAME_MAIN,
     File(basePath, "AndroidManifest.xml"),
     listOf(File(basePath, "src")),
+    listOf(File(basePath, "srcKotlin")),
     emptyList(),
     emptyList(),
     emptyList(),

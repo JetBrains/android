@@ -22,12 +22,11 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
+import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerScrollbar;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsView;
@@ -54,7 +53,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.util.function.Consumer;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
 import kotlin.Unit;
@@ -185,7 +183,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Panel that represents all of L2
     details.add(mainPanel, new TabularLayout.Constraint(1, 0));
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
+    details.add(new StreamingScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the recording options, the 2nd component is the L2 components.
     myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);

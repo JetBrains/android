@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -46,7 +45,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     myRows = new ArrayList<>();
 
     for (Device device : devices) {
-      for (Target target : getTargets(device)) {
+      for (Target target : device.getTargets()) {
         myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, selectDeviceSnapshotComboBoxSnapshotsEnabledGet, target));
       }
     }
@@ -54,18 +53,6 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
     myDeviceNameMultiset = devices.stream()
       .map(Device::getName)
       .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
-  }
-
-  private static @NotNull Iterable<@NotNull Target> getTargets(@NotNull Device device) {
-    if (device.isConnected()) {
-      return Collections.singletonList(device.getDefaultTarget());
-    }
-
-    if (device.getSnapshots().isEmpty()) {
-      return Collections.singletonList(device.getDefaultTarget());
-    }
-
-    return device.getTargets();
   }
 
   @NotNull Set<@NotNull Target> getSelectedTargets() {

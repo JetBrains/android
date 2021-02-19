@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -302,6 +303,9 @@ class ResourceLookupResolverTest {
     val singleTextView = ViewNode(7, "TextView", designText, 0, 0, 400, 50, null, null, "Tab3", 0)
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup: ResourceLookup = mock()
+      override val selection: ViewNode? = null
+      override val stats: SessionStatistics = mock()
+
       override fun get(id: Long): ViewNode? =
         when (id) {
           1L -> relativeLayout

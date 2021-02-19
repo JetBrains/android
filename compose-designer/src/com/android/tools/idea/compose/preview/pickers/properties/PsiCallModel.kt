@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
+import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
@@ -48,8 +54,9 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  * In both cases, this [PsiCallPropertyModel] will deal with the named parameters as properties.
  */
 class PsiCallPropertyModel internal constructor(private val project: Project,
-                                                resolvedCall: ResolvedCall<*>) : PsiPropertyModel() {
-  private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall)
+                                                resolvedCall: ResolvedCall<*>,
+                                                defaultValues: Map<String, String?>) : PsiPropertyModel() {
+  private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
 
@@ -63,11 +70,11 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
     })
 
   companion object {
-    fun fromPreviewElement(project: Project, previewElement: PreviewElement): PsiCallPropertyModel {
+    fun fromPreviewElement(project: Project,
+                           previewElement: PreviewElement): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
-      // TODO(154503873): Get the default values for the Preview annotation parameters from the Preview class.
-      return PsiCallPropertyModel(project, resolvedCall)
+      return PsiCallPropertyModel(project, resolvedCall, previewElement.getDefaultValues())
     }
   }
 }
@@ -77,14 +84,31 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
  */
 private fun parserResolvedCallToPsiPropertyItems(project: Project,
                                                  model: PsiCallPropertyModel,
-                                                 resolvedCall: ResolvedCall<*>): Collection<PsiPropertyItem> =
+                                                 resolvedCall: ResolvedCall<*>,
+                                                 defaultValues: Map<String, String?>): Collection<PsiPropertyItem> =
   ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
     return@compute resolvedCall.valueArguments.map { (descriptor, resolved) ->
       val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+      val defaultValue = defaultValues[descriptor.name.asString()]
       when (descriptor.name.asString()) {
-        PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression)
-        PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression)
-        else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression)
+        PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        else -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
       }
     }
   }
+
+/**
+ * Get the default values from the [PreviewElement] in a format that's easier to understand for the [PsiPropertyItem]s.
+ */
+private fun PreviewElement.getDefaultValues(): Map<String, String?> =
+  mapOf(
+    PARAMETER_API_LEVEL to configuration.apiLevel.toString(),
+    PARAMETER_WIDTH to configuration.width.toString(),
+    PARAMETER_HEIGHT to configuration.height.toString(),
+    PARAMETER_FONT_SCALE to configuration.fontScale.toString() + "f",
+    PARAMETER_SHOW_SYSTEM_UI to displaySettings.showDecoration.toString(),
+    PARAMETER_SHOW_DECORATION to displaySettings.showDecoration.toString(),
+    PARAMETER_SHOW_BACKGROUND to displaySettings.showBackground.toString(),
+    PARAMETER_BACKGROUND_COLOR to displaySettings.backgroundColor?.substringAfter('#')?.let { "0x$it" }
+  )

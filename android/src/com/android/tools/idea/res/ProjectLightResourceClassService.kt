@@ -35,15 +35,12 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
-import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootEvent
-import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.LibraryTable
@@ -120,20 +117,14 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     })
 
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
+      val libsWithResources = findAllLibrariesWithResources(project).values
+      aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
       CachedValueProvider.Result<Multimap<String, ExternalLibrary>>(
-        Multimaps.index(findAllLibrariesWithResources(project).values) { getAarPackageName(it!!) },
+        Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
         ProjectRootManager.getInstance(project)
       )
     }, false)
 
-    // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep
-    // hard references to ExternalLibrary keys, otherwise the entries will be collected.
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
-      override fun rootsChanged(event: ModuleRootEvent) {
-        val aars = aarsByPackage.value.values()
-        aarPackageNamesCache.retainAll(aars)
-      }
-    })
 
     // Light classes for AARs store a reference to the Library in UserData. These Library instances can become stale during sync, which
     // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.

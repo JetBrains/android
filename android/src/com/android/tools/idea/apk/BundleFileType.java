@@ -28,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 public class BundleFileType implements FileType {
   public static final BundleFileType INSTANCE = new BundleFileType();
 
+  private BundleFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

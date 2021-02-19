@@ -18,7 +18,7 @@ package com.android.tools.adtui.workbench;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -34,7 +34,7 @@ public class WorkBenchManager {
   private Multimap<String, WorkBench> myWorkBenches;
 
   public static WorkBenchManager getInstance() {
-    return ServiceManager.getService(WorkBenchManager.class);
+    return ApplicationManager.getApplication().getService(WorkBenchManager.class);
   }
 
   public WorkBenchManager() {

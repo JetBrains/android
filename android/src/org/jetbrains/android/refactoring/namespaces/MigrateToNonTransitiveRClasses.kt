@@ -37,8 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.project
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
-
-const val REFACTORING_NAME = "Migrate to non-transitive R classes"
+import org.jetbrains.android.util.AndroidBundle
 
 private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
@@ -106,18 +105,18 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     }
   }
 
-  override fun getCommandName() = REFACTORING_NAME
+  override fun getCommandName() = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.title")
 
   override fun findUsages(): Array<UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = true
-    progressIndicator.text = "Finding R class usages..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.findusages")
     val usages = facetsToMigrate.flatMap(::findUsagesOfRClassesFromModule)
 
     // TODO(b/137180850): handle the case where usages is empty better. Display gradle.properties as the only "usage", so there's something
     //   in the UI?
 
-    progressIndicator.text = "Inferring package names..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.inferring")
     inferPackageNames(usages, progressIndicator)
 
     progressIndicator.text = null
@@ -128,7 +127,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = false
     progressIndicator.fraction = 0.0
-    progressIndicator.text = "Rewriting resource references..."
+    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.rewriting")
     val totalUsages = usages.size.toDouble()
 
     val psiMigration = PsiMigrationManager.getInstance(myProject).startMigration()
@@ -145,15 +144,15 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     if (updateTopLevelGradleProperties) {
       myProject.getProjectProperties(createIfNotExists = true)?.apply {
         findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
-        findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
-        syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
       }
+      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
     }
 
   }
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
-    override fun getProcessedElementsHeader() = "Resource references to migrate"
+    override fun getProcessedElementsHeader() =
+      AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
   }
 }

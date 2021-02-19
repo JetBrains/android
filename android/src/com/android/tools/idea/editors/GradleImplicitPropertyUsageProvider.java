@@ -18,7 +18,6 @@ package com.android.tools.idea.editors;
 import com.intellij.codeInspection.unused.ImplicitPropertyUsageProvider;
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiFile;
 
 import static com.android.SdkConstants.*;
@@ -31,19 +30,20 @@ public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsagePr
   @Override
   protected boolean isUsed(Property property) {
     PsiFile file = property.getContainingFile();
-    if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
+    boolean caseSensitive = file.getViewProvider().getVirtualFile().isCaseSensitive();
+    if (Comparing.equal(file.getName(), FN_GRADLE_WRAPPER_PROPERTIES, caseSensitive)) {
       // Ignore all properties in the gradle wrapper: read by the gradle wrapper .jar code
       return true;
     }
 
-    if (Comparing.equal(file.getName(), "gradle.properties", SystemInfo.isFileSystemCaseSensitive)) {
+    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive)) {
       // Ignore all properties in the gradle.properties; we don't have a complete set of what's used
       // and we don't want to suggest to the user that these are unused
       return true;
     }
 
     // The android gradle plugin reads sdk.dir, ndk.dir and some others from local.properties
-    if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
+    if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, caseSensitive)) {
       String name = property.getName();
       return SDK_DIR_PROPERTY.equals(name) || "ndk.dir".equals(name) || "android.dir".equals(name) || "cmake.dir".equals(name)
              || "cxx.cache.dir".equals(name) || "ndk.symlinkdir".equals(name);

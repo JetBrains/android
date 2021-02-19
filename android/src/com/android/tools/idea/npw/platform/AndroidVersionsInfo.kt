@@ -317,7 +317,8 @@ private fun getTag(repoPackage: RepoPackage): IdDisplay? {
   val details = repoPackage.typeDetails
   return when {
     details is AddonDetailsType -> details.tag
-    details is SysImgDetailsType && details.abi == CPU_ARCH_INTEL_ATOM -> details.tag
+    // TODO: support multi-tag
+    details is SysImgDetailsType && details.abi == CPU_ARCH_INTEL_ATOM -> details.tags[0]
     else -> NO_MATCH
   }
 }

@@ -153,6 +153,9 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
+    // TODO(http://b/179836372)
+    // assertEquals(Optional.of(new RunningDeviceTarget(connectedDeviceKey)), target);
+
     assertEquals(Optional.of(new QuickBootTarget(connectedDeviceKey)), target);
   }
 
@@ -287,7 +290,7 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void keyStateKeyIsInstanceOfSerialNumber() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new PhysicalDeviceTarget(new SerialNumber("86UX00F4R")));
+    Set<Target> targets = Collections.singleton(new RunningDeviceTarget(new SerialNumber("86UX00F4R")));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);

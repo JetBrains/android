@@ -19,6 +19,11 @@ MODULE: TestCompositeLib1.app
                 file://./TestCompositeLib1/app/src/main/java
             JavaDirectories:
                 file://./TestCompositeLib1/app/src/main/java
+            KotlinDirectoryUrls:
+                file://./TestCompositeLib1/app/src/main/kotlin
+                file://./TestCompositeLib1/app/src/main/java
+            KotlinDirectories:
+                file://./TestCompositeLib1/app/src/main/java
             JniLibsDirectoryUrls:
                 file://./TestCompositeLib1/app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -43,6 +48,9 @@ MODULE: TestCompositeLib1.app
                 ./TestCompositeLib1/app/src/main/assets
             JavaDirectories:
                 ./TestCompositeLib1/app/src/main/java
+            KotlinDirectories:
+                ./TestCompositeLib1/app/src/main/kotlin
+                ./TestCompositeLib1/app/src/main/java
             JniLibsDirectories:
                 ./TestCompositeLib1/app/src/main/jniLibs
             RenderscriptDirectories:
@@ -65,6 +73,9 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/main/kotlin
+                    ./TestCompositeLib1/app/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -85,6 +96,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/debug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/app/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/debug/kotlin
                     ./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/debug/jniLibs
@@ -108,6 +122,9 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/main/kotlin
+                    ./TestCompositeLib1/app/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -129,6 +146,9 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/debug/assets
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/debug/kotlin
+                    ./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -149,6 +169,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/release/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/app/src/release/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/release/kotlin
                     ./TestCompositeLib1/app/src/release/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/release/jniLibs
@@ -172,6 +195,9 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/test/assets
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/test/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/test/kotlin
+                    ./TestCompositeLib1/app/src/test/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -192,6 +218,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/testDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/app/src/testDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/testDebug/kotlin
                     ./TestCompositeLib1/app/src/testDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/testDebug/jniLibs
@@ -215,6 +244,9 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTest/assets
                 JavaDirectories:
                     ./TestCompositeLib1/app/src/androidTest/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/androidTest/kotlin
+                    ./TestCompositeLib1/app/src/androidTest/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -235,6 +267,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/app/src/androidTestDebug/kotlin
                     ./TestCompositeLib1/app/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/jniLibs
@@ -275,6 +310,13 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/debug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/main/kotlin
+                    file://./TestCompositeLib1/app/src/main/java
+                    file://./TestCompositeLib1/app/src/debug/kotlin
+                    file://./TestCompositeLib1/app/src/debug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/jniLibs
                     file://./TestCompositeLib1/app/src/debug/jniLibs
@@ -317,6 +359,13 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/testDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/test/kotlin
+                    file://./TestCompositeLib1/app/src/test/java
+                    file://./TestCompositeLib1/app/src/testDebug/kotlin
+                    file://./TestCompositeLib1/app/src/testDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/jniLibs
                     file://./TestCompositeLib1/app/src/testDebug/jniLibs
@@ -357,6 +406,13 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTestDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/androidTest/kotlin
+                    file://./TestCompositeLib1/app/src/androidTest/java
+                    file://./TestCompositeLib1/app/src/androidTestDebug/kotlin
+                    file://./TestCompositeLib1/app/src/androidTestDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/jniLibs
                     file://./TestCompositeLib1/app/src/androidTestDebug/jniLibs
@@ -394,6 +450,11 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/main/kotlin
+                    file://./TestCompositeLib1/app/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -420,6 +481,9 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/debug/kotlin
+                    file://./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -443,6 +507,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/release/kotlin
                     file://./TestCompositeLib1/app/src/release/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release/jniLibs
@@ -475,6 +542,11 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/main/kotlin
+                    file://./TestCompositeLib1/app/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -500,6 +572,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/debug/kotlin
                     file://./TestCompositeLib1/app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/jniLibs
@@ -530,6 +605,11 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/test/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/test/kotlin
+                    file://./TestCompositeLib1/app/src/test/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -553,6 +633,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/testDebug/kotlin
                     file://./TestCompositeLib1/app/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/jniLibs
@@ -583,6 +666,11 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTest/java
                 JavaDirectories:
                     file://./TestCompositeLib1/app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/androidTest/kotlin
+                    file://./TestCompositeLib1/app/src/androidTest/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -606,6 +694,9 @@ MODULE: TestCompositeLib1.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/app/src/androidTestDebug/kotlin
                     file://./TestCompositeLib1/app/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/jniLibs
@@ -639,6 +730,11 @@ MODULE: TestCompositeLib1.lib
                 file://./TestCompositeLib1/lib/src/main/java
             JavaDirectories:
                 file://./TestCompositeLib1/lib/src/main/java
+            KotlinDirectoryUrls:
+                file://./TestCompositeLib1/lib/src/main/kotlin
+                file://./TestCompositeLib1/lib/src/main/java
+            KotlinDirectories:
+                file://./TestCompositeLib1/lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./TestCompositeLib1/lib/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -663,6 +759,9 @@ MODULE: TestCompositeLib1.lib
                 ./TestCompositeLib1/lib/src/main/assets
             JavaDirectories:
                 ./TestCompositeLib1/lib/src/main/java
+            KotlinDirectories:
+                ./TestCompositeLib1/lib/src/main/kotlin
+                ./TestCompositeLib1/lib/src/main/java
             JniLibsDirectories:
                 ./TestCompositeLib1/lib/src/main/jniLibs
             RenderscriptDirectories:
@@ -685,6 +784,9 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/main/kotlin
+                    ./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -705,6 +807,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/debug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/lib/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/debug/kotlin
                     ./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/debug/jniLibs
@@ -728,6 +833,9 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/main/kotlin
+                    ./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -749,6 +857,9 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/debug/assets
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/debug/kotlin
+                    ./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -769,6 +880,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/release/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/lib/src/release/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/release/kotlin
                     ./TestCompositeLib1/lib/src/release/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/release/jniLibs
@@ -792,6 +906,9 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/test/assets
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/test/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/test/kotlin
+                    ./TestCompositeLib1/lib/src/test/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/test/jniLibs
                 RenderscriptDirectories:
@@ -812,6 +929,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/testDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/lib/src/testDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/testDebug/kotlin
                     ./TestCompositeLib1/lib/src/testDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/testDebug/jniLibs
@@ -835,6 +955,9 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTest/assets
                 JavaDirectories:
                     ./TestCompositeLib1/lib/src/androidTest/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/androidTest/kotlin
+                    ./TestCompositeLib1/lib/src/androidTest/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -855,6 +978,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib1/lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib1/lib/src/androidTestDebug/kotlin
                     ./TestCompositeLib1/lib/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/jniLibs
@@ -895,6 +1021,13 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/debug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/main/kotlin
+                    file://./TestCompositeLib1/lib/src/main/java
+                    file://./TestCompositeLib1/lib/src/debug/kotlin
+                    file://./TestCompositeLib1/lib/src/debug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/jniLibs
                     file://./TestCompositeLib1/lib/src/debug/jniLibs
@@ -937,6 +1070,13 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/testDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/test/kotlin
+                    file://./TestCompositeLib1/lib/src/test/java
+                    file://./TestCompositeLib1/lib/src/testDebug/kotlin
+                    file://./TestCompositeLib1/lib/src/testDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/jniLibs
                     file://./TestCompositeLib1/lib/src/testDebug/jniLibs
@@ -977,6 +1117,13 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTestDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/androidTest/kotlin
+                    file://./TestCompositeLib1/lib/src/androidTest/java
+                    file://./TestCompositeLib1/lib/src/androidTestDebug/kotlin
+                    file://./TestCompositeLib1/lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/jniLibs
                     file://./TestCompositeLib1/lib/src/androidTestDebug/jniLibs
@@ -1014,6 +1161,11 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/main/kotlin
+                    file://./TestCompositeLib1/lib/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1040,6 +1192,9 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/debug/kotlin
+                    file://./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1063,6 +1218,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/release/kotlin
                     file://./TestCompositeLib1/lib/src/release/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release/jniLibs
@@ -1095,6 +1253,11 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/main/kotlin
+                    file://./TestCompositeLib1/lib/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1120,6 +1283,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/debug/kotlin
                     file://./TestCompositeLib1/lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/jniLibs
@@ -1150,6 +1316,11 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/test/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/test/kotlin
+                    file://./TestCompositeLib1/lib/src/test/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1173,6 +1344,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/testDebug/kotlin
                     file://./TestCompositeLib1/lib/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/jniLibs
@@ -1203,6 +1377,11 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTest/java
                 JavaDirectories:
                     file://./TestCompositeLib1/lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/androidTest/kotlin
+                    file://./TestCompositeLib1/lib/src/androidTest/java
+                KotlinDirectories:
+                    file://./TestCompositeLib1/lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1226,6 +1405,9 @@ MODULE: TestCompositeLib1.lib
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib1/lib/src/androidTestDebug/kotlin
                     file://./TestCompositeLib1/lib/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/jniLibs
@@ -1260,6 +1442,11 @@ MODULE: TestCompositeLib3.app
                 file://./TestCompositeLib3/app/src/main/java
             JavaDirectories:
                 file://./TestCompositeLib3/app/src/main/java
+            KotlinDirectoryUrls:
+                file://./TestCompositeLib3/app/src/main/kotlin
+                file://./TestCompositeLib3/app/src/main/java
+            KotlinDirectories:
+                file://./TestCompositeLib3/app/src/main/java
             JniLibsDirectoryUrls:
                 file://./TestCompositeLib3/app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -1284,6 +1471,9 @@ MODULE: TestCompositeLib3.app
                 ./TestCompositeLib3/app/src/main/assets
             JavaDirectories:
                 ./TestCompositeLib3/app/src/main/java
+            KotlinDirectories:
+                ./TestCompositeLib3/app/src/main/kotlin
+                ./TestCompositeLib3/app/src/main/java
             JniLibsDirectories:
                 ./TestCompositeLib3/app/src/main/jniLibs
             RenderscriptDirectories:
@@ -1306,6 +1496,9 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/main/kotlin
+                    ./TestCompositeLib3/app/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1326,6 +1519,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/debug/assets
                 JavaDirectories:
+                    ./TestCompositeLib3/app/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/debug/kotlin
                     ./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/debug/jniLibs
@@ -1349,6 +1545,9 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/main/kotlin
+                    ./TestCompositeLib3/app/src/main/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1370,6 +1569,9 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/assets
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/debug/kotlin
+                    ./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1390,6 +1592,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/release/assets
                 JavaDirectories:
+                    ./TestCompositeLib3/app/src/release/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/release/kotlin
                     ./TestCompositeLib3/app/src/release/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/release/jniLibs
@@ -1413,6 +1618,9 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/test/assets
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/test/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/test/kotlin
+                    ./TestCompositeLib3/app/src/test/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -1433,6 +1641,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/testDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib3/app/src/testDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/testDebug/kotlin
                     ./TestCompositeLib3/app/src/testDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/testDebug/jniLibs
@@ -1456,6 +1667,9 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTest/assets
                 JavaDirectories:
                     ./TestCompositeLib3/app/src/androidTest/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/androidTest/kotlin
+                    ./TestCompositeLib3/app/src/androidTest/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -1476,6 +1690,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/assets
                 JavaDirectories:
+                    ./TestCompositeLib3/app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/app/src/androidTestDebug/kotlin
                     ./TestCompositeLib3/app/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/jniLibs
@@ -1516,6 +1733,13 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/debug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/main/kotlin
+                    file://./TestCompositeLib3/app/src/main/java
+                    file://./TestCompositeLib3/app/src/debug/kotlin
+                    file://./TestCompositeLib3/app/src/debug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/jniLibs
                     file://./TestCompositeLib3/app/src/debug/jniLibs
@@ -1558,6 +1782,13 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/testDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/test/kotlin
+                    file://./TestCompositeLib3/app/src/test/java
+                    file://./TestCompositeLib3/app/src/testDebug/kotlin
+                    file://./TestCompositeLib3/app/src/testDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/jniLibs
                     file://./TestCompositeLib3/app/src/testDebug/jniLibs
@@ -1598,6 +1829,13 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTestDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/androidTest/kotlin
+                    file://./TestCompositeLib3/app/src/androidTest/java
+                    file://./TestCompositeLib3/app/src/androidTestDebug/kotlin
+                    file://./TestCompositeLib3/app/src/androidTestDebug/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/jniLibs
                     file://./TestCompositeLib3/app/src/androidTestDebug/jniLibs
@@ -1635,6 +1873,11 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/main/kotlin
+                    file://./TestCompositeLib3/app/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1661,6 +1904,9 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/debug/kotlin
+                    file://./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1684,6 +1930,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/release/kotlin
                     file://./TestCompositeLib3/app/src/release/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release/jniLibs
@@ -1716,6 +1965,11 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/main/kotlin
+                    file://./TestCompositeLib3/app/src/main/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1741,6 +1995,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/debug/kotlin
                     file://./TestCompositeLib3/app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/jniLibs
@@ -1771,6 +2028,11 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/test/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/test/kotlin
+                    file://./TestCompositeLib3/app/src/test/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1794,6 +2056,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/testDebug/kotlin
                     file://./TestCompositeLib3/app/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/jniLibs
@@ -1824,6 +2089,11 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTest/java
                 JavaDirectories:
                     file://./TestCompositeLib3/app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/androidTest/kotlin
+                    file://./TestCompositeLib3/app/src/androidTest/java
+                KotlinDirectories:
+                    file://./TestCompositeLib3/app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -1847,6 +2117,9 @@ MODULE: TestCompositeLib3.app
                 AssetsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/app/src/androidTestDebug/kotlin
                     file://./TestCompositeLib3/app/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/jniLibs
@@ -1880,6 +2153,11 @@ MODULE: TestCompositeLib3.lib
                 file://./TestCompositeLib3/lib/src/main/java
             JavaDirectories:
                 file://./TestCompositeLib3/lib/src/main/java
+            KotlinDirectoryUrls:
+                file://./TestCompositeLib3/lib/src/main/java
+                file://./TestCompositeLib3/lib/src/main/kotlin
+            KotlinDirectories:
+                file://./TestCompositeLib3/lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./TestCompositeLib3/lib/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -1904,6 +2182,9 @@ MODULE: TestCompositeLib3.lib
                 ./TestCompositeLib3/lib/src/main/assets
             JavaDirectories:
                 ./TestCompositeLib3/lib/src/main/java
+            KotlinDirectories:
+                ./TestCompositeLib3/lib/src/main/java
+                ./TestCompositeLib3/lib/src/main/kotlin
             JniLibsDirectories:
                 ./TestCompositeLib3/lib/src/main/jniLibs
             RenderscriptDirectories:
@@ -1926,6 +2207,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/main/java
+                    ./TestCompositeLib3/lib/src/main/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1947,6 +2231,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/debug/java
+                    ./TestCompositeLib3/lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -1969,6 +2256,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/main/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/main/java
+                    ./TestCompositeLib3/lib/src/main/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -1990,6 +2280,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/debug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/debug/java
+                    ./TestCompositeLib3/lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2011,6 +2304,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/release/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/release/java
+                    ./TestCompositeLib3/lib/src/release/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/release/jniLibs
                 RenderscriptDirectories:
@@ -2033,6 +2329,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/test/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/test/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/test/java
+                    ./TestCompositeLib3/lib/src/test/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/test/jniLibs
                 RenderscriptDirectories:
@@ -2054,6 +2353,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/testDebug/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/testDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/testDebug/java
+                    ./TestCompositeLib3/lib/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/testDebug/jniLibs
                 RenderscriptDirectories:
@@ -2076,6 +2378,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTest/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/androidTest/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/androidTest/java
+                    ./TestCompositeLib3/lib/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -2097,6 +2402,9 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTestDebug/assets
                 JavaDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./TestCompositeLib3/lib/src/androidTestDebug/java
+                    ./TestCompositeLib3/lib/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectories:
@@ -2136,6 +2444,13 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/main/java
+                    file://./TestCompositeLib3/lib/src/main/kotlin
+                    file://./TestCompositeLib3/lib/src/debug/java
+                    file://./TestCompositeLib3/lib/src/debug/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/jniLibs
                     file://./TestCompositeLib3/lib/src/debug/jniLibs
@@ -2178,6 +2493,13 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/testDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/test/java
+                    file://./TestCompositeLib3/lib/src/test/kotlin
+                    file://./TestCompositeLib3/lib/src/testDebug/java
+                    file://./TestCompositeLib3/lib/src/testDebug/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/jniLibs
                     file://./TestCompositeLib3/lib/src/testDebug/jniLibs
@@ -2218,6 +2540,13 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/androidTest/java
+                    file://./TestCompositeLib3/lib/src/androidTest/kotlin
+                    file://./TestCompositeLib3/lib/src/androidTestDebug/java
+                    file://./TestCompositeLib3/lib/src/androidTestDebug/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/jniLibs
                     file://./TestCompositeLib3/lib/src/androidTestDebug/jniLibs
@@ -2255,6 +2584,11 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/main/java
+                    file://./TestCompositeLib3/lib/src/main/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2281,6 +2615,9 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/debug/java
+                    file://./TestCompositeLib3/lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2305,6 +2642,9 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/release/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/release/java
+                    file://./TestCompositeLib3/lib/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2336,6 +2676,11 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/main/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/main/java
+                    file://./TestCompositeLib3/lib/src/main/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2362,6 +2707,9 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/debug/java
+                    file://./TestCompositeLib3/lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2391,6 +2739,11 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/test/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/test/java
+                    file://./TestCompositeLib3/lib/src/test/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2415,6 +2768,9 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/testDebug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/testDebug/java
+                    file://./TestCompositeLib3/lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2444,6 +2800,11 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTest/java
                 JavaDirectories:
                     file://./TestCompositeLib3/lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/androidTest/java
+                    file://./TestCompositeLib3/lib/src/androidTest/kotlin
+                KotlinDirectories:
+                    file://./TestCompositeLib3/lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2468,6 +2829,9 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./TestCompositeLib3/lib/src/androidTestDebug/java
+                    file://./TestCompositeLib3/lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2503,6 +2867,11 @@ MODULE: testCompositeBuild.app
                 file://./app/src/main/java
             JavaDirectories:
                 file://./app/src/main/java
+            KotlinDirectoryUrls:
+                file://./app/src/main/kotlin
+                file://./app/src/main/java
+            KotlinDirectories:
+                file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -2527,6 +2896,9 @@ MODULE: testCompositeBuild.app
                 ./app/src/main/assets
             JavaDirectories:
                 ./app/src/main/java
+            KotlinDirectories:
+                ./app/src/main/kotlin
+                ./app/src/main/java
             JniLibsDirectories:
                 ./app/src/main/jniLibs
             RenderscriptDirectories:
@@ -2549,6 +2921,9 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/kotlin
+                    ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2569,6 +2944,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
+                    ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/kotlin
                     ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
@@ -2592,6 +2970,9 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/assets
                 JavaDirectories:
                     ./app/src/main/java
+                KotlinDirectories:
+                    ./app/src/main/kotlin
+                    ./app/src/main/java
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
                 RenderscriptDirectories:
@@ -2613,6 +2994,9 @@ MODULE: testCompositeBuild.app
                     ./app/src/debug/assets
                 JavaDirectories:
                     ./app/src/debug/java
+                KotlinDirectories:
+                    ./app/src/debug/kotlin
+                    ./app/src/debug/java
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -2633,6 +3017,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
+                    ./app/src/release/java
+                KotlinDirectories:
+                    ./app/src/release/kotlin
                     ./app/src/release/java
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
@@ -2656,6 +3043,9 @@ MODULE: testCompositeBuild.app
                     ./app/src/test/assets
                 JavaDirectories:
                     ./app/src/test/java
+                KotlinDirectories:
+                    ./app/src/test/kotlin
+                    ./app/src/test/java
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
                 RenderscriptDirectories:
@@ -2676,6 +3066,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
+                    ./app/src/testDebug/java
+                KotlinDirectories:
+                    ./app/src/testDebug/kotlin
                     ./app/src/testDebug/java
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
@@ -2699,6 +3092,9 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTest/assets
                 JavaDirectories:
                     ./app/src/androidTest/java
+                KotlinDirectories:
+                    ./app/src/androidTest/kotlin
+                    ./app/src/androidTest/java
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -2719,6 +3115,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
+                    ./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./app/src/androidTestDebug/kotlin
                     ./app/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
@@ -2759,6 +3158,13 @@ MODULE: testCompositeBuild.app
                     file://./app/src/debug/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/kotlin
+                    file://./app/src/main/java
+                    file://./app/src/debug/kotlin
+                    file://./app/src/debug/java
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/debug/jniLibs
@@ -2801,6 +3207,13 @@ MODULE: testCompositeBuild.app
                     file://./app/src/testDebug/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/kotlin
+                    file://./app/src/test/java
+                    file://./app/src/testDebug/kotlin
+                    file://./app/src/testDebug/java
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testDebug/jniLibs
@@ -2841,6 +3254,13 @@ MODULE: testCompositeBuild.app
                     file://./app/src/androidTestDebug/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTestDebug/kotlin
+                    file://./app/src/androidTestDebug/java
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
@@ -2878,6 +3298,11 @@ MODULE: testCompositeBuild.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/kotlin
+                    file://./app/src/main/java
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2904,6 +3329,9 @@ MODULE: testCompositeBuild.app
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
                     file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/kotlin
+                    file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2927,6 +3355,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
+                    file://./app/src/release/java
+                KotlinDirectoryUrls:
+                    file://./app/src/release/kotlin
                     file://./app/src/release/java
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
@@ -2959,6 +3390,11 @@ MODULE: testCompositeBuild.app
                     file://./app/src/main/java
                 JavaDirectories:
                     file://./app/src/main/java
+                KotlinDirectoryUrls:
+                    file://./app/src/main/kotlin
+                    file://./app/src/main/java
+                KotlinDirectories:
+                    file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -2984,6 +3420,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/debug/kotlin
                     file://./app/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
@@ -3014,6 +3453,11 @@ MODULE: testCompositeBuild.app
                     file://./app/src/test/java
                 JavaDirectories:
                     file://./app/src/test/java
+                KotlinDirectoryUrls:
+                    file://./app/src/test/kotlin
+                    file://./app/src/test/java
+                KotlinDirectories:
+                    file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3037,6 +3481,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
+                    file://./app/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/testDebug/kotlin
                     file://./app/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
@@ -3067,6 +3514,11 @@ MODULE: testCompositeBuild.app
                     file://./app/src/androidTest/java
                 JavaDirectories:
                     file://./app/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTest/kotlin
+                    file://./app/src/androidTest/java
+                KotlinDirectories:
+                    file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3090,6 +3542,9 @@ MODULE: testCompositeBuild.app
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./app/src/androidTestDebug/kotlin
                     file://./app/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
@@ -3123,6 +3578,11 @@ MODULE: testCompositeBuild.lib
                 file://./lib/src/main/java
             JavaDirectories:
                 file://./lib/src/main/java
+            KotlinDirectoryUrls:
+                file://./lib/src/main/kotlin
+                file://./lib/src/main/java
+            KotlinDirectories:
+                file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
             RenderscriptDirectoryUrls:
@@ -3147,6 +3607,9 @@ MODULE: testCompositeBuild.lib
                 ./lib/src/main/assets
             JavaDirectories:
                 ./lib/src/main/java
+            KotlinDirectories:
+                ./lib/src/main/kotlin
+                ./lib/src/main/java
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
             RenderscriptDirectories:
@@ -3169,6 +3632,9 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/assets
                 JavaDirectories:
                     ./lib/src/main/java
+                KotlinDirectories:
+                    ./lib/src/main/kotlin
+                    ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -3189,6 +3655,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectories:
                     ./lib/src/debug/assets
                 JavaDirectories:
+                    ./lib/src/debug/java
+                KotlinDirectories:
+                    ./lib/src/debug/kotlin
                     ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
@@ -3212,6 +3681,9 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/assets
                 JavaDirectories:
                     ./lib/src/main/java
+                KotlinDirectories:
+                    ./lib/src/main/kotlin
+                    ./lib/src/main/java
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
                 RenderscriptDirectories:
@@ -3233,6 +3705,9 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/debug/assets
                 JavaDirectories:
                     ./lib/src/debug/java
+                KotlinDirectories:
+                    ./lib/src/debug/kotlin
+                    ./lib/src/debug/java
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
                 RenderscriptDirectories:
@@ -3253,6 +3728,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectories:
                     ./lib/src/release/assets
                 JavaDirectories:
+                    ./lib/src/release/java
+                KotlinDirectories:
+                    ./lib/src/release/kotlin
                     ./lib/src/release/java
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
@@ -3276,6 +3754,9 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/test/assets
                 JavaDirectories:
                     ./lib/src/test/java
+                KotlinDirectories:
+                    ./lib/src/test/kotlin
+                    ./lib/src/test/java
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
                 RenderscriptDirectories:
@@ -3296,6 +3777,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectories:
                     ./lib/src/testDebug/assets
                 JavaDirectories:
+                    ./lib/src/testDebug/java
+                KotlinDirectories:
+                    ./lib/src/testDebug/kotlin
                     ./lib/src/testDebug/java
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
@@ -3319,6 +3803,9 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTest/assets
                 JavaDirectories:
                     ./lib/src/androidTest/java
+                KotlinDirectories:
+                    ./lib/src/androidTest/kotlin
+                    ./lib/src/androidTest/java
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
                 RenderscriptDirectories:
@@ -3339,6 +3826,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectories:
                     ./lib/src/androidTestDebug/assets
                 JavaDirectories:
+                    ./lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    ./lib/src/androidTestDebug/kotlin
                     ./lib/src/androidTestDebug/java
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
@@ -3378,6 +3868,13 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/main/java
                     file://./lib/src/debug/java
                 JavaDirectories:
+                    file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/kotlin
+                    file://./lib/src/main/java
+                    file://./lib/src/debug/kotlin
+                    file://./lib/src/debug/java
+                KotlinDirectories:
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
@@ -3420,6 +3917,13 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/test/java
                     file://./lib/src/testDebug/java
                 JavaDirectories:
+                    file://./lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/test/kotlin
+                    file://./lib/src/test/java
+                    file://./lib/src/testDebug/kotlin
+                    file://./lib/src/testDebug/java
+                KotlinDirectories:
                     file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
@@ -3461,6 +3965,13 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/androidTestDebug/java
                 JavaDirectories:
                     file://./lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTest/kotlin
+                    file://./lib/src/androidTest/java
+                    file://./lib/src/androidTestDebug/kotlin
+                    file://./lib/src/androidTestDebug/java
+                KotlinDirectories:
+                    file://./lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
@@ -3498,6 +4009,11 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/main/java
                 JavaDirectories:
                     file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/kotlin
+                    file://./lib/src/main/java
+                KotlinDirectories:
+                    file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3524,6 +4040,9 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
                     file://./lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/debug/kotlin
+                    file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3547,6 +4066,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectoryUrls:
                     file://./lib/src/release/assets
                 JavaDirectoryUrls:
+                    file://./lib/src/release/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/release/kotlin
                     file://./lib/src/release/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
@@ -3579,6 +4101,11 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/main/java
                 JavaDirectories:
                     file://./lib/src/main/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/main/kotlin
+                    file://./lib/src/main/java
+                KotlinDirectories:
+                    file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3604,6 +4131,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectoryUrls:
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
+                    file://./lib/src/debug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/debug/kotlin
                     file://./lib/src/debug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
@@ -3634,6 +4164,11 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/test/java
                 JavaDirectories:
                     file://./lib/src/test/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/test/kotlin
+                    file://./lib/src/test/java
+                KotlinDirectories:
+                    file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3657,6 +4192,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectoryUrls:
                     file://./lib/src/testDebug/assets
                 JavaDirectoryUrls:
+                    file://./lib/src/testDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/testDebug/kotlin
                     file://./lib/src/testDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
@@ -3687,6 +4225,11 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/androidTest/java
                 JavaDirectories:
                     file://./lib/src/androidTest/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTest/kotlin
+                    file://./lib/src/androidTest/java
+                KotlinDirectories:
+                    file://./lib/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                 RenderscriptDirectoryUrls:
@@ -3710,6 +4253,9 @@ MODULE: testCompositeBuild.lib
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
+                    file://./lib/src/androidTestDebug/java
+                KotlinDirectoryUrls:
+                    file://./lib/src/androidTestDebug/kotlin
                     file://./lib/src/androidTestDebug/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs

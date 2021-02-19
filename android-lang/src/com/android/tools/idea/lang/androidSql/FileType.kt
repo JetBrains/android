@@ -21,7 +21,7 @@ import javax.swing.Icon
 
 const val ANDROID_SQL_DESCRIPTION = "Android Room SQL"
 
-class AndroidSqlFileType : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
+class AndroidSqlFileType private constructor() : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
   companion object {
     /** Static field used in XML to register the instance. */
     @JvmStatic val INSTANCE = AndroidSqlFileType()

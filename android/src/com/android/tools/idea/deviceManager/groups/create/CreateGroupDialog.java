@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.groups.create;
 
+import com.android.tools.idea.deviceManager.groups.PersistentDeviceGroups;
 import com.android.tools.idea.ui.SimpleDialog;
 import com.android.tools.idea.ui.SimpleDialogOptions;
 import com.intellij.openapi.project.Project;
@@ -49,6 +50,9 @@ public class CreateGroupDialog {
   }
 
   public boolean handleOkAction() {
+    PersistentDeviceGroups.getInstance().createDeviceGroup(myPanel.getNameValue(),
+                                                           myPanel.getDescriptionValue(),
+                                                           myPanel.getAddDevicesToGroupPanel().getGroupableDevices());
     return false;
   }
 

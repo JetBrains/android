@@ -82,6 +82,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -206,7 +207,8 @@ public class RenderTask {
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
-             @NotNull Runnable onNewModuleClassLoader) {
+             @NotNull Runnable onNewModuleClassLoader,
+             @NotNull Collection<String> classesToPreload) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -243,6 +245,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
+    preloadClasses(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -264,6 +267,19 @@ public class RenderTask {
     } catch (Exception ex) {
       clearClassLoader();
       throw ex;
+    }
+  }
+
+  /**
+   * When executing the user code some code paths may take significantly longer time when executed the first time. This happens because the
+   * ClassLoader has to load the classes used in those paths first. If that happens e.g. in interactive preview this produces visual lass,
+   * glitches and might even affect the logic. In order to prevent this from happening, we load the classes in advance.
+   */
+  private static void preloadClasses(ModuleClassLoader moduleClassLoader, Collection<String> classesToPreload) {
+    for (String classToPreload: classesToPreload) {
+      try {
+        moduleClassLoader.loadClass(classToPreload);
+      } catch (ClassNotFoundException ignore) { }
     }
   }
 
@@ -872,7 +888,11 @@ public class RenderTask {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
         }
         return result != null ?
-               result.createWithInflateDuration(System.currentTimeMillis() - startInflateTimeMs) :
+               result.createWithStats(
+                 new RenderResultStats(
+                   System.currentTimeMillis() - startInflateTimeMs,
+                   -1,
+                   myModuleClassLoader.getStats())) :
                RenderResult.createRenderTaskErrorResult(xmlFile, ex);
       });
   }
@@ -903,14 +923,15 @@ public class RenderTask {
   }
 
   /**
-   * Triggers execution of the Handler and frame callbacks in layoutlib
+   * Triggers execution of the Handler and frame callbacks in layoutlib.
    *
-   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
+   * @return a {@link ExecuteCallbacksResult} future that is completed when callbacks are executed that is true if there are more callbacks
+   * to execute.
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
+  public CompletableFuture<ExecuteCallbacksResult> executeCallbacks(long timeNanos) {
     if (myRenderSession == null) {
-      return CompletableFuture.completedFuture(false);
+      return CompletableFuture.completedFuture(ExecuteCallbacksResult.EMPTY);
     }
 
     // Execute the callbacks with a 500ms timeout for all of them to run. Callbacks should not take a long time to execute, if they do,
@@ -918,7 +939,9 @@ public class RenderTask {
     // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
-      return myRenderSession.executeCallbacks(timeNanos);
+      long start = System.currentTimeMillis();
+      boolean hasMoreCallbacks = myRenderSession.executeCallbacks(timeNanos);
+      return ExecuteCallbacksResult.create(hasMoreCallbacks, System.currentTimeMillis() - start);
     }, 500, TimeUnit.MILLISECONDS);
   }
 
@@ -926,21 +949,22 @@ public class RenderTask {
    * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
    * detected of a particular type at a particular point.
    *
-   * @param touchEventType type of a touch event
-   * @param x              horizontal android coordinate of the detected touch event
-   * @param y              vertical android coordinate of the detected touch event
-   * @return a future that is completed when layoutlib handled the touch event
+   * @param touchEventType type of a touch event.
+   * @param x              horizontal android coordinate of the detected touch event.
+   * @param y              vertical android coordinate of the detected touch event.
+   * @return a {@link TouchEventResult} future that is completed when layoutlib handled the touch event.
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
+  public CompletableFuture<TouchEventResult> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     return runAsyncRenderAction(() -> {
       myRenderSession.setSystemTimeNanos(timeNanos);
+      long start = System.currentTimeMillis();
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
-      return null;
+      return TouchEventResult.create(System.currentTimeMillis() - start);
     });
   }
 
@@ -999,9 +1023,12 @@ public class RenderTask {
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
-          return result.createWithTotalRenderDuration(inflateResult != null ?
-                                                      inflateResult.getInflateDuration() : result.getInflateDuration(),
-                                                      System.currentTimeMillis() - startRenderTimeMs);
+          return result.createWithStats(new RenderResultStats(
+            inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
+            System.currentTimeMillis() - startRenderTimeMs,
+            myModuleClassLoader.getStats().getClassesFound(),
+            myModuleClassLoader.getStats().getAccumulatedFindTimeMs(),
+            myModuleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
         });
       }
       catch (Exception e) {

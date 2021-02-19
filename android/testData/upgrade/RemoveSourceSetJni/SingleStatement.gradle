@@ -1,0 +1,4 @@
+android {
+  compileSdkVersion 30
+  sourceSets.main.jni.srcDir 'jniSource'
+}

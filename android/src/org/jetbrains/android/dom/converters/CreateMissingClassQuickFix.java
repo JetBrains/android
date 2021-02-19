@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -98,11 +99,12 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final Iterable<VirtualFile> javaDirectories = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
+    IdeaSourceProvider sources = SourceProviderManager.getInstance(facet).getSources();
+    final Iterable<VirtualFile> sourceDirs = Iterables.concat(sources.getJavaDirectories(), sources.getKotlinDirectories());
     final PsiDirectory[] directories = aPackage.getDirectories();
     final List<PsiDirectory> filteredDirectories = Lists.newArrayListWithExpectedSize(directories.length);
     for (PsiDirectory directory : directories) {
-      for (VirtualFile file : javaDirectories) {
+      for (VirtualFile file : sourceDirs) {
         if (VfsUtilCore.isAncestor(file, directory.getVirtualFile(), true)) {
           filteredDirectories.add(directory);
           break;

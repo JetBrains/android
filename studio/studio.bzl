@@ -53,11 +53,7 @@ def _module_deps(ctx, jar_names, modules):
                 plugin_jar = j
                 plugin_xml = m.module.plugin
             modules_jars += [m.module.module_jars]
-            for dep in m.module.bundled_deps:
-                if dep in bundled:
-                    continue
-                res_files += [(dep.basename, dep)]
-                bundled[dep] = True
+
         run_singlejar(ctx, modules_jars, jar_file)
         res_files += [(j, jar_file)]
     return res_files, plugin_jar, plugin_xml
@@ -145,6 +141,7 @@ def _depset_subtract(depset1, depset2):
 def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps, plugin_jar, plugin_xml = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
+    module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
     plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
     _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
@@ -152,16 +149,20 @@ def _studio_plugin_impl(ctx):
 
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
-    need = depset(transitive = [m.module.module_deps for m in ctx.attr.modules] + [m.module.plugin_deps for m in ctx.attr.modules])
+    need = depset(transitive =
+                      [m.module.module_deps for m in ctx.attr.modules] +
+                      [m.module.plugin_deps for m in ctx.attr.modules] +
+                      [m.module.external_deps for m in ctx.attr.modules])
     have = depset(
-        direct = ctx.attr.modules + ctx.attr.provided,
+        direct = ctx.attr.modules + ctx.attr.libs + ctx.attr.provided,
         transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
+                     [d.lib_deps for d in ctx.attr.deps if hasattr(d, "lib_deps")] +
                      [depset([p for p in ctx.attr.deps if hasattr(p, "plugin_info")])],
     )
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
-        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
+        fail("Whilae analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
     return struct(
         directory = ctx.attr.directory,
@@ -173,11 +174,13 @@ def _studio_plugin_impl(ctx):
         files_win = depset([ctx.outputs.plugin_win]),
         plugin_info = plugin_info,
         module_deps = depset(ctx.attr.modules),
+        lib_deps = depset(ctx.attr.libs),
     )
 
 _studio_plugin = rule(
     attrs = {
         "modules": attr.label_list(allow_empty = False),
+        "libs": attr.label_list(allow_files = True),
         "jars": attr.string_list(),
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),
@@ -390,7 +393,7 @@ def _codesign(ctx, filelist_template, entitlements, prefix, out):
 
 def _android_studio_prefix(ctx, platform):
     if platform == MAC:
-        return ctx.attr.platform.mac_bundle_name + "/"
+        return ctx.attr.platform.platform_info.mac_bundle_name + "/"
     return "android-studio/"
 
 def _android_studio_os(ctx, platform, out):
@@ -466,6 +469,19 @@ def _android_studio_os(ctx, platform, out):
 
     _zip_merger(ctx, zips, overrides, out)
 
+script_template = """\
+    #!/bin/bash
+    args=$@
+    options=
+    if [ "$1" == "--debug" ]; then
+      options={vmoptions}
+      args=${{@:2}}
+    fi
+    tmp_dir=$(mktemp -d -t android-studio-XXXXXXXXXX)
+    unzip -q "{linux_file}" -d "$tmp_dir"
+    STUDIO_VM_OPTIONS="$options" $tmp_dir/android-studio/bin/studio.sh $args
+"""
+
 def _android_studio_impl(ctx):
     plugins = [plugin.directory for plugin in ctx.attr.plugins]
     ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
@@ -474,8 +490,23 @@ def _android_studio_impl(ctx):
     _android_studio_os(ctx, MAC, ctx.outputs.mac)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
+    vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
+    ctx.actions.write(vmoptions, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
+
+    script = ctx.actions.declare_file("%s-run" % ctx.label.name)
+    script_content = script_template.format(
+        linux_file = ctx.outputs.linux.short_path,
+        vmoptions = vmoptions.short_path,
+    )
+    ctx.actions.write(script, script_content, is_executable = True)
+    runfiles = ctx.runfiles(files = [ctx.outputs.linux, vmoptions])
+
     # Leave everything that is not the main zips as implicit outputs
-    return DefaultInfo(files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]))
+    return DefaultInfo(
+        executable = script,
+        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]),
+        runfiles = runfiles,
+    )
 
 _android_studio = rule(
     attrs = {
@@ -526,6 +557,7 @@ _android_studio = rule(
         "win": "%{name}.win.zip",
         "plugins": "%{name}.plugin.lst",
     },
+    executable = True,
     implementation = _android_studio_impl,
 )
 
@@ -622,12 +654,29 @@ def _intellij_platform_impl_os(ctx, platform, data):
     return base_zip, plugin_zips
 
 def _intellij_platform_impl(ctx):
-    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.data)
-    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.data)
-    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.data)
+    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
+    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
+    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
 
+    infos = []
+    for jar in ctx.files.jars:
+        ijar = java_common.run_ijar(
+            actions = ctx.actions,
+            jar = jar,
+            java_toolchain = find_java_toolchain(ctx, ctx.attr._java_toolchain),
+        )
+        infos.append(JavaInfo(
+            output_jar = jar,
+            compile_jar = ijar,
+        ))
+
+    runfiles = ctx.runfiles(files = ctx.files.data)
+    files = depset([base_linux, base_mac, base_win])
     return struct(
-        files = depset([base_linux, base_mac, base_win]),
+        providers = [
+            DefaultInfo(files = files, runfiles = runfiles),
+            java_common.merge(infos),
+        ],
         data = struct(
             files = depset([]),
             files_linux = depset([base_linux]),
@@ -642,14 +691,19 @@ def _intellij_platform_impl(ctx):
             files_win = depset(plugins_win),
             mappings = {},
         ),
-        mac_bundle_name = ctx.attr.mac_bundle_name,
+        platform_info = struct(
+            mac_bundle_name = ctx.attr.mac_bundle_name,
+        ),
     )
 
 _intellij_platform = rule(
     attrs = {
-        "data": attr.label(),
+        "jars": attr.label_list(allow_files = True),
+        "data": attr.label_list(allow_files = True),
+        "studio_data": attr.label(),
         "compress": attr.bool(),
         "mac_bundle_name": attr.string(),
+        "_java_toolchain": attr.label(default = Label("@bazel_tools//tools/jdk:current_java_toolchain")),
         "_zipper": attr.label(
             default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
@@ -664,13 +718,16 @@ def intellij_platform(
         src,
         spec,
         **kwargs):
-    native.java_import(
+    _intellij_platform(
         name = name,
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
+        compress = _is_release(),
+        mac_bundle_name = spec.mac_bundle_name,
+        studio_data = name + ".data",
         visibility = ["//visibility:public"],
         # Local linux sandbox does not support spaces in names, so we exclude some files
         # Otherwise we get: "link or target filename contains space"
@@ -750,13 +807,5 @@ def intellij_platform(
     native.java_import(
         name = name + "-updater",
         jars = [src + "/updater-full.jar"],
-        visibility = ["//visibility:public"],
-    )
-
-    _intellij_platform(
-        name = name + ".platform",
-        compress = _is_release(),
-        data = name + ".data",
-        mac_bundle_name = spec.mac_bundle_name,
         visibility = ["//visibility:public"],
     )

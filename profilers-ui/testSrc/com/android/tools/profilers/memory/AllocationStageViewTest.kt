@@ -3,6 +3,7 @@ package com.android.tools.profilers.memory
 import com.android.tools.adtui.TreeWalker
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID
@@ -142,6 +143,12 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     validateRegion(renderedRegions[2], 0.8f, 1f, iconWidth, iconHeight)
     // Point should be attached due to start of FULL mode
     validateRegion(renderedRegions[3], 1f, 0f, iconWidth, iconHeight)
+  }
+
+  @Test
+  fun `stage shows session timestamp`() {
+    val elapsed = stage.minTrackingTimeUs.toLong() - TimeUnit.NANOSECONDS.toMicros(stage.studioProfilers.session.startTimestamp)
+    assertThat(stageView.captureElapsedTimeLabel.text).endsWith(TimeFormatter.getSimplifiedClockString(elapsed))
   }
 
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)

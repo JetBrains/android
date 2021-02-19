@@ -9,6 +9,8 @@ import com.intellij.ide.util.projectWizard.importSources.ProjectFromSourcesBuild
 import com.intellij.ide.util.projectWizard.importSources.ProjectStructureDetector;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -71,10 +73,11 @@ public class AndroidProjectStructureDetector extends ProjectStructureDetector {
       super(directory);
     }
 
+    @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
     public String getRootTypeName() {
-      return "Android";
+      return AndroidBundle.message("group.Internal.Android.text");
     }
   }
 }

@@ -41,7 +41,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
@@ -62,7 +62,7 @@ public class GradleTaskFinder {
 
   @NotNull
   public static GradleTaskFinder getInstance() {
-    return ServiceManager.getService(GradleTaskFinder.class);
+    return ApplicationManager.getApplication().getService(GradleTaskFinder.class);
   }
 
   @SuppressWarnings("unused") // Invoked by IDEA.

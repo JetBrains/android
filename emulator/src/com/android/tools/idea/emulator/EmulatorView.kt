@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.ThemingStyle
 import com.android.ide.common.util.Cancelable
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
@@ -39,6 +41,7 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSH
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
@@ -51,27 +54,32 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
+import com.intellij.util.Alarm
+import com.intellij.util.SofterReference
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import org.HdrHistogram.Histogram
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Image
 import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.color.ColorSpace
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
@@ -82,12 +90,9 @@ import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
-import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_D
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_E
 import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
@@ -99,24 +104,26 @@ import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
-import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
-import java.awt.event.KeyEvent.VK_W
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
-import java.awt.image.ColorModel
-import java.awt.image.MemoryImageSource
+import java.awt.image.BufferedImage
+import java.awt.image.DataBuffer
+import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
+import java.awt.image.Raster
+import java.awt.image.SinglePixelPackedSampleModel
+import java.lang.Math.PI
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
@@ -140,11 +147,11 @@ class EmulatorView(
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
-  private var screenshotImage: Image? = null
-  private var screenshotShape = DisplayShape(0, 0, SkinRotation.PORTRAIT)
+  private var lastScreenshot: Screenshot? = null
   private var displayRectangle: Rectangle? = null
-  private var skinLayout: SkinLayout? = null
   private val displayTransform = AffineTransform()
+  private val screenshotShape
+    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -244,8 +251,8 @@ class EmulatorView(
     }
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
-  private val virtualSceneCameraOrientation = Point()
-  private val virtualSceneCameraReferencePoint = Point()
+  private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
+  private val stats = Stats(this)
 
   init {
     Disposer.register(parentDisposable, this)
@@ -305,39 +312,16 @@ class EmulatorView(
         }
 
         if (virtualSceneCameraOperating) {
-          val point =
-            when (event.keyCode) {
-              VK_LEFT, VK_KP_LEFT -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, 0)
-              VK_RIGHT, VK_KP_RIGHT -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, 0)
-              VK_UP, VK_KP_UP -> Point(0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              VK_DOWN, VK_KP_DOWN -> Point(0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              VK_HOME -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              VK_END -> Point(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              VK_PAGE_UP -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              VK_PAGE_DOWN -> Point(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS)
-              else -> null
-            }
-          if (point != null) {
-            virtualSceneCameraOrientation.translate(point.x, point.y)
-            virtualSceneCameraReferencePoint.translate(-point.x, -point.y)
-            val mouseEvent = MouseEventMessage.newBuilder()
-              .setX(virtualSceneCameraOrientation.x)
-              .setY(virtualSceneCameraOrientation.y)
-              .build()
-            emulator.sendMouse(mouseEvent)
-          }
-          else {
-            val keyName =
-              when (event.keyCode) {
-                VK_Q -> "KeyQ"
-                VK_W -> "KeyW"
-                VK_E -> "KeyE"
-                VK_A -> "KeyA"
-                VK_S -> "KeyS"
-                VK_D -> "KeyD"
-                else -> return
-              }
-            emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keydown))
+          when (event.keyCode) {
+            VK_LEFT, VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            VK_RIGHT, VK_KP_RIGHT -> rotateVirtualSceneCamera(0.0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            VK_UP, VK_KP_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+            VK_DOWN, VK_KP_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+            VK_HOME -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+            else -> virtualSceneCameraVelocityController.keyPressed(event.keyCode)
           }
           return
         }
@@ -377,17 +361,7 @@ class EmulatorView(
           virtualSceneCameraOperating = false
         }
         else if (virtualSceneCameraOperating) {
-          val keyName =
-            when (event.keyCode) {
-              VK_Q -> "KeyQ"
-              VK_W -> "KeyW"
-              VK_E -> "KeyE"
-              VK_A -> "KeyA"
-              VK_S -> "KeyS"
-              VK_D -> "KeyD"
-              else -> return
-            }
-          emulator.sendKey(createHardwareKeyEvent(keyName, eventType = KeyEventType.keyup))
+          virtualSceneCameraVelocityController.keyReleased(event.keyCode)
         }
       }
     })
@@ -605,7 +579,7 @@ class EmulatorView(
       }
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
-      screenshotImage = null
+      lastScreenshot = null
       hideLongRunningOperationIndicator()
       disconnectedStateLabel.text = "Disconnected from the Emulator"
       add(disconnectedStateLabel)
@@ -669,8 +643,8 @@ class EmulatorView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
-    val displayImage = screenshotImage ?: return
-    val skin = skinLayout ?: return
+    val screenshot = lastScreenshot ?: return
+    val skin = screenshot.skinLayout
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
@@ -681,13 +655,23 @@ class EmulatorView(
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw display.
-    displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-    displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
-    g.drawImage(displayImage, displayTransform, null)
+    if (displayRect.width == screenshotShape.width && displayRect.height == screenshotShape.height) {
+      g.drawImage(screenshot.image, null, displayRect.x, displayRect.y)
+    }
+    else {
+      displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
+      displayTransform.scale(displayRect.width.toDouble() / screenshotShape.width, displayRect.height.toDouble() / screenshotShape.height)
+      g.drawImage(screenshot.image, displayTransform, null)
+    }
 
     if (deviceFrameVisible) {
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
+    }
+    if (!screenshot.painted) {
+      screenshot.painted = true
+      val paintTime = System.currentTimeMillis()
+      stats.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
     }
   }
 
@@ -722,9 +706,6 @@ class EmulatorView(
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      if (screenshotImage == null) {
-        screenshotShape = DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
-      }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val actualSize = computeActualSize(rotation)
 
@@ -739,13 +720,14 @@ class EmulatorView(
         .setWidth(w)
         .setHeight(h)
         .build()
-      val receiver = ScreenshotReceiver(rotation, screenshotShape)
+      val receiver = ScreenshotReceiver(rotation)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
     }
   }
 
   private fun cancelScreenshotFeed() {
+    screenshotReceiver?.let { Disposer.dispose(it) }
     screenshotReceiver = null
     screenshotFeed?.cancel()
     screenshotFeed = null
@@ -825,28 +807,18 @@ class EmulatorView(
 
   private fun startOperatingVirtualSceneCamera() {
     findNotificationHolderPanel()?.showNotification("Move camera with WASDQE keys, rotate with mouse or arrow keys")
-    val disposable = Disposer.newDisposable("Virtual scene camera operation")
-    virtualSceneCameraOperatingDisposable = disposable
-    virtualSceneCameraOrientation.move(0, 0)
     val glass = IdeGlassPaneUtil.find(this)
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
-    val scale = 360.0 * 5 / min(rootPane.width, rootPane.height)
+    val scale = PI / min(rootPane.width, rootPane.height)
     UIUtil.setCursor(rootPane, cursor)
     glass.setCursor(cursor, this)
-    val point = MouseInfo.getPointerInfo().location
-    SwingUtilities.convertPointFromScreen(point, rootPane)
-    virtualSceneCameraReferencePoint.location = point.scaled(scale)
+    val referencePoint = MouseInfo.getPointerInfo().location
     val mouseListener = object: MouseAdapter() {
 
       override fun mouseMoved(event: MouseEvent) {
-        virtualSceneCameraOrientation.move(
-            event.x.scaled(scale) - virtualSceneCameraReferencePoint.x, event.y.scaled(scale) - virtualSceneCameraReferencePoint.y)
-        val mouseEvent = MouseEventMessage.newBuilder()
-          .setX(virtualSceneCameraOrientation.x)
-          .setY(virtualSceneCameraOrientation.y)
-          .build()
-        emulator.sendMouse(mouseEvent)
+        rotateVirtualSceneCamera((event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
+        referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
         event.consume()
       }
 
@@ -859,16 +831,27 @@ class EmulatorView(
       }
     }
 
+    val disposable = Disposer.newDisposable("Virtual scene camera operation")
+    virtualSceneCameraOperatingDisposable = disposable
     glass.addMousePreprocessor(mouseListener, disposable)
     glass.addMouseMotionPreprocessor(mouseListener, disposable)
   }
 
   private fun stopOperatingVirtualSceneCamera() {
-    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
+    virtualSceneCameraVelocityController.stop()
     virtualSceneCameraOperatingDisposable?.let { Disposer.dispose(it) }
+    findNotificationHolderPanel()?.showNotification("Hold Shift to control camera")
     val glass = IdeGlassPaneUtil.find(this)
     glass.setCursor(null, this)
     UIUtil.setCursor(glass.rootPane, null)
+  }
+
+  private fun rotateVirtualSceneCamera(rotationX: Double, rotationY: Double) {
+    val cameraRotation = RotationRadian.newBuilder()
+      .setX(rotationX.toFloat())
+      .setY(rotationY.toFloat())
+      .build()
+    emulator.rotateVirtualSceneCamera(cameraRotation)
   }
 
   private val IdeGlassPane.rootPane
@@ -929,50 +912,48 @@ class EmulatorView(
     }
   }
 
-  private inner class ScreenshotReceiver(
-    val rotation: SkinRotation,
-    val currentScreenshotShape: DisplayShape
-  ) : EmptyStreamObserver<ImageMessage>() {
-    private var cachedImageSource: MemoryImageSource? = null
-    private val screenshotForSkinUpdate = AtomicReference<Screenshot>()
-    private val screenshotForDisplay = AtomicReference<Screenshot>()
+  private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
+    private val screenshotForProcessing = AtomicReference<RawScreenshot?>()
+    private val screenshotForDisplay = AtomicReference<Screenshot?>()
+    private val displayShapeCache = CachedSkinLayout(emulator)
+    private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
+    private val alarm = Alarm(this)
+    private var expectedFrameNumber = -1
 
     override fun onNext(response: ImageMessage) {
+      val arrivalTime = System.currentTimeMillis()
+      val imageFormat = response.format
+      val imageRotation = imageFormat.rotation.rotation
+
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        val latency = System.currentTimeMillis() - response.timestampUs / 1000
-        LOG.info("Screenshot ${response.seq} ${response.format.width}x${response.format.height} ${response.format.rotation.rotation} " +
-                 "$latency ms latency")
+        val latency = arrivalTime - response.timestampUs / 1000
+        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
         return // This screenshot feed has already been cancelled.
       }
 
-      if (response.format.width == 0 || response.format.height == 0) {
+      if (imageFormat.width == 0 || imageFormat.height == 0) {
         return // Ignore empty screenshot.
       }
-
-      val screenshot = Screenshot(response)
 
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.
-      if (screenshot.rotation != rotation) {
+      if (imageRotation != rotation) {
         invokeLaterInAnyModalityState {
-          requestScreenshotFeed(screenshot.rotation)
+          requestScreenshotFeed(imageRotation)
         }
         return
       }
 
-      if (screenshot.shape == currentScreenshotShape) {
-        updateDisplayImageAsync(screenshot)
-      }
-      else {
-        updateSkinAndDisplayImageAsync(screenshot)
-      }
-    }
+      val screenshot = RawScreenshot(response)
 
-    private fun updateSkinAndDisplayImageAsync(screenshot: Screenshot) {
-      screenshotForSkinUpdate.set(screenshot)
+      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
+      stats.recordFrameArrival(arrivalTime - screenshot.frameOriginationTime, lostFrames)
+      expectedFrameNumber = response.seq + 1
+
+      screenshotForProcessing.set(screenshot)
 
       executeOnPooledThread {
         // If the screenshot feed has not been cancelled, update the skin and the display image.
@@ -984,13 +965,33 @@ class EmulatorView(
 
     @Slow
     private fun updateSkinAndDisplayImage() {
-      val screenshot = screenshotForSkinUpdate.getAndSet(null) ?: return
-      screenshot.skinLayout = emulator.skinDefinition?.createScaledLayout(screenshot.width, screenshot.height, screenshot.rotation) ?:
-                              SkinLayout(Dimension(screenshot.width, screenshot.height))
-      updateDisplayImageAsync(screenshot)
-    }
+      val rawScreenshot = screenshotForProcessing.getAndSet(null)
+      if (rawScreenshot == null) {
+        stats.recordDroppedFrame()
+        return
+      }
 
-    private fun updateDisplayImageAsync(screenshot: Screenshot) {
+      val shape = rawScreenshot.shape
+      val skinLayout = displayShapeCache.get(shape)
+      alarm.cancelAllRequests()
+      val recycledImage = recycledImage.getAndSet(null)?.get()
+      val image = if (recycledImage?.width == shape.width && recycledImage.height == shape.height) {
+        val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
+        unpackPixels(rawScreenshot.imageBytes, pixels)
+        recycledImage
+      }
+      else {
+        val pixels = IntArray(shape.width * shape.height)
+        unpackPixels(rawScreenshot.imageBytes, pixels)
+        val buffer = DataBufferInt(pixels, pixels.size)
+        val sampleModel =
+            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, shape.width, shape.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+        val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
+        @Suppress("UndesirableClassUsage")
+        BufferedImage(COLOR_MODEL, raster, false, null)
+      }
+
+      val screenshot = Screenshot(shape, image, skinLayout, rawScreenshot.frameOriginationTime)
       screenshotForDisplay.set(screenshot)
 
       invokeLaterInAnyModalityState {
@@ -1005,78 +1006,169 @@ class EmulatorView(
     private fun updateDisplayImage() {
       hideLongRunningOperationIndicatorInstantly()
 
-      val screenshot = screenshotForDisplay.getAndSet(null) ?: return
-      val w = screenshot.width
-      val h = screenshot.height
-
-      val layout = screenshot.skinLayout
-      if (layout != null) {
-        skinLayout = layout
-      }
-      if (skinLayout == null) {
-        // Create a skin layout without a device frame.
-        skinLayout = SkinLayout(Dimension(w, h))
+      val screenshot = screenshotForDisplay.getAndSet(null)
+      if (screenshot == null) {
+        stats.recordDroppedFrame()
+        return
       }
 
-      var imageSource = cachedImageSource
-      if (imageSource == null || screenshotShape.width != w || screenshotShape.height != h) {
-        imageSource = MemoryImageSource(w, h, screenshot.pixels, 0, w)
-        imageSource.setAnimated(true)
-        screenshotImage = createImage(imageSource)
-        screenshotShape = screenshot.shape
-        cachedImageSource = imageSource
+      // Creation of a large BufferedImage is expensive. Recycle the old image if it has the proper size.
+      lastScreenshot?.image?.let {
+        if (it.width == screenshot.displayShape.width && it.height == screenshot.displayShape.height) {
+          recycledImage.set(SofterReference(it))
+          alarm.cancelAllRequests()
+          alarm.addRequest({ recycledImage.set(null) }, CACHED_IMAGE_LIVE_TIME_MILLIS, ModalityState.any())
+        }
       }
-      else {
-        imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, w)
-      }
+
+      lastScreenshot = screenshot
 
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
     }
-  }
 
-  private class Screenshot(emulatorImage: ImageMessage) {
-    val shape: DisplayShape
-    val pixels: IntArray
-    var skinLayout: SkinLayout? = null
-    val width: Int
-      get() = shape.width
-    val height: Int
-      get() = shape.height
-    val rotation: SkinRotation
-      get() = shape.rotation
-
-    init {
-      val format = emulatorImage.format
-      shape = DisplayShape(format.width, format.height, format.rotation.rotation)
-      pixels = getPixels(emulatorImage.image, width, height)
-    }
-
-    private fun getPixels(imageBytes: ByteString, width: Int, height: Int): IntArray {
-      val pixels = IntArray(width * height)
-      val byteIterator = imageBytes.iterator()
+    @Slow
+    fun unpackPixels(imageBytes: ByteString, pixels: IntArray) {
       val alpha = 0xFF shl 24
+      var j = 0
       for (i in pixels.indices) {
-        val red = byteIterator.nextByte().toInt() and 0xFF
-        val green = byteIterator.nextByte().toInt() and 0xFF
-        val blue = byteIterator.nextByte().toInt() and 0xFF
+        val red = imageBytes.byteAt(j).toInt() and 0xFF
+        val green = imageBytes.byteAt(j + 1).toInt() and 0xFF
+        val blue = imageBytes.byteAt(j + 2).toInt() and 0xFF
+        j += 3
         pixels[i] = alpha or (red shl 16) or (green shl 8) or blue
       }
-      return pixels
+    }
+
+    override fun dispose() {
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation)
+  private class RawScreenshot(emulatorImage: ImageMessage) {
+    val frameOriginationTime: Long = emulatorImage.timestampUs / 1000
+    val shape = DisplayShape(emulatorImage.format)
+    val imageBytes: ByteString = emulatorImage.image
+  }
+
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout,
+                           val frameOriginationTime: Long, var painted: Boolean = false)
+
+  /**
+   * Stores the last computed scaled [SkinLayout] together with the corresponding display
+   * dimensions and orientation.
+   */
+  private class CachedSkinLayout(val emulator: EmulatorController) {
+    var displayShape: DisplayShape? = null
+    var skinLayout: SkinLayout? = null
+
+    fun get(displayShape: DisplayShape): SkinLayout {
+      synchronized(this) {
+        var layout = this.skinLayout
+        if (displayShape != this.displayShape || layout == null) {
+          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.rotation) ?:
+                   SkinLayout(displayShape.width, displayShape.height)
+          this.displayShape = displayShape
+          this.skinLayout = layout
+        }
+        return layout
+      }
+    }
+  }
+
+  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation) {
+    constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
+  }
+
+  private class Stats(parentDisposable: Disposable): Disposable {
+    @GuardedBy("this")
+    private var data = Data()
+    private val alarm = Alarm(this)
+
+    init {
+      Disposer.register(parentDisposable, this)
+      scheduleNextLogging()
+    }
+
+    @Synchronized
+    fun recordFrameArrival(latencyOfArrival: Long, numberOfLostFrames: Int) {
+      data.frameCount += 1 + numberOfLostFrames
+      data.latencyOfArrival.recordValue(latencyOfArrival)
+      if (numberOfLostFrames != 0) {
+        data.droppedFrameCount += numberOfLostFrames
+        data.droppedFrameCountBeforeArrival += numberOfLostFrames
+      }
+    }
+
+    @Synchronized
+    fun recordDroppedFrame() {
+      data.droppedFrameCount++
+    }
+
+    @Synchronized
+    fun recordLatencyEndToEnd(latency: Long) {
+      data.latencyEndToEnd.recordValue(latency)
+    }
+
+    override fun dispose() {
+      getAndSetData().log()
+    }
+
+    private fun logAndReset() {
+      getAndSetData(Data()).log()
+      scheduleNextLogging()
+    }
+
+    @Synchronized
+    private fun getAndSetData(newData: Data? = null): Data {
+      val oldData = data
+      if (newData != null) {
+        data = newData
+      }
+      return oldData
+    }
+
+    private fun scheduleNextLogging() {
+      alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+    }
+
+    private class Data {
+      var frameCount = 0
+      var droppedFrameCount = 0
+      var droppedFrameCountBeforeArrival = 0
+      val latencyEndToEnd = Histogram(1)
+      val latencyOfArrival = Histogram(1)
+      val collectionStart = System.currentTimeMillis()
+
+      fun log() {
+        if (frameCount != 0) {
+          val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
+          val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
+          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate\n" +
+                            "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+                            "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+        }
+      }
+    }
+  }
 }
 
 private var emulatorOutOfDateNotificationShown = false
 
 private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES = 5
-private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_PIXELS = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * 5
+private const val VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN = VIRTUAL_SCENE_CAMERA_ROTATION_STEP_DEGREES * PI / 180
 
 private const val MAX_SCALE = 2.0 // Zoom above 200% is not allowed.
 
 private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
+
+private val ZERO_POINT = Point()
+private const val ALPHA_MASK = 0xFF shl 24
+private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                   32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
+private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
+
+private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis() // TODO: Change to 1 hour when switching to analytics logging.
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

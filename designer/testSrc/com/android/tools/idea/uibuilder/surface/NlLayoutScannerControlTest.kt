@@ -43,7 +43,8 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
   private var surface: NlDesignSurface? = null
   private var sceneManager: LayoutlibSceneManager? = null
   private val check = object : LayoutScannerConfiguration {
-    override var isLayoutScannerEnabled: Boolean = false
+    override var isLayoutScannerEnabled: Boolean = true
+    override var isScannerAlwaysOn: Boolean = true
   }
 
   override fun setUp() {
@@ -141,31 +142,6 @@ class NlLayoutScannerControlTest : LayoutTestCase() {
     control.scannerListener.lintUpdated(null)
 
     assertFalse(result.get())
-  }
-
-  fun testTryRefreshWithScanner() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-    assertFalse(check.isLayoutScannerEnabled)
-
-    assertTrue(control.tryRefreshWithScanner())
-
-    assertTrue(check.isLayoutScannerEnabled)
-    Mockito.verify(surface, Mockito.times(1)).requestRender()
-    // Make sure we don't trigger force user request as it messes up metrics.
-    Mockito.verify(surface, Mockito.never()).forceUserRequestedRefresh()
-  }
-
-  fun testIssuePanelExpanded() {
-    val surface = surface!!
-    val control = NlLayoutScannerControl(surface, disposable!!)
-
-    control.issuePanelListener.onMinimizeChanged(false)
-
-    assertTrue(check.isLayoutScannerEnabled)
-    Mockito.verify(surface, Mockito.times(1)).requestRender()
-    // Make sure we don't trigger force user request as it messes up metrics.
-    Mockito.verify(surface, Mockito.never()).forceUserRequestedRefresh()
   }
 
   fun testIssuePanelExpandedWithIssues() {

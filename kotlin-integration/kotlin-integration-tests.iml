@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -14,13 +15,11 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="RUNTIME" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="library" name="truth" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
-    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />

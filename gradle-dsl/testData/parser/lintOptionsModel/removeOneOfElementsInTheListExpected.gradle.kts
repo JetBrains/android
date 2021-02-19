@@ -6,6 +6,7 @@ android {
     error("error-id-1")
     fatal("fatal-id-2")
     ignore("ignore-id-1")
+    informational("informational-id-2")
     warning("warning-id-2")
   }
 }

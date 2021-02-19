@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.adtui.common.AdtPrimaryPanel
+import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.AlphaComposite
 import java.awt.Component
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -38,10 +47,13 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.net.URI
 
 private const val MARGIN = 50
 
-class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
+class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : JBPanelWithEmptyText() {
+
+  internal lateinit var selectProcessAction: SelectProcessAction
 
   val model = DeviceViewPanelModel(inspectorModel)
 
@@ -60,6 +72,19 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   init {
+    emptyText.appendLine("No process connected")
+    emptyText.appendLine("Select process", SimpleTextAttributes.LINK_ATTRIBUTES) {
+      val button = selectProcessAction.button
+      val dataContext = DataManager.getInstance().getDataContext(button)
+      selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+      val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation, dataContext)
+      selectProcessAction.actionPerformed(event)
+    }
+    emptyText.appendLine("")
+    emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
+      Desktop.getDesktop().browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
+    }
+    isOpaque = true
     inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }
     addComponentListener(object : ComponentAdapter() {
@@ -99,8 +124,9 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.setSelection(nodeAtPoint(e), SelectionOrigin.INTERNAL)
-        inspectorModel.stats.selectionMadeFromImage()
+        val view = nodeAtPoint(e)
+        inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
+        inspectorModel.stats.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {
@@ -131,8 +157,12 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
                                                                   (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {
+    if (!model.isActive) {
+      super.paint(g)
+      return
+    }
     val g2d = g as? Graphics2D ?: return
-    g2d.color = background
+    g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.translate(size.width / 2.0, size.height / 2.0)

@@ -20,8 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -39,7 +39,7 @@ import com.intellij.psi.SmartPsiElementPointer
  */
 private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
   fun createBuildTasks(module: Module): String? {
-    val gradlePath = GradleFacet.getInstance(module)?.configuration?.GRADLE_PROJECT_PATH ?: return null
+    val gradlePath = GradleProjects.getGradleModulePath(module) ?: return null
     val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
     // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
     // we just build it ourselves.

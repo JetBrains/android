@@ -30,6 +30,8 @@ import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 
 private const val WORKBENCH_NAME = "DESIGN_FILES_PREVIEW_EDITOR"
 
@@ -50,6 +52,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         .build()
         .apply {
           setScreenViewProvider(NlScreenViewProvider.RENDER, false)
+          // Make DesignSurface be focused when mouse clicked. This make the DataContext is provided from it while user clicks it.
+          interactionPane.addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(e: MouseEvent) {
+              interactionPane.requestFocus()
+            }
+          })
         }
     }
 

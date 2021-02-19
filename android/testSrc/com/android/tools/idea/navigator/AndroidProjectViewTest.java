@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
@@ -63,7 +64,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -289,6 +289,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  local.properties (SDK Location)\n" +
                       "  settings.gradle.kts (Project Settings)\n" +
                       " app (Android)\n" +
+                      "  kotlin\n" +
+                      "   kotlingradle (main)\n" +
+                      "    CLASS\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n" +
                       "  res\n" +
@@ -309,6 +312,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "    strings.xml\n" +
                       "    styles.xml\n" +
                       " lib (Android)\n" +
+                      "  kotlin\n" +
+                      "   lib (main)\n" +
+                      "    LibMain.kt\n" +
                       "  manifests\n" +
                       "   AndroidManifest.xml (main)\n";
     int numLines = expected.split("\n").length;

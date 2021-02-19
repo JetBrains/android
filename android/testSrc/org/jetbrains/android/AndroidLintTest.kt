@@ -67,6 +67,7 @@ import com.android.tools.idea.lint.AndroidLintInvalidVectorPathInspection
 import com.android.tools.idea.lint.AndroidLintInvalidWearFeatureAttributeInspection
 import com.android.tools.idea.lint.AndroidLintLockedOrientationActivityInspection
 import com.android.tools.idea.lint.AndroidLintManifestOrderInspection
+import com.android.tools.idea.lint.AndroidLintMediaCapabilitiesInspection
 import com.android.tools.idea.lint.AndroidLintMenuTitleInspection
 import com.android.tools.idea.lint.AndroidLintMissingApplicationIconInspection
 import com.android.tools.idea.lint.AndroidLintMissingIdInspection
@@ -542,6 +543,26 @@ class AndroidLintTest : AndroidTestCase() {
     doTestWithFix(AndroidLintTypographyQuotesInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml")
+  }
+
+  fun testGenMediaCapabilities() {
+    deleteManifest()
+    // setup project files
+    myFixture.copyFileToProject("$globalTestDir/MediaStoreVideoUsage.java",
+                                "src/p1/pkg/MediaStoreVideoUsage.java")
+    myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml",
+                                "AndroidManifest.xml")
+    // No highlighting test: the error markers are physically present in the PSI File
+    // and confuses the manifest merger, which sees them. (The <caret> tag on the
+    // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
+    doGlobalInspectionWithFix(
+      AndroidLintMediaCapabilitiesInspection(),
+      "Add media capabilities property and generate descriptor")
+    // also check the generated backup descriptor.
+    myFixture.checkResultByFile("res/xml/media_capabilities.xml",
+                                "$globalTestDir/media_capabilities.xml", true)
+    myFixture.checkResultByFile("AndroidManifest.xml",
+                                "$globalTestDir/AndroidManifest_after.xml", true)
   }
 
   fun testGenBackupDescriptor() {

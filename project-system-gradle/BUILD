@@ -10,16 +10,13 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/.idea/libraries:protobuf",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
@@ -28,6 +25,8 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/apkanalyzer:intellij.android.apkanalyzer[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
     ],
 )
 
@@ -65,6 +64,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -79,7 +79,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
-        "//tools/adt/idea/.idea/libraries:protobuf[test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
     ],
 )

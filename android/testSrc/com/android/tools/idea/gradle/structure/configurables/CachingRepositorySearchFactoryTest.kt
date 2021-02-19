@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
-import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepositorySearchService
+import com.android.tools.idea.gradle.repositories.search.FoundArtifact
+import com.android.tools.idea.gradle.repositories.search.SearchQuery
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SearchResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import org.hamcrest.CoreMatchers.equalTo

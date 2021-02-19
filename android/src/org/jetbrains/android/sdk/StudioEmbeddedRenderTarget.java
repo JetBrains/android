@@ -103,34 +103,21 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   public static String getEmbeddedLayoutLibPath() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
-    // Possible paths of the embedded "layoutlib" directory.
-    final String[] paths = {
-      FileUtil.join(homePath, "plugins/android/lib/layoutlib/"), // Bundled path.
-      StudioPathManager.isRunningFromSources() //Dev path.
-      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/")
-      : null,
-      FileUtil.join(homePath, "community/android/tools-base/layoutlib/"), // IDEA path.
-      FileUtil.join(homePath, "android/tools-base/layoutlib/"), // IDEA community path.
-    };
+    String path = FileUtil.join(homePath, "plugins/android/resources/layoutlib/");
+    if (StudioPathManager.isRunningFromSources()) {
+      path = FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/");
+    }
 
-    StringBuilder notFoundPaths = new StringBuilder();
-    for (String path : paths) {
-      if (path == null) continue;
-      VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
-
-      if (root != null) {
-        File rootFile = VfsUtilCore.virtualToIoFile(root);
-        if (rootFile.exists() && rootFile.isDirectory()) {
-          LOG.debug("Embedded layoutlib found at " + path);
-          return rootFile.getAbsolutePath() + File.separator;
-        }
-      }
-      else {
-        notFoundPaths.append(path).append('\n');
+    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
+    if (root != null) {
+      File rootFile = VfsUtilCore.virtualToIoFile(root);
+      if (rootFile.exists() && rootFile.isDirectory()) {
+        LOG.debug("Embedded layoutlib found at " + path);
+        return rootFile.getAbsolutePath() + File.separator;
       }
     }
 
-    LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths.toString());
+    LOG.error("Unable to find embedded layoutlib in path: " + path);
     return null;
   }
 

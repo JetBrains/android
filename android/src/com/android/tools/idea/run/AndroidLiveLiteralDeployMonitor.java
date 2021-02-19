@@ -23,6 +23,7 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveLiteralDeployer;
 import com.android.tools.idea.editors.literals.LiteralReference;
 import com.android.tools.idea.editors.literals.LiteralUsageReference;
+import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -67,8 +69,9 @@ class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Runnable getCallback(Project project, String packageName) {
-    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped("Device#${packageName}");
+  static Runnable getCallback(Project project, String packageName, IDevice device) {
+    String deviceId = device.getSerialNumber();
+    LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
     if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
       return null;
     }
@@ -94,8 +97,16 @@ class AndroidLiveLiteralDeployMonitor {
         }
       }
 
+      LiveLiteralsMonitorHandler.DeviceType deviceType;
+      if (device.isEmulator()) {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.EMULATOR;
+      }
+      else {
+        deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
+      }
+
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted("Device#${packageName}");;
+      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
     };
   }
 
@@ -124,7 +135,7 @@ class AndroidLiveLiteralDeployMonitor {
 
             // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
             Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-            LiveLiteralDeployer deployer = new LiveLiteralDeployer(DeploymentService.getInstance(project).getDeploymentCacheDatabase());
+            LiveLiteralDeployer deployer = new LiveLiteralDeployer();
             List<LiveLiteralDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
             for (LiteralReference change : changes) {
               for (LiteralUsageReference use : change.getUsages()) {
@@ -150,7 +161,11 @@ class AndroidLiveLiteralDeployMonitor {
               }
             }
             LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
-            deployer.updateLiveLiteral(installer, adb, packageName, params);
+            List<LiveLiteralDeployer.UpdateLiveLiteralError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
+            LiveLiteralsService.getInstance(project)
+                .liveLiteralPushed(adb.getSerial() + "#" + packageName, "" + params.hashCode(), errors.stream().map(
+                  e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
+                ).collect(Collectors.toList()));
           }
         }
       }

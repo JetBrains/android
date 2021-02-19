@@ -10,6 +10,9 @@ dir_archive(
     name = "androidAnnotations",
     dir = "tools/adt/idea/android/annotations",
     ext = "jar",
-    files = glob(["**"]),
+    files = glob(
+        include = ["**"],
+        exclude = ["BUILD"],
+    ),
     visibility = ["//visibility:public"],
 )

@@ -30,6 +30,9 @@ public final class PhotoshopFileType implements FileType {
   public static final String EXTENSION = SdkConstants.DOT_PSD.substring(1);
   public static final PhotoshopFileType INSTANCE = new PhotoshopFileType();
 
+  private PhotoshopFileType() {
+  }
+
   @NotNull
   @Override
   public String getName() {

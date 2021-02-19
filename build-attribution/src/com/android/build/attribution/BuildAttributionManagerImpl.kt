@@ -18,7 +18,7 @@ package com.android.build.attribution
 import com.android.SdkConstants
 import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
+import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
@@ -40,11 +40,8 @@ class BuildAttributionManagerImpl(
   private val pluginContainer = PluginContainer()
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
-  private val analyzersWrapper = BuildEventsAnalyzersWrapper(
-    analyzersProxy.getBuildEventsAnalyzers(),
-    analyzersProxy.getBuildAttributionReportAnalyzers()
-  )
+  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+  private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
@@ -58,11 +55,7 @@ class BuildAttributionManagerImpl(
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          if (attributionData != null) {
-            taskContainer.updateTasksData(attributionData)
-            pluginContainer.updatePluginsData(attributionData)
-          }
-          analyzersWrapper.onBuildSuccess(attributionData)
+          analyzersWrapper.onBuildSuccess(attributionData, analyzersProxy)
         }
         finally {
           FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))

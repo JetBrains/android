@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl
 
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.TestDataFile
+import com.intellij.testFramework.TestDataPath
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
@@ -23,8 +25,8 @@ interface TestFileName {
   @JvmDefault
   fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtil.toSystemDependentName(basePath) + extension)
 }
-
-enum class TestFileNameImpl(val path: String): TestFileName {
+@TestDataPath("\$CONTENT_ROOT/../testData/parser")
+enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
   AAPT_OPTIONS_EDIT_ELEMENTS("aaptOptions/editElements"),

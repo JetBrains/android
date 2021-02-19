@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
@@ -22,7 +23,7 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
   </component>
 </module>

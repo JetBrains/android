@@ -21,12 +21,14 @@ import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
 import com.android.tools.idea.uibuilder.visual.ColorBlindModeScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
+import java.awt.Dimension
 
 /**
  * Interface to generate [ScreenView]s for the DesignSurface.
@@ -175,6 +177,15 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         add(BorderLayer(it))
         add(ScreenViewLayer(it))
       }.build()
+    }
+    .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
+    .decorateContentSizePolicy { wrappedPolicy ->
+      object : ScreenView.ContentSizePolicy {
+        override fun measure(screenView: ScreenView, outDimension: Dimension) = wrappedPolicy.measure(screenView, outDimension)
+
+        // In visualization view, we always use configuration to decide the size.
+        override fun hasContentSize(screenView: ScreenView) = true
+      }
     }
     .disableBorder()
     .build()

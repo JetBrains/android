@@ -15,7 +15,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module]",
@@ -32,7 +31,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android-layout-inspector[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module, test]",
@@ -49,5 +47,6 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )

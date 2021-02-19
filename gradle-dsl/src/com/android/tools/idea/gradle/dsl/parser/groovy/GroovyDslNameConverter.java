@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
+import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.decodeStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.isStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
@@ -34,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -106,15 +114,18 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @Override
   public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, ModelEffectDescription> map = context.getExternalToModelMap(this);
-    ExternalNameInfo result = new ExternalNameInfo(modelName, null);
+    ExternalNameInfo result = new ExternalNameInfo(modelName, UNKNOWN);
     for (Map.Entry<Pair<String,Integer>, ModelEffectDescription> e : map.entrySet()) {
       if (e.getValue().property.name.equals(modelName)) {
         SemanticsDescription semantics = e.getValue().semantics;
-        if (semantics == SET || semantics == ADD_AS_LIST || semantics == OTHER) {
-          return new ExternalNameInfo(e.getKey().getFirst(), true);
+        if (semantics == SET || semantics == ADD_AS_LIST || semantics == AUGMENT_LIST || semantics == OTHER) {
+          return new ExternalNameInfo(e.getKey().getFirst(), METHOD);
+        }
+        if (semantics == VAL && e.getValue().property.type == MUTABLE_SET) {
+          return new ExternalNameInfo(e.getKey().getFirst(), AUGMENTED_ASSIGNMENT);
         }
         if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
-          result = new ExternalNameInfo(e.getKey().getFirst(), false);
+          result = new ExternalNameInfo(e.getKey().getFirst(), ASSIGNMENT);
         }
       }
     }

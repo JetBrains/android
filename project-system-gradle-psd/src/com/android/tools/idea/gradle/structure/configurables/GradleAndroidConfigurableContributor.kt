@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable

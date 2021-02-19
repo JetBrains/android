@@ -5,6 +5,7 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="android-apk" />
@@ -28,7 +29,6 @@
     <orderEntry type="library" name="studio-plugin-filePrediction" level="project" />
     <orderEntry type="library" name="studio-plugin-git4idea" level="project" />
     <orderEntry type="library" name="studio-plugin-github" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
     <orderEntry type="library" name="studio-plugin-hg4idea" level="project" />
@@ -53,5 +53,8 @@
     <orderEntry type="library" name="studio-plugin-textmate" level="project" />
     <orderEntry type="library" name="studio-plugin-vcs-changeReminder" level="project" />
     <orderEntry type="library" name="studio-plugin-yaml" level="project" />
+    <orderEntry type="library" name="studio-plugin-c-clangd" level="project" />
+    <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
+    <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
   </component>
 </module>

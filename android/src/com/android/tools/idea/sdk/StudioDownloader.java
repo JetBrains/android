@@ -18,10 +18,10 @@ package com.android.tools.idea.sdk;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.io.CancellableFileIo;
+import com.android.repository.api.Checksum;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.SettingsController;
-import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.android.utils.PathUtils;
@@ -37,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -136,14 +134,14 @@ public class StudioDownloader implements Downloader {
   }
 
   @Override
-  public void downloadFully(@NotNull URL url, @NotNull Path target, @Nullable String checksum,
+  public void downloadFully(@NotNull URL url, @NotNull Path target, @Nullable Checksum checksum,
                             @NotNull ProgressIndicator indicator) throws IOException {
     doDownloadFully(url, target, checksum, false, indicator);
   }
 
   @Override
   public void downloadFullyWithCaching(@NotNull URL url, @NotNull Path target,
-                                       @Nullable String checksum,
+                                       @Nullable Checksum checksum,
                                        @NotNull ProgressIndicator indicator) throws IOException {
     doDownloadFully(url, target, checksum, true, indicator);
   }
@@ -153,11 +151,13 @@ public class StudioDownloader implements Downloader {
     mDownloadIntermediatesLocation = downloadIntermediatesLocation;
   }
 
-  private void doDownloadFully(@NotNull URL url, @NotNull Path target, @Nullable String checksum,
+  private void doDownloadFully(@NotNull URL url, @NotNull Path target, @Nullable Checksum checksum,
                             boolean allowNetworkCaches, @NotNull ProgressIndicator indicator)
     throws IOException {
     if (CancellableFileIo.exists(target) && checksum != null) {
-      if (checksum.equals(Downloader.hash(new BufferedInputStream(CancellableFileIo.newInputStream(target)), CancellableFileIo.size(target), indicator))) {
+      if (checksum.getValue().equals(Downloader.hash(
+        new BufferedInputStream(CancellableFileIo.newInputStream(target)), CancellableFileIo.size(target),
+        checksum.getType(), indicator))) {
         return;
       }
     }
@@ -217,7 +217,9 @@ public class StudioDownloader implements Downloader {
         Files.createDirectories(target.getParent());
         Files.move(interimDownload, target, StandardCopyOption.REPLACE_EXISTING);
         if (CancellableFileIo.exists(target) && checksum != null) {
-          if (!checksum.equals(Downloader.hash(new BufferedInputStream(CancellableFileIo.newInputStream(target)), CancellableFileIo.size(target),
+          if (!checksum.getValue().equals(Downloader.hash(new BufferedInputStream(CancellableFileIo.newInputStream(target)),
+                                               CancellableFileIo.size(target),
+                                               checksum.getType(),
                                                indicator))) {
             throw new IllegalStateException("Checksum of the downloaded result didn't match the expected value.");
           }
