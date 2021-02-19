@@ -58,17 +58,26 @@ class AnalysisConfig(
   class HistogramOptions(
     val includeByCount: Boolean = true,
     val includeBySize: Boolean = true,
+    val includeSummary: Boolean = true,
     val classByCountLimit: Int = 50,
     val classBySizeLimit: Int = 10
   )
 
   class DisposerOptions(
     val includeDisposerTree: Boolean = true,
+    val includeDisposerTreeSummary: Boolean = true,
     val includeDisposedObjectsSummary: Boolean = true,
     val includeDisposedObjectsDetails: Boolean = true,
     val disposedObjectsDetailsTreeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions(minimumSubgraphSize = 5_000_000,
                                                                                           headLimit = 70,
-                                                                                          tailLimit = 5)
+                                                                                          tailLimit = 5),
+    val disposerTreeSummaryOptions: DisposerTreeSummaryOptions = DisposerTreeSummaryOptions()
+  )
+
+  class DisposerTreeSummaryOptions(
+    val maxDepth: Int = 20,
+    val headLimit: Int = 400,
+    val nodeCutoff: Int = 20
   )
 
   class TraverseOptions(

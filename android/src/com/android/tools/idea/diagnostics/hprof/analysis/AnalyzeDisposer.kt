@@ -20,13 +20,20 @@ import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsSize
+import com.android.tools.idea.diagnostics.hprof.util.TreeNode
+import com.android.tools.idea.diagnostics.hprof.util.TreeVisualizer
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import com.intellij.util.ExceptionUtil
 import gnu.trove.TIntArrayList
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongHashSet
 import gnu.trove.TObjectIntHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.longs.LongArrayList
+import it.unimi.dsi.fastutil.longs.LongCollection
 import java.util.ArrayDeque
+import java.util.Stack
+import java.util.function.LongConsumer
 
 class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
@@ -144,6 +151,137 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
         clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree") {
       throw ObjectNavigator.NavigationException("Wrong type, expected ObjectTree: ${clazzObjectTree.name}")
+    }
+  }
+
+  private class DisposerNode(val className: String) : TreeNode {
+    var count = 0
+    var subtreeSize = 0
+    var filteredSubtreeSize = 0
+    val children = HashMap<String, DisposerNode>()
+
+    fun equals(other: DisposerNode): Boolean = className == other.className
+
+    override fun equals(other: Any?): Boolean = other != null && other is DisposerNode && equals(other)
+    override fun hashCode() = className.hashCode()
+    override fun description(): String = "[$subtreeSize] $count $className"
+    override fun children(): Collection<TreeNode> = children.values.sortedByDescending { it.subtreeSize }
+
+    fun addInstance() {
+       count++
+    }
+
+    fun getChildForClassName(name: String): DisposerNode = children.getOrPut(name, { DisposerNode(name) })
+  }
+
+  private enum class SubTreeUpdaterOperation  { PROCESS_CHILDREN, UPDATE_SIZE }
+
+  fun prepareDisposerTreeSummarySection(options: AnalysisConfig.DisposerTreeSummaryOptions): String = buildString {
+    TruncatingPrintBuffer(options.headLimit, 0, this::appendln).use { buffer ->
+      if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
+        return@buildString
+      }
+
+      prepareException?.let {
+        buffer.println(ExceptionUtil.getThrowableText(it))
+        return@buildString
+      }
+
+      val nav = analysisContext.navigator
+      val objectId2Children = Long2ObjectOpenHashMap<LongArrayList>()
+      val topLevelObjectIds = LongArrayList()
+
+      // Build a map: object -> list of its disposable children
+      // Collect top-level objects (i.e. have no parent)
+      try {
+        goToArrayOfDisposableObjectNodes(nav)
+
+        nav.getReferencesCopy().forEach { childId ->
+          if (childId == 0L) return@forEach true
+
+          nav.goTo(childId)
+          verifyClassIsObjectNode(nav.getClass())
+
+          val objectNodeParentId = nav.getInstanceFieldObjectId(null, "myParent")
+          val objectId = nav.getInstanceFieldObjectId(null, "myObject")
+          nav.goTo(objectNodeParentId)
+
+          if (!objectId2Children.containsKey(objectId))
+            objectId2Children[objectId] = LongArrayList()
+
+          if (nav.isNull()) {
+            topLevelObjectIds.add(objectId)
+          }
+          else {
+            verifyClassIsObjectNode(nav.getClass())
+            val parentId = nav.getInstanceFieldObjectId(null, "myObject")
+
+            var children = objectId2Children.get(parentId)
+            if (children == null) {
+              children = LongArrayList()
+              objectId2Children[parentId] = children
+            }
+            children.add(objectId)
+          }
+          true
+        }
+
+        val rootNode = DisposerNode("<root>")
+
+        data class StackObject(val node: DisposerNode, val childrenIds: LongCollection)
+
+        val stack = Stack<StackObject>()
+        stack.push(StackObject(rootNode, topLevelObjectIds))
+
+        while (!stack.empty()) {
+          val (currentNode, childrenIds) = stack.pop()
+
+          val nodeToChildren = HashMap<DisposerNode, LongArrayList>()
+          childrenIds.forEach(LongConsumer {
+            val childClassName = nav.getClassForObjectId(it).name
+            val childNode = currentNode.getChildForClassName(childClassName)
+            childNode.addInstance()
+            nodeToChildren.getOrPut(childNode, { LongArrayList() }).addAll(objectId2Children[it])
+          })
+          nodeToChildren.forEach { (node, children) -> stack.push(StackObject(node, children)) }
+        }
+
+        // Update subtree size
+        data class SubtreeSizeUpdateStackObject(val node: DisposerNode, val operation: SubTreeUpdaterOperation)
+
+        val nodeStack = Stack<SubtreeSizeUpdateStackObject>()
+        nodeStack.push(SubtreeSizeUpdateStackObject(rootNode, SubTreeUpdaterOperation.PROCESS_CHILDREN))
+
+        while (!nodeStack.isEmpty()) {
+          val (currentNode, operation) = nodeStack.pop()
+          if (operation == SubTreeUpdaterOperation.PROCESS_CHILDREN) {
+            currentNode.subtreeSize = currentNode.count
+            currentNode.filteredSubtreeSize = currentNode.count
+            nodeStack.push(SubtreeSizeUpdateStackObject(currentNode, SubTreeUpdaterOperation.UPDATE_SIZE))
+            currentNode.children.values.forEach {
+              nodeStack.push(SubtreeSizeUpdateStackObject(it, SubTreeUpdaterOperation.PROCESS_CHILDREN))
+            }
+          }
+          else {
+            assert(operation == SubTreeUpdaterOperation.UPDATE_SIZE)
+
+            currentNode.children.values.forEach { currentNode.subtreeSize += it.subtreeSize }
+            currentNode.children.entries.removeIf { it.value.filteredSubtreeSize < options.nodeCutoff }
+            currentNode.children.values.forEach { currentNode.filteredSubtreeSize += it.subtreeSize }
+          }
+        }
+        val visualizer = TreeVisualizer()
+        buffer.println("Cutoff: ${options.nodeCutoff}")
+        buffer.println("Count of disposable objects: ${rootNode.subtreeSize}")
+        buffer.println()
+        rootNode.children().forEach {
+          visualizer.visualizeTree(it, buffer, analysisContext.config.disposerOptions.disposerTreeSummaryOptions)
+          buffer.println()
+        }
+      }
+      catch (ex: Exception) {
+        buffer.println(ExceptionUtil.getThrowableText(ex))
+      }
     }
   }
 
@@ -313,7 +451,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       nav.goToInstanceField(null, "myDisposedObjects")
       nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
       nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
-      val weakKeyClass = nav.classStore["com.intellij.util.containers.WeakHashMap\$WeakKey"]
+      val weakKeyClass = nav.classStore.getClassIfExists("com.intellij.util.containers.WeakHashMap\$WeakKey")
 
       nav.getReferencesCopy().forEach {
         if (it == 0L) {
@@ -467,7 +605,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     // Alternate between class with most instances leaked and class with most bytes leaked
 
     // Prepare instance count class list by priority
-    val classOrderByInstanceCount = ArrayDeque<ClassDefinition>(
+    val classOrderByInstanceCount = ArrayDeque(
       classToLeakedIdsListCopy
         .entries
         .sortedByDescending { it.value.size() }
@@ -475,7 +613,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     )
 
     // Prepare dominator bytes count class list by priority
-    val classOrderByByteCount = ArrayDeque<ClassDefinition>(
+    val classOrderByByteCount = ArrayDeque(
       disposedDominatorReportEntries
         .sortedByDescending { it.size }
         .map { it.classDefinition }

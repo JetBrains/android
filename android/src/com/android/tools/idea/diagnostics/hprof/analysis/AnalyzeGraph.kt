@@ -72,8 +72,10 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
       append(prepareHistogramSection())
     }
 
-    appendln(sectionHeader("Heap summary"))
-    append(traverseReport)
+    if (histogramOptions.includeSummary) {
+      appendln(sectionHeader("Heap summary"))
+      append(traverseReport)
+    }
 
     // Per-class section
     if (includePerClassSection) {
@@ -86,6 +88,10 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext) {
     if (config.disposerOptions.includeDisposerTree) {
       appendln(sectionHeader("Disposer tree"))
       append(analyzeDisposer.prepareDisposerTreeSection())
+    }
+    if (config.disposerOptions.includeDisposerTreeSummary) {
+      appendln(sectionHeader("Disposer tree summary"))
+      append(analyzeDisposer.prepareDisposerTreeSummarySection(config.disposerOptions.disposerTreeSummaryOptions))
     }
     if (config.disposerOptions.includeDisposedObjectsSummary || config.disposerOptions.includeDisposedObjectsDetails) {
       appendln(sectionHeader("Disposed objects"))
