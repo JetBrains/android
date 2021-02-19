@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 
 public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Module> {
   @Override
@@ -114,6 +115,13 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
           // This happens when there are multiple *iml files for one module, which can be caused by opening a project created on a different machine,
           // or opening projects with both Intellij and Studio, or moving existing module to different locations.
           moduleName = module.getName();
+        }
+
+        for (DataNode<?> node : dataNode.getParent().getChildren()){
+          if (node.getKey().equals(GradleSourceSetData.KEY)){
+            GradleSourceSetData sourceSetData = (GradleSourceSetData)node.getData();
+            index.put(sourceSetData.getIdeParentGrouping(), model);
+          }
         }
       }
       index.put(moduleName, model);
