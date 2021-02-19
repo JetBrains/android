@@ -47,7 +47,12 @@ enum class BuildAnalyzerBrowserLinks(
   ),
   CONFIGURE_GC(
     "https://d.android.com/r/tools/build-attribution/configure-gc",
-    // TODO (mlazeba): add event to metrics
+    // TODO (b/177051800): add event to metrics
+    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+  ),
+  CONFIGURATION_CACHING(
+    "https://d.android.com/r/tools/build-attribution/configuration-cache",
+    // TODO (b/177051800): add event to metrics
     BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
   )
 }
