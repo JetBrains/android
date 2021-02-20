@@ -24,12 +24,10 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.JBColor
 import icons.StudioIcons
-import javax.swing.JComponent
 
 val NO_PROCESS_ACTION = object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
   override fun update(e: AnActionEvent) { e.presentation.isEnabled = false }
@@ -86,12 +84,6 @@ class SelectProcessAction(private val model: ProcessesModel,
 
   private var lastProcess: ProcessDescriptor? = null
   private var lastProcessCount = 0
-  var button: JComponent? = null
-    private set
-
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    return super.createCustomComponent(presentation, place).also { button = it }
-  }
 
   override fun update(event: AnActionEvent) {
     if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
