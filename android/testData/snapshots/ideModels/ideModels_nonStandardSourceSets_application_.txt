@@ -1,7 +1,6 @@
 MODULE                        : application
 MODULE                        : application.app
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 0
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/application/app/build [-]

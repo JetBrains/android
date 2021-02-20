@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +34,6 @@ import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static java.util.Collections.sort;
 
 class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy {
-  @NotNull private final BuildToolsVersionReader myBuildToolsVersionReader;
   @NotNull private final List<String> myModules = new ArrayList<>();
 
   BuildTools23Rc1ValidationStrategy(@NotNull Project project) {
@@ -55,32 +50,12 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
   @VisibleForTesting
   BuildTools23Rc1ValidationStrategy(@NotNull Project project, @NotNull BuildToolsVersionReader buildToolsVersionReader) {
     super(project);
-    myBuildToolsVersionReader = buildToolsVersionReader;
   }
 
   // Build Tools 23 only works with Android plugin 1.3 or newer. Verify that the project is using compatible Build Tools/Android plugin
   // versions.
   @Override
   void validate(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    if (!isOneDotThreeOrNewer(androidModel.getAndroidProject())) {
-      String version = myBuildToolsVersionReader.getBuildToolsVersion(module);
-      if (version != null) {
-        List<String> segments = Splitter.on(' ').omitEmptyStrings().splitToList(version);
-        GradleVersion parsed = GradleVersion.parse(segments.get(0));
-        if (parsed.getMajor() == 23 && parsed.getMinor() == 0 && parsed.getMicro() == 0) {
-          String preview = "rc1";
-          if (preview.equals(parsed.getPreviewType()) || (segments.size() > 1 && preview.equals(segments.get(1)))) {
-            myModules.add(module.getName());
-          }
-        }
-      }
-    }
-  }
-
-  private static boolean isOneDotThreeOrNewer(@NotNull IdeAndroidProject project) {
-    String modelVersion = project.getModelVersion();
-    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
-    return !(modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1")) && project.getApiVersion() >= 3;
   }
 
   @Override
