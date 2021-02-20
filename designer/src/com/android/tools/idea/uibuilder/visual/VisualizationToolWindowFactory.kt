@@ -15,9 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.resources.ResourceFolderType
+import com.android.tools.idea.res.getFolderType
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 
 /**
  * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and the initialization is controlled by IJ's
@@ -26,10 +37,76 @@ import com.intellij.openapi.wm.ToolWindowFactory
 class VisualizationToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    // Initializes the VisualizationManager when tool window needs the content.
-    // This guarantees the Visualization Manager does not init during indexing and only consume the resource when it needs.
-    // This also gets rid of using postStartupActivity to init the VisualizationManager.
-    VisualizationManager.getInstance(project)
-    // TODO(b/180927397): Move content initialization from VisualizationManager to here
+    val manager = VisualizationManager.getInstance(project)
+    if (manager == null) {
+      toolWindow.isAvailable = false
+      return
+    }
+    toolWindow.isAutoHide = false
+    // TODO(b/180927397): Consider to move content initialization from VisualizationManager to here?
+
+    val editorChangeTask: (FileEditor?) -> Unit = { editor -> manager.processFileEditorChange(editor, toolWindow) }
+    val fileCloseTask: (FileEditorManager, VirtualFile) -> Unit = { source, virtualFile -> manager.processFileClose(source, virtualFile) }
+    project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
+                                                                MyFileEditorManagerListener(project, editorChangeTask, fileCloseTask))
+    // Process editor change task to have initial status.
+    editorChangeTask(FileEditorManager.getInstance(project).selectedEditor)
+  }
+}
+
+private class MyFileEditorManagerListener(private val project: Project,
+                                          private val editorChangeTask: (FileEditor?) -> Unit,
+                                          private val fileCloseTask: (FileEditorManager, VirtualFile) -> Unit) : FileEditorManagerListener {
+  override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+    if (!file.isValid) {
+      return
+    }
+    val psiFile = PsiManager.getInstance(project).findFile(file)
+    val fileEditor = getActiveLayoutEditor(psiFile)
+    if (fileEditor != null) {
+      editorChangeTask(fileEditor)
+    }
+  }
+
+  override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+    fileCloseTask(source, file)
+    // When using "Close All" action, the selectionChanged event is not triggered.
+    // Thus we have to handle this case here.
+    // In other cases, do not respond to fileClosed events since this has led to problems
+    // with the preview window in the past. See b/64199946 and b/64288544
+    if (source.openFiles.isEmpty()) {
+      editorChangeTask(null)
+    }
+  }
+
+  override fun selectionChanged(event: FileEditorManagerEvent) {
+    var editorForLayout: FileEditor? = null
+    val newEditor = event.newEditor
+    if (newEditor != null) {
+      val newVirtualFile = newEditor.file
+      if (newVirtualFile != null) {
+        val psiFile = PsiManager.getInstance(project).findFile(newVirtualFile)
+        if (getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+          // Visualization tool only works for layout files.
+          editorForLayout = newEditor
+        }
+      }
+    }
+    editorChangeTask(editorForLayout)
+  }
+
+  /**
+   * Find an active editor for the specified file, or just the first active editor if file is null.
+   */
+  private fun getActiveLayoutEditor(file: PsiFile?): FileEditor? {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed) {
+      return ApplicationManager.getApplication().runReadAction(
+        Computable { getActiveLayoutEditor(file) })
+    }
+    ApplicationManager.getApplication().assertReadAccessAllowed()
+    return FileEditorManager.getInstance(project).selectedEditors.firstOrNull { editor: FileEditor ->
+      val editorFile = editor.file
+      editorFile != null && editorFile == file
+    }
   }
 }
