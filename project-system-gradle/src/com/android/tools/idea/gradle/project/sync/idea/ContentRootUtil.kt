@@ -81,7 +81,7 @@ private fun collectContentRootData(
   androidModel: AndroidModuleModel
 ): Collection<ContentRootData> {
   val buildDir: File = androidModel.androidProject.buildFolder
-  val moduleRootPath = androidModel.rootDirPath.absolutePath
+  val moduleRootPath = ExternalSystemApiUtil.toCanonicalPath(androidModel.rootDirPath.absolutePath)
 
   val newContentRoots = mutableListOf<ContentRootData>()
   val mainContentRootData = ContentRootData(GradleConstants.SYSTEM_ID, moduleRootPath).also {
