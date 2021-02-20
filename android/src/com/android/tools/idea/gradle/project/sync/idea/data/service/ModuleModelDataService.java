@@ -120,7 +120,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
         for (DataNode<?> node : dataNode.getParent().getChildren()){
           if (node.getKey().equals(GradleSourceSetData.KEY)){
             GradleSourceSetData sourceSetData = (GradleSourceSetData)node.getData();
-            index.put(sourceSetData.getIdeParentGrouping(), model);
+            index.put(sourceSetData.getInternalName(), model);
           }
         }
       }
