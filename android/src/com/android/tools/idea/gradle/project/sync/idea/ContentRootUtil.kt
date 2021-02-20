@@ -77,7 +77,7 @@ private fun collectContentRootData(
   ndkModel: NdkModuleModel?,
   existingContentRoots: Collection<DataNode<ContentRootData>>?
 ) : Collection<ContentRootData> {
-  val moduleRootPath = androidModel.rootDirPath.absolutePath
+  val moduleRootPath = ExternalSystemApiUtil.toCanonicalPath(androidModel.rootDirPath.absolutePath)
 
   // Attempt to reuse the main content root, we do this to reduce the work later when merging content roots in idea,
   // as apposed to creating a new data node for each path. We assume most of the paths will likely be under this
