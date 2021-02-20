@@ -98,7 +98,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   override fun getGearActions(): List<AnAction> {
     return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get()) {
-      listOf(CallstackAction, DrawablesInCallstackAction, CompactTree)
+      listOf(CallstackAction, DrawablesInCallstackAction, CompactTree, SupportLines)
     }
     else {
       listOf()

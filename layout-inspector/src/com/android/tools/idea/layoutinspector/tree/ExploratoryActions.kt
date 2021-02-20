@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.componenttree.ui.COMPACT_LINES
+import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -76,11 +78,37 @@ object DrawablesInCallstackAction : ToggleAction("Show compose Drawables in Call
 object CompactTree : ToggleAction("Compact tree", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    event.tree()?.getClientProperty(Control.Painter.KEY) == Control.Painter.COMPACT
+    event.tree()?.getClientProperty(Control.Painter.KEY) in listOf(Control.Painter.COMPACT, COMPACT_LINES)
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.compactTree = state
-    val newPainter = if (state) Control.Painter.COMPACT else null
+    val isLine = event.tree()?.getClientProperty(Control.Painter.KEY) in listOf(LINES, COMPACT_LINES)
+    val newPainter = when {
+      isLine && state -> COMPACT_LINES
+      isLine && !state -> LINES
+      state -> Control.Painter.COMPACT
+      else -> null
+    }
+    val tree = event.tree() ?: return
+    tree.putClientProperty(Control.Painter.KEY, newPainter)
+    tree.repaint()
+  }
+}
+
+object SupportLines : ToggleAction("Show support lines", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    event.tree()?.getClientProperty(Control.Painter.KEY) in listOf(LINES, COMPACT_LINES)
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.supportLines = state
+    val isCompact = event.tree()?.getClientProperty(Control.Painter.KEY) in listOf(Control.Painter.COMPACT, COMPACT_LINES)
+    val newPainter = when {
+      isCompact && state -> COMPACT_LINES
+      isCompact && !state -> Control.Painter.COMPACT
+      state -> LINES
+      else -> null
+    }
     val tree = event.tree() ?: return
     tree.putClientProperty(Control.Painter.KEY, newPainter)
     tree.repaint()
@@ -94,5 +122,13 @@ private fun AnActionEvent.tree(): Tree? =
   ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT))?.tree()
 
 fun Tree.setDefaultPainter() {
-  putClientProperty(Control.Painter.KEY, if (TreeSettings.compactTree) Control.Painter.COMPACT else null)
+  val painter = with(TreeSettings) {
+    when {
+      compactTree && supportLines -> COMPACT_LINES
+      compactTree && !supportLines -> Control.Painter.COMPACT
+      !compactTree && supportLines -> LINES
+      else -> null
+    }
+  }
+  putClientProperty(Control.Painter.KEY, painter)
 }

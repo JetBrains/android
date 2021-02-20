@@ -30,6 +30,9 @@ private const val DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK = true
 private const val KEY_COMPACT_TREE = "live.layout.inspector.tree.compact"
 private const val DEFAULT_COMPACT_TREE = false
 
+private const val KEY_SUPPORT_LINES = "live.layout.inspector.tree.lines"
+private const val DEFAULT_SUPPORT_LINES = true
+
 /**
  * Global Tree settings.
  */
@@ -56,6 +59,11 @@ object TreeSettings {
     get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
             get(KEY_COMPACT_TREE, DEFAULT_COMPACT_TREE)
     set(value) = set(KEY_COMPACT_TREE, value, DEFAULT_COMPACT_TREE)
+
+  var supportLines: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)
+    set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
 
   private fun get(key: String, defaultValue: Boolean): Boolean =
     PropertiesComponent.getInstance().getBoolean(key, defaultValue)
