@@ -1,7 +1,6 @@
 MODULE                        : MainActivity
 MODULE                        : MainActivity.app
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 0
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build
@@ -838,7 +837,6 @@ MODULE                        : MainActivity.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : MainActivity.lib
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 1
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]

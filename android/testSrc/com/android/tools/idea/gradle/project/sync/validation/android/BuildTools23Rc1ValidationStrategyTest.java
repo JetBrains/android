@@ -45,19 +45,8 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
     myStrategy = new BuildTools23Rc1ValidationStrategy(getProject(), myBuildToolsVersionReader);
   }
 
-  public void testValidate() {
-    AndroidModuleModel androidModel = mockAndroidModel("1.1", 2);
-    Module module = mock(Module.class);
-    when(module.getName()).thenReturn("app");
-    when(myBuildToolsVersionReader.getBuildToolsVersion(module)).thenReturn("23.0.0 rc1");
-
-    myStrategy.validate(module, androidModel);
-
-    assertThat(myStrategy.getModules()).containsExactly("app");
-  }
-
   public void testValidateWithPlugin1Dot3() {
-    AndroidModuleModel androidModel = mockAndroidModel("1.3", 3);
+    AndroidModuleModel androidModel = mockAndroidModel("3.0");
     Module module = mock(Module.class);
 
     myStrategy.validate(module, androidModel);
@@ -67,7 +56,7 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   public void testValidateWithBuildTools24() {
-    AndroidModuleModel androidModel = mockAndroidModel("1.1", 2);
+    AndroidModuleModel androidModel = mockAndroidModel("3.0");
     Module module = mock(Module.class);
     when(module.getName()).thenReturn("app");
     when(myBuildToolsVersionReader.getBuildToolsVersion(module)).thenReturn("24.0.0");
@@ -78,10 +67,9 @@ public class BuildTools23Rc1ValidationStrategyTest extends AndroidGradleTestCase
   }
 
   @NotNull
-  private static AndroidModuleModel mockAndroidModel(@Nullable String modelVersion, int apiVersion) {
+  private static AndroidModuleModel mockAndroidModel(@Nullable String modelVersion) {
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getModelVersion()).thenReturn(modelVersion);
-    when(androidProject.getApiVersion()).thenReturn(apiVersion);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);

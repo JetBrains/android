@@ -1,7 +1,6 @@
 MODULE                        : My_First_App
 MODULE                        : My_First_App.app
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 0
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
@@ -2008,7 +2007,6 @@ MODULE                        : My_First_App.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 1
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
