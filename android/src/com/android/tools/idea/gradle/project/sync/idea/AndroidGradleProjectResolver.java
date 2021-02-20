@@ -162,6 +162,7 @@ import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
@@ -675,19 +676,21 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, (id) -> {
       if (workspace != null) {
         if (resolverCtx.isResolveModulePerSourceSet()){
-          // This block is obtained from AOSP/DependencyUtil.kt: Change-Id: Ib67b8cd552866322e5566719d58a9d70421f3865.
+          // This block is adapted from AOSP/DependencyUtil.kt: Change-Id: Ib67b8cd552866322e5566719d58a9d70421f3865.
           // There is no need to merge this back into AOSP. When merging AOSP (?4.3?) > IJ, it should also go away.
-          // TODO: This is really slow, we need to modify the platform so that the GradleExecutionWorkspace makes the data node accessible
-          @Nullable DataNode<ModuleData> targetDataNode = GradleProjectResolverUtil.findModuleById(ideProject, id);
-          if (targetDataNode == null) return null;
 
-          @Nullable DataNode<GradleSourceSetData> sourceSet =
-            find(targetDataNode, GradleSourceSetData.KEY, node -> "main".equals(node.getData().getModuleName()));
-          if (sourceSet == null){
-            sourceSet = find(targetDataNode, GradleSourceSetData.KEY, node -> !"test".equals(node.getData().getModuleName()));
+          Map<String, Pair<DataNode<GradleSourceSetData>, ExternalSourceSet>> sourceSetMap =
+            ideProject.getUserData(GradleProjectResolver.RESOLVED_SOURCE_SETS);
+          if (sourceSetMap == null) return workspace.findModuleDataByModuleId(id);
+
+          Pair<DataNode<GradleSourceSetData>, ExternalSourceSet> mainSourceSet = sourceSetMap.get(id + ":main");
+          if (mainSourceSet != null) {
+            return mainSourceSet.first.getData();
+          } else {
+            // Assume that modules per source set are disabled (e.g. android modules). In rare cases this may also mean that
+            //  the module should depend on some source set other than "main". We don't know exactly on which one anyway.
+            return workspace.findModuleDataByModuleId(id);
           }
-
-          return Objects.requireNonNullElse(sourceSet, targetDataNode).getData();
         } else {
           return workspace.findModuleDataByModuleId(id);
         }
