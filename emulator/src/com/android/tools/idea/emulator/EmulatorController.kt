@@ -718,7 +718,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
         while (remaining > 0) {
           val position = size - remaining
           val count = stream.read(buf, position, remaining)
-          if (count == -1) {
+          if (count < 0) {
             break
           }
           remaining -= count
@@ -738,7 +738,7 @@ private class ImageResponseMarshaller : Marshaller<Image> {
     catch (e: IOException) {
       throw InvalidProtocolBufferException(e)
     }
-    // Pre-create the CodedInputStream so that we can remove the size limit restriction when parsing.
+    // Remove the size limit restriction for parsing since the CodedInputStream is pre-created.
     codedStream.setSizeLimit(Int.MAX_VALUE)
     return codedStream
   }
