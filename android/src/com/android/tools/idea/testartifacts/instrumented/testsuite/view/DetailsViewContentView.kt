@@ -20,6 +20,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPla
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -51,7 +52,7 @@ import javax.swing.JPanel
 /**
  * Shows detailed tests results for a selected device.
  */
-class DetailsViewContentView(parentDisposable: Disposable, project: Project, logger: AndroidTestSuiteLogger) {
+class DetailsViewContentView(parentDisposable: Disposable, private val project: Project, logger: AndroidTestSuiteLogger) {
 
   /**
    * Returns the root panel.
@@ -182,7 +183,7 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
   fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
     myBenchmarkView.clear()
     for (line in benchmarkText.lines) {
-      line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT)
+      line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
     }
     myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
   }

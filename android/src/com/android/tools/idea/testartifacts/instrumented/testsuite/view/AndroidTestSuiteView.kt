@@ -33,6 +33,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Preconditions
@@ -419,7 +420,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       // Include a benchmark output to a raw output console for backward compatibility.
       val benchmarkOutput = testCase.benchmark
       if (benchmarkOutput.isNotEmpty()) {
-        BenchmarkOutput(benchmarkOutput).print(myDetailsView.rawTestLogConsoleView, ConsoleViewContentType.NORMAL_OUTPUT)
+        val benchmark = BenchmarkOutput(benchmarkOutput)
+        benchmark.print(myDetailsView.rawTestLogConsoleView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(myProject))
       }
       when (Preconditions.checkNotNull(testCase.result)) {
         AndroidTestCaseResult.PASSED -> passedTestCases++
