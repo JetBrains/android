@@ -16,8 +16,11 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.BENCHMARK_URL_REGEX
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.LINK_GROUP
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.util.io.FileUtil
+import java.io.File
 
 /**
  * This class manages the parsed output of a benchmark run. The lines array is a list of benchmark lines with the "benchmark: " prefix
@@ -31,6 +34,11 @@ import com.intellij.execution.ui.ConsoleViewContentType
  * When formatting the benchmark to be printed to a console, each line is printed with hyperlinks inline formatted according to the
  * benchmark output.
  */
+
+interface HyperlinkListener {
+  fun hyperlinkClicked(path: String)
+}
+
 class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
   constructor(benchmarkOutput: String) : this(parse(benchmarkOutput))
 
@@ -39,9 +47,9 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
    */
   fun fold(other: BenchmarkOutput) = BenchmarkOutput(lines + other.lines)
 
-  fun print(console: ConsoleView, type: ConsoleViewContentType) {
+  fun print(console: ConsoleView, type: ConsoleViewContentType, hyperlinkListener: HyperlinkListener? = null) {
     lines.forEach {
-      it.print(console, type)
+      it.print(console, type, hyperlinkListener)
     }
   }
 
@@ -49,7 +57,9 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
     val Empty = BenchmarkOutput("")
     // Valid string: Benchmark test took [200 ms](path/to/my.trace) to run.
     // text = 200 ms, url = path/to/my.trace, title = "", total = "[200 ms](path/to/my.trace)"
-    val BENCHMARK_URL_REGEX = Regex("(?<total>\\[(?<text>.+?)\\]\\((?<url>[^ ]+?)(?: \"(?<title>.+?)\")?\\))")
+    val BENCHMARK_URL_REGEX = Regex("(?<total>\\[(?<text>.+?)\\]\\((?<link>[^ ]+?)(?: \"(?<title>.+?)\")?\\))")
+    val LINK_GROUP = "link"
+    val BENCHMARK_TRACE_FILE_PREFIX = "file://"
   }
 }
 
@@ -57,7 +67,7 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
  * BenchmarkLine is a helper class to collect and print hyperlinks to a given {@link ConsoleView}
  */
 class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
-  fun print(console: ConsoleView, type: ConsoleViewContentType) {
+  fun print(console: ConsoleView, type: ConsoleViewContentType, hyperlinkListener: HyperlinkListener?) {
     console.print("benchmark: ", type)
     if (matches == null) {
       console.print(rawText, type)
@@ -66,10 +76,12 @@ class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
       var offsetStart = 0
       while (match != null) {
         val nextStart = match.range.start
+        val title = match.groups["title"]?.value ?: match.groups["text"]?.value ?: match.groups["url"]?.value ?: "[Link]"
+        val link = match.groups[LINK_GROUP]?.value ?: ""
         console.print(rawText.substring(offsetStart, nextStart), type)
-        console.printHyperlink(match.groups["title"]?.value ?: match.groups["text"]?.value ?: match.groups["url"]?.value ?: "[Link]", {
-          // TODO (gijosh) Handle link output to copy / open trace file in profilers.
-        })
+        console.printHyperlink(title) {
+          hyperlinkListener?.hyperlinkClicked(link)
+        }
         offsetStart = match.range.endInclusive+1
         match = match.next()
       }
@@ -89,5 +101,5 @@ private fun parse(benchmarkOutput: String): List<BenchmarkLine> {
   val strLines = benchmarkOutput.split("\n")
   return strLines.map {
     BenchmarkLine(it, BENCHMARK_URL_REGEX.find(it))
-  }.toMutableList()
+  }.toList()
 }

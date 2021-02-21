@@ -21,6 +21,8 @@ import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_PATH_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_V2_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -31,7 +33,10 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ProjectRule
+import org.jetbrains.kotlin.konan.file.File
+import org.jetbrains.plugins.groovy.lang.resolve.valid
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +44,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.argThat
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -47,10 +53,13 @@ import org.mockito.MockitoAnnotations
  */
 class DdmlibTestRunListenerAdapterTest {
 
-  @get:Rule val projectRule = ProjectRule()
+  @get:Rule
+  val projectRule = ProjectRule()
 
-  @Mock lateinit var mockDevice: IDevice
-  @Mock lateinit var mockListener: AndroidTestResultListener
+  @Mock
+  lateinit var mockDevice: IDevice
+  @Mock
+  lateinit var mockListener: AndroidTestResultListener
 
   @Before
   fun setup() {
@@ -92,12 +101,12 @@ class DdmlibTestRunListenerAdapterTest {
     adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1), mutableMapOf())
 
     verify(mockListener).onTestCaseFinished(eq(device()),
-                                           eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
-                                           eq(AndroidTestCase("exampleTestClass#exampleTest1 - 0",
-                                                              "exampleTest1",
-                                                              "exampleTestClass",
-                                                              "",
-                                                              AndroidTestCaseResult.PASSED)))
+                                            eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2)),
+                                            eq(AndroidTestCase("exampleTestClass#exampleTest1 - 0",
+                                                               "exampleTest1",
+                                                               "exampleTestClass",
+                                                               "",
+                                                               AndroidTestCaseResult.PASSED)))
 
     adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest2", 2))
 
@@ -309,6 +318,31 @@ class DdmlibTestRunListenerAdapterTest {
   }
 
   @Test
+  fun benchmarkFileLinkIsCopied() {
+    val validTracePath = "path/to/valid/my.trace"
+    val benchmarkOutputFromAndroidX = """
+      Benchmark test ran in [32 ns](file://$validTracePath)
+      However there was a bug in [this trace path](path/to/invalid.trace)
+    """.trimIndent()
+    val deviceRoot = "/device/root/path"
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
+    val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(
+      any(AndroidDevice::class.java),
+      any(AndroidTestSuite::class.java),
+      testCase.capture() ?: AndroidTestCase("", "", "", ""))
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
+                      mutableMapOf(BENCHMARK_TEST_METRICS_KEY to benchmarkOutputFromAndroidX,
+                                   BENCHMARK_PATH_TEST_METRICS_KEY to deviceRoot))
+    adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+    // Expect we attempt to copy the valid trace file, and we do not attempt to copy the invalid trace file.
+    verify(mockDevice, times(1)).pullFile("${deviceRoot}/$validTracePath",
+                                          "${FileUtil.getTempDirectory()}${File.separator}${validTracePath.replace("/", File.separator)}")
+  }
+
+  @Test
   fun testResultsShouldChangeToCancelledWhenTestProcessIsKilled() {
     val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
 
@@ -359,12 +393,13 @@ class DdmlibTestRunListenerAdapterTest {
   @Test
   fun timestamp() {
     lateinit var result: AndroidTestCase
-    val adapter = DdmlibTestRunListenerAdapter(mockDevice, object: AndroidTestResultListener {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, object : AndroidTestResultListener {
       override fun onTestSuiteScheduled(device: AndroidDevice) {}
       override fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite) {}
       override fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
         result = testCase
       }
+
       override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {}
       override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {}
     })
