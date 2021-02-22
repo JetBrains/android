@@ -44,6 +44,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Transport
 import com.google.common.html.HtmlEscapers
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
@@ -149,8 +150,9 @@ class TransportInspectorClient(
     }
   }
 
-  override fun doConnect() {
+  override fun doConnect(): ListenableFuture<Nothing> {
     attach(process)
+    return Futures.immediateFuture(null)
   }
 
   // TODO: detect when a connection is dropped

@@ -74,8 +74,9 @@ class LegacyClient(
     loggedInitialRender = false
   }
 
-  override fun doConnect() {
+  override fun doConnect(): ListenableFuture<Nothing> {
     attach()
+    return Futures.immediateFuture(null)
   }
 
   private fun attach() {

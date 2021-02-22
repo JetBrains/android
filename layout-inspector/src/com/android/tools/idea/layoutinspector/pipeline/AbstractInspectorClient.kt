@@ -70,11 +70,13 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   final override fun connect() {
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
-    doConnect()
-    state = InspectorClient.State.CONNECTED
+    doConnect().addListener(
+      {
+        state = InspectorClient.State.CONNECTED
+      }, MoreExecutors.directExecutor())
   }
 
-  protected abstract fun doConnect()
+  protected abstract fun doConnect(): ListenableFuture<Nothing>
 
   final override fun disconnect() {
     assert(state == InspectorClient.State.CONNECTED)

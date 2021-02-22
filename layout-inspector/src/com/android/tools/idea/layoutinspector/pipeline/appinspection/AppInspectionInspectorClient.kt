@@ -39,7 +39,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 import java.util.EnumSet
 
@@ -73,26 +72,32 @@ class AppInspectionInspectorClient(
 
   private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
 
-  override fun doConnect() {
-    metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
-    runBlocking {
+  override fun doConnect(): ListenableFuture<Nothing> {
+    val future = SettableFuture.create<Nothing>()
+    scope.launch(exceptionHandler) {
+      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
         composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
       }
 
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector, composeInspector, model)
-    }
-    metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-    debugViewAttributes.set()
+      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-    if (isCapturing) {
-      startFetching()
+      debugViewAttributes.set()
+
+      if (isCapturing) {
+        startFetching()
+      }
+      else {
+        refresh()
+      }
+
+      future.set(null)
     }
-    else {
-      refresh()
-    }
+    return future
   }
 
   override fun doDisconnect(): ListenableFuture<Nothing> {
