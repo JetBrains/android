@@ -32,7 +32,7 @@ private val roomAnnotationToClassBody = mapOf(
   "Database" to """
   package androidx.room;
 
-  public @interface Database { Class[] tables(); int version(); }
+  public @interface Database { Class<?>[] entities(); Class<?>[] views() default {}; int version(); }
   """.trimIndent(),
 
   "Entity" to """
