@@ -74,8 +74,11 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollBar;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
 import com.intellij.util.Alarm;
@@ -85,6 +88,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import java.awt.AWTEvent;
+import java.awt.Adjustable;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -97,6 +101,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
@@ -114,11 +119,15 @@ import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.OverlayLayout;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.plaf.ScrollBarUI;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -272,6 +281,28 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
+  /**
+   * Returns a {@link JScrollPane} containing the given content and with the given background color.
+   *
+   * @param content the scrollable content.
+   * @param background the scroll surface background.
+   * @param onPanningChanged callback when the scrollable area changes size.
+   */
+  @NotNull
+  private static JScrollPane createScrollPane(@NotNull JComponent content,
+                                              @NotNull Color background,
+                                              @NotNull AdjustmentListener onPanningChanged) {
+    JScrollPane scrollPane = new MyScrollPane();
+    scrollPane.setViewportView(content);
+    scrollPane.setBorder(JBUI.Borders.empty());
+    scrollPane.getViewport().setBackground(background);
+    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+    scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+    scrollPane.getHorizontalScrollBar().addAdjustmentListener(onPanningChanged);
+    scrollPane.getVerticalScrollBar().addAdjustmentListener(onPanningChanged);
+    return scrollPane;
+  }
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -344,7 +375,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     mySceneViewPanel.setBackground(getBackground());
 
     if (hasZoomControls) {
-      myScrollPane = DesignSurfaceScrollPane.createDefaultScrollPane(mySceneViewPanel, getBackground(), this::notifyPanningChanged);
+      myScrollPane = createScrollPane(mySceneViewPanel, getBackground(), this::notifyPanningChanged);
     }
     else {
       myScrollPane = null;
@@ -376,7 +407,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       mySceneViewPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
       myLayeredPane.add(mySceneViewPanel, JLayeredPane.POPUP_LAYER);
       myContentContainerPane = mySceneViewPanel;
-      myViewport = new NonScrollableDesignSurfaceViewport(this);
+      myViewport = new NonScrollableDesignSurfaceViewport(mySceneViewPanel);
     }
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
@@ -1111,7 +1142,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * If the zoom factor is large enough that a scroll bars isn't visible,
    * the position will be set to zero.
    */
-  @Override
   public void setScrollPosition(@SwingCoordinate Point p) {
     p.setLocation(Math.max(0, p.x), Math.max(0, p.y));
 
@@ -1126,7 +1156,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     getViewport().setViewPosition(p);
   }
 
-  @Override
   @SwingCoordinate
   public Point getScrollPosition() {
     return getViewport().getViewPosition();
@@ -1431,13 +1460,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getSceneViewAtMousePosition() {
-    Point mouseLocation = !GraphicsEnvironment.isHeadless() ? MouseInfo.getPointerInfo().getLocation() : null;
-    if (mouseLocation == null || contains(mouseLocation) || !isVisible() || !isEnabled()) {
+    Point mousePositionInSurface = !GraphicsEnvironment.isHeadless() ? getMousePosition(true) : null;
+    if (mousePositionInSurface == null) {
+      // The mouse is not over the surface
       return null;
     }
 
-    SwingUtilities.convertPointFromScreen(mouseLocation, this);
-    return getSceneViewAt(mouseLocation.x, mouseLocation.y);
+    Point position = SwingUtilities.convertPoint(this, mousePositionInSurface, myScrollPane.getViewport().getView());
+    return getSceneViewAt(position.x, position.y);
   }
 
   /**
@@ -1514,6 +1544,56 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   protected Collection<PositionableContent> getPositionableContent() {
     return mySceneViewPanel.getPositionableContent();
+  }
+
+  private static class MyScrollPane extends JBScrollPane {
+    private MyScrollPane() {
+      super(0);
+      setupCorners();
+    }
+
+    @NotNull
+    @Override
+    public JScrollBar createVerticalScrollBar() {
+      return new MyScrollBar(Adjustable.VERTICAL);
+    }
+
+    @NotNull
+    @Override
+    public JScrollBar createHorizontalScrollBar() {
+      return new MyScrollBar(Adjustable.HORIZONTAL);
+    }
+  }
+
+  private static class MyScrollBar extends JBScrollBar implements IdeGlassPane.TopComponent {
+    private ScrollBarUI myPersistentUI;
+
+    private MyScrollBar(@JdkConstants.AdjustableOrientation int orientation) {
+      super(orientation);
+      setOpaque(false);
+    }
+
+    @Override
+    public boolean canBePreprocessed(MouseEvent e) {
+      return JBScrollPane.canBePreprocessed(e, this);
+    }
+
+    @Override
+    public void setUI(ScrollBarUI ui) {
+      if (myPersistentUI == null) myPersistentUI = ui;
+      super.setUI(myPersistentUI);
+      setOpaque(false);
+    }
+
+    @Override
+    public int getUnitIncrement(int direction) {
+      return 5;
+    }
+
+    @Override
+    public int getBlockIncrement(int direction) {
+      return 1;
+    }
   }
 
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<>();

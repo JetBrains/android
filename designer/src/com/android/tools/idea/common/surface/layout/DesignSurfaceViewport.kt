@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.surface.layout
 
-import com.android.tools.idea.common.surface.DesignSurface
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -72,9 +71,9 @@ class ScrollableDesignSurfaceViewport(val viewport: JViewport): DesignSurfaceVie
 }
 
 /**
- * A [DesignSurfaceViewport] for non scrollable surfaces. These surfaces will usually be embedded in a scrollable panel.
+ * A [DesignSurfaceViewport] for non scrollable surfaces where the viewport and the view are the same.
  */
-class NonScrollableDesignSurfaceViewport(val view: DesignSurface): DesignSurfaceViewport {
+class NonScrollableDesignSurfaceViewport(val view: Component): DesignSurfaceViewport {
   override val viewRect: Rectangle
     get() = view.bounds
   override val viewportComponent: Component
@@ -85,9 +84,9 @@ class NonScrollableDesignSurfaceViewport(val view: DesignSurface): DesignSurface
     get() = Point(0, 0)
     set(_) {}
   override val extentSize: Dimension
-    get() = view.visibleRect.size // The extent size in this case is just the visible part of the design surface
-  override val viewSize: Dimension
     get() = view.size
+  override val viewSize: Dimension
+  get() = view.size
   override fun addChangeListener(changeListener: ChangeListener) {
     view.addComponentListener(object: ComponentAdapter() {
       override fun componentResized(e: ComponentEvent) {
