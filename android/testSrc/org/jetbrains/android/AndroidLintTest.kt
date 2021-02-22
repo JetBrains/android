@@ -545,26 +545,6 @@ class AndroidLintTest : AndroidTestCase() {
                   "/res/values/typography.xml", "xml")
   }
 
-  fun testGenMediaCapabilities() {
-    deleteManifest()
-    // setup project files
-    myFixture.copyFileToProject("$globalTestDir/MediaStoreVideoUsage.java",
-                                "src/p1/pkg/MediaStoreVideoUsage.java")
-    myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml",
-                                "AndroidManifest.xml")
-    // No highlighting test: the error markers are physically present in the PSI File
-    // and confuses the manifest merger, which sees them. (The <caret> tag on the
-    // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
-    doGlobalInspectionWithFix(
-      AndroidLintMediaCapabilitiesInspection(),
-      "Add media capabilities property and generate descriptor")
-    // also check the generated backup descriptor.
-    myFixture.checkResultByFile("res/xml/media_capabilities.xml",
-                                "$globalTestDir/media_capabilities.xml", true)
-    myFixture.checkResultByFile("AndroidManifest.xml",
-                                "$globalTestDir/AndroidManifest_after.xml", true)
-  }
-
   fun testGenBackupDescriptor() {
     deleteManifest()
     // setup project files
