@@ -746,6 +746,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
              '}';
     }
 
+    @SuppressWarnings("EqualsHashCode")  // b/180537631
     @Override
     public boolean equals(@Nullable Object that) {
       if (this == that) {

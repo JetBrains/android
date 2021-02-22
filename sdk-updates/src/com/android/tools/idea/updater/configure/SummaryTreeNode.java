@@ -106,6 +106,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return myVersion.compareTo(((SummaryTreeNode)o).myVersion);
   }
 
+  @SuppressWarnings("EqualsHashCode")  // b/180537631
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof SummaryTreeNode)) {
