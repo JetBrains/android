@@ -78,10 +78,17 @@ class ProjectDumper(
     val cxxSegment = findCxxSegment(this) ?: return this.path
     val abiSegment = findAbiSegment(this) ?: return this.path
     val stringFile = this.toString().replace("\\", "/")
-    val cxxPartToReplace = stringFile.substring(
-      stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1,
-      stringFile.lastIndexOf(abiSegment) - 1)
-    return this.path.replace(cxxPartToReplace, "{${variantName?.toUpperCase(Locale.ROOT)}}")
+    val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1, stringFile.lastIndexOf(abiSegment) - 1)
+    val pathsToReplace = mapOf(
+      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
+      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
+      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
+      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}")
+    var result = this.path
+    for ((old, new) in pathsToReplace) {
+      result = result.replace(old, new)
+    }
+    return result
   }
 
   private fun findCxxSegment(file: File): String? {
