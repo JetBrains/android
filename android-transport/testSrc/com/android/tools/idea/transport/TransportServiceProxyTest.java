@@ -83,7 +83,7 @@ public class TransportServiceProxyTest {
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
     assertThat(definedMethods.size()).isEqualTo(allMethods.size());
-    definedMethods.containsAll(allMethods);
+    assertThat(definedMethods.containsAll(allMethods)).isTrue();
   }
 
   @Test
