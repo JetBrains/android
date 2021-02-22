@@ -651,10 +651,11 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   }
 
   private enum class TimelineSpeed(val speedMultiplier: Float, val displayText: String) {
+    X_0_1(0.1f, "0.1x"),
     X_0_25(0.25f, "0.25x"),
     X_0_5(0.5f, "0.5x"),
+    X_0_75(0.75f, "0.75x"),
     X_1(1f, "1x"),
-    X_1_5(1.5f, "1.5x"),
     X_2(2f, "2x")
   }
 
