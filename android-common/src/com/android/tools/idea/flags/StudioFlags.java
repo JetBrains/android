@@ -572,6 +572,15 @@ public final class StudioFlags {
     GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
     "This allows the IDE to more closely represent how the project is configured in Gradle.", false);
 
+  public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
+    "This allows the IDE to fetch models in parallel (if supported by Gralde and enabled via org.gradle.parallel=true).", false);
+
+  public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS = Flag.create(
+    GRADLE_IDE, "gradle.sync.parallel.sync.prefetch.variants", "Enables speculative syncing of current variants",
+    "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
+    "new variant selection (which is less parallelizable process).", false);
+
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
   //endregion
