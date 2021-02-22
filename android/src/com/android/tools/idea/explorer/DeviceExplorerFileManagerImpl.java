@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer;
 
+import static com.android.tools.idea.explorer.ExecutorUtil.executeInWriteSafeContextWithAnyModality;
+
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.device.fs.DownloadProgress;
@@ -117,12 +119,13 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     SettableFuture<VirtualFile> futureResult = SettableFuture.create();
     FileUtils.mkdirs(localPath.getParent().toFile());
 
-    ApplicationManager.getApplication().invokeLater(() -> {
+    executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor, () -> {
+      // findFileByIoFile should be called from the write thread, in a write-safe context
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
       ApplicationManager.getApplication().runWriteAction(() -> {
-        // this must be done inside a transaction, see DeviceExplorerFilesUtils.findFile
-        VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
         if (virtualFile != null) {
           try {
+            // must be called from a write action
             deleteVirtualFile(virtualFile);
           } catch (Throwable exception) {
             futureResult.setException(exception);
@@ -142,7 +145,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
           }
         });
       });
-    }, myProject.getDisposed());
+    });
 
     return futureResult;
   }
@@ -151,16 +154,17 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
-    ApplicationManager.getApplication().invokeLater(() -> {
+    executeInWriteSafeContextWithAnyModality(myProject, myEdtExecutor, () -> {
       ApplicationManager.getApplication().runWriteAction(() -> {
         try {
+          // must be called from a write action
           deleteVirtualFile(virtualFile);
           futureResult.set(null);
         } catch (Throwable exception) {
           futureResult.setException(exception);
         }
       });
-    }, myProject.getDisposed());
+    });
 
     return futureResult;
   }
@@ -188,8 +192,10 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     FileTransferProgress fileTransferProgress = createFileTransferProgress(entry, progress);
     progress.onStarting(entry.getFullPath());
     ListenableFuture<Void> downloadFileFuture = entry.downloadFile(localPath, fileTransferProgress);
-    ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(downloadFileFuture,
-                                                                                 aVoid -> DeviceExplorerFilesUtils.findFile(localPath));
+    ListenableFuture<VirtualFile> getVirtualFile = myTaskExecutor.transformAsync(
+      downloadFileFuture,
+      aVoid -> DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, localPath)
+    );
     myEdtExecutor.addCallback(getVirtualFile, new FutureCallback<VirtualFile>() {
       @Override
       public void onSuccess(VirtualFile virtualFile) {

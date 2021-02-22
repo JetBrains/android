@@ -486,7 +486,7 @@ public class DeviceExplorerController {
       ListenableFuture<Void> done = myEdtExecutor.transformAsync(futurePath, path -> {
         assert path != null;
 
-        ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(path);
+        ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(myProject, myEdtExecutor, path);
 
         return myEdtExecutor.transform(getVirtualFile, virtualFile -> {
           myFileOpener.openFile(virtualFile);
