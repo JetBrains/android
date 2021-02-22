@@ -65,6 +65,8 @@ MODULE                        : TestCompositeLib1.app
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/main/java
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/main/rs [-]
@@ -80,6 +82,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/androidTest/rs [-]
@@ -94,6 +98,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/test/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/test/rs [-]
@@ -114,6 +120,8 @@ MODULE                        : TestCompositeLib1.app
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/debug/rs [-]
@@ -129,6 +137,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/androidTestDebug/rs [-]
@@ -144,6 +154,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/testDebug/rs [-]
@@ -163,6 +175,8 @@ MODULE                        : TestCompositeLib1.app
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib1/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/release/rs [-]
@@ -178,6 +192,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/androidTestRelease/rs [-]
@@ -193,6 +209,8 @@ MODULE                        : TestCompositeLib1.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/app/src/testRelease/rs [-]
@@ -2110,6 +2128,8 @@ MODULE                        : TestCompositeLib1.lib
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/main/java
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/main/rs [-]
@@ -2125,6 +2145,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTest/rs [-]
@@ -2139,6 +2161,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/test/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/test/rs [-]
@@ -2159,6 +2183,8 @@ MODULE                        : TestCompositeLib1.lib
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/debug/rs [-]
@@ -2174,6 +2200,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTestDebug/rs [-]
@@ -2189,6 +2217,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/testDebug/rs [-]
@@ -2208,6 +2238,8 @@ MODULE                        : TestCompositeLib1.lib
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib1/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/release/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/release/rs [-]
@@ -2223,6 +2255,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/androidTestRelease/rs [-]
@@ -2238,6 +2272,8 @@ MODULE                        : TestCompositeLib1.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib1/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib1/lib/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib1/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib1/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib1/lib/src/testRelease/rs [-]
@@ -4066,6 +4102,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/main/java
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/main/rs [-]
@@ -4081,6 +4119,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/androidTest/rs [-]
@@ -4095,6 +4135,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/test/java
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/test/rs [-]
@@ -4115,6 +4157,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/debug/rs [-]
@@ -4130,6 +4174,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/androidTestDebug/rs [-]
@@ -4145,6 +4191,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/testDebug/rs [-]
@@ -4164,6 +4212,8 @@ MODULE                        : TestCompositeLib3.app
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib3/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/release/rs [-]
@@ -4179,6 +4229,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/androidTestRelease/rs [-]
@@ -4194,6 +4246,8 @@ MODULE                        : TestCompositeLib3.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib3/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/app/src/testRelease/rs [-]
@@ -6075,6 +6129,8 @@ MODULE                        : TestCompositeLib3.lib
             Name                          : main
             Manifest                      : <ROOT>/TestCompositeLib3/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/main/java
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/main/rs [-]
@@ -6090,6 +6146,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/androidTest/rs [-]
@@ -6104,6 +6162,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : test
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/test/rs [-]
@@ -6124,6 +6184,8 @@ MODULE                        : TestCompositeLib3.lib
             Name                          : debug
             Manifest                      : <ROOT>/TestCompositeLib3/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/debug/rs [-]
@@ -6139,6 +6201,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/androidTestDebug/rs [-]
@@ -6154,6 +6218,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/testDebug/rs [-]
@@ -6173,6 +6239,8 @@ MODULE                        : TestCompositeLib3.lib
             Name                          : release
             Manifest                      : <ROOT>/TestCompositeLib3/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/release/rs [-]
@@ -6188,6 +6256,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/androidTestRelease/rs [-]
@@ -6203,6 +6273,8 @@ MODULE                        : TestCompositeLib3.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/TestCompositeLib3/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/TestCompositeLib3/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/TestCompositeLib3/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/TestCompositeLib3/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/TestCompositeLib3/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/TestCompositeLib3/lib/src/testRelease/rs [-]
@@ -7934,6 +8006,8 @@ MODULE                        : project.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/main/java
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
@@ -7949,6 +8023,8 @@ MODULE                        : project.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
@@ -7963,6 +8039,8 @@ MODULE                        : project.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/java
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
@@ -7983,6 +8061,8 @@ MODULE                        : project.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
@@ -7998,6 +8078,8 @@ MODULE                        : project.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
@@ -8013,6 +8095,8 @@ MODULE                        : project.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
@@ -8032,6 +8116,8 @@ MODULE                        : project.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
@@ -8047,6 +8133,8 @@ MODULE                        : project.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
@@ -8062,6 +8150,8 @@ MODULE                        : project.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
@@ -10000,6 +10090,8 @@ MODULE                        : project.lib
             Name                          : main
             Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/lib/src/main/java
+            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/main/java
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
@@ -10015,6 +10107,8 @@ MODULE                        : project.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
@@ -10029,6 +10123,8 @@ MODULE                        : project.lib
                     Name                          : test
                     Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/test/java
+                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/java
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
@@ -10049,6 +10145,8 @@ MODULE                        : project.lib
             Name                          : debug
             Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
@@ -10064,6 +10162,8 @@ MODULE                        : project.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
@@ -10079,6 +10179,8 @@ MODULE                        : project.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
@@ -10098,6 +10200,8 @@ MODULE                        : project.lib
             Name                          : release
             Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/java [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
@@ -10113,6 +10217,8 @@ MODULE                        : project.lib
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
@@ -10128,6 +10234,8 @@ MODULE                        : project.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
