@@ -80,6 +80,8 @@ MODULE                        : project.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
@@ -95,6 +97,8 @@ MODULE                        : project.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
@@ -109,6 +113,8 @@ MODULE                        : project.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
@@ -129,6 +135,8 @@ MODULE                        : project.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
@@ -144,6 +152,8 @@ MODULE                        : project.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
@@ -159,6 +169,8 @@ MODULE                        : project.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
@@ -178,6 +190,8 @@ MODULE                        : project.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
@@ -193,6 +207,8 @@ MODULE                        : project.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
@@ -208,6 +224,8 @@ MODULE                        : project.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
@@ -227,6 +245,8 @@ MODULE                        : project.app
             Name                          : specialRelease
             Manifest                      : <ROOT>/app/src/specialRelease/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/specialRelease/java [-]
+            KotlinDirectories             : <ROOT>/app/src/specialRelease/java [-]
+            KotlinDirectories             : <ROOT>/app/src/specialRelease/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/specialRelease/resources [-]
             AidlDirectories               : <ROOT>/app/src/specialRelease/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/specialRelease/rs [-]
@@ -242,6 +262,8 @@ MODULE                        : project.app
                     Name                          : androidTestSpecialRelease
                     Manifest                      : <ROOT>/app/src/androidTestSpecialRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestSpecialRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestSpecialRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestSpecialRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestSpecialRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestSpecialRelease/rs [-]
@@ -257,6 +279,8 @@ MODULE                        : project.app
                     Name                          : testSpecialRelease
                     Manifest                      : <ROOT>/app/src/testSpecialRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testSpecialRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testSpecialRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testSpecialRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testSpecialRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testSpecialRelease/rs [-]
@@ -274,6 +298,8 @@ MODULE                        : project.app
             Name                          : basic
             Manifest                      : <ROOT>/app/src/basic/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/basic/java [-]
+            KotlinDirectories             : <ROOT>/app/src/basic/java [-]
+            KotlinDirectories             : <ROOT>/app/src/basic/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/basic/resources [-]
             AidlDirectories               : <ROOT>/app/src/basic/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/basic/rs [-]
@@ -289,6 +315,8 @@ MODULE                        : project.app
                     Name                          : androidTestBasic
                     Manifest                      : <ROOT>/app/src/androidTestBasic/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestBasic/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasic/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasic/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasic/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestBasic/rs [-]
@@ -303,6 +331,8 @@ MODULE                        : project.app
                     Name                          : testBasic
                     Manifest                      : <ROOT>/app/src/testBasic/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testBasic/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasic/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasic/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasic/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testBasic/rs [-]
@@ -335,6 +365,8 @@ MODULE                        : project.app
             Name                          : paid
             Manifest                      : <ROOT>/app/src/paid/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/paid/java
+            KotlinDirectories             : <ROOT>/app/src/paid/java
+            KotlinDirectories             : <ROOT>/app/src/paid/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/paid/resources [-]
             AidlDirectories               : <ROOT>/app/src/paid/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/paid/rs [-]
@@ -350,6 +382,8 @@ MODULE                        : project.app
                     Name                          : androidTestPaid
                     Manifest                      : <ROOT>/app/src/androidTestPaid/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestPaid/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestPaid/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestPaid/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestPaid/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestPaid/rs [-]
@@ -364,6 +398,8 @@ MODULE                        : project.app
                     Name                          : testPaid
                     Manifest                      : <ROOT>/app/src/testPaid/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testPaid/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testPaid/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testPaid/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testPaid/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testPaid/rs [-]
@@ -379,6 +415,8 @@ MODULE                        : project.app
             Name                          : bar
             Manifest                      : <ROOT>/app/src/bar/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/bar/java [-]
+            KotlinDirectories             : <ROOT>/app/src/bar/java [-]
+            KotlinDirectories             : <ROOT>/app/src/bar/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/bar/resources [-]
             AidlDirectories               : <ROOT>/app/src/bar/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/bar/rs [-]
@@ -394,6 +432,8 @@ MODULE                        : project.app
                     Name                          : androidTestBar
                     Manifest                      : <ROOT>/app/src/androidTestBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestBar/rs [-]
@@ -408,6 +448,8 @@ MODULE                        : project.app
                     Name                          : testBar
                     Manifest                      : <ROOT>/app/src/testBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testBar/rs [-]
@@ -426,6 +468,8 @@ MODULE                        : project.app
             Name                          : otherBar
             Manifest                      : <ROOT>/app/src/otherBar/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/otherBar/java [-]
+            KotlinDirectories             : <ROOT>/app/src/otherBar/java [-]
+            KotlinDirectories             : <ROOT>/app/src/otherBar/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/otherBar/resources [-]
             AidlDirectories               : <ROOT>/app/src/otherBar/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/otherBar/rs [-]
@@ -441,6 +485,8 @@ MODULE                        : project.app
                     Name                          : androidTestOtherBar
                     Manifest                      : <ROOT>/app/src/androidTestOtherBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestOtherBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestOtherBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestOtherBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestOtherBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestOtherBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestOtherBar/rs [-]
@@ -455,6 +501,8 @@ MODULE                        : project.app
                     Name                          : testOtherBar
                     Manifest                      : <ROOT>/app/src/testOtherBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testOtherBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testOtherBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testOtherBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testOtherBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testOtherBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testOtherBar/rs [-]
@@ -601,6 +649,8 @@ MODULE                        : project.app
                     Name                          : basicBarDebug
                     Manifest                      : <ROOT>/app/src/basicBarDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/basicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/basicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/basicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/basicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/basicBarDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/basicBarDebug/rs [-]
@@ -613,6 +663,8 @@ MODULE                        : project.app
                     Name                          : basicBar
                     Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/basicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/basicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/basicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/basicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/basicBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/basicBar/rs [-]
@@ -1239,6 +1291,8 @@ MODULE                        : project.app
                     Name                          : androidTestBasicBarDebug
                     Manifest                      : <ROOT>/app/src/androidTestBasicBarDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestBasicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasicBarDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBarDebug/rs [-]
@@ -1251,6 +1305,8 @@ MODULE                        : project.app
                     Name                          : androidTestBasicBar
                     Manifest                      : <ROOT>/app/src/androidTestBasicBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestBasicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestBasicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestBasicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestBasicBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestBasicBar/rs [-]
@@ -1960,6 +2016,8 @@ MODULE                        : project.app
                     Name                          : testBasicBarDebug
                     Manifest                      : <ROOT>/app/src/testBasicBarDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testBasicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasicBarDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasicBarDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasicBarDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasicBarDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testBasicBarDebug/rs [-]
@@ -1972,6 +2030,8 @@ MODULE                        : project.app
                     Name                          : testBasicBar
                     Manifest                      : <ROOT>/app/src/testBasicBar/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testBasicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasicBar/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testBasicBar/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testBasicBar/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testBasicBar/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testBasicBar/rs [-]
@@ -2603,6 +2663,8 @@ MODULE                        : project.dyn_feature
             Name                          : main
             Manifest                      : <ROOT>/dyn_feature/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/dyn_feature/src/main/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/main/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/main/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/dyn_feature/src/main/rs [-]
@@ -2618,6 +2680,8 @@ MODULE                        : project.dyn_feature
                     Name                          : androidTest
                     Manifest                      : <ROOT>/dyn_feature/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTest/rs [-]
@@ -2632,6 +2696,8 @@ MODULE                        : project.dyn_feature
                     Name                          : test
                     Manifest                      : <ROOT>/dyn_feature/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/test/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/test/rs [-]
@@ -2652,6 +2718,8 @@ MODULE                        : project.dyn_feature
             Name                          : debug
             Manifest                      : <ROOT>/dyn_feature/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/dyn_feature/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/debug/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/dyn_feature/src/debug/rs [-]
@@ -2667,6 +2735,8 @@ MODULE                        : project.dyn_feature
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/dyn_feature/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTestDebug/rs [-]
@@ -2682,6 +2752,8 @@ MODULE                        : project.dyn_feature
                     Name                          : testDebug
                     Manifest                      : <ROOT>/dyn_feature/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/testDebug/rs [-]
@@ -2701,6 +2773,8 @@ MODULE                        : project.dyn_feature
             Name                          : release
             Manifest                      : <ROOT>/dyn_feature/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/dyn_feature/src/release/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/release/java [-]
+            KotlinDirectories             : <ROOT>/dyn_feature/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/dyn_feature/src/release/resources [-]
             AidlDirectories               : <ROOT>/dyn_feature/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/dyn_feature/src/release/rs [-]
@@ -2716,6 +2790,8 @@ MODULE                        : project.dyn_feature
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/dyn_feature/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/androidTestRelease/rs [-]
@@ -2731,6 +2807,8 @@ MODULE                        : project.dyn_feature
                     Name                          : testRelease
                     Manifest                      : <ROOT>/dyn_feature/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/dyn_feature/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/dyn_feature/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/dyn_feature/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/dyn_feature/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/dyn_feature/src/testRelease/rs [-]
@@ -2896,6 +2974,8 @@ MODULE                        : project.lib
             Name                          : main
             Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/lib/src/main/java
+            KotlinDirectories             : <ROOT>/lib/src/main/java
+            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
@@ -2911,6 +2991,8 @@ MODULE                        : project.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
@@ -2925,6 +3007,8 @@ MODULE                        : project.lib
                     Name                          : test
                     Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
@@ -2945,6 +3029,8 @@ MODULE                        : project.lib
             Name                          : debug
             Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
@@ -2960,6 +3046,8 @@ MODULE                        : project.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
@@ -2975,6 +3063,8 @@ MODULE                        : project.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
@@ -2994,6 +3084,8 @@ MODULE                        : project.lib
             Name                          : release
             Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
@@ -3009,6 +3101,8 @@ MODULE                        : project.lib
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
@@ -3024,6 +3118,8 @@ MODULE                        : project.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
@@ -4738,6 +4834,8 @@ MODULE                        : project.nested1
             Name                          : main
             Manifest                      : <ROOT>/nested1/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/nested1/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/src/main/rs [-]
@@ -4753,6 +4851,8 @@ MODULE                        : project.nested1
                     Name                          : androidTest
                     Manifest                      : <ROOT>/nested1/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/androidTest/rs [-]
@@ -4767,6 +4867,8 @@ MODULE                        : project.nested1
                     Name                          : test
                     Manifest                      : <ROOT>/nested1/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/test/rs [-]
@@ -4787,6 +4889,8 @@ MODULE                        : project.nested1
             Name                          : debug
             Manifest                      : <ROOT>/nested1/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested1/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/src/debug/rs [-]
@@ -4802,6 +4906,8 @@ MODULE                        : project.nested1
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/nested1/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/androidTestDebug/rs [-]
@@ -4817,6 +4923,8 @@ MODULE                        : project.nested1
                     Name                          : testDebug
                     Manifest                      : <ROOT>/nested1/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/testDebug/rs [-]
@@ -4836,6 +4944,8 @@ MODULE                        : project.nested1
             Name                          : release
             Manifest                      : <ROOT>/nested1/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested1/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested1/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested1/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/src/release/rs [-]
@@ -4851,6 +4961,8 @@ MODULE                        : project.nested1
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/nested1/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/androidTestRelease/rs [-]
@@ -4866,6 +4978,8 @@ MODULE                        : project.nested1
                     Name                          : testRelease
                     Manifest                      : <ROOT>/nested1/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/src/testRelease/rs [-]
@@ -5029,6 +5143,8 @@ MODULE                        : project.nested1.deep
             Name                          : main
             Manifest                      : <ROOT>/nested1/deep/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/nested1/deep/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/deep/src/main/rs [-]
@@ -5044,6 +5160,8 @@ MODULE                        : project.nested1.deep
                     Name                          : androidTest
                     Manifest                      : <ROOT>/nested1/deep/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTest/rs [-]
@@ -5058,6 +5176,8 @@ MODULE                        : project.nested1.deep
                     Name                          : test
                     Manifest                      : <ROOT>/nested1/deep/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/test/rs [-]
@@ -5078,6 +5198,8 @@ MODULE                        : project.nested1.deep
             Name                          : debug
             Manifest                      : <ROOT>/nested1/deep/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested1/deep/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/deep/src/debug/rs [-]
@@ -5093,6 +5215,8 @@ MODULE                        : project.nested1.deep
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/nested1/deep/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTestDebug/rs [-]
@@ -5108,6 +5232,8 @@ MODULE                        : project.nested1.deep
                     Name                          : testDebug
                     Manifest                      : <ROOT>/nested1/deep/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/testDebug/rs [-]
@@ -5127,6 +5253,8 @@ MODULE                        : project.nested1.deep
             Name                          : release
             Manifest                      : <ROOT>/nested1/deep/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested1/deep/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested1/deep/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested1/deep/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested1/deep/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested1/deep/src/release/rs [-]
@@ -5142,6 +5270,8 @@ MODULE                        : project.nested1.deep
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/nested1/deep/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/androidTestRelease/rs [-]
@@ -5157,6 +5287,8 @@ MODULE                        : project.nested1.deep
                     Name                          : testRelease
                     Manifest                      : <ROOT>/nested1/deep/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested1/deep/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested1/deep/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested1/deep/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested1/deep/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested1/deep/src/testRelease/rs [-]
@@ -5322,6 +5454,8 @@ MODULE                        : project.nested2
             Name                          : main
             Manifest                      : <ROOT>/nested2/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/nested2/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/src/main/rs [-]
@@ -5337,6 +5471,8 @@ MODULE                        : project.nested2
                     Name                          : androidTest
                     Manifest                      : <ROOT>/nested2/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTest/rs [-]
@@ -5351,6 +5487,8 @@ MODULE                        : project.nested2
                     Name                          : test
                     Manifest                      : <ROOT>/nested2/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/test/rs [-]
@@ -5371,6 +5509,8 @@ MODULE                        : project.nested2
             Name                          : debug
             Manifest                      : <ROOT>/nested2/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/src/debug/rs [-]
@@ -5386,6 +5526,8 @@ MODULE                        : project.nested2
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/nested2/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestDebug/rs [-]
@@ -5401,6 +5543,8 @@ MODULE                        : project.nested2
                     Name                          : testDebug
                     Manifest                      : <ROOT>/nested2/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/testDebug/rs [-]
@@ -5420,6 +5564,8 @@ MODULE                        : project.nested2
             Name                          : release
             Manifest                      : <ROOT>/nested2/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/src/release/rs [-]
@@ -5435,6 +5581,8 @@ MODULE                        : project.nested2
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/nested2/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestRelease/rs [-]
@@ -5450,6 +5598,8 @@ MODULE                        : project.nested2
                     Name                          : testRelease
                     Manifest                      : <ROOT>/nested2/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/testRelease/rs [-]
@@ -5466,6 +5616,8 @@ MODULE                        : project.nested2
             Name                          : basic
             Manifest                      : <ROOT>/nested2/src/basic/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/src/basic/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/basic/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/basic/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/basic/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/basic/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/src/basic/rs [-]
@@ -5481,6 +5633,8 @@ MODULE                        : project.nested2
                     Name                          : androidTestBasic
                     Manifest                      : <ROOT>/nested2/src/androidTestBasic/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTestBasic/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestBasic/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestBasic/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestBasic/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestBasic/rs [-]
@@ -5495,6 +5649,8 @@ MODULE                        : project.nested2
                     Name                          : testBasic
                     Manifest                      : <ROOT>/nested2/src/testBasic/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/testBasic/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testBasic/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testBasic/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testBasic/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testBasic/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/testBasic/rs [-]
@@ -5510,6 +5666,8 @@ MODULE                        : project.nested2
             Name                          : paid
             Manifest                      : <ROOT>/nested2/src/paid/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/src/paid/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/paid/java [-]
+            KotlinDirectories             : <ROOT>/nested2/src/paid/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/src/paid/resources [-]
             AidlDirectories               : <ROOT>/nested2/src/paid/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/src/paid/rs [-]
@@ -5525,6 +5683,8 @@ MODULE                        : project.nested2
                     Name                          : androidTestPaid
                     Manifest                      : <ROOT>/nested2/src/androidTestPaid/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTestPaid/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestPaid/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestPaid/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestPaid/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestPaid/rs [-]
@@ -5539,6 +5699,8 @@ MODULE                        : project.nested2
                     Name                          : testPaid
                     Manifest                      : <ROOT>/nested2/src/testPaid/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/testPaid/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testPaid/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testPaid/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testPaid/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testPaid/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/testPaid/rs [-]
@@ -5599,6 +5761,8 @@ MODULE                        : project.nested2
                     Name                          : basicDebug
                     Manifest                      : <ROOT>/nested2/src/basicDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/basicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/basicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/basicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/basicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/basicDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/basicDebug/rs [-]
@@ -5633,6 +5797,8 @@ MODULE                        : project.nested2
                     Name                          : androidTestBasicDebug
                     Manifest                      : <ROOT>/nested2/src/androidTestBasicDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/androidTestBasicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/androidTestBasicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/androidTestBasicDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/androidTestBasicDebug/rs [-]
@@ -5675,6 +5841,8 @@ MODULE                        : project.nested2
                     Name                          : testBasicDebug
                     Manifest                      : <ROOT>/nested2/src/testBasicDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/src/testBasicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testBasicDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/src/testBasicDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/src/testBasicDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/src/testBasicDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/src/testBasicDebug/rs [-]
@@ -5746,6 +5914,8 @@ MODULE                        : project.nested2.deep
             Name                          : main
             Manifest                      : <ROOT>/nested2/deep/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/nested2/deep/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/deep/src/main/rs [-]
@@ -5761,6 +5931,8 @@ MODULE                        : project.nested2.deep
                     Name                          : androidTest
                     Manifest                      : <ROOT>/nested2/deep/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTest/rs [-]
@@ -5775,6 +5947,8 @@ MODULE                        : project.nested2.deep
                     Name                          : test
                     Manifest                      : <ROOT>/nested2/deep/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/test/rs [-]
@@ -5795,6 +5969,8 @@ MODULE                        : project.nested2.deep
             Name                          : debug
             Manifest                      : <ROOT>/nested2/deep/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/deep/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/deep/src/debug/rs [-]
@@ -5810,6 +5986,8 @@ MODULE                        : project.nested2.deep
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/nested2/deep/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTestDebug/rs [-]
@@ -5825,6 +6003,8 @@ MODULE                        : project.nested2.deep
                     Name                          : testDebug
                     Manifest                      : <ROOT>/nested2/deep/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/testDebug/rs [-]
@@ -5844,6 +6024,8 @@ MODULE                        : project.nested2.deep
             Name                          : release
             Manifest                      : <ROOT>/nested2/deep/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/deep/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/deep/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/deep/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/deep/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/deep/src/release/rs [-]
@@ -5859,6 +6041,8 @@ MODULE                        : project.nested2.deep
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/nested2/deep/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/androidTestRelease/rs [-]
@@ -5874,6 +6058,8 @@ MODULE                        : project.nested2.deep
                     Name                          : testRelease
                     Manifest                      : <ROOT>/nested2/deep/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/deep/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/deep/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/deep/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/deep/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/deep/src/testRelease/rs [-]
@@ -6035,6 +6221,8 @@ MODULE                        : project.nested2.trans.deep2
             Name                          : main
             Manifest                      : <ROOT>/nested2/trans/deep2/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/nested2/trans/deep2/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/main/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/main/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/main/rs [-]
@@ -6050,6 +6238,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : androidTest
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTest/rs [-]
@@ -6064,6 +6254,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : test
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/test/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/test/rs [-]
@@ -6084,6 +6276,8 @@ MODULE                        : project.nested2.trans.deep2
             Name                          : debug
             Manifest                      : <ROOT>/nested2/trans/deep2/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/trans/deep2/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/debug/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/debug/rs [-]
@@ -6099,6 +6293,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTestDebug/rs [-]
@@ -6114,6 +6310,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : testDebug
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testDebug/rs [-]
@@ -6133,6 +6331,8 @@ MODULE                        : project.nested2.trans.deep2
             Name                          : release
             Manifest                      : <ROOT>/nested2/trans/deep2/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/nested2/trans/deep2/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/release/java [-]
+            KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/release/resources [-]
             AidlDirectories               : <ROOT>/nested2/trans/deep2/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/release/rs [-]
@@ -6148,6 +6348,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/androidTestRelease/rs [-]
@@ -6163,6 +6365,8 @@ MODULE                        : project.nested2.trans.deep2
                     Name                          : testRelease
                     Manifest                      : <ROOT>/nested2/trans/deep2/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/nested2/trans/deep2/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/nested2/trans/deep2/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/nested2/trans/deep2/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/nested2/trans/deep2/src/testRelease/rs [-]
