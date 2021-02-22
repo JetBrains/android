@@ -296,6 +296,27 @@ class EmulatorViewTest {
     waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
   }
 
+  /** Checks a large container size resulting in a scale greater than 1:1. */
+  @Test
+  fun testLargeScale() {
+    val view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createWatchAvd(path) }
+
+    @Suppress("UndesirableClassUsage")
+    val container = JScrollPane(view).apply { border = null }
+    container.isFocusable = true
+    val ui = FakeUi(container, 2.0)
+
+    var frameNumber = view.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    container.size = Dimension(250, 250)
+    ui.layoutAndDispatchEvents()
+    val call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 320 height: 320")
+    assertAppearance(ui, "image5")
+    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
+  }
+
   @Test
   fun testActions() {
     val view = emulatorViewRule.newEmulatorView()
