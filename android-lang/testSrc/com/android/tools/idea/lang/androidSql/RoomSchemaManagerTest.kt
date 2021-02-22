@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.androidSql
 
-import com.android.testutils.TestUtils
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES_FOR_FTS
 import com.android.tools.idea.lang.androidSql.room.Dao
 import com.android.tools.idea.lang.androidSql.room.PsiElementForFakeColumn
@@ -276,7 +275,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {User.class, Address.class}, version = 1)
+        @Database(entities  = {User.class, Address.class}, version = 1)
         public class AppDatabase {}
         """.trimIndent())
 
@@ -304,7 +303,10 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             myFixture.classPointer("com.example.AppDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User")))),
+              myFixture.classPointer("com.example.User")),
+            daos = emptySet(),
+            views = emptySet(),
+          )),
         daos = emptySet()))
   }
 
@@ -319,7 +321,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {User.class, Address.class}, version = 1)
+        @Database(entities  = {User.class, Address.class}, version = 1)
         public class UserDatabase {}
         """.trimIndent())
 
@@ -329,7 +331,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
 
         import androidx.room.Database;
 
-        @Database(tables = {Order.class, Address.class}, version = 1)
+        @Database(entities  = {Order.class, Address.class}, version = 1)
         public class OrderDatabase {}
         """.trimIndent())
 
@@ -358,12 +360,18 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureAdtTestCase() {
             myFixture.classPointer("com.example.UserDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.User"))),
+              myFixture.classPointer("com.example.User")),
+            daos = emptySet(),
+            views = emptySet(),
+          ),
           RoomDatabase(
             myFixture.classPointer("com.example.OrderDatabase"),
             entities = setOf(
               myFixture.classPointer("com.example.Address"),
-              myFixture.classPointer("com.example.Order")))),
+              myFixture.classPointer("com.example.Order")),
+            daos = emptySet(),
+            views = emptySet(),
+          )),
         daos = emptySet()))
   }
 
