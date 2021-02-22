@@ -39,6 +39,7 @@ public final class TestProjectPaths {
   public static final String MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR = "projects/manifestConflict/buildTypeAndFlavorConflict";
   public static final String MANIFEST_CONFLICT_FLAVOR_PACKAGE = "projects/manifestConflict/flavorPackage";
   public static final String MANIFEST_CONFLICT_MIN_SDK = "projects/manifestConflict/minSdk";
+  public static final String MEDIA_USAGE = "projects/mediaUsage";
   public static final String MIGRATE_TO_ANDROID_X = "projects/migrateToAndroidX";
   public static final String MIGRATE_TO_ANDROID_X_KTS = "projects/migrateToAndroidXKTS";
   public static final String MIGRATE_TO_APP_COMPAT = "projects/migrateToAppCompat";
