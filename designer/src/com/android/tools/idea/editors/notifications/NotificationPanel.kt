@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.notifications
 
-import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
+import java.awt.BorderLayout
 import javax.swing.Box
 import javax.swing.JPanel
 import kotlin.streams.asSequence
@@ -33,7 +33,7 @@ import kotlin.streams.asSequence
  */
 class NotificationPanel(
   private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotifications.Provider<EditorNotificationPanel>>
-) : JPanel(VerticalLayout(0)) {
+) : JPanel(BorderLayout()) {
 
   private val notificationsPanel: Box = Box.createVerticalBox().apply {
     name = "NotificationsPanel"
@@ -42,7 +42,9 @@ class NotificationPanel(
   // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole panel will be hidden if no notifications
   // are available.
   init {
-    add(notificationsPanel, VerticalLayout.FILL_HORIZONTAL)
+    isOpaque = false
+    isDoubleBuffered = false
+    add(notificationsPanel, BorderLayout.NORTH)
   }
 
   fun updateNotifications(virtualFile: VirtualFile, parentEditor: FileEditor, project: Project) {

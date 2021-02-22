@@ -16,7 +16,6 @@
 package com.android.tools.adtui
 
 import com.intellij.openapi.actionSystem.DataKey
-import java.awt.Point
 
 @JvmField
 val PANNABLE_KEY = DataKey.create<Pannable>(Pannable::class.java.name)
@@ -26,6 +25,4 @@ interface Pannable {
   var isPanning: Boolean
 
   val isPannable: Boolean
-
-  var scrollPosition: Point
 }
