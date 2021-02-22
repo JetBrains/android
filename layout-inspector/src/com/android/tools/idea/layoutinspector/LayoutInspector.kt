@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.annotations.TestOnly
@@ -75,7 +76,9 @@ class LayoutInspector(
 
   private fun updateConnection(client: InspectorClient) {
     layoutInspectorModel.updateConnection(client)
-    composeDependencyChecker.performCheck(client)
+    runReadAction {
+      composeDependencyChecker.performCheck(client)
+    }
   }
 
   private fun loadComponentTree(event: Any) {

@@ -233,7 +233,8 @@ class LayoutInspectorRule(
     launcher = InspectorClientLauncher(adbRule.bridge,
                                        processes,
                                        listOf { params -> clientProvider.create(params, inspectorModel) },
-                                       launcherDisposable)
+                                       launcherDisposable,
+                                       MoreExecutors.directExecutor())
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated

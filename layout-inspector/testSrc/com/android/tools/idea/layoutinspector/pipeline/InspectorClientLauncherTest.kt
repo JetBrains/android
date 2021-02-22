@@ -26,11 +26,14 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import java.time.Duration
 
 class InspectorClientLauncherTest {
   @get:Rule
@@ -48,10 +51,8 @@ class InspectorClientLauncherTest {
     override fun stopFetching() = throw NotImplementedError()
     override fun refresh() = throw NotImplementedError()
 
-    override fun doConnect() = Unit
-    override fun doDisconnect(): ListenableFuture<Nothing> {
-      return Futures.immediateFuture(null)
-    }
+    override fun doConnect(): ListenableFuture<Nothing> = Futures.immediateFuture(null)
+    override fun doDisconnect(): ListenableFuture<Nothing> = Futures.immediateFuture(null)
 
     override val capabilities
       get() = throw NotImplementedError()
@@ -63,7 +64,7 @@ class InspectorClientLauncherTest {
   @Test
   fun initialInspectorLauncherStartsWithDisconnectedClient() {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
@@ -71,7 +72,7 @@ class InspectorClientLauncherTest {
   @Test
   fun emptyInspectorLauncherIgnoresProcessChanges() {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable)
+    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
 
     var clientChangedCount = 0
     launcher.addClientChangedListener { clientChangedCount++ }
@@ -93,7 +94,8 @@ class InspectorClientLauncherTest {
           "Modern client", params.process)
         else null
       },
-      disposableRule.disposable)
+      disposableRule.disposable,
+      MoreExecutors.directExecutor())
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
 
@@ -108,7 +110,7 @@ class InspectorClientLauncherTest {
   fun disposingLauncherDisconnectsAndDisposesActiveClient() {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
 
-    val launcherDispoable = Disposer.newDisposable()
+    val launcherDisposable = Disposer.newDisposable()
     var clientWasDisconnected = false
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
@@ -118,13 +120,14 @@ class InspectorClientLauncherTest {
         client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
         client
       },
-      launcherDispoable)
+      launcherDisposable,
+      MoreExecutors.directExecutor())
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
     assertThat(launcher.activeClient.isConnected).isTrue()
 
     assertThat(clientWasDisconnected).isFalse()
-    Disposer.dispose(launcherDispoable)
+    Disposer.dispose(launcherDisposable)
     assertThat(clientWasDisconnected).isTrue()
     assertThat(launcher.activeClient.isConnected).isFalse()
   }
@@ -154,7 +157,8 @@ class InspectorClientLauncherTest {
           FakeInspectorClient("Fallback client", params.process)
         }
       ),
-      disposableRule.disposable)
+      disposableRule.disposable,
+      MoreExecutors.directExecutor())
 
     var clientChangedCount = 0
     launcher.addClientChangedListener { ++clientChangedCount }
@@ -209,7 +213,8 @@ class InspectorClientLauncherTest {
           FakeInspectorClient("Fallback client", params.process)
         }
       ),
-      disposableRule.disposable)
+      disposableRule.disposable,
+      MoreExecutors.directExecutor())
 
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
@@ -251,7 +256,8 @@ class InspectorClientLauncherTest {
           }
         }
       ),
-      disposableRule.disposable)
+      disposableRule.disposable,
+      MoreExecutors.directExecutor())
 
     // Set to a valid client first, so we know we actually changed correctly to a disconnected
     // client later.
@@ -262,5 +268,35 @@ class InspectorClientLauncherTest {
 
     processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+  }
+
+  @Test
+  fun inspectorHangingOnConnectPastTheTimeoutIsSkipped() {
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+
+    val launcher = InspectorClientLauncher(
+      adbRule.bridge,
+      processes,
+      listOf(
+        { params ->
+          val client = object : FakeInspectorClient("Hanging client", params.process) {
+            // Simulate a fake "doConnect" that never finishes
+            override fun doConnect(): ListenableFuture<Nothing> = SettableFuture.create()
+          }
+          // Verify disconnect not called if connect fails
+          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
+          client
+        },
+        { params -> FakeInspectorClient("Modern client", params.process) }
+      ),
+      disposableRule.disposable,
+      MoreExecutors.directExecutor(),
+      Duration.ZERO)
+
+    processes.selectedProcess = MODERN_DEVICE.createProcess()
+    // Verify we skipped over "Hanging Client"
+    (launcher.activeClient as FakeInspectorClient).let { activeClient ->
+      assertThat(activeClient.name).isEqualTo("Modern client")
+    }
   }
 }
