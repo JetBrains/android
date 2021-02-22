@@ -252,7 +252,7 @@ class EmulatorView(
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
   private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
-  private val stats = Stats(this)
+  private val stats = Stats()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -401,6 +401,7 @@ class EmulatorView(
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
+    Disposer.dispose(stats) // stats have to be disposed last.
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -1096,13 +1097,12 @@ class EmulatorView(
     constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
   }
 
-  private class Stats(parentDisposable: Disposable): Disposable {
+  private class Stats: Disposable {
     @GuardedBy("this")
     private var data = Data()
     private val alarm = Alarm(this)
 
     init {
-      Disposer.register(parentDisposable, this)
       scheduleNextLogging()
     }
 
@@ -1126,26 +1126,25 @@ class EmulatorView(
       data.latencyEndToEnd.recordValue(latency)
     }
 
+    @Synchronized
     override fun dispose() {
-      getAndSetData().log()
-    }
-
-    private fun logAndReset() {
-      getAndSetData(Data()).log()
-      scheduleNextLogging()
+      data.log()
     }
 
     @Synchronized
-    private fun getAndSetData(newData: Data? = null): Data {
+    private fun getAndSetData(newData: Data): Data {
       val oldData = data
-      if (newData != null) {
-        data = newData
-      }
+      data = newData
       return oldData
     }
 
     private fun scheduleNextLogging() {
       alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+    }
+
+    private fun logAndReset() {
+      getAndSetData(Data()).log()
+      scheduleNextLogging()
     }
 
     private class Data {
