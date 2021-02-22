@@ -677,10 +677,11 @@ class EmulatorView(
   }
 
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
-    // The roundSlightly call below is used to avoid scaling by a factor that only slightly differs from 1.
+    // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
+    // by a factor that is only slightly below 1.
     return if (deviceFrameVisible) {
       val frameRectangle = skin.frameRectangle
-      val scale = roundSlightly(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
+      val scale = roundScale(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
@@ -688,16 +689,20 @@ class EmulatorView(
       Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
     else {
-      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val scale = roundScale(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
     }
   }
 
-  /** Rounds the given value to a multiple of 1.0/128. */
-  private fun roundSlightly(value: Double): Double {
-    return round(value * 128) / 128
+  /** Rounds the given value down to 1 or 2 if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  private fun roundScale(value: Double): Double {
+    return when {
+      value > 2 -> 2.0
+      value > 1 -> 1.0
+      else -> round(value * 128) / 128
+    }
   }
 
   private fun requestScreenshotFeed() {
