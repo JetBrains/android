@@ -53,13 +53,6 @@ class LintModelFactory : LintModelModuleLoader {
     private val libraryResolver = DefaultLintModelLibraryResolver(libraryResolverMap)
 
     /**
-     * Kotlin source folders to merge in for the main source set. This should <b>not</b>
-     * be necessary but is here temporarily since it's missing from the builder model.
-     * This should be removed ASAP.
-     */
-    var kotlinSourceFolderLookup: ((variantName: String) -> List<File>)? = null
-
-    /**
      * Factory from an XML folder to a [LintModelModule].
      * The files were previously saved by [LintModelSerialization.writeModule].
      */
@@ -344,34 +337,7 @@ class LintModelFactory : LintModelModuleLoader {
     ): List<LintModelSourceProvider> {
         val providers = mutableListOf<LintModelSourceProvider>()
 
-        // Instead of just
-        //  providers.add(getSourceProvider(project.defaultConfig.sourceProvider))
-        // we need to merge in any Kotlin source folders for now
-        var mainProvider: LintModelSourceProvider? = null
-        val kotlinSourceFolders = kotlinSourceFolderLookup?.invoke(variant.name)
-            ?: emptyList()
-        if (kotlinSourceFolders.isNotEmpty()) {
-            val provider = project.defaultConfig.sourceProvider
-            if (!provider.javaDirectories.containsAll(kotlinSourceFolders)) {
-                val extra = kotlinSourceFolders.toMutableList()
-                extra.removeAll(provider.javaDirectories)
-                if (extra.isNotEmpty()) {
-                    mainProvider = DefaultLintModelSourceProvider(
-                      manifestFile = provider.manifestFile,
-                      javaDirectories = provider.javaDirectories + extra,
-                      resDirectories = provider.resDirectories,
-                      assetsDirectories = provider.assetsDirectories,
-                      unitTestOnly = false,
-                      instrumentationTestOnly = false,
-                      debugOnly = false
-                    )
-                }
-            }
-        }
-        if (mainProvider == null) {
-            mainProvider = getSourceProvider(project.defaultConfig.sourceProvider)
-        }
-        providers.add(mainProvider)
+        providers.add(getSourceProvider(project.defaultConfig.sourceProvider))
 
         for (flavorContainer in project.productFlavors) {
             if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
@@ -480,7 +446,7 @@ class LintModelFactory : LintModelModuleLoader {
         val provider = providerContainer.sourceProvider
         return DefaultLintModelSourceProvider(
           manifestFile = provider.manifestFile,
-          javaDirectories = provider.javaDirectories,
+          javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
           resDirectories = provider.resDirectories,
           assetsDirectories = provider.assetsDirectories,
           unitTestOnly = providerContainer.isUnitTest(),
@@ -497,7 +463,7 @@ class LintModelFactory : LintModelModuleLoader {
     ): LintModelSourceProvider {
         return DefaultLintModelSourceProvider(
           manifestFile = provider.manifestFile,
-          javaDirectories = provider.javaDirectories,
+          javaDirectories = (provider.javaDirectories + provider.kotlinDirectories).distinct(),
           resDirectories = provider.resDirectories,
           assetsDirectories = provider.assetsDirectories,
           unitTestOnly = unitTestOnly,
