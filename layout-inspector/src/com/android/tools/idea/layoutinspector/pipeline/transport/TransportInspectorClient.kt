@@ -57,6 +57,7 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -126,6 +127,8 @@ class TransportInspectorClient(
 
   override val treeLoader = TransportTreeLoader(project, this)
 
+  private val composeDependencyChecker = ComposeDependencyChecker(model)
+
   @Suppress("unused") // Need to keep a reference to receive notifications
   private val lowMemoryWatcher = LowMemoryWatcher.register(
     {
@@ -152,6 +155,10 @@ class TransportInspectorClient(
 
   override fun doConnect(): ListenableFuture<Nothing> {
     attach(process)
+    invokeLater {
+      composeDependencyChecker.performCheck(this)
+    }
+
     return Futures.immediateFuture(null)
   }
 
