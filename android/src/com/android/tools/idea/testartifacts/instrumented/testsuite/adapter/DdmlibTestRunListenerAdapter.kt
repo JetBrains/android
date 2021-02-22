@@ -34,6 +34,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
 
   companion object {
     const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
+    const val BENCHMARK_V2_TEST_METRICS_KEY = "android.studio.v2display.benchmark"
     private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
@@ -41,8 +42,13 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
      */
     private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>): String {
       // Workaround solution for b/154322086.
-      return benchmarkPrefixRegex
-        .replace(testMetrics.getOrDefault(BENCHMARK_TEST_METRICS_KEY, ""), "")
+      // Newer libraries output strings on both BENCHMARK_TEST_METRICS_KEY and BENCHMARK_V2_OUTPUT_TEST_METRICS_KEY.
+      // The V2 supports linking while the V1 does not. This is done to maintain backward compatibility with older versions of studio.
+      var key = BENCHMARK_TEST_METRICS_KEY
+      if (testMetrics.containsKey(BENCHMARK_V2_TEST_METRICS_KEY)) {
+        key = BENCHMARK_V2_TEST_METRICS_KEY
+      }
+      return benchmarkPrefixRegex.replace(testMetrics.getOrDefault(key, ""), "")
     }
   }
 

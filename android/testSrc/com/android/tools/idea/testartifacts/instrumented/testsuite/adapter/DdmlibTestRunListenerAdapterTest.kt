@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_TEST_METRICS_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter.Companion.BENCHMARK_V2_TEST_METRICS_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -233,6 +234,38 @@ class DdmlibTestRunListenerAdapterTest {
     assertThat(testCase.value.result).isEqualTo(AndroidTestCaseResult.PASSED)
     assertThat(testCase.value.logcat).isEqualTo("test logcat message")
     assertThat(testCase.value.benchmark).isEqualTo("test benchmark output message")
+    assertThat(testSuite.value.result).isEqualTo(AndroidTestSuiteResult.PASSED)
+  }
+
+  @Test
+  fun testDualBenchmarkKeysUsesNewKey() {
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener)
+
+    adapter.testRunStarted("exampleTestSuite", /*testCount=*/1)
+
+    val testSuite = ArgumentCaptor.forClass(AndroidTestSuite::class.java)
+    verify(mockListener).onTestSuiteStarted(
+      any(AndroidDevice::class.java),
+      testSuite.capture() ?: AndroidTestSuite("", "", 0))  // Workaround for https://github.com/mockito/mockito/issues/1255
+
+    adapter.testStarted(TestIdentifier("exampleTestClass", "exampleTest1", 1))
+
+    val testCase = ArgumentCaptor.forClass(AndroidTestCase::class.java)
+    verify(mockListener).onTestCaseStarted(
+      any(AndroidDevice::class.java),
+      any(AndroidTestSuite::class.java),
+      testCase.capture() ?: AndroidTestCase("", "", "", ""))  // Workaround for https://github.com/mockito/mockito/issues/1255
+
+    adapter.testEnded(TestIdentifier("exampleTestClass", "exampleTest1", 1),
+                      mutableMapOf(
+                        DDMLIB_LOGCAT to "test logcat message",
+                        BENCHMARK_TEST_METRICS_KEY to "test benchmark output legacy message",
+                        BENCHMARK_V2_TEST_METRICS_KEY to "new [linked](style/message) is used"))
+    adapter.testRunEnded(/*elapsedTime=*/1000, mutableMapOf())
+
+    assertThat(testCase.value.result).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(testCase.value.logcat).isEqualTo("test logcat message")
+    assertThat(testCase.value.benchmark).isEqualTo("new [linked](style/message) is used")
     assertThat(testSuite.value.result).isEqualTo(AndroidTestSuiteResult.PASSED)
   }
 
