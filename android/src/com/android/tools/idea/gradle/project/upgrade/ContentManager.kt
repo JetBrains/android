@@ -10,10 +10,15 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -28,11 +33,13 @@ import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
@@ -53,7 +60,12 @@ internal class ToolWindowModel(
   var processor: AgpUpgradeRefactoringProcessor
 ) {
 
+  val showLoadingState = BoolValueProperty(true)
+
   val version = StringValueProperty(processor.new.toString())
+
+  val runDisabledTooltip = StringValueProperty()
+  val runEnabled = BoolValueProperty(true)
 
   val knownVersions = OptionalValueProperty<List<GradleVersion>>()
 
@@ -101,9 +113,9 @@ internal class ToolWindowModel(
     //Listen for value changes
     version.addListener {
       processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, GradleVersion.parse(version.get()))
-      refreshTree()
+      refresh()
     }
-    refreshTree()
+    refresh()
 
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(processor.project, "Looking for known versions", false) {
@@ -116,9 +128,37 @@ internal class ToolWindowModel(
     })
   }
 
-  fun refreshTree() {
+  fun refresh() {
+    showLoadingState.set(true)
+    // First clear state
+    runEnabled.set(true)
+    runDisabledTooltip.clear()
+    val root = (treeModel.root as CheckedTreeNode)
+    root.removeAllChildren()
+    treeModel.nodeStructureChanged(root)
+
+
+    ApplicationManager.getApplication().executeOnPooledThread {
+      processor.ensureParsedModels()
+
+      val projectFilesClean = isCleanEnoughProject(processor.project)
+      invokeLater(ModalityState.NON_MODAL) {
+        if (!projectFilesClean) {
+          runEnabled.set(false)
+          runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                                 "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                                 "can be handled separately.")
+        }
+        refreshTree()
+        showLoadingState.set(false)
+      }
+    }
+  }
+
+  private fun refreshTree() {
     val root = treeModel.root as CheckedTreeNode
     root.removeAllChildren()
+    //TODO(mlazeba): do we need the check about 'classpathRefactoringProcessor.isAlwaysNoOpForProject' meaning upgrade can not run?
     fun <T : DefaultMutableTreeNode> populateNecessity(necessity: AgpUpgradeComponentNecessity,
                                                        constructor: (Any) -> (T)): CheckedTreeNode {
       val node = CheckedTreeNode(necessity)
@@ -133,18 +173,15 @@ internal class ToolWindowModel(
     treeModel.nodeStructureChanged(root)
   }
 
-  fun runUpgrade() {
+  fun runUpgrade(showPreview: Boolean) {
     processor.components().forEach { it.isEnabled = false }
     CheckboxTreeHelper.getCheckedNodes(AgpUpgradeComponentRefactoringProcessor::class.java, null, treeModel)
       .forEach { it.isEnabled = true }
-    // TODO(b/178569506): user configuration of any individual refactoring processors (as of 2021-01 the Java8Default processor) should
-    //  also be performed here.
-    val runProcessor = showAndGetAgpUpgradeDialog(processor, true)
-    if (runProcessor) {
-      DumbService.getInstance(processor.project).smartInvokeLater {
-        processor.run()
-        // TODO(xof): add callback to refresh tree and textField
-      }
+
+    DumbService.getInstance(processor.project).smartInvokeLater {
+      processor.setPreviewUsages(showPreview)
+      processor.run()
+      // TODO(xof): add callback to refresh tree and textField
     }
   }
 
@@ -166,14 +203,14 @@ class ContentManager(val project: Project) {
     toolWindow.contentManager.removeAllContents(true)
     val processor = AgpUpgradeRefactoringProcessor(project, current, new)
     val model = ToolWindowModel(processor)
-    val view = View(model)
+    val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Hello, Upgrade!", true)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
   }
 
-  private class View(val model: ToolWindowModel) {
+  private class View(val model: ToolWindowModel, disposable: Disposable) {
     /*
     Experiment of usage of observable property bindings I have found in our code base.
     Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
@@ -191,20 +228,41 @@ class ContentManager(val project: Project) {
     val textField = AgpVersionEditor(model, myBindings, myListeners)
 
     val refreshButton = JButton("Refresh").apply {
-      addActionListener { this@View.model.refreshTree() }
+      addActionListener { this@View.model.refresh() }
     }
     val okButton = JButton("Run selected steps").apply {
-      addActionListener { this@View.model.runUpgrade() }
+      addActionListener { this@View.model.runUpgrade(false) }
+      myListeners.listen(this@View.model.runDisabledTooltip) { tooltip -> toolTipText = tooltip }
+      myListeners.listen(this@View.model.runEnabled) { state -> isEnabled = state }
     }
+    val previewButton = JButton("Run with preview").apply {
+      addActionListener { this@View.model.runUpgrade(true) }
+      myListeners.listen(this@View.model.runDisabledTooltip) { tooltip -> toolTipText = tooltip }
+      myListeners.listen(this@View.model.runEnabled) { state -> isEnabled = state }
+    }
+
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
       layout = VerticalLayout(0, SwingConstants.LEFT)
       border = JBUI.Borders.empty(10)
     }
-    val content = JBPanel<JBPanel<*>>().apply {
-      layout = BorderLayout()
-      add(makeTopComponent(model), BorderLayout.NORTH)
+    val content = JBLoadingPanel(BorderLayout(), disposable).apply {
+      val controlsPanel = makeTopComponent(model)
+      add(controlsPanel, BorderLayout.NORTH)
       add(tree, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
+
+      fun updateState(loading: Boolean) = if (loading) {
+        startLoading()
+        detailsPanel.removeAll()
+        UIUtil.setEnabled(controlsPanel, false, true)
+      }
+      else {
+        stopLoading()
+        UIUtil.setEnabled(controlsPanel, true, true)
+      }
+
+      myListeners.listen(model.showLoadingState, ::updateState)
+      updateState(model.showLoadingState.get())
     }
 
     init {
@@ -224,6 +282,7 @@ class ContentManager(val project: Project) {
       add(refreshButton)
       // TODO(xof): make this look like a default button
       add(okButton)
+      add(previewButton)
     }
 
     private fun refreshDetailsPanel() {
