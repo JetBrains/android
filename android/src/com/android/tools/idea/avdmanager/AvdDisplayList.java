@@ -24,6 +24,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -55,6 +56,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -76,12 +78,16 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,6 +128,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     myTable.setModelAndUpdateColumns(myModel);
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
+    TableRowSorter<TableModel> sorter = new TableRowSorter<>(myModel);
+    sorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(1, SortOrder.ASCENDING))); // Sort by name.
+    myTable.setRowSorter(sorter);
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
     myNotificationPanel = new JPanel();
@@ -407,9 +416,16 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         }
       },
       new AvdColumnInfo("Name") {
+        private final Collator collator = Collator.getInstance();
+
         @Override
-        public @NotNull String valueOf(AvdInfo info) {
+        public @NotNull String valueOf(@NotNull AvdInfo info) {
           return info.getDisplayName();
+        }
+
+        @Override
+        public @NotNull Comparator<AvdInfo> getComparator() {
+          return (avd1, avd2) -> collator.compare(avd1.getDisplayName(), avd2.getDisplayName());
         }
       },
       new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
@@ -417,7 +433,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
         @Override
-        public @NotNull HighlightableIconPair valueOf(AvdInfo avdInfo) {
+        public @NotNull HighlightableIconPair valueOf(@NotNull AvdInfo avdInfo) {
           return avdInfo.hasPlayStore() ? playStoreIconPair : emptyIconPair;
         }
 
@@ -428,7 +444,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       },
       new AvdColumnInfo("Resolution") {
         @Override
-        public @NotNull String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(@NotNull AvdInfo avdInfo) {
           return getResolution(avdInfo);
         }
 
@@ -455,7 +471,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       },
       new AvdColumnInfo("API", JBUI.scale(50)) {
         @Override
-        public @NotNull String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(@NotNull AvdInfo avdInfo) {
           return avdInfo.getAndroidVersion().getApiString();
         }
 
@@ -471,13 +487,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       },
       new AvdColumnInfo("Target") {
         @Override
-        public @NotNull String valueOf(AvdInfo info) {
+        public @NotNull String valueOf(@NotNull AvdInfo info) {
           return targetString(info.getAndroidVersion(), info.getTag());
         }
       },
       new AvdColumnInfo("CPU/ABI") {
         @Override
-        public @NotNull String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(@NotNull AvdInfo avdInfo) {
           return avdInfo.getCpuArch();
         }
       },
