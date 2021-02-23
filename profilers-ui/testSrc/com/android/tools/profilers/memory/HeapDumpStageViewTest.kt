@@ -69,7 +69,6 @@ class HeapDumpStageViewTest {
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    ideProfilerServices.enableSeparateHeapDumpUi(true)
   }
 
   @Test

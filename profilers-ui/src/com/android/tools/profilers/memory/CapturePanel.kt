@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.FilterComponent
 import com.android.tools.adtui.StatLabel
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
@@ -86,53 +85,8 @@ class CapturePanel(profilersView: StudioProfilersView,
       border = JBEmptyBorder(0, 4, 0, 0)
     }
 
-  val component =
-    if (selection.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
-      CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
-    else LegacyCapturePanelUi(selection, selectionTimeLabel,
-                              captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
-}
-
-private class LegacyCapturePanelUi(selection: MemoryCaptureSelection,
-                                   selectionTimeLabel: JLabel?,
-                                   captureView: MemoryCaptureView,
-                                   heapView: MemoryHeapView,
-                                   classGrouping: MemoryClassGrouping,
-                                   classifierView: MemoryClassifierView,
-                                   filterComponent: FilterComponent,
-                                   captureInfoMessage: JLabel)
-  : JPanel(BorderLayout()) {
-  private val instanceFilterView = MemoryInstanceFilterView(selection)
-  init {
-    val toolbar = JPanel(createToolbarLayout()).apply {
-      add(captureView.component)
-      add(heapView.component)
-      add(classGrouping.component)
-      add(instanceFilterView.filterToolbar)
-      if (selection.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
-        add(captureInfoMessage)
-      }
-    }
-
-    filterComponent.isVisible = false
-    val button = FilterComponent.createFilterToggleButton()
-    FilterComponent.configureKeyBindingAndFocusBehaviors(this, filterComponent, button)
-    val buttonToolbar = JPanel(createToolbarLayout()).apply {
-      border = JBEmptyBorder(3, 0, 0, 0)
-      selectionTimeLabel?.let { add(it) }
-      add(FlatSeparator())
-      add(button)
-    }
-    val headingPanel = JPanel(TabularLayout("Fit,*,Fit")).apply {
-      add(filterComponent, TabularLayout.Constraint(2, 0, 3))
-      add(buttonToolbar, TabularLayout.Constraint(0, 2))
-      add(toolbar, TabularLayout.Constraint(0, 0))
-      add(instanceFilterView.filterDescription, TabularLayout.Constraint(1, 0, 3))
-    }
-
-    add(headingPanel, BorderLayout.PAGE_START)
-    add(classifierView.component, BorderLayout.CENTER)
-  }
+  val component: JPanel =
+    CapturePanelUi(selection, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage, profilersView)
 }
 
 /**

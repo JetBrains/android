@@ -151,11 +151,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
-    PROFILER, "memory.heapdump.separate", "Show heap dump separately",
-    "Show heap dump as a separate view instead of sharing with the memory monitor",
-    true);
-
   public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
     "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",

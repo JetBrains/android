@@ -760,7 +760,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void selectingHeapDumpGoesToSeparateStage() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     myIdeProfilerServices.enableEventsPipeline(true);
 
     HeapDumpInfo info = HeapDumpInfo.newBuilder().build();
@@ -781,7 +780,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void selectingFinishedAllocationSessionSwitchesToAllocationStage() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     CaptureObject obj = new FakeCaptureObject.Builder().build();
     CaptureEntry<CaptureObject> entry = new CaptureEntry<>(0, () -> obj);
     AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);

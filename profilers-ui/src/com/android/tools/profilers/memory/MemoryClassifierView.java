@@ -203,31 +203,24 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
     Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
       NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
-    final Supplier<ColoredTreeCellRenderer> renderer;
-    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
-      // Progress-bar style background that reflects percentage contribution
-      renderer = () -> new PercentColumnRenderer<>(
-        textGetter, v -> null, SwingConstants.RIGHT,
-        node -> {
-          MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
-          if (parent == null) {
-            return 0;
-          }
-          else {
-            assert myTreeRoot != null;
-            // Compute relative contribution with respect to top-most parent
-            long myVal = prop.applyAsLong(node.getAdapter());
-            ClassifierSet root = myTreeRoot.getAdapter();
-            long parentVal = prop.applyAsLong(root);
-            return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
-          }
+    // Progress-bar style background that reflects percentage contribution
+    final Supplier<ColoredTreeCellRenderer> renderer = () -> new PercentColumnRenderer<>(
+      textGetter, v -> null, SwingConstants.RIGHT,
+      node -> {
+        MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
+        if (parent == null) {
+          return 0;
         }
-      );
-    }
-    else {
-      // Legacy renderer
-      renderer = () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
-    }
+        else {
+          assert myTreeRoot != null;
+          // Compute relative contribution with respect to top-most parent
+          long myVal = prop.applyAsLong(node.getAdapter());
+          ClassifierSet root = myTreeRoot.getAdapter();
+          long parentVal = prop.applyAsLong(root);
+          return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
+        }
+      }
+    );
 
     int preferredWidth = Math.max(SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH, width);
     int maxWidth = preferredWidth * 4;

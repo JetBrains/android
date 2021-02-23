@@ -58,11 +58,6 @@ class MemoryProfilerHeapDumpTest {
                                     FakeEventService(),
                                     FakeNetworkService.newBuilder().build())
 
-  @Before
-  fun init() {
-    ideServices.enableSeparateHeapDumpUi(true)
-  }
-
   @Test
   fun `measure loading of github heap dump`() {
     testFile("github")

@@ -144,9 +144,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     titleWrapper.add(myTitle, BorderLayout.CENTER);
     titleWrapper.add(new CloseButton(e -> mySelection.selectInstanceObject(null)), BorderLayout.EAST);
     myPanel.add(myTabsPanel, BorderLayout.CENTER);
-    if (selection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
-      myPanel.add(titleWrapper, BorderLayout.NORTH);
-    }
+    myPanel.add(titleWrapper, BorderLayout.NORTH);
     myPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, DEFAULT_BORDER_COLOR));
 
     myInstanceViewers.add(new BitmapViewer());
@@ -290,8 +288,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate fields
-    if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
-        instance.getFieldCount() > 0) {
+    if (instance.getFieldCount() > 0) {
       JComponent fieldColumnTree = buildFieldColumnTree(capture, instance);
       myTabsPanel.addTab(TITLE_TAB_FIELDS, fieldColumnTree);
       hasContent = true;

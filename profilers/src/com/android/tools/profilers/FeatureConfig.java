@@ -30,7 +30,6 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isNativeMemorySampleEnabled(); // Added in 4.1.
   boolean isPerformanceMonitoringEnabled();
-  boolean isSeparateHeapDumpUiEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
   boolean isUseTraceProcessor();
