@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android.splits;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 
 import com.android.tools.idea.gradle.dsl.api.android.splits.BaseSplitOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,9 +37,10 @@ public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel impl
   @NonNls public static final ModelPropertyDescription EXCLUDE = new ModelPropertyDescription("mExclude", MUTABLE_LIST);
   @NonNls public static final ModelPropertyDescription INCLUDE = new ModelPropertyDescription("mInclude", MUTABLE_LIST);
 
-  // This isn't in and of itself a property; instead, we use it (by string equality) to mark where in the Dsl we have reset the include
-  // property.
-  @NonNls private static final String RESET = "reset";
+  private static final Predicate<GradleDslMethodCall> resetPredicate = e -> {
+    ModelEffectDescription effect = e.getModelEffect();
+    return effect != null && effect.property == INCLUDE && effect.semantics == RESET;
+  };
 
   public BaseSplitOptionsModelImpl(@NotNull GradleDslBlockElement element) {
     super(element);
@@ -64,18 +67,19 @@ public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel impl
   @Override
   public boolean reset() {
     List<GradleDslMethodCall> methodCalls = myDslElement.getPropertyElements(GradleDslMethodCall.class);
-    return methodCalls.stream().anyMatch(e -> e.getMethodName().equals(RESET));
+    return methodCalls.stream().anyMatch(resetPredicate);
   }
 
   @Override
   public void setReset(boolean addReset) {
     if (addReset) {
-      GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), RESET);
+      GradleDslMethodCall resetMethod = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), "reset");
+      resetMethod.setModelEffect(new ModelEffectDescription(INCLUDE, RESET));
       myDslElement.addNewElementAt(0, resetMethod);
     }
     else {
-      myDslElement.getPropertyElements(GradleDslMethodCall.class).stream().filter(e -> e.getMethodName().equals(RESET))
-                  .forEach(myDslElement::removeProperty);
+      myDslElement.getPropertyElements(GradleDslMethodCall.class).stream()
+        .filter(resetPredicate).forEach(myDslElement::removeProperty);
     }
   }
 }

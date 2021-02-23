@@ -19,7 +19,9 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -34,7 +36,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -48,7 +52,8 @@ import org.jetbrains.kotlin.psi.KtFile;
  */
 public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements FlavorTypeModel {
   @NonNls public static final String APPLICATION_ID_SUFFIX = "mApplicationIdSuffix";
-  @NonNls public static final String BUILD_CONFIG_FIELD = "mBuildConfigField";
+  @NonNls public static final ModelPropertyDescription BUILD_CONFIG_FIELD =
+    new ModelPropertyDescription("mBuildConfigField", UNSPECIFIED_FOR_NOW);
   @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
   @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
   @NonNls public static final String MATCHING_FALLBACKS = "mMatchingFallbacks";
@@ -56,7 +61,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
   @NonNls public static final String PROGUARD_FILES = "mProguardFiles";
-  @NonNls public static final String RES_VALUE = "mResValue";
+  @NonNls public static final ModelPropertyDescription RES_VALUE = new ModelPropertyDescription("mResValue", UNSPECIFIED_FOR_NOW);
   @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
   @NonNls public static final String USE_JACK = "mUseJack";
   @NonNls public static final String VERSION_NAME_SUFFIX = "mVersionNameSuffix";
@@ -124,7 +129,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Override
   public void removeAllBuildConfigFields() {
-    myDslElement.removeProperty(BUILD_CONFIG_FIELD);
+    myDslElement.removeProperty(BUILD_CONFIG_FIELD.name);
   }
 
   @Override
@@ -214,7 +219,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Override
   public void removeAllResValues() {
-    myDslElement.removeProperty(RES_VALUE);
+    myDslElement.removeProperty(RES_VALUE.name);
   }
 
   @NotNull
@@ -239,12 +244,12 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
    */
   public static class TypeNameValueElementImpl implements TypeNameValueElement {
-    @NotNull private final String myElementName;
+    @NotNull private final ModelPropertyDescription myPropertyDescription;
     @NotNull private final GradlePropertyModelImpl myList;
 
-    public TypeNameValueElementImpl(@NotNull String elementName,
+    public TypeNameValueElementImpl(@NotNull ModelPropertyDescription propertyDescription,
                                     @NotNull GradleDslExpressionList list) {
-      myElementName = elementName;
+      myPropertyDescription = propertyDescription;
       myList = new GradlePropertyModelImpl(list);
       List<GradlePropertyModel> elements = myList.getValue(LIST_TYPE);
       assert elements != null;
@@ -284,7 +289,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     @Override
     @NotNull
     public String elementName() {
-      return myElementName;
+      return myPropertyDescription.name;
     }
 
     @Override
@@ -305,10 +310,11 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   }
 
   protected <T extends TypeNameValueElement> T addNewTypeNameValueElement(@NotNull Function<GradleDslExpressionList, T> producer,
-                                                                          @NotNull String elementName,
+                                                                          @NotNull ModelPropertyDescription property,
                                                                           @NotNull String type,
                                                                           @NotNull String name,
                                                                           @NotNull String value) {
+    String elementName = property.name;
     GradleNameElement nameElement = GradleNameElement.create(elementName);
     // TODO(b/155853837): Groovy expects buildConfigField and resValue to be expressed with GradleDslExpressionList, while Kotlin expresses
     //  them with a GradleDslMethodCall.  This method of detecting which to produce is unsound given the possibility of multi-language build
@@ -317,8 +323,10 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     GradleDslExpressionList expressionList;
     GradleDslMethodCall expressionCall = null;
     if (forKotlin) {
-      expressionCall = new GradleDslMethodCall(myDslElement, nameElement, elementName);
-      expressionList = new GradleDslExpressionList(expressionCall, nameElement, false);
+      expressionCall = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), elementName);
+      ModelEffectDescription effect = new ModelEffectDescription(property, OTHER);
+      expressionCall.setModelEffect(effect);
+      expressionList = new GradleDslExpressionList(expressionCall, GradleNameElement.empty(), false);
       expressionCall.setParsedArgumentList(expressionList);
     }
     else {
@@ -338,7 +346,9 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return newValue;
   }
 
-  protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
+  protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer,
+                                                  @NotNull ModelPropertyDescription property) {
+    String elementName = property.name;
     List<T> result = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
       if (element instanceof GradleDslMethodCall) {
@@ -356,11 +366,11 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
 
   @Nullable
   protected <T extends TypeNameValueElement> T getTypeNameValueElement(@NotNull Function<GradleDslExpressionList, T> producer,
-                                                                       @NotNull String elementName,
+                                                                       @NotNull ModelPropertyDescription property,
                                                                        @NotNull String type,
                                                                        @NotNull String name,
                                                                        @NotNull String value) {
-    for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
+    for (GradleDslElement element : myDslElement.getPropertyElementsByName(property.name)) {
       GradleDslExpressionList list = null;
       if (element instanceof GradleDslMethodCall) {
         list = ((GradleDslMethodCall)element).getArgumentsElement();

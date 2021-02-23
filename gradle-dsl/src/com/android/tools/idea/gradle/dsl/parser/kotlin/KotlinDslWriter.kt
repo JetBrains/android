@@ -453,7 +453,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val fakeElement = FakeMethodElement(methodCall)
 
     val statementText =
-      if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
+      if (!methodCall.nameElement.isEmpty && methodCall.fullName != methodCall.methodName) {
         val externalNameInfo = maybeTrimForParent(methodCall, this)
         var propertyName = externalNameInfo.externalNameParts.joinToString(".")
         // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
