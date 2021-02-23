@@ -264,8 +264,9 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    layeredPane.add(progressBarPanel)
+    // add the table first, otherwise the "resise column" is not shown when hovering the table's header
     layeredPane.add(tablePanel)
+    layeredPane.add(progressBarPanel)
     layeredPane.layout = MatchParentLayoutManager()
 
     progressBar.isVisible = false
