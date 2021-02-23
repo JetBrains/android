@@ -162,10 +162,6 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
         addToParsedExpressionList(effect.property, element);
         return;
       }
-      if (description == RESET) {
-        addParsedResettingElement(element, effect.property);
-        return;
-      }
       maybeCanonizeElement(element); // NOTYPO
     }
     super.addParsedElement(element);

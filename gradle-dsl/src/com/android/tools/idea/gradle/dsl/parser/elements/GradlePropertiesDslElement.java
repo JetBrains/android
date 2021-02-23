@@ -42,6 +42,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 /**
@@ -233,7 +234,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull ModelPropertyDescription propertyToReset) {
     element.setParent(this);
     addPropertyInternal(element, EXISTING);
-    hidePropertyInternal(propertyToReset);
   }
 
   protected void addAsParsedDslExpressionList(@NotNull String property, @NotNull GradleDslSimpleExpression expression) {
@@ -913,8 +913,14 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     public GradleDslElement getElementWhere(@NotNull Predicate<ElementItem> predicate) {
       // We reduce to get the last element stored, this will be the one we want as it was added last and therefore must appear
       // later on in the file.
-      return myElements.stream().filter(e -> e.myElementState != TO_BE_REMOVED && e.myElementState != HIDDEN)
-                       .filter(predicate).map(e -> e.myElement).reduce((first, second) -> second).orElse(null);
+      GradleDslElement last = myElements.stream()
+        .filter(e -> e.myElementState != TO_BE_REMOVED && e.myElementState != HIDDEN)
+        .filter(predicate).map(e -> e.myElement).reduce((first, second) -> second).orElse(null);
+      if (last != null) {
+        ModelEffectDescription effect = last.getModelEffect();
+        if (effect != null && effect.semantics == RESET) return null;
+      }
+      return last;
     }
 
     /**
