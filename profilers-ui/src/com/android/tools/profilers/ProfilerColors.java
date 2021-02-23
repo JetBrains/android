@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.cpu.ThreadState;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
@@ -37,8 +38,6 @@ public class ProfilerColors {
   public static final Color HOVERED_SESSION_COLOR = new JBColor(0xD6D6D6, 0x313435);
 
   public static final Color SESSION_DIVIDER_COLOR = new JBColor(0xD8D6D6, 0x2F3031);
-
-  public static final Color AXIS_MARKER_COLOR = Gray._150.withAlpha(50);
 
   public static final Color CPU_USAGE = new JBColor(0xa7e0d7, 0x397060);
 
@@ -129,7 +128,7 @@ public class ProfilerColors {
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
-  public static final Color CPU_AXIS_GUIDE_COLOR = AXIS_MARKER_COLOR;
+  public static final Color CPU_AXIS_GUIDE_COLOR = StandardColors.AXIS_MARKER_COLOR;
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
 
