@@ -274,6 +274,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       public class ComposeView extends android.view.View {}
       """.trimIndent()
 
+  @Language("JAVA")
+  private val fragmentContainerView =
+    """
+      package androidx.fragment.app;
+
+      import android.view.ViewGroup;
+      
+      public class FragmentContainerView extends ViewGroup {}
+      """.trimIndent()
+
   @Language("XML")
   private val constraintLayoutResources =
     """
@@ -295,6 +305,52 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   override fun getPathToCopy(testFileName: String): String {
     return "res/layout/$testFileName"
+  }
+
+  fun testFragmentContainerViewNameAttribute() {
+    myFixture.addClass(fragmentContainerView)
+    myFixture.addClass("package androidx.fragment.app; public class Fragment {}")
+
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package p1.p2;
+      public class FirstFragmentActivity extends androidx.fragment.app.Fragment{
+      }
+      """.trimIndent()
+    )
+
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package p1.p2;
+      public class SecondFragmentActivity extends androidx.fragment.app.Fragment{
+      }
+      """.trimIndent()
+    )
+
+    val layout = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <androidx.fragment.app.FragmentContainerView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/fragment_container_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:name="p1.p2.${caret}FirstFragmentActivity"
+            android:tag="my_tag">
+        </androidx.fragment.app.FragmentContainerView>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layout)
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("FirstFragmentActivity", "SecondFragmentActivity")
+
+    myFixture.moveCaret("p1.p2.FirstFrag|mentActivity")
+
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(PsiClass::class.java)
+    assertThat((elementAtCaret as PsiClass).name).isEqualTo("FirstFragmentActivity")
   }
 
   fun testComposableNameToolsAttributeCompletion() {

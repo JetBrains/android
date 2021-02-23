@@ -61,6 +61,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_MENU;
 import static com.android.SdkConstants.ATTR_MOTION_TARGET_ID;
+import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_ON_CLICK;
 import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
 import static com.android.SdkConstants.ATTR_SRC;
@@ -69,6 +70,7 @@ import static com.android.SdkConstants.ATTR_THEME;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
@@ -310,6 +312,10 @@ public class AndroidDomUtil {
 
     String localName = attrName.getLocalName();
     String tagName = xmlTag.getName();
+
+    if (tagName.equals(FRAGMENT_CONTAINER_VIEW) && localName.equals(ATTR_NAME)) {
+      return FRAGMENT_CLASS_CONVERTER;
+    }
 
     if (ANDROID_URI.equals(attrName.getNamespaceKey())) {
       // Framework attributes:
