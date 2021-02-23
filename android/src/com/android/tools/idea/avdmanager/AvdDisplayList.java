@@ -24,8 +24,6 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,7 +52,6 @@ import java.awt.FlowLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -63,6 +60,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -100,38 +98,34 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   @Nullable private final Project myProject;
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
-  private final AvdListDialog myDialog;
 
-  private TableView<AvdInfo> myTable;
-  private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
-  private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
+  private final TableView<AvdInfo> myTable = new TableView<>();
+  private final ListTableModel<AvdInfo> myModel = new ListTableModel<>();
+  private final Set<AvdSelectionListener> myListeners = new HashSet<>();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
-  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
+  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<>(8);
   private final Logger myLogger = Logger.getInstance(AvdDisplayList.class);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
-   * table must implement this interface and register themselves through {@link #addSelectionListener(AvdSelectionListener)}
+   * table must implement this interface and register themselves through {@link #addSelectionListener(AvdSelectionListener)}.
    */
   public interface AvdSelectionListener {
     void onAvdSelected(@Nullable AvdInfo avdInfo);
   }
 
-  public AvdDisplayList(@NotNull AvdListDialog dialog, @Nullable Project project) {
-    myDialog = dialog;
+  public AvdDisplayList(@Nullable Project project) {
     myProject = project;
-    myModel.setSortable(true);
-
-    myTable = new TableView<AvdInfo>();
 
     myModel.setColumnInfos(newColumns().toArray(ColumnInfo.EMPTY_ARRAY));
+    myModel.setSortable(true);
 
     myTable.setModelAndUpdateColumns(myModel);
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
     myNotificationPanel = new JPanel();
-    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, 1));
+    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, BoxLayout.Y_AXIS));
     JPanel nonemptyPanel = new JPanel(new BorderLayout());
     myCenterCardPanel.add(nonemptyPanel, NONEMPTY);
     nonemptyPanel.add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
@@ -141,20 +135,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     JPanel southPanel = new JPanel(new BorderLayout());
     JButton helpButton = new JButton(AllIcons.Actions.Help);
     helpButton.putClientProperty("JButton.buttonType", "segmented-only");
-    helpButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html");
-      }
-    });
+    helpButton.addActionListener(e -> BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html"));
     JButton refreshButton = new JButton(AllIcons.Actions.Refresh);
     refreshButton.putClientProperty("JButton.buttonType", "segmented-only");
-    refreshButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        refreshAvds();
-      }
-    });
+    refreshButton.addActionListener(e -> refreshAvds());
     JButton newButton = new JButton(new CreateAvdAction(this));
     newButton.putClientProperty("JButton.buttonType", "segmented-only");
 
@@ -173,8 +157,39 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     nonemptyPanel.add(southPanel, BorderLayout.SOUTH);
     myTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.getSelectionModel().addListSelectionListener(this);
-    myTable.addMouseListener(myEditingListener);
-    myTable.addMouseMotionListener(myEditingListener);
+    MouseAdapter editingListener = new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        possiblySwitchEditors(e);
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        possiblySwitchEditors(e);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        possiblySwitchEditors(e);
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        possiblySwitchEditors(e);
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        possiblyShowPopup(e);
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        possiblyShowPopup(e);
+      }
+    };
+    myTable.addMouseListener(editingListener);
+    myTable.addMouseMotionListener(editingListener);
     LaunchListener launchListener = new LaunchListener();
     myTable.addMouseListener(launchListener);
     ActionMap am = myTable.getActionMap();
@@ -204,10 +219,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   /**
    * This class implements the table selection interface and passes the selection events on to its listeners.
-   * @param e
    */
   @Override
-  public void valueChanged(ListSelectionEvent e) {
+  public void valueChanged(@NotNull ListSelectionEvent event) {
     // Required so the editor component is updated to know it's selected.
     myTable.editCellAt(myTable.getSelectedRow(), myTable.getSelectedColumn());
     AvdInfo selected = myTable.getSelectedObject();
@@ -274,32 +288,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     return this;
   }
 
-  private final MouseAdapter myEditingListener = new MouseAdapter() {
-    @Override
-    public void mouseMoved(MouseEvent e) {
-      possiblySwitchEditors(e);
-    }
-    @Override
-    public void mouseEntered(MouseEvent e) {
-      possiblySwitchEditors(e);
-    }
-    @Override
-    public void mouseExited(MouseEvent e) {
-      possiblySwitchEditors(e);
-    }
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      possiblySwitchEditors(e);
-    }
-    @Override
-    public void mousePressed(MouseEvent e) {
-      possiblyShowPopup(e);
-    }
-    @Override
-    public void mouseReleased(MouseEvent e) {
-      possiblyShowPopup(e);
-    }
-  };
   private void possiblySwitchEditors(MouseEvent e) {
     Point p = e.getPoint();
     int row = myTable.rowAtPoint(p);
@@ -392,23 +380,19 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   @VisibleForTesting
   static class HighlightableIconPair {
-    private Icon baseIcon;
-    private Icon highlightedIcon;
+    private final @Nullable Icon myBaseIcon;
+    private final @Nullable Icon highlightedIcon;
 
-    public HighlightableIconPair(@Nullable Icon theBaseIcon) {
-      baseIcon = theBaseIcon;
-      if (theBaseIcon != null) {
-        highlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(theBaseIcon);
-      }
+    public HighlightableIconPair(@Nullable Icon baseIcon) {
+      myBaseIcon = baseIcon;
+      highlightedIcon = baseIcon == null ? null : ColoredIconGenerator.generateWhiteIcon(baseIcon);
     }
 
-    @Nullable
-    public Icon getBaseIcon() {
-      return baseIcon;
+    public @Nullable Icon getBaseIcon() {
+      return myBaseIcon;
     }
 
-    @Nullable
-    public Icon getHighlightedIcon() {
+    public @Nullable Icon getHighlightedIcon() {
       return highlightedIcon;
     }
   }
@@ -417,17 +401,14 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private Collection<ColumnInfo<AvdInfo, ?>> newColumns() {
     return Arrays.asList(
       new AvdIconColumnInfo("Type") {
-
-        @NotNull
         @Override
-        public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+        public @NotNull HighlightableIconPair valueOf(@NotNull AvdInfo avdInfo) {
           return getDeviceClassIconPair(avdInfo);
         }
       },
       new AvdColumnInfo("Name") {
-        @Nullable
         @Override
-        public String valueOf(AvdInfo info) {
+        public @NotNull String valueOf(AvdInfo info) {
           return info.getDisplayName();
         }
       },
@@ -435,84 +416,68 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
         private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
-        @NotNull
         @Override
-        public HighlightableIconPair valueOf(AvdInfo avdInfo) {
+        public @NotNull HighlightableIconPair valueOf(AvdInfo avdInfo) {
           return avdInfo.hasPlayStore() ? playStoreIconPair : emptyIconPair;
         }
 
-        @NotNull
         @Override
-        public Comparator<AvdInfo> getComparator() {
+        public @NotNull Comparator<AvdInfo> getComparator() {
           return (avd1, avd2) -> Boolean.compare(avd2.hasPlayStore(), avd1.hasPlayStore());
         }
       },
       new AvdColumnInfo("Resolution") {
-        @Nullable
         @Override
-        public String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(AvdInfo avdInfo) {
           return getResolution(avdInfo);
         }
 
         /**
-         * We override the comparator here to sort the AVDs by total number of pixels on the screen rather than the
-         * default sort order (lexicographically by string representation)
+         * We override the comparator here to sort the AVDs by total number of pixels on the screen rather than
+         * the default sort order (lexicographically by string representation).
          */
-        @NotNull
         @Override
-        public Comparator<AvdInfo> getComparator() {
-          return new Comparator<AvdInfo>() {
-            @Override
-            public int compare(AvdInfo o1, AvdInfo o2) {
-              Dimension d1 = getScreenSize(o1);
-              Dimension d2 = getScreenSize(o2);
-              if (d1 == d2) {
-                return 0;
-              } else if (d1 == null) {
-                return -1;
-              } else if (d2 == null) {
-                return 1;
-              } else {
-                return d1.width * d1.height - d2.width * d2.height;
-              }
+        public @NotNull Comparator<AvdInfo> getComparator() {
+          return (o1, o2) -> {
+            Dimension d1 = getScreenSize(o1);
+            Dimension d2 = getScreenSize(o2);
+            if (d1 == d2) {
+              return 0;
+            } else if (d1 == null) {
+              return -1;
+            } else if (d2 == null) {
+              return 1;
+            } else {
+              return d1.width * d1.height - d2.width * d2.height;
             }
           };
         }
       },
       new AvdColumnInfo("API", JBUI.scale(50)) {
-        @NotNull
         @Override
-        public String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(AvdInfo avdInfo) {
           return avdInfo.getAndroidVersion().getApiString();
         }
 
         /**
          * We override the comparator here to sort the API levels numerically (when possible;
-         * with preview platforms codenames are compared alphabetically)
+         * with preview platforms codenames are compared alphabetically).
          */
-        @NotNull
         @Override
-        public Comparator<AvdInfo> getComparator() {
-          final ApiLevelComparator comparator = new ApiLevelComparator();
-          return new Comparator<AvdInfo>() {
-            @Override
-            public int compare(AvdInfo o1, AvdInfo o2) {
-              return comparator.compare(valueOf(o1), valueOf(o2));
-            }
-          };
+        public @NotNull Comparator<AvdInfo> getComparator() {
+          ApiLevelComparator comparator = new ApiLevelComparator();
+          return (o1, o2) -> comparator.compare(valueOf(o1), valueOf(o2));
         }
       },
       new AvdColumnInfo("Target") {
-        @NotNull
         @Override
-        public String valueOf(AvdInfo info) {
+        public @NotNull String valueOf(AvdInfo info) {
           return targetString(info.getAndroidVersion(), info.getTag());
         }
       },
       new AvdColumnInfo("CPU/ABI") {
-        @NotNull
         @Override
-        public String valueOf(AvdInfo avdInfo) {
+        public @NotNull String valueOf(AvdInfo avdInfo) {
           return avdInfo.getCpuArch();
         }
       },
@@ -521,7 +486,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   @VisibleForTesting
-  static String targetString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
+  static @NotNull String targetString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
     StringBuilder resultBuilder = new StringBuilder(32);
     resultBuilder.append("Android ");
     resultBuilder.append(SdkVersionInfo.getVersionStringSanitized(version.getFeatureLevel()));
@@ -532,7 +497,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   private void refreshErrorCheck() {
-    final AtomicBoolean refreshUI = new AtomicBoolean(myNotificationPanel.getComponentCount() > 0);
+    AtomicBoolean refreshUI = new AtomicBoolean(myNotificationPanel.getComponentCount() > 0);
     myNotificationPanel.removeAll();
     ListenableFuture<AccelerationErrorCode> error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAccelerationAsync();
     Futures.addCallback(error, new FutureCallback<AccelerationErrorCode>() {
@@ -549,7 +514,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       }
 
       @Override
-      public void onFailure(Throwable t) {
+      public void onFailure(@NotNull Throwable t) {
         myLogger.warn("Check for emulation acceleration failed", t);
       }
     }, EdtExecutorService.getInstance());
@@ -615,14 +580,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * This class extends {@link com.intellij.util.ui.ColumnInfo} in order to pull a string value from a given {@link com.android.sdklib.internal.avd.AvdInfo}.
+   * This class extends {@link ColumnInfo} in order to pull a string value from a given {@link AvdInfo}.
    * This is the column info used for most of our table, including the Name, Resolution, and API level columns.
-   * It uses the text field renderer ({@link #myRenderer}) and allows for sorting by the lexicographical value
-   * of the string displayed by the {@link com.intellij.ui.components.JBLabel} rendered as the cell component. An explicit width may be used
-   * by calling the overloaded constructor, otherwise the column will auto-scale to fill available space.
+   * An explicit width may be used by calling the overloaded constructor, otherwise the column will auto-scale
+   * to fill available space.
    */
   public abstract static class AvdColumnInfo extends ColumnInfo<AvdInfo, String> {
-
     private final int myWidth;
 
     public AvdColumnInfo(@NotNull String name, int width) {
@@ -637,13 +600,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Nullable
     @Override
     public Comparator<AvdInfo> getComparator() {
-      return new Comparator<AvdInfo>() {
-        @Override
-        public int compare(AvdInfo o1, AvdInfo o2) {
-          String s1 = valueOf(o1);
-          String s2 = valueOf(o2);
-          return Comparing.compare(s1, s2);
-        }
+      return (o1, o2) -> {
+        String s1 = valueOf(o1);
+        String s2 = valueOf(o2);
+        return Comparing.compare(s1, s2);
       };
     }
 
@@ -654,15 +614,13 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   private class ActionRenderer extends AbstractTableCellEditor implements TableCellRenderer {
-    AvdActionPanel myComponent;
-    private int myNumVisibleActions = -1;
+    private final AvdActionPanel myComponent;
 
     ActionRenderer(int numVisibleActions, AvdInfo info) {
-      myNumVisibleActions = numVisibleActions;
-      myComponent = new AvdActionPanel(info, myNumVisibleActions, AvdDisplayList.this);
+      myComponent = new AvdActionPanel(info, numVisibleActions, AvdDisplayList.this);
     }
 
-    private Component getComponent(JTable table, int row, int column) {
+    private @NotNull Component getComponent(@NotNull JTable table, int row, int column) {
       if (table.getSelectedRow() == row) {
         myComponent.setBackground(table.getSelectionBackground());
         myComponent.setForeground(table.getSelectionForeground());
@@ -699,22 +657,18 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * Custom table cell renderer that renders an action panel for a given AVD entry
    */
   private class AvdActionsColumnInfo extends ColumnInfo<AvdInfo, AvdInfo> {
-    private int myWidth;
-    private int myNumVisibleActions;
+    private final int myWidth;
+    private final int myNumVisibleActions;
 
     /**
      * This cell renders an action panel for both the editor component and the display component
      */
-    private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = Maps.newHashMap();
+    private final Map<AvdInfo, ActionRenderer> ourActionPanelRendererEditor = new HashMap<>();
 
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
       myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
-    }
-
-    public AvdActionsColumnInfo(@NotNull String name) {
-      this(name, -1);
     }
 
     @Nullable
@@ -729,12 +683,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Nullable
     @Override
     public Comparator<AvdInfo> getComparator() {
-      return new Comparator<AvdInfo>() {
-        @Override
-        public int compare(AvdInfo o1, AvdInfo o2) {
-          return o1.getStatus().compareTo(o2.getStatus());
-        }
-      };
+      return Comparator.comparing(AvdInfo::getStatus);
     }
 
     @Nullable
@@ -775,8 +724,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
   private class LaunchListener extends MouseAdapter {
     @Override
-    public void mouseClicked(MouseEvent e) {
-      if (e.getClickCount() == 2) {
+    public void mouseClicked(@NotNull MouseEvent event) {
+      if (event.getClickCount() == 2) {
         doAction();
       }
     }
@@ -802,7 +751,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     }
 
     @Override
-    public void actionPerformed(ActionEvent evt) {
+    public void actionPerformed(@NotNull ActionEvent event) {
       int selectedRow = myTable.getSelectedRow();
       int selectedColumn = myTable.getSelectedColumn();
       int actionsColumn = myModel.findColumn(myActionsColumnRenderer.getName());
@@ -824,7 +773,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         // We're in the last cell of the table. Check whether we can cycle action buttons
         if (!myActionsColumnRenderer.cycleFocus(myTable.getSelectedObject(), false)) {
           // At the end of action buttons. Remove selection and leave table.
-          final TableCellEditor cellEditor = myActionsColumnRenderer.getEditor(getAvdInfo());
+          TableCellEditor cellEditor = myActionsColumnRenderer.getEditor(getAvdInfo());
           if (cellEditor != null) {
             cellEditor.stopCellEditing();
           }
@@ -884,6 +833,5 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       result.setBorder(myBorder);
       return result;
     }
-  };
-
+  }
 }
