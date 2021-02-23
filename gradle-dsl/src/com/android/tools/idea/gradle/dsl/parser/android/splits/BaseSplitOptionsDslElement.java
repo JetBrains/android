@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.splits.BaseSplitOp
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
@@ -44,10 +45,10 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isEnable", property, ENABLE, VAR},
     {"exclude", property, EXCLUDE, VAL},
-    {"exclude", atLeast(0), EXCLUDE, OTHER},
+    {"exclude", atLeast(0), EXCLUDE, AUGMENT_LIST},
     {"setExclude", exactly(1), EXCLUDE, SET},
     {"include", property, INCLUDE, VAL},
-    {"include", atLeast(0), INCLUDE, OTHER},
+    {"include", atLeast(0), INCLUDE, AUGMENT_LIST},
     {"setInclude", exactly(1), INCLUDE, SET},
   }).collect(toModelMap());
 
@@ -56,9 +57,9 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
     {"enable", property, ENABLE, VAR},
     {"enable", exactly(1), ENABLE, SET},
     {"exclude", property, EXCLUDE, VAR},
-    {"exclude", atLeast(0), EXCLUDE, OTHER},
+    {"exclude", atLeast(0), EXCLUDE, AUGMENT_LIST},
     {"include", property, INCLUDE, VAR},
-    {"include", atLeast(0), INCLUDE, OTHER},
+    {"include", atLeast(0), INCLUDE, AUGMENT_LIST},
   }).collect(toModelMap());
 
   @Override
@@ -82,16 +83,8 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
-    if (property.equals("exclude")) {
-      addToParsedExpressionList(EXCLUDE, element);
-      return;
-    }
-    if (property.equals("include")) {
-      addToParsedExpressionList(INCLUDE, element);
-      return;
-    }
     if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement(element, INCLUDE);
+      addParsedResettingElement(element, INCLUDE.name);
       return;
     }
 
