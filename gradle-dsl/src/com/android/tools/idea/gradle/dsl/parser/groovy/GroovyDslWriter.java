@@ -300,7 +300,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     FakeMethodElement fakeElement = new FakeMethodElement(methodCall);
     String methodCallText = (methodCall.isConstructor() ? "new " : "") + quotePartsIfNecessary(maybeTrimForParent(fakeElement, this)) + "()";
     String statementText;
-    if (!methodCall.getFullName().isEmpty()) {
+    if (!methodCall.getNameElement().isEmpty()) {
       ExternalNameInfo info = maybeTrimForParent(methodCall, this);
       ExternalNameSyntax syntax = info.syntax;
       if (syntax == UNKNOWN) {
