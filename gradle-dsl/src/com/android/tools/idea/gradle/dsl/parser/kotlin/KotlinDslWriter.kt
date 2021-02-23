@@ -451,6 +451,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
     val fakeElement = FakeMethodElement(methodCall)
+    val methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
 
     val statementText =
       if (!methodCall.nameElement.isEmpty && methodCall.fullName != methodCall.methodName) {
@@ -462,7 +463,6 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
         }
         val syntax = externalNameInfo.syntax.takeUnless { it == UNKNOWN } ?: methodCall.externalSyntax
-        var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
         if (syntax == ASSIGNMENT) {
           // Ex: a = b().
           "$propertyName = $methodName()"
@@ -477,7 +477,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
-        maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".") + "()"
+        "$methodName()"
       }
     val expression = psiFactory.createExpression(statementText)
 

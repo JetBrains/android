@@ -195,12 +195,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   }
 
   @Override
-  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull ModelPropertyDescription propertyToReset) {
-    assert element instanceof GradleDslExpression;
-    super.addParsedResettingElement(element, propertyToReset);
-  }
-
-  @Override
   public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
     assert element instanceof GradleDslExpression;
     super.addToParsedExpressionList(property, element);
