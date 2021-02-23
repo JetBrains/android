@@ -20,6 +20,8 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.editors.AndroidEditorAppearanceSettings;
+import com.android.tools.idea.editors.AndroidEditorAppearanceState;
 import com.google.common.collect.Maps;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.util.IconLoader;
@@ -118,7 +120,7 @@ public class FlagManager {
   }
 
   public static boolean showFlagsForLanguages() {
-    return UISettings.getInstance().getState().getLanguageFlags();
+    return AndroidEditorAppearanceSettings.Companion.getInstance().getState().getEnableFlagsForLanguages();
   }
 
   /**

@@ -401,6 +401,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
     <applicationConfigurable groupId="build" id="testing.instrumented.configuration"
                              provider="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfigurableProvider"/>
+    <editorAppearanceConfigurable instance="com.android.tools.idea.editors.AndroidEditorAppearanceConfigurable"/>
     <applicationService serviceImplementation="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration"/>
     <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>
