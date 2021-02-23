@@ -26,10 +26,13 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.content.ContentFactory
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
@@ -38,10 +41,12 @@ import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JTextField
 import javax.swing.JTree
+import javax.swing.SwingConstants
 import javax.swing.event.TreeModelEvent
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
 internal class ToolWindowModel(
@@ -179,7 +184,9 @@ class ContentManager(val project: Project) {
     val tree = CheckboxTree(UpgradeAssistantTreeCellRenderer(), null).apply {
       model = this@View.model.treeModel
       isRootVisible = false
+      selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
+      addTreeSelectionListener { e -> refreshDetailsPanel() }
     }
     val textField = AgpVersionEditor(model, myBindings, myListeners)
 
@@ -189,10 +196,15 @@ class ContentManager(val project: Project) {
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade() }
     }
+    val detailsPanel = JBPanel<JBPanel<*>>().apply {
+      layout = VerticalLayout(0, SwingConstants.LEFT)
+      border = JBUI.Borders.empty(10)
+    }
     val content = JBPanel<JBPanel<*>>().apply {
       layout = BorderLayout()
       add(makeTopComponent(model), BorderLayout.NORTH)
-      add(tree, BorderLayout.CENTER)
+      add(tree, BorderLayout.WEST)
+      add(detailsPanel, BorderLayout.CENTER)
     }
 
     init {
@@ -213,6 +225,27 @@ class ContentManager(val project: Project) {
       // TODO(xof): make this look like a default button
       add(okButton)
     }
+
+    private fun refreshDetailsPanel() {
+      detailsPanel.removeAll()
+      val selectedProcessor = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? AgpUpgradeComponentRefactoringProcessor
+      if (selectedProcessor != null) {
+        detailsPanel.add(JBLabel(selectedProcessor.commandName))
+        selectedProcessor.getReadMoreUrl()?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
+        if (selectedProcessor is Java8DefaultRefactoringProcessor) {
+          ComboBox(arrayOf(
+            Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
+            Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+          )).apply {
+            item = selectedProcessor.noLanguageLevelAction
+            addActionListener { selectedProcessor.noLanguageLevelAction = this.item }
+            detailsPanel.add(this)
+          }
+        }
+      }
+      detailsPanel.revalidate()
+      detailsPanel.repaint()
+    }
   }
 
   private class UpgradeAssistantTreeCellRenderer : CheckboxTree.CheckboxTreeCellRenderer(true, true) {
@@ -226,10 +259,7 @@ class ContentManager(val project: Project) {
       if (value is DefaultMutableTreeNode) {
         when (val o = value.userObject) {
           is AgpUpgradeComponentNecessity -> textRenderer.append(o.description())
-          is AgpUpgradeComponentRefactoringProcessor -> {
-            textRenderer.append(o.commandName)
-            o.getReadMoreUrl()?.let { textRenderer.append(" Read more.") }
-          }
+          is AgpUpgradeComponentRefactoringProcessor -> textRenderer.append(o.commandName)
         }
       }
       super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
@@ -261,6 +291,7 @@ class ContentManager(val project: Project) {
       }
     }
     val textProperty = TextProperty(comboBoxEditor.editorComponent as JTextField)
+
     init {
       super.setModel(itemsModel)
       isEditable = true
