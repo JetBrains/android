@@ -413,7 +413,7 @@ object MavenClassRegistryLocal : MavenClassRegistry {
         MavenClassRegistry.Library(artifact = "androidx.benchmark:benchmark-junit4", packageName = "androidx.benchmark.junit4")
 
       "Preview" ->
-        MavenClassRegistry.Library(artifact = "androidx.ui:ui-tooling", packageName = "androidx.ui.tooling.preview")
+        MavenClassRegistry.Library(artifact = "androidx.compose.ui:ui-tooling", packageName = "androidx.compose.ui.tooling.preview")
 
       "CameraX",
       "ImageAnalysis",
