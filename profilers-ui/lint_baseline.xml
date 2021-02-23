@@ -45,14 +45,6 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/TimelineTable.java"
-            line="155"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
             file="src/com/android/tools/profilers/energy/UiHtmlText.java"
             line="98"/>
     </issue>
