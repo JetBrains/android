@@ -69,7 +69,6 @@ internal class PercentColumnRenderer<T: MemoryObject>(
     if (value is MemoryObjectTreeNode<*>) {
       this.hasFocus = hasFocus;
       percent = percentGetter.apply(value as MemoryObjectTreeNode<T>)
-      require (percent >= 0)
     }
   }
 
