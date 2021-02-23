@@ -73,7 +73,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             for (sourceSetInfo in kotlinAndroidSourceSets) {
                 val compilation = sourceSetInfo.kotlinModule as? KotlinCompilation ?: continue
                 for (sourceSet in compilation.sourceSets) {
-                    if (sourceSet.actualPlatforms.supports(KotlinPlatform.ANDROID)) {
+                    if (sourceSet.actualPlatforms.platforms.singleOrNull() == KotlinPlatform.ANDROID) {
                         val sourceType = if (sourceSet.isTestModule) JavaSourceRootType.TEST_SOURCE else JavaSourceRootType.SOURCE
                         val resourceType = if (sourceSet.isTestModule) JavaResourceRootType.TEST_RESOURCE else JavaResourceRootType.RESOURCE
                         sourceSet.sourceDirs.forEach { addSourceRoot(it, sourceType, rootModel, shouldCreateEmptySourceRoots) }
