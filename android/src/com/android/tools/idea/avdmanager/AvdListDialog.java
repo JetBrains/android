@@ -41,7 +41,7 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
   public AvdListDialog(@Nullable Project project) {
     super(project, DIMENSION_KEY, false, "Android Virtual Device Manager");
     myProject = project;
-    myAvdDisplayList = new AvdDisplayList(this, project);
+    myAvdDisplayList = new AvdDisplayList(project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
     closeOnEsc();
   }
