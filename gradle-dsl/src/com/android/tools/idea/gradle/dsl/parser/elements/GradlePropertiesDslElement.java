@@ -138,8 +138,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return oldState;
   }
 
-  private void hidePropertyInternal(@NotNull String property) {
-    myProperties.hideAll(e -> e.myElement.getName().equals(property));
+  private void hidePropertyInternal(@NotNull ModelPropertyDescription property) {
+    myProperties.hideAll(e -> property.equals(e.myElement.getModelProperty()));
   }
 
   public void addAppliedModelProperties(@NotNull GradleDslFile file) {
@@ -230,7 +230,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    * <p>This method should be used when the given {@code property} would reset the effect of the other property. Ex: {@code reset()} method
    * in android.splits.abi block will reset the effect of the previously defined {@code includes} element.
    */
-  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull String propertyToReset) {
+  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull ModelPropertyDescription propertyToReset) {
     element.setParent(this);
     addPropertyInternal(element, EXISTING);
     hidePropertyInternal(propertyToReset);

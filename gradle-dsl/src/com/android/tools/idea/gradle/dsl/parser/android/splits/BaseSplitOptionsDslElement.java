@@ -20,7 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atL
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL;
@@ -29,7 +29,6 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
@@ -50,6 +49,7 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
     {"include", property, INCLUDE, VAL},
     {"include", atLeast(0), INCLUDE, AUGMENT_LIST},
     {"setInclude", exactly(1), INCLUDE, SET},
+    {"reset", exactly(0), INCLUDE, RESET},
   }).collect(toModelMap());
 
   @NotNull
@@ -60,6 +60,7 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
     {"exclude", atLeast(0), EXCLUDE, AUGMENT_LIST},
     {"include", property, INCLUDE, VAR},
     {"include", atLeast(0), INCLUDE, AUGMENT_LIST},
+    {"reset", exactly(0), INCLUDE, RESET},
   }).collect(toModelMap());
 
   @Override
@@ -78,16 +79,5 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
 
   BaseSplitOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement blockName) {
     super(parent, blockName);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    String property = element.getName();
-    if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement(element, INCLUDE.name);
-      return;
-    }
-
-    super.addParsedElement(element);
   }
 }
