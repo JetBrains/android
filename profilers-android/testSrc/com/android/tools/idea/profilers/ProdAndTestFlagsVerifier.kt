@@ -43,7 +43,6 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
       "isJniReferenceTrackingEnabled" to "b/162493669",
       "isLiveAllocationsEnabled" to "b/162493670",
       "isNativeMemorySampleEnabled" to "b/162494071",
-      "isSeparateHeapDumpUiEnabled" to "b/162493985",
       "isStartupCpuProfilingEnabled" to "b/162493986",
       "isUnifiedPipelineEnabled" to "b/162494995")
   }

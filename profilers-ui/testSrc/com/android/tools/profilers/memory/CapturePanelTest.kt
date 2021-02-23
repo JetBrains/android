@@ -65,7 +65,6 @@ class CapturePanelTest {
 
   @Test
   fun `panel shows numbers for selected heap`() {
-    ideProfilerServices.enableSeparateHeapDumpUi(true)
     val capture = FakeCaptureObject.Builder().build()
     val heap1 = HeapSet(capture, "heap1", 1)
     val heap2 = HeapSet(capture, "heap2", 2)

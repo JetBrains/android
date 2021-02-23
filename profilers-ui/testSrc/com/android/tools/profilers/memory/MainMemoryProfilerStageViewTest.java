@@ -116,15 +116,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     myIdeProfilerServices.enableEventsPipeline(true); // need to be here before `myStage` is initialized
   }
 
-  @Before
-  public void init() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(false);
-  }
-
   @Test
   public void testCaptureAndHeapView() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
-
     final String sampleClassName1 = "SAMPLE_CLASS1";
     final String sampleClassName2 = "SAMPLE_CLASS2";
 
@@ -406,7 +399,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testLoadingNewCaptureWithExistingLoad() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
@@ -479,8 +471,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Ignore("Scenario no longer possible or relevant for separate heap dump stage. Also b/136292864")
   @Test
   public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
-
     // Make sure the second loading runs after the first due to b/151245410
     testFirstLoadsCaptureThenStartSecond(
       () -> {

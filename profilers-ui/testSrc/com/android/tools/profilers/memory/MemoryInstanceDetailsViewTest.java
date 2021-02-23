@@ -317,8 +317,6 @@ public class MemoryInstanceDetailsViewTest {
 
   @Test
   public void fieldsInitiallySortedByDefaultOrder() {
-    ((FakeIdeProfilerServices)myStage.getStudioProfilers().getIdeServices()).enableSeparateHeapDumpUi(true);
-
     // TODO test more sophisticated cases (e.g. multiple field names, icons, etc)
     // Setup mock field hierarchy:
     // fakeRootObject

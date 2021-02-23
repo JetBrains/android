@@ -409,9 +409,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                                                          ((AllocationDurationData<?>)durationData).getStart(),
                                                          ((AllocationDurationData<?>)durationData).getEnd()));
     }
-    else if (durationData != null &&
-             durationData.isSeparateStageData() &&
-             getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    else if (durationData != null && durationData.isSeparateStageData()) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
     }
     else {

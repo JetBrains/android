@@ -114,7 +114,7 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isError());
 
     Collection<HeapSet> heaps = capture.getHeapSets();
-    assertEquals(1, heaps.size()); // default heap should not show up if it doesn't contain anything
+    assertEquals(2, heaps.size()); // default heap should not show up if it doesn't contain anything
 
     // "default" heap only contains roots, no ClassObjects
     HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
@@ -178,7 +178,7 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isError());
 
     Collection<HeapSet> heaps = capture.getHeapSets();
-    assertEquals(2, heaps.size());
+    assertEquals(3, heaps.size());
 
     HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
