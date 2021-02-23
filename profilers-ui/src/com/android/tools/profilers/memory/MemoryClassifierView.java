@@ -194,6 +194,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     myAttributeColumns.put(
       ClassifierAttribute.REMAINING_SIZE,
       makeColumn("Remaining Size", 140, ClassifierSet::getTotalRemainingSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.SHALLOW_DIFFERENCE,
+      makeColumn("Shallow Size Change", 110, ClassifierSet::getDeltaShallowSize));
   }
 
   /**
