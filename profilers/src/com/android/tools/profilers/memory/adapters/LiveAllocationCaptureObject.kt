@@ -131,14 +131,16 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
              ClassifierAttribute.ALLOCATIONS,
              ClassifierAttribute.DEALLOCATIONS,
              ClassifierAttribute.TOTAL_COUNT,
-             ClassifierAttribute.SHALLOW_SIZE)
+             ClassifierAttribute.SHALLOW_SIZE,
+             ClassifierAttribute.SHALLOW_DIFFERENCE)
     else
       listOf(ClassifierAttribute.LABEL,
              ClassifierAttribute.ALLOCATIONS,
              ClassifierAttribute.DEALLOCATIONS,
-             ClassifierAttribute.SHALLOW_SIZE)
+             ClassifierAttribute.SHALLOW_SIZE,
+             ClassifierAttribute.SHALLOW_DIFFERENCE)
 
-  override fun getInstanceAttributes() = listOf(LABEL, ALLOCATION_TIME, DEALLOCATION_TIME)
+  override fun getInstanceAttributes() = listOf(LABEL, ALLOCATION_TIME, DEALLOCATION_TIME, SHALLOW_SIZE)
   override fun getInfoMessage() = infoMessage
 
   override fun getHeapSets() =
