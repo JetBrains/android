@@ -116,6 +116,8 @@
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InnerClassSeparatorInspection"
                      displayName="Invalid separator between class and inner class"/>
 
+    <lang.foldingBuilder language="SHRINKER_CONFIG" implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8CustomFoldingBuilder"/>
+
     <lang.inspectionSuppressor
         language="SHRINKER_CONFIG"
         implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8InspectionSuppressor"/>
