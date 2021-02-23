@@ -333,7 +333,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       SdkModificator sdkModificator = sdk.getSdkModificator();
       IAndroidTarget target = platform.getTarget();
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
-      ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges);
+      sdkModificator.commitChanges();
     }
   }
 }
