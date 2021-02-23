@@ -310,7 +310,7 @@ class EmulatorToolWindowPanelTest {
     glassPane.dispatch(event)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: -2.3561945 y: 1.5707964")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
 
     val rotationExpectations = mapOf(VK_LEFT to "y: 0.08726646", VK_RIGHT to "y: -0.08726646",
                                      VK_UP to "x: 0.08726646", VK_DOWN to "x: -0.08726646",
