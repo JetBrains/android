@@ -163,4 +163,37 @@ class DeployTaskTest {
     deployTask.perform(device, deployer, "", listOf())
     verify(device, times(1)).forceStop(any())
   }
+
+  @Test
+  fun testDeployAndroidXTestServicesOnApi30() {
+    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
+    val expectedOptions = InstallOptions.builder()
+      .setAllowDebuggable()
+      .setForceQueryable()
+      .setInstallFullApk()
+      .setDontKill()
+      .build()
+
+    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    deployTask.perform(device, deployer, "androidx.test.services", listOf())
+
+    verify(deployer).install(eq("androidx.test.services"), any(), eq(expectedOptions), any())
+  }
+
+  @Test
+  fun testDeployAndroidXTestServicesOnApi29() {
+    Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
+    Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.Q))
+    val expectedOptions = InstallOptions.builder()
+      .setAllowDebuggable()
+      .setInstallFullApk()
+      .setDontKill()
+      .build()
+
+    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    deployTask.perform(device, deployer, "androidx.test.services", listOf())
+
+    verify(deployer).install(eq("androidx.test.services"), any(), eq(expectedOptions), any())
+  }
 }

@@ -21,6 +21,7 @@ import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -33,6 +34,19 @@ public class DeployTask extends AbstractDeployTask {
 
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
+
+  // Those APKs provide services for executing tests and need to be installed with
+  // "--force-queryable" option if a target device API level is 30 or higher.
+  private static final ImmutableSet<String> ANDROIDX_TEST_SERVICE_PACKAGES = ImmutableSet.of(
+    "androidx.test.orchestrator",
+    "androidx.test.services",
+    "android.support.test.orchestrator",
+    "android.support.test.services"
+  );
+
+  private static boolean isAndroidXTestServicePackage(String applicationId) {
+    return ANDROIDX_TEST_SERVICE_PACKAGES.stream().anyMatch(applicationId::startsWith);
+  }
 
   private final String[] userInstallOptions;
   private final boolean installOnAllUsers;
@@ -89,6 +103,13 @@ public class DeployTask extends AbstractDeployTask {
     // Installing with "-g" guarantees that the permissions are properly granted at install time.
     if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       options.setGrantAllPermissions();
+    }
+
+    // AndroidX Test services APKs provides services that requires permissions to be granted before
+    // executing tests. Installing them with "--force-queryable" option to make installed package
+    // be visible from the test services APKs.
+    if (device.getVersion().getApiLevel() >= 30 && isAndroidXTestServicePackage(applicationId)) {
+      options.setForceQueryable();
     }
 
     // API 28 changes how the instant property is set on app install.
