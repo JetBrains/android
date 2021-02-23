@@ -32,7 +32,6 @@ public class NetworkUsage extends LineChartModel {
   @NotNull private final Range myTrafficRange;
 
   public NetworkUsage(@NotNull StudioProfilers profilers) {
-    super(profilers.getIdeServices().getPoolExecutor());
     Range viewRange = profilers.getTimeline().getViewRange();
     Range dataRange = profilers.getTimeline().getDataRange();
 

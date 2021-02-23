@@ -18,7 +18,6 @@ package com.android.tools.adtui.model;
 import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
 
-import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static org.junit.Assert.*;
 
 public class LineChartModelTest {
@@ -35,7 +34,7 @@ public class LineChartModelTest {
     FakeTimer t = new FakeTimer();
     Updater updater = new Updater(t);
 
-    LineChartModel model = new LineChartModel(newDirectExecutorService());
+    LineChartModel model = new LineChartModel();
     model.add(rangedSeries);
     updater.register(model);
 
@@ -113,7 +112,7 @@ public class LineChartModelTest {
     FakeTimer t = new FakeTimer();
     Updater updater = new Updater(t);
 
-    LineChartModel model = new LineChartModel(newDirectExecutorService());
+    LineChartModel model = new LineChartModel();
     model.add(rangedSeries);
     updater.register(model);
 
