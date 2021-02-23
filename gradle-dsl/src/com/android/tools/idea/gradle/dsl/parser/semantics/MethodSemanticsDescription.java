@@ -34,6 +34,10 @@ public enum MethodSemanticsDescription implements SemanticsDescription {
    */
   AUGMENT_LIST,
   /**
+   * Resets a collection property to its initial state
+   */
+  RESET,
+  /**
    * Anything else (semantics currently implemented explicitly in DslElement classes).
    */
   OTHER

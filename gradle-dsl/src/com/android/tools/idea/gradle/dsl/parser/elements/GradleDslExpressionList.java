@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsD
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
@@ -194,7 +195,7 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   }
 
   @Override
-  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull String propertyToReset) {
+  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull ModelPropertyDescription propertyToReset) {
     assert element instanceof GradleDslExpression;
     super.addParsedResettingElement(element, propertyToReset);
   }
