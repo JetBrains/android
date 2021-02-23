@@ -417,7 +417,7 @@ object MavenClassRegistryFromHardcodedMap : MavenClassRegistryBase() {
         Library(artifact = "androidx.benchmark:benchmark-junit4", packageName = "androidx.benchmark.junit4")
 
       "Preview" ->
-        Library(artifact = "androidx.ui:ui-tooling", packageName = "androidx.ui.tooling.preview")
+        Library(artifact = "androidx.compose.ui:ui-tooling", packageName = "androidx.compose.ui.tooling.preview")
 
       "CameraX",
       "ImageAnalysis",
