@@ -27,12 +27,13 @@ import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.kotlin.getClassName
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.documentation.DocumentationComponent
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.lang.documentation.CompositeDocumentationProvider
+import com.intellij.lang.documentation.DocumentationMarkup
 import com.intellij.lang.documentation.DocumentationProviderEx
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.invokeLater
@@ -46,11 +47,15 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 import com.intellij.ui.popup.AbstractPopup
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -201,17 +206,23 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     return@compute if (sample.isPreview()) sample as KtNamedFunction else null
   }
 
+  // Don't use AndroidKtPsiUtilsKt.getClassName as we need to use original file for a documentation that shows during code completion.
+  // During code completion as containingKtFile we have a copy of the original file. That copy always returns null for findFacadeClass.
+  private fun KtNamedFunction.getClassName(): String? {
+    return if (isTopLevel) ((containingKtFile.originalFile as? KtFile)?.findFacadeClass())?.qualifiedName else parentOfType<KtClass>()?.getQualifiedName()
+  }
+
   private fun getFullNameForPreview(function: KtNamedFunction): String = ReadAction.compute<String, Throwable> {
     "${function.getClassName()}.${function.name}"
   }
 
   /**
-   * Returns image tag that we add into documentation's html.
+   * Returns image tag wrapped in div with DocumentationMarkup style settings that we add into documentation's html.
    *
    * We add "file" protocol in order to make swing go to cache for image (@see AndroidComposeDocumentationProvider.getLocalImageForElement).
    */
   private fun getImageTag(imageKey: String, i: BufferedImage) =
-    "<img src='file://${imageKey}' alt='preview:${imageKey}' width='${i.width}' height='${i.height}'>"
+    DocumentationMarkup.CONTENT_START + "<img src='file://${imageKey}' alt='preview:${imageKey}' width='${i.width}' height='${i.height}'>" + DocumentationMarkup.CONTENT_END
 
   private fun PsiElement.isPreview() = this is KtNamedFunction &&
                                        annotationEntries.any { it.shortName?.asString() == COMPOSE_PREVIEW_ANNOTATION_NAME } &&
