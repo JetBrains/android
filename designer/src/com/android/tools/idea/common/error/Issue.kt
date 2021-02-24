@@ -24,7 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-private data class NlComponentIssueSource(private val component: NlComponent) : IssueSource, NlAttributesHolder {
+private data class NlComponentIssueSource(internal val component: NlComponent) : IssueSource, NlAttributesHolder {
   override val displayText: String = listOfNotNull(
     component.model.modelDisplayName,
     component.id,
@@ -42,6 +42,10 @@ private data class NlComponentIssueSource(private val component: NlComponent) : 
       component.setAttribute(namespace, attribute, value)
     }
   }
+}
+
+fun IssueSource.isFromNlComponent(component: NlComponent): Boolean {
+    return this is NlComponentIssueSource && this.component == component
 }
 
 private data class NlModelIssueSource(private val model: NlModel) : IssueSource {

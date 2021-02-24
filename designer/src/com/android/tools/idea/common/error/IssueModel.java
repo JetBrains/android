@@ -183,7 +183,7 @@ public class IssueModel {
   @Nullable
   public Issue findIssue(@NotNull NlComponent component) {
     for (Issue issue : myIssues) {
-      if (component.equals(issue.getSource())) {
+      if (IssueKt.isFromNlComponent(issue.getSource(), component)) {
         return issue;
       }
     }
