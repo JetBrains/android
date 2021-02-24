@@ -38,6 +38,8 @@ import com.intellij.lang.documentation.DocumentationProviderEx
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.EditorMouseHoverPopupManager
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
@@ -48,6 +50,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.popup.AbstractPopup
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.asJava.findFacadeClass
@@ -180,19 +183,22 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
 
-  private fun previewFromMethodName(fqName: String, composeLibraryNamespace: ComposeLibraryNamespace) =
-    SinglePreviewElementInstance(
+  private fun previewFromMethodName(fqName: String, composeLibraryNamespace: ComposeLibraryNamespace): SinglePreviewElementInstance {
+    val scheme = EditorColorsManager.getInstance().globalScheme
+    val background = scheme.getColor(EditorColors.DOCUMENTATION_COLOR) ?: scheme.defaultBackground
+    return SinglePreviewElementInstance(
       composableMethodFqn = fqName,
       displaySettings = PreviewDisplaySettings(
         name = "",
         group = null,
-        showBackground = false,
+        showBackground = true,
         showDecoration = false,
-        backgroundColor = null),
+        backgroundColor = ColorUtil.toHtmlColor(background)),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
       configuration = nullConfiguration,
       composeLibraryNamespace = composeLibraryNamespace)
+  }
 
   /**
    * Returns KtNamedFunction after @sample tag in JavaDoc for given element or null if there is no such tag or function is not valid.
