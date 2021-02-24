@@ -32,14 +32,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class RenderUtils {
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
-    ModuleClassLoaderManager.get().clearCache();
-
-    configurations.stream()
+    configurations
       .forEach(configuration -> {
         // Clear layoutlib bitmap cache (in case files have been modified externally)
         IAndroidTarget target = configuration.getTarget();
         Module module = configuration.getModule();
         if (module != null) {
+          ModuleClassLoaderManager.get().clearCache(module);
           ResourceIdManager.get(module).resetDynamicIds();
           ResourceClassRegistry.get(module.getProject()).clearCache();
           if (target != null) {

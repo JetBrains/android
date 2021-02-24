@@ -40,6 +40,7 @@ open class TrackingThreadLocal<T> : ThreadLocal<T>() {
       threadLocalsMap.computeIfAbsent(classLoader) { Collections.newSetFromMap(WeakHashMap()) }.add(threadLocal)
     }
 
+    @JvmStatic
     @Synchronized
     fun clearThreadLocals(classLoader: ClassLoader) = threadLocalsMap.remove(classLoader)
   }
