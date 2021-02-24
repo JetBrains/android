@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.SdkConstants;
 import com.android.emulator.SnapshotProtoException;
 import com.android.emulator.SnapshotProtoParser;
-import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
@@ -43,6 +42,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.SettableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -99,6 +99,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1129,21 +1131,28 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @Override
   protected void onProceeding() {
-    boolean hasFrame = getModel().hasDeviceFrame().get();
-    if (hasFrame && getModel().getAvdDeviceData().customSkinFile().get().isPresent()) {
-      getModel().backupSkinFile().clear();
-    }
-    else {
-      getModel().getAvdDeviceData().customSkinFile().setValue(AvdWizardUtils.NO_SKIN);
-      getModel().backupSkinFile().set(getModel().getAvdDeviceData().customSkinFile());
-    }
+    AvdOptionsModel model = getModel();
 
-    if (getSelectedApiLevel() < 16 || getModel().hostGpuMode().getValueOrNull() == GpuMode.OFF) {
-      getModel().useHostGpu().set(false);
-      getModel().hostGpuMode().setValue(GpuMode.OFF);
+    SettableValue<Optional<File>> customSkinDefinitionProperty = model.getAvdDeviceData().customSkinFile();
+    SettableValue<Optional<File>> customSkinDefinitionBackupProperty = model.backupSkinFile();
+
+    Path customSkinDefinition = customSkinDefinitionProperty.get().map(File::toPath).orElse(null);
+    Path customSkinDefinitionBackup = customSkinDefinitionBackupProperty.get().map(File::toPath).orElse(null);
+
+    CustomSkinDefinitionResolver resolver = new CustomSkinDefinitionResolver(FileSystems.getDefault(),
+                                                                             model.hasDeviceFrame().get(),
+                                                                             customSkinDefinition,
+                                                                             customSkinDefinitionBackup);
+
+    customSkinDefinitionProperty.set(resolver.getCustomSkinDefinition().map(Path::toFile));
+    customSkinDefinitionBackupProperty.set(resolver.getCustomSkinDefinitionBackup().map(Path::toFile));
+
+    if (getSelectedApiLevel() < 16 || model.hostGpuMode().getValueOrNull() == GpuMode.OFF) {
+      model.useHostGpu().set(false);
+      model.hostGpuMode().setValue(GpuMode.OFF);
     }
     else {
-      getModel().useHostGpu().set(true);
+      model.useHostGpu().set(true);
     }
   }
 

@@ -30,14 +30,13 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImageManager
+import com.android.testutils.NoErrorsOrWarningsLogger
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
-
+import org.mockito.Mockito
 import java.io.File
-
-import com.android.testutils.NoErrorsOrWarningsLogger
 
 private val SDK_LOCATION = "/sdk"
 private val AVD_LOCATION = "/avd"
@@ -253,5 +252,21 @@ class AvdOptionsModelTest : AndroidTestCase() {
     optionsModel.ensureMinimumMemory()
     assertThat(optionsModel.sdCardStorage().value).isEqualTo(Storage(12, Storage.Unit.MiB))
     assertThat(optionsModel.internalStorage().get()).isEqualTo(Storage(200, Storage.Unit.MiB))
+  }
+
+  fun testAvdOptionsModelEnableDeviceFrameCheckboxIsntSelected() {
+    // Arrange
+    val avd = Mockito.mock(AvdInfo::class.java)
+
+    Mockito.`when`(avd.deviceManufacturer).thenReturn("Google")
+    Mockito.`when`(avd.deviceName).thenReturn("pixel_3")
+    Mockito.`when`(avd.displayName).thenReturn("Pixel 3 API 30")
+    Mockito.`when`(avd.properties).thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to AvdManagerUtils.NO_SKIN))
+
+    // Act
+    val model = AvdOptionsModel(avd)
+
+    // Assert
+    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(AvdManagerUtils.NO_SKIN))
   }
 }
