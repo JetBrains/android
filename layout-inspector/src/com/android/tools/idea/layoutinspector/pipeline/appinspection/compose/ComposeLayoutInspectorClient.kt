@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
@@ -24,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
@@ -39,11 +41,11 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
-private val JAR = AppInspectorJar("compose-ui-inspection.jar",
-                                  developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
+private val DEV_JAR = AppInspectorJar("compose-ui-inspection.jar",
+                                      developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
 
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
-  "androidx.compose.ui", "ui", "1.0.0-alpha13", ArtifactCoordinate.Type.AAR
+  "androidx.compose.ui", "ui", "1.0.0-beta01", ArtifactCoordinate.Type.AAR
 )
 
 @VisibleForTesting
@@ -71,9 +73,20 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     suspend fun launch(apiServices: AppInspectionApiServices,
                        process: ProcessDescriptor,
                        model: InspectorModel): ComposeLayoutInspectorClient? {
+      val jar = if (StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE.get()) {
+        DEV_JAR
+      }
+      else {
+        InspectorArtifactService.instance
+          .getOrResolveInspectorArtifact(MINIMUM_COMPOSE_COORDINATE, model.project)
+          ?.let { inspectorPath ->
+            AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
+          } ?: return null
+      }
+
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, JAR, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
+      val params = LaunchParameters(process, COMPOSE_LAYOUT_INSPECTOR_ID, jar, model.project.name, MINIMUM_COMPOSE_COORDINATE, force = true)
       return try {
         val messenger = apiServices.launchInspector(params)
         ComposeLayoutInspectorClient(model, messenger)

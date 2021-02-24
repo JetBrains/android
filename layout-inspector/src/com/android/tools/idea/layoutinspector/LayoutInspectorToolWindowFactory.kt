@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
@@ -98,6 +99,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
             .toList()
         }
         Disposer.register(workbench, processes)
+
+        processes.addSelectedProcessListeners {
+          // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
+          // encountered during a previous run.
+          InspectorBannerService.getInstance(project).notification = null
+        }
 
         val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
         val layoutInspector = LayoutInspector(launcher, model)
