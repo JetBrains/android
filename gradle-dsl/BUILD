@@ -24,6 +24,7 @@ iml_module(
     iml_files = ["intellij.android.gradle.dsl.tests.iml"],
     test_class = "com.android.tools.idea.gradle.dsl.GradleDslTestSuite",
     test_data = glob(["testData/**"]),
+    test_shard_count = 3,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
