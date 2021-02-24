@@ -13,12 +13,14 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
+import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
@@ -39,9 +41,11 @@ import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,6 +59,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -71,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  * used by those custom views (other than the framework itself, which is loaded by a parent class
  * loader via layout library.)
  */
-public final class ModuleClassLoader extends RenderClassLoader implements ModuleProvider {
+public final class ModuleClassLoader extends RenderClassLoader implements ModuleProvider, Disposable {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
   /**
@@ -194,6 +199,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
                     @NotNull ClassBinaryCache cache,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
+    Disposer.register(renderContext.getModule(), this);
     myModuleReference = new WeakReference<>(renderContext.getModule());
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
     final Function0<PsiFile> sourcePsiFileProvider = renderContext.getFileProvider();
@@ -639,5 +645,24 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @NotNull
   public ModuleClassLoaderDiagnosticsRead getStats() {
     return myDiagnostics;
+  }
+
+  @Override
+  public void dispose() {
+    Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
+    if (threadLocals == null || threadLocals.isEmpty()) {
+      return;
+    }
+
+    // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      for (ThreadLocal<?> threadLocal: threadLocals) {
+        try {
+          threadLocal.remove();
+        } catch (Exception e) {
+          LOG.warn(e); // Failure detected here will most probably cause a memory leak
+        }
+      }
+    });
   }
 }

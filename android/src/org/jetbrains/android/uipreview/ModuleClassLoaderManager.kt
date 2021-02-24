@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.layoutlib.reflection.TrackingThreadLocal
 import com.android.tools.idea.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
+import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -30,11 +29,15 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.plugins.groovy.util.removeUserData
+import java.lang.ref.SoftReference
 import java.util.Collections
 import java.util.WeakHashMap
 
@@ -75,6 +78,11 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
 }
 
 /**
+ * Key used to attach a shared class loader to a [Module]. The reference is held via a [SoftReference].
+ */
+private val SHARED_MODULE_CLASS_LOADER: Key<SoftReference<ModuleClassLoader>> = Key.create(::SHARED_MODULE_CLASS_LOADER.qualifiedName)
+
+/**
  * Class providing the context for a ModuleClassLoader in which is being used.
  * Gradle class resolution depends only on [Module] but ASWB will also need the file to be able to
  * correctly resolve the classes.
@@ -103,7 +111,6 @@ class ModuleRenderContext private constructor(val module: Module, val fileProvid
  * A [ClassLoader] for the [Module] dependencies.
  */
 class ModuleClassLoaderManager {
-  private val cache: MutableMap<Module, ModuleClassLoader> = WeakHashMap()
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
   private val holders: MutableMap<ModuleClassLoader, MutableSet<Any>> = HashMap()
   private var captureDiagnostics = false
@@ -121,7 +128,7 @@ class ModuleClassLoaderManager {
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
                 onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader {
     val module: Module = moduleRenderContext.module
-    var moduleClassLoader = cache[module]
+    var moduleClassLoader = module.getUserData(SHARED_MODULE_CLASS_LOADER)?.get()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     }
@@ -162,7 +169,7 @@ class ModuleClassLoaderManager {
       LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
       val diagnostics = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
       moduleClassLoader = ModuleClassLoader(parent, moduleRenderContext, combinedProjectTransformations, combinedNonProjectTransformations, diagnostics)
-      cache[module] = moduleClassLoader
+      module.putUserData(SHARED_MODULE_CLASS_LOADER, SoftReference(moduleClassLoader))
       oldClassLoader?.let { release(it, DUMMY_HOLDER) }
       onNewModuleClassLoader.run()
     }
@@ -212,19 +219,13 @@ class ModuleClassLoaderManager {
   }
 
   @Synchronized
-  fun clearCache() {
-    val values = cache.values.toList()
-    cache.clear()
-    values.forEach { release(it, DUMMY_HOLDER) }
-  }
-
-  @Synchronized
   fun clearCache(module: Module) {
-    cache.remove(module)?.let { release(it, DUMMY_HOLDER) }
+    module.removeUserData(SHARED_MODULE_CLASS_LOADER)?.get()?.let { Disposer.dispose(it) }
   }
 
   @Synchronized
-  private fun isManaged(moduleClassLoader: ModuleClassLoader) = cache.values.contains(moduleClassLoader)
+  private fun isManaged(moduleClassLoader: ModuleClassLoader) =
+    moduleClassLoader.module?.getUserData(SHARED_MODULE_CLASS_LOADER)?.get() == moduleClassLoader
 
   @Synchronized
   private fun unHold(moduleClassLoader: ModuleClassLoader, holder: Any) {
@@ -250,7 +251,7 @@ class ModuleClassLoaderManager {
       return
     }
 
-    disposeClassLoaderThreadLocals(moduleClassLoader)
+    Disposer.dispose(moduleClassLoader)
   }
 
   /**
@@ -270,24 +271,5 @@ class ModuleClassLoaderManager {
     @JvmStatic
     fun get(): ModuleClassLoaderManager =
       ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
-  }
-
-  private fun disposeClassLoaderThreadLocals(moduleClassLoader: ModuleClassLoader) {
-    TrackingThreadLocal.clearThreadLocals(moduleClassLoader)?.let { threadLocals ->
-      if (threadLocals.isEmpty()) {
-        return
-      }
-
-      // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
-      RenderService.getRenderAsyncActionExecutor().runAsyncAction {
-        threadLocals.forEach { threadLocal ->
-          try {
-            threadLocal.remove()
-          } catch (e: Exception) {
-            LOG.warn(e) // Failure detected here will most probably cause a memory leak
-          }
-        }
-      }
-    }
   }
 }
