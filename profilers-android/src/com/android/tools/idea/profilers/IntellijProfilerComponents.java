@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.idea.profilers.dataviewer.IntellijDataViewer;
 import com.android.tools.idea.profilers.dataviewer.IntellijImageDataViewer;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
-import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ExportDialog;
 import com.android.tools.profilers.IdeProfilerComponents;
