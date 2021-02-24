@@ -316,12 +316,20 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     return AndroidSdkInitializer.findValidAndroidSdkPath();
   }
 
+  /**
+   * Checks and sets each of the sdk sources synchronously, and commits changes asynchronously if the calling thread is
+   * not the write thread.
+   */
   private static void checkAndSetAndroidSdkSources() {
     for (Sdk sdk : AndroidSdks.getInstance().getAllAndroidSdks()) {
       checkAndSetSources(sdk);
     }
   }
 
+  /**
+   * Checks and sets platform sources synchronously, and commits changes asynchronously if the calling thread is not
+   * the write thread.
+   */
   private static void checkAndSetSources(@NotNull Sdk sdk) {
     VirtualFile[] storedSources = sdk.getRootProvider().getFiles(OrderRootType.SOURCES);
     if (storedSources.length > 0) {
@@ -333,7 +341,14 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       SdkModificator sdkModificator = sdk.getSdkModificator();
       IAndroidTarget target = platform.getTarget();
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
-      sdkModificator.commitChanges();
+
+      if (ApplicationManager.getApplication().isWriteThread()) {
+        sdkModificator.commitChanges();
+      }
+      else {
+        // We don't wait for EDT as there would be a deadlock at startup.
+        ApplicationManager.getApplication().invokeLaterOnWriteThread(sdkModificator::commitChanges);
+      }
     }
   }
 }
