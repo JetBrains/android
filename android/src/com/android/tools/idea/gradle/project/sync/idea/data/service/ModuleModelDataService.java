@@ -117,16 +117,26 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
           moduleName = module.getName();
         }
 
-        for (DataNode<?> node : dataNode.getParent().getChildren()){
-          if (node.getKey().equals(GradleSourceSetData.KEY)){
-            GradleSourceSetData sourceSetData = (GradleSourceSetData)node.getData();
-            index.put(sourceSetData.getInternalName(), model);
-          }
+        if (!dataNode.getKey().equals(AndroidProjectKeys.ANDROID_MODEL)) {
+          // Do not propagate android model to nested modules representing source sets, because android modules do not have nested modules.
+          // (source sets may be added by KMPP, e.g. iOS, Common, Jvm, etc., and they should not be considered as Android app sources)
+          indexModulesForSourceSetsByModuleName(index, dataNode, model);
         }
       }
       index.put(moduleName, model);
     }
     return index;
+  }
+
+  private void indexModulesForSourceSetsByModuleName(@NotNull Map<String, T> index, @NotNull DataNode<T> dataNode, @NotNull T model) {
+    if (dataNode.getParent() == null) return;
+
+    for (DataNode<?> node : dataNode.getParent().getChildren()){
+      if (node.getKey().equals(GradleSourceSetData.KEY)){
+        GradleSourceSetData sourceSetData = (GradleSourceSetData)node.getData();
+        index.put(sourceSetData.getInternalName(), model);
+      }
+    }
   }
 
   @NotNull
