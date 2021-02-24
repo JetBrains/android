@@ -20,13 +20,13 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,11 +38,11 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   /**
    * Creates a task to deploy a list of apks.
    * @param project  the project that this task is running within.
-   * @param packages a map of application ids to apks representing the packages this task will deploy.
+   * @param packages a collection of apks representing the packages this task will deploy.
    * @param rerunOnSwapFailure rerun the app when swap fails
    */
   public ApplyCodeChangesTask(
-      @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
+    @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
     super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
   }
 
@@ -84,13 +84,12 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
-                                    String applicationId,
-                                    List<File> files) throws DeployerException {
-    LOG.info("Applying code changes to application: " + applicationId);
+                                    @NotNull ApkInfo apkInfo) throws DeployerException {
+    LOG.info("Applying code changes to application: " + apkInfo.getApplicationId());
     // TODO: support fallback on R- devices
     ImmutableMap<Integer, ClassRedefiner> debuggerRedefiners = makeDebuggerRedefiners(
       getProject(), device, getFastRerunOnSwapFailure() && deployer.supportsNewPipeline());
-    return deployer.codeSwap(getPathsToInstall(files), debuggerRedefiners);
+    return deployer.codeSwap(getPathsToInstall(apkInfo), debuggerRedefiners);
   }
 
   @NotNull

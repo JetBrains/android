@@ -18,11 +18,11 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public class ApplyChangesTask extends AbstractDeployTask {
   private static final String ID = "APPLY_CHANGES";
 
   public ApplyChangesTask(@NotNull Project project,
-                          @NotNull Map<String, List<File>> packages,
+                          @NotNull Collection<ApkInfo> packages,
                           boolean rerunOnSwapFailure,
                           boolean alwaysInstallWithPm) {
     super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm);
@@ -62,10 +62,9 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
-                                    String applicationId,
-                                    List<File> files) throws DeployerException {
-    LOG.info("Applying changes to application: " + applicationId);
-    return deployer.fullSwap(getPathsToInstall(files));
+                                    @NotNull ApkInfo apkInfo) throws DeployerException {
+    LOG.info("Applying changes to application: " + apkInfo.getApplicationId());
+    return deployer.fullSwap(getPathsToInstall(apkInfo));
   }
 
   @NotNull
