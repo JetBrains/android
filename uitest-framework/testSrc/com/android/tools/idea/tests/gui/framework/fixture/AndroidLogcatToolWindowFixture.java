@@ -19,10 +19,10 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.logcat.AndroidLogConsole;
 import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.tabs.impl.TabLabel;
-import org.fest.swing.core.GenericTypeMatcher;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiActionRunner;
@@ -33,8 +33,6 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class AndroidLogcatToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
@@ -65,29 +63,11 @@ public class AndroidLogcatToolWindowFixture extends ToolWindowFixture {
     return this;
   }
 
-  @NotNull
-  public AndroidLogcatToolWindowFixture selectDevicesTab() {
-    show();
-    selectTab("logcat");
-    return this;
-  }
-
   @Nullable
   public String getLogcatPrint() {
     AndroidLogConsole androidLogConsole = myRobot.finder().findByType(myToolWindow.getComponent(), AndroidLogConsole.class, true);
     ConsoleViewImpl consoleView = myRobot.finder().findByType(androidLogConsole.getComponent(), ConsoleViewImpl.class, true /* showing */);
     return consoleView.getText();
-  }
-
-  private void selectTab(@NotNull final String tabName) {
-    JBRunnerTabs tabs = myRobot.finder().findByType(getContentPanel(), JBRunnerTabs.class);
-    TabLabel tabLabel = myRobot.finder().find(tabs, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull TabLabel component) {
-        return tabName.equals(component.toString()) && component.getParent() == tabs;
-      }
-    });
-    myRobot.click(tabLabel);
   }
 
   @NotNull
@@ -100,9 +80,11 @@ public class AndroidLogcatToolWindowFixture extends ToolWindowFixture {
     return (JPanel)myToolWindow.getContentManager().getComponent();
   }
 
-  private void show() {
+  public @NotNull AndroidLogcatToolWindowFixture show() {
     activate();
     waitUntilIsVisible();
+
+    return this;
   }
 
   private static class ProcessListFixture extends JComboBoxFixture {
