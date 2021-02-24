@@ -426,7 +426,7 @@ public final class StudioFlags {
                     "optimisticinstall.supportlevel",
                     "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
                     "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
-                    OptimisticInstallSupportLevel.DEX);
+                    OptimisticInstallSupportLevel.DEX_AND_NATIVE);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
