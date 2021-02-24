@@ -16,8 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.appinspection.inspector.api.io.DiskFileService
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.intellij.openapi.application.PathManager
 import java.nio.file.Path
 import java.nio.file.Paths

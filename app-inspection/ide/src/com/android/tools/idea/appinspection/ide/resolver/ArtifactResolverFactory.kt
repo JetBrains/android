@@ -17,10 +17,10 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.io.FileService
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.project.Project
 

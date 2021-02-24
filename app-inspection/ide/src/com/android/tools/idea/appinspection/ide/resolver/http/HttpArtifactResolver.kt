@@ -17,10 +17,10 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.repository.api.Downloader
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.exists
 import kotlinx.coroutines.withContext

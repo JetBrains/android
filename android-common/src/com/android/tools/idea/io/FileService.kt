@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspector.api.io
+package com.android.tools.idea.io
 
+import com.intellij.openapi.application.PathManager
 import com.intellij.util.io.exists
 import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
- * A service that provides common file operations.
+ * A service that provides common file operations for temporary files or directories.
  */
-// TODO(b/170769654): Move this class to a more widely accessible location?
 abstract class FileService {
   /**
    * Location of where cached files should live - that is, these files are expected to stick around
@@ -67,4 +68,15 @@ abstract class DiskFileService : FileService() {
       }
     }
   }
+}
+
+/**
+ * A service that provides common file operations with locations standardized across the IDE.
+ *
+ * @param subdir An (optional) additional subdirectory to create all cache / temp files under to
+ *   reduce the chance of filename collisions between different areas.
+ */
+class IdeFileService(subdir: String = "") : DiskFileService() {
+  override val cacheRoot: Path = Paths.get(PathManager.getSystemPath()).resolve(subdir)
+  override val tmpRoot: Path = Paths.get(PathManager.getTempPath()).resolve(subdir)
 }
