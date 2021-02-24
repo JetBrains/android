@@ -41,10 +41,39 @@ class AndroidJavaPredefinedCodeStyle : PredefinedCodeStyle("Android", JavaLangua
 
   private fun getAndroidImportOrder(): PackageEntryTable {
     val table = PackageEntryTable()
-    // From http://s.android.com/source/code-style.html, the order should be:
+    // From https://source.android.com/setup/contribute/code-style#order-import-statements,
+    // the order should be:
     //  1. Android imports
     //  2. Imports from 3rd parties (com, junit, net, org)
     //  3. java and javax
+    // Static imports above all the other imports ordered the same way as regular imports.
+    table.addEntry(PackageEntry(true, "android", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "androidx", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "com", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "junit", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "net", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "org", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "java", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry(true, "javax", true))
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
+    table.addEntry(PackageEntry.ALL_OTHER_STATIC_IMPORTS_ENTRY)
+    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
+
     table.addEntry(PackageEntry(false, "android", true))
     table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
 
@@ -71,10 +100,6 @@ class AndroidJavaPredefinedCodeStyle : PredefinedCodeStyle("Android", JavaLangua
 
     // handle any other conditions
     table.addEntry(PackageEntry.ALL_OTHER_IMPORTS_ENTRY)
-    table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
-
-    // location of static imports is not defined, we put it last
-    table.addEntry(PackageEntry.ALL_OTHER_STATIC_IMPORTS_ENTRY)
     table.addEntry(PackageEntry.BLANK_LINE_ENTRY)
 
     return table
