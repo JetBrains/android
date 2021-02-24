@@ -33,10 +33,12 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.util.concurrent.atomic.AtomicReference;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 public class DomPsiConverterTest extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
@@ -98,6 +100,35 @@ public class DomPsiConverterTest extends UsefulTestCase {
     NodeList elementsByTagName = domDocument.getElementsByTagName("application");
     assertEquals(1, elementsByTagName.getLength());
     assertEquals("@drawable/icon", elementsByTagName.item(0).getAttributes().getNamedItemNS(ANDROID_URI, "icon").getNodeValue());
+  }
+
+  public void testRootNodes() {
+    // Ensure that we also represent nodes outside of the document element
+    String s = "<!-- some comment -->\n" +
+               "<resources>\n" +
+               "    <string name=\"app_name\">Name</string>\n" +
+               "</resources>\n" +
+               "<!-- some final comment -->\n";
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("res/values/strings.xml", s);
+    VirtualFile file = xmlFile.getVirtualFile();
+    assertNotNull(file);
+    assertTrue(file.exists());
+    Project project = getProject();
+    assertNotNull(project);
+    Document domDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(domDocument);
+
+    // Pretty print; requires DOM iteration
+    String formatted = XmlPrettyPrinter.prettyPrint(domDocument, true);
+
+    // Compare to plain DOM implementation pretty printed
+    @SuppressWarnings("ConstantConditions")
+    String expected = XmlPrettyPrinter.prettyPrint(XmlUtils.parseDocumentSilently(xmlFile.getText(), true), true);
+
+    assertEquals(expected, formatted);
+
+    // Check some additional operations
+    assertEquals(" some comment ", ((Comment)domDocument.getFirstChild()).getData());
   }
 
   public void testAsyncAccess() throws InterruptedException {
