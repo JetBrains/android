@@ -20,7 +20,7 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
-import com.android.tools.profilers.ContentType;
+import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
