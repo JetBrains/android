@@ -1,6 +1,6 @@
 package com.android.tools.idea.appinspection.inspector.api.service
 
-import com.android.tools.idea.appinspection.inspector.api.io.DiskFileService
+import com.android.tools.idea.io.DiskFileService
 import com.intellij.openapi.util.io.FileUtil
 import java.nio.file.Path
 import java.nio.file.Paths

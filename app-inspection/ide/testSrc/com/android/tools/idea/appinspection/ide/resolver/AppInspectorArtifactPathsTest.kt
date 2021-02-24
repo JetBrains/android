@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.appinspection.inspector.api.io.DiskFileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.io.DiskFileService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
