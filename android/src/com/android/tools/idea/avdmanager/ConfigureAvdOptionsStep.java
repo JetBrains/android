@@ -1029,7 +1029,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                ? new Result(Severity.ERROR, "The specified SD image file must be a valid image file")
                : Result.OK;
       }
-    });
+    }, getModel().useExternalSdCard());
 
     // If we are using an internal SD card, make sure it has enough memory.
     myValidatorPanel.registerValidator(getModel().sdCardStorage(), new Validator<Optional<Storage>>() {
