@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.sqlite.ui.exportToFile
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase
+import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
 
 interface ExportInProgressView {
@@ -37,37 +38,34 @@ class ExportInProgressViewImpl(
   private val job: Job,
   private val taskDispatcher: CoroutineDispatcher
 ) : ExportInProgressView {
-  @VisibleForTesting var onShowListener: (ProgressIndicator) -> Unit = {}
-  @VisibleForTesting var onCloseListener: () -> Unit = {}
+  @VisibleForTesting var onShownListener: (ProgressIndicator) -> Unit = {}
+  @VisibleForTesting var onClosedListener: () -> Unit = {}
 
   override fun show() {
-    object : Task.Modal(project, DatabaseInspectorBundle.message("export.progress.dialog.title"), true) {
-      override fun run(indicator: ProgressIndicator) {
-        onShowListener(indicator)
-        indicator.isIndeterminate = true // no progress [in %] tracking
-        indicator.text = DatabaseInspectorBundle.message("export.progress.dialog.caption")
-
-        when (indicator) {
-          is ProgressIndicatorEx -> { // most likely the case, but no API guarantee
-            indicator.addStateDelegate(object : AbstractProgressIndicatorExBase() { // Cancel button logic
-              override fun cancel() {
-                job.cancel()
-                super.cancel()
-              }
-            })
-            runBlocking(taskDispatcher) { job.join() }
-            onCloseListener()
-          }
-          else -> { // falling back to polling
-            runBlocking(taskDispatcher) {
-              while (job.isActive) {
-                if (indicator.isCanceled) job.cancel() else delay(30)
-              }
-            }
-            onCloseListener()
-          }
+    val progressWindow = ProgressWindow(true, false, project)
+    progressWindow.title = DatabaseInspectorBundle.message("export.progress.dialog.title")
+    progressWindow.isIndeterminate = true
+    progressWindow.addStateDelegate(
+      object : AbstractProgressIndicatorExBase() {
+        override fun cancel() {
+          job.cancel()
+          super.cancel()
         }
       }
-    }.queue()
+    )
+    project.coroutineScope.launch(taskDispatcher) {
+      try {
+        progressWindow.start()
+        progressWindow.text = DatabaseInspectorBundle.message("export.progress.dialog.caption") // must be called after `start`
+        onShownListener(progressWindow)
+        job.join()
+      }
+      finally {
+        withContext(NonCancellable) {
+          progressWindow.stop()
+          onClosedListener()
+        }
+      }
+    }
   }
 }

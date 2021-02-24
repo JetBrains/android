@@ -22,29 +22,29 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.LightPlatformTestCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicBoolean
 
-@Suppress("BlockingMethodInNonBlockingContext") // CountDownLatch::await
 class ExportInProgressViewTest : LightPlatformTestCase() {
-  private val taskExecutor: ExecutorService = PooledThreadExecutor.INSTANCE
+  private val taskDispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
   fun test_job_completes() {
-    // Set up a job that finishes when jobLatch goes to 0
-    val jobDoneLatch = CountDownLatch(1)
-    val job: Job = project.coroutineScope.launch { jobDoneLatch.await() }
-    val dialog = ExportInProgressViewImpl(project, job, taskExecutor.asCoroutineDispatcher())
+    // Set up a job that finishes when jobDone=true
+    val jobDone = AtomicBoolean(false)
+    val job: Job = project.coroutineScope.launch { while (!jobDone.get()) delay(50) }
+    val dialog = ExportInProgressViewImpl(project, job, taskDispatcher)
 
     // Set up a callback called when the dialog disappears
     val dialogClosedLatch = CountDownLatch(1)
-    dialog.onCloseListener = { dialogClosedLatch.countDown() }
+    dialog.onClosedListener = { dialogClosedLatch.countDown() }
 
     // Show the dialog, release the latch, wait for dialog to disappear
     project.coroutineScope.launch { dialog.show() }
-    jobDoneLatch.countDown()
+    jobDone.set(true)
     assertThat(dialogClosedLatch.await(5, SECONDS)).isTrue()
     assertThat(job.isCompleted).isTrue()
     assertThat(job.isCancelled).isFalse()
@@ -52,20 +52,20 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
 
   fun test_job_cancelled() {
     // Set up a job that never finishes
-    val job: Job = project.coroutineScope.launch { CountDownLatch(1).await() }
-    val dialog = ExportInProgressViewImpl(project, job, taskExecutor.asCoroutineDispatcher())
+    val job: Job = project.coroutineScope.launch { while (true) delay(50) }
+    val dialog = ExportInProgressViewImpl(project, job, taskDispatcher)
 
     // Set up a callback called when the dialog is shown
     val dialogShownLatch = CountDownLatch(1)
     lateinit var progressIndicator: ProgressIndicator
-    dialog.onShowListener = {
+    dialog.onShownListener = {
       progressIndicator = it
       dialogShownLatch.countDown()
     }
 
     // Set up a callback called when the dialog disappears
     val dialogClosedLatch = CountDownLatch(1)
-    dialog.onCloseListener = { dialogClosedLatch.countDown() }
+    dialog.onClosedListener = { dialogClosedLatch.countDown() }
 
     // Show the dialog
     project.coroutineScope.launch { dialog.show() }
@@ -74,7 +74,7 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
     // Simulate cancel click
     assertThat(job.isActive).isTrue()
     assertThat(job.isCancelled).isFalse()
-    progressIndicator.cancel()
+    project.coroutineScope.launch { progressIndicator.cancel() }
     assertThat(dialogClosedLatch.await(5, SECONDS)).isTrue()
     assertThat(job.isCancelled).isTrue()
     assertThat(job.isActive).isFalse()
