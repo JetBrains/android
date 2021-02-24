@@ -120,7 +120,7 @@ public class RunOnEmulatorTest {
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidLogcatToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
+    ideFrameFixture.getAndroidLogcatToolWindow().show().selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();
   }
 
