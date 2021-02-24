@@ -56,6 +56,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
@@ -602,7 +603,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private static class ShowFieldsAction extends ToggleAction {
+  private static class ShowFieldsAction extends ToggleAction implements DumbAware {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
@@ -624,7 +625,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private static class ShowMethodsAction extends ToggleAction {
+  private static class ShowMethodsAction extends ToggleAction implements DumbAware {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
@@ -646,7 +647,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private static class ShowReferencedAction extends ToggleAction {
+  private static class ShowReferencedAction extends ToggleAction implements DumbAware {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
@@ -676,7 +677,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private class ShowRemovedNodesAction extends ToggleAction {
+  private class ShowRemovedNodesAction extends ToggleAction implements DumbAware {
     private final Tree myTree;
     private final DexViewFilters myDexViewFilters;
 
@@ -704,7 +705,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private class DeobfuscateNodesAction extends ToggleAction {
+  private class DeobfuscateNodesAction extends ToggleAction implements DumbAware {
     public DeobfuscateNodesAction() {
       super("Deobfuscate names", "Deobfuscate names using Proguard mapping", AllIcons.ObjectBrowser.AbbreviatePackageNames);
     }
@@ -727,7 +728,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     }
   }
 
-  private class LoadProguardAction extends AnAction {
+  private class LoadProguardAction extends AnAction implements DumbAware {
     public LoadProguardAction() {
       super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
       getTemplatePresentation().setDisabledIcon(EmptyIcon.ICON_0);
