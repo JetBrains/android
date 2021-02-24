@@ -56,6 +56,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -281,7 +282,10 @@ public class GradleApkProvider implements ApkProvider {
     for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
       try {
         String packageId = getPackageId(fileApk);
-        result.add(new ApkInfo(fileApk, packageId));
+        result.add(new ApkInfo(fileApk, packageId,
+                               // TODO: Read the install options from AGP json.
+                               ImmutableSet.of(ApkInfo.AppInstallOption.FORCE_QUERYABLE,
+                                               ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS)));
       }
       catch (ApkProvisionException e) {
         getLogger().error(

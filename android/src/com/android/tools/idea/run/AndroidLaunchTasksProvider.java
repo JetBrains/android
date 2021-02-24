@@ -46,12 +46,10 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -170,10 +168,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
-    ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
-    for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
-      packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
-    }
+    List<ApkInfo> packages = myApkProvider.getApks(device).stream()
+      .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
+      .collect(Collectors.toList());
     switch (getDeployType()) {
       case RUN_INSTANT_APP:
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
@@ -184,7 +181,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       case APPLY_CHANGES:
         tasks.add(new ApplyChangesTask(
           myProject,
-          packages.build(),
+          packages,
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
@@ -192,7 +189,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
           myProject,
-          packages.build(),
+          packages,
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
@@ -200,7 +197,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       case DEPLOY:
         tasks.add(new DeployTask(
           myProject,
-          packages.build(),
+          packages,
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
@@ -232,14 +229,14 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   @NotNull
-  private static List<File> getFilteredFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
+  private static ApkInfo filterDisabledFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
     if (apkInfo.getFiles().size() > 1) {
-      return apkInfo.getFiles().stream()
+      List<ApkFileUnit> filtered = apkInfo.getFiles().stream()
         .filter(feature -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature))
-        .map(file -> file.getApkFile())
         .collect(Collectors.toList());
+      return new ApkInfo(filtered, apkInfo.getApplicationId());
     } else {
-      return ImmutableList.of(apkInfo.getFile());
+      return apkInfo;
     }
   }
 

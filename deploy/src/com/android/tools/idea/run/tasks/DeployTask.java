@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.annotations.Nullable;
+import static com.android.tools.idea.run.ApkInfo.AppInstallOption.FORCE_QUERYABLE;
+import static com.android.tools.idea.run.ApkInfo.AppInstallOption.GRANT_ALL_PERMISSIONS;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.ApkInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,10 +47,10 @@ public class DeployTask extends AbstractDeployTask {
    * Creates a task to deploy a list of apks.
    *
    * @param project  the project that this task is running within.
-   * @param packages a map of application ids to apks representing the packages this task will deploy.
+   * @param packages a collection of apks representing the packages this task will deploy.
    */
   public DeployTask(@NotNull Project project,
-                    @NotNull Map<String, List<File>> packages,
+                    @NotNull Collection<ApkInfo> packages,
                     String userInstallOptions,
                     boolean installOnAllUsers,
                     boolean alwaysInstallWithPm) {
@@ -74,8 +78,7 @@ public class DeployTask extends AbstractDeployTask {
   @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
-                                    String applicationId,
-                                    List<File> files) throws DeployerException {
+                                    @NotNull ApkInfo apkInfo) throws DeployerException {
     // All installations default to allow debuggable APKs
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
@@ -91,6 +94,19 @@ public class DeployTask extends AbstractDeployTask {
     // Installing with "-g" guarantees that the permissions are properly granted at install time.
     if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       options.setGrantAllPermissions();
+    }
+
+    // To avoid permission pop-up during instrumented test, an app can request to have all permisssion granted by default.
+    Set<ApkInfo.AppInstallOption> requiredInstallOptions = apkInfo.getRequiredInstallOptions();
+    if (requiredInstallOptions.contains(GRANT_ALL_PERMISSIONS)
+        && device.getVersion().isGreaterOrEqualThan(GRANT_ALL_PERMISSIONS.minSupportedApiLevel)) {
+      options.setGrantAllPermissions();
+    }
+
+    // Some test services APKs running during intrumented tests require to be visible to allow Binder communication.
+    if (requiredInstallOptions.contains(FORCE_QUERYABLE)
+        && device.getVersion().isGreaterOrEqualThan(FORCE_QUERYABLE.minSupportedApiLevel)) {
+      options.setForceQueryable();
     }
 
     // API 28 changes how the instant property is set on app install.
@@ -120,19 +136,19 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     // Skip verification if possible.
-    options.setSkipVerification(device, applicationId);
+    options.setSkipVerification(device, apkInfo.getApplicationId());
 
-    LOG.info("Installing application: " + applicationId);
+    LOG.info("Installing application: " + apkInfo.getApplicationId());
     Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;
     if (!StudioFlags.DELTA_INSTALL.get()) {
         installMode = Deployer.InstallMode.FULL;
     }
 
-    Deployer.Result result = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+    Deployer.Result result = deployer.install(apkInfo.getApplicationId(), getPathsToInstall(apkInfo), options.build(), installMode);
 
     // Manually force-stop the application if we set --dont-kill above.
     if (!result.skippedInstall && isDontKillSupported) {
-      device.forceStop(applicationId);
+      device.forceStop(apkInfo.getApplicationId());
     }
     return result;
   }
