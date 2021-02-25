@@ -42,6 +42,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
@@ -297,6 +298,9 @@ public class AndroidGradleTests {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     gradleProperties.setJvmArgs(Strings.nullToEmpty(gradleProperties.getJvmArgs()) + " -XX:MaxMetaspaceSize=768m ");
+    if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
+      gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+    }
     gradleProperties.save();
   }
 
