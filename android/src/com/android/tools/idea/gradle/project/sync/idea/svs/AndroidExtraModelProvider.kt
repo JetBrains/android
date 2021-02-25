@@ -63,6 +63,7 @@ import java.util.LinkedList
 interface GradleInjectedSyncActionRunner {
   fun <T> runActions(actions: List<(BuildController) -> T>): List<T>
   fun <T> runAction(action: (BuildController) -> T): T
+  val parallelActionsSupported: Boolean get() = false
 }
 
 @UsedInBuildAction
@@ -358,23 +359,66 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     ) {
       val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations(inputModules, syncOptions)
 
+      // When re-syncing a project without changing the selected variants it is likely that the selected variants won't in the end.
+      // However, variant resolution is not perfectly parallelizable. To overcome this we try to fetch the previously selected variant
+      // models in parallel and discard any that happen to change.
+      val preResolvedVariants =
+        when {
+          !syncOptions.flags.studioFlagParallelSyncPrefetchVariantsEnabled -> emptyMap()
+          !actionRunner.parallelActionsSupported -> emptyMap()
+          // TODO(b/181028873): Predict changed variants and build models in parallel.
+          syncOptions.moduleIdWithVariantSwitched != null -> emptyMap()
+          else -> {
+            actionRunner
+              .runActions(allModulesToSetUp.map { getVariantAndModuleDependenciesAction(it, syncOptions.selectedVariants) })
+              .filterNotNull()
+              .associateBy { it.moduleConfiguration }
+          }
+        }
+
       // This first starts by requesting models for all the modules that can be reached from the app modules (via dependencies) and then
       // requests any other modules that can't be reached.
-      val propagatedToModules = LinkedList<ModuleConfiguration>()
+      var propagatedToModules: List<ModuleConfiguration>? = null
       val visitedModules = HashSet<String>()
-      while (propagatedToModules.isNotEmpty() || allModulesToSetUp.isNotEmpty()) {
+
+      while (propagatedToModules != null || allModulesToSetUp.isNotEmpty()) {
         // Walk the tree of module dependencies in the breadth-first-search order.
-        val moduleConfiguration =
-          if (propagatedToModules.isNotEmpty()) propagatedToModules.removeFirst() else allModulesToSetUp.removeFirst()
-        if (!visitedModules.add(moduleConfiguration.id)) continue
+        val moduleConfigurationsToRequest: List<ModuleConfiguration> =
+          if (propagatedToModules != null) {
+            // If there are modules for which we know the selected variant, build models for these modules in parallel.
+            val modules = propagatedToModules
+            propagatedToModules = null
+            modules.filter { visitedModules.add(it.id) }
+          }
+          else {
+            // Otherwise take the next module from the main queue and follow its dependencies.
+            val moduleConfiguration = allModulesToSetUp.removeFirst()
+            if (!visitedModules.add(moduleConfiguration.id)) emptyList() else listOf(moduleConfiguration)
+          }
+        if (moduleConfigurationsToRequest.isEmpty()) continue
 
-        val result = actionRunner.runAction(
-          getVariantAndModuleDependenciesAction(moduleConfiguration, syncOptions.selectedVariants)
-        ) ?: continue
+        val actions =
+          moduleConfigurationsToRequest.map { moduleConfiguration ->
+            val prefetchedModel = preResolvedVariants[moduleConfiguration]
+            if (prefetchedModel != null) {
+              // Return an action that simply returns the `prefetchedModel`.
+              fun(_: BuildController) = prefetchedModel
+            }
+            else {
+              getVariantAndModuleDependenciesAction(
+                moduleConfiguration,
+                syncOptions.selectedVariants
+              )
+            }
+          }
 
-        result.module.addVariant(result.ideVariant)
-        result.nativeVariantAbi?.let { result.module.addNativeVariant(it) }
-        propagatedToModules.addAll(result.moduleDependencies)
+        val preModuleDependencies = actionRunner.runActions(actions)
+
+        preModuleDependencies.filterNotNull().forEach { result ->
+          result.module.addVariant(result.ideVariant)
+          result.nativeVariantAbi?.let { result.module.addNativeVariant(it) }
+        }
+        propagatedToModules = preModuleDependencies.filterNotNull().flatMap { it.moduleDependencies }.takeUnless { it.isEmpty() }
       }
     }
 
@@ -407,6 +451,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       module: AndroidModule,
       syncOptions: SingleVariantSyncActionOptions
     ): ModuleConfiguration? {
+      // TODO(b/181028873): Better predict variants that needs to be prefetched. Add a new field to record the predicted variant.
       val selectedVariants = syncOptions.selectedVariants
       val requestedVariantName = selectVariantForAppOrLeaf(module, selectedVariants) ?: return null
       val requestedAbi = selectedVariants.getSelectedAbi(module.id)
@@ -426,6 +471,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
     }
 
     private class SyncVariantResult(
+      val moduleConfiguration: ModuleConfiguration,
       val module: AndroidModule,
       val ideVariant: IdeVariant,
       val nativeVariantAbi: IdeNativeVariantAbi?,
@@ -496,6 +542,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
         }
 
         return SyncVariantResult(
+          moduleConfiguration,
           module,
           ideVariant,
           nativeVariantAbi,
