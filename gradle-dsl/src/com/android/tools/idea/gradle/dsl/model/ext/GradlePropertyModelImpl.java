@@ -286,14 +286,24 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
-    GradleDslExpression newElement;
-    if (myPropertyDescription == null) {
-      newElement = getTransform().bind(myPropertyHolder, myElement, value, getName());
+    if (value instanceof List) {
+      setListValue((List<GradlePropertyModel>) value);
     }
     else {
-      newElement = getTransform().bind(myPropertyHolder, myElement, value, myPropertyDescription);
+      GradleDslExpression newElement;
+      if (myPropertyDescription == null) {
+        newElement = getTransform().bind(myPropertyHolder, myElement, value, getName());
+      }
+      else {
+        newElement = getTransform().bind(myPropertyHolder, myElement, value, myPropertyDescription);
+      }
+      bindToNewElement(newElement);
     }
-    bindToNewElement(newElement);
+  }
+
+  private void setMapValue(Map<String,Object> value) {
+    convertToEmptyMap();
+    // TODO
   }
 
   @Override
@@ -325,6 +335,15 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement arg = map.getPropertyElement(key);
 
     return arg == null ? new GradlePropertyModelImpl(element, PropertyType.DERIVED, key) : new GradlePropertyModelImpl(arg);
+  }
+
+  private void setListValue(List<GradlePropertyModel> value) {
+    convertToEmptyList();
+    for (GradlePropertyModel e : value) {
+      GradlePropertyModel newValueModel = addListValue();
+      Object newValue = e.getValue(OBJECT_TYPE);
+      if (newValue != null) newValueModel.setValue(newValue);
+    }
   }
 
   @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.util
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.jetbrains.annotations.SystemDependent
@@ -141,12 +142,28 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     }
   }
 
+  @Test
+  fun testSetListValue() {
+    writeToBuildFile(TestFile.SET_LIST_VALUE)
+    val buildModel = gradleBuildModel
+    val prop1 = buildModel.ext().findProperty("prop1")
+    val prop2 = buildModel.ext().findProperty("prop2")
+    val prop1Value = prop1.getValue(LIST_TYPE)
+    assertNotNull(prop1Value)
+    prop2.setValue(prop1Value!!)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_LIST_VALUE_EXPECTED)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     REPLACE_LIST_VALUE("replaceListValue"),
     REPLACE_LIST_VALUE_EXPECTED("replaceListValueExpected"),
     REPLACE_LIST_VALUE_ON_NONE_LIST("replaceListValueOnNoneList"),
     REMOVE_LIST_VALUES("removeListValues"),
     REMOVE_LIST_VALUES_EXPECTED("removeListValuesExpected"),
+    SET_LIST_VALUE("setListValue"),
+    SET_LIST_VALUE_EXPECTED("setListValueExpected"),
     ;
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
       return super.toFile("$basePath/gradlePropertyListValue/$path", extension)
