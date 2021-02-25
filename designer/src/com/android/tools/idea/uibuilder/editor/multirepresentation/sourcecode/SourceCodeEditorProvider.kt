@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags.NELE_SOURCE_CODE_EDITOR
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -39,6 +40,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Attribute
 import org.jdom.Element
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 
@@ -73,6 +75,7 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
   private val log = Logger.getInstance(SourceCodeEditorProvider::class.java)
 
   override fun accept(project: Project, file: VirtualFile): Boolean =
+    ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID) &&
     !LightEdit.owns(project) && NELE_SOURCE_CODE_EDITOR.get() && file.hasSourceFileExtension()
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {

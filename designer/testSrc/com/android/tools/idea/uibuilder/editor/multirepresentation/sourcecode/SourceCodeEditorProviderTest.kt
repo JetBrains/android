@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
@@ -37,10 +38,19 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
     super.setUp()
 
     provider = SourceCodeEditorProvider()
+    Facets.createAndAddAndroidFacet(myFixture.module)
   }
 
   fun testOffIfDisabled() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+
+    val file = myFixture.addFileToProject("src/Preview.kt", "")
+
+    assertFalse(provider.accept(file.project, file.virtualFile))
+  }
+
+  fun testOffIfNoAndroidModules() {
+    Facets.deleteAndroidFacetIfExists(myFixture.module)
 
     val file = myFixture.addFileToProject("src/Preview.kt", "")
 
@@ -136,6 +146,7 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
 
   override fun tearDown() {
     StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
+    Facets.deleteAndroidFacetIfExists(myFixture.module)
 
     super.tearDown()
   }
