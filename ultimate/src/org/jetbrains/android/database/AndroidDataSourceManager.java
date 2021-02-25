@@ -5,7 +5,7 @@ import com.intellij.database.Dbms;
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbImplUtil;
-import com.intellij.database.util.DbSqlUtil;
+import com.intellij.database.util.DbSqlUtilCore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,7 +38,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   @Nullable
   @Override
   public SqlLanguageDialect getSqlDialect(@NotNull AndroidDataSource element) {
-    return DbSqlUtil.findSqlDialect(Dbms.SQLITE);
+    return DbSqlUtilCore.findSqlDialect(Dbms.SQLITE);
   }
 
   @Override
