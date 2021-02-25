@@ -23,28 +23,26 @@ import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
+import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class Facets {
   private Facets() {
   }
 
   public static void withAndroidFacet(Module module, Runnable runnable) {
-    final AndroidFacet f = createAndAddAndroidFacet(module);
+    createAndAddAndroidFacet(module);
 
     try {
       runnable.run();
     }
     finally {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        final ModifiableFacetModel model = FacetManager.getInstance(module).createModifiableModel();
-        model.removeFacet(f);
-        model.commit();
-      });
+      deleteAndroidFacetIfExists(module);
     }
   }
 
@@ -73,6 +71,22 @@ public final class Facets {
     return createAndAddFacet(module, NdkFacet.getFacetType(), NdkFacet.getFacetName());
   }
 
+  public static void deleteAndroidFacetIfExists(@NotNull Module module) {
+    deleteFacetIfExists(module, AndroidFacet.ID, AndroidFacet.NAME);
+  }
+
+  public static void deleteApkFacetIfExists(@NotNull Module module) {
+    deleteFacetIfExists(module, ApkFacet.getFacetTypeId(), ApkFacet.getFacetName());
+  }
+
+  public static void deleteJavaFacetIfExists(@NotNull Module module) {
+    deleteFacetIfExists(module, JavaFacet.getFacetTypeId(), JavaFacet.getFacetName());
+  }
+
+  public static void deleteNdkFacetIfExists(@NotNull Module module) {
+    deleteFacetIfExists(module, NdkFacet.getFacetTypeId(), NdkFacet.getFacetName());
+  }
+
   @NotNull
   private static <F extends Facet, C extends FacetConfiguration> F createAndAddFacet(@NotNull Module module,
                                                                                      @NotNull FacetType<F, C> type,
@@ -83,5 +97,16 @@ public final class Facets {
     facetModel.addFacet(facet);
     ApplicationManager.getApplication().runWriteAction(facetModel::commit);
     return facet;
+  }
+
+  private static <F extends Facet<?>> void deleteFacetIfExists(@NotNull Module module, @NotNull FacetTypeId<F> type, @NotNull String name) {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      final ModifiableFacetModel model = FacetManager.getInstance(module).createModifiableModel();
+      @Nullable F facet = model.findFacet(type, name);
+      if (facet != null) {
+        model.removeFacet(facet);
+        model.commit();
+      }
+    });
   }
 }
