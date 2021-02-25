@@ -450,23 +450,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return super.createResourceItemHandle(item, nameOnly, valueOnly);
   }
 
-  @NonNull
-  @Override
-  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    Module module = getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
-        ResourceVisibilityLookup.Provider provider = repoManager.getResourceVisibilityProvider();
-        if (provider != null) {
-          return provider;
-        }
-      }
-    }
-    return super.getResourceVisibilityProvider();
-  }
-
   @Override
   @Nullable
   public XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
