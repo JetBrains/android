@@ -117,6 +117,10 @@ public class IssueView extends JPanel {
   private void setupHeader(@NotNull Issue issue) {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
+    // Make sure issues aligh whether it is opened or collapsed.
+    int maxWidth = Math.max(UIUtil.getTreeCollapsedIcon().getIconWidth(), UIUtil.getTreeExpandedIcon().getIconWidth());
+    myExpandIcon.setMinimumSize(new Dimension(maxWidth, 0));
+
     myErrorTitle.setText(issue.getSummary());
     String displayText = issue.getSource().getDisplayText();
     if (displayText != "") {
