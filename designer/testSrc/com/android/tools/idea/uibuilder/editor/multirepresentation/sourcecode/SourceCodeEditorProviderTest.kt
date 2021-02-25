@@ -20,7 +20,9 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -110,6 +112,26 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
     } finally {
       Disposer.dispose(editor)
     }
+  }
+
+  fun testDumbModeUpdatesRepresentation() {
+    val file = myFixture.addFileToProject("src/Preview.kt", "")
+    val representation = TestPreviewRepresentationProvider("Representation1", false)
+    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+    val editor = sourceCodeProvider.createEditor(file.project, file.virtualFile).also {
+      Disposer.register(myFixture.testRootDisposable, it)
+    }
+    val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
+
+    assertThat(preview.representationNames).isEmpty()
+    representation.isAccept = true
+    assertThat(preview.representationNames).isEmpty()
+
+    // Now trigger smart mode. Representations should update
+    val dumbService = DumbServiceImpl.getInstance(project)
+    dumbService.isDumb = true
+    dumbService.isDumb = false
+    assertThat(preview.representationNames).containsExactly("Representation1")
   }
 
   override fun tearDown() {
