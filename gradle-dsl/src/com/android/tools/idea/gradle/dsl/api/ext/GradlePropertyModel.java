@@ -179,7 +179,7 @@ public interface GradlePropertyModel extends PsiElementHolder {
 
   /**
    * Sets the value on this property to the given {@code value}.
-   * Note: Does not work for Maps, Lists and References. TODO: Fix this
+   * Note: Does not work for Maps, Lists and References. TODO(b/181748057): Fix this
    */
   void setValue(@NotNull Object value);
 
