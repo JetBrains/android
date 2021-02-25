@@ -52,7 +52,7 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "+"
-        kotlinCompilerVersion = "1.4.30"
+        kotlinCompilerVersion = "1.4.31"
     }
 }
 
