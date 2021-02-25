@@ -296,7 +296,11 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
       }
     }
 
-    @SuppressWarnings("EqualsHashCode")  // b/180537631
+    @Override
+    public int hashCode() {
+      return Objects.hash(getUrl(), toHtml());
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -306,8 +310,9 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
         return false;
       }
 
-      // There are no fields to compare.
-      return true;
+      // Compare important fields of super class for equality.
+      GoToBundleLocationTask.OpenEventLogHyperlink other = (GoToBundleLocationTask.OpenEventLogHyperlink)o;
+      return getUrl().equals(other.getUrl()) && toHtml().equals(other.toHtml());
     }
   }
 }
