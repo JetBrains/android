@@ -547,6 +547,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/compose/runtime/runtime/1.0.0-beta01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-geometry/1.0.0-beta01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-graphics/1.0.0-beta01:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-test-junit4/1.0.0-beta01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-text/1.0.0-beta01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-tooling-data/1.0.0-beta01:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/ui/ui-tooling/1.0.0-beta01:aar",
