@@ -69,8 +69,6 @@
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
     <configurationType implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType"/>
-    <runConfigurationProducer
-        implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
     <runLineMarkerContributor
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
