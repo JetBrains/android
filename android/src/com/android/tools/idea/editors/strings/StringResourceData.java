@@ -26,7 +26,9 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
 import java.util.ArrayList;
@@ -260,5 +262,37 @@ public class StringResourceData {
   @NotNull
   private Stream<Locale> getTranslatedLocaleStream() {
     return myKeyToResourceMap.values().stream().flatMap(resource -> resource.getTranslatedLocales().stream());
+  }
+
+  /**
+   * Finds the single XML file responsible for all the translations.
+   *
+   * @param locale The target language of the translation update.
+   * @return the {@link XmlFile} to which subsequent write operations should target, or null if there are either no files or multiple files
+   */
+  @Nullable
+  XmlFile getDefaultLocaleXml(@NotNull Locale locale) {
+    XmlFile lastFile = null;
+    for (StringResource stringResource : myKeyToResourceMap.values()) {
+      ResourceItem resourceItem = stringResource.getTranslationAsResourceItem(locale);
+      if (resourceItem == null) {
+        continue;
+      }
+      XmlTag tag = IdeResourcesUtil.getItemTag(myProject, resourceItem);
+      if (tag == null) {
+        continue;
+      }
+      PsiFile file = tag.getContainingFile();
+      if (!(file instanceof XmlFile)) {
+        continue;
+      }
+      if (lastFile == null) {
+        lastFile = (XmlFile)file;
+      }
+      else if (lastFile != file) {
+        return null;
+      }
+    }
+    return lastFile;
   }
 }
