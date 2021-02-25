@@ -453,14 +453,12 @@ class DatabaseInspectorControllerImpl(
       val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
       if (oldTable == null) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
 
         diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
       }
       else if (oldTable != newTable) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
           .filterNot { oldTable.columns.contains(it.sqliteColumn) }
 
