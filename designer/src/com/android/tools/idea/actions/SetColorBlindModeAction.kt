@@ -28,8 +28,12 @@ import org.jetbrains.android.util.AndroidBundle.message
 /**
  * Action class to switch the [ScreenViewProvider] in a [NlDesignSurface].
  */
-class SetColorBlindModeAction(private val colorBlindMode: ColorBlindMode, private val designSurface: NlDesignSurface) : ToggleAction(
+class SetColorBlindModeAction(
+  private val colorBlindMode: ColorBlindMode,
+  private val designSurface: NlDesignSurface) : ToggleAction(
   colorBlindMode.displayName, message("android.layout.screenview.action.description", colorBlindMode.displayName), null) {
+
+  var isSelected = false
 
   private val colorBlindModeProvider = object: ScreenViewProvider {
     override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
@@ -37,11 +41,31 @@ class SetColorBlindModeAction(private val colorBlindMode: ColorBlindMode, privat
     }
 
     override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
+
+    override fun onViewProviderReplaced() {
+      isSelected = false
+    }
   }
 
-  override fun isSelected(e: AnActionEvent) = designSurface.screenViewProvider == colorBlindModeProvider
+  companion object {
+    private val noColorBlindModeProvider = object: ScreenViewProvider {
+      override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
+        return colorBlindProviderSelector(surface, manager, false, ColorBlindMode.NONE)
+      }
+
+      override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
+    }
+  }
+
+  override fun isSelected(e: AnActionEvent) = isSelected
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    designSurface.setScreenViewProvider(colorBlindModeProvider, false)
+    isSelected = state
+    // Design surface has a check that skips if view provider has not changed.
+    if (state) {
+      designSurface.setScreenViewProvider(colorBlindModeProvider, false)
+    } else {
+      designSurface.setScreenViewProvider(noColorBlindModeProvider, false)
+    }
   }
 }
