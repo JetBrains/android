@@ -18,9 +18,11 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
+import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -105,8 +107,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? = null
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
-    // TODO (b/142469546): Delete the selected Preview in CustomConfiguration mode.
-    return null
+    return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) PanInteraction(surface) else null
   }
 
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = Unit
