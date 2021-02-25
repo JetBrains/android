@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IntellijDataViewer implements DataViewer {
+  private static final int RAW_VIEWER_MAX_STRING_LENGTH = 500;
+
   @NotNull
   private final JComponent myComponent;
   @NotNull
@@ -50,9 +52,11 @@ public class IntellijDataViewer implements DataViewer {
 
   /**
    * Create a data viewer that renders its content as is, without any attempt to clean it up.
+   * <p>
+   * Note: to prevent UI from being frozen by large text, the content will be truncated.
    */
   public static IntellijDataViewer createRawTextViewer(@NotNull byte[] content) {
-    JTextArea textArea = new JTextArea(new String(content));
+    JTextArea textArea = new JTextArea(new String(content, 0, Math.min(content.length, RAW_VIEWER_MAX_STRING_LENGTH)));
     textArea.setLineWrap(true);
     textArea.setFont(ProfilerFonts.H4_FONT);
     textArea.setEditable(false);
