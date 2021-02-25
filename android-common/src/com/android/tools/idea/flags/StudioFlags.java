@@ -1050,6 +1050,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> NL_COLORBLIND_MODE = Flag.create(
+    COMPOSE, "nl.colorblind",
+    "Enable the colorblind mode for Design Surface",
+    "If enabled, the user can change the mode of layout previews, between different types of colorblind modes",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_COLORBLIND_MODE = Flag.create(
     COMPOSE, "preview.colorblind",
     "Enable the colorblind mode for Compose previews",

@@ -612,6 +612,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     if (screenViewProvider != myScreenViewProvider) {
+      myScreenViewProvider.onViewProviderReplaced();
       myScreenViewProvider = screenViewProvider;
 
       for (SceneManager manager : getSceneManagers()) {
