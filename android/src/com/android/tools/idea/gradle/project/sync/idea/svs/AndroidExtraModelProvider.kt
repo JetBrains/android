@@ -32,6 +32,7 @@ import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariants
@@ -47,6 +48,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncExcepti
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule.NativeModelVersion
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import com.android.utils.appendCapitalized
+import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
@@ -63,7 +65,7 @@ import java.util.LinkedList
 interface GradleInjectedSyncActionRunner {
   fun <T> runActions(actions: List<(BuildController) -> T>): List<T>
   fun <T> runAction(action: (BuildController) -> T): T
-  val parallelActionsSupported: Boolean get() = false
+  val parallelActionsSupported: Boolean
 }
 
 @UsedInBuildAction
@@ -116,7 +118,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   ) {
     private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
     private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
-    private val actionRunner = createActionRunner(controller)
+    private val actionRunner = createActionRunner(controller, syncOptions.flags)
     private val modelCache = ModelCache.create(buildFolderPaths)
 
     fun populateBuildModels() {
@@ -364,6 +366,7 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
       // models in parallel and discard any that happen to change.
       val preResolvedVariants =
         when {
+          !syncOptions.flags.studioFlagParallelSyncEnabled -> emptyMap()
           !syncOptions.flags.studioFlagParallelSyncPrefetchVariantsEnabled -> emptyMap()
           !actionRunner.parallelActionsSupported -> emptyMap()
           // TODO(b/181028873): Predict changed variants and build models in parallel.
@@ -676,14 +679,43 @@ private fun Collection<SyncIssue>.toSyncIssueData(): List<SyncIssueData> {
 
 private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
 
-private fun createActionRunner(controller: BuildController): GradleInjectedSyncActionRunner {
-  return object : GradleInjectedSyncActionRunner {
-    override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
-      return actions.map { it(controller) }
-    }
-
-    override fun <T> runAction(action: (BuildController) -> T): T {
-      return action(controller)
-    }
+private fun createActionRunner(controller: BuildController, flags: GradleSyncStudioFlags): GradleInjectedSyncActionRunner {
+  return when (flags.studioFlagParallelSyncEnabled) {
+    true -> ParallelSyncActionRunner(controller)
+    false -> SequentialSyncActionRunner(controller)
   }
 }
+
+private class ParallelSyncActionRunner(private val controller: BuildController) : GradleInjectedSyncActionRunner {
+  override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
+    return when (actions.size) {
+      0 -> emptyList()
+      1 -> listOf(runAction(actions[0]))
+      else ->
+        @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
+        controller.run(actions.map { action -> BuildAction { action(it) } }) as List<T>
+    }
+  }
+
+  override fun <T> runAction(action: (BuildController) -> T): T {
+    return action(controller)
+  }
+
+  @Suppress("UnstableApiUsage")
+  override val parallelActionsSupported: Boolean
+    get() = controller.getCanQueryProjectModelInParallel(AndroidProject::class.java)
+}
+
+private class SequentialSyncActionRunner(private val controller: BuildController) : GradleInjectedSyncActionRunner {
+  override fun <T> runActions(actions: List<(BuildController) -> T>): List<T> {
+    return actions.map { runAction(it) }
+  }
+
+  override fun <T> runAction(action: (BuildController) -> T): T {
+    return action(controller)
+  }
+
+  override val parallelActionsSupported: Boolean
+    get() = false
+}
+
