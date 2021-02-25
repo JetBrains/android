@@ -878,7 +878,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     verify(databaseInspectorView).updateDatabaseSchema(
       ViewDatabase(databaseId, true),
-      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 0)), table2))
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 2)), table2))
     )
   }
 
