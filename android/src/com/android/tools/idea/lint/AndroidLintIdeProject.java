@@ -69,6 +69,8 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.config.KotlinModuleKind;
+import org.jetbrains.kotlin.idea.facet.KotlinFacet;
 
 /**
  * An {@linkplain LintIdeProject} represents a lint project, which typically corresponds to a {@link Module},
@@ -290,6 +292,15 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (dir == null) return null;
     Project project;
     if (facet == null) {
+      KotlinFacet kotlinFacet = KotlinFacet.Companion.get(module);
+      if(
+        kotlinFacet != null &&
+        kotlinFacet.getConfiguration().getSettings().getMppVersion() != null &&
+        kotlinFacet.getConfiguration().getSettings().getKind() != KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER
+      ) {
+        return null;
+      }
+
       project = new LintModuleProject(client, dir, dir, module);
       AndroidFacet f = findAndroidFacetInProject(module.getProject());
       if (f != null) {
