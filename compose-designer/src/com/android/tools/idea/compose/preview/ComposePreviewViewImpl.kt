@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.adtui.stdui.ActionData
+import com.android.tools.adtui.PANNABLE_KEY
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
@@ -23,7 +25,9 @@ import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceScrollPane
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
+import com.android.tools.idea.common.surface.layout.MatchParentLayoutManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
@@ -38,6 +42,7 @@ import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -56,13 +61,17 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.FlowLayout
+import java.awt.Point
 import java.awt.event.AdjustmentEvent
 import javax.swing.JComponent
+import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
@@ -163,6 +172,8 @@ private fun createOverlayPanel(vararg components: JComponent): JPanel =
   }.apply<JPanel> {
     layout = OverlayLayout(this)
     components.forEach {
+      it.alignmentX = Component.LEFT_ALIGNMENT
+      it.alignmentY = Component.TOP_ALIGNMENT
       add(it)
     }
   }
@@ -178,8 +189,6 @@ private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
 
   init {
     add(button)
-    alignmentX = Component.LEFT_ALIGNMENT
-    alignmentY = Component.TOP_ALIGNMENT
   }
 
   fun update() {
@@ -191,6 +200,30 @@ private class PinnedLabelPanel(pinAction: AnAction? = null) : JPanel() {
 
 /**
  * [WorkBench] panel used to contain all the compose preview elements.
+ *
+ * This view contains all the different components that are part of the Compose Preview. If expanded, in the content area the different
+ * areas look as follows:
+ * ```
+ * +------------------------------------------+
+ * |                                          |     |             |
+ * |       pinnedSurface                      |     |             |
+ * |                                          |     |             |
+ * |                                          |     |             |
+ * +------------------------------------------+     | surfacesSplitter
+ * |                                          |     |             |
+ * |       mainSurface                        |     |             |  mainSplitter
+ * |                                          |     |             |
+ * |                                          |     |             |
+ * +------------------------------------------+                   |
+ * |                                          |                   |
+ * |       bottomPanel (for animations Panel) |                   |
+ * |                                          |                   |
+ * |                                          |                   |
+ * +------------------------------------------+
+ * ```
+ *
+ * The mainSplitter top panel contains the scrollable panel and, also as overlays, the zoom controls and the label that indicates what is
+ * currently pinned.
  *
  * @param project the current open project
  * @param psiFilePointer an [SmartPsiElementPointer] pointing to the file being rendered within this panel. Used to handle
@@ -209,7 +242,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
                                       parentDisposable: Disposable,
                                       onPinFileAction: AnAction?,
                                       onUnPinAction: AnAction?) :
-  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView {
+  WorkBench<DesignSurface>(project, "Compose Preview", null, parentDisposable), ComposePreviewView, Pannable {
   private val log = Logger.getInstance(ComposePreviewViewImpl::class.java)
 
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -225,37 +258,67 @@ internal class ComposePreviewViewImpl(private val project: Project,
   }
 
   override val mainSurface = createPreviewDesignSurface(
-    project, navigationHandler, delegateInteractionHandler, dataProvider, parentDisposable,
-    DesignSurface.ZoomControlsPolicy.VISIBLE) { surface, model ->
+    project, navigationHandler, delegateInteractionHandler, { key ->
+    if (PANNABLE_KEY.`is`(key)) {
+      this@ComposePreviewViewImpl
+    } else dataProvider.getData(key)
+  }, parentDisposable,
+    DesignSurface.ZoomControlsPolicy.HIDDEN) { surface, model ->
     LayoutlibSceneManager(model, surface, sceneComponentProvider, ComposeSceneUpdateListener(), { RealTimeSessionClock() })
+  }.also {
+    it.addPanZoomListener(object: PanZoomListener {
+      override fun zoomChanged(previousScale: Double, newScale: Double) {
+        pinnedSurface.setScale(newScale)
+      }
+
+      override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
+      }
+    })
   }
+
+  override val isPannable: Boolean
+    get() = mainSurface.isPannable
+  override var isPanning: Boolean
+    get() = mainSurface.isPanning
+    set(value) {
+      pinnedSurface.isPanning = value
+      mainSurface.isPanning = value
+    }
 
   override val component: JComponent = this
 
-  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction).apply {
-    // Top left corner of the OverlayLayout
-    alignmentX = Component.LEFT_ALIGNMENT
-    alignmentY = Component.TOP_ALIGNMENT
+  private val pinnedPanelLabel = PinnedLabelPanel(onUnPinAction)
+  private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction)
+
+  /**
+   * Vertical splitter where the top part is a surface containing the pinned elements and the bottom the main design surface.
+   */
+  private val surfaceSplitter = JBSplitter(true, 0.25f, 0f, 0.5f).apply {
+    dividerWidth = SURFACE_SPLITTER_DIVIDER_WIDTH_PX
+    // surfaceSplitter.firstComponent will contain the pinned surface elements
+    secondComponent = mainSurface
   }
-  private val mainSurfacePinLabel = PinnedLabelPanel(onPinFileAction).apply {
-    // Top left corner of the OverlayLayout
-    alignmentX = Component.LEFT_ALIGNMENT
-    alignmentY = Component.TOP_ALIGNMENT
-    // By default, hide until the label has been set.
+
+  private val notificationPanel = NotificationPanel(
+    ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
+
+  /**
+   * Panel containing pinning button.
+   */
+  private val pinToolbarContainer = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+    border = JBUI.Borders.empty()
     isVisible = false
+    isOpaque = false
+    alignmentX = Component.LEFT_ALIGNMENT
+    alignmentY = Component.TOP_ALIGNMENT
   }
 
-  private val pinnedPanel: JPanel by lazy {
-    UIUtil.invokeAndWaitIfNeeded<JPanel> {
-      createOverlayPanel(pinnedPanelLabel, pinnedSurface)
-    }
+  private val scrollPane = DesignSurfaceScrollPane.createDefaultScrollPane(surfaceSplitter, mainSurface.background) {
   }
 
-  private val mainSurfacePanel: JPanel by lazy {
-    UIUtil.invokeAndWaitIfNeeded<JPanel> {
-      createOverlayPanel(mainSurfacePinLabel, mainSurface)
-    }
-  }
+  override var scrollPosition: Point
+    get() = scrollPane.viewport.viewPosition
+    set(value) { scrollPane.viewport.viewPosition = value }
 
   /**
    * True if the pinned surface is visible in the preview.
@@ -266,13 +329,6 @@ internal class ComposePreviewViewImpl(private val project: Project,
   private val interactiveInteractionHandler by lazy { LayoutlibInteractionHandler(mainSurface) }
 
   /**
-   * Vertical splitter where the top part is a surface containing the pinned elements and the bottom the main design surface.
-   */
-  private val surfaceSplitter = JBSplitter(true, 0.25f, 0f, 0.5f).apply {
-    dividerWidth = SURFACE_SPLITTER_DIVIDER_WIDTH_PX
-  }
-
-  /**
    * Vertical splitter where the top component is the [surfaceSplitter] and the bottom component, when visible, is an auxiliary
    * panel associated with the preview. For example, it can be an animation inspector that lists all the animations the preview has.
    */
@@ -280,37 +336,45 @@ internal class ComposePreviewViewImpl(private val project: Project,
     dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX
   }
 
-  private val notificationPanel = NotificationPanel(
-    ExtensionPointName.create("com.android.tools.idea.compose.preview.composeEditorNotificationProvider"))
-
   init {
     // Start handling events for the static preview.
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
 
-    mainSurface.addPanZoomListener(object: PanZoomListener {
-      override fun zoomChanged(previousScale: Double, newScale: Double) {
-        // Always keep the ratio from the fit scale from the pinned and main surfaces. This allows to zoom in/out in a
-        // synchronized way without them ever going out of sync because of hitting the max/min limit.
-        val zoomToFitDelta = pinnedSurface.getFitScale(false) - mainSurface.getFitScale(false)
+    val layeredPane = JLayeredPane().apply {
+      isFocusable = true
+      isOpaque = true
+      layout = MatchParentLayoutManager()
 
-        pinnedSurface.setScale(newScale + zoomToFitDelta)
+      val zoomControlsLayerPane = object : JPanel(BorderLayout()) {
+        override fun isOptimizedDrawingEnabled(): Boolean = false
+      }.apply {
+        border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
+        isOpaque = false
+        isFocusable = false
+        add(mainSurface.actionManager.createDesignSurfaceToolbar(), BorderLayout.EAST)
       }
-
-      override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {}
-    })
+      this.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER as Integer)
+      this.add(scrollPane, JLayeredPane.POPUP_LAYER as Integer)
+    }
 
     val contentPanel = JPanel(BorderLayout()).apply {
       val actionsToolbar = ActionsToolbar(parentDisposable, mainSurface)
       add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
 
-      // surfaceSplitter.firstComponent will contain the pinned surface elements
-      surfaceSplitter.secondComponent = mainSurfacePanel
+      // Panel containing notifications and the pin label
+      val topPanel = JPanel(VerticalLayout(0)).apply {
+        isOpaque = false
+        isFocusable = false
+        add(notificationPanel, VerticalLayout.FILL_HORIZONTAL)
+        add(pinToolbarContainer)
+      }
 
-      mainPanelSplitter.firstComponent = createOverlayPanel(notificationPanel, surfaceSplitter)
-      add(mainPanelSplitter, BorderLayout.CENTER)
+      add(createOverlayPanel(topPanel, layeredPane), BorderLayout.CENTER)
     }
 
-    val issueErrorSplitter = IssuePanelSplitter(mainSurface, contentPanel)
+    mainPanelSplitter.firstComponent = contentPanel
+
+    val issueErrorSplitter = IssuePanelSplitter(mainSurface, mainPanelSplitter)
 
     init(issueErrorSplitter, mainSurface, listOf(), false)
     hideContent()
@@ -329,17 +393,25 @@ internal class ComposePreviewViewImpl(private val project: Project,
     }
   }
 
-  override fun setPinnedSurfaceVisibility(visible: Boolean) = UIUtil.invokeLaterIfNeeded {
-    if (StudioFlags.COMPOSE_PIN_PREVIEW.get() && visible) {
-      isPinnedSurfaceVisible = true
-      surfaceSplitter.firstComponent = pinnedPanel
+  override fun setPinnedSurfaceVisibility(visible: Boolean) {
+    UIUtil.invokeLaterIfNeeded {
+      if (StudioFlags.COMPOSE_PIN_PREVIEW.get() && visible) {
+        isPinnedSurfaceVisible = true
+        surfaceSplitter.firstComponent = pinnedSurface
+      }
+      else {
+        isPinnedSurfaceVisible = false
+        surfaceSplitter.firstComponent = null
+      }
+
+      if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+        pinToolbarContainer.removeAll()
+        pinToolbarContainer.add(if (isPinnedSurfaceVisible) pinnedPanelLabel else mainSurfacePinLabel)
+      }
+
+      // The main surface label is only displayed if there is a text and the pinned surface is not already visible.
+      updateVisibilityAndNotifications()
     }
-    else {
-      isPinnedSurfaceVisible = false
-      surfaceSplitter.firstComponent = null
-    }
-    // The main surface label is only displayed if there is a text and the pinned surface is not already visible.
-    updateVisibilityAndNotifications()
   }
 
   override fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
@@ -409,9 +481,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
     if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
       // The "pin this file" action is only visible if the pin surface is not visible and if we are not in interactive nor animation preview.
-      mainSurfacePinLabel.isVisible = !isInteractive && !isPinnedSurfaceVisible && !isAnimationPreview
-      mainSurfacePinLabel.update()
-      pinnedPanelLabel.update()
+      pinToolbarContainer.isVisible = !isInteractive && !isAnimationPreview
+    }
+    else {
+      pinToolbarContainer.isVisible = false
     }
 
     updateNotifications()

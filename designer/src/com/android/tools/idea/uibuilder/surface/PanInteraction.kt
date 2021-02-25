@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
 import com.android.tools.idea.common.surface.InteractionInputEvent
@@ -30,10 +30,10 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 
-class PanInteraction(private val surface: DesignSurface): Interaction() {
+class PanInteraction(private val pannable: Pannable): Interaction() {
 
   private var isGrabbing = false
-  private var surfaceOriginalPosition: Point? = Point()
+  private var pannableOriginalPosition: Point? = Point()
   private val startPoint = Point()
 
   override fun begin(event: InteractionEvent) {
@@ -49,7 +49,7 @@ class PanInteraction(private val surface: DesignSurface): Interaction() {
    */
   private fun <T: MouseEvent> setupOriginalPoint(event: InteractionInputEvent<T>) {
     val mouseEvent = event.eventObject
-    surfaceOriginalPosition = surface.scrollPosition?.location ?: return
+    pannableOriginalPosition = pannable.scrollPosition.location
     startPoint.setLocation(mouseEvent.xOnScreen, mouseEvent.yOnScreen)
   }
 
@@ -77,11 +77,11 @@ class PanInteraction(private val surface: DesignSurface): Interaction() {
       // left or middle mouse is pressing.
       isGrabbing = true
       // surface original position can be null in tests
-      val newPosition = surfaceOriginalPosition?.let { Point(it) } ?: return
+      val newPosition = pannableOriginalPosition?.let { Point(it) } ?: return
       val screenX = mouseEvent.xOnScreen
       val screenY = mouseEvent.yOnScreen
       newPosition.translate(startPoint.x - screenX, startPoint.y - screenY)
-      surface.scrollPosition = newPosition
+      pannable.scrollPosition = newPosition
     }
     else {
       isGrabbing = false

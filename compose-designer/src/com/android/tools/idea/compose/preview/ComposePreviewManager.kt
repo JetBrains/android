@@ -66,6 +66,7 @@ interface ComposePreviewManager {
     STOPPING;
 
     fun isStartingOrReady() = this == STARTING || this == READY
+    fun isStoppingOrDisabled() = this == STOPPING || this == DISABLED
   }
   /**
    * Status of the preview.
