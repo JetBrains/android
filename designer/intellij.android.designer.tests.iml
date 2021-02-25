@@ -35,15 +35,7 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="layoutlib">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
   </component>

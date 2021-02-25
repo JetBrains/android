@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android.splits;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
+
 import com.android.tools.idea.gradle.dsl.api.android.splits.BaseSplitOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
@@ -22,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +32,8 @@ import java.util.List;
 
 public abstract class BaseSplitOptionsModelImpl extends GradleDslBlockModel implements BaseSplitOptionsModel {
   @NonNls public static final String ENABLE = "mEnable";
-  @NonNls public static final String EXCLUDE = "mExclude";
-  @NonNls public static final String INCLUDE = "mInclude";
+  @NonNls public static final ModelPropertyDescription EXCLUDE = new ModelPropertyDescription("mExclude", MUTABLE_LIST);
+  @NonNls public static final ModelPropertyDescription INCLUDE = new ModelPropertyDescription("mInclude", MUTABLE_LIST);
 
   // This isn't in and of itself a property; instead, we use it (by string equality) to mark where in the Dsl we have reset the include
   // property.

@@ -12,14 +12,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library name="layoutlib">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
   </component>
 </module>

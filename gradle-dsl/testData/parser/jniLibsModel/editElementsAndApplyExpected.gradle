@@ -1,0 +1,9 @@
+android {
+  packagingOptions {
+    jniLibs {
+      excludes += 'excludesX'
+      pickFirsts += ['pickFirstsX']
+      keepDebugSymbols += ['keepDebugSymbolsX', 'keepDebugSymbols2']
+    }
+  }
+}

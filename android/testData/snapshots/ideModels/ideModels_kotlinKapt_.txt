@@ -1,7 +1,6 @@
 MODULE                        : MainActivity
 MODULE                        : MainActivity.app
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 0
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build
@@ -66,6 +65,8 @@ MODULE                        : MainActivity.app
             Name                          : main
             Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/main/java
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
@@ -81,6 +82,8 @@ MODULE                        : MainActivity.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
@@ -95,6 +98,8 @@ MODULE                        : MainActivity.app
                     Name                          : test
                     Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/test/java
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/java
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
@@ -115,6 +120,8 @@ MODULE                        : MainActivity.app
             Name                          : debug
             Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
@@ -130,6 +137,8 @@ MODULE                        : MainActivity.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
@@ -145,6 +154,8 @@ MODULE                        : MainActivity.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
@@ -164,6 +175,8 @@ MODULE                        : MainActivity.app
             Name                          : release
             Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
@@ -179,6 +192,8 @@ MODULE                        : MainActivity.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/androidTestRelease/rs [-]
@@ -194,6 +209,8 @@ MODULE                        : MainActivity.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
@@ -838,7 +855,6 @@ MODULE                        : MainActivity.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : MainActivity.lib
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 1
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -898,6 +914,8 @@ MODULE                        : MainActivity.lib
             Name                          : main
             Manifest                      : <ROOT>/lib/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/lib/src/main/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/main/java [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
             AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
@@ -913,6 +931,8 @@ MODULE                        : MainActivity.lib
                     Name                          : androidTest
                     Manifest                      : <ROOT>/lib/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTest/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
@@ -927,6 +947,8 @@ MODULE                        : MainActivity.lib
                     Name                          : test
                     Manifest                      : <ROOT>/lib/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/test/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
@@ -947,6 +969,8 @@ MODULE                        : MainActivity.lib
             Name                          : debug
             Manifest                      : <ROOT>/lib/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
             AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
@@ -962,6 +986,8 @@ MODULE                        : MainActivity.lib
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/lib/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
@@ -977,6 +1003,8 @@ MODULE                        : MainActivity.lib
                     Name                          : testDebug
                     Manifest                      : <ROOT>/lib/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
@@ -996,6 +1024,8 @@ MODULE                        : MainActivity.lib
             Name                          : release
             Manifest                      : <ROOT>/lib/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/lib/src/release/java [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/lib/src/release/java [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
             AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
@@ -1011,6 +1041,8 @@ MODULE                        : MainActivity.lib
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/lib/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/androidTestRelease/rs [-]
@@ -1026,6 +1058,8 @@ MODULE                        : MainActivity.lib
                     Name                          : testRelease
                     Manifest                      : <ROOT>/lib/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/lib/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
@@ -1603,8 +1637,7 @@ MODULE                        : MainActivity.lib
                             ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null

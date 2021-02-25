@@ -20,15 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library name="layoutlib">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
   </component>

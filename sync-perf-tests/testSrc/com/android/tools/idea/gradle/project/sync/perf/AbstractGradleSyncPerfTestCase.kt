@@ -217,12 +217,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     finally {
       memoryThread.stopReadings()
       logSummary("Time", measurements, log)
-      val memory = memoryThread.usedMemoryIde
-      logSummary("Memory IDE", memory, log)
-      showHistogram(memory, log)
-      val memoryGradleRsz = memoryThread.usedMemoryGradleRsz
-      logSummary("Memory Gradle rsz", memoryGradleRsz, log)
-      showHistogram(memoryGradleRsz, log)
+      memoryThread.logSummary(log)
     }
   }
 
@@ -311,17 +306,34 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   }
 
   private inner class MemoryMeasurementThread(private val scenarioName: String): Thread() {
-    val usedMemoryIde = ArrayList<Long>()
-    val usedMemoryGradleRsz = ArrayList<Long>()
+    private inner class ThreadMetric(val metricName: String, val sampler: () -> Long?) {
+      private val metric = Metric("${scenarioName}_$metricName")
+      val samples = ArrayList<Long>()
+
+      fun sample(benchmark: Benchmark,  timeStamp: Long) {
+        val value = sampler.invoke() ?: return
+        samples.add(value)
+        metric.addSamples(benchmark, MetricSample(timeStamp, value))
+      }
+
+      fun commit() {
+        metric.commit("Memory$metricName")
+      }
+    }
+
     var daemonPid: Long? = null
     private var stopRunning = AtomicBoolean(false)
+    private val threadMetrics = listOf(
+      ThreadMetric("Test") { getUsedMemoryIde() },
+      ThreadMetric("TestRsz") { getUsedMemoryIdeRsz() },
+      ThreadMetric( "GradleRsz") { getUsedMemoryGradleRsz()}
+    )
 
     override fun run() {
       val memoryBenchmark = Benchmark.Builder("Memory usage")
         .setProject(BENCHMARK_PROJECT)
         .build()
-      val metricMemoryUsedIde = Metric(scenarioName)
-      val metricMemoryUsedGradleRsz = Metric(scenarioName + "_GradleRsz")
+
       var nextReading = Instant.now()
       while (!stopRunning.get()) {
         val currentInstant = Instant.now()
@@ -330,16 +342,9 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
           sleep(waitMillis)
           continue
         }
-        val epocMilli = currentInstant.toEpochMilli()
-
-        val usageIde = getUsedMemoryIde()
-        usedMemoryIde.add(usageIde)
-        metricMemoryUsedIde.addSamples(memoryBenchmark, MetricSample(epocMilli, usageIde))
-
-        val usageGradleRsz = getUsedMemoryGradleRsz()
-        if (usageGradleRsz != null) {
-          usedMemoryGradleRsz.add(usageGradleRsz)
-          metricMemoryUsedGradleRsz.addSamples(memoryBenchmark, MetricSample(epocMilli, usageGradleRsz))
+        val epochMilli = currentInstant.toEpochMilli()
+        for (metric in threadMetrics) {
+          metric.sample(memoryBenchmark, epochMilli)
         }
 
         nextReading = nextReading.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS)
@@ -348,8 +353,10 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
           nextReading = currentInstant.plusMillis(MEMORY_MEASUREMENT_INTERVAL_MILLIS * toSkip)
         }
       }
-      metricMemoryUsedIde.commit("Memory")
-      metricMemoryUsedGradleRsz.commit("MemoryGradleRsz")
+
+      for (metric in threadMetrics) {
+        metric.commit()
+      }
     }
 
     private fun getFirstBusyDaemonPid(): Long? {
@@ -362,6 +369,11 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       return runtime.totalMemory() - runtime.freeMemory()
     }
 
+    private fun getUsedMemoryIdeRsz(): Long? {
+      val handler = ProcessHandle.current()?: return null
+      return getProcessRsz(handler.pid(), "Test")
+    }
+
     private fun getUsedMemoryGradleRsz(): Long? {
       val busyPid = getFirstBusyDaemonPid()
       if (busyPid != null) {
@@ -370,15 +382,19 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       if (daemonPid == null) {
         return null
       }
+      return getProcessRsz(daemonPid!!, "Gradle")
+    }
+
+    private fun getProcessRsz(pId: Long, processName: String): Long? {
       val runtime = Runtime.getRuntime()
       // resident set size in kilobytes of the daemon process and its subprocesses
-      val command = "ps -p $daemonPid --no-heading -o rsz"
+      val command = "ps -p $pId --no-heading -o rsz"
       val process = runtime.exec(command)
       val result = process.waitFor()
       if (result != 0) {
         try {
           val errorMessage = Scanner(process.errorStream).useDelimiter("\\A").next()
-          getLogger().warning("Error $result while running \"$command\", message: \"$errorMessage\"")
+          getLogger().warning("Error $result while running \"$command\" for $processName, message: \"$errorMessage\"")
         }
         catch (ignored: Exception) {
         }
@@ -390,7 +406,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
         return usedKB * 1024
       }
       catch (exc: Exception) {
-        getLogger().warning("Exception while parsing output of command \"$command\": $exc")
+        getLogger().warning("Exception while parsing output of command \"$command\" for $processName: $exc")
       }
       return null
     }
@@ -399,6 +415,14 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       if (isAlive) {
         stopRunning.set(true)
         join(2 * MEMORY_MEASUREMENT_INTERVAL_MILLIS)
+      }
+    }
+
+    fun logSummary(log: Logger) {
+      for (metric in threadMetrics) {
+        val samples = metric.samples
+        logSummary("Memory ${metric.metricName}", samples, log)
+        showHistogram(samples, log)
       }
     }
   }

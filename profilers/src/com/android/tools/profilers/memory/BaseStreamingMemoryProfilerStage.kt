@@ -106,11 +106,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     })
   }
 
-  // Set the sampling mode based on the last user setting. If the current session (either alive or dead) has a different sampling setting,
-  // It will be set properly in the AllocationSamplingRateUpdatable.
-  var liveAllocationSamplingMode = getModeFromFrequency(
-    profilers.ideServices.persistentProfilerPreferences
-      .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.value))
+  var liveAllocationSamplingMode = LiveAllocationSamplingMode.NONE
     private set(mode) {
       if (mode != field) {
         field = mode;
@@ -120,15 +116,17 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   abstract val captureSeries: List<DurationDataModel<CaptureDurationData<CaptureObject>>>
 
-  private val updatables get() =
-    listOf(detailedMemoryUsage, memoryAxis, objectsAxis, gcStatsModel, allocationSamplingRateDurations,
-           allocationSamplingRateUpdatable, captureElapsedTimeUpdatable) +
-    captureSeries
+  private val updatables
+    get() =
+      listOf(detailedMemoryUsage, memoryAxis, objectsAxis, gcStatsModel, allocationSamplingRateDurations,
+             allocationSamplingRateUpdatable, captureElapsedTimeUpdatable) +
+      captureSeries
 
   val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
-  val isLiveAllocationTrackingSupported get() = getDeviceForSelectedSession()?.let { device ->
-    studioProfilers.ideServices.featureConfig.isLiveAllocationsEnabled && device.featureLevel >= AndroidVersion.VersionCodes.O
-  } ?: false
+  val isLiveAllocationTrackingSupported
+    get() = getDeviceForSelectedSession()?.let { device ->
+      studioProfilers.ideServices.featureConfig.isLiveAllocationsEnabled && device.featureLevel >= AndroidVersion.VersionCodes.O
+    } ?: false
 
   init {
     gcStatsModel.apply {
@@ -194,9 +192,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
    * Trigger a change to the sampling mode that should be used for live allocation tracking.
    */
   fun requestLiveAllocationSamplingModeUpdate(mode: LiveAllocationSamplingMode) {
-    studioProfilers.ideServices.persistentProfilerPreferences.setInt(
-      LIVE_ALLOCATION_SAMPLING_PREF, mode.value, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.value
-    )
     try {
       val samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build()
       val response = studioProfilers.client.transportClient.execute(
@@ -211,8 +206,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       logger.debug(e)
     }
   }
-
-  fun getSupportedLiveAllocationSamplingMode() = LiveAllocationSamplingMode.values().toList()
 
   fun forceGarbageCollection() {
     val response = studioProfilers.client.transportClient.execute(
@@ -301,12 +294,12 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
    */
   protected abstract fun onCaptureToSelect(data: SeriesData<CaptureDurationData<CaptureObject>>, loadJoiner: Executor)
 
-  protected fun <T: DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
+  protected fun <T : DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
 
-  protected inline fun <T: DurationData> makeModel(make: DataSeriesConstructor<T>) =
+  protected inline fun <T : DurationData> makeModel(make: DataSeriesConstructor<T>) =
     makeModel(applyDataSeriesConstructor(make))
 
-  protected inline fun <T: DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
+  protected inline fun <T : DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
     f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
   protected fun getDeviceForSelectedSession() = studioProfilers.getStream(studioProfilers.session.streamId).let { stream ->
@@ -331,17 +324,13 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     val dataRangeMaxUs = timeline.dataRange.max
     val data = allocationSamplingRateDataSeries.getDataForRange(Range(dataRangeMaxUs, dataRangeMaxUs))
     // If no data available, keep the current settings.
-    return data.lastOrNull()?.let{ getModeFromFrequency(it.value.currentRate.samplingNumInterval) }
+    return data.lastOrNull()?.let { getModeFromFrequency(it.value.currentRate.samplingNumInterval) }
   }
 
   companion object {
-    const val LIVE_ALLOCATION_SAMPLING_PREF = "memory.live.allocation.mode"
     protected const val HAS_USED_MEMORY_CAPTURE = "memory.used.capture"
     val MEMORY_AXIS_FORMATTER: BaseAxisFormatter = MemoryAxisFormatter(1, 5, 5)
     val OBJECT_COUNT_AXIS_FORMATTER: BaseAxisFormatter = SingleUnitAxisFormatter(1, 5, 5, "")
-
-    @JvmField
-    val DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE = LiveAllocationSamplingMode.SAMPLED
   }
 
   enum class LiveAllocationSamplingMode(val value: Int, val displayName: String) {
@@ -354,12 +343,11 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       private val NameMap = values().map { it.displayName to it }.toMap()
 
       @JvmStatic
-      fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode =
-        SamplingRateMap[frequency] ?: DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE
+      fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode = SamplingRateMap[frequency] ?: SAMPLED
 
       @JvmStatic
       fun getModeFromDisplayName(displayName: String): LiveAllocationSamplingMode =
-        NameMap[displayName] ?: DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE
+        NameMap[displayName] ?: throw IllegalArgumentException("Unrecognized mode display name \"$displayName\"")
     }
   }
 }

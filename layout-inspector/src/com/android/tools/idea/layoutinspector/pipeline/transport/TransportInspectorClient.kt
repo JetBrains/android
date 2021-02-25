@@ -17,11 +17,10 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -31,7 +30,6 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -46,11 +44,10 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Transport
 import com.google.common.html.HtmlEscapers
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
@@ -60,6 +57,7 @@ import com.intellij.concurrency.JobScheduler
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -111,6 +109,7 @@ class TransportInspectorClient(
 
   private val project = model.project
   private val stats = model.stats
+  private val metrics = LayoutInspectorMetrics.create(project, process, stats)
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
 
@@ -127,6 +126,8 @@ class TransportInspectorClient(
   private var debugAttributesOverridden = false
 
   override val treeLoader = TransportTreeLoader(project, this)
+
+  private val composeDependencyChecker = ComposeDependencyChecker(model)
 
   @Suppress("unused") // Need to keep a reference to receive notifications
   private val lowMemoryWatcher = LowMemoryWatcher.register(
@@ -152,8 +153,13 @@ class TransportInspectorClient(
     }
   }
 
-  override fun doConnect() {
+  override fun doConnect(): ListenableFuture<Nothing> {
     attach(process)
+    invokeLater {
+      composeDependencyChecker.performCheck(this)
+    }
+
+    return Futures.immediateFuture(null)
   }
 
   // TODO: detect when a connection is dropped
@@ -245,7 +251,7 @@ class TransportInspectorClient(
   }
 
   private fun attach(process: ProcessDescriptor) {
-    logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, process)
+    logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
@@ -265,7 +271,7 @@ class TransportInspectorClient(
       processId = process::pid,
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
-      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS, process)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
       start(process)
 
       // TODO: verify that capture started successfully
@@ -288,10 +294,10 @@ class TransportInspectorClient(
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
-      logEvent(type, process)
+      metrics.logEvent(type)
     }
     else if (!loggedInitialRender) {
-      logEvent(type, process)
+      metrics.logEvent(type)
       loggedInitialRender = true
     }
   }
@@ -304,27 +310,13 @@ class TransportInspectorClient(
       else -> false
     }
 
-  private fun logEvent(eventType: DynamicLayoutInspectorEventType, process: ProcessDescriptor) {
-    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(eventType)
-    if (eventType == SESSION_DATA) {
-      stats.save(inspectorEvent.sessionBuilder)
-    }
-    val builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(inspectorEvent)
-      .setDeviceInfo(process.device.toDeviceInfo())
-      .withProjectId(project)
-
-    UsageTracker.log(builder)
-  }
-
   override fun doDisconnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
     ApplicationManager.getApplication().executeOnPooledThread {
       stopFetching()
       stop()
 
-      logEvent(SESSION_DATA, process)
+      logEvent(SESSION_DATA)
       SkiaParser.shutdownAll()
       future.set(null)
     }
@@ -388,8 +380,8 @@ class TransportInspectorClient(
   private fun enableDebugViewAttributes(process: ProcessDescriptor) {
     var errorMessage: String
     try {
-      if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") != "null") {
-        // A return value of "null" means: "debug_view_attributes" is not currently turned on for all processes on the device.
+      if (adb.executeShellCommand(process.device, "settings get global debug_view_attributes") !in listOf("null", "0")) {
+        // A return value of "null" or "0" means: "debug_view_attributes" is not currently turned on for all processes on the device.
         return
       }
       val app = adb.executeShellCommand(process.device, "settings get global debug_view_attributes_application_package")

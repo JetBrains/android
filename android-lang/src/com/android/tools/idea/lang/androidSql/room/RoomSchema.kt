@@ -27,6 +27,7 @@ import com.android.tools.idea.lang.androidSql.resolution.PsiElementPointer
 import com.android.tools.idea.lang.androidSql.resolution.SqlType
 import com.android.tools.idea.lang.androidSql.room.RoomTable.Type
 import com.intellij.lang.injection.InjectedLanguageManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -42,6 +43,7 @@ import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.getContainingUClass
 import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.getUastParentOfType
 
@@ -52,8 +54,13 @@ data class RoomDatabase(
   /** Annotated class. */
   val psiClass: PsiClassPointer,
 
-  /** Classes mentioned in the `tables` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
-  val entities: Set<PsiClassPointer>
+  /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
+  val entities: Set<PsiClassPointer>,
+
+  /** Classes mentioned in the `views` annotation parameter. These may not actually be `@DatabaseView` if the code is wrong.  */
+  val views: Set<PsiClassPointer>,
+
+  val daos: Set<PsiClassPointer>
 )
 
 /**
@@ -223,12 +230,30 @@ class RoomSqlContext(private val query: AndroidSqlFile) : AndroidSqlContext {
       // If we are inside Editing Fragment query does not belong to module. We need to use original file.
       val module = ModuleUtil.findModuleForPsiElement(query.originalFile) ?: return true
       return ContainerUtil.process(
-        RoomSchemaManager.getInstance(module).getSchema(query)?.tables ?: emptySet<AndroidSqlTable>(),
+        findTablesApplicableToContext(module, hostRoomAnnotation),
         amendProcessor(hostRoomAnnotation, processor)
       )
     }
 
     return true
+  }
+
+  private fun findTablesApplicableToContext(module: Module, hostRoomAnnotation: UAnnotation):Collection<AndroidSqlTable> {
+    val schema = RoomSchemaManager.getInstance(module).getSchema(query) ?: return emptySet()
+    val allTables = schema.tables
+    val databases = schema.databases
+    var databasesHostBelongsTo = emptyList<RoomDatabase>()
+    val hostClass = hostRoomAnnotation.getContainingUClass()?.sourceElement ?: return allTables
+    if (RoomAnnotations.DATABASE_VIEW.isEquals(hostRoomAnnotation.qualifiedName)) {
+      databasesHostBelongsTo = databases.filter { database -> database.views.any { it.element == hostClass } }
+    }
+    if (RoomAnnotations.QUERY.isEquals(hostRoomAnnotation.qualifiedName)) {
+      databasesHostBelongsTo = databases.filter { database -> database.daos.any { it.element == hostClass } }
+    }
+    if (databasesHostBelongsTo.isEmpty()) {
+      return allTables
+    }
+    return allTables.filter { table -> databasesHostBelongsTo.any { it.entities.contains(table.psiClass) } }
   }
 
   /**

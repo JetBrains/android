@@ -59,6 +59,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighPriorityAction {
   private var foundArtifacts: Collection<String>? = null
+  private val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
   private data class AutoImportVariant(val artifactToAdd: String, val classToImport: String) : Comparable<AutoImportVariant> {
     override fun compareTo(other: AutoImportVariant): Int {
@@ -288,7 +289,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     return element
   }
 
-  private fun findLibraryData(project: Project, text: String): Collection<MavenClassRegistry.Library> {
+  private fun findLibraryData(project: Project, text: String): Collection<MavenClassRegistryBase.Library> {
     return getMavenClassRegistry().findLibraryData(text, project.isAndroidx())
   }
 
@@ -342,5 +343,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
       }
       // Nothing to do in XML etc
     }
+  }
+
+  private fun getMavenClassRegistry(): MavenClassRegistryBase {
+    return mavenClassRegistryManager.getMavenClassRegistry()
   }
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
@@ -242,8 +241,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertFalse(myService.isDialogSelectionEmpty());
-    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 
   @Test
@@ -255,7 +253,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 
   @Test
@@ -272,7 +270,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 
   @Test
@@ -284,7 +282,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 
   @Test
@@ -296,6 +294,6 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertEquals(targets, myService.getTargetsSelectedWithDialog());
+    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 }

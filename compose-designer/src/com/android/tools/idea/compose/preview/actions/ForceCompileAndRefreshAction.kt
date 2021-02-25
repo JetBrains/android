@@ -20,7 +20,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
-import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,9 +53,8 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
   }
 
   override fun update(e: AnActionEvent) {
-    val project = e.project ?: return
     val presentation = e.presentation
     val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
-    presentation.isEnabled = !isRefreshing && !GradleBuildState.getInstance(project).isBuildInProgress
+    presentation.isEnabled = !isRefreshing
   }
 }

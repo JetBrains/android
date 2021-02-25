@@ -280,29 +280,6 @@ class NlLayoutScannerTest : LayoutTestCase() {
     assertTrue("Maps must be cleaned after the scan.", scanner.idToComponent.isEmpty())
   }
 
-  fun testDisable() {
-    // Precondition : Populate scanner with issues.
-    val componentSize = 5
-    val scanner = createScanner()
-    val helper = ScannerTestHelper()
-    val model = helper.buildModel(componentSize)
-    val renderResult = helper.mockRenderResult(model)
-    var validatorResult: ValidatorResult? = null
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        validatorResult = result
-      }
-    }
-    scanner.addListener(listener)
-    scanner.validateAndUpdateLint(renderResult, model)
-    assertNotNull(validatorResult)
-    assertEquals(componentSize, scanner.issues.size)
-
-    // Test disable and ensure issues are empty.
-    scanner.disable()
-    assertTrue(scanner.issues.isEmpty())
-  }
-
   fun testFindRootWithViewLikeDataBinding() {
 
     // Build component tree with root, c1, c2 with only c2 with view info

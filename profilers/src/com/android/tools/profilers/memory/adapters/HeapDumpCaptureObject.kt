@@ -90,7 +90,8 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   override fun saveToFile(outputStream: OutputStream) = saveHeapDumpToFile(client, _session, heapDumpInfo, outputStream, featureTracker)
   override fun getHeapSets() = if (hasLoaded) _heapSets.values else emptyList()
   override fun getHeapSet(heapId: Int) = _heapSets.getOrDefault(heapId, null)
-  override fun getInstances(): Stream<InstanceObject> = if (hasLoaded) heapSets.stream().flatMap { it.instancesStream } else Stream.empty()
+  override fun getInstances(): Stream<InstanceObject> =
+    if (hasLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
   override fun getStartTimeNs() = heapDumpInfo.startTime
   override fun getEndTimeNs() = heapDumpInfo.endTime
   override fun getClassDatabase() = classDb
@@ -114,12 +115,11 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
       .findAny().orElse(null)
     val heapSetMappings = snapshot.heaps.map { it to HeapSet(this, it.name, it.id) }.toMap()
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
-      if (ideProfilerServices.featureConfig.isSeparateHeapDumpUiEnabled) {
-        val superHeap = AllHeapSet(this, heapSetMappings.values.toTypedArray())
+      AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
         superHeap.clearClassifierSets() // forces sub-classifier creation
         _heapSets[superHeap.id] = superHeap
         { _, id, classInst -> addInstance(superHeap, id, classInst) }
-      } else ::addInstance
+      }
     heapSetMappings.forEach { (heap, heapSet) ->
       heap.classes.forEach { addInstanceToRightHeap(heapSet, it.id, createClassObjectInstance(javaLangClassObject, it)) }
       heap.forEachInstance { instance -> true.also {

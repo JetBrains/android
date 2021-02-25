@@ -68,8 +68,9 @@ class AppInspectionInspectorRule : TestRule {
   private val transportService = FakeTransportService(timer)
 
   private val inspectionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION, true)
-  // TODO(b/177231212): Set this to true and test compose inspector client as well
   private val composeFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT, true)
+  // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
+  private val devModeFlagRule = SetFlagRule(StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
@@ -88,6 +89,9 @@ class AppInspectionInspectorRule : TestRule {
   init {
     val viewInspectorHandler = TestAppInspectorCommandHandler(
       timer,
+      createInspectorResponse = { createCommand ->
+        createCommand.createResponse(viewInspector.createResponseStatus)
+      },
       rawInspectorResponse = { rawCommand ->
         val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
         val viewResponse = viewInspector.handleCommand(viewCommand)
@@ -126,7 +130,7 @@ class AppInspectionInspectorRule : TestRule {
 
   override fun apply(base: Statement, description: Description): Statement {
     // Rules will be applied in reverse order. This class will evaluate last.
-    val innerRules = listOf(inspectionService, grpcServer, inspectionFlagRule, composeFlagRule)
+    val innerRules = listOf(inspectionService, grpcServer, inspectionFlagRule, composeFlagRule, devModeFlagRule)
     return innerRules.fold(base) { stmt: Statement, rule: TestRule -> rule.apply(stmt, description) }
   }
 }

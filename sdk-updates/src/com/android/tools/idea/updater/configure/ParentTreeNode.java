@@ -102,6 +102,7 @@ class ParentTreeNode extends UpdaterTreeNode {
     return myVersion.compareTo(((ParentTreeNode)other).myVersion);
   }
 
+  @SuppressWarnings("EqualsHashCode")  // b/180537631
   @Override
   public boolean equals(@Nullable Object obj) {
     if (!(obj instanceof ParentTreeNode)) {

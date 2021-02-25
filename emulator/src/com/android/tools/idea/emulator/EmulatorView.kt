@@ -252,7 +252,7 @@ class EmulatorView(
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
   private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
-  private val stats = Stats(this)
+  private val stats = Stats()
 
   init {
     Disposer.register(parentDisposable, this)
@@ -401,6 +401,7 @@ class EmulatorView(
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
+    Disposer.dispose(stats) // stats have to be disposed last.
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -676,10 +677,11 @@ class EmulatorView(
   }
 
   private fun computeDisplayRectangle(skin: SkinLayout): Rectangle {
-    // The roundSlightly call below is used to avoid scaling by a factor that only slightly differs from 1.
+    // The roundScale call below is used to avoid scaling by a fractional factor larger than 1 or
+    // by a factor that is only slightly below 1.
     return if (deviceFrameVisible) {
       val frameRectangle = skin.frameRectangle
-      val scale = roundSlightly(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
+      val scale = roundScale(min(realWidth.toDouble() / frameRectangle.width, realHeight.toDouble() / frameRectangle.height))
       val fw = frameRectangle.width.scaled(scale)
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
@@ -687,16 +689,20 @@ class EmulatorView(
       Rectangle((realWidth - fw) / 2 - frameRectangle.x.scaled(scale), (realHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
     else {
-      val scale = roundSlightly(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
+      val scale = roundScale(min(realWidth.toDouble() / screenshotShape.width, realHeight.toDouble() / screenshotShape.height))
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
       Rectangle((realWidth - w) / 2, (realHeight - h) / 2, w, h)
     }
   }
 
-  /** Rounds the given value to a multiple of 1.0/128. */
-  private fun roundSlightly(value: Double): Double {
-    return round(value * 128) / 128
+  /** Rounds the given value down to 1 or 2 if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  private fun roundScale(value: Double): Double {
+    return when {
+      value > 2 -> 2.0
+      value > 1 -> 1.0
+      else -> round(value * 128) / 128
+    }
   }
 
   private fun requestScreenshotFeed() {
@@ -817,7 +823,7 @@ class EmulatorView(
     val mouseListener = object: MouseAdapter() {
 
       override fun mouseMoved(event: MouseEvent) {
-        rotateVirtualSceneCamera((event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
+        rotateVirtualSceneCamera(-(event.yOnScreen - referencePoint.y) * scale, (referencePoint.x - event.xOnScreen) * scale)
         referencePoint.setLocation(event.xOnScreen, event.yOnScreen)
         event.consume()
       }
@@ -913,9 +919,9 @@ class EmulatorView(
   }
 
   private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
-    private val screenshotForProcessing = AtomicReference<RawScreenshot?>()
+    private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
-    private val displayShapeCache = CachedSkinLayout(emulator)
+    private val skinLayoutCache = SkinLayoutCache(emulator)
     private val recycledImage = AtomicReference<SofterReference<BufferedImage>?>()
     private val alarm = Alarm(this)
     private var expectedFrameNumber = -1
@@ -924,9 +930,10 @@ class EmulatorView(
       val arrivalTime = System.currentTimeMillis()
       val imageFormat = response.format
       val imageRotation = imageFormat.rotation.rotation
+      val frameOriginationTime: Long = response.timestampUs / 1000
 
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
-        val latency = arrivalTime - response.timestampUs / 1000
+        val latency = arrivalTime - frameOriginationTime
         LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
@@ -947,51 +954,59 @@ class EmulatorView(
         return
       }
 
-      val screenshot = RawScreenshot(response)
-
-      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
-      stats.recordFrameArrival(arrivalTime - screenshot.frameOriginationTime, lostFrames)
-      expectedFrameNumber = response.seq + 1
-
-      screenshotForProcessing.set(screenshot)
-
-      executeOnPooledThread {
-        // If the screenshot feed has not been cancelled, update the skin and the display image.
-        if (screenshotReceiver == this) {
-          updateSkinAndDisplayImage()
-        }
-      }
-    }
-
-    @Slow
-    private fun updateSkinAndDisplayImage() {
-      val rawScreenshot = screenshotForProcessing.getAndSet(null)
-      if (rawScreenshot == null) {
-        stats.recordDroppedFrame()
-        return
-      }
-
-      val shape = rawScreenshot.shape
-      val skinLayout = displayShapeCache.get(shape)
       alarm.cancelAllRequests()
       val recycledImage = recycledImage.getAndSet(null)?.get()
-      val image = if (recycledImage?.width == shape.width && recycledImage.height == shape.height) {
+      val image = if (recycledImage?.width == imageFormat.width && recycledImage.height == imageFormat.height) {
         val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
-        unpackPixels(rawScreenshot.imageBytes, pixels)
+        unpackPixels(response.image, pixels)
         recycledImage
       }
       else {
-        val pixels = IntArray(shape.width * shape.height)
-        unpackPixels(rawScreenshot.imageBytes, pixels)
+        val pixels = IntArray(imageFormat.width * imageFormat.height)
+        unpackPixels(response.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
         val sampleModel =
-            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, shape.width, shape.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
         @Suppress("UndesirableClassUsage")
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
-      val screenshot = Screenshot(shape, image, skinLayout, rawScreenshot.frameOriginationTime)
+      val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
+      stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames)
+      expectedFrameNumber = response.seq + 1
+
+      val displayShape = DisplayShape(imageFormat)
+      val screenshot = Screenshot(displayShape, image, frameOriginationTime)
+      val skinLayout = skinLayoutCache.getCached(displayShape)
+      if (skinLayout == null) {
+        computeSkinLayoutOnPooledThread(screenshot)
+      }
+      else {
+        screenshot.skinLayout = skinLayout
+        updateDisplayImageOnUiThread(screenshot)
+      }
+    }
+
+    private fun computeSkinLayoutOnPooledThread(screenshotWithoutSkin: Screenshot) {
+      screenshotForProcessing.set(screenshotWithoutSkin)
+
+      executeOnPooledThread {
+        // If the screenshot feed has not been cancelled, update the skin and the display image.
+        if (screenshotReceiver == this) {
+          val screenshot = screenshotForProcessing.getAndSet(null)
+          if (screenshot == null) {
+            stats.recordDroppedFrame()
+          }
+          else {
+            screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
+            updateDisplayImageOnUiThread(screenshot)
+          }
+        }
+      }
+    }
+
+    private fun updateDisplayImageOnUiThread(screenshot: Screenshot) {
       screenshotForDisplay.set(screenshot)
 
       invokeLaterInAnyModalityState {
@@ -1028,7 +1043,11 @@ class EmulatorView(
       repaint()
     }
 
-    @Slow
+    /**
+     * This takes noticeable time because it processes a lot of data but is still fast enough
+     * to be called on the gRPC thread.
+     */
+    // TODO: Consider moving to native code.
     fun unpackPixels(imageBytes: ByteString, pixels: IntArray) {
       val alpha = 0xFF shl 24
       var j = 0
@@ -1045,23 +1064,26 @@ class EmulatorView(
     }
   }
 
-  private class RawScreenshot(emulatorImage: ImageMessage) {
-    val frameOriginationTime: Long = emulatorImage.timestampUs / 1000
-    val shape = DisplayShape(emulatorImage.format)
-    val imageBytes: ByteString = emulatorImage.image
+  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val frameOriginationTime: Long) {
+    lateinit var skinLayout: SkinLayout
+    var painted = false
   }
-
-  private class Screenshot(val displayShape: DisplayShape, val image: BufferedImage, val skinLayout: SkinLayout,
-                           val frameOriginationTime: Long, var painted: Boolean = false)
 
   /**
    * Stores the last computed scaled [SkinLayout] together with the corresponding display
    * dimensions and orientation.
    */
-  private class CachedSkinLayout(val emulator: EmulatorController) {
+  private class SkinLayoutCache(val emulator: EmulatorController) {
     var displayShape: DisplayShape? = null
     var skinLayout: SkinLayout? = null
 
+    fun getCached(displayShape: DisplayShape): SkinLayout? {
+      synchronized(this) {
+        return if (displayShape == this.displayShape) skinLayout else null
+      }
+    }
+
+    @Slow
     fun get(displayShape: DisplayShape): SkinLayout {
       synchronized(this) {
         var layout = this.skinLayout
@@ -1080,13 +1102,12 @@ class EmulatorView(
     constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
   }
 
-  private class Stats(parentDisposable: Disposable): Disposable {
+  private class Stats: Disposable {
     @GuardedBy("this")
     private var data = Data()
     private val alarm = Alarm(this)
 
     init {
-      Disposer.register(parentDisposable, this)
       scheduleNextLogging()
     }
 
@@ -1110,26 +1131,25 @@ class EmulatorView(
       data.latencyEndToEnd.recordValue(latency)
     }
 
+    @Synchronized
     override fun dispose() {
-      getAndSetData().log()
-    }
-
-    private fun logAndReset() {
-      getAndSetData(Data()).log()
-      scheduleNextLogging()
+      data.log()
     }
 
     @Synchronized
-    private fun getAndSetData(newData: Data? = null): Data {
+    private fun getAndSetData(newData: Data): Data {
       val oldData = data
-      if (newData != null) {
-        data = newData
-      }
+      data = newData
       return oldData
     }
 
     private fun scheduleNextLogging() {
       alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+    }
+
+    private fun logAndReset() {
+      getAndSetData(Data()).log()
+      scheduleNextLogging()
     }
 
     private class Data {

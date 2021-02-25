@@ -41,7 +41,9 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.ProjectRule
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -229,7 +231,13 @@ class AppInspectionTreeLoaderTest {
       skiaParser.getViewTree(eq(sample.bytes), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) }, any(), any()))
       .thenReturn(skiaResponse)
 
-    val treeLoader = AppInspectionTreeLoader(projectRule.project, skiaParser)
+    var loggedEvent: DynamicLayoutInspectorEventType? = null
+    val treeLoader = AppInspectionTreeLoader(
+      projectRule.project,
+      // Initial event is only ever logged one time
+      logEvent = { assertThat(loggedEvent).isNull(); loggedEvent = it },
+      skiaParser
+    )
 
     val data = createFakeData()
     val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
@@ -288,6 +296,8 @@ class AppInspectionTreeLoaderTest {
     assertThat(node5.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
     ViewNode.readDrawChildren { drawChildren -> assertThat((node5.drawChildren()[0] as DrawViewImage).image).isEqualTo(image5) }
     assertThat(node5.children.map { it.drawId }).containsExactly(-2L, -5L)
+
+    assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
   }
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any?) {
@@ -296,13 +306,15 @@ class AppInspectionTreeLoaderTest {
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(eq(sample.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
-    val treeLoader = AppInspectionTreeLoader(projectRule.project, skiaParser)
+    val treeLoader = AppInspectionTreeLoader(
+      projectRule.project,
+      logEvent = { fail() }, // Metrics shouldn't be logged until we come back with a screenshot
+      skiaParser
+    )
     val (window, _) = treeLoader.loadComponentTree(createFakeData(), ResourceLookup(projectRule.project))!!
     window!!.refreshImages(1.0)
 
     assertThat(banner.text.text).isEqualTo(msg)
-
-    // TODO(b/174864984): Assert metrics weren't logged in this case
   }
 
   @Test
@@ -330,7 +342,13 @@ class AppInspectionTreeLoaderTest {
   fun testCanProcessBitmapScreenshots() {
     val skiaParser: SkiaParserService = mock()
     `when`(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
-    val treeLoader = AppInspectionTreeLoader(projectRule.project, skiaParser)
+    var loggedEvent: DynamicLayoutInspectorEventType? = null
+    val treeLoader = AppInspectionTreeLoader(
+      projectRule.project,
+      // Initial event is only ever logged one time
+      logEvent = { assertThat(loggedEvent).isNull(); loggedEvent = it },
+      skiaParser
+    )
 
     val data = createFakeData(ViewProtocol.Screenshot.Type.BITMAP)
     val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
@@ -339,6 +357,8 @@ class AppInspectionTreeLoaderTest {
 
     val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample.image, resultImage, 0.01)
+
+    assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 }
 

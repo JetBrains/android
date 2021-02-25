@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
-import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

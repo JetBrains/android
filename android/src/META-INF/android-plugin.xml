@@ -309,6 +309,8 @@
     <projectOpenProcessor implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectOpenProcessor" id="android-gradle" order="before gradle" />
     <projectViewPane implementation="com.android.tools.idea.navigator.AndroidProjectViewPane"/>
     <debugger.positionManagerFactory implementation="com.android.tools.idea.debug.AndroidPositionManagerFactory"/>
+    <applicationService serviceImplementation="com.android.tools.idea.imports.MavenClassRegistryManager" />
+    <postStartupActivity implementation="com.android.tools.idea.imports.AutoRefresherForMavenClassRegistry"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestRefreshListener$SubscriptionStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
@@ -399,6 +401,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
     <applicationConfigurable groupId="build" id="testing.instrumented.configuration"
                              provider="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfigurableProvider"/>
+    <editorAppearanceConfigurable instance="com.android.tools.idea.editors.AndroidEditorAppearanceConfigurable"/>
     <applicationService serviceImplementation="com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration"/>
     <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
                          id ="experimental" displayName="Experimental" groupId="root" groupWeight="-999"/>

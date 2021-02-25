@@ -656,13 +656,13 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.getAspect().addDependency(myAspectObserver).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_SAMPLING_MODE,
                                                                  () -> samplingAspectChange[0]++);
 
-    // Ensure that the default is sampled.
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    // Ensure that the default is none.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     // Ensure that advancing the timer does not change the mode if there are no AllocationSamplingRange.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
     myTransportService.addEventToStream(
@@ -689,12 +689,12 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAllocationSamplingModePersistsAcrossStages() {
-    // Ensure that the default is sampled.
-    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
+    // Ensure that the default is none.
+    assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     myStage.requestLiveAllocationSamplingModeUpdate(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL);
 
     MainMemoryProfilerStage newStage1 = new MainMemoryProfilerStage(myProfilers, myMockLoader);
-    assertThat(newStage1.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.FULL);
+    assertThat(newStage1.getLiveAllocationSamplingMode()).isEqualTo(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     newStage1.requestLiveAllocationSamplingModeUpdate(MainMemoryProfilerStage.LiveAllocationSamplingMode.NONE);
 
     MainMemoryProfilerStage newStage2 = new MainMemoryProfilerStage(myProfilers, myMockLoader);
@@ -760,7 +760,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void selectingHeapDumpGoesToSeparateStage() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     myIdeProfilerServices.enableEventsPipeline(true);
 
     HeapDumpInfo info = HeapDumpInfo.newBuilder().build();
@@ -781,7 +780,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void selectingFinishedAllocationSessionSwitchesToAllocationStage() {
-    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
     CaptureObject obj = new FakeCaptureObject.Builder().build();
     CaptureEntry<CaptureObject> entry = new CaptureEntry<>(0, () -> obj);
     AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);

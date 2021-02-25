@@ -132,13 +132,6 @@ class NlLayoutScanner(
   }
 
   /**
-   * Disable the validator. It removes any existing issue visible to the panel.
-   */
-  fun disable() {
-    lintIntegrator.clear()
-  }
-
-  /**
    * Find the source [NlComponent] based on issue. If no source is found it returns null.
    */
   @VisibleForTesting

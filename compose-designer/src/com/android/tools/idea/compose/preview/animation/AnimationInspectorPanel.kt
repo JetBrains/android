@@ -126,6 +126,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
         timeline.selectedTab = tab
+        // Set the clock time when changing tabs to update the current tab's prop keys panel. Note we don't do that when old selection is
+        // null, as that will happen when adding/selecting the first tab to the tabbed pane. In that case, the set clock logic will be
+        // handled by updateTransitionStates.
+        if (oldSelection != null) {
+          timeline.setClockTime(timeline.cachedVal)
+        }
       }
     })
   }
@@ -284,7 +290,6 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
                   }
     tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
     tabbedPane.addTab(TabInfo(animationTab).setText("$tabName #${tabNamesCount[tabName]}"), tabbedPane.tabCount)
-    timeline.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
   }
 
   /**
@@ -645,10 +650,11 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   }
 
   private enum class TimelineSpeed(val speedMultiplier: Float, val displayText: String) {
+    X_0_1(0.1f, "0.1x"),
     X_0_25(0.25f, "0.25x"),
     X_0_5(0.5f, "0.5x"),
+    X_0_75(0.75f, "0.75x"),
     X_1(1f, "1x"),
-    X_1_5(1.5f, "1.5x"),
     X_2(2f, "2x")
   }
 
@@ -947,6 +953,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           // this method. Since it recalculates the geometry of all components, the resulting UI on mouse press is not what we aim for.
           currentMouseX = e.getX()
           updateThumbLocationAndSliderValue()
+          timeline.requestFocus() // Request focus to the timeline, so the selected tab actually gets the focus
         }
 
         override fun mouseDragged(e: MouseEvent) {

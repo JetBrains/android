@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -34,10 +35,10 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 import java.util.EnumSet
 
@@ -69,24 +70,34 @@ class AppInspectionInspectorClient(
 
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
 
-  override fun doConnect() {
-    runBlocking {
+  private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
+
+  override fun doConnect(): ListenableFuture<Nothing> {
+    val future = SettableFuture.create<Nothing>()
+    scope.launch(exceptionHandler) {
+      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
         composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model)
       }
 
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
       propertiesProvider = AppInspectionPropertiesProvider(viewInspector, composeInspector, model)
-    }
 
-    debugViewAttributes.set()
+      metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-    if (isCapturing) {
-      startFetching()
+      debugViewAttributes.set()
+
+      if (isCapturing) {
+        startFetching()
+      }
+      else {
+        refresh()
+      }
+
+      future.set(null)
     }
-    else {
-      refresh()
-    }
+    return future
   }
 
   override fun doDisconnect(): ListenableFuture<Nothing> {
@@ -95,6 +106,8 @@ class AppInspectionInspectorClient(
       debugViewAttributes.clear()
       viewInspector.disconnect()
       composeInspector?.disconnect()
+      metrics.logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
+
       SkiaParser.shutdownAll()
       future.set(null)
     }
@@ -120,7 +133,10 @@ class AppInspectionInspectorClient(
   }
 
   override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)!!
-  override val treeLoader: TreeLoader = AppInspectionTreeLoader(model.project)
+  override val treeLoader: TreeLoader = AppInspectionTreeLoader(
+    model.project,
+    logEvent = metrics::logEvent
+  )
   override val provider: PropertiesProvider
     get() = propertiesProvider
   override val isCapturing: Boolean

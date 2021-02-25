@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 /**
@@ -48,11 +49,11 @@ class EmulatorViewRule : TestRule {
   val project: Project
     get() = projectRule.project
 
-  fun newEmulatorView(): EmulatorView {
+  fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) } ): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
     val grpcPort = 8554 + counter++
-    val fakeEmulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), grpcPort)
+    val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder), grpcPort)
     fakeEmulators[grpcPort] = fakeEmulator
     fakeEmulator.start()
     val emulators = catalog.updateNow().get()

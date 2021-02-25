@@ -2,18 +2,18 @@ android {
   defaultConfig {
     externalNativeBuild {
       cmake {
-        abiFilters = mutableSetOf("abiFilterX")
-        arguments = listOf("argumentX")
-        cFlags = listOf("cFlagX")
-        cppFlags = listOf("cppFlagX")
-        targets = mutableSetOf("targetX")
+        abiFilters += setOf("abiFilterX")
+        arguments += listOf("argumentX")
+        cFlags += listOf("cFlagX")
+        cppFlags += listOf("cppFlagX")
+        targets += setOf("targetX")
       }
       ndkBuild {
-        abiFilters = mutableSetOf("abiFilterY")
-        arguments = listOf("argumentY")
-        cFlags = listOf("cFlagY")
-        cppFlags = listOf("cppFlagY")
-        targets = mutableSetOf("targetY")
+        abiFilters += setOf("abiFilterY")
+        arguments += listOf("argumentY")
+        cFlags += listOf("cFlagY")
+        cppFlags += listOf("cppFlagY")
+        targets += setOf("targetY")
       }
     }
     ndk {

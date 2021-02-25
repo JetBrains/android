@@ -67,7 +67,6 @@ fun ProjectDumper.dumpAndroidIdeModel(project: Project) {
 
 private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   prop("ModelVersion") { ideAndroidModel.modelVersion }
-  prop("ApiVersion") { ideAndroidModel.apiVersion.toString() }
   prop("ProjectType") { ideAndroidModel.projectType.toString() }
   prop("CompileTarget") { ideAndroidModel.compileTarget }
   prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }
@@ -348,6 +347,7 @@ private fun ProjectDumper.dump(ideSourceProvider: IdeSourceProvider) {
   prop("Name") { ideSourceProvider.name }
   prop("Manifest") { ideSourceProvider.manifestFile.path.toPrintablePath() }
   ideSourceProvider.javaDirectories.forEach { prop("JavaDirectories") { it.path.toPrintablePath() } }
+  ideSourceProvider.kotlinDirectories.forEach { prop("KotlinDirectories") { it.path.toPrintablePath() } }
   ideSourceProvider.resourcesDirectories.forEach { prop("ResourcesDirectories") { it.path.toPrintablePath() } }
   ideSourceProvider.aidlDirectories.forEach { prop("AidlDirectories") { it.path.toPrintablePath() } }
   ideSourceProvider.renderscriptDirectories.forEach { prop("RenderscriptDirectories") { it.path.toPrintablePath() } }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
@@ -28,13 +28,12 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
 import com.intellij.ide.startup.ServiceNotReadyException
 import com.intellij.openapi.actionSystem.DataKey
@@ -101,6 +100,12 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         }
         Disposer.register(workbench, processes)
 
+        processes.addSelectedProcessListeners {
+          // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
+          // encountered during a previous run.
+          InspectorBannerService.getInstance(project).notification = null
+        }
+
         val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
         val layoutInspector = LayoutInspector(launcher, model)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
@@ -133,11 +138,7 @@ class LayoutInspectorToolWindowManagerListener(private val project: Project,
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged) {
       if (isWindowVisible) {
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-                           .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                             .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
-                           .withProjectId(project))
+        LayoutInspectorMetrics.create(project).logEvent(DynamicLayoutInspectorEventType.OPEN)
       }
       else if (inspector.currentClient.isConnected && !wasMinimizedMessageShown) {
         wasMinimizedMessageShown = true

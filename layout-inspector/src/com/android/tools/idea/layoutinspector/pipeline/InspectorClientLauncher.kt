@@ -19,15 +19,19 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
+import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -36,11 +40,16 @@ import java.util.concurrent.TimeUnit
  *
  * @param clientCreators Client factory callbacks that will be triggered in order, and the first
  * callback to return a non-null value will be used.
+ *
+ * @param executor The executor which will handle connecting / launching the current client. This
+ * should not be the UI thread, in order to avoid blocking the UI during this time.
  */
 class InspectorClientLauncher(adb: AndroidDebugBridge,
                               processes: ProcessesModel,
                               clientCreators: List<(Params) -> InspectorClient?>,
-                              parentDisposable: Disposable) {
+                              parentDisposable: Disposable,
+                              @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
+                              @VisibleForTesting connectTimeout: Duration = Duration.ofSeconds(10)) {
   companion object {
 
     /**
@@ -83,7 +92,7 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
   }
 
   init {
-    processes.addSelectedProcessListeners {
+    processes.addSelectedProcessListeners(executor) {
       val process = processes.selectedProcess
 
       var validClientConnected = false
@@ -98,9 +107,21 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
           val client = createClient(params)
           if (client != null) {
             try {
-              activeClient = client // Might fail if client.connect() fails
-              validClientConnected = true
-              break
+              val latch = CountDownLatch(1)
+              client.registerStateCallback { state ->
+                // The "activeClient == client" check here to protects against the rare (practically improbable?) case
+                // where an attempt to connect hung until *just* past after timeout, and this callback got triggered
+                // after we had already moved onto a new client.
+                if (state == InspectorClient.State.CONNECTED && activeClient == client) {
+                  validClientConnected = true
+                  latch.countDown()
+                }
+              }
+              activeClient = client // client.connect() call internally might throw
+              // Skips over break if client.connect() hangs
+              if (latch.await(connectTimeout.toMillis(), TimeUnit.MILLISECONDS)) {
+                break
+              }
             }
             catch (ignored: Exception) {
             }

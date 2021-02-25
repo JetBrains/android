@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -51,11 +51,22 @@ class ViewAndroidWindow(
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
   private val isInterrupted: () -> Boolean,
   private val updateScreenshotType: (Screenshot.Type) -> Unit,
-  // TODO(b/17089580): Add support for logging events and pass it down here
-  private val logEvent: (DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) -> Unit = {})
+  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit)
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
   private var bytes = event.screenshot.bytes.toByteArray()
+
+  private var loggedInitialRender = false
+
+  private fun logInitialRender(imageType: ImageType) {
+    if (loggedInitialRender) return
+    when (imageType) {
+      ImageType.SKP -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
+      ImageType.BITMAP_AS_REQUESTED -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
+      ImageType.UNKNOWN -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE)
+    }
+    loggedInitialRender = true
+  }
 
   override fun copyFrom(other: AndroidWindow) {
     super.copyFrom(other)
@@ -71,7 +82,7 @@ class ViewAndroidWindow(
         when (imageType) {
           ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes, root)
           ImageType.SKP -> processSkp(bytes, skiaParser, project, root, scale)
-          else -> logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+          else -> logInitialRender(ImageType.UNKNOWN) // Shouldn't happen
         }
       }
       catch (ex: Exception) {
@@ -111,7 +122,7 @@ class ViewAndroidWindow(
       // metrics will be logged when we come back with a bitmap
     }
     else {
-      logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER)
+      logInitialRender(ImageType.SKP)
       ViewNode.writeDrawChildren { drawChildren ->
         rootView.flatten().forEach { it.drawChildren().clear() }
         ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
@@ -138,7 +149,7 @@ class ViewAndroidWindow(
       rootView.drawChildren().add(DrawViewImage(image, rootView))
       rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
     }
-    logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
+    logInitialRender(ImageType.BITMAP_AS_REQUESTED)
   }
 
   private fun getViewTree(

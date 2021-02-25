@@ -15,15 +15,18 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.dataviewer.DataViewer;
-import com.android.tools.profilers.stacktrace.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.android.tools.profilers.stacktrace.StackTraceGroup;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
+import javax.swing.JComponent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Abstractions for various, custom UI components that are useful to use throughout the profilers,

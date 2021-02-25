@@ -121,8 +121,8 @@ public class DebugOnEmulatorTest {
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
     ideFrameFixture.getAndroidLogcatToolWindow()
-                   .selectDevicesTab()
-                   .selectProcess(PROCESS_NAME);
+      .show()
+      .selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();
   }
 }

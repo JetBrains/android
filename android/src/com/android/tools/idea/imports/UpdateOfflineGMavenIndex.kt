@@ -19,7 +19,6 @@ package com.android.tools.idea.imports
 
 import com.google.common.io.Resources
 import java.net.URL
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -38,14 +37,14 @@ fun main(args: Array<String>) {
     error("Invalid directory: should be pointing to the root of a tools checkout directory.")
   }
 
-  val indexData = readUrlDataAsString("${BASE_URL}/v$VERSION/$NAME-v$VERSION.json")
+  val indexData = ungzip(readUrlData("$BASE_URL/$RELATIVE_PATH"))
 
   val file = repoRoot.resolve("tools/adt/idea/android/resources/gmavenIndex/$OFFLINE_NAME.json")
-  Files.write(file, listOf(indexData), StandardOpenOption.CREATE)
+  Files.write(file, indexData, StandardOpenOption.CREATE)
   println("Finished updating $file.")
 }
 
 /**
  * Reads the data from the given URL.
  */
-private fun readUrlDataAsString(url: String): String = Resources.asCharSource(URL(url), StandardCharsets.UTF_8).read()
+private fun readUrlData(url: String): ByteArray = Resources.asByteSource(URL(url)).read()

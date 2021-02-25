@@ -25,7 +25,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profilers.ContentType;
+import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;

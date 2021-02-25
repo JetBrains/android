@@ -19,9 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.ide.io.IdeFileService
+import com.android.tools.idea.io.FileService
+import com.android.tools.idea.io.IdeFileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

@@ -41,6 +41,7 @@ import com.intellij.psi.PsiModifierList
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch.searchPsiClasses
 import com.intellij.psi.util.CachedValue
@@ -101,10 +102,10 @@ class RoomSchemaManager(val module: Module) {
     // Some of this logic is repeated in [RoomReferenceSearchExecutor], make sure to keep them in sync.
     val entities = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.ENTITY) { createTable(it, RoomTable.Type.ENTITY) }
     val views = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DATABASE_VIEW) { createTable(it, RoomTable.Type.VIEW) }
-    val databases = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DATABASE) { this.createDatabase(it, pointerManager) }
     val daos = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DAO) {
       Dao(pointerManager.createSmartPsiElementPointer(it))
     }
+    val databases = processAnnotatedClasses(psiFacade, scope, RoomAnnotations.DATABASE) { this.createDatabase(it, pointerManager, daos) }
 
     return RoomSchema(databases, entities + views, daos)
   }
@@ -226,21 +227,29 @@ class RoomSchemaManager(val module: Module) {
     return createColumnsFromFields(embeddedClass, currentPrefix + newPrefix)
   }
 
-  private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager): RoomDatabase? {
-    val entitiesElementValue: HashSet<PsiClassPointer>? =
-      psiClass.modifierList
-        ?.findAnnotation(RoomAnnotations.DATABASE)
-        ?.findDeclaredAttributeValue("tables")
-        ?.let { it as? PsiArrayInitializerMemberValue }
-        ?.initializers
-        ?.mapNotNullTo(HashSet()) {
-          val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
-          PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
-            ?.let(pointerManager::createSmartPsiElementPointer)
-        }
+  private fun PsiAnnotation.extractClassesFromAttribute(attribute: String): Set<PsiClassPointer> = findDeclaredAttributeValue(attribute)
+  ?.let { it as? PsiArrayInitializerMemberValue }
+  ?.initializers
+  ?.mapNotNullTo(HashSet()) {
+    val classObjectAccessExpression = it as? PsiClassObjectAccessExpression ?: return@mapNotNullTo null
+    PsiUtil.resolveClassInClassTypeOnly(classObjectAccessExpression.operand.type)
+      ?.let(pointerManager::createSmartPsiElementPointer)
+  } ?: emptySet()
 
-    return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass),
-                                                                    entitiesElementValue ?: emptySet())
+  private fun createDatabase(psiClass: PsiClass, pointerManager: SmartPointerManager, daos: Set<Dao>): RoomDatabase? {
+    val dataBaseAnnotation = psiClass.modifierList?.findAnnotation(RoomAnnotations.DATABASE) ?: return null
+    val entities: Set<PsiClassPointer> = dataBaseAnnotation.extractClassesFromAttribute("entities")
+    val views: Set<PsiClassPointer> = dataBaseAnnotation.extractClassesFromAttribute("views")
+
+    val daosExposedInDatabase: Set<PsiClassPointer> = psiClass.allMethods
+      .mapNotNullTo((HashSet())) {
+        val resolvedClass = (it.returnType as? PsiClassReferenceType)?.resolve()
+        resolvedClass
+          ?.takeIf { daos.any { dao -> dao.psiClass.element == resolvedClass } }
+          ?.let(pointerManager::createSmartPsiElementPointer)
+      }
+
+    return RoomDatabase(pointerManager.createSmartPsiElementPointer(psiClass), entities = entities, daos = daosExposedInDatabase, views = views)
   }
 
   private fun <T> getNameAndNameElement(

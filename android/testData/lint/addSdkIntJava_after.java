@@ -1,9 +1,9 @@
 package p1.p2;
 
-import androidx.annotation.ChecksSdkIntAtLeast;
-
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.N;
+
+import androidx.annotation.ChecksSdkIntAtLeast;
 
 public class JavaSdkIntTest {
   @ChecksSdkIntAtLeast(api = N)

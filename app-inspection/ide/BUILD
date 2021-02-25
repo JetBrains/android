@@ -74,5 +74,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )

@@ -60,7 +60,8 @@ class CheckSdkOperation(context: InstallContext) : InstallOperation<File, File>(
 
 private val MESSAGE_CANT_RUN_TOOL = "<html><p>" + Joiner.on("</p><p>").join(unableToRunMessage) + "</p></html>"
 private val TOOL_NAME = "mksdcard" + (".exe".takeIf { SystemInfo.isWindows } ?: "")
-private val ERROR_CANT_RUN_TOOL = "Unable to run $TOOL_NAME SDK tool."
+private val ERROR_CANT_RUN_TOOL = "Unable to run $TOOL_NAME SDK tool." +
+                                  ("\nTry installing the latest Visual C++ Runtime from Microsoft.".takeIf { SystemInfo.isWindows } ?: "")
 private const val URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries"
 private const val LINK_MISSING_LIBRARIES = "Show Android SDK web page"
 private const val ERROR_NO_EMULATOR_DIR = "SDK emulator directory is missing"

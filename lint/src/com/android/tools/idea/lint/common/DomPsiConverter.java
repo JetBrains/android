@@ -755,9 +755,28 @@ public class DomPsiConverter {
       if (myChildren == null) {
         DomNodeList list = new DomNodeList();
         myChildren = list;
-        DomNode documentElement = (DomNode)getDocumentElement();
-        if (documentElement != null) {
-          list.add(documentElement);
+        // Include siblings as well such as the root comment
+        PsiElement element = myPsiDocument.getFirstChild();
+        while (element != null) {
+          if (element instanceof XmlTag) {
+            if (myRoot != null && myRoot.myTag == element) {
+              list.add(myRoot);
+            } else {
+              DomElement node = new DomElement(this, this, (XmlTag)element);
+              if (myRoot == null) {
+                myRoot = node;
+              }
+              list.add(node);
+            }
+          } else if (element instanceof XmlComment) {
+            DomNode node = new DomComment(this, this, (XmlComment)element);
+            list.add(node);
+          } else if (element instanceof XmlText) {
+            // This is not valid XML but PSI may represent erroneous XML being edited
+            DomNode node = new DomText(this, this, (XmlText)element);
+            list.add(node);
+          }
+          element = element.getNextSibling();
         }
       }
 
@@ -1235,6 +1254,11 @@ public class DomPsiConverter {
       return true;
     }
 
+    @Override
+    public @NotNull String getData() throws DOMException {
+      return getNodeValue();
+    }
+
     @NotNull
     @Override
     public String getWholeText() {
@@ -1272,7 +1296,7 @@ public class DomPsiConverter {
         return application.runReadAction((Computable<String>)this::getNodeValue);
       }
 
-      return myComment.getText();
+      return myComment.getCommentText();
     }
 
     @Override
@@ -1283,6 +1307,11 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getTextContent() throws DOMException {
+      return getNodeValue();
+    }
+
+    @Override
+    public @NotNull String getData() throws DOMException {
       return getNodeValue();
     }
   }

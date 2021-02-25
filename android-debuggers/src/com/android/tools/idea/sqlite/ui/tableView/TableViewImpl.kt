@@ -77,6 +77,9 @@ import javax.swing.table.TableCellRenderer
  * Abstraction on the UI component used to display tables.
  */
 class TableViewImpl : TableView {
+  private val tableIsEmptyText = DatabaseInspectorBundle.message("table.is.empty")
+  private val loadingTableDataText = DatabaseInspectorBundle.message("loading.data")
+
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
 
@@ -211,7 +214,7 @@ class TableViewImpl : TableView {
 
     table.resetDefaultFocusTraversalKeys()
     table.isStriped = true
-    table.emptyText.text = "Table is empty"
+    table.emptyText.text = tableIsEmptyText
     table.emptyText.isShowAboveCenter = false
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
@@ -261,8 +264,9 @@ class TableViewImpl : TableView {
     progressBarPanel.add(progressBar, BorderLayout.NORTH)
     progressBarPanel.isOpaque = false
 
-    layeredPane.add(progressBarPanel)
+    // add the table first, otherwise the "resise column" is not shown when hovering the table's header
     layeredPane.add(tablePanel)
+    layeredPane.add(progressBarPanel)
     layeredPane.layout = MatchParentLayoutManager()
 
     progressBar.isVisible = false
@@ -284,7 +288,7 @@ class TableViewImpl : TableView {
   override fun resetView() {
     columns = null
     table.model = MyTableModel(emptyList())
-    table.emptyText.text = "Table is empty"
+    table.emptyText.text = tableIsEmptyText
     orderBy = OrderBy.NotOrdered
 
     setEditable(true)
@@ -299,6 +303,7 @@ class TableViewImpl : TableView {
 
     progressBar.isVisible = true
     table.isEnabled = false
+    table.emptyText.text = loadingTableDataText
 
     tableHadFocus = table.hasFocus()
     if (table.hasFocus()) {
@@ -313,6 +318,7 @@ class TableViewImpl : TableView {
   override fun stopTableLoading() {
     myRevertLastTableCellEdit = null
     setControlButtonsEnabled(true)
+    table.emptyText.text = tableIsEmptyText
 
     isLoading = false
 

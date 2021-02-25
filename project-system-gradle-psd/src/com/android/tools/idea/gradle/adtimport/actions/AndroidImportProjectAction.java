@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
@@ -53,9 +52,9 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.openapi.util.NlsActions;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.projectImport.ProjectImportProvider;
 import java.io.File;
 import java.io.IOException;
@@ -85,19 +84,10 @@ public class AndroidImportProjectAction extends AnAction {
   private static final String WIZARD_DESCRIPTION = "Select your Eclipse project folder, build.gradle or settings.gradle";
   @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
 
-  public AndroidImportProjectAction() {
-    this("Import Project...");
-  }
-
-  public AndroidImportProjectAction(@NotNull String text) {
-    super(text);
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
-      e.getPresentation().setIcon(AllIcons.ToolbarDecorator.Import);
-    }
+  public AndroidImportProjectAction(@Nullable @NlsActions.ActionText String text,
+                                    @Nullable @NlsActions.ActionDescription String description,
+                                    @Nullable Icon icon) {
+    super(text, description, icon);
   }
 
   @Override

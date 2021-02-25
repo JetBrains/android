@@ -87,7 +87,7 @@ iml_module(
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
-        "//prebuilts/studio/layoutlib/data:layoutlib",
+        "//tools/adt/idea/.idea/libraries:layoutlib",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
@@ -1138,10 +1138,12 @@ kotlin_library(
     name = "update_offline_gmaven_index",
     srcs = [
         "src/com/android/tools/idea/imports/GMavenIndexConstants.kt",
+        "src/com/android/tools/idea/imports/GzipUtils.kt",
         "src/com/android/tools/idea/imports/UpdateOfflineGMavenIndex.kt",
     ],
     deps = [
         "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:org.apache.commons_commons-compress",
     ],
 )
 

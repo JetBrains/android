@@ -208,7 +208,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   // Instant Apps cannot be built as bundles
   private List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
-    return facets.stream().filter(f -> !InstantApps.isInstantAppApplicationModule(f.getModule())).collect(Collectors.toList());
+    return facets.stream().filter(f -> !InstantApps.isInstantAppApplicationModule(f)).collect(Collectors.toList());
   }
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {

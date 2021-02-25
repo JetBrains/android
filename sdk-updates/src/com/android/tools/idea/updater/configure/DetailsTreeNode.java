@@ -73,6 +73,7 @@ class DetailsTreeNode extends UpdaterTreeNode {
     }
   }
 
+  @SuppressWarnings("EqualsHashCode")  // b/180537631
   @Override
   public boolean equals(@NotNull Object obj) {
     if (!(obj instanceof DetailsTreeNode)) {

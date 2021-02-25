@@ -46,6 +46,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
@@ -70,7 +71,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDr
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -1659,6 +1659,24 @@ public class LayoutlibSceneManager extends SceneManager {
   private long currentTimeNanos() {
     synchronized (myRenderingTaskLock) {
       return mySessionClock.getTimeNanos();
+    }
+  }
+
+  /**
+   * Pauses session clock, so that session time stops advancing.
+   */
+  public void pauseSessionClock() {
+    synchronized (myRenderingTaskLock) {
+      mySessionClock.pause();
+    }
+  }
+
+  /**
+   * Resumes session clock, so that session time keeps advancing.
+   */
+  public void resumeSessionClock() {
+    synchronized (myRenderingTaskLock) {
+      mySessionClock.resume();
     }
   }
 

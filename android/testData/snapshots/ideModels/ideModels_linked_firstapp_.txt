@@ -1,7 +1,6 @@
 MODULE                        : My_First_App
 MODULE                        : My_First_App.app
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 0
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
@@ -66,6 +65,8 @@ MODULE                        : My_First_App.app
             Name                          : main
             Manifest                      : <ROOT>/firstapp/app/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/firstapp/app/src/main/java
+            KotlinDirectories             : <ROOT>/firstapp/app/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/firstapp/app/src/main/java
             ResourcesDirectories          : <ROOT>/firstapp/app/src/main/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/firstapp/app/src/main/rs [-]
@@ -81,6 +82,8 @@ MODULE                        : My_First_App.app
                     Name                          : androidTest
                     Manifest                      : <ROOT>/firstapp/app/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTest/rs [-]
@@ -95,6 +98,8 @@ MODULE                        : My_First_App.app
                     Name                          : test
                     Manifest                      : <ROOT>/firstapp/app/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/test/java
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/test/java
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/test/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/test/rs [-]
@@ -115,6 +120,8 @@ MODULE                        : My_First_App.app
             Name                          : debug
             Manifest                      : <ROOT>/firstapp/app/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/firstapp/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/firstapp/app/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/firstapp/app/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/firstapp/app/src/debug/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/firstapp/app/src/debug/rs [-]
@@ -130,6 +137,8 @@ MODULE                        : My_First_App.app
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/firstapp/app/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTestDebug/rs [-]
@@ -145,6 +154,8 @@ MODULE                        : My_First_App.app
                     Name                          : testDebug
                     Manifest                      : <ROOT>/firstapp/app/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/testDebug/rs [-]
@@ -164,6 +175,8 @@ MODULE                        : My_First_App.app
             Name                          : release
             Manifest                      : <ROOT>/firstapp/app/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/firstapp/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/firstapp/app/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/firstapp/app/src/release/java [-]
             ResourcesDirectories          : <ROOT>/firstapp/app/src/release/resources [-]
             AidlDirectories               : <ROOT>/firstapp/app/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/firstapp/app/src/release/rs [-]
@@ -179,6 +192,8 @@ MODULE                        : My_First_App.app
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/firstapp/app/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/androidTestRelease/rs [-]
@@ -194,6 +209,8 @@ MODULE                        : My_First_App.app
                     Name                          : testRelease
                     Manifest                      : <ROOT>/firstapp/app/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/firstapp/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/firstapp/app/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/firstapp/app/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/firstapp/app/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/firstapp/app/src/testRelease/rs [-]
@@ -2008,7 +2025,6 @@ MODULE                        : My_First_App.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : 7.0.0-dev
-    ApiVersion                    : 3
     ProjectType                   : 1
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
@@ -2069,6 +2085,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Name                          : main
             Manifest                      : <ROOT>/shared/mysharedlibrary/src/main/AndroidManifest.xml
             JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/main/java [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/main/kotlin [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/main/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/main/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/main/aidl [-]
             RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/main/rs [-]
@@ -2084,6 +2102,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : androidTest
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/androidTest/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTest/java
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTest/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTest/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTest/rs [-]
@@ -2098,6 +2118,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : test
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/test/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/test/java
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/test/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/test/java
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/test/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/test/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/test/rs [-]
@@ -2118,6 +2140,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Name                          : debug
             Manifest                      : <ROOT>/shared/mysharedlibrary/src/debug/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/kotlin [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/debug/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/debug/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/debug/aidl [-]
             RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/debug/rs [-]
@@ -2133,6 +2157,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : androidTestDebug
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTestDebug/rs [-]
@@ -2148,6 +2174,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : testDebug
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/testDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testDebug/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/testDebug/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/testDebug/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/testDebug/rs [-]
@@ -2167,6 +2195,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
             Name                          : release
             Manifest                      : <ROOT>/shared/mysharedlibrary/src/release/AndroidManifest.xml [-]
             JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/release/java [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/release/kotlin [-]
+            KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/release/java [-]
             ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/release/resources [-]
             AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/release/aidl [-]
             RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/release/rs [-]
@@ -2182,6 +2212,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : androidTestRelease
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/androidTestRelease/rs [-]
@@ -2197,6 +2229,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     Name                          : testRelease
                     Manifest                      : <ROOT>/shared/mysharedlibrary/src/testRelease/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/shared/mysharedlibrary/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/kotlin [-]
+                    KotlinDirectories             : <ROOT>/shared/mysharedlibrary/src/testRelease/java [-]
                     ResourcesDirectories          : <ROOT>/shared/mysharedlibrary/src/testRelease/resources [-]
                     AidlDirectories               : <ROOT>/shared/mysharedlibrary/src/testRelease/aidl [-]
                     RenderscriptDirectories       : <ROOT>/shared/mysharedlibrary/src/testRelease/rs [-]
@@ -2779,8 +2813,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                SigningConfigName             : debug
-                IsSigned                      : true
+                IsSigned                      : false
                 BundleTaskName                : bundleDebug
                 ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null

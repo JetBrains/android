@@ -45,6 +45,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +56,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -139,6 +142,11 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
    */
   @NotNull
   private final ModuleClassLoaderDiagnosticsWrite myDiagnostics;
+  /**
+   * Holds the provider that allows finding the source file that originated this
+   * {@link ModuleClassLoader}. It allows for scoping the search of .class files.
+   */
+  private final Supplier<VirtualFile> mySourceFileProvider;
 
   /**
    * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
@@ -171,27 +179,33 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     return StringUtil.trimStart(name, INTERNAL_PACKAGE);
   }
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
                     @NotNull ClassTransform projectTransformations,
                     @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    this(parent, module, projectTransformations, nonProjectTransformations,
-         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(module) : ClassBinaryCache.NO_CACHE,
+    this(parent, renderContext, projectTransformations, nonProjectTransformations,
+         NELE_CLASS_BINARY_CACHE.get() ? ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule()) : ClassBinaryCache.NO_CACHE,
          diagnostics);
   }
 
-  private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
+  private ModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
                     @NotNull ClassTransform projectTransformations,
                     @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ClassBinaryCache cache,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
-    myModuleReference = new WeakReference<>(module);
+    myModuleReference = new WeakReference<>(renderContext.getModule());
+    // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
+    final Function0<PsiFile> sourcePsiFileProvider = renderContext.getFileProvider();
+    mySourceFileProvider = () -> {
+      PsiFile file = sourcePsiFileProvider.invoke();
+      return file != null ? file.getVirtualFile() : null;
+    };
     mAdditionalLibraries = getAdditionalLibraries();
-    myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(module.getProject()).getModificationCount();
+    myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(renderContext.getProject()).getModificationCount();
     myDiagnostics = diagnostics;
 
-    registerResources(module);
+    registerResources(renderContext.getModule());
     cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
   }
 
@@ -365,7 +379,9 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
         return PseudoClass.Companion.objectPseudoClass();
       }
 
-      VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module).findClassFile(classFqn);
+      VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
+        .getClassFileFinderForSourceFile(mySourceFileProvider.get())
+        .findClassFile(classFqn);
       if (classFile != null) {
         try {
           return PseudoClass.Companion.fromByteArray(classFile.contentsToByteArray(), this);
@@ -389,7 +405,9 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
       return null;
     }
 
-    VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module).findClassFile(name);
+    VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
+      .getClassFileFinderForSourceFile(mySourceFileProvider.get())
+      .findClassFile(name);
 
     if (classFile == null) {
       return null;

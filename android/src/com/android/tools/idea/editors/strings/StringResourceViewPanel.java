@@ -31,31 +31,44 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.ui.components.JBPanel;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.text.JTextComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class StringResourceViewPanel implements Disposable {
   private final AndroidFacet myFacet;
 
-  private final JBLoadingPanel myLoadingPanel;
-  private JPanel myContainer;
-  private JPanel myToolbarPanel;
   private StringResourceTable myTable;
+  private @Nullable Component myToolbar;
+  private @Nullable Component myScrollPane;
+  private final @NotNull Component myKeyLabel;
   private JTextComponent myKeyTextField;
-  @VisibleForTesting TextFieldWithBrowseButton myDefaultValueTextField;
+  private final @NotNull Component myDefaultValueLabel;
+
+  @VisibleForTesting
+  TextFieldWithBrowseButton myDefaultValueTextField;
+
+  private final @NotNull Component myTranslationLabel;
   private TextFieldWithBrowseButton myTranslationTextField;
+  private @Nullable Container myPanel;
+  private final @NotNull JBLoadingPanel myLoadingPanel;
 
   private RemoveKeysAction myRemoveKeysAction;
   private AddLocaleAction myAddLocaleAction;
@@ -66,18 +79,20 @@ public final class StringResourceViewPanel implements Disposable {
     myFacet = facet;
     Disposer.register(parentDisposable, this);
 
-    myToolbarPanel.add(createToolbar().getComponent());
-
-    GridConstraints constraints = new GridConstraints();
-    constraints.setFill(GridConstraints.FILL_BOTH);
-    constraints.setRow(1);
-
-    myContainer.add(myTable.getScrollPane(), constraints);
+    initTable();
+    initToolbar();
+    myKeyLabel = new JBLabel("Key:", SwingConstants.RIGHT);
+    initKeyTextField();
+    myDefaultValueLabel = new JBLabel("Default value:", SwingConstants.RIGHT);
+    initDefaultValueTextField();
+    myTranslationLabel = new JBLabel("Translation:", SwingConstants.RIGHT);
+    initTranslationTextField();
+    initPanel();
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this, 200);
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.setName("translationsEditor");
-    myLoadingPanel.add(myContainer);
+    myLoadingPanel.add(myPanel);
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -89,21 +104,7 @@ public final class StringResourceViewPanel implements Disposable {
   public void dispose() {
   }
 
-  public void removeSelectedKeys() {
-    myRemoveKeysAction.perform();
-  }
-
-  private void createUIComponents() {
-    createTable();
-    createTablePopupMenu();
-
-    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
-
-    createDefaultValueTextField();
-    createTranslationTextField();
-  }
-
-  private void createTable() {
+  private void initTable() {
     myRemoveKeysAction = new RemoveKeysAction(this);
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(this);
@@ -113,9 +114,7 @@ public final class StringResourceViewPanel implements Disposable {
     myTable.putInActionMap("delete", myDeleteAction);
     myTable.addFrozenColumnTableListener(new CellSelectionListener());
     myTable.addFrozenColumnTableListener(new RemoveLocaleMouseListener(this));
-  }
 
-  private void createTablePopupMenu() {
     JPopupMenu menu = new JPopupMenu();
     JMenuItem goTo = menu.add(myGoToAction);
     JMenuItem delete = menu.add(myDeleteAction);
@@ -132,22 +131,99 @@ public final class StringResourceViewPanel implements Disposable {
         }
       }
     });
+
+    myScrollPane = myTable.getScrollPane();
   }
 
-  private void createDefaultValueTextField() {
+  private void initToolbar() {
+    myAddLocaleAction = new AddLocaleAction(this);
+
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new AddKeyAction(this));
+    group.add(myRemoveKeysAction);
+    group.add(myAddLocaleAction);
+    group.add(new FilterKeysAction(myTable));
+    group.add(new FilterLocalesAction(myTable));
+    group.add(new ReloadStringResourcesAction(this));
+    group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
+
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
+
+    myToolbar = toolbar.getComponent();
+    myToolbar.setName("toolbar");
+  }
+
+  private void initKeyTextField() {
+    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
+
+    myKeyTextField.setEnabled(false);
+    myKeyTextField.setName("keyTextField");
+  }
+
+  private void initDefaultValueTextField() {
     JTextField textField = new TranslationsEditorTextField(myTable, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
+
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myDefaultValueTextField.setName("defaultValueTextField");
   }
 
-  private void createTranslationTextField() {
+  private void initTranslationTextField() {
     JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedModelColumnIndex);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
+
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myTranslationTextField.setEnabled(false);
+    myTranslationTextField.setName("translationTextField");
+  }
+
+  private void initPanel() {
+    myPanel = new JBPanel<>();
+    GroupLayout layout = new GroupLayout(myPanel);
+
+    layout.linkSize(SwingConstants.HORIZONTAL, myKeyLabel, myDefaultValueLabel, myTranslationLabel);
+    layout.linkSize(SwingConstants.VERTICAL, myKeyLabel, myKeyTextField);
+    layout.linkSize(SwingConstants.VERTICAL, myDefaultValueLabel, myDefaultValueTextField);
+    layout.linkSize(SwingConstants.VERTICAL, myTranslationLabel, myTranslationTextField);
+
+    Group horizontalGroup = layout.createParallelGroup()
+      .addComponent(myToolbar)
+      .addComponent(myScrollPane)
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myKeyLabel)
+                  .addComponent(myKeyTextField))
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myDefaultValueLabel)
+                  .addComponent(myDefaultValueTextField))
+      .addGroup(layout.createSequentialGroup()
+                  .addComponent(myTranslationLabel)
+                  .addComponent(myTranslationTextField));
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addComponent(myToolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addComponent(myScrollPane)
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myKeyLabel)
+                  .addComponent(myKeyTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myDefaultValueLabel)
+                  .addComponent(myDefaultValueTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+      .addGroup(layout.createParallelGroup()
+                  .addComponent(myTranslationLabel)
+                  .addComponent(myTranslationTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    myPanel.setLayout(layout);
+  }
+
+  public void removeSelectedKeys() {
+    myRemoveKeysAction.perform();
   }
 
   void reloadData() {
@@ -157,26 +233,6 @@ public final class StringResourceViewPanel implements Disposable {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ResourceLoadingTask(this).queue();
     }
-  }
-
-  private ActionToolbar createToolbar() {
-    myAddLocaleAction = new AddLocaleAction(this);
-
-    DefaultActionGroup group = new DefaultActionGroup();
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("TranslationsEditorToolbar", group, true);
-
-    JComponent toolbarComponent = toolbar.getComponent();
-    toolbarComponent.setName("toolbar");
-
-    group.add(new AddKeyAction(this));
-    group.add(myRemoveKeysAction);
-    group.add(myAddLocaleAction);
-    group.add(new FilterKeysAction(myTable));
-    group.add(new FilterLocalesAction(myTable));
-    group.add(new ReloadStringResourcesAction(this));
-    group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
-
-    return toolbar;
   }
 
   @NotNull

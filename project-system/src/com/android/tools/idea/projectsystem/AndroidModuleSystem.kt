@@ -34,10 +34,20 @@ import java.nio.file.Path
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, ModuleHierarchyProvider {
+interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvider {
 
   /** [Module] that this [AndroidModuleSystem] handles. */
   val module: Module
+
+  /** [ClassFileFinder] that uses this module as scope for the search. */
+  val moduleClassFileFinder: ClassFileFinder
+
+  /**
+   * Optional method to implement by [AndroidModuleSystem] implementations that allows scoping the search to a specific
+   * origin source file to allow for disambiguation.
+   * If the given [sourceFile] is null, this method will return the [moduleClassFileFinder] for the [Module].
+   */
+  fun getClassFileFinderForSourceFile(sourceFile: VirtualFile?) = moduleClassFileFinder
 
   /**
    * Requests information about the folder layout for the module. This can be used to determine

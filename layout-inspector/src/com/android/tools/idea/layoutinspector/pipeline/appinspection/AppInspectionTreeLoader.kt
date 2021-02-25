@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewInspectorTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 
 /**
@@ -31,6 +32,7 @@ import com.intellij.openapi.project.Project
  */
 class AppInspectionTreeLoader(
   private val project: Project,
+  private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
   private val skiaParser: SkiaParserService = SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
     if (data is ViewLayoutInspectorClient.Data) {
@@ -40,7 +42,8 @@ class AppInspectionTreeLoader(
         data.viewEvent,
         resourceLookup,
         data.composeEvent,
-        data.updateScreenshotType
+        data.updateScreenshotType,
+        logEvent
       ).loadComponentTree()
       return window to data.generation
     }

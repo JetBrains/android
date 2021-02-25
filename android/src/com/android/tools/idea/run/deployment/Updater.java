@@ -209,7 +209,7 @@ final class Updater {
   }
 
   private void updateInToolbarForMultipleDevices() {
-    Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog();
+    Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog(myDevices);
 
     Set<Target> targets = myDevices.stream()
       .map(Device::getTargets)

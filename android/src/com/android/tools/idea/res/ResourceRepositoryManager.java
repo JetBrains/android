@@ -745,9 +745,8 @@ public final class ResourceRepositoryManager implements Disposable {
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
-        IdeAndroidProject androidProject = androidModel.getAndroidProject();
         IdeVariant variant = androidModel.getSelectedVariant();
-        return provider.get(androidProject, variant);
+        return provider.get(variant);
       }
     }
 

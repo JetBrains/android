@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
-import static com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationDataModel;
@@ -43,6 +42,7 @@ import io.grpc.StatusRuntimeException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -129,18 +129,16 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @Override
   public void enter() {
     super.enter();
-    if (isLiveAllocationTrackingSupported()) {
-      // TODO(b/172695266) disable allocation tracking by default
-      requestLiveAllocationSamplingModeUpdate(NONE);
-    }
-    updateAllocationTrackingStatus();
-    updateNativeAllocationTrackingStatus();
 
     myRecordingOptionsModel.addBuiltInOptions(makeHeapDumpOption());
     if (isNativeAllocationSamplingEnabled()) {
       myRecordingOptionsModel.addBuiltInOptions(makeNativeRecordingOption());
     }
     myRecordingOptionsModel.addBuiltInOptions(makeJavaRecodingOption());
+
+    // Update statuses after recording options model has been initialized
+    updateAllocationTrackingStatus();
+    updateNativeAllocationTrackingStatus();
   }
 
   @Override
@@ -246,16 +244,19 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     getStudioProfilers().getTransportPoller().registerListener(statusListener);
   }
 
-  private void nativeAllocationTrackingStart(@NotNull Memory.MemoryNativeTrackingData status) {
+  @VisibleForTesting
+  void nativeAllocationTrackingStart(@NotNull Memory.MemoryNativeTrackingData status) {
     switch (status.getStatus()) {
       case SUCCESS:
         myNativeAllocationTracking = true;
+        setModelToRecordingNative();
         setPendingCaptureStartTime(status.getStartTime());
         setTrackingAllocations(true);
         myPendingLegacyAllocationStartTimeNs = status.getStartTime();
         break;
       case IN_PROGRESS:
         myNativeAllocationTracking = true;
+        setModelToRecordingNative();
         setTrackingAllocations(true);
         getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", getSessionData().getPid()));
         break;
@@ -272,6 +273,15 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     getAspect().changed(MemoryProfilerAspect.TRACKING_ENABLED);
   }
 
+  private void setModelToRecordingNative() {
+    RecordingOption option = getRecordingOptionsModel().getBuiltInOptions().stream()
+      .filter(opt -> opt.getTitle().equals(RECORD_NATIVE_TEXT)).findFirst().orElse(null);
+    if (option != null) {
+      getRecordingOptionsModel().selectBuiltInOption(option);
+      getRecordingOptionsModel().setRecording();
+    }
+  }
+
   public void requestHeapDump() {
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert getStudioProfilers().getProcess() != null;
@@ -280,19 +290,21 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         .setPid(getSessionData().getPid())
         .setType(Commands.Command.CommandType.HEAP_DUMP)
         .build();
-      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
-        Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
-                                                                         getStudioProfilers().getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> getSessionData().getStreamId(),
-                                                                         () -> getSessionData().getPid(),
-                                                                         event -> {
-                                                                           handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
-                                                                           // unregisters the listener.
-                                                                           return true;
-                                                                         });
-      getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      CompletableFuture.runAsync(() -> {
+        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
+          Transport.ExecuteRequest.newBuilder().setCommand(dumpCommand).build());
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_HEAP_DUMP_STATUS,
+                                                                           getStudioProfilers().getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> getSessionData().getStreamId(),
+                                                                           () -> getSessionData().getPid(),
+                                                                           event -> {
+                                                                             handleHeapDumpStart(event.getMemoryHeapdumpStatus().getStatus());
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        getStudioProfilers().getTransportPoller().registerListener(statusListener);
+      }, getStudioProfilers().getIdeServices().getPoolExecutor());
     }
     else {
       TriggerHeapDumpResponse response = getClient().triggerHeapDump(TriggerHeapDumpRequest.newBuilder().setSession(getSessionData()).build());
@@ -397,9 +409,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                                                          ((AllocationDurationData<?>)durationData).getStart(),
                                                          ((AllocationDurationData<?>)durationData).getEnd()));
     }
-    else if (durationData != null &&
-             durationData.isSeparateStageData() &&
-             getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+    else if (durationData != null && durationData.isSeparateStageData()) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
     }
     else {

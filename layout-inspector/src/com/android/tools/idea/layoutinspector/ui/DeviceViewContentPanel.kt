@@ -72,6 +72,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   init {
+    background = primaryPanelBackground
     emptyText.appendLine("No process connected")
     emptyText.appendLine("Select process", SimpleTextAttributes.LINK_ATTRIBUTES) {
       val button = selectProcessAction.button
@@ -157,14 +158,14 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
                                                                   (y - size.height / 2.0) / viewSettings.scaleFraction)
 
   override fun paint(g: Graphics?) {
-    if (!model.isActive) {
-      super.paint(g)
-      return
-    }
     val g2d = g as? Graphics2D ?: return
+    g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
-    g2d.setRenderingHints(HQ_RENDERING_HINTS)
+    if (!model.isActive) {
+      super.paint(g2d)
+      return
+    }
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 

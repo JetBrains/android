@@ -18,7 +18,7 @@ android {
     compileSdkVersion(19)
     buildToolsVersion("19.1.0")
 
-    dynamicFeatures = mutableSetOf(":dyn_feature")
+    dynamicFeatures += setOf(":dyn_feature")
 
     signingConfigs {
         create("myConfig") {

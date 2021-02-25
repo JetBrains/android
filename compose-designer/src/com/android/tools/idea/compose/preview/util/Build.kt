@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.util
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -78,6 +79,13 @@ internal fun requestBuild(project: Project, module: Module) {
     return
   }
 
+  if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
+    // For non gradle projects we just call buildProject instead of trying to invoke a single module build.
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+    return
+  }
+
+
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
 
@@ -98,7 +106,7 @@ fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
     }
   }
   ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
-    .mapNotNull { androidModuleSystem?.findClassFile(it) }
+    .mapNotNull { androidModuleSystem?.moduleClassFileFinder?.findClassFile(it) }
     .firstOrNull() != null
 }
 else false

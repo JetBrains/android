@@ -16,8 +16,8 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.io.FileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.exists

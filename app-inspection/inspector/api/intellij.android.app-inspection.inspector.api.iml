@@ -13,5 +13,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="transport-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
   </component>
 </module>

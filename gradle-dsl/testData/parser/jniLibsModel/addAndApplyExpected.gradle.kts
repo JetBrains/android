@@ -2,9 +2,9 @@ android {
   packagingOptions {
     jniLibs {
       useLegacyPackaging = true
-      excludes += listOf("foo")
-      pickFirsts += listOf("bar", "baz")
-      keepDebugSymbols += listOf("a", "b", "c")
+      excludes += setOf("foo")
+      pickFirsts += setOf("bar", "baz")
+      keepDebugSymbols += setOf("a", "b", "c")
     }
   }
 }

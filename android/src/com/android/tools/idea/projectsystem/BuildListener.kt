@@ -42,10 +42,9 @@ private fun forEachNonDisposedBuildListener(project: Project, method: (BuildList
       // Clear disposed
       subscriptions.keys.removeIf { Disposer.isDisposed(it) }
 
-      val listeners = ArrayList<BuildListener>(subscriptions.values)
-      listeners.forEach(method)
-    }
-  }
+      ArrayList<BuildListener>(subscriptions.values)
+    } ?: emptyList()
+  }.forEach(method)
 }
 
 interface BuildListener {

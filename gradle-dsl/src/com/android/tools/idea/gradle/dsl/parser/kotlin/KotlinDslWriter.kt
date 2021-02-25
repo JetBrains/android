@@ -575,7 +575,11 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     if (psiElement is KtCallExpression) return psiElement
 
     val emptyListText = when (expressionList.externalSyntax) {
-      AUGMENTED_ASSIGNMENT -> "listOf()"
+      AUGMENTED_ASSIGNMENT -> when (expressionList.modelProperty?.type) {
+        MUTABLE_LIST -> "listOf()"
+        MUTABLE_SET -> "setOf()"
+        else -> "listOf()"
+      }
       else -> when (expressionList.modelProperty?.type) {
         MUTABLE_LIST -> "mutableListOf()"
         MUTABLE_SET -> "mutableSetOf()"

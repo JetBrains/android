@@ -9,14 +9,6 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module-library">
-      <library name="layoutlib">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="layoutlib" level="project" />
   </component>
 </module>

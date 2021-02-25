@@ -46,8 +46,6 @@ class LayoutInspector(
 
   val currentClient: InspectorClient get() = launcher.activeClient
 
-  private val composeDependencyChecker = ComposeDependencyChecker(layoutInspectorModel)
-
   private val latestLoadTime = AtomicLong(-1)
 
   private val recentExecutor = MostRecentExecutor(executor)
@@ -75,7 +73,6 @@ class LayoutInspector(
 
   private fun updateConnection(client: InspectorClient) {
     layoutInspectorModel.updateConnection(client)
-    composeDependencyChecker.performCheck(client)
   }
 
   private fun loadComponentTree(event: Any) {

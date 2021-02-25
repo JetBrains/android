@@ -585,16 +585,15 @@ class DeviceViewContentPanelTest {
   @Suppress("UndesirableClassUsage")
   fun testPaintEmpty() {
     IconLoader.activate()
-    setPortableUiFont()
+    setPortableUiFont(2.0f)
     val panel = DeviceViewContentPanel(model {}, DeviceViewSettings())
-    panel.setSize(200, 200)
-    val generatedImage = BufferedImage(200, 200, TYPE_INT_ARGB)
+    panel.setSize(400, 400)
+    val generatedImage = BufferedImage(400, 400, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     // We have to use a big threshold here, since the image is almost all text and despite using the portable font there's still
     // some differences between platforms.
-    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintEmpty.png"), generatedImage,
-                                     0.76)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintEmpty.png"), generatedImage, 0.1)
   }
 
   @RunsInEdt

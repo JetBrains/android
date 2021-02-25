@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.ide.resolver.blaze
 
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
-import com.android.tools.idea.appinspection.inspector.api.io.FileService
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
+import com.android.tools.idea.io.FileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import java.nio.file.Path

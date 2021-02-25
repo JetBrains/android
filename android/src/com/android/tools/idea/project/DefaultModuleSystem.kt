@@ -82,10 +82,11 @@ private val LOG: Logger get() = Logger.getInstance("DefaultModuleSystem.kt")
 
 class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
-  ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
 
   private val registeredDependencies = mutableListOf<GradleCoordinate>()
+
+  override val moduleClassFileFinder: ClassFileFinder = ModuleBasedClassFileFinder(module)
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
     return CapabilityNotSupported()

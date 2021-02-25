@@ -121,7 +121,7 @@ public class MEUI {
   public static final Color ourAddConstraintColor = makeColor("UIDesigner.motion.AddConstraintColor", 0xff838383, 0xff666666);
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
-  public static final Color ourInteractiveBackgroundColor = makeColor("UIDesigner.Interactive.Preview.background", 0xaaaaa, 0xaaaa);
+  public static final Color ourInteractiveBackgroundColor = makeColor("UIDesigner.Interactive.Preview.background", 0xaaaaaa, 0xaaaaaa);
 
   public static BufferedImage createImage(int w, int h, int type) {
     return ImageUtil.createImage(w, h, type);

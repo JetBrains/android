@@ -34,6 +34,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.ModuleRenderContext;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   /**
@@ -76,7 +77,8 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
       LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
-      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), myModule, this);
+      ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
+      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       LayoutlibCallbackImpl layoutlibCallback =
         new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(

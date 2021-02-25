@@ -246,3 +246,10 @@ java_import(
     jars = ["//tools/base/app-inspection/inspectors/network:network_inspector_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+java_import(
+    name = "layoutlib",
+    jars = ["//prebuilts/studio/layoutlib/data:layoutlib_files"],
+    visibility = ["//visibility:public"],
+)

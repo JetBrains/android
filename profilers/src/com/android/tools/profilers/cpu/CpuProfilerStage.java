@@ -394,10 +394,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format("%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, process.getName(), System.nanoTime());
 
-    // Disable memory live allocation if config setting has the option set.
-    if (config.isDisableLiveAllocation()) {
-      getStudioProfilers().setMemoryLiveAllocationEnabled(false);
-    }
     setCaptureState(CaptureState.STARTING);
     Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
       .setAppName(process.getName())
@@ -523,11 +519,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
-    }
-
-    // Re-enable memory live allocation.
-    if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
-      getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
   }
 

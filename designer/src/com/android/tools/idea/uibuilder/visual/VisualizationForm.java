@@ -31,12 +31,12 @@ import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -138,12 +138,13 @@ public class VisualizationForm
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
 
-  public VisualizationForm(@NotNull Project project) {
+  public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myProject = project;
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
     myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
 
-    mySurface = NlDesignSurface.builder(myProject, myProject)
+    mySurface = NlDesignSurface.builder(myProject, VisualizationForm.this)
       .showModelNames()
       .setIsPreview(false)
       .setEditable(true)

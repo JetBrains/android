@@ -151,11 +151,6 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
-    PROFILER, "memory.heapdump.separate", "Show heap dump separately",
-    "Show heap dump as a separate view instead of sharing with the memory monitor",
-    true);
-
   public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
     "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
@@ -286,11 +281,6 @@ public final class StudioFlags {
     NELE, "property.panel.actionbar", "Property Panel Actionbar",
     "Support Actionbar in property panel",
     false);
-
-  public static final Flag<Boolean> NELE_VISUALIZATION = Flag.create(
-    NELE, "visualisation", "Layout Validation Tool",
-    "Enable Layout Validation Tool to preview layout in multiple configurations at the same time",
-    true);
 
   public static final Flag<Boolean> NELE_VISUALIZATION_LOCALE_MODE = Flag.create(
     NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
@@ -436,7 +426,7 @@ public final class StudioFlags {
                     "optimisticinstall.supportlevel",
                     "The amount of support for using the 'Apply Changes 2.0' pipeline on Run.",
                     "This can be \"DISABLED\" to always use a package manager installation; \"DEX\" to use the pipeline for dex-only changes; \"DEX_AND_NATIVE\" to use the pipeline for dex and native library-only changes; or \"DEX_AND_NATIVE_AND_RESOURCES\" to use the pipeline for changes to dex, native libraries, and/or resource/asset files. Deploying changes that exceed the level of support configured here will cause the deployment to install via the package manager.",
-                    OptimisticInstallSupportLevel.DEX);
+                    OptimisticInstallSupportLevel.DEX_AND_NATIVE);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
@@ -576,6 +566,15 @@ public final class StudioFlags {
   public static final Flag<Boolean> USE_MODULE_PER_SOURCE_SET = Flag.create(
     GRADLE_IDE, "module.per.source.set", "Enables creating multiple modules per Gradle project",
     "This allows the IDE to more closely represent how the project is configured in Gradle.", false);
+
+  public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
+    GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
+    "This allows the IDE to fetch models in parallel (if supported by Gralde and enabled via org.gradle.parallel=true).", false);
+
+  public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS = Flag.create(
+    GRADLE_IDE, "gradle.sync.parallel.sync.prefetch.variants", "Enables speculative syncing of current variants",
+    "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
+    "new variant selection (which is less parallelizable process).", false);
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
