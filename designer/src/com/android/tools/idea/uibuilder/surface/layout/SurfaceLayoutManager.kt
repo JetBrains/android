@@ -29,6 +29,8 @@ internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compa
  * Class that provides an interface for content that can be positioned on the [DesignSurface]
  */
 abstract class PositionableContent {
+  abstract val isContentSizeDetermined: Boolean
+
   val contentSize: Dimension
     @AndroidDpCoordinate get() = getContentSize(Dimension())
 

@@ -32,6 +32,8 @@ class TestPositionableContent(override var x: Int = 0,
                               override val margin: Insets = JBUI.emptyInsets()) : PositionableContent() {
   private val dimension = Dimension(width, height)
 
+  override val isContentSizeDetermined: Boolean = true
+
   override fun setLocation(x: Int, y: Int) {
     this.x = x
     this.y = y
