@@ -28,6 +28,7 @@ import com.android.tools.idea.testing.saveAndDump
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -60,24 +61,40 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
 
+  data class LegacyAgp(val useOldAgp: Boolean) {
+    override fun toString(): String  = if (useOldAgp) "LegacyAgp" else "NewAgp"
+  }
+
   @JvmField
-  @Parameterized.Parameter
+  @Parameterized.Parameter(0)
   var testProjectName: TestProject? = null
 
+  @JvmField
+  @Parameterized.Parameter(1)
+  var isUseLegacyAgp: LegacyAgp? = null
+
   companion object {
-    @Suppress("unused")
-    @JvmStatic
-    @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = listOf(
-      TestProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
+    private val projectsList = listOf(
       TestProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
       TestProject(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
       TestProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD),
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks")
-    )
+      TestProject("../projects/lintCustomChecks"))
+
+    @Suppress("unused")
+    @Contract(pure = true)
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}\${1}")
+    fun testProjects(): Collection<*> {
+      return mutableListOf<Any>().apply {
+        projectsList.forEach {
+          if (it != TestProject("../projects/lintCustomChecks")) addAll(listOf(arrayOf(it, LegacyAgp(true))))
+          addAll(listOf(arrayOf(it, LegacyAgp(false))))
+        }
+      }
+    }
   }
 
   @get:Rule
@@ -91,13 +108,18 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
-
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/ideModels"
 
   @Test
   fun testIdeModels() {
     val projectName = testProjectName ?: error("unit test parameter not initialized")
-    val root = prepareGradleProject(projectName.template, "project")
+    val gradleVersion = isUseLegacyAgp ?: error("unit test parameter not initialized")
+    val root = prepareGradleProject(
+      projectName.template,
+      "project",
+      null,
+      if (gradleVersion.useOldAgp) "4.1.0" else null
+    )
     openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
       val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper -> projectDumper.dumpAndroidIdeModel(project) }
       assertIsEqualToSnapshot(dump)

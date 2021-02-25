@@ -5,6 +5,7 @@ MODULE                        : project.app
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build
     buildToolsVersion             : 30.0.2
+    NdkVersion                    : 21.4.7075529
     IsBaseSplit                   : true
     GroupId                       : project
     AaptOptions
