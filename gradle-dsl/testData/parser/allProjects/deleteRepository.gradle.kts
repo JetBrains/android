@@ -1,0 +1,6 @@
+allprojects {
+  repositories {
+    jcenter()
+    google()
+  }
+}
