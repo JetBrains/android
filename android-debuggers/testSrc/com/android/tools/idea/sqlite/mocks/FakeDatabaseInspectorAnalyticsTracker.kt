@@ -57,7 +57,12 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
   override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {
   }
 
-  override fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                                    event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent) {
+  override fun trackExportCompleted(
+    source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    durationMs: Int,
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+  ) {
   }
 }

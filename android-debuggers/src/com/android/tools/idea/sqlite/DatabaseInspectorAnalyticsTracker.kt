@@ -44,8 +44,13 @@ interface DatabaseInspectorAnalyticsTracker {
   fun trackOfflineDatabaseDownloadFailed()
   fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata)
   fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin)
-  fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                           event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent)
+  fun trackExportCompleted(
+    source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    durationMs: Int,
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+  )
 }
 
 class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInspectorAnalyticsTracker {
@@ -112,8 +117,20 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
             ))
   }
 
-  override fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                                    event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent) {
+  override fun trackExportCompleted(
+    source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    durationMs: Int,
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+  ) {
+    val event = AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.newBuilder()
+      .setSource(source)
+      .setSourceFormat(sourceFormat)
+      .setDestination(destination)
+      .setExportDurationMs(durationMs)
+      .build()
+
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_OPERATION_COMPLETED)
             .setConnectivityState(connectivityState)
