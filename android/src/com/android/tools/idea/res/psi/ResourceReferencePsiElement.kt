@@ -33,7 +33,7 @@ import com.android.tools.idea.res.SmallAarRClass
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceTypeForResourceTag
-import com.android.tools.idea.res.isInResourceSubdirectory
+import com.android.tools.idea.res.isInResourceSubdirectoryInAnyVariant
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
@@ -103,7 +103,7 @@ class ResourceReferencePsiElement(
     }
 
     private fun convertPsiFile(element: PsiFile): ResourceReferencePsiElement? {
-      if (!isInResourceSubdirectory(element)) {
+      if (!isInResourceSubdirectoryInAnyVariant(element)) {
         return null
       }
       val resourceFolderType = getFolderType(element) ?: return null

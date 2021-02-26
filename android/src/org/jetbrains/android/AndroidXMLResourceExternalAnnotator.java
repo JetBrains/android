@@ -46,7 +46,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       return null;
     }
     FileAnnotationInfo annotationInfo = new FileAnnotationInfo(facet, file, editor);
-    if (IdeResourcesUtil.isInResourceSubdirectory(file, SdkConstants.FD_RES_VALUES)) {
+    if (IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, SdkConstants.FD_RES_VALUES)) {
       // Only look at XMLTag contents
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
@@ -59,7 +59,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
         }
       });
     }
-    else if (IdeResourcesUtil.isInResourceSubdirectory(file, null) || ManifestDomFileDescription.isManifestFile((XmlFile)file)) {
+    else if (IdeResourcesUtil.isInResourceSubdirectoryInAnyVariant(file, null) || ManifestDomFileDescription.isManifestFile((XmlFile)file)) {
       // Only look at XMLAttributeValues
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override

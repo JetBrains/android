@@ -199,7 +199,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       PsiElement e = element;
       while (e != null) {
-        if (e instanceof PsiDirectory && IdeResourcesUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
+        if (e instanceof PsiDirectory && IdeResourcesUtil.isResourceSubdirectory((PsiDirectory)e, resourceType, true)) {
           // Verify the given PsiElement is a directory within a valid resource type folder (e.g: .../res/color).
           return true;
         }
