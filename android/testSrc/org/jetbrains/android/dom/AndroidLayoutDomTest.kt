@@ -307,6 +307,52 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testLayoutParamsDeclareStyleable() {
+    myFixture.addClass(
+      """
+      package p1.p2;
+      public class CustomViewGroup extends android.view.ViewGroup {}
+      """.trimIndent())
+
+    myFixture.addFileToProject(
+      "res/values/values.xml",
+      // language=XML
+      """
+      <resources>
+        <declare-styleable name="CustomViewGroup_LayoutParams">
+          <attr format="integer" name="customLayoutParam"/>
+          <attr format="integer" name="customLayoutParam2"/>
+        </declare-styleable>
+
+        <declare-styleable name="CustomViewGroup">
+          <attr format="integer" name="notLayoutParam"/>
+        </declare-styleable>
+      </resources>
+      """.trimIndent()
+    )
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<p1.p2.CustomViewGroup
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <Button
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              app:${caret}/>
+        </p1.p2.CustomViewGroup>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
+
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).containsAllOf("app:customLayoutParam", "app:customLayoutParam2")
+    assertThat(lookupElementStrings).doesNotContain("app:notLayoutParam")
+  }
+
   fun testColorLiteralResourceCompletion() {
     myFixture.addFileToProject(
       "res/values/other_colors.xml",

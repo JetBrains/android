@@ -426,19 +426,7 @@ public class AttributeProcessingUtil {
     if (viewName == null) {
       return null;
     }
-    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
-    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
-    switch (viewName) {
-      case "AppBarLayout":
-      case "CollapsingToolbarLayout":
-      case "CoordinatorLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        return viewName + "_LayoutParams";
-
-      default:
-        return null;
-    }
+    return viewName + "_LayoutParams";
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
