@@ -181,9 +181,18 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
             return formatString
         }
 
-        val args = callExpression.valueArguments
+        var args = callExpression.valueArguments
         if (args.isEmpty() || !args.first().isPsiValid) {
             return formatString
+        }
+
+        if (args.size >= 3 && "getQuantityString" == callExpression.methodName) {
+            // There are two versions:
+            // String getQuantityString (int id, int quantity)
+            // String getQuantityString (int id, int quantity, Object... formatArgs)
+            // In the second version formatArgs references (1$, 2$, etc) are "one off" (ie args[1] is "quantity" instead of formatArgs[0])
+            // Ignore "quantity" argument for plurals since it's not used for formatting
+            args = args.subList(1, args.size)
         }
 
         val matcher = FORMAT.matcher(formatString)

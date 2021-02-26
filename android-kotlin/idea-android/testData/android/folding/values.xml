@@ -28,6 +28,10 @@
         <item quantity="one">Quantity One</item>
         <item quantity="few">Quantity Few</item>
     </plurals>
+  <plurals name="numberOfSongsAvailable">
+    <item quantity="one">%d song found from %d.</item>
+    <item quantity="other">%d songs found from %d.</item>
+  </plurals>
 
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
