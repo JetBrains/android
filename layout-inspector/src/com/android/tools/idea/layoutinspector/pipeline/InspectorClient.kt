@@ -76,7 +76,7 @@ interface InspectorClient {
    * Connect this client to the device.
    *
    * Use [registerStateCallback] and check for [State.CONNECTED] if you need to know when this has
-   * finished.
+   * finished. This may also get set to [State.DISCONNECTED] if the client fails to connect.
    *
    * You are only supposed to call this once.
    */

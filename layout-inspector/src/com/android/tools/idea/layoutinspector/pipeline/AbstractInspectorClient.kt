@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.addCallback
+import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 
@@ -70,10 +72,15 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
   final override fun connect() {
     assert(state == InspectorClient.State.INITIALIZED)
     state = InspectorClient.State.CONNECTING
-    doConnect().addListener(
-      {
+    doConnect().addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Nothing> {
+      override fun onSuccess(value: Nothing?) {
         state = InspectorClient.State.CONNECTED
-      }, MoreExecutors.directExecutor())
+      }
+
+      override fun onFailure(t: Throwable) {
+        state = InspectorClient.State.DISCONNECTED
+      }
+    })
   }
 
   protected abstract fun doConnect(): ListenableFuture<Nothing>

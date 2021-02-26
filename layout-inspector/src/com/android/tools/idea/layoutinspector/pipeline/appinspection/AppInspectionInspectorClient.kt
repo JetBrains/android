@@ -74,7 +74,9 @@ class AppInspectionInspectorClient(
 
   override fun doConnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
-    scope.launch(exceptionHandler) {
+    val connectFailureHandler = CoroutineExceptionHandler { _, t -> future.setException(t) }
+
+    scope.launch(connectFailureHandler) {
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()) {
