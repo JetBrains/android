@@ -72,15 +72,16 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
 import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
@@ -102,7 +103,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -151,14 +151,12 @@ import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.actions.CreateTypedResourceFileAction
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.color.ColorSelector
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
-import org.jetbrains.android.dom.drawable.DrawableSelector
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceElement
 import org.jetbrains.android.dom.resources.Resources
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -171,10 +169,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import java.awt.Color
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Comparator
 import java.util.EnumSet
-import java.util.HashMap
 import java.util.Properties
 import javax.swing.Icon
 
@@ -383,6 +378,7 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     true
   }
 }
+
 /**
  * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
  * in case of common packages, which is handled by various inflaters in Android framework. This method checks
@@ -1282,7 +1278,7 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
 
   ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-  prefix = suggestedPrefix ?: when(namespaceUri) {
+  prefix = suggestedPrefix ?: when (namespaceUri) {
     SdkConstants.TOOLS_URI -> SdkConstants.TOOLS_PREFIX
     SdkConstants.ANDROID_URI -> SdkConstants.ANDROID_NS_NAME
     SdkConstants.AAPT_URI -> SdkConstants.AAPT_PREFIX
@@ -1730,14 +1726,39 @@ fun getValueResourcesFromElement(resourceType: ResourceType,
   return result
 }
 
+private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
+  val vf = dir.virtualFile
+  val module = ModuleUtilCore.findModuleForFile(vf, dir.project) ?: return false
+  val facet = AndroidFacet.getInstance(module) ?: return false
+  for (provider in SourceProviders.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders) {
+    for (resDir in provider.resDirectories)
+      if (vf == resDir) {
+        return true
+      }
+  }
+  for (resDir in AndroidRootUtil.getResourceOverlayDirs(facet)) {
+    if (vf == resDir) {
+      return true
+    }
+  }
+  return false
+}
+
+fun isInResourceSubdirectoryInAnyVariant(file: PsiFile, resourceType: String? = null): Boolean {
+  var file = file
+  file = file.originalFile
+  val dir = file.containingDirectory ?: return false
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = true)
+}
+
 fun isInResourceSubdirectory(file: PsiFile, resourceType: String? = null): Boolean {
   var file = file
   file = file.originalFile
   val dir = file.containingDirectory ?: return false
-  return isResourceSubdirectory(dir, resourceType)
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = false)
 }
 
-fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null): Boolean {
+fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   val dirName = dir!!.name
   if (resourceType != null) {
@@ -1754,7 +1775,7 @@ fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null
   if ("default" == dir.name) {
     dir = dir.parentDirectory
   }
-  return dir != null && isResourceDirectory(dir)
+  return dir != null && isResourceDirectory(dir, searchInAllVariants)
 }
 
 fun isLocalResourceDirectory(dir: VirtualFile, project: Project): Boolean {
@@ -1772,11 +1793,14 @@ fun isResourceFile(file: VirtualFile, facet: AndroidFacet): Boolean {
   return resDir != null && ModuleResourceManagers.getInstance(facet).localResourceManager.isResourceDir(resDir)
 }
 
-fun isResourceDirectory(directory: PsiDirectory): Boolean {
+fun isResourceDirectory(directory: PsiDirectory, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   // check facet settings
   val vf = dir!!.virtualFile
-  if (isLocalResourceDirectory(vf, dir.project)) {
+  if (searchInAllVariants && isLocalResourceDirectoryInAnyVariant(directory)) {
+    return true
+  }
+  if (!searchInAllVariants && isLocalResourceDirectory(vf, dir.project)) {
     return true
   }
   if (SdkConstants.FD_RES != dir.name) return false
@@ -2316,7 +2340,8 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   val predicate = { element: PsiElement ->
     if (element !is XmlAttribute) {
       false
-    } else {
+    }
+    else {
       val attrValue = element.value
       if (isIdDeclaration(attrValue)) {
         val resourceUrl = ResourceUrl.parse(attrValue!!)
