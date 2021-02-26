@@ -26,6 +26,9 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.SCHEMA_TREE_CONTEXT_MENU
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.SCHEMA_TREE_EXPORT_BUTTON
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
@@ -229,7 +232,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       northPanel.add(exportButton)
 
       exportButton.addActionListener {
-        val exportParams = createExportDialogParams() ?: return@addActionListener // TODO(161081452): log an error / show to user
+        val exportParams =
+          createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON)
+          ?: return@addActionListener // TODO(161081452): log an error / show to user
         mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
       }
       updateExportButtonEnabledState()
@@ -242,17 +247,17 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   }
 
   private fun updateExportButtonEnabledState() {
-    exportButton.isEnabled = createExportDialogParams() != null
+    exportButton.isEnabled = createExportDialogParams(SCHEMA_TREE_EXPORT_BUTTON) != null
   }
 
   /** Tries to create an [ExportDialogParams] object based on the currently selected schema tree element */
-  private fun createExportDialogParams(): ExportDialogParams? {
+  private fun createExportDialogParams(actionOrigin: Origin): ExportDialogParams? {
       val selectedNode = tree.selectedNode
       val selected = selectedNode?.userObject
       val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
       return when {
-        selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId)
-        selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name)
+        selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
+        selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
         else -> null
       }
     }
@@ -292,12 +297,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun setUpExportPopUp(tree: Tree) {
     val exportAction = object : AnAction(DatabaseInspectorBundle.message("action.export.button.tooltip.title")) {
       override fun actionPerformed(e: AnActionEvent) {
-        val exportParams = createExportDialogParams() ?: return  // TODO(161081452): log an error
+        val exportParams = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) ?: return  // TODO(161081452): log an error
         mainView.listeners.forEach { it.showExportToFileDialogInvoked(exportParams) }
       }
 
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = createExportDialogParams() != null
+        e.presentation.isEnabled = createExportDialogParams(SCHEMA_TREE_CONTEXT_MENU) != null
         super.update(e)
       }
     }

@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.sqlite.model
 
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import java.nio.file.Path
 
 sealed class ExportFormat {
@@ -59,10 +60,28 @@ sealed class ExportRequest(
     : ExportRequest(srcDatabase, format, dstPath)
 }
 
-/** All the information needed to show a dialog asking a user to specify an [ExportRequest] */
-sealed class ExportDialogParams(open val srcDatabase: SqliteDatabaseId) {
-  data class ExportDatabaseDialogParams(override val srcDatabase: SqliteDatabaseId) : ExportDialogParams(srcDatabase)
-  data class ExportTableDialogParams(override val srcDatabase: SqliteDatabaseId, val srcTable: String) : ExportDialogParams(srcDatabase)
-  data class ExportQueryResultsDialogParams(override val srcDatabase: SqliteDatabaseId, val query: SqliteStatement)
-    : ExportDialogParams(srcDatabase)
+/**
+ * All the information needed to show a dialog asking a user to specify an [ExportRequest].
+ * @param actionOrigin Represents the UI area where the export dialog was launched from. Captured for analytics purposes.
+ */
+sealed class ExportDialogParams(open val srcDatabase: SqliteDatabaseId, open val actionOrigin: Origin) {
+  /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
+  data class ExportDatabaseDialogParams(
+    override val srcDatabase: SqliteDatabaseId,
+    override val actionOrigin: Origin
+  ) : ExportDialogParams(srcDatabase, actionOrigin)
+
+  /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
+  data class ExportTableDialogParams(
+    override val srcDatabase: SqliteDatabaseId,
+    val srcTable: String,
+    override val actionOrigin: Origin
+  ) : ExportDialogParams(srcDatabase, actionOrigin)
+
+  /** @param actionOrigin see [ExportDialogParams.actionOrigin] */
+  data class ExportQueryResultsDialogParams(
+    override val srcDatabase: SqliteDatabaseId,
+    val query: SqliteStatement,
+    override val actionOrigin: Origin
+  ) : ExportDialogParams(srcDatabase, actionOrigin)
 }

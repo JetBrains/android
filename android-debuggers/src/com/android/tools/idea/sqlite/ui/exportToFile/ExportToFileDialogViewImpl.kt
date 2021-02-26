@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.exportToFile
 
 import com.android.tools.idea.io.IdeFileUtils
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.Delimiter.*
@@ -33,6 +34,7 @@ import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsReque
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.google.common.base.Strings
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent
 import com.intellij.CommonBundle
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -58,7 +60,8 @@ import javax.swing.JRadioButton
  */
 class ExportToFileDialogViewImpl(
   val project: Project,
-  val params: ExportDialogParams
+  val params: ExportDialogParams,
+  val analyticsTracker: DatabaseInspectorAnalyticsTracker
 ) : DialogWrapper(project, true), ExportToFileDialogView {
   private val listeners = mutableListOf<ExportToFileDialogView.Listener>()
 
@@ -78,6 +81,11 @@ class ExportToFileDialogViewImpl(
     setOKButtonText("Export")
     setCancelButtonText("Cancel")
     super.init()
+  }
+
+  override fun show() {
+    analyticsTracker.trackExportDialogOpened(params.actionOrigin)
+    super.show()
   }
 
   override fun getHelpId(): String {
