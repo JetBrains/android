@@ -216,8 +216,9 @@ public class IssueView extends JPanel {
       expandListener.onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
     }
 
-    revalidate();
-    repaint();
+    // ColumnHeaderPanel from panel need layout again.
+    myContainerIssuePanel.revalidate();
+    myContainerIssuePanel.repaint();
   }
 
   /**
