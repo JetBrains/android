@@ -1062,7 +1062,7 @@ public class DomPsiConverter {
     public String getLocalName() {
       Application application = ApplicationManager.getApplication();
       if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getTagName);
+        return application.runReadAction((Computable<String>)this::getLocalName);
       }
 
       return myTag.getLocalName();
