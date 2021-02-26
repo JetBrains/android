@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.SdkConstants.MANIFEST_PLACEHOLDER_PREFIX;
+
 import com.android.tools.idea.model.ManifestPlaceholderResolver;
 import com.google.common.collect.*;
 import com.intellij.openapi.util.TextRange;
@@ -72,7 +74,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Override
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
-    if (context.getModule() != null && s != null && s.contains("${")) {
+    if (context.getModule() != null && s != null && s.contains(MANIFEST_PLACEHOLDER_PREFIX)) {
       ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
       s = resolver.resolve(s);
     }
@@ -107,33 +109,36 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
    * providing the variants for completion.
    */
   private static class PlaceholderReference extends PsiReferenceBase<PsiElement> {
+
+    // This placeholder is provided by default and does not come from ManifestPlaceholderResolver
+    private static final String GRADLE_APPLICATION_ID = "applicationId";
+
     private final PsiElement myDummyElement = new FakePsiElement() {
       @Override
       public PsiElement getParent() {
         return getElement();
       }
     };
-    private final ImmutableSet<String> myPlaceholderNames;
     private final String[] myValues;
     private final String myName;
 
-    public PlaceholderReference(@NotNull PsiElement element, TextRange range, String[] values) {
+    public PlaceholderReference(@NotNull PsiElement element, TextRange range, String[] manifestPlaceholderElements) {
       super(element, range, true);
-
       myName = range.substring(element.getText());
-      myPlaceholderNames = ImmutableSet.copyOf(values);
-      myValues = values;
+
+      // "applicationId" is there by default, whether or not a user supplies manifestPlaceholders in the build files.
+      myValues = ArrayUtil.append(manifestPlaceholderElements, GRADLE_APPLICATION_ID);
     }
 
     @Nullable
     @Override
     public PsiElement resolve() {
-      return myPlaceholderNames.contains(myName) ? myDummyElement : null;
+      return ArrayUtil.contains(myName, myValues) ? myDummyElement : null;
     }
 
     @NotNull
     @Override
-    public Object[] getVariants() {
+    public String[] getVariants() {
       return myValues;
     }
   }
@@ -153,9 +158,6 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
     ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
     Collection<String> placeholders = resolver.getPlaceholders().keySet();
-    if (placeholders.isEmpty()) {
-      return PsiReference.EMPTY_ARRAY;
-    }
 
     String[] placeholdersArray = ArrayUtil.toStringArray(placeholders);
     ArrayList<PsiReference> result = Lists.newArrayList();
