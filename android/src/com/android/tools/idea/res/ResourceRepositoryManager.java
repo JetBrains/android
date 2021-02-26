@@ -727,19 +727,21 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public ResourceVisibilityLookup getResourceVisibility() {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-    if (androidModel != null) {
-      synchronized (myResourceVisibilityLock) {
-        if (myResourceVisibility == null) {
+    synchronized (myResourceVisibilityLock) {
+      if (myResourceVisibility == null) {
+        AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+        if (androidModel != null) {
           ResourceVisibilityLookup.Provider provider = new ResourceVisibilityLookup.Provider();
           IdeVariant variant = androidModel.getSelectedVariant();
           myResourceVisibility = provider.get(variant);
         }
-        return myResourceVisibility;
+        else {
+          myResourceVisibility = ResourceVisibilityLookup.NONE;
+        }
       }
-    }
 
-    return ResourceVisibilityLookup.NONE;
+      return myResourceVisibility;
+    }
   }
 
   /**
