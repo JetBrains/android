@@ -1000,7 +1000,7 @@ internal class ManageSnapshotsDialog(
     private fun getColumnHeaderWidth(column: Int): Int {
       val tableHeader: JTableHeader = getTableHeader()
       val headerFontMetrics = tableHeader.getFontMetrics(tableHeader.font)
-      return headerFontMetrics.stringWidth(getColumnName(column) + JBUIScale.scale(HEADER_GAP))
+      return headerFontMetrics.stringWidth(getColumnName(column)) + JBUIScale.scale(HEADER_GAP)
     }
 
     private fun getColumnDataWidth(column: Int): Int {
@@ -1179,7 +1179,7 @@ private val ListSelectionModel.isSingleItemSelected: Boolean
 private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US)
 
 /** Text offset in the table header. */
-private const val HEADER_GAP = 20
+private const val HEADER_GAP = 17
 
 private const val QUICK_BOOT_SNAPSHOT_MODEL_ROW = 0 // The QuickBoot snapshot is always first in the list.
 
