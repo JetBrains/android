@@ -1,0 +1,6 @@
+subprojects {
+  repositories {
+    jcenter()
+    google()
+  }
+}
