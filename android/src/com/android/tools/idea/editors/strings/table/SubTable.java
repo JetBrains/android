@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
+import java.awt.Dimension;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
 import java.util.Map;
@@ -99,7 +100,8 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   protected JTableHeader createDefaultTableHeader() {
     JTableHeader header = new JBTableHeader();
     header.setReorderingAllowed(false);
-
+    // Without this header of FrozenColumnTable.myFrozenTable is not visible when there is no column in FrozenColumnTable.myScrollableTable.
+    header.setPreferredSize(new Dimension(1, super.getRowHeight()));
     return header;
   }
 
