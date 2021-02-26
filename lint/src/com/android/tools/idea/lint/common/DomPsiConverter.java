@@ -1016,32 +1016,19 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNamespaceURI() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)myTag::getNamespace);
-      }
-      return myTag.getNamespace();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getNamespace);
     }
 
     @NotNull
     @Override
     public NamedNodeMap getAttributes() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<NamedNodeMap>)this::getAttributes);
-      }
-
-      if (myAttributes == null) {
-        XmlAttribute[] attributes = myTag.getAttributes();
-        if (attributes.length == 0) {
-          myAttributes = EMPTY_ATTRIBUTES;
+      return ApplicationManager.getApplication().runReadAction((Computable<NamedNodeMap>)() -> {
+        if (myAttributes == null) {
+          XmlAttribute[] attributes = myTag.getAttributes();
+          myAttributes = attributes.length == 0 ? EMPTY_ATTRIBUTES : new DomNamedNodeMap(this, attributes);
         }
-        else {
-          myAttributes = new DomNamedNodeMap(this, attributes);
-        }
-      }
-
-      return myAttributes;
+        return myAttributes;
+      });
     }
 
     // From org.w3c.dom.Element:
@@ -1049,23 +1036,13 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getTagName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getTagName);
-      }
-
-      return myTag.getName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getName);
     }
 
     @Nullable
     @Override
     public String getLocalName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getLocalName);
-      }
-
-      return myTag.getLocalName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myTag::getLocalName);
     }
 
     @NotNull
@@ -1221,12 +1198,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNodeValue);
-      }
-
-      return myText.getText();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myText::getText);
     }
 
     @Override
@@ -1291,12 +1263,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getNodeValue() throws DOMException {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNodeValue);
-      }
-
-      return myComment.getCommentText();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myComment::getCommentText);
     }
 
     @Override
@@ -1350,11 +1317,7 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getName);
-      }
-      return myAttribute.getName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getName);
     }
 
     @Override
@@ -1365,49 +1328,28 @@ public class DomPsiConverter {
     @NotNull
     @Override
     public String getValue() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getValue);
-      }
-
-      String value = myAttribute.getDisplayValue();
-      if (value == null) {
-        value = "";
-      }
-      return value;
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+        String value = myAttribute.getDisplayValue();
+        return value == null ? "" : value;
+      });
     }
 
     @NotNull
     @Override
     public String getLocalName() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getLocalName);
-      }
-
-      return myAttribute.getLocalName();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getLocalName);
     }
 
     @NotNull
     @Override
     public String getPrefix() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getPrefix);
-      }
-
-      return myAttribute.getNamespacePrefix();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getNamespacePrefix);
     }
 
     @NotNull
     @Override
     public String getNamespaceURI() {
-      Application application = ApplicationManager.getApplication();
-      if (!application.isReadAccessAllowed()) {
-        return application.runReadAction((Computable<String>)this::getNamespaceURI);
-      }
-
-      return myAttribute.getNamespace();
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)myAttribute::getNamespace);
     }
 
     @Override
