@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -33,7 +31,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -48,7 +46,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideWithAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.OVERRIDE_WITH_ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -65,7 +63,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -82,8 +80,8 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideAllProjectsSectionInSubproject() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT);
-    writeToSubModuleBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB);
+    writeToBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB);
 
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_5
@@ -93,4 +91,25 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
     assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
   }
+
+  enum TestFile implements TestFileName {
+    ALL_PROJECTS_SECTION("allProjectsSection"),
+    OVERRIDE_ALL_PROJECTS_SECTION("overrideAllProjectsSection"),
+    OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT("overrideAllProjectsSectionInSubproject"),
+    OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB("overrideAllProjectsSectionInSubproject_sub"),
+    OVERRIDE_WITH_ALL_PROJECTS_SECTION("overrideWithAllProjectsSection"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/allProjects/" + path, extension);
+    }
+  }
+
 }
