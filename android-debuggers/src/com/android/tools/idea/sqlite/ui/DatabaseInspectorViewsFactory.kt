@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressView
@@ -34,7 +35,11 @@ interface DatabaseInspectorViewsFactory {
 
   fun createParametersBindingView(project: Project, sqliteStatementText: String): ParametersBindingDialogView
 
-  fun createExportToFileView(project: Project, params: ExportDialogParams): ExportToFileDialogView
+  fun createExportToFileView(
+    project: Project,
+    params: ExportDialogParams,
+    analyticsTracker: DatabaseInspectorAnalyticsTracker
+  ): ExportToFileDialogView
 
   fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
@@ -55,7 +56,11 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
 
   override fun createDatabaseInspectorView(project: Project) = databaseInspectorView
 
-  override fun createExportToFileView(project: Project, params: ExportDialogParams) = exportToFileDialogView
+  override fun createExportToFileView(
+    project: Project,
+    params: ExportDialogParams,
+    analyticsTracker: DatabaseInspectorAnalyticsTracker
+  ): ExportToFileDialogView = exportToFileDialogView
 
   override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher) = exportInProgressView
 }

@@ -558,7 +558,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun showExportDialog(exportDialogParams: ExportDialogParams) {
-    val view = viewFactory.createExportToFileView(project, exportDialogParams)
+    val view = viewFactory.createExportToFileView(project, exportDialogParams, databaseInspectorAnalyticsTracker)
     val controller = ExportToFileController(
       project,
       projectScope,

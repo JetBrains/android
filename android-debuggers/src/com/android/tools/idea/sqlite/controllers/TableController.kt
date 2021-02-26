@@ -45,6 +45,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin.QUERY_RESULTS_EXPORT_BUTTON
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -359,8 +360,9 @@ class TableController(
       val tableName = tableSupplier()?.name
       val exportScenario: ExportDialogParams =
         when {
-          tableName != null -> ExportTableDialogParams(databaseId, tableName)
-          sqliteStatement.isQueryStatement -> ExportQueryResultsDialogParams(databaseId, sqliteStatement)
+          // TODO(161081452): confirm we don't need to differentiate between query results view and table content view in analytics
+          tableName != null -> ExportTableDialogParams(databaseId, tableName, QUERY_RESULTS_EXPORT_BUTTON)
+          sqliteStatement.isQueryStatement -> ExportQueryResultsDialogParams(databaseId, sqliteStatement, QUERY_RESULTS_EXPORT_BUTTON)
           else -> return // TODO(161081452): consider throwing an Exception or logging an error instead of silently ignoring the request
         }
 
