@@ -141,7 +141,6 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
-      isVisible = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
         AnActionEvent.createFromDataContext("", null, dataContext))
