@@ -32,3 +32,5 @@ object RoomAnnotations {
   val FTS4 = AndroidxName.of(PACKAGE_NAME, "Fts4")
 }
 
+const val AUTO_VALUE_ANNOTATION = "com.google.auto.value.AutoValue"
+
