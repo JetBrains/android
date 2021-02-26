@@ -1,8 +1,8 @@
 package google.simpleapplication
 
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.Text
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.ui.tooling.preview.Preview
 
 @Preview
