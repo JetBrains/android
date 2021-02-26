@@ -727,18 +727,13 @@ public final class ResourceRepositoryManager implements Disposable {
     return mySharedTestNamespaceInstance;
   }
 
-  @Nullable
-  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    synchronized (myResourceVisibilityLock) {
-      if (myResourceVisibilityProvider == null) {
-        if (!AndroidModel.isRequired(myFacet) || AndroidModel.get(myFacet) == null) {
-          return null;
-        }
-        myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-      }
-
-      return myResourceVisibilityProvider;
+  @NotNull
+  private ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
+    if (myResourceVisibilityProvider == null) {
+      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
     }
+
+    return myResourceVisibilityProvider;
   }
 
   @NotNull
@@ -747,10 +742,8 @@ public final class ResourceRepositoryManager implements Disposable {
     if (androidModel != null) {
       synchronized (myResourceVisibilityLock) {
         ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-        if (provider != null) {
-          IdeVariant variant = androidModel.getSelectedVariant();
-          return provider.get(variant);
-        }
+        IdeVariant variant = androidModel.getSelectedVariant();
+        return provider.get(variant);
       }
     }
 
