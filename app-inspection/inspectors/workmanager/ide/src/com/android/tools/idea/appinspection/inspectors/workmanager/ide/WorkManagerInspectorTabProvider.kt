@@ -42,7 +42,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorLaunchParams = LibraryInspectorLaunchParams(
     AppInspectorJar("workmanager-inspection.jar",
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
-    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta02", ArtifactCoordinate.Type.AAR)
+    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0", ArtifactCoordinate.Type.AAR)
  )
 
   override fun isApplicable(): Boolean {
