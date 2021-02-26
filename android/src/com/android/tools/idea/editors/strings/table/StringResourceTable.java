@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT;
+
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.util.ui.JBUI;
@@ -40,7 +42,7 @@ public final class StringResourceTable extends FrozenColumnTable<StringResourceT
   private boolean myColumnPreferredWidthsSet;
 
   public StringResourceTable() {
-    super(new StringResourceTableModel(), 4);
+    super(new StringResourceTableModel(), FIXED_COLUMN_COUNT);
 
     setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());

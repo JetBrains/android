@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBScrollPane;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -35,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.IntUnaryOperator;
 import javax.swing.Action;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -230,8 +234,21 @@ public class FrozenColumnTable<M extends TableModel> {
   private void initScrollPane() {
     myScrollPane = new JBScrollPane(myScrollableTable);
 
-    myScrollPane.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, myFrozenTable.getTableHeader());
-    myScrollPane.setRowHeaderView(myFrozenTable);
+    paintFrozenTable();
+  }
+
+  private void paintFrozenTable() {
+    if (myScrollableTable.getColumnCount() == 0) {
+      // If there is no column in myScrollableTable, ScrollPaneConstants.UPPER_LEFT_CORNER is never visible. Thus we add both headers
+      // and body of myFrozenTable as a row header of [myScrollPane].
+      JPanel searchPanel = new JPanel(new BorderLayout());
+      searchPanel.add(myFrozenTable.getTableHeader(),BorderLayout.NORTH);
+      searchPanel.add(myFrozenTable,BorderLayout.CENTER);
+      myScrollPane.setRowHeaderView(searchPanel);
+    } else {
+      myScrollPane.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, myFrozenTable.getTableHeader());
+      myScrollPane.setRowHeaderView(myFrozenTable);
+    }
   }
 
   boolean includeColumn(int modelColumnIndex) {
@@ -624,10 +641,16 @@ public class FrozenColumnTable<M extends TableModel> {
   }
 
   public void setModel(@NotNull M model) {
+    boolean visibilityOfScrollingTableChanged = model.getColumnCount() > FIXED_COLUMN_COUNT != myModel.getColumnCount() > FIXED_COLUMN_COUNT;
     myModel = model;
 
     myFrozenTable.setModel(new SubTableModel(model, () -> 0, () -> myFrozenColumnCount));
     myScrollableTable.setModel(new SubTableModel(model, () -> myFrozenColumnCount, model::getColumnCount));
+
+    if (visibilityOfScrollingTableChanged) {
+      // We add myFrozenTable in different ways depending on whether or not myScrollableTable has columns.
+      paintFrozenTable();
+    }
   }
 
   @Nullable
