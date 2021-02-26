@@ -588,7 +588,8 @@ class DatabaseInspectorControllerImpl(
           content = throwable?.message ?: throwable?.toString() ?: "",
           severity = Severity.ERROR
         )
-      }
+      },
+      databaseInspectorAnalyticsTracker
     )
     controller.setUp()
     controller.showView()
