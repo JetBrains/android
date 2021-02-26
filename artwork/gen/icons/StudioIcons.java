@@ -276,6 +276,7 @@ public class StudioIcons {
       public static final Icon CUSTOM_VIEW = load("/studio/icons/layout-editor/palette/custom-view.svg"); // 16x16
       public static final Icon DATE_PICKER = load("/studio/icons/layout-editor/palette/date-picker.svg"); // 16x16
       public static final Icon DATE_TEXTFIELD = load("/studio/icons/layout-editor/palette/date-textfield.svg"); // 16x16
+      public static final Icon DIALOG_POPUP = load("/studio/icons/layout-editor/palette/dialog-popup.svg"); // 16x16
       public static final Icon EDIT_TEXT = load("/studio/icons/layout-editor/palette/edit-text.svg"); // 16x16
       public static final Icon EMAIL_TEXTFIELD = load("/studio/icons/layout-editor/palette/email-textfield.svg"); // 16x16
       public static final Icon EXPANDABLE_LIST_VIEW = load("/studio/icons/layout-editor/palette/expandable-list-view.svg"); // 16x16
