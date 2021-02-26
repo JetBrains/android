@@ -43,7 +43,7 @@ interface DatabaseInspectorAnalyticsTracker {
   fun trackEnterOfflineModeUserCanceled()
   fun trackOfflineDatabaseDownloadFailed()
   fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata)
-  fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent)
+  fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin)
   fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
                            event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent)
 }
@@ -104,10 +104,12 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
             .setOfflineModeMetadata(metadata))
   }
 
-  override fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent) {
+  override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_DIALOG_OPENED)
-            .setExportDialogOpenedEvent(event))
+            .setExportDialogOpenedEvent(
+              AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.newBuilder().setOrigin(actionOrigin)
+            ))
   }
 
   override fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
