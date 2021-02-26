@@ -528,6 +528,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
+        if (hasLiveLiterals) {
+          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+        }
+
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
       }
