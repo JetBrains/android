@@ -30,7 +30,7 @@ import java.time.Duration
 private const val GMAVEN_INDEX_CACHE_DIR_KEY = "gmaven.index"
 
 /** Scheduled refreshment interval for local disk cache. */
-private val REFRESH_INTERVAL: Duration = Duration.ofMinutes(1) // TODO: make it daily.
+private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
 
 /**
  * An application service responsible for downloading index from network and populating the corresponding Maven
