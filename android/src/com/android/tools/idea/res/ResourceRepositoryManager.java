@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -733,7 +734,8 @@ public final class ResourceRepositoryManager implements Disposable {
         if (androidModel != null) {
           ResourceVisibilityLookup.Provider provider = new ResourceVisibilityLookup.Provider();
           IdeVariant variant = androidModel.getSelectedVariant();
-          myResourceVisibility = provider.get(variant);
+          IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
+          myResourceVisibility = provider.get(mainArtifact);
         }
         else {
           myResourceVisibility = ResourceVisibilityLookup.NONE;
