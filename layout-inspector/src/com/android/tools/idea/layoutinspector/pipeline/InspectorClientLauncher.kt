@@ -29,7 +29,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
-import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -48,8 +47,7 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
                               processes: ProcessesModel,
                               clientCreators: List<(Params) -> InspectorClient?>,
                               parentDisposable: Disposable,
-                              @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-                              @VisibleForTesting connectTimeout: Duration = Duration.ofSeconds(10)) {
+                              @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
 
     /**
@@ -109,17 +107,15 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
             try {
               val latch = CountDownLatch(1)
               client.registerStateCallback { state ->
-                // The "activeClient == client" check here to protects against the rare (practically improbable?) case
-                // where an attempt to connect hung until *just* past after timeout, and this callback got triggered
-                // after we had already moved onto a new client.
-                if (state == InspectorClient.State.CONNECTED && activeClient == client) {
-                  validClientConnected = true
+                if (state == InspectorClient.State.CONNECTED || state == InspectorClient.State.DISCONNECTED) {
+                  validClientConnected = (state == InspectorClient.State.CONNECTED)
                   latch.countDown()
                 }
               }
+
               activeClient = client // client.connect() call internally might throw
-              // Skips over break if client.connect() hangs
-              if (latch.await(connectTimeout.toMillis(), TimeUnit.MILLISECONDS)) {
+              latch.await()
+              if (validClientConnected) {
                 break
               }
             }
