@@ -106,15 +106,6 @@ class SummaryTreeNode extends UpdaterTreeNode {
     return myVersion.compareTo(((SummaryTreeNode)o).myVersion);
   }
 
-  @SuppressWarnings("EqualsHashCode")  // b/180537631
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof SummaryTreeNode)) {
-      return false;
-    }
-    return myVersion.equals(((SummaryTreeNode)obj).myVersion);
-  }
-
   @Override
   public void customizeRenderer(Renderer renderer, JTree tree, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
     renderer.getTextRenderer().append(SdkVersionInfo.getVersionWithCodename(myVersion));
