@@ -109,10 +109,12 @@ public final class ResourceRepositoryManager implements Disposable {
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
   private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
-  @GuardedBy("myLibraryLock")
+  @GuardedBy("myResourceVisibilityLock")
   @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   private final Object myLibraryLock = new Object();
+
+  private final Object myResourceVisibilityLock = new Object();
 
   @NotNull
   public static ResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
@@ -631,7 +633,7 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   private void resetVisibility() {
-    synchronized (myLibraryLock) {
+    synchronized (myResourceVisibilityLock) {
       myResourceVisibilityProvider = null;
     }
   }
@@ -727,7 +729,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    synchronized (myLibraryLock) {
+    synchronized (myResourceVisibilityLock) {
       if (myResourceVisibilityProvider == null) {
         if (!AndroidModel.isRequired(myFacet) || AndroidModel.get(myFacet) == null) {
           return null;
@@ -743,10 +745,12 @@ public final class ResourceRepositoryManager implements Disposable {
   public ResourceVisibilityLookup getResourceVisibility() {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel != null) {
-      ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-      if (provider != null) {
-        IdeVariant variant = androidModel.getSelectedVariant();
-        return provider.get(variant);
+      synchronized (myResourceVisibilityLock) {
+        ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
+        if (provider != null) {
+          IdeVariant variant = androidModel.getSelectedVariant();
+          return provider.get(variant);
+        }
       }
     }
 
