@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -29,7 +28,6 @@ import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
@@ -110,7 +108,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @GuardedBy("myLibraryLock")
   private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
   @GuardedBy("myResourceVisibilityLock")
-  @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
+  @Nullable private ResourceVisibilityLookup myResourceVisibility;
 
   private final Object myLibraryLock = new Object();
 
@@ -634,7 +632,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   private void resetVisibility() {
     synchronized (myResourceVisibilityLock) {
-      myResourceVisibilityProvider = null;
+      myResourceVisibility = null;
     }
   }
 
@@ -728,22 +726,16 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    if (myResourceVisibilityProvider == null) {
-      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-    }
-
-    return myResourceVisibilityProvider;
-  }
-
-  @NotNull
   public ResourceVisibilityLookup getResourceVisibility() {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel != null) {
       synchronized (myResourceVisibilityLock) {
-        ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
-        IdeVariant variant = androidModel.getSelectedVariant();
-        return provider.get(variant);
+        if (myResourceVisibility == null) {
+          ResourceVisibilityLookup.Provider provider = new ResourceVisibilityLookup.Provider();
+          IdeVariant variant = androidModel.getSelectedVariant();
+          myResourceVisibility = provider.get(variant);
+        }
+        return myResourceVisibility;
       }
     }
 
