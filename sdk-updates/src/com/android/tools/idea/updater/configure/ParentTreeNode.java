@@ -102,18 +102,6 @@ class ParentTreeNode extends UpdaterTreeNode {
     return myVersion.compareTo(((ParentTreeNode)other).myVersion);
   }
 
-  @SuppressWarnings("EqualsHashCode")  // b/180537631
-  @Override
-  public boolean equals(@Nullable Object obj) {
-    if (!(obj instanceof ParentTreeNode)) {
-      return false;
-    }
-    if (myVersion != null) {
-      return myVersion.equals(((ParentTreeNode)obj).myVersion);
-    }
-    return getStatusString().equals(((ParentTreeNode)obj).getStatusString());
-  }
-
   @Override
   public void customizeRenderer(Renderer renderer,
                                 JTree tree,
