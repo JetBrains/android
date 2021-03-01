@@ -39,6 +39,25 @@ fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
     LayoutInspectorComposeProtocol.Parameter.Type.DIMENSION_EM -> PropertyType.DIMENSION_EM
     LayoutInspectorComposeProtocol.Parameter.Type.LAMBDA -> PropertyType.LAMBDA
     LayoutInspectorComposeProtocol.Parameter.Type.FUNCTION_REFERENCE -> PropertyType.FUNCTION_REFERENCE
+    LayoutInspectorComposeProtocol.Parameter.Type.ITERABLE -> PropertyType.ITERABLE
     else -> error { "Unhandled parameter type $this"}
   }
+}
+
+fun LayoutInspectorComposeProtocol.ParameterReference.convert(): ParameterReference? {
+  if (this == LayoutInspectorComposeProtocol.ParameterReference.getDefaultInstance()) {
+    return null
+  }
+  return ParameterReference(
+    composableId,
+    parameterIndex,
+    convertCompositeIndexList(compositeIndexList)
+  )
+}
+
+private fun convertCompositeIndexList(reference: List<Int>): IntArray {
+  if (reference.isEmpty()) {
+    return emptyIntArray()
+  }
+  return IntArray(reference.size) { index -> reference[index] }
 }

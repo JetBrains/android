@@ -28,6 +28,8 @@ import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -212,6 +214,9 @@ class LayoutInspectorRule(
     private set
   lateinit var inspectorModel: InspectorModel
     private set
+
+  val parametersCache: ComposeParametersCache?
+    get() = (inspectorClient as? AppInspectionInspectorClient)?.composeInspector?.parametersCache
 
   /**
    * Notify this rule about a device that it should be aware of.

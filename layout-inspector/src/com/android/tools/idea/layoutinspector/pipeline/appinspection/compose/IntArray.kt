@@ -13,34 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.properties
+package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-enum class PropertyType {
-  STRING,
-  BOOLEAN,
-  BYTE,
-  CHAR,
-  DOUBLE,
-  FLOAT,
-  INT16,
-  INT32,
-  INT64,
-  OBJECT,
-  COLOR,
-  GRAVITY,
-  INT_ENUM,
-  INT_FLAG,
-  RESOURCE,
-  DRAWABLE,
-  ANIM,
-  ANIMATOR,
-  INTERPOLATOR,
-  DIMENSION,
-  DIMENSION_FLOAT,
-  DIMENSION_DP,
-  DIMENSION_SP,
-  DIMENSION_EM,
-  LAMBDA,
-  FUNCTION_REFERENCE,
-  ITERABLE,
-}
+private val EMPTY_INT_ARRAY = intArrayOf()
+
+fun emptyIntArray() = EMPTY_INT_ARRAY

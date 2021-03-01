@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterReference
 
 /**
  * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].
@@ -42,4 +44,11 @@ interface ViewNodeAndResourceLookup {
    * Provide access to statistics
    */
   val stats: SessionStatistics
+
+  /**
+   * Perform a lookup of a compose parameter item given a parameter reference
+   *
+   * TODO: b/182196505 we should split out view PropertyItems and Compose ParameterItems.
+   */
+  fun resolve(rootId: Long, reference: ParameterReference, callback: (ParameterGroupItem?) -> Unit) {}
 }

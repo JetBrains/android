@@ -40,6 +40,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.EnumSet
 
 /**
@@ -62,7 +63,9 @@ class AppInspectionInspectorClient(
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
-  private var composeInspector: ComposeLayoutInspectorClient? = null
+  @VisibleForTesting
+  var composeInspector: ComposeLayoutInspectorClient? = null
+    private set
 
   private val exceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)

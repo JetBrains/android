@@ -24,14 +24,19 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Element
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ExpandedParameter
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Parameter
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ParameterGroup
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Property
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.PropertyGroup
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Reference
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
@@ -39,7 +44,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
-import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -49,7 +53,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.openapi.application.runInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,7 +65,6 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-@RunsInEdt
 class AppInspectionPropertiesProviderTest {
   // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more scattered.
   class FakeInspectorState(
@@ -288,12 +291,14 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(114, "dataObject"),
       ComposableString(115, "intProperty"),
       ComposableString(116, "stringProperty"),
+      ComposableString(117, "lines"),
 
       // parameter values
       ComposableString(201, "placeholder"),
       ComposableString(202, "lambda"),
       ComposableString(203, "PojoClass"),
       ComposableString(204, "stringValue"),
+      ComposableString(205, "MyLineClass"),
     )
 
     // Composable tree that lives under ComposeView
@@ -389,15 +394,60 @@ class AppInspectionPropertiesProviderTest {
             type = ComposeProtocol.Parameter.Type.STRING
             name = 116
             int32Value = 204
+            Reference {
+              composableId = -5
+              parameterIndex = 0
+            }
           }
           Element {
             type = ComposeProtocol.Parameter.Type.INT32
             name = 115
             int32Value = 812
           }
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 117
+            int32Value = 205
+            index = 11
+            Reference {
+              composableId = -5
+              parameterIndex = 0
+              addCompositeIndex(11)
+            }
+          }
         }
       }
     )
+
+    private val expandedStrings = listOf(
+      // parameter names
+      ComposableString(1, "lines"),
+      ComposableString(2, "firstLine"),
+      ComposableString(3, "lastLine"),
+
+      // String values
+      ComposableString(21, "MyLineClass"),
+      ComposableString(22, "Hello World"),
+      ComposableString(23, "End of Text"),
+    )
+
+    private val expandedParameter =
+      ExpandedParameter {
+        type = ComposeProtocol.Parameter.Type.INT32
+        name = 1
+        int32Value = 21
+        index = 11
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 2
+          int32Value = 22
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 3
+          int32Value = 23
+        }
+      }
 
     /**
      * Map of "view ID" to number of times properties were requested for it.
@@ -476,6 +526,21 @@ class AppInspectionPropertiesProviderTest {
           }
         }.build()
       }
+
+      composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
+        ComposeProtocol.Response.newBuilder().apply {
+          getParameterDetailsResponseBuilder.apply {
+            rootViewId = command.getParameterDetailsCommand.rootViewId
+            if (command.getParameterDetailsCommand.reference.composableId == -5L &&
+                command.getParameterDetailsCommand.reference.parameterIndex == 0 &&
+                command.getParameterDetailsCommand.reference.compositeIndexCount == 1 &&
+                command.getParameterDetailsCommand.reference.compositeIndexList[0] == 11) {
+              addAllStrings(expandedStrings)
+              parameter = expandedParameter
+            }
+          }
+        }.build()
+      }
     }
 
     fun getPropertiesRequestCountFor(viewId: Long): Int {
@@ -517,7 +582,7 @@ class AppInspectionPropertiesProviderTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)
+  val ruleChain = RuleChain.outerRule(inspectionRule).around(inspectorRule)!!
 
   private lateinit var inspectorState: FakeInspectorState
 
@@ -545,7 +610,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
     inspectorRule.inspectorModel[3]!!.let { targetNode ->
@@ -599,7 +664,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
     inspectorRule.inspectorModel[1]!!.let { targetNode ->
@@ -692,7 +757,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
     for (id in listOf(3L, 4L, 5L)) {
@@ -721,7 +786,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
     inspectorRule.inspectorModel[-2]!!.let { targetNode ->
@@ -752,21 +817,58 @@ class AppInspectionPropertiesProviderTest {
         assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
         // TODO(b/179324422): Investigate DIMENSION_SP formatting
         assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ", namespace = "")
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
       }
     }
 
-    inspectorRule.inspectorModel[-5]!!.let { targetNode ->
+    val parameter = inspectorRule.inspectorModel[-5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
       val result = resultQueue.take()
       assertThat(result.view).isSameAs(targetNode)
+
       result.table.run {
         assertProperty("dataObject", PropertyType.STRING, "PojoClass")
-        val groupItem = this.first as InspectorGroupPropertyItem
+        val groupItem = this.first as ParameterGroupItem
         assertProperty(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
         assertProperty(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
+        assertProperty(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
+        assertThat(groupItem.children.size).isEqualTo(3)
+
+        groupItem
       }
     }
+
+    // The 1st element of parameter is a reference to parameter itself.
+    // When the 1st sub element is expanded in the UI the child elements should be copied from parameter.
+    val propertyExpandedLatch = CountDownLatch(1)
+    runInEdt {
+      val first = parameter.children.first() as ParameterGroupItem
+      assertThat(first.children).isEmpty()
+      first.expandWhenPossible { restructured ->
+        assertThat(restructured).isTrue()
+        assertProperty(first.children[0], "stringProperty", PropertyType.STRING, "stringValue")
+        assertProperty(first.children[1], "intProperty", PropertyType.INT32, "812")
+        assertProperty(first.children[2], "lines", PropertyType.STRING, "MyLineClass")
+        assertThat(first.children.size).isEqualTo(3)
+        propertyExpandedLatch.countDown()
+      }
+    }
+    propertyExpandedLatch.await()
+
+    // The last element of parameter is a reference to a value that has not been loaded from the agent yet.
+    // When the last element is expanded in the UI the child elements will be loaded from the agent.
+    val propertyDownloadedLatch = CountDownLatch(1)
+    runInEdt {
+      val last = parameter.children.last() as ParameterGroupItem
+      assertThat(last.children).isEmpty()
+      last.expandWhenPossible { restructured ->
+        assertThat(restructured).isTrue()
+        assertProperty(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
+        assertProperty(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
+        propertyDownloadedLatch.countDown()
+      }
+    }
+    propertyDownloadedLatch.await()
   }
 
   @Test
@@ -834,7 +936,7 @@ class AppInspectionPropertiesProviderTest {
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
     provider.resultListeners.add { _, view, table ->
-      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel))
+      resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
     for (id in listOf(-2L, -3L, -4L)) {
@@ -878,12 +980,18 @@ class AppInspectionPropertiesProviderTest {
   private class ProviderResult(
     val view: ViewNode,
     val table: PropertiesTable<InspectorPropertyItem>,
-    val model: InspectorModel) {
+    val model: InspectorModel,
+    val cache: ComposeParametersCache?
+  ) {
 
     init {
       table.values.forEach { property ->
         assertThat(property.viewId).isEqualTo(view.drawId)
-        assertThat(property.lookup).isSameAs(model)
+        if (property is ParameterItem) {
+          assertThat(property.lookup).isSameAs(cache!!)
+        } else {
+          assertThat(property.lookup).isSameAs(model)
+        }
       }
     }
   }
