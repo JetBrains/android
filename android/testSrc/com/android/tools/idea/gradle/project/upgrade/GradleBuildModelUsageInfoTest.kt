@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
@@ -79,6 +80,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val pluginModel = mock(PluginModel::class.java)
     val buildTypeModel = mock(BuildTypeModel::class.java)
     val androidModel = mock(AndroidModel::class.java)
+    val resolvedPropertyModel = mock(ResolvedPropertyModel::class.java)
 
     val usageInfos = listOf(
       AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
@@ -105,8 +107,8 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
-      DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
+      VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
       SOURCE_SET_JNI_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
     )
     usageInfos.forEach { one ->
