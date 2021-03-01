@@ -211,7 +211,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
   }
 
   fun stopAllMonitors() {
-    serviceLock.read { activeDevices }.forEach { liveLiteralsMonitorStopped(it) }
+    serviceLock.read { activeDevices.toSet() }.forEach { liveLiteralsMonitorStopped(it) }
   }
 
   /**
