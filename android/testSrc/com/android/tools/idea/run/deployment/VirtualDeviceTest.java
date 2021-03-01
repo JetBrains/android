@@ -82,10 +82,7 @@ public final class VirtualDeviceTest {
     Object targets = device.getTargets();
 
     // Assert
-    // TODO(http://b/179836372)
-    // assertEquals(Collections.singletonList(new RunningDeviceTarget(DEVICE_KEY)), targets);
-
-    assertEquals(Collections.singletonList(new QuickBootTarget(DEVICE_KEY)), targets);
+    assertEquals(Collections.singletonList(new RunningDeviceTarget(DEVICE_KEY)), targets);
   }
 
   @Test

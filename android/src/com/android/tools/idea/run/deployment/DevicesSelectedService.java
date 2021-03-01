@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,6 +32,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -84,17 +84,12 @@ final class DevicesSelectedService {
 
     State state = myPersistentStateComponent.getState();
 
-    if (state.targetSelectedWithDropDown == null) {
-      return Optional.of(devices.get(0).getDefaultTarget());
-    }
+    RunningDeviceTarget runningDeviceTarget = state.getRunningDeviceTargetSelectedWithDropDown();
+    Target target = state.getTargetSelectedWithDropDown();
 
-    Target target;
+    target = new TargetsForReadingSupplier(devices, runningDeviceTarget, target).getDropDownTarget().orElse(null);
 
-    try {
-      target = state.targetSelectedWithDropDown.asTarget();
-    }
-    catch (DevicesSelectedServiceException exception) {
-      Logger.getInstance(DevicesSelectedService.class).warn(exception);
+    if (target == null) {
       return Optional.of(devices.get(0).getDefaultTarget());
     }
 
@@ -132,14 +127,12 @@ final class DevicesSelectedService {
     State state = myPersistentStateComponent.getState();
     state.multipleDevicesSelectedInDropDown = false;
 
-    if (targetSelectedWithComboBox == null) {
-      state.timeTargetWasSelectedWithDropDown = null;
-      state.targetSelectedWithDropDown = null;
-    }
-    else {
-      state.targetSelectedWithDropDown = new TargetState(targetSelectedWithComboBox);
-      state.timeTargetWasSelectedWithDropDown = myClock.instant();
-    }
+    TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetSelectedWithDropDown(), targetSelectedWithComboBox);
+
+    state.setRunningDeviceTargetSelectedWithDropDown(supplier.getDropDownRunningDeviceTarget().orElse(null));
+    state.setTargetSelectedWithDropDown(supplier.getDropDownTarget().orElse(null));
+
+    state.timeTargetWasSelectedWithDropDown = targetSelectedWithComboBox == null ? null : myClock.instant();
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
@@ -157,26 +150,20 @@ final class DevicesSelectedService {
   }
 
   @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull List<@NotNull Device> devices) {
-    try {
-      Collection<TargetState> targetStates = myPersistentStateComponent.getState().targetsSelectedWithDialog;
-      Set<Target> targets = Sets.newHashSetWithExpectedSize(targetStates.size());
+    State state = myPersistentStateComponent.getState();
 
-      for (TargetState targetState : targetStates) {
-        targets.add(targetState.asTarget());
-      }
+    Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
+    Collection<Target> targets = state.getTargetsSelectedWithDialog();
 
-      return targets;
-    }
-    catch (DevicesSelectedServiceException exception) {
-      Logger.getInstance(DevicesSelectedService.class).warn(exception);
-      return Collections.emptySet();
-    }
+    return new TargetsForReadingSupplier(devices, runningDeviceTargets, targets).getDialogTargets();
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
-    myPersistentStateComponent.getState().targetsSelectedWithDialog = targetsSelectedWithDialog.stream()
-      .map(TargetState::new)
-      .collect(Collectors.toList());
+    State state = myPersistentStateComponent.getState();
+    TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
+
+    state.setRunningDeviceTargetsSelectedWithDialog(supplier.getDialogRunningDeviceTargets());
+    state.setTargetsSelectedWithDialog(supplier.getDialogTargets());
   }
 
   @com.intellij.openapi.components.State(name = "deploymentTargetDropDown", storages = @Storage("deploymentTargetDropDown.xml"))
@@ -215,17 +202,93 @@ final class DevicesSelectedService {
     @XCollection(style = Style.v2)
     public @NotNull Collection<@NotNull TargetState> targetsSelectedWithDialog = Collections.emptyList();
 
+    private @Nullable RunningDeviceTarget getRunningDeviceTargetSelectedWithDropDown() {
+      return (RunningDeviceTarget)getTargetSelectedWithDropDown(runningDeviceTargetSelectedWithDropDown);
+    }
+
+    private void setRunningDeviceTargetSelectedWithDropDown(@Nullable RunningDeviceTarget runningDeviceTargetSelectedWithDropDown) {
+      if (runningDeviceTargetSelectedWithDropDown == null) {
+        this.runningDeviceTargetSelectedWithDropDown = null;
+        return;
+      }
+
+      this.runningDeviceTargetSelectedWithDropDown = new TargetState(runningDeviceTargetSelectedWithDropDown);
+    }
+
+    private @Nullable Target getTargetSelectedWithDropDown() {
+      return getTargetSelectedWithDropDown(targetSelectedWithDropDown);
+    }
+
+    private void setTargetSelectedWithDropDown(@Nullable Target targetSelectedWithDropDown) {
+      if (targetSelectedWithDropDown == null) {
+        this.targetSelectedWithDropDown = null;
+        return;
+      }
+
+      this.targetSelectedWithDropDown = new TargetState(targetSelectedWithDropDown);
+    }
+
+    private static @Nullable Target getTargetSelectedWithDropDown(@Nullable TargetState targetState) {
+      if (targetState == null) {
+        return null;
+      }
+
+      try {
+        return targetState.asTarget();
+      }
+      catch (DevicesSelectedServiceException exception) {
+        Logger.getInstance(DevicesSelectedService.class).warn(exception);
+        return null;
+      }
+    }
+
+    private @NotNull Collection<@NotNull RunningDeviceTarget> getRunningDeviceTargetsSelectedWithDialog() {
+      return getTargetsSelectedWithDialog(runningDeviceTargetsSelectedWithDialog, RunningDeviceTarget.class);
+    }
+
+    private void setRunningDeviceTargetsSelectedWithDialog(@NotNull Collection<@NotNull RunningDeviceTarget> runningDeviceTargetsSelectedWithDialog) {
+      this.runningDeviceTargetsSelectedWithDialog = asTargetStates(runningDeviceTargetsSelectedWithDialog);
+    }
+
+    private @NotNull Collection<@NotNull Target> getTargetsSelectedWithDialog() {
+      return getTargetsSelectedWithDialog(targetsSelectedWithDialog, Target.class);
+    }
+
+    private void setTargetsSelectedWithDialog(@NotNull Collection<@NotNull Target> targetsSelectedWithDialog) {
+      this.targetsSelectedWithDialog = asTargetStates(targetsSelectedWithDialog);
+    }
+
+    private static <T> @NotNull Collection<@NotNull T> getTargetsSelectedWithDialog(@NotNull Collection<@NotNull TargetState> targetStates,
+                                                                                    @NotNull Class<@NotNull T> c) {
+      try {
+        Collection<T> targets = new ArrayList<>(targetStates.size());
+
+        for (TargetState targetState : targetStates) {
+          targets.add(c.cast(targetState.asTarget()));
+        }
+
+        return targets;
+      }
+      catch (DevicesSelectedServiceException exception) {
+        Logger.getInstance(DevicesSelectedService.class).warn(exception);
+        return Collections.emptyList();
+      }
+    }
+
+    private static <T extends Target> @NotNull Collection<@NotNull TargetState> asTargetStates(@NotNull Collection<@NotNull T> targets) {
+      return targets.stream()
+        .map(TargetState::new)
+        .collect(Collectors.toList());
+    }
+
     @Override
     public int hashCode() {
-      int hashCode = Objects.hashCode(runningDeviceTargetSelectedWithDropDown);
-
-      hashCode = 31 * hashCode + Objects.hashCode(targetSelectedWithDropDown);
-      hashCode = 31 * hashCode + Objects.hashCode(timeTargetWasSelectedWithDropDown);
-      hashCode = 31 * hashCode + Boolean.hashCode(multipleDevicesSelectedInDropDown);
-      hashCode = 31 * hashCode + runningDeviceTargetsSelectedWithDialog.hashCode();
-      hashCode = 31 * hashCode + targetsSelectedWithDialog.hashCode();
-
-      return hashCode;
+      return Objects.hash(runningDeviceTargetSelectedWithDropDown,
+                          targetSelectedWithDropDown,
+                          timeTargetWasSelectedWithDropDown,
+                          multipleDevicesSelectedInDropDown,
+                          runningDeviceTargetsSelectedWithDialog,
+                          targetsSelectedWithDialog);
     }
 
     @Override
@@ -307,12 +370,7 @@ final class DevicesSelectedService {
 
     @Override
     public int hashCode() {
-      int hashCode = Objects.hashCode(type);
-
-      hashCode = 31 * hashCode + Objects.hashCode(deviceKey);
-      hashCode = 31 * hashCode + Objects.hashCode(snapshotKey);
-
-      return hashCode;
+      return Objects.hash(type, deviceKey, snapshotKey);
     }
 
     @Override
@@ -383,7 +441,7 @@ final class DevicesSelectedService {
 
     @Override
     public int hashCode() {
-      return 31 * Objects.hashCode(type) + Objects.hashCode(value);
+      return Objects.hash(type, value);
     }
 
     @Override
