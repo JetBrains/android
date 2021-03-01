@@ -19,6 +19,7 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -72,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -630,15 +632,20 @@ public class ConfigurationMatcher {
       idRank.put(id, rank++);
     }
 
-    // API 11-13: look for a x-large device
     Comparator<ConfigMatch> comparator = null;
-    IAndroidTarget projectTarget = myManager.getProjectTarget();
-    if (projectTarget != null) {
-      int apiLevel = projectTarget.getVersion().getFeatureLevel();
-      if (apiLevel >= 11 && apiLevel < 14) {
-        // TODO: Maybe check the compatible-screen tag in the manifest to figure out
-        // what kind of device should be used for display.
-        comparator = new TabletConfigComparator(idRank);
+    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration.getModule())) {
+      comparator = new WearConfigComparator(myConfiguration.getConfigurationManager(), idRank);
+    }
+    else {
+      // API 11-13: look for a x-large device
+      IAndroidTarget projectTarget = myManager.getProjectTarget();
+      if (projectTarget != null) {
+        int apiLevel = projectTarget.getVersion().getFeatureLevel();
+        if (apiLevel >= 11 && apiLevel < 14) {
+          // TODO: Maybe check the compatible-screen tag in the manifest to figure out
+          // what kind of device should be used for display.
+          comparator = new TabletConfigComparator(idRank);
+        }
       }
     }
 
@@ -957,6 +964,75 @@ public class ConfigurationMatcher {
       }
 
       return dpi1 - dpi2;
+    }
+  }
+
+  /**
+   * Note: this comparator imposes orderings that are inconsistent with equals.
+   */
+  private static class WearConfigComparator implements Comparator<ConfigMatch> {
+    private final Map<String, Integer> mIdRank;
+    private final List<String> myPreferredIds;
+
+    private WearConfigComparator(@NotNull ConfigurationManager manager, @NotNull Map<String, Integer> idRank) {
+      mIdRank = idRank;
+      myPreferredIds = manager.getDevices().stream()
+        .filter(HardwareConfigHelper::isWear)
+        .map(Device::getId)
+        .collect(Collectors.toList());
+    }
+
+    @Override
+    public int compare(ConfigMatch o1, ConfigMatch o2) {
+      FolderConfiguration config1 = o1 != null ? o1.testConfig : null;
+      FolderConfiguration config2 = o2 != null ? o2.testConfig : null;
+      if (config1 == null) {
+        if (config2 == null) {
+          return 0;
+        }
+        else {
+          return -1;
+        }
+      }
+      else if (config2 == null) {
+        return 1;
+      }
+
+      String n1 = o1.device.getId();
+      String n2 = o2.device.getId();
+
+      Integer rank1 = mIdRank.get(o1.device.getId());
+      Integer rank2 = mIdRank.get(o2.device.getId());
+      if (rank1 != null) {
+        if (rank2 != null) {
+          int delta = rank1 - rank2;
+          if (delta != 0) {
+            return delta;
+          }
+        }
+        else {
+          return -1;
+        }
+      }
+      else if (rank2 != null) {
+        return 1;
+      }
+
+      // Default to a modern device
+      int index1 = myPreferredIds.indexOf(n1);
+      int index2 = myPreferredIds.indexOf(n2);
+      if (index1 != index2) {
+        if (index1 == -1) {
+          return 1;
+        }
+        if (index2 == -1) {
+          return -1;
+        }
+        // Both are not -1.
+        return index1 - index2;
+      }
+      // We don't care the order if they both are not wear devices.
+      return 0;
     }
   }
 }
