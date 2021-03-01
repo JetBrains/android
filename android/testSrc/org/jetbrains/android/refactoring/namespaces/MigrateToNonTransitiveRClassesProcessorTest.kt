@@ -16,10 +16,17 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.AndroidProjectTypes
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.UsageTracker.cleanAfterTesting
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.EXECUTE
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.FIND_USAGES
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SKIPPED
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.guessProjectDir
@@ -27,12 +34,13 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import com.intellij.util.indexing.FileBasedIndex
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
+
+  private val myUsageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   override fun configureAdditionalModules(
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -57,6 +65,8 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+
+    UsageTracker.setWriterForTest(myUsageTracker)
 
     replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 
@@ -216,6 +226,13 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     }
   }
 
+  override fun tearDown() {
+    super.tearDown()
+
+    myUsageTracker.close()
+    cleanAfterTesting()
+  }
+
   fun testMiddleModule_Java() {
     MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
 
@@ -272,6 +289,17 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """.trimIndent(),
       true
     )
+
+    val usages = myUsageTracker.usages
+      .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
+      .map { it.studioEvent }
+    assertThat(usages).hasSize(2)
+
+    val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
+    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(8)
+
+    val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
+    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(8)
   }
 
   fun testMiddleModule_Kotlin() {
@@ -541,5 +569,19 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
         android.nonTransitiveRClass=true
       """.trimIndent()
     )
+
+    val usages = myUsageTracker.usages
+      .filter { it.studioEvent.kind == MIGRATE_TO_NON_TRANSITIVE_R_CLASS }
+      .map { it.studioEvent }
+    assertThat(usages).hasSize(3)
+
+    val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
+    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(16)
+
+    val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
+    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(16)
+
+    val syncEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
+    assertThat(syncEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
   }
 }

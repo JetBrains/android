@@ -272,7 +272,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
     if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleUsageInfo }) {
       // If we modified gradle entries, request sync.
-      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX)
+      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX, null)
     }
   }
 

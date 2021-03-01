@@ -15,9 +15,20 @@
  */
 package org.jetbrains.android.refactoring.namespaces
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.stats.withProjectId
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.EXECUTE
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.FIND_USAGES
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.PREVIEW_REFACTORING
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_FAILED
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SKIPPED
+import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SUCCEEDED
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
@@ -38,6 +49,7 @@ import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.project
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 import org.jetbrains.android.util.AndroidBundle
+import java.util.UUID
 
 private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
@@ -91,6 +103,8 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   private val updateTopLevelGradleProperties: Boolean
 ) : BaseRefactoringProcessor(project) {
 
+  val uuid = UUID.randomUUID().toString()
+
   companion object {
     fun forSingleModule(facet: AndroidFacet): MigrateToNonTransitiveRClassesProcessor {
       return MigrateToNonTransitiveRClassesProcessor(facet.module.project, setOf(facet), updateTopLevelGradleProperties = false)
@@ -120,10 +134,13 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     inferPackageNames(usages, progressIndicator)
 
     progressIndicator.text = null
+
+    trackProcessorUsage(FIND_USAGES, usages.size)
     return usages.toTypedArray()
   }
 
   override fun performRefactoring(usages: Array<out UsageInfo>) {
+    trackProcessorUsage(EXECUTE, usages.size)
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = false
     progressIndicator.fraction = 0.0
@@ -145,14 +162,38 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
       myProject.getProjectProperties(createIfNotExists = true)?.apply {
         findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
       }
-      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
+
+      val listener = object : GradleSyncListener {
+        override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
+        override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
+        override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
+      }
+      syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, listener)
     }
 
   }
 
+  override fun previewRefactoring(usages: Array<out UsageInfo>) {
+    trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
+    super.previewRefactoring(usages)
+  }
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {
     override fun getElements(): Array<PsiElement> = PsiElement.EMPTY_ARRAY
     override fun getProcessedElementsHeader() =
       AndroidBundle.message("android.refactoring.migrateto.resourceview.header")
+  }
+
+  private fun trackProcessorUsage(kind: NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind, usages: Int? = null) {
+    val processorEvent = NonTransitiveRClassMigrationEvent.newBuilder()
+      .setMigrationUuid(uuid)
+      .setKind(kind)
+      .apply { usages?.let { setUsages(it) } }
+
+    val studioEvent = AndroidStudioEvent
+      .newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS).withProjectId(myProject)
+      .setNonTransitiveRClassMigrationEvent(processorEvent.build())
+
+    UsageTracker.log(studioEvent)
   }
 }
