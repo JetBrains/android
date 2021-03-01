@@ -26,6 +26,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CyclicBarrier
+import kotlin.concurrent.thread
+import kotlin.random.Random
 
 internal class LiveLiteralsDeploymentReportServiceTest {
   @get:Rule
@@ -135,5 +138,57 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     assertFalse(service.hasProblems)
     service.liveLiteralPushed("DeviceA", "0", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
     assertTrue(service.hasProblems)
+  }
+
+  private fun runWithSynchronizedStartStop(iterations: Int, blocks: List<() -> Unit>) {
+    val entryBarrier = CyclicBarrier(blocks.size)
+    blocks.map {
+      thread {
+        entryBarrier.await()
+        repeat(iterations) {
+          it()
+        }
+      }
+    }.forEach { it.join() }
+  }
+
+  /**
+   * Regression test for b/180999880 that simulates the contention on the reporting service to reproduce
+   * any concurrency issues.
+   */
+  @Test
+  fun `check active devices synchronization`() {
+    var hasStarted = true
+    service.subscribe(projectRule.fixture.testRootDisposable, object: LiveLiteralsDeploymentReportService.Listener {
+      override fun onMonitorStarted(deviceId: String) {
+        hasStarted = true
+      }
+
+      override fun onMonitorStopped(deviceId: String) {}
+      override fun onLiveLiteralsPushed(deviceId: String) {}
+    })
+
+    // Generate 1000 devices
+    val devices = (0..1000).map {
+      "device$it"
+    }.toList()
+
+    // Start all devices
+    devices.forEach {
+      service.liveLiteralsMonitorStarted(it, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+
+    // Run in three different threads starts/stop and stop
+    runWithSynchronizedStartStop(
+      10000,
+      listOf(
+        { service.liveLiteralsMonitorStarted(devices.random(), LiveLiteralsMonitorHandler.DeviceType.PREVIEW) },
+        { service.liveLiteralsMonitorStopped(devices.random()) },
+        { service.stopAllMonitors() }
+      )
+    )
+
+    // Ensure that the threads have executed
+    assertTrue(hasStarted)
   }
 }
