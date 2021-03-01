@@ -19,10 +19,10 @@ import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAction;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.icons.AllIcons;
 import java.awt.event.KeyEvent;
 import javax.swing.JComponent;

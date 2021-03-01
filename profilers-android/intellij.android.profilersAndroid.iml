@@ -44,5 +44,8 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="transport-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
   </component>
 </module>

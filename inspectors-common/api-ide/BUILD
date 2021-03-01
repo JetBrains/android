@@ -3,6 +3,23 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.inspectors-common.api-ide",
+    srcs = ["src"],
     iml_files = ["intellij.android.inspectors-common.api-ide.iml"],
+    test_class = "com.android.tools.inspectors.common.api.ide.InspectorsCommonApiIdeTestSuite",
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
+        "//tools/adt/idea/native-symbolizer[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+    ],
 )
