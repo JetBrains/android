@@ -6,9 +6,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:common:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:common:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/common/211-1.4.21-release-IJ3575/common-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/common/211-1.4.32-release-IJ6869/common-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -16,9 +16,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-allopen" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-allopen:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-allopen:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-allopen/211-1.4.21-release-IJ3575/compiler-plugins-allopen-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-allopen/211-1.4.32-release-IJ6869/compiler-plugins-allopen-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -26,9 +26,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-annotation-based-compiler-support" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-annotation-based-compiler-support:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-annotation-based-compiler-support:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-annotation-based-compiler-support/211-1.4.21-release-IJ3575/compiler-plugins-annotation-based-compiler-support-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-annotation-based-compiler-support/211-1.4.32-release-IJ6869/compiler-plugins-annotation-based-compiler-support-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -36,9 +36,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-kapt" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-kapt:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-kapt:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kapt/211-1.4.21-release-IJ3575/compiler-plugins-kapt-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kapt/211-1.4.32-release-IJ6869/compiler-plugins-kapt-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -46,9 +46,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-kotlinx-serialization" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-kotlinx-serialization:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-kotlinx-serialization:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kotlinx-serialization/211-1.4.21-release-IJ3575/compiler-plugins-kotlinx-serialization-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kotlinx-serialization/211-1.4.32-release-IJ6869/compiler-plugins-kotlinx-serialization-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -56,9 +56,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-noarg" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-noarg:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-noarg:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-noarg/211-1.4.21-release-IJ3575/compiler-plugins-noarg-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-noarg/211-1.4.32-release-IJ6869/compiler-plugins-noarg-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -66,9 +66,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-sam-with-receiver" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-sam-with-receiver:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-sam-with-receiver:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-sam-with-receiver/211-1.4.21-release-IJ3575/compiler-plugins-sam-with-receiver-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-sam-with-receiver/211-1.4.32-release-IJ6869/compiler-plugins-sam-with-receiver-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -76,9 +76,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-scripting-plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-scripting:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-scripting:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-scripting/211-1.4.21-release-IJ3575/compiler-plugins-scripting-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-scripting/211-1.4.32-release-IJ6869/compiler-plugins-scripting-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -86,9 +86,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-parcelize" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-parcelize:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:compiler-plugins-parcelize:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-parcelize/211-1.4.21-release-IJ3575/compiler-plugins-parcelize-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-parcelize/211-1.4.32-release-IJ6869/compiler-plugins-parcelize-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -96,9 +96,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-core" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:core:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:core:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/core/211-1.4.21-release-IJ3575/core-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/core/211-1.4.32-release-IJ6869/core-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -106,9 +106,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-eval4j" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:eval4j:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:eval4j:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/eval4j/211-1.4.21-release-IJ3575/eval4j-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/eval4j/211-1.4.32-release-IJ6869/eval4j-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -116,9 +116,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-fir-frontend-independent" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:fir-frontend-independent:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:fir-frontend-independent:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/fir-frontend-independent/211-1.4.21-release-IJ3575/fir-frontend-independent-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/fir-frontend-independent/211-1.4.32-release-IJ6869/fir-frontend-independent-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -126,9 +126,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-formatter" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:formatter:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:formatter:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/formatter/211-1.4.21-release-IJ3575/formatter-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/formatter/211-1.4.32-release-IJ6869/formatter-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -136,9 +136,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-gradle-idea" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-idea:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-idea:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-idea/211-1.4.21-release-IJ3575/gradle-idea-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-idea/211-1.4.32-release-IJ6869/gradle-idea-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -146,9 +146,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-gradle-native" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-native:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-native:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-native/211-1.4.21-release-IJ3575/gradle-native-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-native/211-1.4.32-release-IJ6869/gradle-native-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -156,9 +156,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-gradle-tooling" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-tooling:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:gradle-tooling:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-tooling/211-1.4.21-release-IJ3575/gradle-tooling-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-tooling/211-1.4.32-release-IJ6869/gradle-tooling-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -166,9 +166,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-idea" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:idea:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:idea:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/idea/211-1.4.21-release-IJ3575/idea-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/idea/211-1.4.32-release-IJ6869/idea-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -176,9 +176,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-j2k-idea" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-idea:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-idea:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-idea/211-1.4.21-release-IJ3575/j2k-idea-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-idea/211-1.4.32-release-IJ6869/j2k-idea-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -186,9 +186,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-j2k-new" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-new:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-new:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-new/211-1.4.21-release-IJ3575/j2k-new-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-new/211-1.4.32-release-IJ6869/j2k-new-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -196,9 +196,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-j2k-old" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-old:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:j2k-old:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-old/211-1.4.21-release-IJ3575/j2k-old-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-old/211-1.4.32-release-IJ6869/j2k-old-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -206,9 +206,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jps-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jps-common:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jps-common:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jps-common/211-1.4.21-release-IJ3575/jps-common-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jps-common/211-1.4.32-release-IJ6869/jps-common-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -216,9 +216,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jvm" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm/211-1.4.21-release-IJ3575/jvm-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm/211-1.4.32-release-IJ6869/jvm-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -226,9 +226,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jvm-debugger-core" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-core:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-core:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-core/211-1.4.21-release-IJ3575/jvm-debugger-core-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-core/211-1.4.32-release-IJ6869/jvm-debugger-core-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -236,9 +236,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jvm-debugger-coroutines" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-coroutines:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-coroutines:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-coroutines/211-1.4.21-release-IJ3575/jvm-debugger-coroutines-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-coroutines/211-1.4.32-release-IJ6869/jvm-debugger-coroutines-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -246,9 +246,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jvm-debugger-evaluation" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-evaluation:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-evaluation:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-evaluation/211-1.4.21-release-IJ3575/jvm-debugger-evaluation-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-evaluation/211-1.4.32-release-IJ6869/jvm-debugger-evaluation-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -256,9 +256,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-jvm-debugger-util" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-util:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:jvm-debugger-util:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-util/211-1.4.21-release-IJ3575/jvm-debugger-util-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-util/211-1.4.32-release-IJ6869/jvm-debugger-util-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -266,9 +266,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-line-indent-provider" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:line-indent-provider:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:line-indent-provider:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/line-indent-provider/211-1.4.21-release-IJ3575/line-indent-provider-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/line-indent-provider/211-1.4.32-release-IJ6869/line-indent-provider-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -276,9 +276,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-maven" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:maven:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:maven:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/maven/211-1.4.21-release-IJ3575/maven-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/maven/211-1.4.32-release-IJ6869/maven-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -286,9 +286,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-native" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:native:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:native:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/native/211-1.4.21-release-IJ3575/native-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/native/211-1.4.32-release-IJ6869/native-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -296,9 +296,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-project-wizard-core" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:project-wizard-core:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:project-wizard-core:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-core/211-1.4.21-release-IJ3575/project-wizard-core-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-core/211-1.4.32-release-IJ6869/project-wizard-core-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -306,9 +306,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-project-wizard-idea" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:project-wizard-idea:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:project-wizard-idea:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-idea/211-1.4.21-release-IJ3575/project-wizard-idea-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-idea/211-1.4.32-release-IJ6869/project-wizard-idea-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -316,9 +316,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-repl" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:repl:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:repl:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/repl/211-1.4.21-release-IJ3575/repl-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/repl/211-1.4.32-release-IJ6869/repl-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -326,9 +326,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-scripting" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:scripting:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:scripting:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/scripting/211-1.4.21-release-IJ3575/scripting-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/scripting/211-1.4.32-release-IJ6869/scripting-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -336,9 +336,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-uast-kotlin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:uast-kotlin:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:uast-kotlin:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin/211-1.4.21-release-IJ3575/uast-kotlin-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin/211-1.4.32-release-IJ6869/uast-kotlin-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -346,9 +346,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-ide-uast-kotlin-idea" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:uast-kotlin-idea:211-1.4.21-release-IJ3575" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:uast-kotlin-idea:211-1.4.32-release-IJ6869" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin-idea/211-1.4.21-release-IJ3575/uast-kotlin-idea-211-1.4.21-release-IJ3575.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin-idea/211-1.4.32-release-IJ6869/uast-kotlin-idea-211-1.4.32-release-IJ6869.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -356,9 +356,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-compiler-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-compiler-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-compiler-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compiler-for-ide/1.4.21-release-351/kotlin-compiler-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compiler-for-ide/1.4.32-release-371/kotlin-compiler-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -366,9 +366,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-scripting-common-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-common:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-common:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-common/1.4.21-release-351/kotlin-scripting-common-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-common/1.4.32-release-371/kotlin-scripting-common-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -376,9 +376,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-scripting-compiler-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler/1.4.21-release-351/kotlin-scripting-compiler-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler/1.4.32-release-371/kotlin-scripting-compiler-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -386,9 +386,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-scripting-compiler-impl-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler-impl:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler-impl:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler-impl/1.4.21-release-351/kotlin-scripting-compiler-impl-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler-impl/1.4.32-release-371/kotlin-scripting-compiler-impl-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -396,9 +396,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-scripting-jvm-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-jvm:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-jvm:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-jvm/1.4.21-release-351/kotlin-scripting-jvm-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-jvm/1.4.32-release-371/kotlin-scripting-jvm-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -406,9 +406,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-script-runtime-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-runtime:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-runtime:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-runtime/1.4.21-release-351/kotlin-script-runtime-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-runtime/1.4.32-release-371/kotlin-script-runtime-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -416,9 +416,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-script-util-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-util:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-util:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-util/1.4.21-release-351/kotlin-script-util-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-util/1.4.32-release-371/kotlin-script-util-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -426,9 +426,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="allopen-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:allopen-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:allopen-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/allopen-compiler-plugin-for-ide/1.4.21-release-351/allopen-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/allopen-compiler-plugin-for-ide/1.4.32-release-371/allopen-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -436,9 +436,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlinx-serialization-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlinx-serialization-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlinx-serialization-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlinx-serialization-compiler-plugin-for-ide/1.4.21-release-351/kotlinx-serialization-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlinx-serialization-compiler-plugin-for-ide/1.4.32-release-371/kotlinx-serialization-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -446,9 +446,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="noarg-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:noarg-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:noarg-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/noarg-compiler-plugin-for-ide/1.4.21-release-351/noarg-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/noarg-compiler-plugin-for-ide/1.4.32-release-371/noarg-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -456,9 +456,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="sam-with-receiver-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:sam-with-receiver-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:sam-with-receiver-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/sam-with-receiver-compiler-plugin-for-ide/1.4.21-release-351/sam-with-receiver-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/sam-with-receiver-compiler-plugin-for-ide/1.4.32-release-371/sam-with-receiver-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -466,9 +466,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlin-gradle-statistics-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-gradle-statistics-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-gradle-statistics-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-gradle-statistics-for-ide/1.4.21-release-351/kotlin-gradle-statistics-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-gradle-statistics-for-ide/1.4.32-release-371/kotlin-gradle-statistics-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -476,9 +476,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="kotlinc.android-extensions-compiler-plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:android-extensions-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:android-extensions-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/android-extensions-compiler-plugin-for-ide/1.4.21-release-351/android-extensions-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/android-extensions-compiler-plugin-for-ide/1.4.32-release-371/android-extensions-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -486,9 +486,9 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="parcelize-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:parcelize-compiler-plugin-for-ide:1.4.21-release-351" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:parcelize-compiler-plugin-for-ide:1.4.32-release-371" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/parcelize-compiler-plugin-for-ide/1.4.21-release-351/parcelize-compiler-plugin-for-ide-1.4.21-release-351.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/parcelize-compiler-plugin-for-ide/1.4.32-release-371/parcelize-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
