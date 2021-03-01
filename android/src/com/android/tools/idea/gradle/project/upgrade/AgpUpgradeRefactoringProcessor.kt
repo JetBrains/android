@@ -81,6 +81,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -281,6 +282,7 @@ class AgpUpgradeRefactoringProcessor(
     FabricCrashlyticsRefactoringProcessor(this),
     MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
+    MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -2094,6 +2096,33 @@ val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   componentKind = REMOVE_SOURCE_SET_JNI,
   propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
 )
+
+val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
+  PropertiesOperationsRefactoringInfo(
+    optionalFromVersion = GradleVersion.parse("7.0.0-alpha08"),
+    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
+    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
+    componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
+    propertiesOperationInfos = listOf(
+      MovePropertiesInfo(
+        sourceToDestinationPropertyModelGetters = listOf(
+          Pair({ android().aaptOptions().ignoreAssets() }, { android().androidResources().ignoreAssets() }),
+          Pair({ android().aaptOptions().noCompress() }, { android().androidResources().noCompress() }),
+          Pair({ android().aaptOptions().failOnMissingConfigEntry() }, { android().androidResources().failOnMissingConfigEntry() }),
+          Pair({ android().aaptOptions().additionalParameters() }, { android().androidResources().additionalParameters() }),
+          Pair({ android().aaptOptions().namespaced() }, { android().androidResources().namespaced() }),
+        ),
+        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.move.tooltipText"),
+        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.move.usageType"))
+      ),
+      RemovePropertiesInfo(
+        propertyModelListGetter = { listOf(android().aaptOptions()) },
+        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.remove.tooltipText"),
+        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.remove.usageType")),
+      )
+    )
+  )
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
