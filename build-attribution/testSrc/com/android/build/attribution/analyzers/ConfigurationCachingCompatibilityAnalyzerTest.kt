@@ -65,7 +65,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
         else content.patchApplyWithOldDsl(pluginsApply)
         FileUtil.writeToFile(appBuildFile, newContent)
       }
-      // Add dependencies to buildSrc in `./build.gradle`.
+      // Add dependencies to buildscript in `./build.gradle`.
       val rootBuildFile = FileUtils.join(projectRoot, SdkConstants.FN_BUILD_GRADLE)
       rootBuildFile.readText().let { content ->
         val newContent = content
