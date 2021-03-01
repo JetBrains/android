@@ -385,7 +385,7 @@ class MigrateToResourceNamespacesProcessor(
       progressIndicator.fraction = (index + 1) / totalFacets
     }
 
-    syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
+    syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, null)
   }
 
   /**
