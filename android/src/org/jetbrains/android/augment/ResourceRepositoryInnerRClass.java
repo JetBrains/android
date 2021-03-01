@@ -33,7 +33,7 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
     return InnerRClassBase.buildResourceFields(resourcesSource.getResourceRepository(),
                                                resourcesSource.getResourceNamespace(),
                                                modifier,
-                                               resourcesSource::isPublic,
+                                               resourcesSource::isAccessibleResource,
                                                resourceType,
                                                context);
   }

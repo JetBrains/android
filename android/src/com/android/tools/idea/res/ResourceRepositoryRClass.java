@@ -44,7 +44,7 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     @NotNull LocalResourceRepository getResourceRepository();
     @NotNull ResourceNamespace getResourceNamespace();
     @NotNull AndroidLightField.FieldModifier getFieldModifier();
-    boolean isPublic(@NotNull ResourceType resourceType, @NotNull String resourceName);
+    boolean isAccessibleResource(@NotNull ResourceType resourceType, @NotNull String resourceName);
   }
 
   public enum Transitivity {
