@@ -47,7 +47,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun `AGP compatible, no other plugins`() = test(TestCase(
     agpVersion = GradleVersion.parse("4.2.0"),
     pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
-    buildSrcDependenciesInfo = emptySet(),
+    buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = NoIncompatiblePlugins(emptyList())
   ))
@@ -56,7 +56,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   fun `AGP incompatible, no other plugins`() = test(TestCase(
     agpVersion = GradleVersion.parse("4.1.0"),
     pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
-    buildSrcDependenciesInfo = emptySet(),
+    buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"))
   ))
@@ -64,7 +64,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `No applied plugins, no buildscript dependencies, no known data`() = test(TestCase(
     pluginsApplied = listOf(),
-    buildSrcDependenciesInfo = emptySet(),
+    buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = NoIncompatiblePlugins(emptyList())
   ))
@@ -72,7 +72,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `No applied plugins, no buildscript dependencies`() = test(TestCase(
     pluginsApplied = listOf(),
-    buildSrcDependenciesInfo = emptySet(),
+    buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = knownPluginsData,
     expectedResult = NoIncompatiblePlugins(emptyList())
   ))
@@ -80,7 +80,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has dependency but no applied plugins, no plugins known`() = test(TestCase(
     pluginsApplied = listOf(),
-    buildSrcDependenciesInfo = setOf("my.org:plugin-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = NoIncompatiblePlugins(emptyList())
   ))
@@ -88,7 +88,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has dependency of known compatible but not applied plugin`() = test(TestCase(
     pluginsApplied = listOf(),
-    buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
     expectedResult = NoIncompatiblePlugins(emptyList())
@@ -97,7 +97,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has dependency of known incompatible but not applied plugin`() = test(TestCase(
     pluginsApplied = listOf(),
-    buildSrcDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
     expectedResult = NoIncompatiblePlugins(emptyList())
@@ -106,7 +106,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has dependency of unknown applied plugin`() = test(TestCase(
     pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin1")),
-    buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
     // No incompatible since plugin since not in known.
     expectedResult = NoIncompatiblePlugins(listOf(binaryPlugin("my.org.gradle.Plugin1")))
@@ -115,7 +115,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has dependency of known incompatible applied plugin`() = test(TestCase(
     pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin2")),
-    buildSrcDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     expectedResult = IncompatiblePluginsDetected(
       incompatiblePluginWarnings = listOf(IncompatiblePluginWarning(
@@ -130,7 +130,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `buildscript has lower version dependency of known compatible applied plugin`() = test(TestCase(
     pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin1")),
-    buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
+    buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     expectedResult = IncompatiblePluginsDetected(
       incompatiblePluginWarnings = emptyList(),
@@ -147,7 +147,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     test(
       TestCase(
         pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin1")),
-        buildSrcDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
+        buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
         knownPluginsData = knownPluginsData,
         expectedResult = NoIncompatiblePlugins(emptyList())
       ),
@@ -164,7 +164,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     )
     Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
-      buildscriptDependenciesInfo = testCaseData.buildSrcDependenciesInfo)
+      buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo)
     )
     analyzer.receiveKnownPluginsData(testCaseData.knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -232,7 +232,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   data class TestCase(
     val agpVersion: GradleVersion = GradleVersion.parse("4.2.0"),
     val pluginsApplied: List<PluginData>,
-    val buildSrcDependenciesInfo: Set<String>,
+    val buildscriptDependenciesInfo: Set<String>,
     val knownPluginsData: GradlePluginsData,
     val expectedResult: ConfigurationCachingCompatibilityProjectResult
   )
