@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.SdkConstants
-import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.idea.layoutinspector.properties.LambdaPropertyItem
-import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
@@ -30,9 +26,14 @@ import java.awt.Color
 
 class ComposeParametersData(
   /**
-   * The properties associated with a composable.
+   * The parameters associated with a composable as a list.
    */
-  val parameters: PropertiesTable<InspectorPropertyItem>,
+  val parameterList: List<ParameterItem>,
+
+  /**
+   * The parameters associated with a composable as a properties table.
+   */
+  val parameters: PropertiesTable<InspectorPropertyItem>
 )
 
 /**
@@ -40,25 +41,30 @@ class ComposeParametersData(
  */
 class ComposeParametersDataGenerator(
   private val stringTable: StringTableImpl,
-  private val parameterGroup: ParameterGroup,
   private val lookup: ViewNodeAndResourceLookup) {
 
-  private val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
-
-  fun generate(): ComposeParametersData {
-    for (parameter in parameterGroup.parameterList) {
-      val item = parameter.toPropertyItem(parameterGroup.composableId)
-      propertyTable.put(item.namespace, item.name, item)
-    }
-    return ComposeParametersData(PropertiesTable.create(propertyTable))
+  fun generate(rootId: Long, parameterGroup: ParameterGroup): ComposeParametersData {
+    val parameterList = parameterGroup.parameterList.map { it.toParameterItem(rootId, parameterGroup.composableId) }
+    return ComposeParametersData(parameterList, toPropertiesTable(parameterList))
   }
 
-  private fun Parameter.toPropertyItem(composableId: Long): InspectorPropertyItem {
+  fun generate(rootId: Long, composableId: Long, parameter: Parameter): ParameterGroupItem? =
+    parameter.toParameterItem(rootId, composableId) as? ParameterGroupItem
+
+  private fun toPropertiesTable(parameterList: List<ParameterItem>): PropertiesTable<InspectorPropertyItem> {
+    val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
+    parameterList.forEach { propertyTable.put(it.namespace, it.name, it) }
+    return PropertiesTable.create(propertyTable)
+  }
+
+  private fun Parameter.toParameterItem(rootId: Long, composableId: Long): ParameterItem {
     val name = stringTable[name]
     if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
-      return LambdaPropertyItem(
+      return LambdaParameterItem(
         name = name,
         viewId = composableId,
+        rootId = rootId,
+        index = index,
         packageName = stringTable[lambdaValue.packageName],
         fileName = stringTable[lambdaValue.fileName],
         lambdaName = stringTable[lambdaValue.lambdaName],
@@ -84,31 +90,30 @@ class ComposeParametersDataGenerator(
       else -> ""
     }
     val type = type.convert()
+    val reference = reference.convert()
 
-    // TODO: Handle attribute namespaces i.e. the hardcoded ANDROID_URI below
-    if (elementsList.isEmpty()) {
-      return InspectorPropertyItem(
-        SdkConstants.ANDROID_URI,
+    if (elementsList.isEmpty() && reference == null) {
+      return ParameterItem(
         name,
         type,
         value.toString(),
-        PropertySection.DEFAULT,
-        null,
-        composableId,
-        lookup)
-    }
-    else {
-      return InspectorGroupPropertyItem(
-        SdkConstants.ANDROID_URI,
-        name,
-        type,
-        value.toString(),
-        null,
-        PropertySection.DEFAULT,
-        null,
         composableId,
         lookup,
-        elementsList.toList().map { it.toPropertyItem(composableId) })
+        rootId,
+        index
+      )
+    }
+    else {
+      return ParameterGroupItem(
+        name,
+        type,
+        value.toString(),
+        composableId,
+        lookup,
+        rootId,
+        index,
+        reference,
+        elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId) })
     }
   }
 }

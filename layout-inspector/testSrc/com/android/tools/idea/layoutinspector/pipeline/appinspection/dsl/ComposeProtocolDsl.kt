@@ -17,13 +17,13 @@
 
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl
 
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Bounds
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableRoot
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Parameter
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ParameterGroup
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ParameterReference
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Rect
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Resource
@@ -104,10 +104,18 @@ fun ParameterGroup(init: ParameterGroup.Builder.() -> Unit): ParameterGroup {
   return ParameterGroup.newBuilder().apply(init).build()
 }
 
+fun ExpandedParameter(init: Parameter.Builder.() -> Unit): Parameter {
+  return Parameter.newBuilder().apply(init).build()
+}
+
 fun ParameterGroup.Builder.Parameter(init: Parameter.Builder.() -> Unit) {
   addParameter(Parameter.newBuilder().apply(init).build())
 }
 
 fun Parameter.Builder.Element(init: Parameter.Builder.() -> Unit) {
   addElements(Parameter.newBuilder().apply(init).build())
+}
+
+fun Parameter.Builder.Reference(init: ParameterReference.Builder.() -> Unit) {
+  referenceBuilder.apply(init).build()
 }

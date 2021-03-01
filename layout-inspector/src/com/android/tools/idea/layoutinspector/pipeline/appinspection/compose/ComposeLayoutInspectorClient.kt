@@ -38,6 +38,8 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllP
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
@@ -148,6 +150,28 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
       }.build()
     }
     return response.getAllParametersResponse
+  }
+
+  suspend fun getParameterDetails(
+    rootViewId: Long,
+    reference: ParameterReference,
+    startIndex: Int,
+    maxElements: Int
+  ): GetParameterDetailsResponse {
+    val response = messenger.sendCommand {
+      getParameterDetailsCommand = GetParameterDetailsCommand.newBuilder().apply {
+        this.rootViewId = rootViewId
+        skipSystemComposables = TreeSettings.hideSystemNodes
+        this.startIndex = startIndex
+        this.maxElements = maxElements
+        referenceBuilder.apply {
+          composableId = reference.nodeId
+          parameterIndex = reference.parameterIndex
+          addAllCompositeIndex(reference.indices.asIterable())
+        }
+      }.build()
+    }
+    return response.getParameterDetailsResponse
   }
 
   fun disconnect() {
