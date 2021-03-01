@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -208,7 +209,7 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 7, Filtered: 7")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
   }
 
   @Test
