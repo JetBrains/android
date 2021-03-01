@@ -16,10 +16,12 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.ImageDiffUtil
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -39,7 +41,15 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.atLeastOnce
+import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito.verify
 import java.awt.Color
+import java.awt.Cursor
+import java.awt.Cursor.HAND_CURSOR
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GradientPaint
@@ -48,6 +58,7 @@ import java.awt.Point
 import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
+import java.net.URI
 import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -242,6 +253,42 @@ class DeviceViewContentPanelTest {
     panel.model.resetRotation()
     assertEquals(0.0, panel.model.xOff)
     assertEquals(0.0, panel.model.yOff)
+  }
+
+  @Test
+  fun testEmptyTextVisibility() {
+    val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val model = model {}
+    val panel = DeviceViewContentPanel(model, settings)
+    val selectProcessAction = mock<SelectProcessAction>()
+    panel.selectProcessAction = selectProcessAction
+    `when`(selectProcessAction.templatePresentation).thenReturn(mock())
+    panel.setSize(200, 200)
+    val fakeUi = FakeUi(panel)
+    val hand = Cursor.getPredefinedCursor(HAND_CURSOR)
+    mockStatic(Desktop::class.java).use { desktop ->
+      val mockDesktop: Desktop = mock()
+      desktop.`when`<Desktop>{ Desktop.getDesktop() }.thenReturn(mockDesktop)
+      for (x in 0..200) {
+        for (y in 0..200) {
+          fakeUi.mouse.moveTo(x, y)
+          if (panel.cursor == hand) {
+            fakeUi.mouse.click(x, y)
+          }
+        }
+      }
+      verify(mockDesktop, atLeastOnce()).browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
+      verify(selectProcessAction, atLeastOnce()).actionPerformed(any())
+    }
+
+    model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 1)
+    for (x in 0..200) {
+      for (y in 0..200) {
+        fakeUi.mouse.moveTo(x, y)
+        assertThat(panel.cursor).isNotEqualTo(hand)
+      }
+    }
   }
 
   @Test
