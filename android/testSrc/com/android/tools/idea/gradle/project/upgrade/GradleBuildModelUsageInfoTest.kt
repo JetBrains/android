@@ -109,6 +109,8 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
       DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
       SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, gradleBuildModel),
+      (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->
