@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.NopPsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -94,7 +97,13 @@ class ProjectBuildStatusManager(parentDisposable: Disposable,
                                 private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter,
                                 scope: CoroutineScope = AndroidCoroutineScope(parentDisposable)) {
   private val project: Project = editorFile.project
-  private val fileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
+  private val fileChangeDetector =
+    // If Live Literals is disabled or Live Edit is enabled, disable the PsiFileChangeDetector since
+    // we are not looking for literal changes anymore.
+    if (LiveLiteralsApplicationConfiguration.getInstance().isEnabled)
+      PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
+    else
+      NopPsiFileChangeDetector
   private val _isBuilding = AtomicBoolean(false)
   private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
     set(value) {

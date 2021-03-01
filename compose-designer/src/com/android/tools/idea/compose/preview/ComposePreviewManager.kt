@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
+import com.intellij.openapi.Disposable
+import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
 
@@ -46,7 +48,7 @@ data class PreviewGroup private constructor(
 /**
  * Interface that provides access to the Compose Preview logic.
  */
-interface ComposePreviewManager {
+interface ComposePreviewManager: Disposable {
   /**
    * Enum that determines the current status of the interactive preview.
    *
@@ -130,6 +132,12 @@ interface ComposePreviewManager {
    * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
    */
   val hasDesignInfoProviders: Boolean
+
+  /**
+   * The [PsiFile] that this preview is representing, if any. For cases where the preview is rendering synthetic previews or
+   * elements from multiple files, this can be null.
+   */
+  val previewedFile: PsiFile?
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -55,8 +56,10 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.TimeoutUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
@@ -65,6 +68,12 @@ import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.clearOverride();
+  }
+
   /**
    * Generates an empty R class file with one static field ID = "FileID"
    */
@@ -234,6 +243,39 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     javac.run(null, null, null, modifiedSrc.getPath());
     assertFalse(loader.isUserCodeUpToDateNonCached());
 
+    ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  public void testIsSourceModifiedWithOverlay() throws IOException {
+    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.override(true);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(Objects.requireNonNull(getProject().getBasePath())),
+      new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
+
+    // Create regular project path
+    Path srcDir = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("testProject").resolve("src"));
+    Path packageDir = java.nio.file.Files.createDirectories(srcDir.resolve("com/google/example"));
+    Path aClassSrc = java.nio.file.Files.createFile(packageDir.resolve("AClass.java"));
+    FileUtil.writeToFile(aClassSrc.toFile(), "package com.google.example; public class AClass {}");
+
+    Path overlayDir1 = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("overlay"));
+    Path overlayDir2 = java.nio.file.Files.createDirectories(java.nio.file.Files.createTempDirectory("overlay"));
+    ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir1);
+
+    ApplicationManager.getApplication().runWriteAction(
+      (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule,
+                                                                Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir.toFile(), true))));
+
+    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    javac.run(null, null, null, aClassSrc.toString());
+
+
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    assertTrue(loader.isUserCodeUpToDateNonCached());
+    // New overlay will make the code out-of-date
+    ModuleClassLoaderOverlays.getInstance(myModule).setOverlayPath(overlayDir2);
+    assertFalse(loader.isUserCodeUpToDateNonCached());
     ModuleClassLoaderManager.get().release(loader, this);
   }
 

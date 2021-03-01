@@ -36,7 +36,9 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
    * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable]
    */
   var isEnabled
-    get() = StudioFlags.COMPOSE_LIVE_LITERALS.get() && state.isEnabled
+    get() = !StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get() // Live Literals disabled when fast compile is enabled
+            && StudioFlags.COMPOSE_LIVE_LITERALS.get()
+            && state.isEnabled
     set(value) {
       if (state.isEnabled != value) {
         state.isEnabled = value

@@ -986,11 +986,6 @@ public final class StudioFlags {
     "\"generateDebugSources\" or \"compileJava\".",
     true);
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_BUILD_ON_SAVE = Flag.create(
-    COMPOSE, "preview.build.on.save.enabled", "Enable the compose \"build on save\"",
-    "If enabled, the preview will automatically trigger a build after the user or IntelliJ save the documents.",
-    false);
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
@@ -1230,6 +1225,10 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_LIVE_EDIT_PREVIEW = Flag.create(
+    COMPOSE, "preview.fast.reload.enabled", "Enable the Compose fast-reload preview",
+    "If enabled, the preview enabled the fast-reload feature.",
+    false);
   //endregion
 
   //region Manifests

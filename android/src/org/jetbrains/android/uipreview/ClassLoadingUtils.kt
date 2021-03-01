@@ -46,7 +46,7 @@ private fun Module.getExternalLibraryJars(): Sequence<File> {
 /**
  * Returns the list of [Path]s to external JAR files referenced by the class loader.
  */
-internal fun Module?.getLibraryDependenciesJars(): List<Path> {
+fun Module?.getLibraryDependenciesJars(): List<Path> {
   if (this == null || this.isDisposed) {
     return emptyList()
   }

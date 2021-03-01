@@ -16,6 +16,7 @@
 @file:JvmName("ModuleClassLoaderUtil")
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
@@ -32,6 +33,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
@@ -153,15 +155,18 @@ internal class ModuleClassLoaderImpl(module: Module,
    */
   val projectLoadedClassVirtualFiles get() = projectSystemLoader.loadedVirtualFiles
 
+  private fun applyProjectTransformationsToLoader(loader: DelegatingClassLoader.Loader,
+                                                  onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
+    projectTransforms,
+    ListeningLoader(loader, onAfterLoad = { fqcn, _ -> _projectLoadedClassNames.add(fqcn) }),
+    PseudoClassLocatorForLoader(projectSystemLoader),
+    ClassWriter.COMPUTE_FRAMES,
+    onClassRewrite
+  )
+
   init {
     // Project classes loading pipeline
-    val projectLoader = AsmTransformingLoader(
-      projectTransforms,
-      ListeningLoader(projectSystemLoader, onAfterLoad = { fqcn, _ -> _projectLoadedClassNames.add(fqcn) }),
-      PseudoClassLocatorForLoader(projectSystemLoader),
-      ClassWriter.COMPUTE_FRAMES,
-      onClassRewrite
-    )
+    val projectLoader = applyProjectTransformationsToLoader(projectSystemLoader, onClassRewrite)
 
     // Non project classes loading pipeline
     val nonProjectTransformationId = nonProjectTransforms.id
@@ -192,7 +197,20 @@ internal class ModuleClassLoaderImpl(module: Module,
           }),
         nonProjectTransformationId,
         binaryCache)
-    loader = MultiLoader(projectLoader, nonProjectLoader)
+    loader = MultiLoader(
+      listOfNotNull(
+        createOptionalOverlayLoader(module, onClassRewrite),
+        projectLoader,
+        nonProjectLoader))
+  }
+
+  /**
+   * Creates an overlay loader. See [OverlayLoader].
+   */
+  private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader? {
+    if (!StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get()) return null
+    val overlayPath = ModuleClassLoaderOverlays.getInstance(module).overlayPath ?: return null
+    return applyProjectTransformationsToLoader(OverlayLoader(overlayPath), onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
@@ -223,6 +241,25 @@ internal class ModuleClassLoaderImpl(module: Module,
     _nonProjectLoadedClassNames.clear()
     projectSystemLoader.invalidateCaches()
   }
+
+  /**
+   * [ModificationTracker] that changes every time the classes overlay has changed.
+   */
+  private val overlayModificationTracker = if (StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.get())
+    ModuleClassLoaderOverlays.getInstance(module)
+  else
+    ModificationTracker.NEVER_CHANGED
+
+  /**
+   * Initial count for the overlay. Used to detect if this [ModuleClassLoaderImpl] is up to date or if the
+   * overlay has changed.
+   */
+  private val initialOverlayModificationCount = overlayModificationTracker.modificationCount
+
+  /**
+   * Returns if the overlay is up-to-date.
+   */
+  internal fun isOverlayUpToDate() = overlayModificationTracker.modificationCount == initialOverlayModificationCount
 }
 
 /**
@@ -232,4 +269,4 @@ internal val ModuleClassLoaderImpl.isUserCodeUpToDate: Boolean
   get() = projectLoadedClassVirtualFiles
     .all { (_, virtualFile, modificationTimestamp) ->
       virtualFile.isValid && modificationTimestamp.isUpToDate(virtualFile)
-    }
+    } && isOverlayUpToDate()
