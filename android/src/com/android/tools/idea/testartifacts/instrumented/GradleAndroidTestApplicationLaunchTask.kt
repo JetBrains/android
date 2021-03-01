@@ -16,7 +16,6 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings
@@ -25,6 +24,9 @@ import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -124,6 +126,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     consolePrinter.stdout("Running tests\n")
 
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
+      val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
+      val adapter = GradleTestResultAdapter(myGradleConnectedAndroidTestInvoker.getDevices(), androidTestResultListener)
+      adapter.scheduleTestSuite()
+
       val path: File = getBaseDirPath(project)
       val taskNames: List<String> = listOf("connectedAndroidTest")
       val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
@@ -136,7 +142,6 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
 
         override fun onEnd(id: ExternalSystemTaskId,) {
           super.onEnd(id)
-          consolePrinter.stdout("tests ended")
           processHandler.detachProcess()
         }
       }
