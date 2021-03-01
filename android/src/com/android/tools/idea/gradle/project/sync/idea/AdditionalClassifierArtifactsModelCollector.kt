@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.sync.idea.svs.GradleInjectedSyncAct
 import org.gradle.tooling.BuildController
 
 @UsedInBuildAction
-fun getAdditionalClassifierArtifactsModel(
+internal fun getAdditionalClassifierArtifactsModel(
   actionRunner: GradleInjectedSyncActionRunner,
   inputModules: List<AndroidModule>,
   cachedLibraries: Collection<String>,
