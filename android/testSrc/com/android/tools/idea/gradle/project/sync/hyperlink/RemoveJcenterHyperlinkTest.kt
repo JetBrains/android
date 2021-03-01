@@ -25,14 +25,14 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 
 /**
- * Tests for [RemoveJcenterQuickfix]
+ * Tests for [RemoveJcenterHyperlink]
  */
-class RemoveJcenterQuickfixTest: AndroidGradleTestCase() {
+class RemoveJcenterHyperlinkTest: AndroidGradleTestCase() {
   @Test
   fun testExecuteNoRepository() {
     loadSimpleApplication()
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
-    val quickfix = RemoveJcenterQuickfix(project, listOf())
+    val quickfix = RemoveJcenterHyperlink(project, listOf())
     quickfix.applyFix(project, mockProcessor)
     verifyNoInteractions(mockProcessor)
   }
@@ -50,7 +50,7 @@ class RemoveJcenterQuickfixTest: AndroidGradleTestCase() {
     }
 
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
-    val quickfix = RemoveJcenterQuickfix(project, listOf(module))
+    val quickfix = RemoveJcenterHyperlink(project, listOf(module))
     quickfix.applyFix(project, mockProcessor)
     verify(mockProcessor).run()
   }
@@ -67,7 +67,7 @@ class RemoveJcenterQuickfixTest: AndroidGradleTestCase() {
       projectBuildModel.applyChanges()
     }
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
-    val quickfix = RemoveJcenterQuickfix(project, listOf(module))
+    val quickfix = RemoveJcenterHyperlink(project, listOf(module))
     quickfix.applyFix(project, mockProcessor)
     verify(mockProcessor).run()
   }
@@ -84,7 +84,7 @@ class RemoveJcenterQuickfixTest: AndroidGradleTestCase() {
       projectBuildModel.applyChanges()
     }
     val mockProcessor = mock(RemoveJcenterProcessor::class.java)
-    val quickfix = RemoveJcenterQuickfix(project, listOf(module))
+    val quickfix = RemoveJcenterHyperlink(project, listOf(module))
     quickfix.applyFix(project, mockProcessor)
     verify(mockProcessor).run()
   }

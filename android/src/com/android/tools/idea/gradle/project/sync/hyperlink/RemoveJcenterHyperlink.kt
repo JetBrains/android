@@ -30,8 +30,8 @@ import com.intellij.openapi.ui.Messages
  *   - Project's settings.gradle dependencyResolutionManagement.repositories block
  *   - Affected modules build.gradle repositories block
  */
-class RemoveJcenterQuickfix(val project: Project, val affectedModules: List<Module>) : NotificationHyperlink(
-  "remove.jcenter.quickfix",
+class RemoveJcenterHyperlink(val project: Project, val affectedModules: List<Module>) : NotificationHyperlink(
+  "remove.jcenter.hyperlink",
   "Remove JCenter from repositories"
 ) {
   companion object {
