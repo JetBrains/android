@@ -47,6 +47,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:transport-proto",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
     ],
 )
 

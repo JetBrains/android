@@ -21,7 +21,7 @@ import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.profilers.stacktrace.ProfilerCodeNavigator;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.profiler.proto.Common;
@@ -292,7 +292,7 @@ public class AndroidProfilerToolWindow implements Disposable {
       myWindow = window;
       ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
       myProfilers = new StudioProfilers(client, ideProfilerServices);
-      IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();
+      ProfilerCodeNavigator navigator = (ProfilerCodeNavigator)ideProfilerServices.getCodeNavigator();
       // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
       Common.SessionMetaData selectedSessionMetadata = myProfilers.getSessionsManager().getSelectedSessionMetaData();
       navigator.setCpuAbiArchSupplier(

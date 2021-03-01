@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-
-import javax.swing.*;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import java.util.ArrayList;
+import javax.swing.JComponent;
 
 public class ProfilerContextMenu {
   private static final String PROFILER_CONTEXT_MENU = "ProfilerContextMenu";

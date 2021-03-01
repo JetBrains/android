@@ -15,17 +15,16 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers;
 
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.stacktrace.ThreadId;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This classifier classifies {@link InstanceObject}s based on its allocation's thread ID. If no allocations are available, the instances

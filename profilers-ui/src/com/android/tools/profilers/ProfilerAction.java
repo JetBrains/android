@@ -15,17 +15,21 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.intellij.openapi.keymap.KeymapUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 
-import javax.swing.*;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.intellij.openapi.keymap.KeymapUtil;
 import java.awt.event.ActionEvent;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-
-import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProfilerAction implements ContextMenuItem {
   @NotNull private final Supplier<String> myText;

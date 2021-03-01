@@ -32,6 +32,8 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
@@ -45,8 +47,6 @@ import com.android.tools.profilers.event.EventMonitor
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.adapters.CaptureObject
-import com.android.tools.profilers.stacktrace.CodeLocation
-import com.android.tools.profilers.stacktrace.CodeNavigator
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger

@@ -29,5 +29,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
     ],
 )

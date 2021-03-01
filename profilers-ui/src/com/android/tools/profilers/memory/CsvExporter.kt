@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.adtui.stdui.ContextMenuItem
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.memory.adapters.CaptureObject
@@ -23,7 +24,6 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribu
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
-import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.annotations.VisibleForTesting
 import java.io.BufferedWriter
 import java.io.OutputStream
@@ -114,7 +114,7 @@ class CsvExporter(private val getTree: () -> JTree?,
   }
 
   @VisibleForTesting
-  interface RunnableContextMenuItem: ContextMenuItem {
+  interface RunnableContextMenuItem : ContextMenuItem {
     fun exportEntries(out: OutputStream)
   }
 }

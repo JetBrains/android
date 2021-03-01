@@ -15,30 +15,39 @@
  */
 package com.android.tools.profilers.sessions;
 
+import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
+import static com.android.tools.profilers.ProfilerColors.SESSION_DIVIDER_COLOR;
+import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ProfilerAction;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.profilers.ProfilerColors.ACTIVE_SESSION_COLOR;
-import static com.android.tools.profilers.ProfilerColors.SESSION_DIVIDER_COLOR;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
+import java.util.Objects;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link SessionArtifactView} that represents a {@link com.android.tools.profiler.proto.Common.Session}
