@@ -201,10 +201,7 @@ final class VirtualDevice extends Device {
     }
 
     if (isConnected()) {
-      // TODO(http://b/179836372)
-      // return new RunningDeviceTarget(getKey());
-
-      return new QuickBootTarget(getKey());
+      return new RunningDeviceTarget(getKey());
     }
 
     return new QuickBootTarget(getKey());
@@ -217,10 +214,7 @@ final class VirtualDevice extends Device {
     }
 
     if (isConnected()) {
-      // TODO(http://b/179836372)
-      // return Collections.singletonList(new RunningDeviceTarget(getKey()));
-
-      return Collections.singletonList(new QuickBootTarget(getKey()));
+      return Collections.singletonList(new RunningDeviceTarget(getKey()));
     }
 
     if (mySnapshots.isEmpty()) {

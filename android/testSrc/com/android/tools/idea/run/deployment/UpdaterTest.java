@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -247,7 +246,6 @@ public final class UpdaterTest {
     assertEquals("Multiple Devices (1)", myPresentation.getText());
   }
 
-  @Ignore
   @Test
   public void updateInToolbarForMultipleDevicesDeviceIsLaunchedAfterTargetWasSelected() {
     // Arrange
@@ -256,11 +254,9 @@ public final class UpdaterTest {
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
 
-    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey));
-
     DevicesSelectedService service = newDevicesSelectedService();
     service.setMultipleDevicesSelectedInComboBox(true);
-    service.setTargetsSelectedWithDialog(targets);
+    service.setTargetsSelectedWithDialog(Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey)));
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
@@ -284,9 +280,11 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertEquals(targets, service.getTargetsSelectedWithDialog(devices));
+    Object target = new RunningDeviceTarget(deviceKey);
+
+    assertEquals(Collections.singleton(target), service.getTargetsSelectedWithDialog(devices));
     assertTrue(service.isMultipleDevicesSelectedInComboBox());
-    assertEquals(Optional.of(new QuickBootTarget(deviceKey)), service.getTargetSelectedWithComboBox(devices));
+    assertEquals(Optional.of(target), service.getTargetSelectedWithComboBox(devices));
 
     assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
     assertEquals("Multiple Devices (1)", myPresentation.getText());
