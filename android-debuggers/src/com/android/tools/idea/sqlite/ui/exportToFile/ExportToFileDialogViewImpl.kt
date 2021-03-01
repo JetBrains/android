@@ -60,10 +60,10 @@ import javax.swing.JRadioButton
  */
 class ExportToFileDialogViewImpl(
   val project: Project,
-  val params: ExportDialogParams,
-  val analyticsTracker: DatabaseInspectorAnalyticsTracker
+  val params: ExportDialogParams
 ) : DialogWrapper(project, true), ExportToFileDialogView {
   private val listeners = mutableListOf<ExportToFileDialogView.Listener>()
+  private val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private lateinit var formatButtonGroup: ButtonGroup
   private lateinit var delimiterLabel: JBLabel

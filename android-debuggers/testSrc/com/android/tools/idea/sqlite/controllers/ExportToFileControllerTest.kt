@@ -79,6 +79,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
@@ -166,6 +167,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     }
 
     analyticsTracker = mock()
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
+
     view = FakeExportToFileDialogView()
     controller = ExportToFileController(
       project,
@@ -180,8 +183,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       edtExecutor,
       exportInProgressListener,
       exportProcessedListener::onExportComplete,
-      exportProcessedListener::onExportError,
-      analyticsTracker
+      exportProcessedListener::onExportError
     )
     controller.setUp()
     Disposer.register(testRootDisposable, controller)
