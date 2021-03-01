@@ -284,6 +284,7 @@ class AgpUpgradeRefactoringProcessor(
   )
 
   val targets = mutableListOf<PsiElement>()
+  var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -316,8 +317,9 @@ class AgpUpgradeRefactoringProcessor(
     }
 
     foundUsages = usages.size > 0
+    this.usages = usages.toTypedArray()
     trackProcessorUsage(FIND_USAGES, usages.size)
-    return usages.toTypedArray()
+    return this.usages
   }
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
@@ -512,7 +514,8 @@ class AgpUpgradeRefactoringProcessor(
   //  could just inline its effect.
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
     val refactoringRunnable = Runnable {
-      val usagesToRefactor = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+      val notExcludedUsages = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+      val usagesToRefactor = this.usages.filter { notExcludedUsages.contains(it) } // preserve found order
       val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
       if (ensureElementsWritable(infos, viewDescriptor)) {
         execute(infos)
