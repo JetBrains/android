@@ -16,9 +16,12 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
@@ -29,8 +32,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.MockitoAnnotations.openMocks
 
 /**
  * Unit tests for [GradleAndroidTestApplicationLaunchTask].
@@ -45,26 +49,28 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockLaunchStatus: LaunchStatus
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
+  @Mock lateinit var mockAndroidTestResultListener:  AndroidTestResultListener
 
   @Before
   fun setup() {
-    MockitoAnnotations.initMocks(this)
+    openMocks(this)
   }
 
   private fun createMockDevice(serialNumber: String): IDevice {
-    val mockDevice = Mockito.mock(IDevice::class.java)
-    Mockito.`when`(mockDevice.serialNumber).thenReturn(serialNumber)
+    val mockDevice = mock(IDevice::class.java)
+    `when`(mockDevice.serialNumber).thenReturn(serialNumber)
+    `when`(mockDevice.version).thenReturn(AndroidVersion(29))
     return mockDevice
   }
 
   private fun createMockGradleAndroidTestInvoker(selectedDevices: Int): GradleConnectedAndroidTestInvoker {
-    val mockGradleConnectedAndroidTestInvoker = Mockito.mock(GradleConnectedAndroidTestInvoker::class.java)
+    val mockGradleConnectedAndroidTestInvoker = mock(GradleConnectedAndroidTestInvoker::class.java)
     val devices = ArrayList<IDevice>()
     for (i in 1..selectedDevices) {
       val device = createMockDevice("SERIAL_NUMBER_$i")
       devices.add(device)
     }
-    Mockito.`when`(mockGradleConnectedAndroidTestInvoker.getDevices()).thenReturn(devices)
+    `when`(mockGradleConnectedAndroidTestInvoker.getDevices()).thenReturn(devices)
     return mockGradleConnectedAndroidTestInvoker
   }
 
@@ -73,7 +79,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val mockProject = gradleProjectRule.project
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
     val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(1)
-    Mockito.`when`(gradleConnectedAndroidTestInvoker.run(mockDevice)).thenReturn(true)
+    `when`(gradleConnectedAndroidTestInvoker.run(mockDevice)).thenReturn(true)
+    `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
 
     val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
       mockProject,
