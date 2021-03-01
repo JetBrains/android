@@ -52,7 +52,7 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     project: Project,
     params: ExportDialogParams,
     analyticsTracker: DatabaseInspectorAnalyticsTracker
-  ): ExportToFileDialogView = ExportToFileDialogViewImpl(project, params, analyticsTracker)
+  ): ExportToFileDialogView = ExportToFileDialogViewImpl(project, params)
 
   override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView =
     ExportInProgressViewImpl(project, job, taskDispatcher)

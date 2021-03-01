@@ -56,6 +56,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -84,6 +85,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     assertThat(inFileDatabaseId.isInMemoryDatabase()).isFalse()
     assertThat(inMemoryDatabaseId.isInMemoryDatabase()).isTrue()
     enableHeadlessDialogs(testRootDisposable)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
   }
 
   fun test_availableUiElements_exportDatabase_inFile() = runWithExportToFileFeatureEnabled {
@@ -135,7 +137,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
   }
 
   private fun test_availableUiElements(params: ExportDialogParams, expectedTitle: String, expectedExportFormats: List<ExportFormat>) {
-    val dialog = ExportToFileDialogViewImpl(project, params, analyticsTracker)
+    val dialog = ExportToFileDialogViewImpl(project, params)
     val dialogListener = mock<ExportToFileDialogView.Listener>()
     dialog.addListener(dialogListener)
 
@@ -214,7 +216,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
   }
 
   private fun test_exportRequest(dialogParams: ExportDialogParams, expectedRequest: ExportRequest) {
-    val dialog = ExportToFileDialogViewImpl(project, dialogParams, analyticsTracker)
+    val dialog = ExportToFileDialogViewImpl(project, dialogParams)
     val dialogListener = mock<ExportToFileDialogView.Listener>()
     dialog.addListener(dialogListener)
 
