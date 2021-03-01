@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.res
 
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
@@ -30,7 +32,6 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.TRANSITIVITY_
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.dom.manifest.getPackageName as getPackageNameFromManifest
 
 class ModuleRClass(
@@ -95,8 +96,17 @@ class ModuleRClass(
       }
     }
 
-    override fun isPublic(resourceType: ResourceType, resourceName: String): Boolean {
-      return !ResourceRepositoryManager.getInstance(facet).resourceVisibility.isPrivate(resourceType, resourceName)
+    override fun isAccessibleResource(resourceType: ResourceType, resourceName: String): Boolean {
+      val resources = resourceRepository.getResources(resourceNamespace, resourceType, resourceName)
+      val resource = resources.firstOrNull() ?: return true // A nonexistent resource is considered accessible.
+      if (resource.libraryName == null) {
+        return true // Application resource.
+      }
+      if (resource is ResourceItemWithVisibility) {
+        return resource.visibility == ResourceVisibility.PUBLIC
+      }
+      throw AssertionError("Library resource $resourceType/$resourceName of type ${resource.javaClass}" +
+                           " doesn't implement ResourceItemWithVisibility")
     }
 
     override fun getTransitivity(): Transitivity {
