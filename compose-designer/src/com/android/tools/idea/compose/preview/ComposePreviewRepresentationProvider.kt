@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.actions.ComposeIssueNotificationAc
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
+import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildOnSave
@@ -82,6 +83,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifDisabled { StopAnimationInspectorAction() },
       GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
       ForceCompileAndRefreshAction(surface),
+      SingleFileCompileAction(),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
@@ -92,7 +94,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOfNotNull(
-    StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE.ifEnabled { ToggleAutoBuildOnSave() },
+    StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW.ifEnabled { ToggleAutoBuildOnSave() },
     StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
     ComposeIssueNotificationAction.getInstance()
   ))

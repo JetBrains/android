@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 
 import com.android.tools.idea.compose.preview.ProjectBuildStatusManager
 import com.android.tools.idea.compose.preview.ProjectStatus
 import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -46,6 +48,11 @@ import java.util.concurrent.Executor
 class ProjectBuildStatusManagerTest {
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, false)
+  @get:Rule
+  val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
 
   @get:Rule
   val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)

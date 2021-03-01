@@ -1,5 +1,6 @@
 package com.android.tools.idea.editors.literals
 
+import com.android.flags.junit.SetFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -26,6 +27,12 @@ import java.util.concurrent.TimeUnit
 internal class LiveLiteralsServiceTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW, false)
+  @get:Rule
+  val liveLiteralsFlagRule = SetFlagRule(StudioFlags.COMPOSE_LIVE_LITERALS, true)
+
   private val project: Project
     get() = projectRule.project
   lateinit var file1: PsiFile
@@ -36,7 +43,6 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_LIVE_LITERALS.override(true)
     LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test

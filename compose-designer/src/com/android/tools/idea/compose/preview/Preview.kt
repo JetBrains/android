@@ -23,12 +23,14 @@ import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PinAllPreviewElementsAction
+import com.android.tools.idea.compose.preview.actions.SingleFileCompileAction
 import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.literals.LiveLiteralsPsiFileSnapshotFilter
+import com.android.tools.idea.compose.preview.liveEdit.PreviewLiveEditManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -48,7 +50,7 @@ import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.setupOnSaveListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_BUILD_ON_SAVE
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_LIVE_EDIT_PREVIEW
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderService
@@ -450,6 +452,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       forceRefresh()
     }
 
+  override val previewedFile: PsiFile?
+    get() = psiFilePointer.element
+
   private val composeWorkBench: ComposePreviewView = composePreviewViewProvider.invoke(
     project,
     psiFilePointer,
@@ -564,6 +569,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
+        // If Live Edit is enabled, prefetch the daemon for the current configuration.
+        if (module != null
+            && COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+          PreviewLiveEditManager.getInstance(project).preStartDaemon(module)
+        }
+
         if (hasLiveLiterals) {
           LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
         }
@@ -603,12 +614,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
     }, this, allowMultipleSubscriptionsPerProject = true)
 
-    if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
+    if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
       setupOnSaveListener(project, psiFile,
                           {
                             if (isBuildOnSaveEnabled
                                 && isActive.get()
-                                && !hasSyntaxErrors()) requestBuildForSurface(surface, false)
+                                && !hasSyntaxErrors()) {
+                                  if (COMPOSE_LIVE_EDIT_PREVIEW.get()) {
+                                    SingleFileCompileAction.compile(this)
+                                  }
+                                  else {
+                                    requestBuildForSurface(surface, false)
+                                  }
+                            }
                           }, this)
     }
 
@@ -737,7 +755,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   override var isBuildOnSaveEnabled: Boolean = false
-    get() = COMPOSE_PREVIEW_BUILD_ON_SAVE.get() && field
+    get() = COMPOSE_LIVE_EDIT_PREVIEW.get() && field
 
   private var lastPinsModificationCount = -1L
 
@@ -1062,7 +1080,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private fun usePrivateClassLoader() = interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
-  private fun forceRefresh(quickRefresh: Boolean = false): Job {
+  internal fun forceRefresh(quickRefresh: Boolean = false): Job {
     previewElements = emptyList() // This will just force a refresh
     return refresh(quickRefresh)
   }

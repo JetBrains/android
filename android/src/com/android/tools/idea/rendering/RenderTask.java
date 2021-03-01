@@ -405,16 +405,19 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
       if (myRenderSession != null) {
         try {
-          disposeRenderSession(myRenderSession);
+          disposeRenderSession(myRenderSession)
+            .whenComplete((result, ex) -> clearClassLoader())
+            .join(); // This is running on the dispose thread so wait for the full dispose to happen.
           myRenderSession = null;
         }
         catch (Exception ignored) {
         }
       }
+      else {
+        clearClassLoader();
+      }
       myImageFactoryDelegate = null;
       myAssetRepository = null;
-
-      clearClassLoader();
 
       return null;
     });
@@ -1367,11 +1370,13 @@ public class RenderTask {
   }
 
   /**
-   * Properly disposes {@link RenderSession} as a single {@link RenderService} call.
+   * Properly disposes {@link RenderSession} as a single {@link RenderService} call. It returns a {@link CompletableFuture} that
+   * will complete once the disposal has completed.
    *
    * @param renderSession a session to be disposed of
    */
-  private void disposeRenderSession(@NotNull RenderSession renderSession) {
+  @NotNull
+  private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
     Optional<Method> disposeMethod = Optional.empty();
     if (myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE.getComposableAdapterName()) ||
         myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.getComposableAdapterName())) {
@@ -1393,7 +1398,7 @@ public class RenderTask {
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
 
       finalDisposeMethod.ifPresent(
         m -> renderSession.execute(

@@ -220,3 +220,9 @@ class HashPsiFileChangeDetector(private val elementFilter: (PsiElement) -> Boole
     naiveDetector.clearMarks(file)
   }
 }
+
+object NopPsiFileChangeDetector: PsiFileChangeDetector {
+  override fun hasFileChanged(file: PsiFile, updateOnCheck: Boolean): Boolean = false
+  override fun markFileAsUpToDate(file: PsiFile) {}
+  override fun clearMarks(file: PsiFile) {}
+}
