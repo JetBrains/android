@@ -16,11 +16,16 @@
 @file:JvmName("DeviceUtils")
 package com.android.tools.idea.configurations
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.avdmanager.AvdManagerUtils
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
@@ -106,4 +111,24 @@ fun getAvdDevices(configuration: Configuration): List<Device> {
   val configurationManager = configuration.configurationManager
   val avdManager = AvdManagerUtils.getAvdManagerSilently(facet) ?: return emptyList()
   return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
+}
+
+/**
+ * The must-have meta-data tag for a WearOS project.
+ */
+private const val WEAR_OS_APPLICATION_META_DATA = "com.google.android.wearable.standalone"
+
+/**
+ * Return if the default device is wear device in the given [Module].
+ */
+@Slow
+fun isUseWearDeviceAsDefault(module: Module): Boolean {
+  val facet = AndroidFacet.getInstance(module)
+  if (facet == null || facet.isDisposed) {
+    return false
+  }
+  val manifest = Manifest.getMainManifest(facet) ?: return false
+  return ApplicationManager.getApplication().runReadAction(Computable<Boolean> {
+    manifest.application?.metaDatas?.any { metadata -> WEAR_OS_APPLICATION_META_DATA == metadata.name.value }
+  })
 }
