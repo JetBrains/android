@@ -102,8 +102,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          if (!SourceProviderManager.getInstance(facet).getCurrentSourceProviders().isEmpty() &&
-              !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
+          if (!ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
             suitableModules.add(module);
           }
         }
