@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.ide.common.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterQuickfix
+import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * Process SyncIssues with type [IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED]. It will add [RemoveJcenterQuickfix] when the project is
+ * Process SyncIssues with type [IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED]. It will add [RemoveJcenterHyperlink] when the project is
  * initialized and the quickfix can be applied.
  */
 class JcenterDeprecatedReporter: SimpleDeduplicatingSyncIssueReporter() {
@@ -41,7 +41,7 @@ class JcenterDeprecatedReporter: SimpleDeduplicatingSyncIssueReporter() {
                               syncIssues: MutableList<IdeSyncIssue>,
                               affectedModules: MutableList<Module>,
                               buildFileMap: MutableMap<Module, VirtualFile>): MutableList<NotificationHyperlink> {
-    return createQuickFixes(project, affectedModules, RemoveJcenterQuickfix::canBeApplied)
+    return createQuickFixes(project, affectedModules, RemoveJcenterHyperlink::canBeApplied)
   }
 
   @VisibleForTesting
@@ -51,7 +51,7 @@ class JcenterDeprecatedReporter: SimpleDeduplicatingSyncIssueReporter() {
   ): MutableList<NotificationHyperlink> {
     val quickFixes : ArrayList<NotificationHyperlink> = ArrayList()
     if (project.isInitialized && canBeApplied(project, affectedModules)) {
-      quickFixes.add(RemoveJcenterQuickfix(project, affectedModules))
+      quickFixes.add(RemoveJcenterHyperlink(project, affectedModules))
     }
     return quickFixes
   }

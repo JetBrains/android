@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue.Companion.TYPE_JCENTER_IS_DEPRECATED
-import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterQuickfix
+import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
@@ -39,7 +39,7 @@ class JcenterDeprecatedReporterTest {
   fun `quick fixes when initialized and can be applied`() {
     val quickfixes = generateQuickfixes(initialized = true, canApply = true)
     assertThat(quickfixes).hasSize(1)
-    assertThat(quickfixes[0]).isInstanceOf(RemoveJcenterQuickfix::class.java)
+    assertThat(quickfixes[0]).isInstanceOf(RemoveJcenterHyperlink::class.java)
   }
 
   @Test
