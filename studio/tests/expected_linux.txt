@@ -2046,6 +2046,7 @@ android-studio/plugins/android/lib/game-tools-protos.jar
 android-studio/plugins/android/lib/game-tools.jar
 android-studio/plugins/android/lib/generator.jar
 android-studio/plugins/android/lib/google-analytics-library.jar
+android-studio/plugins/android/lib/inspectors-common.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
