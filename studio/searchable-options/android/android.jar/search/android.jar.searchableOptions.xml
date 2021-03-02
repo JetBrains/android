@@ -509,6 +509,13 @@
     <option name="the" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
     <option name="virtual" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
     <option name="which" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
+    <option name="assistant" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="emulator" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="opens" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="os" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="pairing" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="the" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="wear" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="overview" path="ActionManager" hit="Overview" />
     <option name="devices" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="pair" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
@@ -757,6 +764,11 @@
     <option name="volume" path="ActionManager" hit="Volume Down" />
     <option name="up" path="ActionManager" hit="Volume Up" />
     <option name="volume" path="ActionManager" hit="Volume Up" />
+    <option name="assistant" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="emulator" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="os" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="pairing" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="wear" path="ActionManager" hit="Wear OS emulator pairing assistant" />
   </configurable>
   <configurable id="editor.preferences.folding" configurable_name="Code Folding">
     <option name="android" hit="Android" />
