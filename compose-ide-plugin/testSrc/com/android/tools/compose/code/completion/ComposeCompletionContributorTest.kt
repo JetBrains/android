@@ -293,6 +293,9 @@ class ComposeCompletionContributorTest {
       @Composable
       fun FoobarOne(children: @Composable() () -> Unit) {}
 
+      @Composable
+      fun FoobarTwo(children: () -> Unit) {}
+
       """.trimIndent()
     )
 
@@ -306,7 +309,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        Foobar${caret}
+        FoobarO${caret}
       }
       """.trimIndent()
     )
@@ -327,6 +330,42 @@ class ComposeCompletionContributorTest {
       fun HomeScreen() {
         FoobarOne {
 
+        }
+      }
+      """.trimIndent()
+      , true)
+
+    val file2 = myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarT${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file2.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarTwo {
+          
         }
       }
       """.trimIndent()
@@ -534,7 +573,9 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        AppBarIcon(icon = , onClick = { /*TODO*/ })
+        AppBarIcon(icon = ) {
+          
+        }
       }
       """.trimIndent()
       , true)
