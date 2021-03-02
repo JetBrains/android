@@ -162,6 +162,11 @@ studio_plugin(
         "game-tools.jar": [
             "//tools/vendor/google/game-tools/main:android.game-tools.main",
         ],
+        "inspectors-common.jar": [
+            "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api",
+            "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide",
+            "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
+        ],
         "jps/android-jps-plugin.jar": [
             "//tools/adt/idea/jps-plugin:intellij.android.jps",
         ],
