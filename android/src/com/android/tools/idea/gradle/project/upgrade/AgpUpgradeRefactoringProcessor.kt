@@ -1927,7 +1927,7 @@ interface PropertiesOperationInfo {
   fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo>
 }
 
-data class PropertiesMoveRefactoringInfo(
+data class PropertiesOperationsRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
@@ -1967,7 +1967,7 @@ data class PropertiesMoveRefactoringInfo(
       }
     }
 
-    val info = this@PropertiesMoveRefactoringInfo
+    val info = this@PropertiesOperationsRefactoringInfo
   }
 }
 
@@ -2036,7 +2036,7 @@ val DATA_BINDING_ENABLED_INFO = MovePropertiesInfo(
   usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
 )
 
-val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesMoveRefactoringInfo(
+val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("4.0.0-alpha05"),
   requiredFromVersion = GradleVersion.parse("7.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
@@ -2044,50 +2044,6 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesMoveRefactoringInfo(
   componentKind = MIGRATE_TO_BUILD_FEATURES,
   propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
-
-data class RemovePropertiesRefactoringInfo(
-  val optionalFromVersion: GradleVersion,
-  val requiredFromVersion: GradleVersion,
-  val commandNameSupplier: Supplier<String>,
-  val processedElementsHeaderSupplier: Supplier<String>,
-  val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val propertiesOperationInfos: List<PropertiesOperationInfo>
-) {
-
-  inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
-    constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
-
-    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
-
-    override fun getCommandName(): String = commandNameSupplier.get()
-
-    override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-      builder.setKind(componentKind)
-
-    override fun findComponentUsages(): Array<out UsageInfo> {
-      val usages = ArrayList<UsageInfo>()
-      projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo ->
-          usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
-        }
-      }
-      return usages.toArray(UsageInfo.EMPTY_ARRAY)
-    }
-
-    override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-      return object : UsageViewDescriptorAdapter() {
-        override fun getElements(): Array<PsiElement> {
-          return PsiElement.EMPTY_ARRAY
-        }
-
-        override fun getProcessedElementsHeader(): String = processedElementsHeaderSupplier.get()
-      }
-    }
-
-    val info = this@RemovePropertiesRefactoringInfo
-  }
-}
 
 data class RemovePropertiesInfo(
   val propertyModelListGetter: GradleBuildModel.() -> List<GradleDslModel>,
@@ -2130,7 +2086,7 @@ val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
   usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
 )
 
-val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
+val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
   requiredFromVersion = GradleVersion.parse("8.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),

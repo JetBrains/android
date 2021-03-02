@@ -120,7 +120,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnMigrateBuildFeatures() {
     fun AgpUpgradeComponentRefactoringProcessor.isMigrateBuildFeaturesRefactoringProcessor() =
-      this is PropertiesMoveRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_INFO
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_INFO
 
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("7.0.0"))
@@ -133,7 +133,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testEnabledEffectOnRemoveSourceSetJni() {
     fun AgpUpgradeComponentRefactoringProcessor.isRemoveSourceSetJni() =
-      this is RemovePropertiesRefactoringInfo.RefactoringProcessor && info == REMOVE_SOURCE_SET_JNI_INFO
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_SOURCE_SET_JNI_INFO
 
     writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
