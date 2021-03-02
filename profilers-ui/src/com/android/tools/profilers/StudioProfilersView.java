@@ -33,6 +33,7 @@ import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.TooltipLayeredPane;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profiler.proto.Common;
@@ -129,7 +130,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private CommonButton myResetZoom;
   private CommonButton myZoomToSelection;
   private CommonButton myBack;
-  private ProfilerAction myZoomToSelectionAction;
+  private DefaultContextMenuItem myZoomToSelectionAction;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -337,8 +338,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
-    ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
+    DefaultContextMenuItem zoomOutAction =
+      new DefaultContextMenuItem.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
         .build();
@@ -352,8 +353,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
-    ProfilerAction zoomInAction =
-      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(mySplitter)
+    DefaultContextMenuItem zoomInAction =
+      new DefaultContextMenuItem.Builder(ZOOM_IN).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myZoomIn.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                        KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
@@ -367,8 +368,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
-    ProfilerAction resetZoomAction =
-      new ProfilerAction.Builder("Reset zoom").setContainerComponent(mySplitter)
+    DefaultContextMenuItem resetZoomAction =
+      new DefaultContextMenuItem.Builder("Reset zoom").setContainerComponent(mySplitter)
         .setActionRunnable(() -> myResetZoom.doClick(0))
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                        KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
@@ -381,7 +382,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange());
       myProfiler.getIdeServices().getFeatureTracker().trackZoomToSelection();
     });
-    myZoomToSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
+    myZoomToSelectionAction = new DefaultContextMenuItem.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myZoomToSelection.doClick(0))
       .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
@@ -400,8 +401,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
     myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
     // Configure shortcuts for GoLive.
-    ProfilerAction attachAction =
-      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
+    DefaultContextMenuItem attachAction =
+      new DefaultContextMenuItem.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&
@@ -409,8 +410,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                 myStageView.supportsStreaming())
         .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
         .build();
-    ProfilerAction detachAction =
-      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
+    DefaultContextMenuItem detachAction =
+      new DefaultContextMenuItem.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
         .setActionRunnable(() -> myGoLive.doClick(0))
         .setEnableBooleanSupplier(
           () -> myGoLive.isEnabled() &&

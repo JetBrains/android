@@ -23,9 +23,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -60,7 +60,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final JButton myForceGarbageCollectionButton;
-  @NotNull private final ProfilerAction myForceGarbageCollectionAction;
+  @NotNull private final DefaultContextMenuItem myForceGarbageCollectionAction;
   @NotNull private final RecordingOptionsView myRecordingOptionsView;
   @NotNull private final LoadingPanel myHeapDumpLoadingPanel;
 
@@ -94,7 +94,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
     });
     myForceGarbageCollectionAction =
-      new ProfilerAction.Builder("Force garbage collection")
+      new DefaultContextMenuItem.Builder("Force garbage collection")
         .setContainerComponent(getComponent())
         .setIcon(myForceGarbageCollectionButton.getIcon())
         .setActionRunnable(() -> myForceGarbageCollectionButton.doClick(0))
@@ -256,7 +256,8 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     IdeProfilerComponents ideProfilerComponents = getIdeComponents();
     ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(AllIcons.ToolbarDecorator.Export).build();
+    DefaultContextMenuItem exportHeapDumpAction =
+      new DefaultContextMenuItem.Builder("Export...").setIcon(AllIcons.ToolbarDecorator.Export).build();
     contextMenuInstaller.installGenericContextMenu(
       rangeSelectionComponent, exportHeapDumpAction,
       x -> getCaptureIntersectingWithMouseX(x) != null &&

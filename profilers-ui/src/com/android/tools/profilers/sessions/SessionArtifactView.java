@@ -22,9 +22,9 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.IconUtil;
@@ -254,7 +254,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     List<ContextMenuItem> menus = new ArrayList<>();
-    ProfilerAction action = new ProfilerAction.Builder("Export...")
+    DefaultContextMenuItem action = new DefaultContextMenuItem.Builder("Export...")
       .setEnableBooleanSupplier(() -> !getArtifact().isOngoing())
       .setActionRunnable(() -> exportArtifact())
       .build();

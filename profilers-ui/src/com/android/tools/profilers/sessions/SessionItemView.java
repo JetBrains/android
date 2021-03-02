@@ -23,8 +23,8 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.ProfilerAction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.JBUI;
@@ -153,12 +153,12 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     boolean canEndSession = SessionsManager.isSessionAlive(getArtifact().getSession());
     Icon endIcon =
       canEndSession ? StudioIcons.Profiler.Toolbar.STOP_SESSION : IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_SESSION);
-    ProfilerAction endAction = new ProfilerAction.Builder("End session")
+    DefaultContextMenuItem endAction = new DefaultContextMenuItem.Builder("End session")
       .setEnableBooleanSupplier(() -> canEndSession)
       .setActionRunnable(() -> getSessionsView().stopProfilingSession())
       .setIcon(endIcon)
       .build();
-    ProfilerAction deleteAction = new ProfilerAction.Builder("Delete")
+    DefaultContextMenuItem deleteAction = new DefaultContextMenuItem.Builder("Delete")
       .setContainerComponent(this)
       .setActionRunnable(() -> getArtifact().deleteSession())
       .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0))
