@@ -139,6 +139,28 @@ class PTableModelImplTest {
     checkRows(impl, "top")
   }
 
+  @Test
+  fun testDelayedExpansion() {
+    val model = createModel(Item("weight"), Group("weiss"))
+    val weiss = model.find("weiss") as Group
+    weiss.delayedExpansion = true
+
+    val impl = PTableModelImpl(model)
+    checkRows(impl, "weight", "weiss")
+
+    impl.toggle(weiss)
+    checkRows(impl, "weight", "weiss")
+
+    weiss.children.addAll(listOf(Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    checkRows(impl, "weight", "weiss")
+
+    weiss.expandNow(true)
+    checkRows(impl, "weight", "weiss", "siphon", "extra")
+
+    val more = model.find("more") as Group
+    assertThat(impl.depth(more)).isEqualTo(2)
+  }
+
   private fun checkRows(model: PTableModelImpl, vararg titles: String) {
     assertThat(model.rowCount).isEqualTo(titles.size)
     for ((index, title) in titles.withIndex()) {
