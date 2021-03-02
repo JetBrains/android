@@ -116,8 +116,8 @@ class ComposePreviewRepresentationProviderTest {
     assertTrue(previewProvider.accept(project, composableFile))
     assertTrue(previewProvider.accept(project, kotlinFile))
     assertTrue(previewProvider.accept(project, kotlinWithNoComposable))
-    assertEquals(PreferredVisibility.VISIBLE, getRepresentationForFile(previewFile).preferredInitialVisibility)
-    assertEquals(PreferredVisibility.VISIBLE, getRepresentationForFile(composableFile).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.SPLIT, getRepresentationForFile(previewFile).preferredInitialVisibility)
+    assertEquals(PreferredVisibility.SPLIT, getRepresentationForFile(composableFile).preferredInitialVisibility)
     assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinFile).preferredInitialVisibility)
     assertEquals(PreferredVisibility.HIDDEN, getRepresentationForFile(kotlinWithNoComposable).preferredInitialVisibility)
   }

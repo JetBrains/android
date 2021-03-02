@@ -20,7 +20,7 @@ import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.actions.SetScreenViewProviderAction
-import com.android.tools.idea.common.actions.IssueNotificationAction
+import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -43,8 +43,8 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
@@ -62,9 +62,9 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import icons.StudioIcons
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /**
  * [ToolbarActionGroups] that includes the [ForceCompileAndRefreshAction]
@@ -167,15 +167,13 @@ class ComposePreviewRepresentationProvider(
       LOG.debug("${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
     }
 
-    val showInSplitMode = hasPreviewMethods || filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
-
-    // We will default to split mode if there are @Preview annotations in the file or if the file
-    // contains @Composable. Otherwise, we set the mode to code.
+    val isComposableEditor = hasPreviewMethods || filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
+    val globalState = AndroidEditorSettings.getInstance().globalState
 
     return ComposePreviewRepresentation(
       psiFile,
       previewProvider,
-      if (showInSplitMode) PreferredVisibility.VISIBLE else PreferredVisibility.HIDDEN,
+      if (isComposableEditor) globalState.preferredComposableEditorVisibility() else globalState.preferredKotlinEditorVisibility(),
       ::ComposePreviewViewImpl)
   }
 
@@ -204,6 +202,22 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
 
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
+}
+
+// We will default to split mode if there are @Preview annotations in the file or if the file contains @Composable.
+private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() = when(preferredComposableEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
+  AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
+  else -> PreferredVisibility.SPLIT // default
+}
+
+// We will default to code mode for kotlin files not containing any @Composable functions.
+private fun AndroidEditorSettings.GlobalState.preferredKotlinEditorVisibility() = when(preferredKotlinEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
+  AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
+  else -> PreferredVisibility.HIDDEN // default
 }
 
 /**
