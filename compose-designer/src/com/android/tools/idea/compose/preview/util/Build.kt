@@ -38,7 +38,7 @@ import com.intellij.psi.SmartPsiElementPointer
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
  */
-private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
+private fun requestKotlinBuild(project: Project, modules: Set<Module>, requestedByUser: Boolean) {
   fun createBuildTasks(module: Module): String? {
     val gradlePath = GradleProjects.getGradleModulePath(module) ?: return null
     val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
@@ -61,7 +61,10 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
   createBuildTasks(modules).forEach {
     val path = moduleFinder.getRootProjectPath(it.key)
     val request = GradleBuildInvoker.Request(project, path.toFile(), it.value).apply {
-      doNotShowBuildOutputOnFailure()
+      if (!requestedByUser) {
+        // If this was not requested by a user action, then do not automatically pop-up the build output panel on error.
+        doNotShowBuildOutputOnFailure()
+      }
       taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(this, "Build")
     }
     GradleBuildInvoker.getInstance(project).executeTasks(request)
@@ -74,7 +77,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>) {
 private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
   GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
 
-internal fun requestBuild(project: Project, module: Module) {
+internal fun requestBuild(project: Project, module: Module, requestByUser: Boolean) {
   if (project.isDisposed || module.isDisposed) {
     return
   }
@@ -92,7 +95,7 @@ internal fun requestBuild(project: Project, module: Module) {
   // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
   // a few extra tasks that are not required for the preview to refresh.
   if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
-    requestKotlinBuild(project, modules)
+    requestKotlinBuild(project, modules, requestByUser)
   }
   else {
     requestCompileJavaBuild(project, modules)

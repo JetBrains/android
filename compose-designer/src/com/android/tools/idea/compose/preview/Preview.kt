@@ -558,7 +558,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                           {
                             if (isBuildOnSaveEnabled
                                 && isActive.get()
-                                && !hasSyntaxErrors()) requestBuildForSurface(surface)
+                                && !hasSyntaxErrors()) requestBuildForSurface(surface, false)
                           }, this)
     }
 

@@ -29,10 +29,10 @@ import com.intellij.ui.JBColor
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-internal fun requestBuildForSurface(surface: DesignSurface) =
+internal fun requestBuildForSurface(surface: DesignSurface, requestedByUser: Boolean) =
   surface.models.map { it.module }.distinct()
     .onEach {
-      requestBuild(surface.project, it)
+      requestBuild(surface.project, it, requestedByUser)
     }
     .isNotEmpty()
 
@@ -43,11 +43,11 @@ internal fun requestBuildForSurface(surface: DesignSurface) =
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
   AnAction(message("action.build.and.refresh.title"), null, GREEN_REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) {
-    if (!requestBuildForSurface(surface)) {
+    if (!requestBuildForSurface(surface, true)) {
       // If there are no models in the surface, we can not infer which models we should trigger
       // the build for. The fallback is to find the module for the editor and trigger that.
       LangDataKeys.MODULE.getData(e.dataContext)?.let {
-        requestBuild(surface.project, it)
+        requestBuild(surface.project, it, true)
       }
     }
   }
