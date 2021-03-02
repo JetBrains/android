@@ -6,9 +6,11 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Verify;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -21,12 +23,12 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.BiPredicate;
-import kotlin.Pair;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,58 +46,73 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
   @Nullable
   private CachedValue<PsiField[]> myFieldsCache;
 
-  protected static PsiType INT_ARRAY = PsiType.INT.createArrayType();
+  protected static final PsiType INT_ARRAY = PsiType.INT.createArrayType();
+
+  protected static final Predicate<@NotNull ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
+    if (!resource.getNamespace().equals(ResourceNamespace.ANDROID) && resource.getLibraryName() == null) {
+      return true; // Project resource.
+    }
+    if (resource instanceof ResourceItemWithVisibility) {
+      return ((ResourceItemWithVisibility)resource).getVisibility() == ResourceVisibility.PUBLIC;
+    }
+    throw new AssertionError("Library resource " + resource.getType() + '/' + resource.getName() + " of type " +
+                             resource.getClass().getSimpleName() + " doesn't implement ResourceItemWithVisibility");
+  };
 
   public InnerRClassBase(@NotNull PsiClass context, @NotNull ResourceType resourceType) {
     super(context, resourceType.getName());
     myResourceType = resourceType;
   }
 
-  @NotNull
   protected static PsiField[] buildResourceFields(@NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
+                                                  @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
-                                                  @NotNull BiPredicate<ResourceType, String> isPublic,
+                                                  @NotNull Predicate<ResourceItem> resourceFilter,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context) {
-    Collection<Pair<String, ResourceVisibility>> otherFields = new ArrayList<>();
-    Collection<Pair<String, ResourceVisibility>> styleableFields = new ArrayList<>();
+    Map<String, ResourceVisibility> otherFields = new LinkedHashMap<>();
+    Map<String, ResourceVisibility> styleableFields = new LinkedHashMap<>();
     Collection<StyleableAttrFieldUrl> styleableAttrFields = new ArrayList<>();
 
-    if (resourceType == ResourceType.STYLEABLE) {
-      ListMultimap<String, ResourceItem> map = repository.getResources(namespace, resourceType);
-      styleableFields.addAll(
-        ContainerUtil.map(map.keySet(),
-                          it -> new Pair<>(it, isPublic.test(resourceType, it) ? ResourceVisibility.PUBLIC : ResourceVisibility.PRIVATE)));
-
-      for (ResourceItem item : map.values()) {
-        StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
+    ListMultimap<String, ResourceItem> map = repository.getResources(namespace, resourceType);
+    for (ResourceItem resource : map.values()) {
+      ResourceVisibility visibility = resourceFilter.test(resource) ? ResourceVisibility.PUBLIC : ResourceVisibility.PRIVATE;
+      if (resourceType == ResourceType.STYLEABLE) {
+        styleableFields.merge(resource.getName(), visibility, ResourceVisibility::max);
+        StyleableResourceValue value = (StyleableResourceValue)resource.getResourceValue();
         if (value != null) {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
-            if (isPublic.test(attr.getResourceType(), attr.getName())) {
-              ResourceNamespace attrNamespace = attr.getNamespace();
-              styleableAttrFields.add(new StyleableAttrFieldUrl(
-                new ResourceReference(namespace, ResourceType.STYLEABLE, item.getName()),
-                new ResourceReference(attrNamespace, ResourceType.ATTR, attr.getName())
-              ));
+            ResourceNamespace attrNamespace = attr.getNamespace();
+            ResourceRepository attrRepository = resourceRepositoryManager == null ?
+                                                repository : resourceRepositoryManager.getResourcesForNamespace(attrNamespace);
+            if (attrRepository != null) {
+              List<ResourceItem> attrResources = attrRepository.getResources(attrNamespace, ResourceType.ATTR, attr.getName());
+              if (!attrResources.isEmpty()) {
+                ResourceItem attrResource = attrResources.get(0);
+                if (resourceFilter.test(attrResource)) {
+                  styleableAttrFields.add(new StyleableAttrFieldUrl(
+                    new ResourceReference(namespace, ResourceType.STYLEABLE, resource.getName()),
+                    new ResourceReference(attrNamespace, ResourceType.ATTR, attr.getName())
+                  ));
+                }
+              }
             }
           }
         }
       }
-    }
-    else {
-      otherFields.addAll(
-        ContainerUtil.map(repository.getResourceNames(namespace, resourceType),
-                          it -> new Pair<>(it, isPublic.test(resourceType, it) ? ResourceVisibility.PUBLIC : ResourceVisibility.PRIVATE)));
+      else {
+        otherFields.merge(resource.getName(), visibility, ResourceVisibility::max);
+      }
     }
 
     return buildResourceFields(otherFields, styleableFields, styleableAttrFields, resourceType, context, fieldModifier);
   }
 
   @NotNull
-  protected static PsiField[] buildResourceFields(@NotNull Collection<Pair<String, ResourceVisibility>> otherFields,
-                                                  @NotNull Collection<Pair<String, ResourceVisibility>> styleableFields,
+  protected static PsiField[] buildResourceFields(@NotNull Map<String, ResourceVisibility> otherFields,
+                                                  @NotNull Map<String, ResourceVisibility> styleableFields,
                                                   @NotNull Collection<StyleableAttrFieldUrl> styleableAttrFields,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context,
@@ -106,26 +123,26 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     int nextId = resourceType.ordinal() * 100000;
     int i = 0;
 
-    for (Pair<String, ResourceVisibility> fieldPair : otherFields) {
+    for (Map.Entry<String, ResourceVisibility> entry : otherFields.entrySet()) {
       int fieldId = nextId++;
-      ResourceLightField field = new ResourceLightField(fieldPair.getFirst(),
+      ResourceLightField field = new ResourceLightField(entry.getKey(),
                                                         context,
                                                         PsiType.INT,
                                                         fieldModifier,
                                                         fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null,
-                                                        fieldPair.getSecond());
+                                                        entry.getValue());
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
 
-    for (Pair<String, ResourceVisibility> fieldName : styleableFields) {
+    for (Map.Entry<String, ResourceVisibility> entry : styleableFields.entrySet()) {
       int fieldId = nextId++;
-      ResourceLightField field = new ResourceLightField(fieldName.getFirst(),
+      ResourceLightField field = new ResourceLightField(entry.getKey(),
                                                         context,
                                                         INT_ARRAY,
                                                         fieldModifier,
                                                         fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null,
-                                                        fieldName.getSecond());
+                                                        entry.getValue());
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }

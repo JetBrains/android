@@ -32,8 +32,9 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
 
     return InnerRClassBase.buildResourceFields(resourcesSource.getResourceRepository(),
                                                resourcesSource.getResourceNamespace(),
+                                               resourcesSource.getResourceRepositoryManager(),
                                                modifier,
-                                               resourcesSource::isAccessibleResource,
+                                               ACCESSIBLE_RESOURCE_FILTER,
                                                resourceType,
                                                context);
   }
