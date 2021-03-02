@@ -15,20 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.run.deployment;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.deployment.SelectDeviceAction;
-import com.android.tools.idea.run.deployment.SerialNumber;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.ui.playback.commands.ActionCommand;
-import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.time.Duration;
-import javax.swing.JList;
-import javax.swing.ListModel;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
@@ -37,7 +28,6 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class DeviceSelectorFixture {
   private static final Duration DURATION = Duration.ofSeconds(20);
@@ -73,35 +63,18 @@ public final class DeviceSelectorFixture {
     });
   }
 
-  /**
-   * @deprecated Prefer to use {@link #selectItem(String)}. This is only used for DeploymentTest. Will be removed.
-   */
-  @Deprecated
-  public void selectDevice(@NotNull IDevice device) {
-    Wait.seconds(DURATION.getSeconds()).expecting("device " + device + " to be selected").until(() -> {
+  public void waitForDeviceRecognition(@NotNull String item, boolean exists) {
+    Wait.seconds(DURATION.getSeconds()).expecting("device '" + item + "' to be " + (exists ? "recognized" : "removed")).until(() -> {
+      myIdeFrameFixture.updateToolbars();
+      // Click the combo box button to force it to refresh.
       if (!clickComboBoxButtonIfEnabled()) {
         return false;
       }
 
       try {
-        JListFixture fixture = new JListFixture(myRobot, "deviceAndSnapshotComboBoxList");
-
-        String text = comboBoxListTextOf(fixture, device);
-        if (text == null) {
-          return false;
-        }
-        fixture.clickItem(text);
-
-        // TODO (b/142343916): Occasionally clicks don't register in the IJ framework.
-        //  So as a workaround, we'll manually invoke the device selection action.
-        AnAction selectDeviceAction = getComboBoxAction(fixture, device);
-        if (selectDeviceAction == null) {
-          return false;
-        }
-
         return GuiQuery.getNonNull(() -> {
-          InputEvent event = ActionCommand.getInputEvent("SelectDevicesAction");
-          return ActionManager.getInstance().tryToExecute(selectDeviceAction, event, null, ActionPlaces.UNKNOWN, true).isDone();
+          Stream<String> stream = Arrays.stream(new JListFixture(myRobot, "deviceAndSnapshotComboBoxList").contents());
+          return exists ? stream.anyMatch(item::equals) : stream.noneMatch(item::equals);
         });
       }
       catch (ComponentLookupException exception) {
@@ -110,52 +83,8 @@ public final class DeviceSelectorFixture {
     });
   }
 
-  @Nullable
-  private static String comboBoxListTextOf(@NotNull JListFixture list, @NotNull IDevice device) {
-    return GuiQuery.get(() -> {
-      @SuppressWarnings("unchecked")
-      JList<ActionItem> target = list.target();
-
-      ListModel<ActionItem> model = target.getModel();
-      Object key = new SerialNumber(device.getSerialNumber());
-
-      for (int i = 0, size = model.getSize(); i < size; i++) {
-        ActionItem actionItem = model.getElementAt(i);
-        Object action = actionItem.getAction();
-
-        if (!(action instanceof SelectDeviceAction)) {
-          continue;
-        }
-
-        if (((SelectDeviceAction)action).getDevice().getKey().equals(key)) {
-          return actionItem.toString();
-        }
-      }
-
-      return null;
-    });
-  }
-
-  @Nullable
-  private static AnAction getComboBoxAction(@NotNull JListFixture list, @NotNull IDevice device) {
-    return GuiQuery.get(() -> {
-      @SuppressWarnings("unchecked")
-      JList<ActionItem> target = list.target();
-
-      ListModel<ActionItem> model = target.getModel();
-      Object key = new SerialNumber(device.getSerialNumber());
-
-      for (int i = 0, size = model.getSize(); i < size; i++) {
-        ActionItem actionItem = model.getElementAt(i);
-        AnAction action = actionItem.getAction();
-
-        if (action instanceof SelectDeviceAction && ((SelectDeviceAction)action).getDevice().getKey().equals(key)) {
-          return action;
-        }
-      }
-
-      return null;
-    });
+  public @NotNull String getCurrentlySelectedDevice() {
+    return new JListFixture(myRobot, "deviceAndSnapshotComboBoxList").selection()[0];
   }
 
   private boolean clickComboBoxButtonIfEnabled() {
