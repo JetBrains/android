@@ -339,6 +339,11 @@ public class RenderTask {
       runnableQueueField.setAccessible(true);
       WeakHashMap<?, ?> runnablesQueue = (WeakHashMap<?, ?>)runnableQueueField.get(null);
       runnablesQueue.clear();
+    } catch (NoSuchFieldException e) {
+      // layoutlib-standard may have no sRunnablesQueues. ignore exception.
+      if (LayoutLibrary.isNative()) {
+        LOG.warn(e);
+      }
     } catch (Throwable t) {
       LOG.warn(t);
     }
