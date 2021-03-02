@@ -169,6 +169,7 @@ public class VisualizationForm
       .setMinScale(0.10)
       .setMaxScale(4)
       .build();
+    mySurface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT);
     mySurface.addPanZoomListener(this);
 
     updateScreenMode();
