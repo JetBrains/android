@@ -257,7 +257,6 @@ class DatabaseInspectorControllerImpl(
   // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
   override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {
     databaseInspectorClientCommandsChannel = null
-    appInspectionIdeServices = null
     this.processDescriptor = null
     this.appPackageName = null
 
