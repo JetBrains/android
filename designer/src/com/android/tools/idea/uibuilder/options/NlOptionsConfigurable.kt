@@ -34,8 +34,10 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
   }
 
   private val showLint = JBCheckBox("Show lint icons on design surface")
+  private val preferredComposableEditorMode = EditorModeComboBox()
   private val preferredDrawablesEditorMode = EditorModeComboBox()
   private val preferredEditorMode = EditorModeComboBox()
+  private val preferredKotlinEditorMode = EditorModeComboBox()
 
   private val state = AndroidEditorSettings.getInstance().globalState
 
@@ -46,6 +48,8 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
     titledRow("Default Editor Mode") {
       row("Drawables:") { preferredDrawablesEditorMode() }
       row("Other Resources (e.g. Layout, Menu, Navigation):") { preferredEditorMode() }
+      row("Compose files:") { preferredComposableEditorMode() }
+      row("Other Kotlin files:") { preferredKotlinEditorMode() }
     }
   }
 
@@ -53,12 +57,16 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
     showLint.isSelected != state.isShowLint
     || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
     || preferredEditorMode.selectedItem != state.preferredEditorMode
+    || preferredComposableEditorMode.selectedItem != state.preferredComposableEditorMode
+    || preferredKotlinEditorMode.selectedItem != state.preferredKotlinEditorMode
 
   @Throws(ConfigurationException::class)
   override fun apply() {
     state.isShowLint = showLint.isSelected
     state.preferredDrawableEditorMode = preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
+    state.preferredComposableEditorMode = preferredComposableEditorMode.selectedItem as AndroidEditorSettings.EditorMode
+    state.preferredKotlinEditorMode = preferredKotlinEditorMode.selectedItem as AndroidEditorSettings.EditorMode
   }
 
   override fun reset() {
@@ -81,6 +89,9 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
       preferredDrawablesEditorMode.selectedItem = state.preferredDrawableEditorMode
       preferredEditorMode.selectedItem = state.preferredEditorMode
     }
+
+    preferredComposableEditorMode.selectedItem = state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT
+    preferredKotlinEditorMode.selectedItem = state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE
   }
 
   @Nls
