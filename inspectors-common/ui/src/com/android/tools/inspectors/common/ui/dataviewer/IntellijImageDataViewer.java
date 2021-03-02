@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.dataviewer;
+package com.android.tools.inspectors.common.ui.dataviewer;
 
-import com.android.tools.idea.profilers.ResizableImage;
-import com.android.tools.profilers.dataviewer.ImageDataViewer;
+import com.android.tools.adtui.stdui.ResizableImage;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

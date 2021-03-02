@@ -16,11 +16,13 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.stdui.ContentType;
-import com.android.tools.idea.profilers.dataviewer.IntellijDataViewer;
-import com.android.tools.idea.profilers.dataviewer.IntellijImageDataViewer;
+import com.android.tools.adtui.stdui.ResizableImage;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.inspectors.common.api.ide.IntellijContextMenuInstaller;
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup;
+import com.android.tools.inspectors.common.ui.dataviewer.DataViewer;
+import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer;
+import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.ExportDialog;
@@ -30,7 +32,6 @@ import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
