@@ -75,6 +75,7 @@ public interface Manifest extends ManifestElement {
   UsesSdk addUsesSdk();
 
   List<UsesFeature> getUsesFeatures();
+  UsesFeature addUsesFeature();
 
   List<UsesSplit> getUsesSplits();
 
