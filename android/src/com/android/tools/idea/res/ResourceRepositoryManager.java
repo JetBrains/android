@@ -17,10 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
@@ -108,12 +105,8 @@ public final class ResourceRepositoryManager implements Disposable {
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
   private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
-  @GuardedBy("myResourceVisibilityLock")
-  @Nullable private ResourceVisibilityLookup myResourceVisibility;
 
   private final Object myLibraryLock = new Object();
-
-  private final Object myResourceVisibilityLock = new Object();
 
   @NotNull
   public static ResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
@@ -563,7 +556,6 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
-    resetVisibility();
     resetLibraries();
     SampleDataRepositoryManager.getInstance(myFacet).reset();
 
@@ -631,12 +623,6 @@ public final class ResourceRepositoryManager implements Disposable {
     return myFacet.getModule().getProject();
   }
 
-  private void resetVisibility() {
-    synchronized (myResourceVisibilityLock) {
-      myResourceVisibility = null;
-    }
-  }
-
   private void resetLibraries() {
     synchronized (myLibraryLock) {
       myLibraryResourceMap = null;
@@ -645,8 +631,6 @@ public final class ResourceRepositoryManager implements Disposable {
 
   void updateRootsAndLibraries() {
     try {
-      resetVisibility();
-
       ProjectResourceRepository projectResources = (ProjectResourceRepository)getCachedProjectResources();
       AppResourceRepository appResources = (AppResourceRepository)getCachedAppResources();
       if (projectResources != null) {
@@ -724,26 +708,6 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     return mySharedTestNamespaceInstance;
-  }
-
-  @NotNull
-  public ResourceVisibilityLookup getResourceVisibility() {
-    synchronized (myResourceVisibilityLock) {
-      if (myResourceVisibility == null) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-        if (androidModel != null) {
-          ResourceVisibilityLookup.Provider provider = new ResourceVisibilityLookup.Provider();
-          IdeVariant variant = androidModel.getSelectedVariant();
-          IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-          myResourceVisibility = provider.get(mainArtifact);
-        }
-        else {
-          myResourceVisibility = ResourceVisibilityLookup.NONE;
-        }
-      }
-
-      return myResourceVisibility;
-    }
   }
 
   /**
