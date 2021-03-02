@@ -525,14 +525,13 @@ open class AddActionDialog(
     fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
       // TODO: filter out interpolators
       val appResources = repoManager.appResources
-      val visibilityLookup = repoManager.resourceVisibility
       val result: MutableList<ValueWithDisplayString> = appResources
-        .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
+        .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, ResourceVisibility.PUBLIC)
         .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }
         .toMutableList()
       if (includeAnimators) {
         appResources
-          .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
+          .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, ResourceVisibility.PUBLIC)
           .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
       }
       result.sortBy { it.display }

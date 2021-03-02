@@ -51,7 +51,6 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE
@@ -80,7 +79,6 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
-import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
@@ -88,7 +86,6 @@ import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
-import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
@@ -955,7 +952,7 @@ fun getCompletionFromTypes(
     if (frameworkResources != null) {
       addFrameworkItems(resources, type, includeFileResources, frameworkResources)
     }
-    addProjectItems(resources, type, includeFileResources, appResources, repoManager.resourceVisibility)
+    addProjectItems(resources, type, includeFileResources, appResources, facet)
   }
 
   if (sort) {
@@ -1020,16 +1017,16 @@ private fun addProjectItems(
   type: ResourceType,
   includeFileResources: Boolean,
   repository: LocalResourceRepository,
-  lookup: ResourceVisibilityLookup?
+  facet: AndroidFacet
 ) {
   val namespace = ResourceNamespace.TODO()
   for (entry in repository.getResources(namespace, type).asMap().entries) {
     val resourceName = entry.key
-    if (lookup != null && lookup.isPrivate(type, resourceName)) {
+    if (!isAccessible(namespace, type, resourceName, facet)) {
       continue
     }
     val items = entry.value
-    if (!includeFileResources && Iterables.getFirst(items, null)?.isFileBased == true) {
+    if (!includeFileResources && items.firstOrNull()?.isFileBased == true) {
       continue
     }
 
@@ -1173,37 +1170,19 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
 fun ResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
-  visibilityLookup: ResourceVisibilityLookup,
   minVisibility: ResourceVisibility
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
 
-  // TODO(namespaces): Only AarResourceRepository and its subclasses properly support resource visibility.
-  //                   We need to make all repositories support it.
-  return when {
-    this is AarResourceRepository -> {
-      // Resources in AarResourceRepository know their visibility.
-      val items = getResources(namespace, type) { item ->
-        (item as ResourceItemWithVisibility).visibility >= minVisibility
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
-    }
-    else -> {
-      val items = getResources(namespace, type) { item ->
-        when {
-          minVisibility == ResourceVisibility.values()[0] -> true
-          item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
-          else ->
-            // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
-            // TODO(namespaces)
-            // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
-            // which is probably a better UX and the only way to make our tests pass (for now).
-            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(type, item.name)
-        }
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
+  val items = getResources(namespace, type) { item ->
+    when {
+      minVisibility == ResourceVisibility.values()[0] -> true
+      item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
+      // Only project resources may not implement ResourceItemWithVisibility.
+      else -> true // TODO(b/74324283): Distinguish between PRIVATE and PRIVATE_XML_ONLY for project resources.
     }
   }
+  return items.mapTo(HashSet(items.size), ResourceItem::getName)
 }
 
 /** Checks if the given [ResourceItem] is available in XML resources in the given [AndroidFacet]. */
@@ -1227,27 +1206,24 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 }
 
 /**
- * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes only public resources can be accessed.
- *
- * TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+ * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes
+ * that only public resources can be accessed.
  */
-private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repoManager = ResourceRepositoryManager.getInstance(facet)
-  return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(emptySet()) ?: return false
-    val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
-    items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+// TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
+  val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+  val repository = repositoryManager.getResourcesForNamespace(namespace)
+  // For some unclear reason nonexistent resources in the application workspace are treated differently from the framework ones.
+  // This non-intuitive behavior is required for the DerivedStyleFinderTest to pass.
+  val resource = repository?.getResources(namespace, type, name)?.firstOrNull() ?: return namespace == repositoryManager.namespace
+  if (namespace == repositoryManager.namespace && resource.libraryName == null) {
+    return true // Project resource.
   }
-  else {
-    val repo = repoManager.appResources
-    val item = repo.getResources(namespace, type, name).firstOrNull()
-    if (item?.libraryName != null) {
-      (item as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
-    }
-    else {
-      !repoManager.resourceVisibility.isPrivate(type, name)
-    }
+  if (resource is ResourceItemWithVisibility) {
+    return resource.visibility == ResourceVisibility.PUBLIC
   }
+  throw AssertionError("Library resource $type/$name of type ${resource.javaClass}" +
+                       " doesn't implement ResourceItemWithVisibility")
 }
 
 /**
