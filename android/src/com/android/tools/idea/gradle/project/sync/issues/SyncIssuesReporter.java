@@ -105,6 +105,15 @@ public class SyncIssuesReporter {
       }
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
     }
+    Project finalProject = project;
+    Runnable reportTask = () -> {
+      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker();
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode())
+      reportTask.run();
+    else {
+      ApplicationManager.getApplication().invokeLater(reportTask);
+    }
   }
 
   @VisibleForTesting
