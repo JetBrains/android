@@ -504,6 +504,13 @@ public final class StudioFlags {
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
     true);
 
+  public static final Flag<Boolean> WEAR_DEVICE_PAIRING_ENABLED = Flag.create(
+    RUNDEBUG,
+    "wear.device.pairing.enabled",
+    "Enable Wear emulator pairing assistant",
+    "Show the Wear emulator pairing assistant",
+    false);
+
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
     RUNDEBUG,
     "adb.server.management.mode.settings.visible",
