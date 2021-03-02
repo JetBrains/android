@@ -192,6 +192,11 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   @Override
+  public void reportErrorGeneric(@NotNull String message, @NotNull Throwable t) {
+    reportError(message, t);
+  }
+
+  @Override
   public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
     myPanel.showMessageLayer(message, true);
   }
@@ -482,6 +487,9 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public void activeDeviceChanged(@Nullable DeviceFileSystem newActiveDevice) {
+      if (newActiveDevice != null && !newActiveDevice.equals(myPanel.getDeviceCombo().getSelectedItem())) {
+        myPanel.getDeviceCombo().setSelectedItem(newActiveDevice);
+      }
     }
 
     @Override
