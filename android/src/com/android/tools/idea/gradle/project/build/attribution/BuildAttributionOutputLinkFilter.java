@@ -48,7 +48,7 @@ public class BuildAttributionOutputLinkFilter implements Filter {
   private static HyperlinkInfo getHyperLinkInfo() {
     return new HyperlinkInfo() {
       @Override
-      public void navigate(Project project) {
+      public void navigate(@NotNull Project project) {
         ServiceManager.getService(project, BuildAttributionManager.class).openResultsTab();
       }
     };
