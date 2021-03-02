@@ -163,7 +163,17 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     }
   }
 
-  private fun expand(item: PTableGroupItem, index: Int) {
+  private fun expand(item: PTableGroupItem, index: Int) =
+    item.expandWhenPossible { restructured ->
+      if (item === groupAt(index)) {
+        if (restructured) {
+          computeParents(item)
+        }
+        doExpand(item, index)
+      }
+    }
+
+  private fun doExpand(item: PTableGroupItem, index: Int) {
     if (expandedItems.add(item)) {
       val list = mutableListOf<PTableItem>()
       computeExpanded(item, expandedItems, list)
