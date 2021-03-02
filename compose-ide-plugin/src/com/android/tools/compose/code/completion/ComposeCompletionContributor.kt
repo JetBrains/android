@@ -266,6 +266,8 @@ private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) :
     val allParameters = descriptor.valueParameters
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val insertLambda = requiredParameters.hasComposableChildren
+                       // If the last parameter is a function type, also insert the lambda
+                       || (requiredParameters.lastOrNull()?.type?.isFunctionType ?: false)
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 
     val template = templateManager.createTemplate("", "").apply {
