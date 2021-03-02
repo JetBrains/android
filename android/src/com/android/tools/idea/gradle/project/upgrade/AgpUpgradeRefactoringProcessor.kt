@@ -1947,16 +1947,7 @@ data class PropertiesMoveRefactoringInfo(
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
         movePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
-          propertyInfo.sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
-            val sourceModel = buildModel.(sourceGetter)()
-            if (sourceModel.getValue(OBJECT_TYPE) != null) {
-              val destinationModel = buildModel.(destinationGetter)()
-              val psiElement = sourceModel.psiElement ?: return@forEach
-              val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
-              val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, sourceModel, destinationModel)
-              usages.add(usageInfo)
-            }
-          }
+          usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
         }
       }
       return usages.toArray(UsageInfo.EMPTY_ARRAY)
@@ -1982,6 +1973,21 @@ data class MovePropertiesInfo(
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType,
 ) {
+
+  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
+      val sourceModel = buildModel.(sourceGetter)()
+      if (sourceModel.getValue(OBJECT_TYPE) != null) {
+        val destinationModel = buildModel.(destinationGetter)()
+        val psiElement = sourceModel.psiElement ?: return@forEach
+        val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
+        val usageInfo = this.UsageInfo(wrappedPsiElement, sourceModel, destinationModel)
+        usages.add(usageInfo)
+      }
+    }
+    return usages
+  }
 
   inner class UsageInfo(
     element: WrappedPsiElement,
@@ -2056,13 +2062,7 @@ data class RemovePropertiesRefactoringInfo(
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
         removePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
-          val models = buildModel.(propertyInfo.propertyModelListGetter)()
-          models.forEach model@{ model ->
-            val psiElement = model.representativeContainedPsiElement ?: return@model
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
-            val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, model)
-            usages.add(usageInfo)
-          }
+          usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
         }
       }
       return usages.toArray(UsageInfo.EMPTY_ARRAY)
@@ -2087,6 +2087,18 @@ data class RemovePropertiesInfo(
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
 ) {
+
+  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    buildModel.(propertyModelListGetter)().forEach { model ->
+      val psiElement = model.representativeContainedPsiElement ?: return@forEach
+      val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
+      val usageInfo = this.UsageInfo(wrappedPsiElement, model)
+      usages.add(usageInfo)
+    }
+    return usages
+  }
+
   inner class UsageInfo(
     element: WrappedPsiElement,
     val model: GradleDslModel
