@@ -40,6 +40,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,9 +56,12 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
 
 /**
@@ -83,6 +87,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportError() throws Exception {
     loadSimpleApplication();
+    Project project = getProject();
     mySyncMessagesStub.removeAllMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
@@ -92,9 +97,12 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
+    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
+    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
+    assertThat(buildFile).isNotNull();
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
     verify(myStrategy1, never())
@@ -103,10 +111,12 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
+    verify(usageReporter).reportToUsageTracker();
   }
 
   public void testReportWarning() throws Exception {
     loadSimpleApplication();
+    Project project = getProject();
     mySyncMessagesStub.removeAllMessages();
 
     int issueType = TYPE_GRADLE_TOO_OLD;
@@ -116,9 +126,12 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(myStrategy2.getSupportedIssueType()).thenReturn(issueType); // This is the strategy to be invoked.
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
+    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
+    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module appModule = TestModuleUtil.findAppModule(project);
     VirtualFile buildFile = getGradleBuildFile(appModule);
+    assertThat(buildFile).isNotNull();
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
     verify(myStrategy1, never())
@@ -127,6 +140,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2)
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
+    verify(usageReporter).reportToUsageTracker();
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
@@ -145,9 +159,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
         return TYPE_GRADLE_TOO_OLD;
       }
 
-      @Nullable
       @Override
-      public String getData() {
+      public @NotNull String getData() {
         return "";
       }
 
@@ -182,10 +195,14 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
+    Project project = getProject();
+    SyncIssueUsageReporter usageReporter = spy(SyncIssueUsageReporter.Companion.getInstance(project));
+    ServiceContainerUtil.replaceService(project, SyncIssueUsageReporter.class, usageReporter, getTestRootDisposable());
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
+    Module appModule = TestModuleUtil.findAppModule(project);
+    Module libModule = TestModuleUtil.findModule(project, "lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
+    assertThat(buildFile).isNotNull();
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
 
 
@@ -200,6 +217,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     verify(myStrategy2, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
                  any());
+    verify(usageReporter).reportToUsageTracker();
   }
 
   public void testStrategiesSetInConstructor() throws Exception {
