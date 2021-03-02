@@ -18,9 +18,11 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.Result
 import com.android.testutils.TestUtils
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -57,6 +59,7 @@ class RenderComplexPerfgateTest {
 
     val baseTestPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer-perf-tests/testData").path
     gradleRule.fixture.testDataPath = baseTestPath
+    IdeComponents(gradleRule.project).mockProjectService(SyncIssueUsageReporter::class.java)
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
     gradleRule.requestSyncAndWait()
     facet = gradleRule.androidFacet(":app")
