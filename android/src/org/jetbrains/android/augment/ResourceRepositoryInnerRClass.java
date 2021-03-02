@@ -12,7 +12,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implementation of {@link InnerRClassBase} back by a resource repository.
+ * Implementation of {@link InnerRClassBase} backed by a resource repository.
  */
 public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   @NotNull private final ResourceRepositoryRClass.ResourcesSource mySource;
