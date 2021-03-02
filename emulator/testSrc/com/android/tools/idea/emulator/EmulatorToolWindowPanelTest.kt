@@ -466,7 +466,6 @@ class EmulatorToolWindowPanelTest {
       emulator.stop()
     }
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getStatus" call.
     return panel
   }
 

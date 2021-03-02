@@ -60,7 +60,6 @@ class EmulatorViewRule : TestRule {
     val emulatorController = emulators.find { it.emulatorId.grpcPort == grpcPort }!!
     val view = EmulatorView(testRootDisposable, emulatorController, true)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    fakeEmulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }
 
