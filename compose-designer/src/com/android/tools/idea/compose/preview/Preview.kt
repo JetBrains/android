@@ -796,7 +796,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
     val pinnedManager = PinnedPreviewElementManager.getInstance(project)
     if (hasPinnedElements) {
-      lastPinsModificationCount = pinnedManager.modificationCount
       pinnedSurface.updatePreviewsAndRefresh(
         false,
         memoizedPinnedPreviewProvider,
@@ -809,6 +808,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::configureLayoutlibSceneManagerForPreviewElement
       ).isNotEmpty()
     }
+    lastPinsModificationCount = pinnedManager.modificationCount
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
