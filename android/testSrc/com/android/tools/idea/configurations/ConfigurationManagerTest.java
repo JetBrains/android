@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.Arrays;
@@ -120,4 +126,23 @@ public class ConfigurationManagerTest extends AndroidTestCase {
       }
     }).get();
   }
+
+  public void testWearProjectUsesWearDeviceByDefault() {
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      UsesFeature feature = manifest.addUsesFeature();
+      feature.getName().setStringValue("android.hardware.type.watch");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
+  }
+
+  @Language("xml")
+  private static final String LAYOUT_FILE_TEXT = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                 "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                 "  android:layout_width=\"match_parent\"\n" +
+                                                 "  android:layout_height=\"match_parent\" />";
 }
