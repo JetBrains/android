@@ -92,20 +92,15 @@ private fun getClass(fqcn: String, project: Project): PsiClass? {
 }
 
 private fun createLinkToClass(fqcn: String): HyperlinkInfo {
-  return object : HyperlinkInfo {
-    override fun navigate(project: Project?) {
-      if (project == null) return
-      PsiNavigateUtil.navigate(getClass(fqcn, project)?.navigationElement)
-      project.service<DaggerAnalyticsTracker>().trackOpenLinkFromError()
-    }
+  return HyperlinkInfo { project ->
+    PsiNavigateUtil.navigate(getClass(fqcn, project)?.navigationElement)
+    project.service<DaggerAnalyticsTracker>().trackOpenLinkFromError()
   }
 }
 
 private fun createLinkToMethod(fqcn: String, methodName: String): HyperlinkInfo {
   return object : HyperlinkInfo {
-    override fun navigate(project: Project?) {
-      if (project == null) return
-
+    override fun navigate(project: Project) {
       val method: PsiMethod?
       // It could be a case when method is a constructor. It means [methodName] is a class name and [fqcn] is a package/outer class.
       if (getClass("$fqcn.$methodName", project) != null) {
