@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -103,6 +104,15 @@ public class SyncIssuesReporter {
         strategy = myDefaultMessageFactory;
       }
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
+    }
+    Project finalProject = project;
+    Runnable reportTask = () -> {
+      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker();
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode())
+      reportTask.run();
+    else {
+      ApplicationManager.getApplication().invokeLater(reportTask);
     }
   }
 
