@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
@@ -28,12 +31,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -100,5 +106,30 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
   @Override
   public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setShowStripeButton(false);
+  }
+
+  /**
+   * Opens the Device Explorer tool window and selects the device matching the AvdInfo
+   */
+  public static void openAndShowDevice(@NotNull Project project, @NotNull AvdInfo avdInfo) {
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
+    if (toolWindow == null) {
+      return;
+    }
+    toolWindow.show();
+
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
+    assert controller != null;
+    assert AndroidDebugBridge.getBridge() != null;
+
+    String avdName = avdInfo.getName();
+    Optional<IDevice> optionalIDevice = Arrays.stream(AndroidDebugBridge.getBridge().getDevices()).filter(
+      device -> avdName.equals(device.getAvdName())).findAny();
+    if (!optionalIDevice.isPresent()) {
+      controller.reportErrorFindingDevice("Unable to find AVD " + avdName + " by name. Please retry.");
+      return;
+    }
+
+    controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
   }
 }

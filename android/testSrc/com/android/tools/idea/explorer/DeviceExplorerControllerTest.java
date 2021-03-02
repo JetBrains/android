@@ -19,8 +19,6 @@ import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWai
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException;
 import static com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutures;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -586,6 +584,39 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
                                                         0,
                                                         myMockView.getDeviceCombo().getWidth(),
                                                         myMockView.getDeviceCombo().getHeight());
+  }
+
+  public void testSetActiveDeviceFromSerialNumber() throws InterruptedException, ExecutionException, TimeoutException {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    controller.selectActiveDevice(myDevice2.getDeviceSerialNumber());
+
+    // Assert
+    checkMockViewActiveDevice(myDevice2);
+  }
+
+  public void testSetActiveDeviceFromSerialNumberNotFound() throws InterruptedException, ExecutionException, TimeoutException {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    controller.selectActiveDevice("Nonexistent");
+    String selectError = pumpEventsAndWaitForFuture(myMockView.getReportErrorGenericTracker().consume());
+
+    // Assert
+    assertNotNull(selectError);
+    assertTrue(selectError.contains("Unable to find device with serial number"));
+    checkMockViewActiveDevice(myDevice1);
   }
 
   public void testAddDevice() throws InterruptedException, ExecutionException, TimeoutException {

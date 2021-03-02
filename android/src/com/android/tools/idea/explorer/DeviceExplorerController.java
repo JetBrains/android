@@ -66,20 +66,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -127,6 +124,7 @@ public class DeviceExplorerController {
   @NotNull private final Alarm myTransferringNodesAlarms;
   @NotNull private final Alarm myLoadingChildrenAlarms;
   @NotNull private final FileOpener myFileOpener;
+  @NotNull private final SettableFuture<Void> mySetupFuture = SettableFuture.create();
   @Nullable private LongRunningOperationTracker myLongRunningOperationTracker;
 
   public DeviceExplorerController(@NotNull Project project,
@@ -180,11 +178,13 @@ public class DeviceExplorerController {
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
-        refreshDeviceList();
+        mySetupFuture.set(null);
+        refreshDeviceList(null);
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
+        mySetupFuture.setException(t);
         myView.reportErrorRelatedToService(myService, "Error initializing ADB", t);
       }
     });
@@ -208,7 +208,35 @@ public class DeviceExplorerController {
     });
   }
 
-  private void refreshDeviceList() {
+  void reportErrorFindingDevice(@NotNull String message) {
+    myView.reportErrorGeneric(message, new IllegalStateException());
+  }
+
+  public void selectActiveDevice(@NotNull String serialNumber) {
+    if (mySetupFuture.isDone()) {
+      selectTheDevice(serialNumber);
+    }
+    else {
+      myEdtExecutor.transform(mySetupFuture, unused -> {
+        selectTheDevice(serialNumber);
+        return unused;
+      });
+    }
+  }
+
+  private void selectTheDevice(@NotNull String serialNumber) {
+    assert mySetupFuture.isDone();
+    for (DeviceFileSystem device : myModel.getDevices()) {
+      if (serialNumber.equals(device.getDeviceSerialNumber())) {
+        setActiveDevice(device);
+        return;
+      }
+    }
+
+    refreshDeviceList(serialNumber);
+  }
+
+  private void refreshDeviceList(@Nullable String serialNumberToSelect) {
     cancelPendingOperations();
 
     myView.startRefresh("Refreshing list of devices");
@@ -222,6 +250,15 @@ public class DeviceExplorerController {
         result.forEach(myModel::addDevice);
         if (result.isEmpty()) {
           myView.showNoDeviceScreen();
+        }
+        else if (serialNumberToSelect != null) {
+          for (DeviceFileSystem device : myModel.getDevices()) {
+            if (serialNumberToSelect.equals(device.getDeviceSerialNumber())) {
+              setActiveDevice(device);
+              return;
+            }
+          }
+          reportErrorFindingDevice("Unable to find device with serial number " + serialNumberToSelect + ". Please retry.");
         }
       }
 
@@ -409,7 +446,7 @@ public class DeviceExplorerController {
   private class ServiceListener implements DeviceFileSystemServiceListener {
     @Override
     public void serviceRestarted() {
-      refreshDeviceList();
+      refreshDeviceList(null);
     }
 
     @Override
