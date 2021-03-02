@@ -22,13 +22,15 @@ import javax.swing.JComponent
 
 /**
  * Preferred visibility of a representation. When the container supports it, this will indicate to it whether this representation prefers
- * to be shown or hidden on initialization.
+ * to be shown (in split mode or not) or hidden on initialization.
  */
 enum class PreferredVisibility {
   /** If the representation would prefer to be hidden on initialization. Use this if for example, it is not expected to have content. */
   HIDDEN,
-  /** If the representation would prefer to be visible on initialization. */
-  VISIBLE
+  /** If the representation would prefer to be visible in split mode on initialization. */
+  SPLIT,
+  /** If the representation would prefer to be visible in design mode on initialization. */
+  FULL
 }
 
 /**

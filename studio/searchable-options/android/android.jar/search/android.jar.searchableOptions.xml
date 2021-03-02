@@ -887,6 +887,8 @@
   </configurable>
   <configurable id="nele.options" configurable_name="Layout Editor">
     <option name="code" hit="Code" />
+    <option name="compose" hit="Compose files:" />
+    <option name="files" hit="Compose files:" />
     <option name="default" hit="Default Editor Mode" />
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
@@ -894,6 +896,9 @@
     <option name="drawables" hit="Drawables:" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
+    <option name="files" hit="Other Kotlin files:" />
+    <option name="kotlin" hit="Other Kotlin files:" />
+    <option name="other" hit="Other Kotlin files:" />
     <option name="e" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="g" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="layout" hit="Other Resources (e.g. Layout, Menu, Navigation):" />

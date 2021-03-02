@@ -30,7 +30,8 @@ import java.awt.event.ComponentListener
 private fun PreferredVisibility?.toTextEditorLayout(): TextEditorWithPreview.Layout? =
   when (this) {
     PreferredVisibility.HIDDEN -> TextEditorWithPreview.Layout.SHOW_EDITOR
-    PreferredVisibility.VISIBLE -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+    PreferredVisibility.SPLIT -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+    PreferredVisibility.FULL -> TextEditorWithPreview.Layout.SHOW_PREVIEW
     else -> null
   }
 
