@@ -35,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -107,9 +106,9 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
-      DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
-      SOURCE_SET_JNI_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
+      VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, gradleBuildModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->

@@ -1923,13 +1923,17 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
 }
 
+interface PropertiesOperationInfo {
+  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo>
+}
+
 data class PropertiesMoveRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val movePropertiesInfos: List<MovePropertiesInfo>
+  val propertiesOperationInfos: List<PropertiesOperationInfo>
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1946,7 +1950,7 @@ data class PropertiesMoveRefactoringInfo(
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        movePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
+        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo ->
           usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
         }
       }
@@ -1972,9 +1976,12 @@ data class MovePropertiesInfo(
     Pair<GradleBuildModel.() -> ResolvedPropertyModel, GradleBuildModel.() -> ResolvedPropertyModel>>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType,
-) {
+): PropertiesOperationInfo {
 
-  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo> {
+  override fun findBuildModelUsages(
+    processor: AgpUpgradeComponentRefactoringProcessor,
+    buildModel: GradleBuildModel
+  ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
       val sourceModel = buildModel.(sourceGetter)()
@@ -1982,14 +1989,14 @@ data class MovePropertiesInfo(
         val destinationModel = buildModel.(destinationGetter)()
         val psiElement = sourceModel.psiElement ?: return@forEach
         val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
-        val usageInfo = this.UsageInfo(wrappedPsiElement, sourceModel, destinationModel)
+        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, destinationModel)
         usages.add(usageInfo)
       }
     }
     return usages
   }
 
-  inner class UsageInfo(
+  inner class MovePropertyUsageInfo(
     element: WrappedPsiElement,
     val sourcePropertyModel: ResolvedPropertyModel,
     val destinationPropertyModel: ResolvedPropertyModel,
@@ -2035,7 +2042,7 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesMoveRefactoringInfo(
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   componentKind = MIGRATE_TO_BUILD_FEATURES,
-  movePropertiesInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
+  propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
 
 data class RemovePropertiesRefactoringInfo(
@@ -2044,7 +2051,7 @@ data class RemovePropertiesRefactoringInfo(
   val commandNameSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val removePropertiesInfos: List<RemovePropertiesInfo>
+  val propertiesOperationInfos: List<PropertiesOperationInfo>
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -2061,7 +2068,7 @@ data class RemovePropertiesRefactoringInfo(
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        removePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
+        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo ->
           usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
         }
       }
@@ -2086,20 +2093,23 @@ data class RemovePropertiesInfo(
   val propertyModelListGetter: GradleBuildModel.() -> List<GradleDslModel>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
-) {
+): PropertiesOperationInfo {
 
-  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo> {
+  override fun findBuildModelUsages(
+    processor: AgpUpgradeComponentRefactoringProcessor,
+    buildModel: GradleBuildModel
+  ): ArrayList<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     buildModel.(propertyModelListGetter)().forEach { model ->
       val psiElement = model.representativeContainedPsiElement ?: return@forEach
       val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
-      val usageInfo = this.UsageInfo(wrappedPsiElement, model)
+      val usageInfo = this.RemovePropertyUsageInfo(wrappedPsiElement, model)
       usages.add(usageInfo)
     }
     return usages
   }
 
-  inner class UsageInfo(
+  inner class RemovePropertyUsageInfo(
     element: WrappedPsiElement,
     val model: GradleDslModel
   ) : GradleBuildModelUsageInfo(element) {
@@ -2126,7 +2136,7 @@ val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
   componentKind = REMOVE_SOURCE_SET_JNI,
-  removePropertiesInfos = listOf(SOURCE_SET_JNI_INFO)
+  propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
 )
 
 /**
