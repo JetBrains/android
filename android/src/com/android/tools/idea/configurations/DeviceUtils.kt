@@ -26,6 +26,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
@@ -114,9 +115,9 @@ fun getAvdDevices(configuration: Configuration): List<Device> {
 }
 
 /**
- * The must-have meta-data tag for a WearOS project.
+ * The must-have uses-feature tag in AndroidManifest for a WearOS project.
  */
-private const val WEAR_OS_APPLICATION_META_DATA = "com.google.android.wearable.standalone"
+private const val WEAR_OS_USE_FEATURE_TAG = "android.hardware.type.watch"
 
 /**
  * Return if the default device is wear device in the given [Module].
@@ -128,7 +129,7 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
     return false
   }
   val manifest = Manifest.getMainManifest(facet) ?: return false
-  return ApplicationManager.getApplication().runReadAction(Computable<Boolean> {
-    manifest.application?.metaDatas?.any { metadata -> WEAR_OS_APPLICATION_META_DATA == metadata.name.value }
+  return ApplicationManager.getApplication().runReadAction(Computable {
+    manifest.usesFeatures.any { usesFeature -> usesFeature.name.value == WEAR_OS_USE_FEATURE_TAG }
   })
 }
