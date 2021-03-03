@@ -58,10 +58,16 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighPriorityAction {
-  private var foundArtifacts: Collection<String>? = null
+  private var foundArtifacts: Collection<ArtifactWithVersion>? = null
   private val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
-  private data class AutoImportVariant(val artifactToAdd: String, val classToImport: String) : Comparable<AutoImportVariant> {
+  private data class ArtifactWithVersion(val artifact: String, val version: String?)
+
+  private data class AutoImportVariant(
+    val artifactToAdd: String,
+    val classToImport: String,
+    val version: String?
+  ) : Comparable<AutoImportVariant> {
     override fun compareTo(other: AutoImportVariant): Int {
       artifactToAdd.compareTo(other.artifactToAdd).let {
         if (it != 0) return it
@@ -88,7 +94,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
         val artifact = resolveArtifact(project, leaf, it.artifact)
         val resolvedText = text.substringAfterLast('.')
         val importSymbol = resolveImport(project, "${it.packageName}.$resolvedText")
-        AutoImportVariant(artifact, importSymbol)
+        AutoImportVariant(artifact, importSymbol, it.version)
       }
       .toSortedSet()
 
@@ -114,7 +120,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
       AndroidBundle.message("android.add.library.dependency.title"),
       suggestions
     ) {
-      override fun getTextFor(value: AutoImportVariant) = value.artifactToAdd
+      override fun getTextFor(value: AutoImportVariant): String {
+        return flagPreview(value.artifactToAdd, value.version)
+      }
 
       override fun onChosen(selectedValue: AutoImportVariant, finalChoice: Boolean): PopupStep<*>? {
         perform(project, element, selectedValue.artifactToAdd, selectedValue.classToImport, sync)
@@ -191,7 +199,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
 
   override fun getText(): String {
     return if (foundArtifacts?.size == 1) {
-      "Add dependency on ${foundArtifacts!!.single()}"
+      val foundArtifact = foundArtifacts!!.single()
+      "Add dependency on ${flagPreview(foundArtifact.artifact, foundArtifact.version)}"
     }
     else {
       familyName
@@ -203,14 +212,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     val leaf = findElement(element, editor?.caretModel?.offset ?: -1)
     foundArtifacts = findLibraryData(project, leaf.text)
       .asSequence()
-      .map { resolveArtifact(project, element, it.artifact) }
+      .map { ArtifactWithVersion(resolveArtifact(project, element, it.artifact), it.version) }
       .filter {
         if (!module.getModuleSystem().canRegisterDependency().isSupported()) {
           return@filter false
         }
 
         // Make sure we aren't already depending on it
-        return@filter !dependsOn(module, it)
+        return@filter !dependsOn(module, it.artifact)
       }
       .toList()
 

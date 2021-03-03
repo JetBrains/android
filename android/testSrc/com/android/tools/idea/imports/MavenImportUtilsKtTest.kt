@@ -42,10 +42,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests for functions defined in `AnalyticsUtils.kt`.
+ * Tests for functions defined in `MavenImportUtils.kt`.
  */
 @RunsInEdt
-class AnalyticsUtilsKtTest {
+class MavenImportUtilsKtTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private lateinit var tracker: TestUsageTracker
 
@@ -91,24 +91,44 @@ class AnalyticsUtilsKtTest {
     val psiFile = projectRule.fixture.addFileToProject(
       "res/layout/my_layout.xml",
       """
-      <?xml version="1.0" encoding="utf-8"?>
-      <${
-        "androidx.recyclerview.widget.RecyclerView".highlightedAs(HighlightSeverity.ERROR,
-                                                                  "Cannot resolve class androidx.recyclerview.widget.RecyclerView")
-      } />
+        <?xml version="1.0" encoding="utf-8"?>
+        <FrameLayout android:id="@+id/container">
+        <${
+        "androidx.camera.view.PreviewView"
+          .highlightedAs(HighlightSeverity.ERROR, "Cannot resolve class androidx.camera.view.PreviewView")
+      } android:id="@+id/previewView" />
+        </FrameLayout>
       """.trimIndent()
     )
 
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting(true, false, false)
-    projectRule.fixture.moveCaret("Recycler|View")
-    val action = projectRule.fixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
+    projectRule.fixture.moveCaret("Preview|View")
+    val action = projectRule.fixture.getIntentionAction("Add dependency on androidx.camera:camera-view (alpha)")!!
 
     WriteCommandAction.runWriteCommandAction(projectRule.project, Runnable {
       action.invoke(projectRule.project, projectRule.fixture.editor, projectRule.fixture.file)
     })
 
-    verify("androidx.recyclerview:recyclerview")
+    verify("androidx.camera:camera-view")
+  }
+
+  @Test
+  fun displayPreviewType_alpha() {
+    val text = flagPreview("androidx.camera:camera-view", "1.0.0-alpha22")
+    assertThat(text).isEqualTo("androidx.camera:camera-view (alpha)")
+  }
+
+  @Test
+  fun displayPreviewType_beta() {
+    val text = flagPreview("androidx.camera:camera-view", "1.0.0-beta01")
+    assertThat(text).isEqualTo("androidx.camera:camera-view (beta)")
+  }
+
+  @Test
+  fun displayPreviewType_none() {
+    val text = flagPreview("androidx.camera:camera-view", "1.0.0")
+    assertThat(text).isEqualTo("androidx.camera:camera-view")
   }
 
   private fun verify(artifactId: String) {
