@@ -65,7 +65,7 @@ val SIMPLE_LAYOUT = """
         android:background="#00F"/>
   </LinearLayout>"""
 
-class RenderBasePerfgateTest : AndroidTestCase() {
+class PerfgateBaseRenderTest : AndroidTestCase() {
   private lateinit var layoutFile: VirtualFile
   private lateinit var layoutConfiguration: Configuration
 
