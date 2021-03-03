@@ -82,12 +82,12 @@ class ComposeColorAnnotator : Annotator {
     return try {
       when (getConstructorType(args)) {
         ComposeColorConstructor.INT -> {
-          val rgbInt = args[0].getInt() ?: return null
-          Color(rgbInt)
+          val rgbaInt = args[0].getInt() ?: return null
+          Color(rgbaInt, true)
         }
         ComposeColorConstructor.LONG -> {
-          val rgbInt = args[0].getLong() ?: return null
-          Color(rgbInt)
+          val rgbaInt = args[0].getLong() ?: return null
+          Color(rgbaInt, true)
         }
         ComposeColorConstructor.INT_X3 -> {
           val r = args[0].getInt() ?: return null

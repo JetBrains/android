@@ -147,9 +147,9 @@ class ComposeColorAnnotatorTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
       listOf(
-        Color(194, 0, 41),
-        Color(74, 138, 123),
-        Color(87, 173, 40)),
+        Color(194, 0, 41, 0),
+        Color(74, 138, 123, 0),
+        Color(87, 173, 40, 0)),
       includeClickAction = true
     )
     setNewColor("Co|lor(0x4A8A7B)", Color(0xFFAABBCC.toInt()))
