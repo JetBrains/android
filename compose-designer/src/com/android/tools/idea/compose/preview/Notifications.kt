@@ -79,7 +79,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
       !StudioFlags.COMPOSE_PREVIEW.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel().apply {
+      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor).apply {
         setText(message("notification.new.preview"))
         createActionLabel(message("notification.new.preview.action")) {
           if (fileEditor.isValid) {
@@ -173,7 +173,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
     // Show a notification with a Loader if the preview is refreshing.
     if (previewStatus.isRefreshing) {
       LOG.debug("Refresh in progress")
-      return EditorNotificationPanel().apply {
+      return EditorNotificationPanel(fileEditor).apply {
         setText(message("notification.preview.is.refreshing"))
         icon(AnimatedIcon.Default())
       }
