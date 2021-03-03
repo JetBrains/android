@@ -542,7 +542,7 @@ public class AvdManagerConnection {
   }
 
   @NotNull
-  private GeneralCommandLine newEmulatorCommand(@Nullable Project project,
+  GeneralCommandLine newEmulatorCommand(@Nullable Project project,
                                                 @NotNull File emulator,
                                                 @NotNull AvdInfo device,
                                                 boolean forceColdBoot,
@@ -550,6 +550,7 @@ public class AvdManagerConnection {
     GeneralCommandLine command = new GeneralCommandLine();
 
     command.setExePath(emulator.getPath());
+    command.setWorkDirectory(emulator.getParentFile());
     addParameters(project, device, forceColdBoot, command);
 
     CharSequence arguments = System.getenv("studio.emu.params");

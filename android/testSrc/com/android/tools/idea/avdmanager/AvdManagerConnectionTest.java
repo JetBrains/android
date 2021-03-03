@@ -44,6 +44,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -372,6 +373,30 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     catch (ExecutionException expected) {
       assertTrue(expected.getCause().getMessage().contains("No emulator installed"));
     }
+  }
+
+  public void testNewEmulatorCommandHasWorkingDirectory() {
+    MockLog log = new MockLog();
+    AvdInfo avd = mAvdManager.createAvd(
+      mAvdFolder,
+      getName(),
+      mSystemImage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      false,
+      false,
+      log);
+    assertNotNull("Could not create AVD", avd);
+    File emulator = new File("sdk/emulator/emulator.exe");
+
+    GeneralCommandLine command = mAvdManagerConnection.newEmulatorCommand(null, emulator, avd, false, Collections.emptyList());
+
+    assertEquals(emulator.getPath(), command.getExePath());
+    assertEquals("Emulator command should have a working directory. See IDEA-231313.", emulator.getParentFile(), command.getWorkDirectory());
   }
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
