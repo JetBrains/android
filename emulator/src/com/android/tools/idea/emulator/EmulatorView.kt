@@ -937,10 +937,12 @@ class EmulatorView(
         LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
+        expectedFrameNumber++
         return // This screenshot feed has already been cancelled.
       }
 
       if (imageFormat.width == 0 || imageFormat.height == 0) {
+        expectedFrameNumber++
         return // Ignore empty screenshot.
       }
 
@@ -951,6 +953,7 @@ class EmulatorView(
         invokeLaterInAnyModalityState {
           requestScreenshotFeed(imageRotation)
         }
+        expectedFrameNumber++
         return
       }
 
@@ -965,15 +968,14 @@ class EmulatorView(
         val pixels = IntArray(imageFormat.width * imageFormat.height)
         unpackPixels(response.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
-        val sampleModel =
-            SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK))
+        val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, SAMPLE_MODEL_BIT_MASKS)
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
         @Suppress("UndesirableClassUsage")
         BufferedImage(COLOR_MODEL, raster, false, null)
       }
 
       val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
-      stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames)
+      stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
       val displayShape = DisplayShape(imageFormat)
@@ -1112,8 +1114,9 @@ class EmulatorView(
     }
 
     @Synchronized
-    fun recordFrameArrival(latencyOfArrival: Long, numberOfLostFrames: Int) {
+    fun recordFrameArrival(latencyOfArrival: Long, numberOfLostFrames: Int, numberOfPixels: Int) {
       data.frameCount += 1 + numberOfLostFrames
+      data.pixelCount += (1 + numberOfLostFrames) * numberOfPixels
       data.latencyOfArrival.recordValue(latencyOfArrival)
       if (numberOfLostFrames != 0) {
         data.droppedFrameCount += numberOfLostFrames
@@ -1156,6 +1159,7 @@ class EmulatorView(
       var frameCount = 0
       var droppedFrameCount = 0
       var droppedFrameCountBeforeArrival = 0
+      var pixelCount = 0L
       val latencyEndToEnd = Histogram(1)
       val latencyOfArrival = Histogram(1)
       val collectionStart = System.currentTimeMillis()
@@ -1163,9 +1167,10 @@ class EmulatorView(
       fun log() {
         if (frameCount != 0) {
           val frameRate = String.format("%.2g", frameCount * 1000.0 / (System.currentTimeMillis() - collectionStart))
+          val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate\n" +
+          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
                             "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
                             "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
         }
@@ -1185,6 +1190,7 @@ private val ZOOM_LEVELS = intArrayOf(5, 10, 25, 50, 100, 200) // In percent.
 
 private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24
+private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                    32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
