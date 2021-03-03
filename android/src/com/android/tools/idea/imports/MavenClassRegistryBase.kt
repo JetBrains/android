@@ -24,8 +24,9 @@ abstract class MavenClassRegistryBase {
    *
    * @property artifact maven coordinate: groupId:artifactId, please note version is not included here.
    * @property packageName fully qualified package name which is used for the following import purposes.
+   * @property version the version of the [artifact].
    */
-  data class Library(val artifact: String, val packageName: String)
+  data class Library(val artifact: String, val packageName: String, val version: String? = null)
 
   /**
    * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.

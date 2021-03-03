@@ -66,14 +66,30 @@ class MavenClassRegistryFromRepositoryTest {
     assertThat(mavenClassRegistry.lookup).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistryBase.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity")
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.activity:activity",
+            packageName = "androidx.activity",
+            version = "1.1.0"
+          )
         ),
         "Fake" to listOf(
-          MavenClassRegistryBase.Library(artifact = "androidx.activity:activity", packageName = "androidx.activity"),
-          MavenClassRegistryBase.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.activity:activity",
+            packageName = "androidx.activity",
+            version = "1.1.0"
+          ),
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.annotation:annotation",
+            packageName = "androidx.annotation",
+            version = "1.1.0"
+          )
         ),
         "AnimRes" to listOf(
-          MavenClassRegistryBase.Library(artifact = "androidx.annotation:annotation", packageName = "androidx.annotation")
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.annotation:annotation",
+            packageName = "androidx.annotation",
+            version = "1.1.0"
+          )
         )
       )
     )

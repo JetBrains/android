@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -35,4 +36,14 @@ internal fun trackAutoImport(artifactId: String) {
     .setKind(AndroidStudioEvent.EventKind.AUTO_IMPORT_EVENT)
     .setAutoImportEvent(autoImportEvent)
     .let { UsageTracker.log(it) }
+}
+
+/**
+ * Displays the preview type (alpha, beta...) if applicable, or just the original [artifact].
+ */
+fun flagPreview(artifact: String, version: String?): String {
+  version ?: return artifact
+
+  val previewType = GradleVersion.tryParse(version)?.previewType ?: return artifact
+  return "$artifact ($previewType)"
 }

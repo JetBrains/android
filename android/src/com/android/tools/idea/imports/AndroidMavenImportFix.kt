@@ -19,9 +19,9 @@ import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.project.Project
 
-class AndroidMavenImportFix(val className: String, val artifact: String) : LocalQuickFix {
+class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) : LocalQuickFix {
   override fun getName(): String {
-    return "Add dependency on $artifact"
+    return "Add dependency on ${flagPreview(artifact, version)}"
   }
 
   override fun getFamilyName(): String {

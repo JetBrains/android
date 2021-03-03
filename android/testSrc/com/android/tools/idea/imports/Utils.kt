@@ -94,6 +94,14 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "fqcns": [
                   "androidx.recyclerview.widget.RecyclerView"
                 ]
+              },
+              {
+                "groupId": "androidx.camera",
+                "artifactId": "camera-view",
+                "version": "1.0.0-alpha22",
+                "fqcns": [
+                  "androidx.camera.view.PreviewView"
+                ]
               }
             ]
           }

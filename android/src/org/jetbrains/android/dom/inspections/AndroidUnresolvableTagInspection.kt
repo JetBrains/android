@@ -114,7 +114,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
               it.artifact
             }
 
-            fixes.add(AndroidMavenImportFix(className, resolvedArtifact))
+            fixes.add(AndroidMavenImportFix(className, resolvedArtifact, it.version))
           }
           .toList()
 
