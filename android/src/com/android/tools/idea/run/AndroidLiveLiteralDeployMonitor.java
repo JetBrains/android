@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
@@ -76,6 +77,10 @@ class AndroidLiveLiteralDeployMonitor {
       return null;
     }
 
+    if (!supportLiveLiteral(device)) {
+      return null;
+    }
+
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
 
     return () -> {
@@ -130,6 +135,12 @@ class AndroidLiveLiteralDeployMonitor {
             continue;
           }
           for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
+            // We need to do this check once more. The reason is that we have one listener per project.
+            // That means a listener is in charge of multiple devices. If we are here this only means,
+            // at least one active device support live literals.
+            if (!supportLiveLiteral(iDevice)) {
+              continue;
+            }
             AdbClient adb = new AdbClient(iDevice, LOGGER);
             MetricsRecorder metrics = new MetricsRecorder();
 
@@ -170,6 +181,10 @@ class AndroidLiveLiteralDeployMonitor {
         }
       }
     });
+  }
+
+  private static boolean supportLiveLiteral(IDevice device) {
+    return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
   }
 
   private static String constTypeToJvmType(Object constValue) {
