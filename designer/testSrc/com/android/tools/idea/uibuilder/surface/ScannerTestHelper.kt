@@ -170,7 +170,7 @@ class ScannerTestHelper {
         .setMsg("Test")
         .setLevel(ValidatorData.Level.ERROR)
         .setSrcId(-1)
-        .setFix(ValidatorData.Fix(""))
+        .setFix { "" }
         .setSourceClass("")
     }
   }
