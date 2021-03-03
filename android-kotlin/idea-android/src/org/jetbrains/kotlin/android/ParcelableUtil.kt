@@ -7,7 +7,6 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
-import kotlinx.parcelize.Parcelize
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -47,7 +46,7 @@ private val WRITE_TO_PARCEL_WITH_SUPER_TEXT =
 private const val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int {\nreturn 0\n}"
 private val CONSTRUCTOR_TEXT = "constructor($PARCEL_NAME: $CLASS_PARCEL)"
 
-private val PARCELIZE_FQNAME = FqName(Parcelize::class.java.name)
+private val PARCELIZE_FQNAME = FqName("kotlinx.parcelize.Parcelize")
 private val PARCELIZE_FQNAME_LEGACY = FqName("kotlinx.android.parcel.Parcelize")
 
 //TODO add test
