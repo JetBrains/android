@@ -41,8 +41,7 @@ public class StartLiveLiteralMonitoringTask implements LaunchTask {
 
   @Override
   public LaunchResult run(@NotNull LaunchContext launchContext) {
-    if (launchContext.getDevice().getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R) && myStartLiveUpdate != null) {
-      // Needs Android 11 because of start-up agent.
+    if (myStartLiveUpdate != null) {
       myStartLiveUpdate.run();
     }
     // Monitoring should always successfully starts.
