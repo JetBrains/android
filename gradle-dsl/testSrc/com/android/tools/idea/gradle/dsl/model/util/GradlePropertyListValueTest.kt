@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
+import java.io.File
 
 class GradlePropertyListValueTest : GradleFileModelTestCase() {
   @Test
   fun testReplaceListValue() {
-    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE)
+    writeToBuildFile(TestFile.REPLACE_LIST_VALUE)
 
     val buildModel = gradleBuildModel
 
@@ -57,7 +55,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.REPLACE_LIST_VALUE_EXPECTED)
 
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
@@ -71,7 +69,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
 
   @Test
   fun testReplaceListValueOnNoneList() {
-    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST)
+    writeToBuildFile(TestFile.REPLACE_LIST_VALUE_ON_NONE_LIST)
 
     val buildModel = gradleBuildModel
 
@@ -107,7 +105,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveListValues() {
-    writeToBuildFile(GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES)
+    writeToBuildFile(TestFile.REMOVE_LIST_VALUES)
 
     val buildModel = gradleBuildModel
 
@@ -131,7 +129,7 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
     // TODO(b/148198247): the empty list needs a type decorator.  But what?  It depends on how the variable is used in the rest of
     //  the build configuration.
-    verifyFileContents(myBuildFile, GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.REMOVE_LIST_VALUES_EXPECTED)
 
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
@@ -140,6 +138,18 @@ class GradlePropertyListValueTest : GradleFileModelTestCase() {
       verifyListProperty(firstModel, listOf(), REGULAR, 0)
       verifyListProperty(secondModel, listOf("a", "b", "d"), REGULAR, 0)
       verifyListProperty(thirdModel, listOf(false, true), REGULAR, 0)
+    }
+  }
+
+  enum class TestFile(val path: @SystemDependent String): TestFileName {
+    REPLACE_LIST_VALUE("replaceListValue"),
+    REPLACE_LIST_VALUE_EXPECTED("replaceListValueExpected"),
+    REPLACE_LIST_VALUE_ON_NONE_LIST("replaceListValueOnNoneList"),
+    REMOVE_LIST_VALUES("removeListValues"),
+    REMOVE_LIST_VALUES_EXPECTED("removeListValuesExpected"),
+    ;
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/gradlePropertyListValue/$path", extension)
     }
   }
 }
