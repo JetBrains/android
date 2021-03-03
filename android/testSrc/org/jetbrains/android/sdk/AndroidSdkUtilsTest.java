@@ -18,31 +18,26 @@ package org.jetbrains.android.sdk;
 import static com.android.SdkConstants.FN_ADB;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
-import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
-import org.mockito.Mockito;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
@@ -54,20 +49,18 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     mySdkPath = TestUtils.getSdk();
-
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        removeExistingAndroidSdks();
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(AndroidSdkUtilsTest::removeAllExistingSdks);
   }
 
-  private static void removeExistingAndroidSdks() {
-    ProjectJdkTable table = ProjectJdkTable.getInstance();
+  @Override
+  protected void tearDown() throws Exception {
+    ApplicationManager.getApplication().runWriteAction(AndroidSdkUtilsTest::removeAllExistingSdks);
+    super.tearDown();
+  }
 
-    List<Sdk> androidSdks = table.getSdksOfType(AndroidSdkType.getInstance());
-    for (Sdk sdk : androidSdks) {
+  private static void removeAllExistingSdks() {
+    ProjectJdkTable table = ProjectJdkTable.getInstance();
+    for (Sdk sdk : table.getAllJdks()) {
       table.removeJdk(sdk);
     }
   }
@@ -119,6 +112,15 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
       // or else it will simply return null.
       assertThat(ex.getMessage()).contains("ADB not responding.");
     }
+  }
+
+  public void testGetAdbInNonAndroidProject() {
+    assertFalse("Precondition: project with no android facets", ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID));
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
+    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
+    assertTrue("Precondition: android SDK configured", sdkSet);
+
+    assertEquals(new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB)), AndroidSdkUtils.getAdb(myProject));
   }
 
   private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
