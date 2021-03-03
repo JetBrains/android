@@ -595,6 +595,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         listener.modelChanged(this, model);
       }
     });
+    reactivateInteractionManager();
     return manager;
   }
 
