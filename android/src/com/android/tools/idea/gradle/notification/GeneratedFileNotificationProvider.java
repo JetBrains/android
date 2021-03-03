@@ -84,15 +84,15 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
         text = "Files under the \"build\" folder are generated and should not be edited.";
       }
 
-      return new MyEditorNotificationPanel(text);
+      return new MyEditorNotificationPanel(fileEditor, text);
     }
     return null;
   }
 
   @VisibleForTesting
   static class MyEditorNotificationPanel extends EditorNotificationPanel {
-    MyEditorNotificationPanel(@NotNull String text) {
-      super();
+    MyEditorNotificationPanel(@NotNull FileEditor fileEditor, @NotNull String text) {
+      super(fileEditor);
       setText(text);
     }
   }

@@ -71,7 +71,7 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
                                                            @NotNull FileEditor fileEditor,
                                                            @NotNull Project project) {
       if (fileEditor instanceof LayoutInspectorEditor && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()) {
-        EditorNotificationPanel panel = new EditorNotificationPanel();
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
         panel.setText("Using API 29? Try out the new Live Layout Inspector.");
 
         if (fileEditor.getUserData(HIDDEN_KEY) != null || PropertiesComponent.getInstance().isTrueValue(DISABLE_KEY)) {
