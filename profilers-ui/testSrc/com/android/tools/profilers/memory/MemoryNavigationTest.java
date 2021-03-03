@@ -91,8 +91,8 @@ public class MemoryNavigationTest {
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), instance);
     myStage.getCaptureSelection().selectClassSet(instanceClassSet);
 
-    MemoryClassSetView view = myStageView.getClassSetView();
-    JTree classSetTree = view.getTree();
+    myStage.getCaptureSelection().selectInstanceObject(instance);
+    JTree classSetTree = myStageView.getInstanceDetailsView().getFieldTree();
     assertNotNull(classSetTree);
 
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected
