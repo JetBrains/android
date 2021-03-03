@@ -57,7 +57,7 @@ public final class SmaliFileNotificationProvider extends EditorNotifications.Pro
       File filePath = virtualToIoFile(file);
       if (isAncestor(outputFolderPath, filePath, false)) {
         // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
-        EditorNotificationPanel panel = new EditorNotificationPanel();
+        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
         panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);

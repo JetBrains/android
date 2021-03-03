@@ -51,7 +51,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 
       if (platform == null) {
-        return new MySdkNotConfiguredNotificationPanel(module);
+        return new MySdkNotConfiguredNotificationPanel(fileEditor, module);
       }
     }
     return null;
@@ -59,7 +59,9 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
 
   private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
 
-    MySdkNotConfiguredNotificationPanel(@NotNull final Module module) {
+    MySdkNotConfiguredNotificationPanel(@NotNull FileEditor fileEditor, @NotNull final Module module) {
+      super(fileEditor);
+
       setText("Android SDK is not configured for module '" + module.getName() + "' or corrupted");
 
       createActionLabel("Open Project Structure", new Runnable() {

@@ -90,7 +90,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       if (platform == null) {
         return null;
       }
-      EditorNotificationPanel panel = new EditorNotificationPanel();
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
 
       panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
       panel.createActionLabel("Download", () -> {

@@ -76,12 +76,14 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     }
     NotificationsConfiguration.getNotificationsConfiguration().register(
       ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.BALLOON, false);
-    return new MyPanel();
+    return new MyPanel(fileEditor);
   }
 
   public class MyPanel extends EditorNotificationPanel {
 
-    MyPanel() {
+    MyPanel(@NotNull FileEditor fileEditor) {
+      super(fileEditor);
+
       setText("You can format your XML resources in the 'standard' Android way. " +
               "Choose 'Set from... | Android' in the XML code style settings.");
 

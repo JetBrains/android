@@ -19,18 +19,17 @@ import static com.android.tools.idea.editors.strings.StringResourceEditorProvide
 import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
 
 import com.intellij.openapi.editor.colors.EditorColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
   private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
@@ -49,7 +48,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
       return null;
     }
 
-    final InfoPanel panel = new InfoPanel();
+    final InfoPanel panel = new InfoPanel(fileEditor);
     panel.setText("Edit translations for all locales in the translations editor.");
     panel.createActionLabel("Open editor", () -> openEditor(project, file));
     panel.createActionLabel("Hide notification", () -> {
@@ -60,10 +59,9 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
   }
 
   public static class InfoPanel extends EditorNotificationPanel {
-    @Override
-    public Color getBackground() {
-      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR);
-      return color == null ? UIUtil.getPanelBackground() : color;
+    public InfoPanel(@NotNull FileEditor fileEditor) {
+      super(fileEditor);
+      setBackground(new JBColor(() -> ObjectUtils.notNull(getScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR), UIUtil.getPanelBackground())));
     }
   }
 }
