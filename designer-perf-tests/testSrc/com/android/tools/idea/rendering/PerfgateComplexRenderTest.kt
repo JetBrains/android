@@ -44,7 +44,7 @@ fun checkComplexLayoutRenderResult(result: RenderResult) {
   AndroidGradleTestCase.assertNotNull(result.renderedImage)
 }
 
-class RenderComplexPerfgateTest {
+class PerfgateComplexRenderTest {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
   private lateinit var facet: AndroidFacet
