@@ -62,7 +62,7 @@ import javax.swing.JPopupMenu
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
-private const val EXPORT_TO_FILE_ENABLED_DEFAULT = false
+private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"
 private const val EXPORT_BUTTON_COMPONENT_NAME = "export-button"
 
@@ -78,8 +78,8 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     assertThat(DatabaseInspectorFlagController.isExportToFileEnabled).isEqualTo(EXPORT_TO_FILE_ENABLED_DEFAULT)
   }
 
-  fun test_tableView_exportButtonHiddenByDefault() {
-    assertThat(findExportButtonInActionPanel(TableViewImpl())).isNull()
+  fun test_tableView_exportButtonVisibleByDefault() {
+    assertThat(findExportButtonInActionPanel(TableViewImpl())).isNotNull()
   }
 
   // verify that the button is visible with the flag on and that it calls the listener when clicked
