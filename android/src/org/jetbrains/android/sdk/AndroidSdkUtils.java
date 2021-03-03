@@ -413,13 +413,7 @@ public final class AndroidSdkUtils {
     }
 
     File adb = null;
-    if (project == null) {
-      // If project is null, we'll use the global default path
-      if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
-        adb = new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB));
-        searchedPaths.add(String.format("Android SDK location from global settings: '%s'", adb.getPath()));
-      }
-    } else {
+    if (project != null) {
       AndroidSdkData data = getProjectSdkData(project);
       if (data == null) {
         data = getFirstAndroidModuleSdkData(project);
@@ -429,6 +423,12 @@ public final class AndroidSdkUtils {
         searchedPaths.add(String.format("Android SDK location from Project: '%s'", data.getLocationFile().getPath()));
       }
       adb = data == null ? null : new File(data.getLocationFile(), platformToolPath(FN_ADB));
+    }
+
+    // If project is null, or non-android project (e.g. react-native), we'll use the global default path
+    if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
+      adb = new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB));
+      searchedPaths.add(String.format("Android SDK location from global settings: '%s'", adb.getPath()));
     }
 
     return new AdbSearchResult(adb != null && adb.exists() ? adb : null, searchedPaths);
