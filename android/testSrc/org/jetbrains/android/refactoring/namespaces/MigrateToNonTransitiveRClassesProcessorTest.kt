@@ -21,6 +21,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.UsageTracker.cleanAfterTesting
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.testing.ProjectFiles
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.MIGRATE_TO_NON_TRANSITIVE_R_CLASS
@@ -218,6 +219,29 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
         }
       """.trimIndent()
     )
+
+    // A settings.gradle file is needed to trick the IDE into thinking this is a project built using gradle, necessary for removing
+    // generated build files from search scope.
+    ProjectFiles.createFileInProjectRoot(project, "settings.gradle")
+
+    myFixture.addFileToProject(
+      "build/generated/source/com/example/app/AppJavaClass.java",
+      // language=java
+      """
+        package com.example.app;
+
+        public class AppJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_app,
+                  R.string.from_lib,
+                  R.string.from_sublib
+                };
+            }
+        }
+      """.trimIndent()
+    )
+
 
     runUndoTransparentWriteAction {
       Manifest.getMainManifest(myFacet)!!.`package`.value = "com.example.app"
@@ -557,6 +581,25 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                   com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "build/generated/source/com/example/app/AppJavaClass.java",
+      // language=java
+      """
+        package com.example.app;
+
+        public class AppJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_app,
+                  R.string.from_lib,
+                  R.string.from_sublib
+                };
             }
         }
       """.trimIndent(),

@@ -29,13 +29,19 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.GeneratedSourcesFilter
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
+import com.intellij.psi.search.DelegatingGlobalSearchScope
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.augment.AndroidLightField
@@ -49,6 +55,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
+
+private val LOG: Logger by lazy { Logger.getInstance("NamespaceRefactoringsUtil.kt") }
 
 /**
  * Information about an Android resource reference.
@@ -108,13 +116,25 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
   val result = mutableListOf<CodeUsageInfo>()
   val module = facet.module
   val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
+  val project = module.project
 
-  val rClasses = module.project.getProjectSystem()
+  val rClasses = project.getProjectSystem()
     .getLightResourceClassService()
     .getLightRClassesDefinedByModule(module, true)
 
   for (rClass in rClasses) {
-    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, rClass.useScope)) {
+    val useScopeSearchScope = rClass.useScope
+    val searchScope = if (useScopeSearchScope is GlobalSearchScope) {
+      NonGeneratedSearchScope(project, useScopeSearchScope)
+    } else {
+      if (LOG.isDebugEnabled) {
+        LOG.debug("GlobalSearchScope expected, instead got: ${useScopeSearchScope.javaClass.simpleName} for light class " +
+                  "type: ${rClass.javaClass.simpleName}")
+      }
+      useScopeSearchScope
+    }
+
+    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, searchScope)) {
       val element = psiReference.element
       val (nameRef, resource) = when (element.language) {
         JavaLanguage.INSTANCE -> {
@@ -223,5 +243,14 @@ internal fun inferPackageNames(
     }
 
     progressIndicator.fraction = (index + 1) / total
+  }
+}
+
+/**
+ * Search scope that intersects a provided scope with non-generated files in a Gradle project. ie. no files under the build/ folder.
+ */
+private class NonGeneratedSearchScope(project: Project, baseScope: GlobalSearchScope) : DelegatingGlobalSearchScope(project, baseScope) {
+  override fun contains(file: VirtualFile): Boolean {
+    return super.contains(file) && !GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, project!!)
   }
 }
