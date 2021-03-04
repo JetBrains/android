@@ -82,6 +82,11 @@
                             order="first, before KotlinCompletionContributor"/>
 
     <completion.contributor language="kotlin"
+                            id="ComposeAlignmentCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposeImplementationsCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
+
+    <completion.contributor language="kotlin"
                             implementationClass="com.android.tools.compose.code.completion.ComposeModifierCompletionContributor"
                             order="first, before ComposeCompletionContributor"/>
 
