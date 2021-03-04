@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_MODIFY
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_REMOVE
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
+import java.io.File
 import java.lang.IllegalArgumentException
 
 class KotlinOptionsModelTest : GradleFileModelTestCase() {
   @Test
   fun parse() {
-    writeToBuildFile(KOTLIN_OPTIONS_MODEL_BLOCK)
+    writeToBuildFile(TestFile.BLOCK)
 
     val android = gradleBuildModel.android()
     val kotlinOptions = android.kotlinOptions()
@@ -41,7 +36,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun `add valid JVM target`() {
-    writeToBuildFile(KOTLIN_OPTIONS_MODEL_ADD)
+    writeToBuildFile(TestFile.ADD)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -49,7 +44,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     assertMissingProperty(kotlinOptions.jvmTarget())
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_8)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_ADD_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_8, kotlinOptions.jvmTarget().toLanguageLevel())
@@ -57,7 +52,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun `add unknown JVM target`() {
-    writeToBuildFile(KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET)
+    writeToBuildFile(TestFile.ADD_UNKNOWN_TARGET)
 
     val android = gradleBuildModel.android()
     val kotlinOptions = android.kotlinOptions()
@@ -69,14 +64,14 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun remove() {
-    writeToBuildFile(KOTLIN_OPTIONS_MODEL_REMOVE)
+    writeToBuildFile(TestFile.REMOVE)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     var kotlinOptions = android.kotlinOptions()
     kotlinOptions.jvmTarget().delete()
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.REMOVE_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     checkForInvalidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
@@ -86,7 +81,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun modify() {
-    writeToBuildFile(KOTLIN_OPTIONS_MODEL_MODIFY)
+    writeToBuildFile(TestFile.MODIFY)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -95,10 +90,26 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_9)
     kotlinOptions.useIR().setValue(true)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.MODIFY_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_9, kotlinOptions.jvmTarget().toLanguageLevel())
     assertEquals("useIR", true, kotlinOptions.useIR().toBoolean())
+  }
+
+
+  enum class TestFile(val path: @SystemDependent String): TestFileName {
+    ADD("add"),
+    ADD_EXPECTED("addExpected"),
+    BLOCK("block"),
+    ADD_UNKNOWN_TARGET("addUnknownTarget"),
+    MODIFY("modify"),
+    MODIFY_EXPECTED("modifyExpected"),
+    REMOVE("remove"),
+    REMOVE_EXPECTED("removeExpected"),
+    ;
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/kotlinOptionsModel/$path", extension)
+    }   
   }
 }
