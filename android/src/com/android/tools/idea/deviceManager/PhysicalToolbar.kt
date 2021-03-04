@@ -24,6 +24,7 @@ import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI
+import javax.swing.JButton
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
@@ -34,7 +35,7 @@ class PhysicalToolbar(
   val project: Project?,
   searchDocumentListener: DocumentListener
 ) {
-  private val newButton = CommonButton(AllIcons.General.Add).apply {
+  private val newButton = JButton("Pair using Wi-Fi").apply {
     addActionListener { if (project != null) openWifiPairingDialog(project) }
   }
 
@@ -57,7 +58,7 @@ class PhysicalToolbar(
   // Consider using delegation? Or some pattern like MVVM.
   val panel = panel {
     row {
-      newButton()
+      newButton().withLeftGap()
       separator()
       refreshButton()
       helpButton()
