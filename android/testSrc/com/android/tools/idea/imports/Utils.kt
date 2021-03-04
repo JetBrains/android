@@ -75,7 +75,8 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "artifactId": "palette",
                 "version": "1.0.0",
                 "fqcns": [
-                  "androidx.palette.graphics.Palette"
+                  "androidx.palette.graphics.Palette",
+                  "androidx.palette.graphics.FakeClass"
                 ]
               },
               {
@@ -84,7 +85,8 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "version": "2.2.6",
                 "fqcns": [
                   "androidx.room.Room",
-                  "androidx.room.RoomDatabase"
+                  "androidx.room.RoomDatabase",
+                  "androidx.room.FakeClass"
                 ]
               },
               {
