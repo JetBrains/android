@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
-import com.android.tools.idea.layoutinspector.SkiaParser
-import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -36,17 +35,21 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 /**
  * A [TreeLoader] that uses a [TransportInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
-class TransportTreeLoader(private val project: Project, private val client: TransportInspectorClient) : TreeLoader {
+class TransportTreeLoader(
+  private val project: Project,
+  private val client: TransportInspectorClient,
+  private val skiaParser: SkiaParser
+) : TreeLoader {
 
   override fun loadComponentTree(
     data: Any?,
     resourceLookup: ResourceLookup
   ): Pair<AndroidWindow?, Int>? {
-    return loadComponentTree(data, resourceLookup, SkiaParser)
+    return loadComponentTree(data, resourceLookup, skiaParser)
   }
 
   @VisibleForTesting
-  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParserService): Pair<AndroidWindow?, Int>? {
+  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParser): Pair<AndroidWindow?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     val window: AndroidWindow? =
       if (event.tree.hasRoot()) {
@@ -79,14 +82,14 @@ private class TransportTreeLoaderImpl(
       isInterrupted = true
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
-  fun loadComponentTree(client: TransportInspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
+  fun loadComponentTree(client: TransportInspectorClient, skiaParser: SkiaParser, project: Project): AndroidWindow? {
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
     }
     try {
       val rootView = loadRootView() ?: return null
-      return TransportAndroidWindow(project, skiaParser, client, rootView, tree, { isInterrupted })
+      return TransportAndroidWindow(project, skiaParser, client, rootView, tree) { isInterrupted }
     }
     finally {
       loadStartTime.set(0)

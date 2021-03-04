@@ -17,14 +17,14 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.proto.SkiaParser
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -45,7 +45,7 @@ import java.util.zip.Inflater
  */
 class TransportAndroidWindow(
   private val project: Project,
-  private val skiaParser: SkiaParserService,
+  private val skiaParser: SkiaParser,
   private val client: TransportInspectorClient,
   root: ViewNode,
   private val tree: LayoutInspectorProto.ComponentTreeEvent,
@@ -81,7 +81,7 @@ class TransportAndroidWindow(
 
   private fun processSkp(
     bytes: ByteArray,
-    skiaParser: SkiaParserService,
+    skiaParser: SkiaParser,
     project: Project,
     client: TransportInspectorClient,
     rootView: ViewNode,
@@ -142,8 +142,8 @@ class TransportAndroidWindow(
 
   private fun getViewTree(
     bytes: ByteArray,
-    requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
-    skiaParser: SkiaParserService,
+    requestedNodes: Iterable<RequestedNodeInfo>,
+    skiaParser: SkiaParser,
     scale: Double
   ): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null

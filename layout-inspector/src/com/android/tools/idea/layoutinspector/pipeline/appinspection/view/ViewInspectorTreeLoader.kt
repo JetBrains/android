@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
-import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -35,7 +34,7 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
  */
 class ViewInspectorTreeLoader(
   private val project: Project,
-  private val skiaParser: SkiaParserService,
+  private val skiaParser: SkiaParser,
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
   composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,

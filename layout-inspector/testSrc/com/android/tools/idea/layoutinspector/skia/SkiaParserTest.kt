@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.skia
 
-import com.android.repository.testframework.MockFileOp
+import com.android.flags.junit.SetFlagRule
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.FakeSdkRule
-import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
-import io.grpc.netty.NettyChannelBuilder
-import junit.framework.TestCase.assertEquals
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
-import java.io.File
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
@@ -44,15 +38,9 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 class SkiaParserTest {
 
   @Test
-  fun testGetSkpVersion() {
-    val version = SkiaParser.getSkpVersion("skiapict".toByteArray().plus(byteArrayOf(10, 0, 1, 0)).plus("blah".toByteArray()))
-    assertEquals(65546, version)
-  }
-
-  @Test
   fun testInvalidSkp() {
     try {
-      SkiaParser.getViewTree("foobarbaz".toByteArray(), emptyList(), 1.0)
+      SkiaParserImpl().getViewTree("foobarbaz".toByteArray(), emptyList(), 1.0)
       fail()
     }
     catch (expected: InvalidPictureException) {}
@@ -80,7 +68,7 @@ class SkiaParserTest {
           image: "
           """.trim() + (1..200).joinToString(separator = "") { "\\%1\$03o\\000\\%1\$03o\\777".format(it) } + """ "
         }""".trim()
-    val tree = com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView.newBuilder().also {
+    val tree = InspectorView.newBuilder().also {
       TextFormat.getParser().merge(eventStr, it)
     }.build()
 
@@ -107,50 +95,15 @@ class SkiaParserTest {
   }
 }
 
-// TODO: test with downloading (currently no way to mock out installation)
-class SkiaParserTest2 {
-  val projectRule = AndroidProjectRule.inMemory()
-  private val fakeSdkRule = FakeSdkRule(projectRule)
-    .withLocalPackage("skiaparser;1")
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
-
-  @Test
-  fun testFindServerInfoForSkpVersion() {
-    val fileOp = fakeSdkRule.fileOp as MockFileOp
-    fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/1/version-map.xml").path, """
-      <?xml version="1.0" encoding="utf-8"?>
-      <versionMapping>
-        <server version="1" skpStart="1" skpEnd="10"/>
-        <server version="2" skpStart="11" skpEnd="15"/>
-        <server version="3" skpStart="16" skpEnd="20"/>
-      </versionMapping>
-    """.trimIndent())
-
-    assertThat(SkiaParser.findServerInfoForSkpVersion(13)!!.serverVersion).isEqualTo(2)
-    assertThat(SkiaParser.findServerInfoForSkpVersion(25)).isNull()
-
-    fakeSdkRule.addLocalPackage("skiaparser;2")
-    fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/2/version-map.xml").path, """
-      <?xml version="1.0" encoding="utf-8"?>
-      <versionMapping>
-        <server version="1" skpStart="1" skpEnd="10"/>
-        <server version="2" skpStart="11" skpEnd="15"/>
-        <server version="3" skpStart="16" skpEnd="20"/>
-        <server version="4" skpStart="21" skpEnd="25"/>
-      </versionMapping>
-    """.trimIndent())
-
-    assertThat(SkiaParser.findServerInfoForSkpVersion(25)!!.serverVersion).isEqualTo(4)
-  }
-}
-
 class SkiaParserIntegrationTest {
+  @get:Rule
+  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
+
   @Test
   fun testRunServer() {
-    val serverInfo = ServerInfo(null, 0, 0)
-    val port = serverInfo.createGrpcClient()
+    val server = SkiaParserServerConnection(mock())
+    // Call createGrpcClient directly to skip running the server binary
+    val port = server.createGrpcClient()
     val serverThread = Thread { runServer(port) }
     serverThread.start()
     val node1 = RequestedNodeInfo.newBuilder().apply {
@@ -174,12 +127,12 @@ class SkiaParserIntegrationTest {
       x = 300
       y = 1200
     }.build()
-    val (root, imageMap) = serverInfo.getViewTree(generateBoxes(), listOf(node1, node2, node4), 1.0) ?: error("no result from server")
+    val (root, imageMap) = server.getViewTree(generateBoxes(), listOf(node1, node2, node4), 1.0) ?: error("no result from server")
     assertThat(imageMap.values.map { it.size() }).containsExactly(8000000, 2000000, 800000)
     val expected = Node(1, Node(1), Node(2, Node(2)), Node(4, Node(4)))
     assertIdsEqual(expected, root)
     assertImagesCorrect(root, imageMap)
-    serverInfo.shutdown()
+    server.shutdown()
     serverThread.join()
   }
 
