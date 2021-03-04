@@ -31,7 +31,10 @@ public class StartLiveLiteralMonitoringTask implements LaunchTask {
 
   @Override
   public @NotNull String getDescription() {
-    return "Starting Live Literal Monitoring";
+    // This task only start LL under the right conditions so lets not
+    // lets not mention anything about LL on the status because
+    // users might not expect it in non-compose related projects.
+    return "";
   }
 
   @Override
