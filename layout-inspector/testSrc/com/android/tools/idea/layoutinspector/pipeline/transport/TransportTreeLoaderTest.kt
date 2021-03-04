@@ -22,8 +22,8 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -199,7 +199,7 @@ class TransportTreeLoaderTest {
    */
   private fun createMockTransportClient(): TransportInspectorClient {
     val client: TransportInspectorClient = mock()
-    `when`(client.treeLoader).thenReturn(TransportTreeLoader(projectRule.project, client))
+    `when`(client.treeLoader).thenReturn(TransportTreeLoader(projectRule.project, client, mock()))
     return client
   }
 
@@ -226,7 +226,7 @@ class TransportTreeLoaderTest {
     val client = createMockTransportClient()
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(-2L, 1L, 2L, 3L, 4L) }, any(), any()))
       .thenReturn(skiaResponse)
 
@@ -321,7 +321,7 @@ class TransportTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw UnsupportedPictureVersionException(123) }
 
     val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
@@ -339,7 +339,7 @@ class TransportTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenReturn(null)
 
     val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
@@ -357,7 +357,7 @@ class TransportTreeLoaderTest {
     val payload = "samplepicture".toByteArray()
     `when`(client.getPayload(111)).thenReturn(payload)
 
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(eq(payload), any(), any(), any())).thenAnswer { throw Exception() }
 
     val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
@@ -378,7 +378,7 @@ class TransportTreeLoaderTest {
     }.build()
 
     val client = createMockTransportClient()
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     val (window, generation) = client.treeLoader.loadComponentTree(emptyTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)

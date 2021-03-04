@@ -129,7 +129,7 @@ interface InspectorClient {
    * Report this client's capabilities so that external systems can check what functionality is
    * available before interacting with some of this client's methods.
    */
-  val capabilities: EnumSet<Capability>
+  val capabilities: Set<Capability>
     get() = EnumSet.noneOf(Capability::class.java)
 
   val state: State
