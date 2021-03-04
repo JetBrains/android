@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.view
+package com.android.tools.idea.appinspection.inspectors.network.model
 
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
-import javax.swing.JButton
+import com.android.tools.adtui.model.TooltipModel
 
-class NetworkInspectorTab(private val client: NetworkInspectorClient) {
-  val component = JButton("Click here")
-
-  init {
-    //component.addActionListener {
-    //  runBlocking {
-    //    component.text = client.send("Hello World!")
-    //  }
-    //}
+/**
+ * Tooltip shown when user hovers mouse over the traffic area in the inspector.
+ */
+class NetworkTrafficTooltipModel(private val model: NetworkInspectorModel) : TooltipModel {
+  fun getLegends(): LegendsModel {
+    return model.tooltipLegends
   }
 }

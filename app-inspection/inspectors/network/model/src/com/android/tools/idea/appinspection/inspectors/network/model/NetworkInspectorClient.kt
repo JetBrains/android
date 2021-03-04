@@ -16,20 +16,22 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import studio.network.inspection.NetworkInspectorProtocol.Command
+import studio.network.inspection.NetworkInspectorProtocol.Response
+import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
 
-class NetworkInspectorClient(private val messenger: AppInspectorMessenger) {
-  //suspend fun send(message: String): String {
-  //  val response = messenger.sendRawCommand(
-  //    NetworkInspectorProtocol.Command.newBuilder()
-  //      .setTestCommand(
-  //        NetworkInspectorProtocol.TestCommand.newBuilder()
-  //          .setCmdId(1)
-  //          .setMessage(message)
-  //          .build()
-  //      )
-  //      .build()
-  //      .toByteArray()
-  //  )
-  //  return NetworkInspectorProtocol.Response.parseFrom(response).testResponse.response
-  //}
+class NetworkInspectorClient(
+  private val messenger: AppInspectorMessenger
+) {
+  suspend fun getStartTimeStampNs(): Long {
+    val response = messenger.sendRawCommand {
+      startInspectionCommand = StartInspectionCommand.getDefaultInstance()
+    }
+    return response.startInspectionResponse.timestamp
+  }
+}
+
+private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
+  val response = sendRawCommand(Command.newBuilder().also(init).build().toByteArray())
+  return Response.parseFrom(response)
 }
