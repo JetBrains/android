@@ -204,7 +204,7 @@ class ContentManager(val project: Project) {
     val processor = AgpUpgradeRefactoringProcessor(project, current, new)
     val model = ToolWindowModel(processor)
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Hello, Upgrade!", true)
+    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Upgrading project from AGP $current", true)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
@@ -276,7 +276,7 @@ class ContentManager(val project: Project) {
 
     private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading from ${model.processor.current} to"))
+      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.processor.current} to"))
       add(textField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
