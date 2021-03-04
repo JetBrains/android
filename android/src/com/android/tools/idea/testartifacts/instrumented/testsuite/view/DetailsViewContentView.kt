@@ -70,6 +70,7 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
   private var myLogcat = ""
   private var myErrorStackTrace = ""
   private var myRetentionSnapshot: File? = null
+  private var needsRefreshLogsView: Boolean = true
 
   init {
     val tabs = createTabs(project, parentDisposable)
@@ -157,14 +158,21 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
   }
 
   fun setLogcat(logcat: String) {
-    myLogcat = logcat
-    refreshLogsView()
+    // force refresh myLogsView on first call to setLogcat
+    needsRefreshLogsView = needsRefreshLogsView || (myLogcat != logcat)
+    if (needsRefreshLogsView) {
+      myLogcat = logcat
+      refreshLogsView()
+    }
   }
 
   fun setErrorStackTrace(errorStackTrace: String) {
-    myErrorStackTrace = errorStackTrace
-    refreshTestResultLabel()
-    refreshLogsView()
+    needsRefreshLogsView = myErrorStackTrace != errorStackTrace
+    if (needsRefreshLogsView) {
+      myErrorStackTrace = errorStackTrace
+      refreshTestResultLabel()
+      refreshLogsView()
+    }
   }
 
   fun setBenchmarkText(benchmarkText: String) {
@@ -244,7 +252,8 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     }
   }
 
-  private fun refreshLogsView() {
+  @VisibleForTesting fun refreshLogsView() {
+    needsRefreshLogsView = false
     myLogsView.clear()
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
       myLogsView.print("No logcat output for this device.",
