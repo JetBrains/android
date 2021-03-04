@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.InplaceButton;
@@ -222,7 +223,7 @@ public class Header extends JPanel {
       InputEvent inputEvent = e.getSource() instanceof InputEvent ? (InputEvent)e.getSource() : null;
       AnActionEvent event = AnActionEvent.createFromAnAction(myAction, inputEvent, UNKNOWN, dataContext);
       actionManager.fireBeforeActionPerformed(myAction, dataContext, event);
-      myAction.actionPerformed(event);
+      ActionUtil.performAction(myAction, dataContext, event);
     }
   }
 
