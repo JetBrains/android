@@ -10,5 +10,14 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="network_inspector_java_proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
   </component>
 </module>
