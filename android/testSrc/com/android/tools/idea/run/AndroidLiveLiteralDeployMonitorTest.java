@@ -37,4 +37,13 @@ public class AndroidLiveLiteralDeployMonitorTest {
     helper = AndroidLiveLiteralDeployMonitor.qualifyNameToHelperClassName(name);
     Assert.assertEquals(expected, helper);
   }
+
+  @Test
+  public void invalidClassNameToHelperName() {
+    String name = "Greeting";
+    String expected = "no.name.space.from.LiveLiterals$LiveLiteralMonitorKt";
+    String helper = AndroidLiveLiteralDeployMonitor.qualifyNameToHelperClassName(name);
+    Assert.assertEquals(expected, helper);
+  }
+
 }

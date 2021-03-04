@@ -226,7 +226,18 @@ class AndroidLiveLiteralDeployMonitor {
     // Skip over the composible function name.
     //  com.example.compose.MainActivity.Greeting to
     //  com.example.compose.MainActivity
-    helper = helper.substring(0, helper.lastIndexOf("."));
+    if (helper.indexOf(".") == -1) {
+      // This normally would not happen since all functions in bytecode belong to
+      // a class and therefore needs a least one dot (namespace.function).
+      // It might be possible that the file is in the middle of editing and
+      // is syntactically incorrect Kotlin so the editor is confused.
+      // We are not going to crash with invalid index and instead we give in a
+      // namespace. The agent will just warn the user about it and we can get a
+      // bug report if that happens.
+      helper = "no.name.space.from.LiveLiteralMonitor";
+    } else {
+      helper = helper.substring(0, helper.lastIndexOf("."));
+    }
 
     // The compiler will always name the helper class LiveLiterals$FooKt so add "Kt" even if we are looking at non-outer functions.
     //  com.example.compose.MainActivity
