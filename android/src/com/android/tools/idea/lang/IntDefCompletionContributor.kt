@@ -171,7 +171,7 @@ private fun getIntDefValues(calleeElement: PsiElement?, argumentIndex: Int, argu
   when (calleeElement) {
     is PsiClass -> {
       val funcName = argumentName ?: "value"
-      val function = calleeElement.findMethodsByName(funcName, false).first()
+      val function = calleeElement.findMethodsByName(funcName, false).firstOrNull()
       return function?.annotations?.firstNotNullResult { it.intDefValues }
     }
     is PsiMethod -> {

@@ -72,6 +72,29 @@ class IntDefCompletionContributorJavaTest : IntDefCompletionContributorTest() {
     checkTopCompletionElements()
   }
 
+  // Test for b/181776602.
+  @RunsInEdt
+  @Test
+  fun testJavaAnnotation_notExistingAttribute() {
+    myFixture.loadNewFile(
+      "/src/test/MyClass.java",
+      //language=JAVA
+      """
+        package test;
+
+        import com.library.MyJavaClassLibrary;
+
+        class MyClass {
+          @PreviewJava(wrongAttr = <caret>)
+          public static void myFunction() { }
+        }
+      """.trimIndent()
+    )
+
+    // Check that it doesn't throw exception.
+    myFixture.completeBasic()
+  }
+
   @RunsInEdt
   @Test
   fun testKotlinAnnotation() {
