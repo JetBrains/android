@@ -46,7 +46,7 @@ import org.junit.rules.RuleChain
  */
 @RunsInEdt
 class MavenImportUtilsKtTest {
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = AndroidProjectRule.withAndroidModel()
   private lateinit var tracker: TestUsageTracker
 
   @get:Rule
@@ -73,16 +73,21 @@ class MavenImportUtilsKtTest {
 
   @Test
   fun verifyExpectedAnalytics_resolveCode() {
-    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+    val psiFile = projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
-      val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
+      val view = PreviewView() // Here PreviewView is an unresolvable symbol
       """.trimIndent())
 
+    projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+
     val action = AndroidMavenImportIntentionAction()
-    val element = projectRule.fixture.moveCaret("RecyclerView|")
+    val element = projectRule.fixture.moveCaret("PreviewView|")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-view (alpha)")
 
     action.perform(projectRule.project, projectRule.fixture.editor, element, false)
-    verify("androidx.recyclerview:recyclerview")
+    verify("androidx.camera:camera-view")
   }
 
   @Test

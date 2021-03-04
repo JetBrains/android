@@ -58,10 +58,8 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
  */
 class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighPriorityAction {
-  private var foundArtifacts: Collection<ArtifactWithVersion>? = null
+  private var intentionActionText: String = familyName
   private val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
-
-  private data class ArtifactWithVersion(val artifact: String, val version: String?)
 
   private data class AutoImportVariant(
     val artifactToAdd: String,
@@ -197,33 +195,29 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
 
   override fun getFamilyName(): String = "Add library dependency"
 
-  override fun getText(): String {
-    return if (foundArtifacts?.size == 1) {
-      val foundArtifact = foundArtifacts!!.single()
-      "Add dependency on ${flagPreview(foundArtifact.artifact, foundArtifact.version)}"
+  override fun getText(): String = intentionActionText
+
+  override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
+    if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
+
+    val leaf = findElement(element, editor?.caretModel?.offset ?: -1)
+    val foundLibraries = findLibraryData(project, leaf.text)
+
+    // If we are already depending on any of them, we just abort providing any suggestions as well.
+    if (foundLibraries.isEmpty() || foundLibraries.any { dependsOn(module, it.artifact) }) return false
+
+    // Update the text.
+    intentionActionText = if (foundLibraries.size == 1) {
+      val library = foundLibraries.single()
+      val artifact = resolveArtifact(project, element, library.artifact)
+      "Add dependency on ${flagPreview(artifact, library.version)}"
     }
     else {
       familyName
     }
-  }
 
-  override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
-    val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
-    val leaf = findElement(element, editor?.caretModel?.offset ?: -1)
-    foundArtifacts = findLibraryData(project, leaf.text)
-      .asSequence()
-      .map { ArtifactWithVersion(resolveArtifact(project, element, it.artifact), it.version) }
-      .filter {
-        if (!module.getModuleSystem().canRegisterDependency().isSupported()) {
-          return@filter false
-        }
-
-        // Make sure we aren't already depending on it
-        return@filter !dependsOn(module, it.artifact)
-      }
-      .toList()
-
-    return !foundArtifacts.isNullOrEmpty()
+    return true
   }
 
   private fun addDependency(module: Module, artifact: String, type: DependencyType = DependencyType.IMPLEMENTATION) {
