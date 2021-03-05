@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
 import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
+import static com.android.SdkConstants.ATTR_AUTOFILL_HINTS;
 import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
 import static com.android.SdkConstants.ATTR_CHECKED_CHIP;
 import static com.android.SdkConstants.ATTR_CONSTRAINT_SET_END;
@@ -76,6 +77,7 @@ import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -110,6 +112,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.AutoFillHintsConverter;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
 import org.jetbrains.android.dom.converters.FlagConverter;
@@ -184,6 +187,8 @@ public class AndroidDomUtil {
   private static final AndroidConstraintIdsConverter CONSTRAINT_REFERENCED_IDS_CONVERTER = new AndroidConstraintIdsConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
+
+  private static final AutoFillHintsConverter AUTOFILL_HINTS_CONVERTER = new AutoFillHintsConverter();
 
   // List of available font families extracted from framework's fonts.xml
   // Used to provide completion for values of android:fontFamily attribute
@@ -332,6 +337,9 @@ public class AndroidDomUtil {
           return context instanceof LayoutViewElement
                  ? OnClickConverter.CONVERTER_FOR_LAYOUT
                  : OnClickConverter.CONVERTER_FOR_MENU;
+        }
+        else if (ATTR_AUTOFILL_HINTS.equals(localName)) {
+          return AUTOFILL_HINTS_CONVERTER;
         }
       }
     }
