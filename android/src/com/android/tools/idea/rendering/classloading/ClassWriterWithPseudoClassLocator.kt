@@ -125,6 +125,15 @@ class PseudoClass private constructor(val name: String,
     return name.hashCode()
   }
 
+  /**
+   * Returns a new [PseudoClass] with the same contents but the new given name. This allows renaming [PseudoClass]es.
+   */
+  fun withNewName(newName: String) =
+    if (newName != name)
+      PseudoClass(newName, superName, isInterface, interfaces, classLocator)
+    else
+      this
+
   companion object {
     @TestOnly
     fun forTest(name: String, superName: String, isInterface: Boolean, interfaces: List<String>, locator: PseudoClassLocator) =
