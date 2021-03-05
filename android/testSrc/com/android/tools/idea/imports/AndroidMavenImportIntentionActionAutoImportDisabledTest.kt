@@ -45,7 +45,7 @@ class AndroidMavenImportIntentionActionAutoImportDisabledTest {
 
   @Before
   fun setUp() {
-    StudioFlags.ENABLE_AUTO_IMPORT.override(false)
+    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(false)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
@@ -55,7 +55,7 @@ class AndroidMavenImportIntentionActionAutoImportDisabledTest {
 
   @After
   fun tearDown() {
-    StudioFlags.ENABLE_AUTO_IMPORT.clearOverride()
+    StudioFlags.ENABLE_SUGGESTED_IMPORT.clearOverride()
   }
 
   // Disabled because of b/144188081

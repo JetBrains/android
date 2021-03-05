@@ -1148,12 +1148,13 @@ public final class StudioFlags {
   );
   // endregion
 
-  //region Auto-import
-  private static final FlagGroup AUTO_IMPORT = new FlagGroup(FLAGS, "auto.import", "Auto-import Support");
-  public static final Flag<Boolean> ENABLE_AUTO_IMPORT = Flag.create(
-    AUTO_IMPORT, "enable", "Enable auto-import support",
-    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index and generate corresponding " +
-    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in MavenClassRegistry",
+  //region Suggested Import(s)
+  private static final FlagGroup SUGGESTED_IMPORT = new FlagGroup(FLAGS, "suggested.import", "Suggested import");
+  public static final Flag<Boolean> ENABLE_SUGGESTED_IMPORT = Flag.create(
+    SUGGESTED_IMPORT, "enable", "Enable suggested import",
+    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index/... and generate corresponding " +
+    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in " +
+    "MavenClassRegistryFromHardcodedMap.",
     false
   );
   // endregion

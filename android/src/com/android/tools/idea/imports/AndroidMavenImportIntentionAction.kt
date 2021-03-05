@@ -143,7 +143,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
       future = performWithLock(project, element, artifact, importSymbol, sync)
     }
 
-    trackAutoImport(artifact)
+    trackSuggestedImport(artifact)
     return future
   }
 

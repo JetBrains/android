@@ -54,7 +54,7 @@ class MavenImportUtilsKtTest {
 
   @Before
   fun setUp() {
-    StudioFlags.ENABLE_AUTO_IMPORT.override(true, projectRule.fixture.testRootDisposable)
+    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true, projectRule.fixture.testRootDisposable)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
