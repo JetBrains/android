@@ -82,9 +82,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     }) }
 
     val view = surface.sceneManager!!.sceneView
-    val mouseEvent = MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2)
-      .withSource(Any())
-      .build()
+    val mouseEvent = MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2).build()
 
     val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
     (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)

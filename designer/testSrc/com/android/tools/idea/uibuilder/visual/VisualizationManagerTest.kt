@@ -16,11 +16,9 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -28,7 +26,6 @@ import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
 import org.junit.Before
@@ -52,15 +49,10 @@ class VisualizationManagerTest {
   @Rule
   val edtRule = EdtRule()
 
-  @JvmField
-  @Rule
-  val disposableRule = DisposableRule()
-
   @Before
   fun setupToolWindowManager() {
     // The HeadlessToolWindowManager doesn't record the status of ToolWindow. We create a simple one to record it.
-    val toolManager = MyToolWindowManager(projectRule.project, disposableRule.disposable)
-    projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
+    projectRule.replaceProjectService(ToolWindowManager::class.java, MyToolWindowManager(projectRule.project))
   }
 
   @Test
@@ -74,40 +66,37 @@ class VisualizationManagerTest {
     VisualizationToolSettings.getInstance().globalState.isVisible = true
 
     val project = projectRule.project
-
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
-
     val manager = projectRule.project.getService(VisualizationManager::class.java)
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
 
     // Handle post activity case.
-    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
+    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
     // Not visible when there is no editor.
-    assertFalse(toolWindow.isAvailable)
+    assertFalse(manager.isToolWindowAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertTrue(toolWindow.isAvailable)
+    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertTrue(manager.isToolWindowAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
-    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertFalse(toolWindow.isAvailable)
+    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertFalse(manager.isToolWindowAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertTrue(toolWindow.isAvailable)
+    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertTrue(manager.isToolWindowAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       FileEditorManager.getInstance(project).closeFile(ktFile.virtualFile)
       FileEditorManager.getInstance(project).closeFile(layoutFile.virtualFile)
     }
-    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertFalse(toolWindow.isAvailable)
+    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertFalse(manager.isToolWindowAvailable)
   }
 }
 
@@ -123,25 +112,25 @@ private const val LAYOUT_FILE_TEXT = """<?xml version="1.0" encoding="utf-8"?>
   android:layout_width="match_parent"
   android:layout_height="match_parent" />"""
 
-private class MyToolWindowManager(private val project: Project, private val disposableParent: Disposable) : ToolWindowHeadlessManagerImpl(project) {
+private class MyToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
   private val toolWindows = mutableMapOf<String, ToolWindow>()
 
   init {
     // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
-    val ep = ToolWindowEP.EP_NAME.extensions.firstOrNull { ex -> ex.id == VisualizationManager.TOOL_WINDOW_ID }
-    assertNotNull(ep, "Layout validation tool window (id = ${VisualizationManager.TOOL_WINDOW_ID}) is not registered as plugin")
-
-    val factory = ep.getToolWindowFactory(ep.pluginDescriptor)
-    val anchor = ToolWindowAnchor.fromText(ep.anchor ?: ToolWindowAnchor.LEFT.toString())
-    registerToolWindow(RegisterToolWindowTask(id = ep.id, anchor = anchor, contentFactory = factory))
+    @Suppress("UnstableApiUsage")
+    ToolWindowEP.EP_NAME.processWithPluginDescriptor { bean, pluginDescriptor ->
+      val factory = bean.getToolWindowFactory(pluginDescriptor)!!
+      if (factory.isApplicable(project)) {
+        val anchor = ToolWindowAnchor.fromText(bean.anchor ?: ToolWindowAnchor.LEFT.toString())
+        registerToolWindow(RegisterToolWindowTask(id = bean.id, anchor = anchor, contentFactory = factory))
+      }
+    }
   }
 
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
     val toolWindow = MyMockToolWindow(project)
     toolWindows[task.id] = toolWindow
-    task.contentFactory?.createToolWindowContent(project, toolWindow)
     fireStateChange()
-    Disposer.register(disposableParent, toolWindow.disposable)
     return toolWindow
   }
 
