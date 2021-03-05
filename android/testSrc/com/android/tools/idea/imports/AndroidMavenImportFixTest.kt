@@ -33,7 +33,7 @@ import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
 class AndroidMavenImportFixTest : AndroidGradleTestCase() {
   fun testMissingClassHighlightingAndAddLibraryQuickfix_autoImportDisabled() {
     try {
-      StudioFlags.ENABLE_AUTO_IMPORT.override(false)
+      StudioFlags.ENABLE_SUGGESTED_IMPORT.override(false)
       ApplicationManager.getApplication().replaceService(
         MavenClassRegistryManager::class.java,
         fakeMavenClassRegistryManager,
@@ -69,13 +69,13 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
       assertBuildGradle { it.contains("implementation 'com.android.support:recyclerview-v7:") }
     }
     finally {
-      StudioFlags.ENABLE_AUTO_IMPORT.clearOverride()
+      StudioFlags.ENABLE_SUGGESTED_IMPORT.clearOverride()
     }
   }
 
   fun testMissingClassHighlightingAndAddLibraryQuickfix_autoImportEnabled() {
     try {
-      StudioFlags.ENABLE_AUTO_IMPORT.override(true)
+      StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true)
       ApplicationManager.getApplication().replaceService(
         MavenClassRegistryManager::class.java,
         fakeMavenClassRegistryManager,
@@ -113,7 +113,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
       assertBuildGradle { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
     }
     finally {
-      StudioFlags.ENABLE_AUTO_IMPORT.clearOverride()
+      StudioFlags.ENABLE_SUGGESTED_IMPORT.clearOverride()
     }
   }
 

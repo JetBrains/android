@@ -22,18 +22,18 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AutoImportEvent
 
 /**
- * Tracks user interaction with auto-import support.
+ * Tracks user interaction with suggested import support.
  *
- * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation of `auto-import`.
+ * @param artifactId GMaven coordinate of the corresponding added dependency due to the invocation of `suggested import`.
  */
-internal fun trackAutoImport(artifactId: String) {
-  if (!StudioFlags.ENABLE_AUTO_IMPORT.get()) return
+internal fun trackSuggestedImport(artifactId: String) {
+  if (!StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) return
 
   val autoImportEvent = AutoImportEvent.newBuilder()
     .setArtifactId(artifactId)
 
   AndroidStudioEvent.newBuilder()
-    .setKind(AndroidStudioEvent.EventKind.AUTO_IMPORT_EVENT)
+    .setKind(AndroidStudioEvent.EventKind.AUTO_IMPORT_EVENT) //TODO: rename to suggested import.
     .setAutoImportEvent(autoImportEvent)
     .let { UsageTracker.log(it) }
 }

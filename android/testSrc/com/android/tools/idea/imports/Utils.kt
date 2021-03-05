@@ -64,7 +64,7 @@ internal fun assertBuildGradle(projectRule: AndroidGradleProjectRule, check: (St
 
 internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
   get() {
-    val mavenClassRegistry = if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
+    val mavenClassRegistry = if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
       val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
       `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
         """
