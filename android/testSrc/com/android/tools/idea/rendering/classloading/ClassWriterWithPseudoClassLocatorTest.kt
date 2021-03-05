@@ -124,4 +124,11 @@ class ClassWriterWithPseudoClassLocatorTest {
     assertEquals("p.C1", PseudoClass.getCommonSuperClass(c1, ssc1).name)
     assertEquals("p.SC1", PseudoClass.getCommonSuperClass(sc1, ssc1).name)
   }
+
+  @Test
+  fun `class rename`() {
+    val sc1 = classLocator.locatePseudoClass("p.SC1")
+    val renamedSc1 = sc1.withNewName("p.RSC1")
+    assertEquals("p.C1", renamedSc1.superName)
+  }
 }
