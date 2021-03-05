@@ -266,7 +266,7 @@ private open class LiteralReferenceImpl(originalElement: PsiElement,
   val element: PsiElement?
     get() = ReadAction.compute<PsiElement?, Throwable> { elementPointer.element }
   override val isValid: Boolean
-    get() = elementPointer.range != null
+    get() = ReadAction.compute<Boolean, Throwable> { elementPointer.range != null }
 
   override val constantValue: Any?
     get() = element?.let {
