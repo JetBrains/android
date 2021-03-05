@@ -112,8 +112,16 @@ internal class ToolWindowModel(
   init {
     //Listen for value changes
     version.addListener {
-      processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, GradleVersion.parse(version.get()))
-      refresh()
+      val new = GradleVersion.tryParse(version.get())
+      if (new != null && processor.current < new) {
+        // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
+        processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, new)
+        refresh()
+      }
+      else {
+        runEnabled.set(false)
+        runDisabledTooltip.set("New version must be greater than current version")
+      }
     }
     refresh()
 
