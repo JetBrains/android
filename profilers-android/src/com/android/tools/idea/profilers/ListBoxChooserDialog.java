@@ -116,6 +116,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
   private class OptionsSelectorComboBox extends ComboBoxAction {
     NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout());
 
+    @NotNull
     @Override
     public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
       ComboBoxButton button = new ComboBoxButton(presentation) {

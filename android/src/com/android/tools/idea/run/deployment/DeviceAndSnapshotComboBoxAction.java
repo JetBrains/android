@@ -278,7 +278,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
     ComboBoxButton button = new ComboBoxButton(presentation) {
       @Override
-      protected JBPopup createPopup(@NotNull Runnable runnable) {
+      protected @NotNull JBPopup createPopup(@NotNull Runnable runnable) {
         DataContext context = getDataContext();
         return new Popup(createPopupActionGroup(this, context), context, runnable);
       }
