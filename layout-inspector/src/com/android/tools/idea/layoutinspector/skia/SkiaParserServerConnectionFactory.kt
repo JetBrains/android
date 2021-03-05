@@ -50,7 +50,11 @@ private val minimumRevisions = mapOf(
   "skiaparser;2" to Revision(1)
 )
 
-object SkiaParserServerConnectionFactory {
+fun interface SkiaParserServerConnectionFactory {
+  fun createConnection(data: ByteArray): SkiaParserServerConnection
+}
+
+object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory {
 
   /**
    * Metadata for a skia parser server version. May or may not correspond to a server on disk, but has the capability to download it if not.
@@ -143,7 +147,7 @@ object SkiaParserServerConnectionFactory {
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParserServerConnection::class.java)
 
-  fun createConnection(data: ByteArray): SkiaParserServerConnection {
+  override fun createConnection(data: ByteArray): SkiaParserServerConnection {
     val skpVersion = getSkpVersion(data)
     val serverInfo = findServerInfoForSkpVersion(skpVersion) ?: throw UnsupportedPictureVersionException(skpVersion)
     return serverInfo.createServer()
@@ -301,3 +305,8 @@ class UnsupportedPictureVersionException(val version: Int) : Exception()
  * Thrown if a request is made to create a server for something that doesn't look like a valid `SkPicture`.
  */
 class InvalidPictureException : Exception()
+
+/**
+ * Thrown if parsing a `SkPicture` fails in the parser.
+ */
+class ParsingFailedException : Exception()

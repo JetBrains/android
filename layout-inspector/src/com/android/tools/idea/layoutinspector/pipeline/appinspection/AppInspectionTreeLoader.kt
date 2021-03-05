@@ -41,7 +41,6 @@ class AppInspectionTreeLoader(
         data.viewEvent,
         resourceLookup,
         data.composeEvent,
-        data.updateScreenshotType,
         logEvent
       ).loadComponentTree()
       return window to data.generation

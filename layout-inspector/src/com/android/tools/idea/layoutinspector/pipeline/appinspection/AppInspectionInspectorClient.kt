@@ -39,6 +39,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.EnumSet
@@ -77,7 +78,9 @@ class AppInspectionInspectorClient(
 
   override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)!!
 
-  private val skiaParser = SkiaParserImpl()
+  private val skiaParser = SkiaParserImpl({
+    viewInspector.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
+  })
 
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(
     model.project,
@@ -150,4 +153,7 @@ class AppInspectionInspectorClient(
       viewInspector.startFetching(continuous = false)
     }
   }
+
+  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type, scale: Float = 1.0f) =
+    viewInspector.updateScreenshotType(type, scale)
 }

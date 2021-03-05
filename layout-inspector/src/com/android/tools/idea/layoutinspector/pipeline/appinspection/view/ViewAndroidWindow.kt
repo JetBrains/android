@@ -32,7 +32,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import java.awt.Rectangle
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -50,7 +49,6 @@ class ViewAndroidWindow(
   root: ViewNode,
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
   private val isInterrupted: () -> Boolean,
-  private val updateScreenshotType: (Screenshot.Type) -> Unit,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit)
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
@@ -116,12 +114,7 @@ class ViewAndroidWindow(
     if (errorMessage != null) {
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
     }
-    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id == 0L) {
-      // We were unable to parse the skia image. Turn on screenshot mode on the device.
-      updateScreenshotType(Screenshot.Type.BITMAP)
-      // metrics will be logged when we come back with a bitmap
-    }
-    else {
+    if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logInitialRender(ImageType.SKP)
       ViewNode.writeDrawChildren { drawChildren ->
         rootView.flatten().forEach { it.drawChildren().clear() }
