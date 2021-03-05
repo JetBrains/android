@@ -307,6 +307,61 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testAutoFillHints() {
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:autofillHints="$caret">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect auto fill hints from the framework only
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf(
+      "creditCardExpirationDate", "emailAddress", "name", "password", "phone", "postalAddress",
+      "postalCode", "username")
+  }
+
+  fun testAutoFillHintsAndroidX() {
+    myFixture.addClass(
+      // Language=Java
+      """
+      package androidx.autofill;
+
+      public class HintConstants {
+        public static final String AUTOFILL_HINT_PHONE_NATIONAL = "phoneNational";
+      }
+      """.trimIndent()
+    )
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:autofillHints="$caret">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect auto fill hints from the framework only
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf(
+      "phoneNational", "creditCardExpirationDate", "emailAddress", "name", "password", "phone",
+      "postalAddress", "postalCode", "username")
+  }
+
   fun testFragmentContainerViewNameAttribute() {
     myFixture.addClass(fragmentContainerView)
     myFixture.addClass("package androidx.fragment.app; public class Fragment {}")
