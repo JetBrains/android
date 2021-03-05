@@ -26,7 +26,6 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -113,11 +112,11 @@ class DeviceViewPanel(
     }
 
     private fun showGrab() {
-      if (isPanning) {
-        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
+      cursor = if (isPanning) {
+        AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
       }
       else {
-        cursor = Cursor.getDefaultCursor()
+        Cursor.getDefaultCursor()
       }
     }
 
@@ -423,7 +422,7 @@ class DeviceViewPanel(
     }
 
     private fun client(event: AnActionEvent): InspectorClient =
-      event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient ?: DisconnectedClient
+      LayoutInspector.get(event)?.currentClient ?: DisconnectedClient
   }
 }
 

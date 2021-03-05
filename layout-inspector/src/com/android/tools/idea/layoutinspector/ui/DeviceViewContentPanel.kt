@@ -18,12 +18,14 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -61,7 +63,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel)
+  val model = DeviceViewPanelModel(inspectorModel) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
 
   val rootLocation: Point?
     get() {
@@ -115,7 +117,8 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseDragged(e: MouseEvent) {
         if (e.isConsumed) return
-        if (!model.rotatable) {
+        val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
+        if (model.overlay != null || client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
           // can't rotate
           return
         }

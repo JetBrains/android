@@ -23,7 +23,9 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -59,18 +61,22 @@ object Toggle3dAction : AnAction(MODE_3D) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
+    val client = LayoutInspector.get(event)?.currentClient
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
-    if (model?.rotatable == true) {
+    if (model != null && model.overlay == null &&
+        client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
       event.presentation.isEnabled = true
       event.presentation.text = if (model.isRotated) "Reset View" else "Rotate View"
     }
     else {
       event.presentation.isEnabled = false
+      val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel < 29
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
           model?.pictureType == BITMAP_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
-          else -> "Rotation not available for devices below API 29"
+          isLowerThenApi29 -> "Rotation not available for devices below API 29"
+          else -> "Error while rendering device image, rotation not available"
         }
     }
   }

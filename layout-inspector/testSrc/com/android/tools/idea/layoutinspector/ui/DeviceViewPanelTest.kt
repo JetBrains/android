@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -43,6 +44,7 @@ import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
@@ -53,6 +55,8 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
@@ -494,20 +498,26 @@ class DeviceViewPanelTest {
                       panButton: Button = Button.LEFT) {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50) {
-          image()
-        }
+        view(VIEW1, 25, 30, 50, 50)
       }
     }
 
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-    val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
+    val launcher: InspectorClientLauncher = mock()
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    `when`(launcher.activeClient).thenReturn(client)
     val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
     val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
+
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
+      id -> if (id == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
+    }
+
 
     contentPanel.setSize(200, 300)
     viewport.extentSize = Dimension(100, 100)
