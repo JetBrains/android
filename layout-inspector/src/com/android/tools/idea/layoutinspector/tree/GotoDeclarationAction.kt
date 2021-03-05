@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.intellij.openapi.actionSystem.AnAction
@@ -35,7 +35,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   }
 
   private fun findNavigatable(event: AnActionEvent): Navigatable? {
-    return model(event)?.let { findNavigatable(it) }
+    return LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
   }
 
   fun findNavigatable(model: InspectorModel): Navigatable? {
@@ -48,6 +48,4 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       resourceLookup.findFileLocation(node)?.navigatable
     }
   }
-
-  private fun model(event: AnActionEvent): InspectorModel? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.layoutInspectorModel
 }

@@ -22,6 +22,8 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -29,8 +31,11 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -234,15 +239,20 @@ class DeviceViewContentPanelTest {
   fun testDrag() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50) {
-          image()
-        }
+        view(VIEW1, 25, 30, 50, 50)
       }
     }
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    val layoutInspector: LayoutInspector = mock()
+    `when`(layoutInspector.currentClient).thenReturn(client)
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
+      id -> if (id == LAYOUT_INSPECTOR_DATA_KEY.name) layoutInspector else null
+    }
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
 

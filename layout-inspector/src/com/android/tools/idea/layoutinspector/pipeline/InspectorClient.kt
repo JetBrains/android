@@ -52,6 +52,12 @@ interface InspectorClient {
      * [startFetching] is called.
      */
     SUPPORTS_FILTERING_SYSTEM_NODES,
+
+    /**
+     * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
+     */
+    SUPPORTS_SKP,
+
   }
 
   /**

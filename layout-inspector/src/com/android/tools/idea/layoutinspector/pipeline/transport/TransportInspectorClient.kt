@@ -80,7 +80,8 @@ class TransportInspectorClient(
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
+                                         Capability.SUPPORTS_SKP)
 
   private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
 
@@ -125,7 +126,11 @@ class TransportInspectorClient(
 
   private var debugAttributesOverridden = false
 
-  private val skiaParser = SkiaParserImpl({ requestScreenshotMode() })
+  private val skiaParser = SkiaParserImpl(
+    {
+      capabilities.remove(Capability.SUPPORTS_SKP)
+      requestScreenshotMode()
+    })
 
   override val treeLoader = TransportTreeLoader(project, this, skiaParser)
 

@@ -76,11 +76,14 @@ class AppInspectionInspectorClient(
 
   private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)!!
+  override val capabilities =
+    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
 
-  private val skiaParser = SkiaParserImpl({
-    viewInspector.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
-  })
+  private val skiaParser = SkiaParserImpl(
+    {
+      viewInspector.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
+      capabilities.remove(Capability.SUPPORTS_SKP)
+    })
 
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(
     model.project,

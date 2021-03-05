@@ -16,13 +16,13 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.SKP
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.UNKNOWN
  import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Image
@@ -49,7 +49,7 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
-class DeviceViewPanelModel(private val model: InspectorModel) {
+class DeviceViewPanelModel(private val model: InspectorModel, private val client: (() -> InspectorClient?)? = null) {
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting
@@ -98,12 +98,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       if (new == null) {
         overlay = null
       }
+      if (client?.invoke()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
+        resetRotation()
+      }
     }
     refresh()
   }
-
-  val rotatable
-    get() = model.hasSubImages && overlay == null
 
   val pictureType
     get() =
@@ -142,10 +142,6 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   }
 
   fun refresh() {
-    if (!rotatable) {
-      xOff = 0.0
-      yOff = 0.0
-    }
     if (xOff == 0.0 && yOff == 0.0) {
       model.stats.rotation.toggledTo2D()
     }
