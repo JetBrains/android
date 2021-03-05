@@ -267,6 +267,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
     tabNamesCount.clear()
+    timeline.cachedVal = -1 // Reset the timeline cached value, so when new tabs are added, any new value will trigger an update
   }
 
   /**
@@ -365,11 +366,17 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      if (!executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
+      if (!executeOnRenderThread(longTimeout) {
+          clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState)
+        }) return
 
-      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
-      timeline.setClockTime(0, longTimeout) // Make sure that clock time is actually set in case timeline was already in 0.
+      // Set the timeline to 0
+      timeline.setClockTime(0, longTimeout)
       updateTimelineWindowSize(longTimeout)
+      // Update the cached value manually to prevent the timeline to set the clock time to 0 using the short timeout.
+      timeline.cachedVal = 0
+      // Move the timeline slider to 0.
+      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
     }
 
     /**

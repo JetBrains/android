@@ -112,13 +112,11 @@ object ComposePreviewAnimationManager {
     // subscribed animations, as they were tracked by the previous clock.
     inspector.animationClock?.let {
       if (it.clock != clock) {
-        synchronized(subscribedAnimationsLock) {
-          val subscribedAnimationsIterator = subscribedAnimations.iterator()
-          for (subscribedAnimation in subscribedAnimationsIterator) {
-            onAnimationUnsubscribed(subscribedAnimation)
-          }
+        // Make a copy of the list to prevent ConcurrentModificationException
+        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }.forEach { animationToUnsubscribe ->
+          onAnimationUnsubscribed(animationToUnsubscribe)
         }
-        // Now update the clock
+        // After unsubscribing the old animations, update the clock
         inspector.animationClock = AnimationClock(clock)
       }
     }
