@@ -75,8 +75,7 @@ class ViewLayoutInspectorClient(
     val generation: Int,
     val rootIds: List<Long>,
     val viewEvent: LayoutEvent,
-    val composeEvent: GetComposablesResponse?,
-    val updateScreenshotType: (Screenshot.Type) -> Unit
+    val composeEvent: GetComposablesResponse?
   )
 
   companion object {
@@ -145,11 +144,13 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  private suspend fun updateScreenshotType(type: Screenshot.Type, scale: Float = 1.0f) {
-    messenger.sendCommand {
-      updateScreenshotTypeCommandBuilder.apply {
-        this.type = type
-        this.scale = scale
+  fun updateScreenshotType(type: Screenshot.Type, scale: Float = 1.0f) {
+    scope.launch {
+      messenger.sendCommand {
+        updateScreenshotTypeCommandBuilder.apply {
+          this.type = type
+          this.scale = scale
+        }
       }
     }
   }
@@ -197,10 +198,7 @@ class ViewLayoutInspectorClient(
       generation,
       currRoots,
       layoutEvent,
-      composablesResponse,
-      updateScreenshotType = { type ->
-        scope.launch { updateScreenshotType(type) }
-      }))
+      composablesResponse))
   }
 
   private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {

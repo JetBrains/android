@@ -197,8 +197,7 @@ class AppInspectionTreeLoaderTest {
       11,
       listOf(123, 456),
       viewLayoutEvent,
-      composablesResponse,
-      updateScreenshotType = {}
+      composablesResponse
     )
   }
 

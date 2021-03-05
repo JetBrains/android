@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -126,7 +125,7 @@ class TransportInspectorClient(
 
   private var debugAttributesOverridden = false
 
-  private val skiaParser = SkiaParserImpl()
+  private val skiaParser = SkiaParserImpl({ requestScreenshotMode() })
 
   override val treeLoader = TransportTreeLoader(project, this, skiaParser)
 

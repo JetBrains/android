@@ -39,7 +39,7 @@ interface SkiaParser {
     requestedNodes: Iterable<RequestedNodeInfo>,
     scale: Double,
     isInterrupted: () -> Boolean = { false }
-  ): SkiaViewNode?
+  ): SkiaViewNode
 
   /**
    * Perform any necessary cleanup.
@@ -47,7 +47,10 @@ interface SkiaParser {
   fun shutdown()
 }
 
-class SkiaParserImpl : SkiaParser {
+class SkiaParserImpl(
+  private val failureCallback: () -> Unit,
+  private val connectionFactory: SkiaParserServerConnectionFactory = SkiaParserServerConnectionFactoryImpl
+) : SkiaParser {
 
   private var connection: SkiaParserServerConnection? = null
 
@@ -58,16 +61,17 @@ class SkiaParserImpl : SkiaParser {
     requestedNodes: Iterable<RequestedNodeInfo>,
     scale: Double,
     isInterrupted: () -> Boolean
-  ): SkiaViewNode? {
+  ): SkiaViewNode {
     if (connection == null) {
-      connection = SkiaParserServerConnectionFactory.createConnection(data)
+      connection = connectionFactory.createConnection(data)
     }
-    val (root, images) = connection?.getViewTree(data, requestedNodes, scale) ?: return null
-    return try {
-      buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id })
+    try {
+      val (root, images) = connection?.getViewTree(data, requestedNodes, scale) ?: throw Exception("connection can't be null here")
+      return buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id }) ?: throw ParsingFailedException()
     }
-    catch (interruptedException: InterruptedException) {
-      null
+    catch (e: Exception) {
+      failureCallback()
+      throw e
     }
   }
 

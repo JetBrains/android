@@ -35,7 +35,7 @@ class SkiaParserServerConnectionFactoryTest {
   @Test
   fun testGetSkpVersion() {
     val version =
-      SkiaParserServerConnectionFactory.getSkpVersion("skiapict".toByteArray().plus(byteArrayOf(10, 0, 1, 0)).plus("blah".toByteArray()))
+      SkiaParserServerConnectionFactoryImpl.getSkpVersion("skiapict".toByteArray().plus(byteArrayOf(10, 0, 1, 0)).plus("blah".toByteArray()))
     TestCase.assertEquals(65546, version)
   }
 
@@ -53,8 +53,8 @@ class SkiaParserServerConnectionFactoryTest {
       </versionMapping>
     """.trimIndent())
 
-    assertThat(SkiaParserServerConnectionFactory.findServerInfoForSkpVersion(13)!!.serverVersion).isEqualTo(2)
-    assertThat(SkiaParserServerConnectionFactory.findServerInfoForSkpVersion(25)).isNull()
+    assertThat(SkiaParserServerConnectionFactoryImpl.findServerInfoForSkpVersion(13)!!.serverVersion).isEqualTo(2)
+    assertThat(SkiaParserServerConnectionFactoryImpl.findServerInfoForSkpVersion(25)).isNull()
 
     fakeSdkRule.addLocalPackage("skiaparser;2")
     fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/2/version-map.xml").path, """
@@ -67,7 +67,7 @@ class SkiaParserServerConnectionFactoryTest {
       </versionMapping>
     """.trimIndent())
 
-    assertThat(SkiaParserServerConnectionFactory.findServerInfoForSkpVersion(25)!!.serverVersion).isEqualTo(4)
+    assertThat(SkiaParserServerConnectionFactoryImpl.findServerInfoForSkpVersion(25)!!.serverVersion).isEqualTo(4)
   }
 
 }

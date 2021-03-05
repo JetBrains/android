@@ -112,7 +112,7 @@ class SkiaParserServerConnection(private val serverPath: Path) {
         lock.countDown()
       }
 
-      override fun onError(p0: Throwable?) {}
+      override fun onError(error: Throwable?) {}
       override fun onCompleted() {}
     })
     if (!lock.await(10, TimeUnit.SECONDS)) {
@@ -126,7 +126,8 @@ class SkiaParserServerConnection(private val serverPath: Path) {
 
 
   @Slow
-  fun getViewTree(data: ByteArray, requestedNodes: Iterable<RequestedNodeInfo>, scale: Double): Pair<InspectorView, Map<Int, ByteString>>? {
+  @Throws(ParsingFailedException::class, UnsupportedPictureVersionException::class)
+  fun getViewTree(data: ByteArray, requestedNodes: Iterable<RequestedNodeInfo>, scale: Double): Pair<InspectorView, Map<Int, ByteString>> {
     ping()
     return getViewTreeImpl(data, requestedNodes, scale)
   }
@@ -137,7 +138,6 @@ class SkiaParserServerConnection(private val serverPath: Path) {
     var delay = INITIAL_DELAY_MILLI_SECONDS
     var lastException: Throwable? = null
     while (tries < MAX_TIMES_TO_RETRY) {
-
       try {
         val lock = CountDownLatch(1)
         client.ping(Empty.getDefaultInstance(), object: StreamObserver<Empty> {
@@ -145,9 +145,9 @@ class SkiaParserServerConnection(private val serverPath: Path) {
             lock.countDown()
           }
 
-          override fun onError(p0: Throwable?) {
-            p0?.printStackTrace()
-            lastException = p0
+          override fun onError(error: Throwable?) {
+            error?.printStackTrace()
+            lastException = error
           }
           override fun onCompleted() {}
         })
@@ -177,8 +177,8 @@ class SkiaParserServerConnection(private val serverPath: Path) {
     data: ByteArray,
     requestedNodes: Iterable<RequestedNodeInfo>,
     scale: Double
-  ): Pair<InspectorView, Map<Int, ByteString>>? {
-    val responseFuture = CompletableFuture<InspectorView?>()
+  ): Pair<InspectorView, Map<Int, ByteString>> {
+    val responseFuture = CompletableFuture<InspectorView>()
     val images = mutableMapOf<Int, ByteString>()
 
     val requestObserver = client.getViewTree2(object: StreamObserver<GetViewTreeResponse> {
@@ -191,13 +191,19 @@ class SkiaParserServerConnection(private val serverPath: Path) {
         }
       }
 
-      override fun onError(p0: Throwable?) {
-        p0?.printStackTrace()
-        responseFuture.complete(null)
+      override fun onError(error: Throwable?) {
+        error?.printStackTrace()
+        responseFuture.completeExceptionally(error)
       }
 
       override fun onCompleted() {
-        responseFuture.complete(lastResponse?.root)
+        val root = lastResponse?.root
+        if (root != null) {
+          responseFuture.complete(root)
+        }
+        else {
+          responseFuture.completeExceptionally(ParsingFailedException())
+        }
       }
     })!!
 
@@ -218,6 +224,6 @@ class SkiaParserServerConnection(private val serverPath: Path) {
       }
     }
 
-    return responseFuture.get()?.let { Pair(it, images) }
+    return Pair(responseFuture.get(), images)
   }
 }

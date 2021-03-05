@@ -40,7 +40,7 @@ class SkiaParserTest {
   @Test
   fun testInvalidSkp() {
     try {
-      SkiaParserImpl().getViewTree("foobarbaz".toByteArray(), emptyList(), 1.0)
+      SkiaParserImpl({}).getViewTree("foobarbaz".toByteArray(), emptyList(), 1.0)
       fail()
     }
     catch (expected: InvalidPictureException) {}
@@ -127,7 +127,7 @@ class SkiaParserIntegrationTest {
       x = 300
       y = 1200
     }.build()
-    val (root, imageMap) = server.getViewTree(generateBoxes(), listOf(node1, node2, node4), 1.0) ?: error("no result from server")
+    val (root, imageMap) = server.getViewTree(generateBoxes(), listOf(node1, node2, node4), 1.0)
     assertThat(imageMap.values.map { it.size() }).containsExactly(8000000, 2000000, 800000)
     val expected = Node(1, Node(1), Node(2, Node(2)), Node(4, Node(4)))
     assertIdsEqual(expected, root)
