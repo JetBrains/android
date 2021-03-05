@@ -404,7 +404,7 @@ public final class AndroidSdkUtils {
     }
 
     // If project is null, or non-android project (e.g. react-native), we'll use the global default path
-    if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
+    if (adb == null && IdeSdks.getInstance().getAndroidSdkPath() != null) {
       adb = new File(IdeSdks.getInstance().getAndroidSdkPath(), platformToolPath(FN_ADB));
     }
 
