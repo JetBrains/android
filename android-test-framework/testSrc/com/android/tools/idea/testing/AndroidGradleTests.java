@@ -26,7 +26,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.io.Files.asCharSink;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -53,7 +52,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
@@ -73,7 +71,6 @@ import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -284,24 +281,6 @@ public class AndroidGradleTests {
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     gradleProperties.setJvmArgs(Strings.nullToEmpty(gradleProperties.getJvmArgs()) + " -XX:MaxMetaspaceSize=768m ");
     gradleProperties.save();
-  }
-
-  /**
-   * Prevents leaking classloaders in gradle daemon
-   */
-  public static void applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(File projectRoot) throws IOException {
-    File projectBuildGradle = new File(projectRoot, "build.gradle");
-    if (projectBuildGradle.isFile()) {
-      asCharSink(projectBuildGradle, StandardCharsets.UTF_8, FileWriteMode.APPEND).write(
-        "\n\n" +
-        "// Ugly workaround for OOME:Metaspace in Gradle daemon\n" +
-        "gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +
-        "  .classLoaderRegistry.delegate.cache.classLoaderIds.localCache.values()\n" +
-        "  .each {\n" +
-        "    if (it.hasProperty('name') && it.name == 'client-owned-daemon-payload-loader')\n" +
-        "      it.loadClass('org.gradle.tooling.internal.adapter.ProtocolToModelAdapter').newInstance().REFLECTION_METHOD_INVOKER.lookupCache.store.clear()\n" +
-        "  }");
-    }
   }
 
   @NotNull
@@ -633,7 +612,6 @@ public class AndroidGradleTests {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
-    applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(projectRoot);
   }
 
   /**
