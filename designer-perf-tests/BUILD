@@ -4,6 +4,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.designer-perf-tests",
     iml_files = ["intellij.android.designer-perf-tests.iml"],
+    split_test_targets = {
+        "perfgate": {
+            "tags": ["perfgate"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.rendering.PerfgateComposeTest",
+        },
+        "non-perfgate": {
+        },
+    },
     tags = [
         "no_mac",
         "no_test_windows",
@@ -27,7 +36,6 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_resources = ["testData"],
-    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_timeout = "long",
     visibility = ["//visibility:public"],
