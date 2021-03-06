@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSourceImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -54,7 +55,7 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
     val componentsProvider = DefaultUiComponentsProvider(project)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
     val scope = AndroidCoroutineScope(project)
-    val dataSource = NetworkInspectorDataSource(messenger, scope)
+    val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
 
     return object : AppInspectorTab {
       override val messenger = messenger

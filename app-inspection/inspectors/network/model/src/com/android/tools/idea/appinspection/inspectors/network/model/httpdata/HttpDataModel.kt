@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
+import kotlinx.coroutines.runBlocking
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import java.util.concurrent.TimeUnit
@@ -34,16 +35,14 @@ interface HttpDataModel {
 }
 
 class HttpDataModelImpl(private val dataSource: NetworkInspectorDataSource) : HttpDataModel {
-  override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-    val startTime = TimeUnit.MICROSECONDS.toNanos(timeCurrentRangeUs.min.toLong())
-    val endTime = TimeUnit.MICROSECONDS.toNanos(timeCurrentRangeUs.max.toLong())
-    return dataSource.httpData
-      .filter { httpEvent -> httpEvent.timestamp in startTime..endTime }
+  override fun getData(timeCurrentRangeUs: Range) = runBlocking {
+    dataSource.queryForHttpData(timeCurrentRangeUs)
       .groupBy { httpEvent -> httpEvent.httpConnectionEvent.connectionId }
       .values
       .filter { events ->
         events.first().httpConnectionEvent.hasHttpRequestStarted() && events.find { it.httpConnectionEvent.hasHttpThread() } != null
-      }.mapNotNull { eventGroup ->
+      }
+      .mapNotNull { eventGroup ->
         val eventByType = eventGroup.groupBy { it.httpConnectionEvent.unionCase }
         val requestStartEvent = eventByType[HttpConnectionEvent.UnionCase.HTTP_REQUEST_STARTED]?.first()
                                 ?: return@mapNotNull null
