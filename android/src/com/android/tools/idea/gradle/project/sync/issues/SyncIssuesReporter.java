@@ -49,7 +49,8 @@ public class SyncIssuesReporter {
     this(new UnresolvedDependenciesReporter(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
-         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter());
+         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter(),
+         new JcenterDeprecatedReporter());
   }
 
   @NonInjectable
@@ -103,6 +104,15 @@ public class SyncIssuesReporter {
         strategy = myDefaultMessageFactory;
       }
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
+    }
+    Project finalProject = project;
+    Runnable reportTask = () -> {
+      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker();
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode())
+      reportTask.run();
+    else {
+      ApplicationManager.getApplication().invokeLater(reportTask);
     }
   }
 

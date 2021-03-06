@@ -269,34 +269,4 @@ class InspectorClientLauncherTest {
     processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
-
-  @Test
-  fun inspectorHangingOnConnectPastTheTimeoutIsSkipped() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
-
-    val launcher = InspectorClientLauncher(
-      adbRule.bridge,
-      processes,
-      listOf(
-        { params ->
-          val client = object : FakeInspectorClient("Hanging client", params.process) {
-            // Simulate a fake "doConnect" that never finishes
-            override fun doConnect(): ListenableFuture<Nothing> = SettableFuture.create()
-          }
-          // Verify disconnect not called if connect fails
-          client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) fail() }
-          client
-        },
-        { params -> FakeInspectorClient("Modern client", params.process) }
-      ),
-      disposableRule.disposable,
-      MoreExecutors.directExecutor(),
-      Duration.ZERO)
-
-    processes.selectedProcess = MODERN_DEVICE.createProcess()
-    // Verify we skipped over "Hanging Client"
-    (launcher.activeClient as FakeInspectorClient).let { activeClient ->
-      assertThat(activeClient.name).isEqualTo("Modern client")
-    }
-  }
 }

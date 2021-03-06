@@ -528,6 +528,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
+        if (hasLiveLiterals) {
+          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+        }
+
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
       }
@@ -554,7 +558,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                           {
                             if (isBuildOnSaveEnabled
                                 && isActive.get()
-                                && !hasSyntaxErrors()) requestBuildForSurface(surface)
+                                && !hasSyntaxErrors()) requestBuildForSurface(surface, false)
                           }, this)
     }
 
@@ -792,7 +796,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     composeWorkBench.setPinnedSurfaceVisibility(hasPinnedElements)
     val pinnedManager = PinnedPreviewElementManager.getInstance(project)
     if (hasPinnedElements) {
-      lastPinsModificationCount = pinnedManager.modificationCount
       pinnedSurface.updatePreviewsAndRefresh(
         false,
         memoizedPinnedPreviewProvider,
@@ -805,6 +808,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         this::configureLayoutlibSceneManagerForPreviewElement
       ).isNotEmpty()
     }
+    lastPinsModificationCount = pinnedManager.modificationCount
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,

@@ -115,12 +115,12 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show Always-run tasks" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // Mock tasks have only one Always-run tasks warning. When it is filtered out, only AP and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS, defaultWarningFilterItemsList)
   }
@@ -132,12 +132,12 @@ class BuildAnalyzerFiltersTest {
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // Mock tasks have only one Always-run tasks warning and task is attributed to Android plugin.
-    // When it is filtered out, only AP warnings should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // When it is filtered out, only AP and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS, defaultWarningFilterItemsList)
   }
@@ -148,12 +148,12 @@ class BuildAnalyzerFiltersTest {
     val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show annotation processors issues" }
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // When AP warnings are filtered out only Always-run tasks warning should be shown.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(1)
+    // When AP warnings are filtered out only Always-run tasks and CC warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
     // All tasks should be back.
-    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS, defaultWarningFilterItemsList)
   }

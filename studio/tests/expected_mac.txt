@@ -2041,6 +2041,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library.jar
+Android Studio Preview.app/Contents/plugins/android/lib/inspectors-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar

@@ -197,7 +197,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:sample")
     assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.example.buildsrc.SampleTask")
-    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("buildSrc plugin sampleId")
+    assertThat(alwaysRunTasks[0].taskData.originPlugin.toString()).isEqualTo("buildSrc plugin org.example.buildsrc.SamplePlugin")
     assertThat(alwaysRunTasks[0].taskData.originPlugin.pluginType).isEqualTo(PluginData.PluginType.BUILDSRC_PLUGIN)
     assertThat(alwaysRunTasks[0].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
   }

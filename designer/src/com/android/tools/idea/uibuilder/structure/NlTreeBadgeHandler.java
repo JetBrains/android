@@ -20,19 +20,11 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
-import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
-import com.intellij.codeInsight.hint.HintUtil;
-import com.intellij.openapi.ui.popup.Balloon;
-import com.intellij.ui.HintHint;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,15 +44,12 @@ import static com.android.tools.idea.common.scene.SceneManager.SUPPORTS_LOCKING;
 public class NlTreeBadgeHandler {
 
   private static final int BADGE_MARGIN = 5;
-  private static final int MESSAGE_WIDTH = 50;
   private static final int BADGE_ICON = 0;
   private static final int LOCK_ICON = 1;
 
   private static final String TOGGLE_LOCK_MESSAGE = "Toggle Tool Locking";
 
   private final BadgeMouseMotionListener myBadgeMouseMotionListener = new BadgeMouseMotionListener();
-  private final JBLabel myHintLabel = new JBLabel();
-  private final Point myHintLocation = new Point();
   @Nullable private LightweightHint myTooltipHint;
   @Nullable private TreePath myHoveredPath;
   private int myHoveredIcon = BADGE_ICON;
@@ -147,92 +136,6 @@ public class NlTreeBadgeHandler {
         }
       }
     }
-  }
-
-  /**
-   * Shows a tooltip containing the message at the right of the given path.
-   *
-   * @param tree    The tree containing the path
-   * @param path    The path containing the badge
-   * @param message The message to show in the tooltip
-   */
-  private void showErrorTooltip(@NotNull JTree tree, @NotNull TreePath path, @NotNull String message) {
-    Window activeFrame = UIUtil.getWindow(tree);
-    if (activeFrame == null) {
-      return;
-    }
-    Rectangle bounds = tree.getPathBounds(path);
-    if (bounds != null) {
-      HintHint hint = createHint(tree);
-      message = SdkUtils.wrap(message, MESSAGE_WIDTH, null);
-      message = HintUtil.prepareHintText(message, hint);
-      myHintLabel.setText(message);
-      myHintLocation.x = tree.getWidth() - BADGE_MARGIN;
-      myHintLocation.y = bounds.y + bounds.height / 2;
-
-      hint = ensureHintCanBeDisplayed(hint, message, tree, activeFrame);
-      if (hint == null) {
-        // The window is too small to display the hint so we don't show it
-        return;
-      }
-      if (myTooltipHint == null) {
-        myTooltipHint = new LightweightHint(myHintLabel);
-      }
-      myTooltipHint.show(tree, myHintLocation.x, myHintLocation.y, tree, hint);
-    }
-  }
-
-  /**
-   * Check if the provided hint containing the provided message can be displayed as is
-   * in the provided window.
-   * <p>
-   * If the window is large enough to display the hint at its current position,
-   * the provided hint is returned as is.
-   * <p>
-   * If the window is large enough but the hint needs to be moved to ensure that it fit inside,
-   * a the hint is moved to the left and will be shown below the badge.
-   * <p>
-   * If the window too small to display the hint, the method return null so no hint should be displayed.
-   *
-   * @param hint        The hint that will be displayed
-   * @param message     The message showing in the hint. Used to measure the hint width.
-   * @param component   The component hosting the hint
-   * @param activeFrame The window of the component
-   * @return The provided hint, modified if needed, if it can be shown or null if the window is too small.
-   */
-  @Nullable
-  private HintHint ensureHintCanBeDisplayed(@NotNull HintHint hint,
-                                            @NotNull String message,
-                                            @NotNull Component component,
-                                            @NotNull Window activeFrame) {
-    int labelWidth = myHintLabel.getFontMetrics(myHintLabel.getFont())
-                                .stringWidth(message.substring(0, Math.min(message.length(), MESSAGE_WIDTH)));
-    int labelRight = component.getLocationOnScreen().x + component.getWidth() + labelWidth;
-    int frameRight = activeFrame.getLocationOnScreen().x + activeFrame.getWidth();
-
-    if (activeFrame.getWidth() < labelWidth) {
-      return null;
-    }
-
-    if (frameRight < labelRight) {
-      myHintLocation.x = BADGE_MARGIN;
-      hint.setPreferredPosition(Balloon.Position.below);
-    }
-    return hint;
-  }
-
-  /**
-   * Create a hint in owned by the given component
-   */
-  private HintHint createHint(@NotNull Component component) {
-    return new HintHint(component, myHintLocation)
-      .setPreferredPosition(Balloon.Position.atRight)
-      .setBorderColor(JBColor.border())
-      .setAwtTooltip(true)
-      .setTextBg(HintUtil.getInformationColor())
-      .setShowImmediately(true)
-      .setExplicitClose(true)
-      .setAnimationEnabled(true);
   }
 
   /**
@@ -393,7 +296,7 @@ public class NlTreeBadgeHandler {
         }
       }
       if (message != null) {
-        showErrorTooltip(tree, myHoveredPath, message);
+        tree.setToolTipText(message);
       }
     }
 

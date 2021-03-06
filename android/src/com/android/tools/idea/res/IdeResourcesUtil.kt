@@ -51,7 +51,6 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.ide.common.repository.ResourceVisibilityLookup
 import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItem.ATTR_EXAMPLE
@@ -72,22 +71,21 @@ import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.create
-import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
-import com.google.common.collect.Iterables
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.ide.actions.CreateElementActionBase
@@ -102,7 +100,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -151,14 +148,12 @@ import org.jetbrains.android.AndroidFileTemplateProvider
 import org.jetbrains.android.actions.CreateTypedResourceFileAction
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.augment.StyleableAttrLightField
-import org.jetbrains.android.dom.AndroidDomElement
-import org.jetbrains.android.dom.color.ColorSelector
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
-import org.jetbrains.android.dom.drawable.DrawableSelector
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.resources.ResourceElement
 import org.jetbrains.android.dom.resources.Resources
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -171,10 +166,7 @@ import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import java.awt.Color
 import java.io.File
 import java.io.IOException
-import java.util.ArrayList
-import java.util.Comparator
 import java.util.EnumSet
-import java.util.HashMap
 import java.util.Properties
 import javax.swing.Icon
 
@@ -383,6 +375,7 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     true
   }
 }
+
 /**
  * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
  * in case of common packages, which is handled by various inflaters in Android framework. This method checks
@@ -959,7 +952,7 @@ fun getCompletionFromTypes(
     if (frameworkResources != null) {
       addFrameworkItems(resources, type, includeFileResources, frameworkResources)
     }
-    addProjectItems(resources, type, includeFileResources, appResources, repoManager.resourceVisibility)
+    addProjectItems(resources, type, includeFileResources, appResources, facet)
   }
 
   if (sort) {
@@ -1024,16 +1017,16 @@ private fun addProjectItems(
   type: ResourceType,
   includeFileResources: Boolean,
   repository: LocalResourceRepository,
-  lookup: ResourceVisibilityLookup?
+  facet: AndroidFacet
 ) {
   val namespace = ResourceNamespace.TODO()
   for (entry in repository.getResources(namespace, type).asMap().entries) {
     val resourceName = entry.key
-    if (lookup != null && lookup.isPrivate(type, resourceName)) {
+    if (!isAccessible(namespace, type, resourceName, facet)) {
       continue
     }
     val items = entry.value
-    if (!includeFileResources && Iterables.getFirst(items, null)?.isFileBased == true) {
+    if (!includeFileResources && items.firstOrNull()?.isFileBased == true) {
       continue
     }
 
@@ -1177,37 +1170,19 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
 fun ResourceRepository.getResourceItems(
   namespace: ResourceNamespace,
   type: ResourceType,
-  visibilityLookup: ResourceVisibilityLookup,
   minVisibility: ResourceVisibility
 ): Collection<String> {
   Preconditions.checkArgument(minVisibility != ResourceVisibility.UNDEFINED)
 
-  // TODO(namespaces): Only AarResourceRepository and its subclasses properly support resource visibility.
-  //                   We need to make all repositories support it.
-  return when {
-    this is AarResourceRepository -> {
-      // Resources in AarResourceRepository know their visibility.
-      val items = getResources(namespace, type) { item ->
-        (item as ResourceItemWithVisibility).visibility >= minVisibility
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
-    }
-    else -> {
-      val items = getResources(namespace, type) { item ->
-        when {
-          minVisibility == ResourceVisibility.values()[0] -> true
-          item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
-          else ->
-            // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
-            // TODO(namespaces)
-            // This is not the same as calling isPublic, see ResourceVisibilityLookup docs. If we don't know, we assume things are accessible,
-            // which is probably a better UX and the only way to make our tests pass (for now).
-            minVisibility != ResourceVisibility.PUBLIC || !visibilityLookup.isPrivate(type, item.name)
-        }
-      }
-      items.mapTo(HashSet(items.size), ResourceItem::getName)
+  val items = getResources(namespace, type) { item ->
+    when {
+      minVisibility == ResourceVisibility.values()[0] -> true
+      item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
+      // Only project resources may not implement ResourceItemWithVisibility.
+      else -> true // TODO(b/74324283): Distinguish between PRIVATE and PRIVATE_XML_ONLY for project resources.
     }
   }
+  return items.mapTo(HashSet(items.size), ResourceItem::getName)
 }
 
 /** Checks if the given [ResourceItem] is available in XML resources in the given [AndroidFacet]. */
@@ -1231,27 +1206,24 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 }
 
 /**
- * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes only public resources can be accessed.
- *
- * TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+ * Temporary implementation of the accessibility checks, which ignores the "call site" and assumes
+ * that only public resources can be accessed.
  */
-private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repoManager = ResourceRepositoryManager.getInstance(facet)
-  return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(emptySet()) ?: return false
-    val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
-    items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+// TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
+fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
+  val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+  val repository = repositoryManager.getResourcesForNamespace(namespace)
+  // For some unclear reason nonexistent resources in the application workspace are treated differently from the framework ones.
+  // This non-intuitive behavior is required for the DerivedStyleFinderTest to pass.
+  val resource = repository?.getResources(namespace, type, name)?.firstOrNull() ?: return namespace == repositoryManager.namespace
+  if (namespace == repositoryManager.namespace && resource.libraryName == null) {
+    return true // Project resource.
   }
-  else {
-    val repo = repoManager.appResources
-    val item = repo.getResources(namespace, type, name).firstOrNull()
-    if (item?.libraryName != null) {
-      (item as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
-    }
-    else {
-      !repoManager.resourceVisibility.isPrivate(type, name)
-    }
+  if (resource is ResourceItemWithVisibility) {
+    return resource.visibility == ResourceVisibility.PUBLIC
   }
+  throw AssertionError("Library resource $type/$name of type ${resource.javaClass}" +
+                       " doesn't implement ResourceItemWithVisibility")
 }
 
 /**
@@ -1282,7 +1254,7 @@ fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix
 
   ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-  prefix = suggestedPrefix ?: when(namespaceUri) {
+  prefix = suggestedPrefix ?: when (namespaceUri) {
     SdkConstants.TOOLS_URI -> SdkConstants.TOOLS_PREFIX
     SdkConstants.ANDROID_URI -> SdkConstants.ANDROID_NS_NAME
     SdkConstants.AAPT_URI -> SdkConstants.AAPT_PREFIX
@@ -1730,14 +1702,39 @@ fun getValueResourcesFromElement(resourceType: ResourceType,
   return result
 }
 
+private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
+  val vf = dir.virtualFile
+  val module = ModuleUtilCore.findModuleForFile(vf, dir.project) ?: return false
+  val facet = AndroidFacet.getInstance(module) ?: return false
+  for (provider in SourceProviders.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders) {
+    for (resDir in provider.resDirectories)
+      if (vf == resDir) {
+        return true
+      }
+  }
+  for (resDir in AndroidRootUtil.getResourceOverlayDirs(facet)) {
+    if (vf == resDir) {
+      return true
+    }
+  }
+  return false
+}
+
+fun isInResourceSubdirectoryInAnyVariant(file: PsiFile, resourceType: String? = null): Boolean {
+  var file = file
+  file = file.originalFile
+  val dir = file.containingDirectory ?: return false
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = true)
+}
+
 fun isInResourceSubdirectory(file: PsiFile, resourceType: String? = null): Boolean {
   var file = file
   file = file.originalFile
   val dir = file.containingDirectory ?: return false
-  return isResourceSubdirectory(dir, resourceType)
+  return isResourceSubdirectory(dir, resourceType, searchInAllVariants = false)
 }
 
-fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null): Boolean {
+fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   val dirName = dir!!.name
   if (resourceType != null) {
@@ -1754,7 +1751,7 @@ fun isResourceSubdirectory(directory: PsiDirectory, resourceType: String? = null
   if ("default" == dir.name) {
     dir = dir.parentDirectory
   }
-  return dir != null && isResourceDirectory(dir)
+  return dir != null && isResourceDirectory(dir, searchInAllVariants)
 }
 
 fun isLocalResourceDirectory(dir: VirtualFile, project: Project): Boolean {
@@ -1772,11 +1769,14 @@ fun isResourceFile(file: VirtualFile, facet: AndroidFacet): Boolean {
   return resDir != null && ModuleResourceManagers.getInstance(facet).localResourceManager.isResourceDir(resDir)
 }
 
-fun isResourceDirectory(directory: PsiDirectory): Boolean {
+fun isResourceDirectory(directory: PsiDirectory, searchInAllVariants: Boolean = false): Boolean {
   var dir: PsiDirectory? = directory
   // check facet settings
   val vf = dir!!.virtualFile
-  if (isLocalResourceDirectory(vf, dir.project)) {
+  if (searchInAllVariants && isLocalResourceDirectoryInAnyVariant(directory)) {
+    return true
+  }
+  if (!searchInAllVariants && isLocalResourceDirectory(vf, dir.project)) {
     return true
   }
   if (SdkConstants.FD_RES != dir.name) return false
@@ -2316,7 +2316,8 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   val predicate = { element: PsiElement ->
     if (element !is XmlAttribute) {
       false
-    } else {
+    }
+    else {
       val attrValue = element.value
       if (isIdDeclaration(attrValue)) {
         val resourceUrl = ResourceUrl.parse(attrValue!!)

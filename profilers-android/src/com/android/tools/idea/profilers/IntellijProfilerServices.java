@@ -17,17 +17,17 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
-import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.profilers.stacktrace.ProfilerCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocatorKt;
@@ -38,7 +38,6 @@ import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -50,8 +49,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -67,7 +64,6 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -90,7 +86,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return Logger.getInstance(IntellijProfilerServices.class);
   }
 
-  private final IntellijCodeNavigator myCodeNavigator;
+  private final ProfilerCodeNavigator myCodeNavigator;
   @NotNull private final NativeFrameSymbolizer myNativeSymbolizer;
   private final StudioFeatureTracker myFeatureTracker;
 
@@ -104,7 +100,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     NativeSymbolizer nativeSymbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
     Disposer.register(this, nativeSymbolizer::stop);
     myNativeSymbolizer = new IntelliJNativeFrameSymbolizer(nativeSymbolizer);
-    myCodeNavigator = new IntellijCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
+    myCodeNavigator = new ProfilerCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
   }
@@ -406,6 +402,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isLiveAllocationsSamplingEnabled() {
       return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
+    }
+
+    @Override
+    public boolean isMemoryCSVExportEnabled() {
+      return StudioFlags.PROFILER_MEMORY_CSV_EXPORT.get();
     }
 
     @Override

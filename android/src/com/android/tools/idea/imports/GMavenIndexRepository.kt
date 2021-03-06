@@ -23,24 +23,41 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.exists
 import com.intellij.util.io.outputStream
+import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 import java.net.URL
+import java.net.UnknownHostException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.text.SimpleDateFormat
 import java.time.Duration
+import java.util.Locale
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 /** Network connection timeout in milliseconds. */
-private const val NETWORK_TIMEOUT_MILLIS = 5000
+private const val NETWORK_TIMEOUT_MILLIS = 3000
+
+/** Network retry initial delay in milliseconds. */
+private val NETWORK_RETRY_INITIAL_DELAY_MILLIS = TimeUnit.HOURS.toMillis(1)
+
+/** Network maximum retry times. */
+private const val NETWORK_MAXIMUM_RETRY_TIMES = 4
+
+/** Network retry delay factor. */
+private const val NETWORK_RETRY_DELAY_FACTOR = 2.0
+
 private const val GZ_EXT = ".gz"
 
 /** Key used in property list to find ETag value.  */
 private const val ETAG_KEY = "etag"
+
+private val DATE_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
 
 /**
  * A repository provides Maven class registry generated from loading local disk cache, which is actively refreshed from
@@ -67,8 +84,11 @@ class GMavenIndexRepository(
 
   init {
     val task = Runnable {
-      thisLogger().info("Scheduled to refresh ${this.javaClass.name}.")
-      refresh("$baseUrl/$RELATIVE_PATH")
+      refreshWithRetryStrategy(
+        url = "$baseUrl/$RELATIVE_PATH",
+        retryDelayMillis = NETWORK_RETRY_INITIAL_DELAY_MILLIS,
+        remainingAttempts = NETWORK_MAXIMUM_RETRY_TIMES
+      )
     }
     // Schedules to refresh local disk cache on a daily basis.
     scheduler.scheduleWithFixedDelay(task, 0, refreshInterval.toMillis(), TimeUnit.MILLISECONDS)
@@ -86,13 +106,32 @@ class GMavenIndexRepository(
   }
 
   /**
+   * Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists with retry strategy.
+   */
+  @Slow
+  private fun refreshWithRetryStrategy(url: String, retryDelayMillis: Long, remainingAttempts: Int) {
+    val status = refresh(url)
+
+    if (status == RefreshStatus.RETRY && remainingAttempts > 1) {
+      val scheduledTime = DATE_FORMAT.format(System.currentTimeMillis() + retryDelayMillis)
+      thisLogger().info("Scheduled to retry refreshing ${this.javaClass.name} after $scheduledTime.")
+
+      val retry = Runnable {
+        val nextRetryDelayMillis = (retryDelayMillis * NETWORK_RETRY_DELAY_FACTOR).toLong()
+        refreshWithRetryStrategy(url, nextRetryDelayMillis, remainingAttempts - 1)
+      }
+      scheduler.schedule(retry, retryDelayMillis, TimeUnit.MILLISECONDS)
+    }
+  }
+
+  /**
    * Refreshes both local disk cache and [lastComputedMavenClassRegistry] if exists.
    */
   @Slow
-  private fun refresh(url: String) {
+  private fun refresh(url: String): RefreshStatus {
     val status = refreshDiskCache(url)
 
-    if (status == RefreshedStatus.UPDATED) {
+    if (status == RefreshStatus.UPDATED) {
       lastComputedMavenClassRegistry.getAndUpdate {
         if (it == null) {
           null
@@ -105,6 +144,8 @@ class GMavenIndexRepository(
         }
       }
     }
+
+    return status
   }
 
   /**
@@ -123,10 +164,10 @@ class GMavenIndexRepository(
   }
 
   /**
-   * Returns [RefreshedStatus.UPDATED] if the disk cache is successfully updated.
+   * Returns [RefreshStatus.UPDATED] if the disk cache is successfully updated.
    *
-   * Or returns [RefreshedStatus.UNCHANGED] if it's already up to date. Or returns [RefreshedStatus.ERROR] when errors
-   * occur.
+   * Or returns [RefreshStatus.UNCHANGED] if it's already up to date. Or returns [RefreshStatus.RETRY] if might be
+   * worth retrying after a while. Or returns [RefreshStatus.ERROR] when errors occur.
    *
    * When requesting content, we explicitly store the corresponding ETag values, in a `.properties` file, as a sibling
    * to the local cached content. So, such cached ETag value can be an identifier to determine if there's new changes
@@ -134,7 +175,7 @@ class GMavenIndexRepository(
    * date cache.
    */
   @Slow
-  private fun refreshDiskCache(url: String): RefreshedStatus {
+  private fun refreshDiskCache(url: String): RefreshStatus {
     try {
       val cacheFile = cacheDir.resolve(relativeCachePath)
       val eTagForCacheFile: String? = if (cacheFile.exists()) loadETag(getETagFile(cacheFile)) else null
@@ -142,18 +183,31 @@ class GMavenIndexRepository(
       val valueWithETag = readUrlData(url, NETWORK_TIMEOUT_MILLIS, eTagForCacheFile)
       if (valueWithETag == null) {
         thisLogger().info("Kept the old disk cache with an old ETag header: $eTagForCacheFile.")
-        return RefreshedStatus.UNCHANGED
+        return RefreshStatus.UNCHANGED
       }
 
       saveCache(valueWithETag.data, cacheFile)
       saveETag(getETagFile(cacheFile), valueWithETag.eTag)
       thisLogger().info("Refreshed disk cache successfully with a new ETag header: ${valueWithETag.eTag}.")
-      return RefreshedStatus.UPDATED
+      return RefreshStatus.UPDATED
     }
     catch (e: Exception) {
       thisLogger().info("Failed to refresh local disk cache:\n$e")
-      return RefreshedStatus.ERROR
+
+      return if (isRetryableError(e)) RefreshStatus.RETRY else RefreshStatus.ERROR
     }
+  }
+
+  /**
+   * Returns true if a retry should be scheduled for later.
+   */
+  private fun isRetryableError(e: Exception): Boolean {
+    if (e !is IOException) return false
+
+    if (e is SocketTimeoutException || e is UnknownHostException) return true
+
+    val responseCode = (e as? HttpRequests.HttpStatusException)?.statusCode ?: return false
+    return responseCode >= 400
   }
 
   /**
@@ -233,7 +287,7 @@ class GMavenIndexRepository(
   /**
    * Status after the local disk cache being refreshed.
    */
-  private enum class RefreshedStatus {
+  private enum class RefreshStatus {
     /**
      * Content is updated to the latest.
      */
@@ -243,6 +297,11 @@ class GMavenIndexRepository(
      * No changes after refreshing.
      */
     UNCHANGED,
+
+    /**
+     * Worth a retry after a while.
+     */
+    RETRY,
 
     /**
      * Errors happen when refreshing.

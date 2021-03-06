@@ -124,6 +124,11 @@ public final class StudioFlags {
     "For Android O or newer, supports single-point selection which shows a snapshot of the heap at the specific time.",
     true);
 
+  public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = Flag.create(
+    PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
+    "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",
+    false);
+
   public static final Flag<Boolean> PROFILER_SAMPLE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "memory.livealloc.sampled", "Enable Sampled Live Allocation Tracking",
     "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
@@ -608,11 +613,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> DATABASE_INSPECTOR_EXPORT_TO_FILE_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
     "export.to.file.enabled",
-    // TODO(161081452): remove "work in progress" note below when the feature is ready for at least a Canary release.
-    "Enable Export to File feature in Database Inspector (work in progress)",
+    "Enable Export to File feature in Database Inspector",
     "If enabled, Database Inspector will expose an ability for the user to export a table, query results, or the whole database " +
     "to a local file.",
-    false
+    true
   );
   //endregion
 
@@ -657,7 +661,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA = Flag.create(
     EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
     "Enables the virtual scene camera in the Embedded Emulator",
-    false);
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -1042,6 +1046,13 @@ public final class StudioFlags {
     COMPOSE, "preview.animated.quick",
     "Speed up transition between static and animated compose previews",
     "If enabled, a transition between static and animated compose preview is almost instant",
+    true
+  );
+
+  public static final Flag<Boolean> NL_COLORBLIND_MODE = Flag.create(
+    COMPOSE, "nl.colorblind",
+    "Enable the colorblind mode for Design Surface",
+    "If enabled, the user can change the mode of layout previews, between different types of colorblind modes",
     true
   );
 

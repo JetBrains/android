@@ -15,9 +15,11 @@
  */
 package com.android.build.attribution.analyzers
 
+import com.android.build.attribution.data.StudioProvidedInfo
+
 /**
  * Analyzer that requires to run some post-processing after build, possibly using results of other analyzers.
  */
 interface PostBuildProcessAnalyzer {
-  fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult)
+  fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo)
 }

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.ContextMenuItem
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
@@ -28,12 +29,10 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
-import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import javax.swing.JPanel
 
 class CpuProfilerContextMenuInstallerTest {

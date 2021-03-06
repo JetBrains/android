@@ -96,11 +96,11 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       if (repository == null) {
         return PsiField.EMPTY_ARRAY;
       }
-      return buildResourceFields(repository,
-                                 ResourceNamespace.ANDROID,
+      return buildResourceFields(repository, ResourceNamespace.ANDROID, null,
                                  FieldModifier.FINAL,
-                                 (type, s) -> true,
-                                 myResourceType, AndroidInternalRClass.this);
+                                 (resource) -> true,
+                                 myResourceType,
+                                 AndroidInternalRClass.this);
     }
 
     @Override

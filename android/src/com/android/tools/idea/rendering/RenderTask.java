@@ -102,6 +102,7 @@ import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.ModuleClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -252,7 +253,7 @@ public class RenderTask {
                                               additionalNonProjectTransform,
                                               onNewModuleClassLoader);
     }
-    preloadClasses(myModuleClassLoader, classesToPreload);
+    ModuleClassLoaderPreloaderKt.preload(myModuleClassLoader, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -274,19 +275,6 @@ public class RenderTask {
     } catch (Exception ex) {
       clearClassLoader();
       throw ex;
-    }
-  }
-
-  /**
-   * When executing the user code some code paths may take significantly longer time when executed the first time. This happens because the
-   * ClassLoader has to load the classes used in those paths first. If that happens e.g. in interactive preview this produces visual lass,
-   * glitches and might even affect the logic. In order to prevent this from happening, we load the classes in advance.
-   */
-  private static void preloadClasses(ModuleClassLoader moduleClassLoader, Collection<String> classesToPreload) {
-    for (String classToPreload: classesToPreload) {
-      try {
-        moduleClassLoader.loadClass(classToPreload);
-      } catch (ClassNotFoundException ignore) { }
     }
   }
 

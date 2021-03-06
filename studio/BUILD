@@ -162,6 +162,11 @@ studio_plugin(
         "game-tools.jar": [
             "//tools/vendor/google/game-tools/main:android.game-tools.main",
         ],
+        "inspectors-common.jar": [
+            "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api",
+            "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide",
+            "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
+        ],
         "jps/android-jps-plugin.jar": [
             "//tools/adt/idea/jps-plugin:intellij.android.jps",
         ],
@@ -518,9 +523,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 9,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

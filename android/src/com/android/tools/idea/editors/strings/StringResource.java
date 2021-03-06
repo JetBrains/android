@@ -245,13 +245,17 @@ public final class StringResource {
     }
 
     Project project = myData.getProject();
-    XmlFile file = StringPsiUtils.getStringResourceFile(project, myKey, locale);
+    XmlFile file = myData.getDefaultLocaleXml(locale);
 
     if (file == null) {
-      return null;
+      file = StringPsiUtils.getStringResourceFile(project, myKey, locale);
+      if (file == null) {
+        return null;
+      }
     }
 
-    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
+    XmlFile finalFile = file;
+    WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(finalFile, myKey, myTranslatable, value));
     return myData.getRepository().getTranslation(myKey, locale);
   }
 

@@ -100,7 +100,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
   private fun TaskUiData.verifyValues(project: String, name: String, plugin: PluginData, time: TimeWithPercentage) {
     assertThat(taskPath).isEqualTo("${project}:${name}")
     assertThat(module).isEqualTo(project)
-    assertThat(pluginName).isEqualTo(plugin.displayName)
+    assertThat(pluginName).isEqualTo(plugin.displayNameInProject(project))
     assertThat(onLogicalCriticalPath).isTrue()
     assertThat(executionTime).isEqualTo(time)
   }

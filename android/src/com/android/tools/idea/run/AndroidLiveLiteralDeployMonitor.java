@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
@@ -76,6 +77,10 @@ class AndroidLiveLiteralDeployMonitor {
       return null;
     }
 
+    if (!supportLiveLiteral(device)) {
+      return null;
+    }
+
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), packageName);
 
     return () -> {
@@ -130,6 +135,12 @@ class AndroidLiveLiteralDeployMonitor {
             continue;
           }
           for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
+            // We need to do this check once more. The reason is that we have one listener per project.
+            // That means a listener is in charge of multiple devices. If we are here this only means,
+            // at least one active device support live literals.
+            if (!supportLiveLiteral(iDevice)) {
+              continue;
+            }
             AdbClient adb = new AdbClient(iDevice, LOGGER);
             MetricsRecorder metrics = new MetricsRecorder();
 
@@ -172,6 +183,10 @@ class AndroidLiveLiteralDeployMonitor {
     });
   }
 
+  private static boolean supportLiveLiteral(IDevice device) {
+    return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
+  }
+
   private static String constTypeToJvmType(Object constValue) {
     if (constValue instanceof Character) {
       return "C";
@@ -211,7 +226,18 @@ class AndroidLiveLiteralDeployMonitor {
     // Skip over the composible function name.
     //  com.example.compose.MainActivity.Greeting to
     //  com.example.compose.MainActivity
-    helper = helper.substring(0, helper.lastIndexOf("."));
+    if (helper.indexOf(".") == -1) {
+      // This normally would not happen since all functions in bytecode belong to
+      // a class and therefore needs a least one dot (namespace.function).
+      // It might be possible that the file is in the middle of editing and
+      // is syntactically incorrect Kotlin so the editor is confused.
+      // We are not going to crash with invalid index and instead we give in a
+      // namespace. The agent will just warn the user about it and we can get a
+      // bug report if that happens.
+      helper = "no.name.space.from.LiveLiteralMonitor";
+    } else {
+      helper = helper.substring(0, helper.lastIndexOf("."));
+    }
 
     // The compiler will always name the helper class LiveLiterals$FooKt so add "Kt" even if we are looking at non-outer functions.
     //  com.example.compose.MainActivity

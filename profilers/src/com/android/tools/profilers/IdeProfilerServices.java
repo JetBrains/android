@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
-import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import java.io.File;
 import java.io.FileOutputStream;

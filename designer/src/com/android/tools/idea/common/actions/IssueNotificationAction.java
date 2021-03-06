@@ -71,16 +71,22 @@ public class IssueNotificationAction extends ToggleAction {
       int markerCount = issueModel.getIssueCount();
 
       presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
-      if (iconAndDescription.getSecond() != null) {
-        presentation.setText(iconAndDescription.getSecond());
-      }
+      if (markerCount == 0) {
+        Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
+        if (iconAndDescription.getSecond() != null) {
+          presentation.setText(iconAndDescription.getSecond());
+        }
 
-      if (iconAndDescription.getFirst() == null) {
-        presentation.setIcon(getIssueTypeIcon(issueModel));
+        if (iconAndDescription.getFirst() == null) {
+          presentation.setIcon(getIssueTypeIcon(issueModel));
+        }
+        else {
+          presentation.setIcon(iconAndDescription.getFirst());
+        }
       }
       else {
-        presentation.setIcon(iconAndDescription.getFirst());
+        presentation.setIcon(getIssueTypeIcon(issueModel));
+        presentation.setText("");
       }
     }
   }

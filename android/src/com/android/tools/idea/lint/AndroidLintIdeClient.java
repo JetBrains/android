@@ -394,10 +394,9 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull
   public static List<File> getResourceFolders(@NotNull AndroidFacet facet) {
     List<File> resDirectories = new ArrayList<>();
-    for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
-      for (VirtualFile resDirectory : sourceProvider.getResDirectories()) {
-        resDirectories.add(VfsUtilCore.virtualToIoFile(resDirectory));
-      }
+    IdeaSourceProvider sourceProvider = SourceProviderManager.getInstance(facet).getSources();
+    for (VirtualFile resDirectory : sourceProvider.getResDirectories()) {
+      resDirectories.add(VfsUtilCore.virtualToIoFile(resDirectory));
     }
     return resDirectories;
   }
@@ -448,23 +447,6 @@ public class AndroidLintIdeClient extends LintIdeClient {
       return new LocationHandle(file, item, tag, nameOnly, valueOnly);
     }
     return super.createResourceItemHandle(item, nameOnly, valueOnly);
-  }
-
-  @NonNull
-  @Override
-  public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    Module module = getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
-        ResourceVisibilityLookup.Provider provider = repoManager.getResourceVisibilityProvider();
-        if (provider != null) {
-          return provider;
-        }
-      }
-    }
-    return super.getResourceVisibilityProvider();
   }
 
   @Override

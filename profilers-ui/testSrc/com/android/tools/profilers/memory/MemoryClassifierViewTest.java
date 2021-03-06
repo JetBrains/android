@@ -37,6 +37,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -61,11 +62,11 @@ import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -360,6 +361,84 @@ public class MemoryClassifierViewTest {
     ClassSet selectedClass = myStage.getCaptureSelection().getSelectedClassSet();
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, comPackage}));
     assertThat(myStage.getCaptureSelection().getSelectedClassSet()).isEqualTo(selectedClass);
+  }
+
+  @Test
+  public void testCsvExporting() {
+    final String CLASS_NAME_0 = "com.android.studio.Foo";
+    final String CLASS_NAME_1 = "com.google.Bar";
+    final String CLASS_NAME_2 = "com.android.studio.Baz";
+
+    FakeCaptureObject captureObject = new FakeCaptureObject.Builder()
+      .removeClassifierAttribute(CaptureObject.ClassifierAttribute.MODULE)
+      .build();
+    InstanceObject instanceFoo0 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceFoo1 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceFoo2 =
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3)
+        .build();
+    InstanceObject instanceBar0 =
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4)
+        .build();
+    InstanceObject instanceBaz0 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz1 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz2 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    InstanceObject instanceBaz3 =
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
+        .build();
+    Set<InstanceObject> instanceObjects = new HashSet<>(
+      Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
+    captureObject.addInstanceObjects(instanceObjects);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+
+    HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
+    myStage.getCaptureSelection().selectHeapSet(heapSet);
+
+
+    JTree classifierTree = myClassifierView.getTree();
+    Object root = classifierTree.getModel().getRoot();
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+
+    //noinspection unchecked
+    ImmutableList<MemoryObjectTreeNode<ClassifierSet>> childrenOfRoot = rootNode.getChildren();
+    assertThat(childrenOfRoot.size()).isEqualTo(3);
+    classifierTree.setSelectionPath(new TreePath(new Object[]{root, childrenOfRoot.get(0)}));
+
+    CsvExporter exporter = new CsvExporter(() -> classifierTree, () -> captureObject,
+                                           myFakeIdeProfilerComponents, myStage.getStudioProfilers().getIdeServices());
+    checkCsvOutput((CsvExporter.RunnableContextMenuItem)exporter.makeClassExportItem(), captureObject::getClassifierAttributes);
+    checkCsvOutput((CsvExporter.RunnableContextMenuItem)exporter.makeInstanceExportItem(), captureObject::getInstanceAttributes);
+  }
+
+  private static void checkCsvOutput(CsvExporter.RunnableContextMenuItem exporter, Supplier<List<?>> attributes) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    exporter.exportEntries(out);
+    String[] lines = out.toString().split("\n");
+    assertThat(lines.length).isGreaterThan(0);
+    for (String line: lines) {
+      assertThat(line.split(",").length).isEqualTo(attributes.get().size());
+    }
   }
 
   @Test
@@ -834,7 +913,7 @@ public class MemoryClassifierViewTest {
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
     treeInfo
       .verifyColumnHeaders("Class Name", "Allocations", "Deallocations", "Total Count", "Native Size", "Shallow Size", "Retained Size",
-                           "Allocations Size", "Deallocations Size", "Remaining Size", "Module Name");
+                           "Allocations Size", "Deallocations Size", "Remaining Size", "Module Name", "Shallow Size Change");
 
     Object root = tree.getModel().getRoot();
     assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
@@ -863,7 +942,8 @@ public class MemoryClassifierViewTest {
                                     new String[]{Long.toString(classSet.getAllocationSize())},
                                     new String[]{Long.toString(classSet.getDeallocationSize())},
                                     new String[]{Long.toString(classSet.getTotalRemainingSize())},
-                                    new String[]{null});
+                                    new String[]{null},
+                                    new String[]{Long.toString(classSet.getDeltaShallowSize())});
     }
   }
 
@@ -904,33 +984,33 @@ public class MemoryClassifierViewTest {
     // Initial selection from 0 to 4
     selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     // Expand right to 8
     selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 2, 0, 0, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Shrink left to 4
@@ -999,17 +1079,17 @@ public class MemoryClassifierViewTest {
     // Initial selection from 0 to 4
     selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
@@ -1018,12 +1098,12 @@ public class MemoryClassifierViewTest {
     myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("Foo"));
 
     expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1, 5));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1,2, 3));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
@@ -1031,12 +1111,12 @@ public class MemoryClassifierViewTest {
     // Expand right to 8
     selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1, 11));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 6));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1, 3));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
@@ -1044,11 +1124,11 @@ public class MemoryClassifierViewTest {
     // Shrink left to 4
     selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
-    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1));
-    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1, 16));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2, 7));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
-    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 1, 1, 1, 1, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 1, 1, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
@@ -1063,7 +1143,7 @@ public class MemoryClassifierViewTest {
 
     //// The 3, "Foo" filter should apply to the new grouping automatically
     expected_4_to_8 = new LinkedList<>();
-    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 4));
+    expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 4, 16));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "FooMethodB()", 1, 1, 0, 0, 1));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(2, "BarMethodA()", 1, 1, 0, 0, 1));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
@@ -1083,7 +1163,7 @@ public class MemoryClassifierViewTest {
     // Apply an invalid filter
     myStage.getCaptureSelection().getFilterHandler().setFilter(new Filter("BLAH"));
     Queue<MemoryObjectTreeNodeTestData> expect_none = new LinkedList<>();
-    expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
+    expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0, 16));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
     assertThat(myClassifierView.getClassifierPanel().getComponentCount()).isEqualTo(1);
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isInstanceOf(InstructionsPanel.class);
@@ -1126,17 +1206,17 @@ public class MemoryClassifierViewTest {
     // Initial selection from 0 to 4
     selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Foo", 1, 0, 1, 1, 0, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "That", 2, 1, 1, 1, 2, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Is", 1, 1, 0, 0, 1));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 1, 0, 0, 0));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1));
-    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(2, "Also", 1, 0, 1, 1, 1, 1));
+    expected_0_to_4.add(new MemoryObjectTreeNodeTestData(3, "Bar", 1, 0, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     MemoryObjectTreeNode<ClassifierSet> childThat = rootNode.getChildren().get(1);
@@ -1157,17 +1237,17 @@ public class MemoryClassifierViewTest {
     // Expand right to 8
     selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 2, 0, 0, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Foo", 2, 1, 1, 1, 0, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "That", 4, 3, 1, 1, 2, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Is", 2, 2, 0, 0, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 2, 0, 0, 0));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1));
-    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(2, "Also", 2, 1, 1, 1, 1, 1));
+    expected_0_to_8.add(new MemoryObjectTreeNodeTestData(3, "Bar", 2, 1, 1, 1, 0, 1));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Selected ClassSet should not change
@@ -1327,7 +1407,8 @@ public class MemoryClassifierViewTest {
                                       new String[]{NumberFormatter.formatInteger(testData.allocations)},
                                       new String[]{NumberFormatter.formatInteger(testData.deallocations)},
                                       new String[]{NumberFormatter.formatInteger(testData.total)},
-                                      new String[]{NumberFormatter.formatInteger(testData.shallowSize)});
+                                      new String[]{NumberFormatter.formatInteger(testData.shallowSize)},
+                                      new String[]{NumberFormatter.formatInteger(testData.shallowDiff)});
 
         // Children's size
         assertThat(node.getChildCount()).isEqualTo(testData.childrenSize);
@@ -1348,6 +1429,7 @@ public class MemoryClassifierViewTest {
     int total;
     long shallowSize;
     int childrenSize;
+    long shallowDiff;
 
     MemoryObjectTreeNodeTestData(int depth,
                                  String name,
@@ -1356,6 +1438,17 @@ public class MemoryClassifierViewTest {
                                  int total,
                                  long shallowSize,
                                  int childrenSize) {
+      this(depth, name, allocations, deallocations, total, shallowSize, childrenSize, 0);
+    }
+
+    MemoryObjectTreeNodeTestData(int depth,
+                                 String name,
+                                 int allocations,
+                                 int deallocations,
+                                 int total,
+                                 long shallowSize,
+                                 int childrenSize,
+                                 long shallowDiff) {
       this.depth = depth;
       this.name = name;
       this.allocations = allocations;
@@ -1363,6 +1456,7 @@ public class MemoryClassifierViewTest {
       this.total = total;
       this.shallowSize = shallowSize;
       this.childrenSize = childrenSize;
+      this.shallowDiff = shallowDiff;
     }
   }
 }

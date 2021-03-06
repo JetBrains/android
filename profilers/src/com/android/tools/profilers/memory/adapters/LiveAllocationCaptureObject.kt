@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
+import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationEvent
@@ -36,7 +37,6 @@ import com.android.tools.profilers.memory.MemoryProfiler.Companion.hasOnlyFullAl
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.*
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
-import com.android.tools.profilers.stacktrace.ThreadId
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
@@ -44,8 +44,6 @@ import gnu.trove.TIntObjectHashMap
 import gnu.trove.TLongObjectHashMap
 import org.objectweb.asm.Type
 import java.io.OutputStream
-import java.util.Comparator
-import java.util.LinkedHashMap
 import java.util.TreeMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -133,14 +131,16 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
              ClassifierAttribute.ALLOCATIONS,
              ClassifierAttribute.DEALLOCATIONS,
              ClassifierAttribute.TOTAL_COUNT,
-             ClassifierAttribute.SHALLOW_SIZE)
+             ClassifierAttribute.SHALLOW_SIZE,
+             ClassifierAttribute.SHALLOW_DIFFERENCE)
     else
       listOf(ClassifierAttribute.LABEL,
              ClassifierAttribute.ALLOCATIONS,
              ClassifierAttribute.DEALLOCATIONS,
-             ClassifierAttribute.SHALLOW_SIZE)
+             ClassifierAttribute.SHALLOW_SIZE,
+             ClassifierAttribute.SHALLOW_DIFFERENCE)
 
-  override fun getInstanceAttributes() = listOf(LABEL, ALLOCATION_TIME, DEALLOCATION_TIME)
+  override fun getInstanceAttributes() = listOf(LABEL, ALLOCATION_TIME, DEALLOCATION_TIME, SHALLOW_SIZE)
   override fun getInfoMessage() = infoMessage
 
   override fun getHeapSets() =
@@ -186,7 +186,13 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
         contexts.classesList.forEach { classDb.registerClass(it.classId.toLong(), Type.getType(it.className).className) }
         contexts.methodsList.forEach { methodIdMap.putIfAbsent(it.methodId, it) }
         contexts.encodedStacksList.forEach { callstackMap.putIfAbsent(it.stackId, it) }
-        contexts.threadInfosList.forEach { threadIdMap.putIfAbsent(it.threadId, ThreadId(it.threadName)) }
+        contexts.threadInfosList.forEach {
+          threadIdMap.putIfAbsent(it.threadId,
+                                  ThreadId(
+                                    it.threadName
+                                  )
+          )
+        }
         contexts.memoryMap.regionsList.forEach { jniMemoryRegionMap[it.startAddress] = it }
         contextEndTimeNs = max(contextEndTimeNs, contexts.timestamp)
       }

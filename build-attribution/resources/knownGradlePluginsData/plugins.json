@@ -1,0 +1,22 @@
+{
+  "pluginsInfo": [
+    {
+      "name": "Kotlin Gradle Plugin",
+      "pluginClasses": ["org.jetbrains.kotlin.gradle."],
+      "pluginContactInstructions": "https://github.com/JetBrains/kotlin/tree/master/libraries/tools/kotlin-gradle-plugin",
+      "pluginArtifact": {
+        "group": "org.jetbrains.kotlin",
+        "name": "kotlin-gradle-plugin"
+      },
+      "configurationCachingCompatibleFrom": "1.4.20"
+    },
+    {
+      "name": "Firebase Crashlytics Gradle",
+      "pluginClasses": ["com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsPlugin"],
+      "pluginArtifact": {
+        "group": "com.google.firebase",
+        "name": "firebase-crashlytics-gradle"
+      }
+    }
+  ]
+}

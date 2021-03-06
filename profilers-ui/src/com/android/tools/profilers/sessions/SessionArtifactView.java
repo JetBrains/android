@@ -15,31 +15,53 @@
  */
 package com.android.tools.profilers.sessions;
 
+import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
+import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.ContextMenuInstaller;
-import com.android.tools.profilers.ProfilerAction;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.profilers.ProfilerColors.HOVERED_SESSION_COLOR;
-import static com.android.tools.profilers.ProfilerColors.SELECTED_SESSION_COLOR;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view for showing different {@link SessionArtifact}'s in the sessions panel.
@@ -232,7 +254,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     List<ContextMenuItem> menus = new ArrayList<>();
-    ProfilerAction action = new ProfilerAction.Builder("Export...")
+    DefaultContextMenuItem action = new DefaultContextMenuItem.Builder("Export...")
       .setEnableBooleanSupplier(() -> !getArtifact().isOngoing())
       .setActionRunnable(() -> exportArtifact())
       .build();

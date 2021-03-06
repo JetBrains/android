@@ -15,34 +15,51 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.flags.StudioFlags
 import java.io.Serializable
 
-sealed class SyncActionOptions : Serializable
+sealed class SyncActionOptions(val flags: GradleSyncStudioFlags) : Serializable
 
 /**
  * A sync action fetching enough models to set up a project.
  */
-sealed class SyncProjectActionOptions : SyncActionOptions(), Serializable {
+sealed class SyncProjectActionOptions(flags: GradleSyncStudioFlags) : SyncActionOptions(flags), Serializable {
   abstract val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
 }
 
 class FullSyncActionOptions(
+  flags: GradleSyncStudioFlags,
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
-) : SyncProjectActionOptions(), Serializable
+) : SyncProjectActionOptions(flags), Serializable
 
 class SingleVariantSyncActionOptions(
+  flags: GradleSyncStudioFlags,
   val selectedVariants: SelectedVariants,
   val moduleIdWithVariantSwitched: String?,
   override val additionalClassifierArtifactsAction: AdditionalClassifierArtifactsActionOptions
-) : SyncProjectActionOptions(), Serializable
+) : SyncProjectActionOptions(flags), Serializable
 
 class NativeVariantsSyncActionOptions(
+  flags: GradleSyncStudioFlags,
   /** moduleId => variantName where moduleId is by [com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId] */
   val moduleVariants: Map<String, String>,
   val requestedAbis: Set<String>
-): SyncActionOptions(), Serializable
+) : SyncActionOptions(flags), Serializable
 
 class AdditionalClassifierArtifactsActionOptions(
   val cachedLibraries: Collection<String>,
   val downloadAndroidxUISamplesSources: Boolean
-): Serializable
+) : Serializable
+
+data class GradleSyncStudioFlags(
+  val studioFlagParallelSyncEnabled: Boolean,
+  val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
+) : Serializable {
+  companion object {
+    fun create(): GradleSyncStudioFlags = GradleSyncStudioFlags(
+      studioFlagParallelSyncEnabled = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get(),
+      studioFlagParallelSyncPrefetchVariantsEnabled = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get(),
+    )
+  }
+}
+

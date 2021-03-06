@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -133,6 +134,7 @@ class WarningsPageViewTest {
       annotationProcessors = object : AnnotationProcessorsReport {
         override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
       }
+      confCachingData = ConfigurationCachingTurnedOn
     }
     val model = WarningsDataPageModelImpl(data)
     view = WarningsPageView(model, mockHandlers).apply {

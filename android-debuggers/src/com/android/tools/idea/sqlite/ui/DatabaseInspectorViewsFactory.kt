@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.ExportDialogParams
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 
 interface DatabaseInspectorViewsFactory {
   fun createTableView(): TableView
@@ -31,7 +35,13 @@ interface DatabaseInspectorViewsFactory {
 
   fun createParametersBindingView(project: Project, sqliteStatementText: String): ParametersBindingDialogView
 
-  fun createExportToFileView(project: Project, params: ExportDialogParams): ExportToFileDialogView
+  fun createExportToFileView(
+    project: Project,
+    params: ExportDialogParams,
+    analyticsTracker: DatabaseInspectorAnalyticsTracker
+  ): ExportToFileDialogView
+
+  fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView
 
   fun createDatabaseInspectorView(project: Project): DatabaseInspectorView
 }

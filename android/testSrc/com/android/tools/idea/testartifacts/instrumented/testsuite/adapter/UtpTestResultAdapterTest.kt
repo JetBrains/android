@@ -367,4 +367,56 @@ class UtpTestResultAdapterTest {
       ArgumentMatcher { it!!.result == AndroidTestSuiteResult.FAILED }
     ))
   }
+
+  @Test
+  fun importManagedDevice() {
+    val deviceName = "really_long_avd_name"
+    val dslName = "myDevice"
+    val deviceApi = 29
+    val deviceInfoProtoFile = temporaryFolder.newFile()
+    AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
+      apiLevel = deviceApi.toString()
+      name = deviceName
+      avdName = deviceName
+      gradleDslDeviceName = dslName
+    }.build().writeTo(deviceInfoProtoFile.outputStream())
+
+    val testClass = "ExampleInstrumentedTest1"
+    val testMethod = "useAppContext1"
+
+    TestSuiteResultProto.TestSuiteResult.newBuilder()
+      .addTestResult(
+        TestResultProto.TestResult.newBuilder()
+          .setTestCase(TestCaseProto.TestCase.newBuilder()
+                         .setTestClass(testClass)
+                         .setTestPackage(TEST_PACKAGE_NAME)
+                         .setTestMethod(testMethod))
+          .setTestStatus(TestStatusProto.TestStatus.PASSED)
+          .addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+            label = labelBuilder
+              .setLabel(DEVICE_INFO_LABEL)
+              .setNamespace(DEVICE_INFO_NAMESPACE)
+              .build()
+            sourcePath = sourcePathBuilder
+              .setPath(deviceInfoProtoFile.absolutePath)
+              .build()
+          })
+      ).build().writeTo(utpProtoFile.outputStream())
+
+    val utpTestResultAdapter = UtpTestResultAdapter(utpProtoFile)
+    utpTestResultAdapter.forwardResults(mockListener)
+    val deviceMatcher = ArgumentMatcher<AndroidDevice> { device ->
+      device?.deviceName == "Gradle:$dslName" && device.deviceType == AndroidDeviceType.LOCAL_EMULATOR
+    }
+    val testCaseMatcher = ArgumentMatcher<AndroidTestCase> { testCase ->
+      testCase?.methodName == testMethod && testCase.className == testClass && testCase.packageName == TEST_PACKAGE_NAME
+    }
+    verify(mockListener).onTestSuiteScheduled(argThat(deviceMatcher))
+    verify(mockListener).onTestSuiteStarted(argThat(deviceMatcher), any())
+    verify(mockListener).onTestCaseStarted(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestCaseFinished(argThat(deviceMatcher), any(), argThat(testCaseMatcher))
+    verify(mockListener).onTestSuiteFinished(argThat(deviceMatcher), argThat (
+      ArgumentMatcher { it!!.result == AndroidTestSuiteResult.PASSED }
+    ))
+  }
 }

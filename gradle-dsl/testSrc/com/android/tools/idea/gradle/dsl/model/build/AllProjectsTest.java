@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryModel;
+import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -33,7 +36,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -48,7 +51,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideWithAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.OVERRIDE_WITH_ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -65,7 +68,7 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideAllProjectsSection() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION);
+    writeToBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION);
     writeToSubModuleBuildFile("");
 
     JavaModel java = getGradleBuildModel().java();
@@ -82,8 +85,8 @@ public class AllProjectsTest extends GradleFileModelTestCase {
   @Test
   public void testOverrideAllProjectsSectionInSubproject() throws Exception {
     writeToSettingsFile(getSubModuleSettingsText());
-    writeToBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT);
-    writeToSubModuleBuildFile(ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB);
+    writeToBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT);
+    writeToSubModuleBuildFile(TestFile.OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB);
 
     JavaModel java = getGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_5
@@ -93,4 +96,133 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
     assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
   }
+
+  @Test
+  public void testDeleteRepository() throws Exception {
+    writeToBuildFile(TestFile.DELETE_REPOSITORY);
+
+    GradleBuildModel model = getGradleBuildModel();
+    assertSize(2, model.repositories().repositories());
+    RepositoryModel jcenterModel = model.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNotNull(jcenterModel);
+
+    model.repositories().removeRepository(jcenterModel);
+
+    applyChangesAndReparse(model);
+    verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testDeleteSubProjectRepository() throws Exception {
+    writeToBuildFile(TestFile.DELETE_REPOSITORY);
+    writeToSubModuleBuildFile("");
+    writeToSettingsFile(getSubModuleSettingsText());
+
+    ProjectBuildModel buildModel = getProjectBuildModel();
+
+    GradleBuildModel mainModel = buildModel.getModuleBuildModel(myBuildFile);
+    assertSize(2, mainModel.repositories().repositories());
+
+    GradleBuildModel subModel = buildModel.getModuleBuildModel(mySubModuleBuildFile);
+    assertSize(2, subModel.repositories().repositories());
+
+    RepositoryModel jcenterModel = subModel.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNotNull(jcenterModel);
+
+    subModel.repositories().removeRepository(jcenterModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testMultipleSubProjectRepositoryDeleteInterleaved() throws Exception {
+    writeToBuildFile(TestFile.DELETE_REPOSITORY);
+    writeToSubModuleBuildFile("");
+    Module otherModule = writeToNewSubModule("otherSub", "", "");
+    writeToSettingsFile(getSubModuleSettingsText() + getSubModuleSettingsText("otherSub"));
+
+    ProjectBuildModel buildModel = getProjectBuildModel();
+
+    GradleBuildModel mainModel = buildModel.getModuleBuildModel(myBuildFile);
+    assertSize(2, mainModel.repositories().repositories());
+
+    GradleBuildModel subModel = buildModel.getModuleBuildModel(mySubModuleBuildFile);
+    assertSize(2, subModel.repositories().repositories());
+
+    GradleBuildModel otherSubModel = buildModel.getModuleBuildModel(otherModule);
+    assertNotNull(otherSubModel);
+    assertSize(2, otherSubModel.repositories().repositories());
+
+    RepositoryModel jcenterModel = subModel.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNotNull(jcenterModel);
+    subModel.repositories().removeRepository(jcenterModel);
+
+    jcenterModel = otherSubModel.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNull(jcenterModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testMultipleSubProjectRepositoryDeleteBatch() throws Exception {
+    writeToBuildFile(TestFile.DELETE_REPOSITORY);
+    writeToSubModuleBuildFile("");
+    Module otherModule = writeToNewSubModule("otherSub", "", "");
+    writeToSettingsFile(getSubModuleSettingsText() + getSubModuleSettingsText("otherSub"));
+
+    ProjectBuildModel buildModel = getProjectBuildModel();
+
+    GradleBuildModel mainModel = buildModel.getModuleBuildModel(myBuildFile);
+    assertSize(2, mainModel.repositories().repositories());
+
+    GradleBuildModel subModel = buildModel.getModuleBuildModel(mySubModuleBuildFile);
+    assertSize(2, subModel.repositories().repositories());
+
+    GradleBuildModel otherSubModel = buildModel.getModuleBuildModel(otherModule);
+    assertNotNull(otherSubModel);
+    assertSize(2, otherSubModel.repositories().repositories());
+
+    RepositoryModel jcenterModel = subModel.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNotNull(jcenterModel);
+
+    RepositoryModel jcenterModel2 = otherSubModel.repositories().repositories().stream()
+      .filter(e -> e instanceof JCenterRepositoryModel).findFirst().orElse(null);
+    assertNotNull(jcenterModel2);
+
+    subModel.repositories().removeRepository(jcenterModel);
+    otherSubModel.repositories().removeRepository(jcenterModel2);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.DELETE_REPOSITORY_EXPECTED);
+  }
+
+  enum TestFile implements TestFileName {
+    ALL_PROJECTS_SECTION("allProjectsSection"),
+    DELETE_REPOSITORY("deleteRepository"),
+    DELETE_REPOSITORY_EXPECTED("deleteRepositoryExpected"),
+    OVERRIDE_ALL_PROJECTS_SECTION("overrideAllProjectsSection"),
+    OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT("overrideAllProjectsSectionInSubproject"),
+    OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB("overrideAllProjectsSectionInSubproject_sub"),
+    OVERRIDE_WITH_ALL_PROJECTS_SECTION("overrideWithAllProjectsSection"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/allProjects/" + path, extension);
+    }
+  }
+
 }

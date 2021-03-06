@@ -22,6 +22,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
+import com.android.tools.profilers.sessions.SessionAspect
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
@@ -131,6 +132,9 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
     stage.timeline.dataRange.addDependency(this).onChange(Range.Aspect.RANGE) {
       adjustSelectAllButton()
       updateLabel()
+    }
+    stage.studioProfilers.sessionsManager.addDependency(this).onChange(SessionAspect.SESSIONS) {
+      if (!stage.studioProfilers.sessionsManager.isSessionAlive) stopButton.doClick()
     }
     updateLabel()
     updateInstanceDetailsSplitter()

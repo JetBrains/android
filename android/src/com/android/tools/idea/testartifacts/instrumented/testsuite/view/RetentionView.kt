@@ -22,6 +22,7 @@ import com.android.emulator.snapshot.SnapshotOuterClass
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -33,9 +34,16 @@ import com.android.tools.idea.testartifacts.instrumented.LOAD_RETENTION_ACTION_I
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
+import com.android.tools.idea.testartifacts.instrumented.retention.findFailureReasonFromEmulatorOutput
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.UsageLogReporter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.utp.plugins.host.icebox.proto.IceboxOutputProto.IceboxOutput
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent
+import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent.SnapshotCompatibility.Result
+import com.google.wireless.android.sdk.stats.EmulatorSnapshotFailureReason
+
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.ide.HelpTooltip
@@ -78,6 +86,7 @@ import javax.imageio.ImageIO
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
@@ -93,7 +102,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
                     private val progressIndicator: ProgressIndicator
                     = StudioLoggerProgressIndicator(RetentionView::class.java),
                     private val runtime: Runtime
-                    = Runtime.getRuntime()) {
+                    = Runtime.getRuntime(),
+                    private val usageLogReporter: UsageLogReporter
+                    = RetentionUsageLogReporterImpl) {
   private inner class RetentionPanel : JPanel(), DataProvider {
     private val retentionArtifactRegex = ".*-(failure[0-9]+).tar(.gz)?"
     private val retentionArtifactPattern = Pattern.compile(retentionArtifactRegex)
@@ -141,7 +152,6 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   val myRetentionDebugButton: JButton = JButton("Start retention debug", AllIcons.Actions.Execute).apply {
     addActionListener {
       isEnabled = false
-      isVisible = false
       val dataContext = DataManager.getInstance().getDataContext(myRetentionPanel)
       ActionManager.getInstance().getAction(LOAD_RETENTION_ACTION_ID).actionPerformed(
         AnActionEvent.createFromDataContext("", null, dataContext))
@@ -241,6 +251,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   fun setPackageName(packageName: String) {
     this.classPackageName = packageName
   }
+
+  val component: JComponent
+    get() = myRetentionPanel
 
   @AnyThread
   @VisibleForTesting
@@ -394,6 +407,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         AppUIUtil.invokeOnEdt {
           val state = SnapshotProtoFileNotFound(snapshotFile.name)
           cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, null)
+          reportCompatible(state)
           if (isCancelled()) {
             return@invokeOnEdt
           }
@@ -407,6 +421,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         AppUIUtil.invokeOnEdt {
           val state = EMULATOR_EXEC_NOT_FOUND
           cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
+          reportCompatible(state)
           if (isCancelled()) {
             return@invokeOnEdt
           }
@@ -433,8 +448,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         }.let {
           if (it) {
             AppUIUtil.invokeOnEdt {
-              val state = Unloadable(lines.joinToString(" " ))
+              val state = Unloadable(lines.joinToString(" "))
               cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
+              reportCompatible(state)
               if (isCancelled()) {
                 return@invokeOnEdt
               }
@@ -447,6 +463,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       AppUIUtil.invokeOnEdt {
         val state = LOADABLE
         cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, snapshotProto)
+        reportCompatible(state)
         if (isCancelled()) {
           return@invokeOnEdt
         }
@@ -459,6 +476,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
         val state = UNKNOWN_FAILURE
         if (snapshotFile != null) {
           cachedDataMap[snapshotFile.absolutePath] = CachedData(state, image, null)
+          reportCompatible(state)
         }
         if (isCancelled()) {
           return@invokeOnEdt
@@ -505,6 +523,21 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     updateInfoText()
   }
 
+  private fun reportCompatible(state: RetentionViewState) {
+    usageLogReporter.report(
+      AndroidStudioEvent.newBuilder().apply {
+        category = AndroidStudioEvent.EventCategory.TESTS
+        kind = AndroidStudioEvent.EventKind.ANDROID_TEST_RETENTION_EVENT
+        androidTestRetentionEvent = androidTestRetentionEventBuilder.apply {
+          snapshotCompatibility = AndroidTestRetentionEvent.SnapshotCompatibility.newBuilder().apply {
+            this.result = state.loadableResultProto
+            this.emulatorCheckFailureReason = state.emulatorCheckFailureReasonProto
+          }.build()
+        }.build()
+      },
+      System.currentTimeMillis())
+  }
+
   companion object {
     private val LOG = Logger.getInstance(
       RetentionView::class.java)
@@ -515,22 +548,50 @@ private fun Long.formatTime() = DateFormat.getDateTimeInstance().format(Date(thi
 
 private fun String.escapeHtml() = StringEscapeUtils.escapeHtml(this)
 
+private sealed class RetentionViewState(val isValidating: Boolean,
+                                        val loadable: Boolean,
+                                        val reason: String?,
+                                        val loadableResultProto: Result,
+                                        val emulatorCheckFailureReasonProto: EmulatorSnapshotFailureReason = EmulatorSnapshotFailureReason.EMULATOR_SNAPSHOT_FAILURE_REASON_UNSPECIFIED)
 
-private sealed class RetentionViewState(val isValidating: Boolean, val loadable: Boolean, val reason: String? = null)
+private object VALIDATING_SNAPSHOT : RetentionViewState(true, false,
+                                                        "Validating snapshot file, please wait...",
+                                                        Result.UNKNOWN_FAILURE)
 
-private object VALIDATING_SNAPSHOT: RetentionViewState(true, false, "Validating snapshot file, please wait...")
-private object SNAPSHOT_FILE_NOT_FOUND: RetentionViewState(false, false, "No snapshot file found.")
-private object EMULATOR_EXEC_NOT_FOUND: RetentionViewState(false,
-                                                           false,
-                                                           "Missing emulator executables. Please download the emulator from SDK manager.")
-private object UNKNOWN_FAILURE: RetentionViewState(false, false, "Failed to parse retention snapshot")
-private object LOADABLE: RetentionViewState(false, true, null)
-private class SnapshotProtoFileNotFound(snapshotFileName: String): RetentionViewState(false,
-                                                                                      false,
-                                                                                      "Snapshot protobuf not found, expectedPath ${snapshotFileName}:snapshot.pb\"")
-private class Unloadable(reason: String): RetentionViewState(false,
-                                                             false,
-                                                             "Snapshot not loadable, reason: $reason")
+private object SNAPSHOT_FILE_NOT_FOUND : RetentionViewState(false, false, "No snapshot file found.",
+                                                            Result.SNAPSHOT_FILE_NOT_FOUND)
 
+private object EMULATOR_EXEC_NOT_FOUND : RetentionViewState(false,
+                                                            false,
+                                                            "Missing emulator executables. Please download the emulator from SDK manager.",
+                                                            Result.EMULATOR_EXEC_NOT_FOUND)
 
+private object UNKNOWN_FAILURE : RetentionViewState(false, false, "Failed to parse retention snapshot",
+                                                    Result.UNKNOWN_FAILURE)
 
+private object LOADABLE : RetentionViewState(false, true, null, Result.LOADABLE)
+private class SnapshotProtoFileNotFound(snapshotFileName: String) : RetentionViewState(
+  false,
+  false,
+  "Snapshot protobuf not found, expectedPath ${snapshotFileName}:snapshot.pb\"",
+  Result.SNAPSHOT_PROTO_FILE_NOT_FOUND)
+
+private class Unloadable(reason: String) : RetentionViewState(
+  false,
+  false,
+  "Snapshot not loadable, reason: $reason",
+  Result.EMULATOR_LOADABLE_CHECK_FAILURE,
+  findFailureReasonFromEmulatorOutput(reason)
+)
+
+data class CompatibleResult(val compatible: Boolean, val reason: String? = null)
+
+private object RetentionUsageLogReporterImpl : UsageLogReporter {
+  override fun report(studioEvent: AndroidStudioEvent.Builder, eventTimeMs: Long?) {
+    if (eventTimeMs == null) {
+      UsageTracker.log(studioEvent)
+    } else {
+      UsageTracker.log(eventTimeMs, studioEvent)
+    }
+  }
+}

@@ -34,6 +34,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMember
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 import com.intellij.util.Processor
@@ -48,7 +50,7 @@ import org.jetbrains.uast.getParentOfType
 import org.jetbrains.uast.getUastParentOfType
 
 typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
-typealias PsiFieldPointer = SmartPsiElementPointer<out PsiField>
+typealias PsiMemberPointer = SmartPsiElementPointer<out PsiMember>
 
 data class RoomDatabase(
   /** Annotated class. */
@@ -103,20 +105,24 @@ data class RoomTable(
 /**
  * An [AndroidSqlColumn] defined by a field in a Room `@Entity`.
  */
-data class RoomFieldColumn(
+data class RoomMemberColumn(
   /** Field that defines this column. */
-  val psiField: PsiFieldPointer,
+  val psiMember: PsiMemberPointer,
 
   /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
   override val name: String,
 
   /** The [PsiElement] that defines the column name. */
-  val nameElement: PsiElementPointer = psiField,
+  val nameElement: PsiElementPointer = psiMember,
   override val isPrimaryKey: Boolean = false,
   override val alternativeNames: Set<String> = emptySet()
 ) : AndroidSqlColumn {
-  override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
-  override val definingElement: PsiElement get() = psiField.element!!
+  override val type: SqlType? = when(definingElement) {
+      is PsiField -> (definingElement as PsiField).type.presentableText.let(::JavaFieldSqlType)
+      is PsiMethod -> (definingElement as PsiMethod).returnType?.presentableText?.let(::JavaFieldSqlType)
+      else -> null
+  }
+  override val definingElement: PsiElement get() = psiMember.element!!
   override val resolveTo: PsiElement get() = nameElement.element!!
 }
 

@@ -58,10 +58,10 @@ public abstract class ClassifierSet implements MemoryObject {
   private int myDeltaDeallocations = 0;
   private long myDeltaAllocationsSize = 0;
   private long myDeltaDeallocationsSize = 0;
-  // TODO switch to tracking both delta and total for all native/shallow and retained sizes.
   private long myTotalNativeSize = 0L;
   private long myTotalShallowSize = 0L;
   private long myTotalRetainedSize = 0L;
+  private long myDeltaShallowSize = 0L;
   private int myInstancesWithStackInfoCount = 0;
 
   // Number of ClassifierSet that match the filter.
@@ -131,6 +131,10 @@ public abstract class ClassifierSet implements MemoryObject {
 
   final public long getTotalNativeSize() {
     return myTotalNativeSize;
+  }
+
+  final public long getDeltaShallowSize() {
+    return myDeltaShallowSize;
   }
 
   final public int getFilterMatchCount() {
@@ -250,10 +254,13 @@ public abstract class ClassifierSet implements MemoryObject {
     }
 
     int factor = unit * (isAllocation ? 1 : -1);
-    // TODO update deltas instead.
-    myTotalNativeSize   += factor * validOrZero(instanceObject.getNativeSize());
-    myTotalShallowSize  += factor * validOrZero(instanceObject.getShallowSize());
-    myTotalRetainedSize += factor * validOrZero(instanceObject.getRetainedSize());
+    long deltaNativeSize = factor * validOrZero(instanceObject.getNativeSize());
+    long deltaShallowSize = factor * validOrZero(instanceObject.getShallowSize());
+    long deltaRetainedSize = factor * validOrZero(instanceObject.getRetainedSize());
+    myTotalNativeSize   += deltaNativeSize;
+    myDeltaShallowSize  += deltaShallowSize;
+    myTotalShallowSize  += deltaShallowSize;
+    myTotalRetainedSize += deltaRetainedSize;
 
     if (instanceChanged && !instanceObject.isCallStackEmpty()) {
       myInstancesWithStackInfoCount += unit;
@@ -277,6 +284,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalShallowSize = 0;
     myTotalNativeSize = 0;
     myTotalRetainedSize = 0;
+    myDeltaShallowSize = 0;
     myInstancesWithStackInfoCount = 0;
     myObjectSetCount = 0;
     myFilteredObjectSetCount = 0;
@@ -499,6 +507,7 @@ public abstract class ClassifierSet implements MemoryObject {
         myTotalShallowSize += classifierSet.myTotalShallowSize;
         myTotalNativeSize += classifierSet.myTotalNativeSize;
         myTotalRetainedSize += classifierSet.myTotalRetainedSize;
+        myDeltaShallowSize += classifierSet.myDeltaShallowSize;
         myInstancesWithStackInfoCount += classifierSet.myInstancesWithStackInfoCount;
         myFilterMatchCount += classifierSet.myFilterMatchCount;
         myFilteredObjectSetCount++;

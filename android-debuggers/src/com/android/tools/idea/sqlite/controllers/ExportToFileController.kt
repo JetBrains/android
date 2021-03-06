@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
 import com.android.tools.idea.sqlite.cli.SqliteCliArg
@@ -45,6 +46,11 @@ import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
+import com.google.common.base.Stopwatch
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -67,6 +73,7 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -91,13 +98,19 @@ class ExportToFileController(
   private val releaseDatabaseLock: suspend (Int) -> Unit,
   taskExecutor: Executor,
   edtExecutor: Executor,
+  private val notifyExportInProgress: (Job) -> Unit,
   private val notifyExportComplete: (ExportRequest) -> Unit,
   private val notifyExportError: (ExportRequest, Throwable?) -> Unit
 ) : Disposable {
   private val edtDispatcher = edtExecutor.asCoroutineDispatcher()
   private val taskDispatcher = taskExecutor.asCoroutineDispatcher()
+  private val analyticsTracker = DatabaseInspectorAnalyticsTracker.getInstance(project)
   private val listener = object : ExportToFileDialogView.Listener {
-    override fun exportRequestSubmitted(params: ExportRequest) { lastExportJob = projectScope.launch { export(params) } }
+    override fun exportRequestSubmitted(params: ExportRequest) {
+      val job = projectScope.launch { export(params) }
+      lastExportJob = job
+      notifyExportInProgress(job)
+    }
   }
 
   @VisibleForTesting
@@ -117,7 +130,11 @@ class ExportToFileController(
 
   private suspend fun export(params: ExportRequest) = withContext(edtDispatcher) {
     try {
+      val stopwatch = Stopwatch.createStarted()
       doExport(params)
+      stopwatch.stop()
+
+      trackExportCompleted(params, stopwatch.elapsed(MILLISECONDS)) // TODO(161081452): confirm only recording success cases
       notifyExportComplete(params)
     }
     catch (t: Throwable) {
@@ -125,6 +142,29 @@ class ExportToFileController(
       // TODO(161081452): add logging
       notifyExportError(params, t)
     }
+  }
+
+  /** Notifies [analyticsTracker] of a successful export operation */
+  private fun trackExportCompleted(params: ExportRequest, exportDurationMs: Long) {
+    val source: Source = when (params) {
+      is ExportDatabaseRequest -> Source.DATABASE_SOURCE
+      is ExportTableRequest -> Source.TABLE_SOURCE
+      is ExportQueryResultsRequest -> Source.QUERY_SOURCE
+    }
+    val sourceFormat = when (params.srcDatabase.isInMemoryDatabase()) {
+      true -> SourceFormat.IN_MEMORY_FORMAT
+      false -> SourceFormat.FILE_FORMAT
+    }
+    val destination = when (params.format) {
+      is DB -> Destination.DB_DESTINATION
+      is SQL -> Destination.SQL_DESTINATION
+      is CSV -> Destination.CSV_DESTINATION
+    }
+    val connectivityState = when (params.srcDatabase) {
+      is LiveSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_ONLINE
+      is FileSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_OFFLINE
+    }
+    analyticsTracker.trackExportCompleted(source, sourceFormat, destination, exportDurationMs.toInt(), connectivityState)
   }
 
   private suspend fun doExport(params: ExportRequest): Unit = withContext(taskDispatcher) {

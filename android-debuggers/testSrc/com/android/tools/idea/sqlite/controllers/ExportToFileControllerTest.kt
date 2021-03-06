@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadProgress
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.COMPLETED
 import com.android.tools.idea.sqlite.OfflineModeManager.DownloadState.IN_PROGRESS
@@ -32,11 +35,13 @@ import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenari
 import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.NOT_CALLED
 import com.android.tools.idea.sqlite.controllers.ExportProcessedListener.Scenario.SUCCESS
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.mocks.CliDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.FakeExportToFileDialogView
 import com.android.tools.idea.sqlite.mocks.OpenDatabaseRepository
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter.COMMA
+import com.android.tools.idea.sqlite.model.Delimiter.SEMICOLON
 import com.android.tools.idea.sqlite.model.Delimiter.TAB
 import com.android.tools.idea.sqlite.model.Delimiter.VERTICAL_BAR
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
@@ -51,6 +56,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId.FileSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
+import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
@@ -59,6 +65,12 @@ import com.android.tools.idea.sqlite.utils.unzipTo
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
+import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
@@ -67,9 +79,12 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -77,13 +92,19 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
 
 private const val nonAsciiSuffix = " ąę"
@@ -105,6 +126,7 @@ private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
 // TODO(161081452): add in-memory database test coverage
 @Suppress("IncorrectParentDisposable")
 class ExportToFileControllerTest : LightPlatformTestCase() {
+  private lateinit var exportInProgressListener: (Job) -> Unit
   private lateinit var exportProcessedListener: ExportProcessedListener
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
@@ -117,12 +139,14 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var databaseRepository: DatabaseRepository
   private lateinit var sqliteCliClient: SqliteCliClient
 
+  private lateinit var analyticsTracker: DatabaseInspectorAnalyticsTracker
   private lateinit var view: FakeExportToFileDialogView
   private lateinit var controller: ExportToFileController
 
   override fun setUp() {
     super.setUp()
 
+    exportInProgressListener = mock()
     exportProcessedListener = ExportProcessedListener()
 
     tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
@@ -142,6 +166,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       databaseLockingTestFixture.setUp()
     }
 
+    analyticsTracker = mock()
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
+
     view = FakeExportToFileDialogView()
     controller = ExportToFileController(
       project,
@@ -154,6 +181,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       { databaseLockingTestFixture.releaseDatabaseLock(it) },
       taskExecutor,
       edtExecutor,
+      exportInProgressListener,
       exportProcessedListener::onExportComplete,
       exportProcessedListener::onExportError
     )
@@ -276,16 +304,19 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     exportRequest: ExportRequest,
     decompress: (Path) -> List<Path>,
     expectedOutput: List<ExpectedOutputFile>,
-    verifyExportCallbacks: () -> Unit = {
+    verifyExportCallbacks: (durationMs: Long) -> Unit = { durationMs ->
       assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS)
       assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
+      assertAnalyticsTrackerCall(analyticsTracker, exportRequest, durationMs)
     }
   ) {
     // then: compare output file(s) with expected output
+    val start = System.currentTimeMillis()
     submitExportRequest(exportRequest)
+    verify(exportInProgressListener).invoke(controller.lastExportJob!!)
     awaitExportComplete(5000L)
 
-    verifyExportCallbacks()
+    verifyExportCallbacks(System.currentTimeMillis() - start)
     exportRequest.srcDatabase.let { db -> assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId) }
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
@@ -294,6 +325,118 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       assertThat(actualPath.toFile().canonicalPath).isEqualTo(expectedPath.toFile().canonicalPath)
       assertThat(actualPath.toLines()).isEqualTo(expectedValues)
     }
+  }
+
+  /** Checks what was reported to analytics tracker after a <b>successful</b> export operation. */
+  private fun assertAnalyticsTrackerCall(
+    analyticsTracker: DatabaseInspectorAnalyticsTracker,
+    exportRequest: ExportRequest,
+    maxDurationMs: Long
+  ) {
+    assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS) // double checking that we are in a success case
+
+    // Using captors below to go the opposite way than the prod code: from analytics values to export-request values.
+    // Otherwise we'd end up with a copy of production code in the tests (which would be of questionable value).
+    val sourceCaptor = ArgumentCaptor.forClass(Source::class.java)
+    val sourceFormatCaptor = ArgumentCaptor.forClass(SourceFormat::class.java)
+    val destinationCaptor = ArgumentCaptor.forClass(Destination::class.java)
+    val durationMsCaptor = ArgumentCaptor.forClass(Int::class.java)
+    val connectivityStateCaptor = ArgumentCaptor.forClass(ConnectivityState::class.java)
+
+    // `trackExportCompleted` does not accept null values and ArgumentCaptor for classes cannot work around that.
+    // Using fallback values () below to work around it. These don't affect verifications.
+    verify(analyticsTracker).trackExportCompleted(
+      sourceCaptor.capture() ?: Source.UNKNOWN_SOURCE,
+      sourceFormatCaptor.capture() ?: SourceFormat.UNKNOWN_SOURCE_FORMAT,
+      destinationCaptor.capture() ?: Destination.UNKNOWN_DESTINATION,
+      durationMsCaptor.capture(),
+      connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE
+    )
+
+    when (sourceCaptor.allValues.single()) {
+      Source.DATABASE_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportDatabaseRequest::class.java)
+      Source.TABLE_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportTableRequest::class.java)
+      Source.QUERY_SOURCE -> assertThat(exportRequest).isInstanceOf(ExportQueryResultsRequest::class.java)
+      else -> fail()
+    }
+
+    when (sourceFormatCaptor.allValues.single()) {
+      SourceFormat.FILE_FORMAT -> assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isFalse()
+      SourceFormat.IN_MEMORY_FORMAT -> assertThat(exportRequest.srcDatabase.isInMemoryDatabase()).isTrue()
+      else -> fail()
+    }
+
+    val format = when (exportRequest) {
+      is ExportDatabaseRequest -> exportRequest.format
+      is ExportTableRequest -> exportRequest.format
+      is ExportQueryResultsRequest -> exportRequest.format
+      else -> null
+    }
+    when (destinationCaptor.allValues.single()) {
+      Destination.DB_DESTINATION -> {
+        assertThat(format).isEqualTo(DB)
+        assertThat(exportRequest::class.java).isEqualTo(ExportDatabaseRequest::class.java)
+      }
+      Destination.SQL_DESTINATION -> {
+        assertThat(format).isEqualTo(SQL)
+        assertThat(exportRequest::class.java).isAnyOf(ExportDatabaseRequest::class.java, ExportTableRequest::class.java)
+      }
+      Destination.CSV_DESTINATION -> {
+        assertThat(format).isInstanceOf(CSV::class.java)
+        assertThat(exportRequest::class.java).isAnyOf(
+          ExportDatabaseRequest::class.java, ExportTableRequest::class.java, ExportQueryResultsRequest::class.java
+        )
+      }
+      else -> fail()
+    }
+
+    durationMsCaptor.allValues.single().let { durationMs ->
+      assertThat(durationMs).isGreaterThan(0)
+      assertThat(durationMs).isAtMost(maxDurationMs.toInt())
+    }
+
+    when (connectivityStateCaptor.allValues.single()) {
+      ConnectivityState.CONNECTIVITY_ONLINE -> assertThat(exportRequest.srcDatabase).isInstanceOf(LiveSqliteDatabaseId::class.java)
+      ConnectivityState.CONNECTIVITY_OFFLINE -> assertThat(exportRequest.srcDatabase).isInstanceOf(FileSqliteDatabaseId::class.java)
+      else -> fail()
+    }
+  }
+
+  @Suppress("BlockingMethodInNonBlockingContext") // [CountDownLatch#await]
+  fun testExportCancelledByTheUser() {
+    // set up a database
+    val connection: DatabaseConnection = mock()
+
+    // set up a database: prepare a 'freeze' on issuing a database query - making the export operation go indefinitely
+    val queryIssuedLatch = CountDownLatch(1)
+    `when`(connection.query(any())).thenAnswer {
+      queryIssuedLatch.countDown()
+      CountDownLatch(1).await() // never released giving us time to cancel the job
+      mock<ListenableFuture<SqliteResultSet>>() // never returned, so irrelevant what the value is
+    }
+
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("srcDb")))
+    runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
+
+    // submit export request
+    val exportRequest = ExportTableRequest(databaseId, "ignored", CSV(SEMICOLON), Paths.get("/dst/path"))
+    submitExportRequest(exportRequest)
+
+    // verify that in-progress-listener (responsible for the progress bar) got called
+    runDispatching { assertThat(queryIssuedLatch.await(5, SECONDS)).isTrue() }
+    val job = controller.lastExportJob!!
+    verify(exportInProgressListener).invoke(job)
+    assertThat(job.isActive).isTrue()
+
+    // cancel the job simulating the cancel button invoked by the user
+    job.cancel()
+
+    // verify the job gets cancelled and notifyError gets the confirmation
+    awaitExportComplete(500L)
+    assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
+    assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
+    assertThat(exportProcessedListener.capturedError).isInstanceOf(CancellationException::class.java)
+    verifyNoInteractions(analyticsTracker)
   }
 
   fun testExportDatabaseToCsvFileDb() = testExportDatabaseToCsv(DatabaseType.File)
@@ -399,6 +542,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
           it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
         }
         assertWithMessage("Expecting a SQLite exception caused by an invalid query.").that(sqlException).isNotNull()
+        verifyNoInteractions(analyticsTracker)
       }
     )
   }

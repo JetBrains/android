@@ -56,6 +56,12 @@ class ProjectConfigurationAnalyzer(
    */
   private var projectConfigurationBuilder: ProjectConfigurationData.Builder? = null
 
+  /**
+   * Plugins configuration times gathered for currently configured project from plugin configuration events.
+   * This extra data gathering step is required as we don't have PluginIdentifier at  the moment of event and know only plugin display name.
+   */
+  private val projectPluginsConfigurationData = HashMap<String, Long>()
+
   private fun updatePluginConfigurationTime(plugin: PluginData, configurationTimeMs: Long) {
     val currentConfigurationTime = pluginsConfigurationDataMap.getOrDefault(plugin, 0L)
     pluginsConfigurationDataMap[plugin] = currentConfigurationTime + configurationTimeMs
@@ -66,15 +72,23 @@ class ProjectConfigurationAnalyzer(
   override fun receiveEvent(event: ProgressEvent) {
     if (event is ProjectConfigurationStartEvent) {
       projectConfigurationBuilder = ProjectConfigurationData.Builder(event.descriptor.project.projectPath)
+      projectPluginsConfigurationData.clear()
     }
     else if (projectConfigurationBuilder != null) {
       // project configuration finished
       if (event is ProjectConfigurationFinishEvent && event.result is ProjectConfigurationSuccessResult) {
-        allAppliedPlugins[event.descriptor.project.projectPath] =
+        val projectPath = event.descriptor.project.projectPath
+        allAppliedPlugins[projectPath] =
           (event.result as ProjectConfigurationSuccessResult).pluginApplicationResults.map {
-            pluginContainer.getPlugin(it.plugin, event.descriptor.project.projectPath)
+            pluginContainer.getPlugin(it.plugin, projectPath)
           }
+        projectPluginsConfigurationData.forEach { pluginName, pluginConfigurationTime ->
+          pluginContainer.findPluginByName(pluginName, projectPath)?.let { pluginData ->
+            updatePluginConfigurationTime(pluginData, pluginConfigurationTime)
+          }
+        }
         projectsConfigurationData.add(projectConfigurationBuilder!!.build(event.result.endTime - event.result.startTime))
+        projectPluginsConfigurationData.clear()
         projectConfigurationBuilder = null
       }
       else if (event is FinishEvent && event.result is SuccessResult) {
@@ -84,11 +98,9 @@ class ProjectConfigurationAnalyzer(
           // Check that the parent is not another binary plugin, to make sure that this plugin was added by the user
           if (event.descriptor.parent?.name?.startsWith(applyPluginEventPrefix) != true) {
             val pluginName = event.descriptor.name.substring(applyPluginEventPrefix.length + 1)
-            val plugin = pluginContainer.getPlugin(PluginData.PluginType.BINARY_PLUGIN, pluginName,
-                                                   projectConfigurationBuilder!!.projectPath)
             val pluginConfigurationTime = event.result.endTime - event.result.startTime
 
-            updatePluginConfigurationTime(plugin, pluginConfigurationTime)
+            projectPluginsConfigurationData[pluginName] = pluginConfigurationTime
 
             // check if the plugin was applied in a build script block or on beforeEvaluate / afterEvaluate, if so then we need to subtract
             // the plugin configuration time from this configuration step to not account for it twice

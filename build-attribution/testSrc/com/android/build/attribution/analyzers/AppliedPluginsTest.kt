@@ -69,7 +69,7 @@ class AppliedPluginsTest {
                                                             BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getAppliedPlugins()).hasSize(2)
-    val appliedPluginsForAppProject = buildAttributionManager.analyzersProxy.getAppliedPlugins()[":app"]!!.map { it.displayName }
+    val appliedPluginsForAppProject = buildAttributionManager.analyzersProxy.getAppliedPlugins()[":app"]!!.map { it.displayNames().first() }
     assertThat(appliedPluginsForAppProject).containsAllIn(
       listOf("SamplePlugin", "com.android.application", "org.gradle.api.plugins.JavaBasePlugin")
     )

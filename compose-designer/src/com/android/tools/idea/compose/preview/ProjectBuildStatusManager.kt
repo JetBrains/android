@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
+import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
 
 /** The project status */
 sealed class ProjectStatus
@@ -52,10 +55,15 @@ private val LOG = Logger.getInstance(ProjectStatus::class.java)
  *  built since it was open, this file is used to find if there are any existing .class files that indicate that has
  *  been built before.
  */
-class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFile) {
-  private val modificationTracker: ModificationTracker = editorFile.virtualFile
-  private var lastModificationCount = modificationTracker.modificationCount
+class ProjectBuildStatusManager(parentDisposable: Disposable, private val editorFile: PsiFile) {
   private val project: Project = editorFile.project
+  private val fileChangeDetector = PsiFileChangeDetector.getInstance {
+    if (it is KtStringTemplateExpression || it is KtConstantExpression) {
+      // When live literals is available, filter changes to constants
+      return@getInstance !LiveLiteralsService.getInstance(project).isEnabled
+    }
+    return@getInstance  true
+  }
   private val _isBuilding = AtomicBoolean(false)
   var status: ProjectStatus = NotReady
     get() = if (isBuildOutOfDate()) {
@@ -71,6 +79,9 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
   val isBuilding: Boolean get() = _isBuilding.get()
 
   init {
+    Disposer.register(parentDisposable) {
+      fileChangeDetector.clearMarks(editorFile)
+    }
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().addBuildListener(parentDisposable, object : ProjectSystemBuildManager.BuildListener {
       override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {
         _isBuilding.set(true)
@@ -83,13 +94,16 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
       override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
         _isBuilding.set(false)
         LOG.debug("buildFinished $result")
-        lastModificationCount = modificationTracker.modificationCount
-        if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) return
-        if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
-          status = Ready()
+        if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+          fileChangeDetector.markFileAsUpToDate(editorFile)
+          return
+        }
+        status = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+          fileChangeDetector.markFileAsUpToDate(editorFile)
+          Ready()
         }
         else {
-          status = when (status) {
+          when (status) {
             // If the project was ready before, we keep it as Ready since it was just the new build
             // that failed.
             is Ready -> Ready(false)
@@ -100,14 +114,15 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, editorFile: PsiFil
       }
     })
 
-    project.runWhenSmartAndSyncedOnEdt(parentDisposable, Consumer {
+    project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
+      fileChangeDetector.markFileAsUpToDate(editorFile)
+
       if (status === NotReady) {
         // Set the initial state of the project and initialize the modification count.
-        lastModificationCount = modificationTracker.modificationCount
         status = if (hasBeenBuiltSuccessfully(project) { editorFile }) Ready() else NeedsBuild
       }
     })
   }
 
-  private fun isBuildOutOfDate() = lastModificationCount < modificationTracker.modificationCount
+  private fun isBuildOutOfDate() = fileChangeDetector.hasFileChanged(editorFile)
 }

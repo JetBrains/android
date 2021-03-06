@@ -6,6 +6,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
@@ -15,6 +16,9 @@ import java.util.List;
 import javaslang.collection.Array;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.UsesFeature;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
@@ -749,6 +753,21 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   public void testContentProviderIntentFilter() throws Throwable {
     copyFileToProject("MyDocumentsProvider.java", "src/p1/p2/MyDocumentsProvider.java");
     doTestHighlighting();
+  }
+
+  public void testAddUsesFeatureTag() throws Throwable {
+    VirtualFile manifestFile = copyFileToProject("AddUsesFeature.xml");
+    myFixture.configureFromExistingVirtualFile(manifestFile);
+
+    Manifest manifest = AndroidUtils.loadDomElement(myModule, manifestFile, Manifest.class);
+    assertNotNull(manifest);
+
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      UsesFeature feature = manifest.addUsesFeature();
+      feature.getName().setStringValue("android.hardware.type.watch");
+    });
+
+    myFixture.checkResultByFile(myTestFolder + '/' + "AddUsesFeature_after.xml");
   }
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {

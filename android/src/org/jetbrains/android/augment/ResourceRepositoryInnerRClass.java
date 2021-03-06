@@ -12,7 +12,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implementation of {@link InnerRClassBase} back by a resource repository.
+ * Implementation of {@link InnerRClassBase} backed by a resource repository.
  */
 public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   @NotNull private final ResourceRepositoryRClass.ResourcesSource mySource;
@@ -32,8 +32,9 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
 
     return InnerRClassBase.buildResourceFields(resourcesSource.getResourceRepository(),
                                                resourcesSource.getResourceNamespace(),
+                                               resourcesSource.getResourceRepositoryManager(),
                                                modifier,
-                                               resourcesSource::isPublic,
+                                               ACCESSIBLE_RESOURCE_FILTER,
                                                resourceType,
                                                context);
   }

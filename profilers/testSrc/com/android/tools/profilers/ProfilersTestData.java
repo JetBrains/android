@@ -35,7 +35,7 @@ import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.ArrayList;
@@ -53,8 +53,7 @@ public final class ProfilersTestData {
   private ProfilersTestData() {
   }
 
-  public static final ProfilingConfiguration DEFAULT_CONFIG =
-    new PerfettoConfiguration("Test");
+  public static final ProfilingConfiguration DEFAULT_CONFIG = new ImportedConfiguration();
 
   public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
     .setSessionId(4321)

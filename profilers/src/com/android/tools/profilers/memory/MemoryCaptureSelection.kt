@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.ConditionalEnumComboBoxModel
 import com.android.tools.adtui.model.filter.Filter
 import com.android.tools.adtui.model.filter.FilterHandler
 import com.android.tools.adtui.model.filter.FilterResult
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.analytics.FilterMetadata
 import com.android.tools.profilers.memory.adapters.CaptureObject
@@ -28,7 +29,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
-import com.android.tools.profilers.stacktrace.StackTraceModel
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.Objects
 import java.util.concurrent.Executor

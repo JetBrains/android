@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.Delimiter.COMMA
@@ -49,11 +50,13 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogViewImpl
 import com.android.tools.idea.sqlite.utils.runWithExportToFileFeatureEnabled
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -75,12 +78,14 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
   private val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
   private val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
   private val query = SqliteStatement(SELECT, "select * from ${table1.name} where ${table1.columns.first().name} == qwerty")
+  private val analyticsTracker = mock<DatabaseInspectorAnalyticsTracker>()
 
   override fun setUp() {
     super.setUp()
     assertThat(inFileDatabaseId.isInMemoryDatabase()).isFalse()
     assertThat(inMemoryDatabaseId.isInMemoryDatabase()).isTrue()
     enableHeadlessDialogs(testRootDisposable)
+    project.registerServiceInstance(DatabaseInspectorAnalyticsTracker::class.java, analyticsTracker)
   }
 
   fun test_availableUiElements_exportDatabase_inFile() = runWithExportToFileFeatureEnabled {
@@ -93,7 +98,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_availableUiElements_exportDatabase(databaseId: SqliteDatabaseId, expectedExportFormats: List<ExportFormat>) {
     test_availableUiElements(
-      params = ExportDatabaseDialogParams(databaseId),
+      params = ExportDatabaseDialogParams(databaseId, Origin.UNKNOWN_ORIGIN),
       expectedTitle = "Export Database",
       expectedExportFormats = expectedExportFormats
     )
@@ -109,7 +114,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_availableUiElements_exportTable(databaseId: SqliteDatabaseId, expectedExportFormats: List<ExportFormat>) {
     test_availableUiElements(
-      params = ExportTableDialogParams(databaseId, table1.name),
+      params = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
       expectedTitle = "Export Table",
       expectedExportFormats = expectedExportFormats
     )
@@ -125,7 +130,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_availableUiElements_exportQueryResults(databaseId: SqliteDatabaseId) {
     test_availableUiElements(
-      params = ExportQueryResultsDialogParams(databaseId, query),
+      params = ExportQueryResultsDialogParams(databaseId, query, Origin.SCHEMA_TREE_EXPORT_BUTTON),
       expectedTitle = "Export Query Results",
       expectedExportFormats = listOf(CSV(mock()))
     )
@@ -137,6 +142,8 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     dialog.addListener(dialogListener)
 
     createModalDialogAndInteractWithIt({ dialog.show() }) {
+      verify(analyticsTracker).trackExportDialogOpened(params.actionOrigin)
+
       // check dialog title
       assertThat(it.title).isEqualTo(expectedTitle)
 
@@ -178,7 +185,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
   fun test_exportRequest_exportDatabase_sql() = runWithExportToFileFeatureEnabled { test_exportRequest_exportDatabase(SQL) }
 
   private fun test_exportRequest_exportDatabase(dstFormat: ExportFormat) {
-    val dialogParams = ExportDatabaseDialogParams(databaseId)
+    val dialogParams = ExportDatabaseDialogParams(databaseId, Origin.QUERY_RESULTS_EXPORT_BUTTON)
     val destinationPath = createDestinationPath(dialogParams, dstFormat)
     val expectedRequest = ExportDatabaseRequest(databaseId, dstFormat, destinationPath)
 
@@ -191,7 +198,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun test_exportRequest_exportTable(dstFormat: ExportFormat) {
     val table = table1.name
-    val dialogParams = ExportTableDialogParams(databaseId, table)
+    val dialogParams = ExportTableDialogParams(databaseId, table, Origin.UNKNOWN_ORIGIN)
     val destinationPath = createDestinationPath(dialogParams, dstFormat)
     val expectedRequest = ExportTableRequest(databaseId, table, dstFormat, destinationPath)
 
@@ -200,7 +207,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   fun test_exportRequest_exportQuery_csv() = runWithExportToFileFeatureEnabled {
     val srcQuery = query
-    val dialogParams = ExportQueryResultsDialogParams(databaseId, srcQuery)
+    val dialogParams = ExportQueryResultsDialogParams(databaseId, srcQuery, Origin.SCHEMA_TREE_CONTEXT_MENU)
     val dstFormat = CSV(COMMA)
     val destinationPath = createDestinationPath(dialogParams, dstFormat)
     val expectedRequest = ExportQueryResultsRequest(databaseId, srcQuery, dstFormat, destinationPath)
@@ -214,6 +221,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     dialog.addListener(dialogListener)
 
     createModalDialogAndInteractWithIt({ dialog.show() }) {
+      verify(analyticsTracker).trackExportDialogOpened(dialogParams.actionOrigin)
       val treeWalker = TreeWalker(it.rootPane)
       val format = expectedRequest.format
       treeWalker.formatButtons().single { it.text == format.displayName }.doClick()

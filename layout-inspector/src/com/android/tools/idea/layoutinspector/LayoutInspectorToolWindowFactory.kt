@@ -73,7 +73,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     if (TransportService.getInstance() == null) {
       throw ServiceNotReadyException()
     }
-    val model = InspectorModel(project)
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
 
@@ -99,6 +98,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
             .toList()
         }
         Disposer.register(workbench, processes)
+        val model = InspectorModel(project)
+        model.setProcessModel(processes)
 
         processes.addSelectedProcessListeners {
           // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error

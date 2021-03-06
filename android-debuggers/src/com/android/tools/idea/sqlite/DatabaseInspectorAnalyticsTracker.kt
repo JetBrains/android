@@ -43,9 +43,14 @@ interface DatabaseInspectorAnalyticsTracker {
   fun trackEnterOfflineModeUserCanceled()
   fun trackOfflineDatabaseDownloadFailed()
   fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata)
-  fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent)
-  fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                           event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent)
+  fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin)
+  fun trackExportCompleted(
+    source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    durationMs: Int,
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+  )
 }
 
 class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInspectorAnalyticsTracker {
@@ -104,14 +109,28 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
             .setOfflineModeMetadata(metadata))
   }
 
-  override fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent) {
+  override fun trackExportDialogOpened(actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin) {
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_DIALOG_OPENED)
-            .setExportDialogOpenedEvent(event))
+            .setExportDialogOpenedEvent(
+              AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.newBuilder().setOrigin(actionOrigin)
+            ))
   }
 
-  override fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
-                                    event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent) {
+  override fun trackExportCompleted(
+    source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
+    sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
+    destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
+    durationMs: Int,
+    connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
+  ) {
+    val event = AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.newBuilder()
+      .setSource(source)
+      .setSourceFormat(sourceFormat)
+      .setDestination(destination)
+      .setExportDurationMs(durationMs)
+      .build()
+
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_OPERATION_COMPLETED)
             .setConnectivityState(connectivityState)

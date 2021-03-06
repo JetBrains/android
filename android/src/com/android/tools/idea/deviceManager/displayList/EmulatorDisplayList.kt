@@ -314,7 +314,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
     return listOf(
       AvdDeviceColumnInfo("Device"),
 
-      object : AvdDisplayList.AvdColumnInfo("API", JBUI.scale(20)) {
+      object : AvdDisplayList.AvdColumnInfo("API") {
         override fun valueOf(avdInfo: AvdInfo): String = avdInfo.androidVersion.apiString
 
         /**

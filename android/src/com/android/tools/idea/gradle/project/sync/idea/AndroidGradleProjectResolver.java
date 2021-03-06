@@ -83,6 +83,7 @@ import com.android.tools.idea.gradle.project.model.V1NdkModel;
 import com.android.tools.idea.gradle.project.model.V2NdkModel;
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions;
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions;
+import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags;
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
@@ -974,19 +975,22 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         String moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
         project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
         syncOptions = new SingleVariantSyncActionOptions(
+          GradleSyncStudioFlags.Companion.create(),
           selectedVariants,
           moduleWithVariantSwitched,
           additionalClassifierArtifactsAction
         );
       }
       else {
-        syncOptions = new FullSyncActionOptions(additionalClassifierArtifactsAction);
+        syncOptions = new FullSyncActionOptions(GradleSyncStudioFlags.Companion.create(),
+                                                additionalClassifierArtifactsAction);
       }
     }
     else if (projectResolutionMode instanceof ProjectResolutionMode.FetchNativeVariantsMode) {
       ProjectResolutionMode.FetchNativeVariantsMode fetchNativeVariantsMode =
         (ProjectResolutionMode.FetchNativeVariantsMode)projectResolutionMode;
-      syncOptions = new NativeVariantsSyncActionOptions(fetchNativeVariantsMode.getModuleVariants(),
+      syncOptions = new NativeVariantsSyncActionOptions(GradleSyncStudioFlags.Companion.create(),
+                                                        fetchNativeVariantsMode.getModuleVariants(),
                                                         fetchNativeVariantsMode.getRequestedAbis());
     }
     else {

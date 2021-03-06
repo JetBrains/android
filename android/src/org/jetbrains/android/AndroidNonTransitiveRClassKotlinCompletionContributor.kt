@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android
 
+import android.databinding.tool.ext.capitalizeUS
 import com.android.SdkConstants.R_CLASS
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -28,7 +29,11 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.InsertionContext
-import com.intellij.codeInsight.lookup.VariableLookupItem
+import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.codeInsight.lookup.LookupElementDecorator
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -98,14 +103,27 @@ class AndroidNonTransitiveRClassKotlinCompletionContributor : CompletionContribu
 /**
  * Lookup element for resources shown on R.resourceType. elements that are not from the current Module R class
  *
- * Custom insert handler is provided to insert the correct package name of the R class of the selected resource.
+ * Insert handler is provided to insert the correct package name of the R class of the selected resource.
+ * Presentation is provided so that users can differentiate resources defined in multiple modules but with the same resource name.
  */
-class NonTransitiveResourceFieldLookupElement(val element: PsiField) : VariableLookupItem(element) {
+class NonTransitiveResourceFieldLookupElement(element: PsiField) :
+  LookupElementDecorator<LookupElement>(LookupElementBuilder.create(element)) {
+
+  override fun renderElement(presentation: LookupElementPresentation) {
+    val underlyingElement = this.`object` as? PsiField ?: return
+    presentation.itemText = underlyingElement.name
+    presentation.icon = DefaultLookupItemRenderer.getRawIcon(this)
+    presentation.typeText = underlyingElement.type.presentableText.capitalizeUS()
+    val rClass = underlyingElement.parent.parent as? AndroidRClassBase ?: return
+    val packageName = rClass.packageName ?: return
+    presentation.tailText = " ($packageName)"
+  }
+
   override fun handleInsert(context: InsertionContext) {
     super.handleInsert(context)
-
     // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
-    val psiDocumentManager = PsiDocumentManager.getInstance(element.project)
+    val underlyingElement = this.`object` as? PsiField ?: return
+    val psiDocumentManager = PsiDocumentManager.getInstance(underlyingElement.project)
     psiDocumentManager.commitAllDocuments()
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
 
@@ -113,7 +131,7 @@ class NonTransitiveResourceFieldLookupElement(val element: PsiField) : VariableL
                        ?.parentOfType<KtExpression>()
                        ?.getPreviousInQualifiedChain()
                        ?.getPreviousInQualifiedChain() as? PsiElement ?: return
-    val rClass = element.parent.parent as? AndroidRClassBase ?: return
+    val rClass = underlyingElement.parent.parent as? AndroidRClassBase ?: return
     if (firstChild.text == R_CLASS) {
       (firstChild.references?.firstIsInstance<KtSimpleNameReference>())?.bindToElement(rClass, NO_SHORTENING)
     }

@@ -18,7 +18,10 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -45,7 +48,6 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
@@ -154,8 +156,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       IdeProfilerComponents ideProfilerComponents = getIdeComponents();
       ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-      ProfilerAction.Builder builder = new ProfilerAction.Builder("Open " + monitor.getName());
-      ProfilerAction action =
+      DefaultContextMenuItem.Builder builder = new DefaultContextMenuItem.Builder("Open " + monitor.getName());
+      DefaultContextMenuItem action =
         builder.setActionRunnable(() -> expandMonitor(monitor))
           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
           .setContainerComponent(component).build();

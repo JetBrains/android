@@ -66,6 +66,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
@@ -83,6 +84,7 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -610,6 +612,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     if (screenViewProvider != myScreenViewProvider) {
+      myScreenViewProvider.onViewProviderReplaced();
       myScreenViewProvider = screenViewProvider;
 
       for (SceneManager manager : getSceneManagers()) {
@@ -892,6 +895,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SurfaceScale double currentScale = getScale();
     @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
     return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
+  }
+
+  @Override
+  public double getFitScale(boolean fitInto) {
+    Collection<PositionableContent> contents = getPositionableContent();
+    boolean isSizeDetermined = !contents.isEmpty() && contents.stream().allMatch(PositionableContent::isContentSizeDetermined);
+    // When we don't know the exact content size, uses 1.0 by default.
+    return isSizeDetermined ? super.getFitScale(fitInto) : 1.0;
   }
 
   @Override

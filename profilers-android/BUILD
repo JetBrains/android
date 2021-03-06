@@ -13,7 +13,6 @@ iml_module(
         "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
     ],
-    test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -45,6 +44,9 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
     ],
 )
 

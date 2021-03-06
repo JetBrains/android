@@ -48,6 +48,9 @@ interface ScreenViewProvider {
    * An optional [ScreenView] that may be displayed instead of the primary or side to side in the DesignSurface.
    */
   fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
+
+  /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
+  fun onViewProviderReplaced() { }
 }
 
 /**

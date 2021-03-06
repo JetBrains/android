@@ -97,6 +97,7 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
+import java.util.function.Predicate
 import javax.imageio.ImageIO
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
@@ -114,6 +115,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
   private var startTime = 0L
+  private val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                             "android.emulation.control.EmulatorController/streamNotification")
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
@@ -238,14 +241,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
    */
   @UiThread
   @Throws(TimeoutException::class)
-  fun getNextGrpcCall(timeout: Long, unit: TimeUnit): GrpcCallRecord {
+  fun getNextGrpcCall(timeout: Long, unit: TimeUnit, filter: Predicate<GrpcCallRecord> = defaultCallFilter): GrpcCallRecord {
     val timeoutMillis = unit.toMillis(timeout)
     val deadline = System.currentTimeMillis() + timeoutMillis
     var waitUnit = ((timeoutMillis + 9) / 10).coerceAtMost(10)
     while (waitUnit > 0) {
       UIUtil.dispatchAllInvocationEvents()
       val call = grpcCallLog.poll(waitUnit, TimeUnit.MILLISECONDS)
-      if (call != null) {
+      if (call != null && filter.test(call)) {
         return call
       }
       waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
@@ -668,6 +671,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun toString(): String {
       return "$methodName(${shortDebugString(request)})"
+    }
+  }
+
+  class CallFilter(private vararg val methodNamesToIgnore: String) : Predicate<GrpcCallRecord> {
+    override fun test(call: GrpcCallRecord): Boolean {
+      return call.methodName !in methodNamesToIgnore
     }
   }
 

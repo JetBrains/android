@@ -36,6 +36,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.sqlite.utils.runWithExportToFileFeatureEnabled
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -61,7 +62,7 @@ import javax.swing.JPopupMenu
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
-private const val EXPORT_TO_FILE_ENABLED_DEFAULT = false
+private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"
 private const val EXPORT_BUTTON_COMPONENT_NAME = "export-button"
 
@@ -77,8 +78,8 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     assertThat(DatabaseInspectorFlagController.isExportToFileEnabled).isEqualTo(EXPORT_TO_FILE_ENABLED_DEFAULT)
   }
 
-  fun test_tableView_exportButtonHiddenByDefault() {
-    assertThat(findExportButtonInActionPanel(TableViewImpl())).isNull()
+  fun test_tableView_exportButtonVisibleByDefault() {
+    assertThat(findExportButtonInActionPanel(TableViewImpl())).isNotNull()
   }
 
   // verify that the button is visible with the flag on and that it calls the listener when clicked
@@ -104,7 +105,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         assertThat(popUpMenuProvider()).isEmpty()
         exportButton.simulateClick()
       },
-      expectedParams = ExportTableDialogParams(databaseId, table1.name))
+      expectedParams = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_EXPORT_BUTTON))
   }
 
   /* Tests selecting a node in the schema-tree and clicking on the export-button in the action-panel */
@@ -116,7 +117,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         assertThat(popUpMenuProvider()).isEmpty()
         exportButton.simulateClick()
       },
-      expectedParams = ExportDatabaseDialogParams(databaseId))
+      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_EXPORT_BUTTON))
   }
 
   /* Tests right-clicking on a node in the schema-tree and invoking an export-action through a pop-up menu that appears */
@@ -128,7 +129,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         tree.simulateClick(nodePath, BUTTON3) // make pop-up show up
         popUpMenuProvider().single().invokeSingleOption() // execute the only pop-up item
       },
-      expectedParams = ExportTableDialogParams(databaseId, table1.name))
+      expectedParams = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU))
   }
 
   /* Tests right-clicking on a node in the schema-tree and invoking an export-action through a pop-up menu that appears */
@@ -140,7 +141,7 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         tree.simulateClick(nodePath, BUTTON3) // make pop-up show up
         popUpMenuProvider().single().invokeSingleOption() // execute the only pop-up item
       },
-      expectedParams = ExportDatabaseDialogParams(databaseId))
+      expectedParams = ExportDatabaseDialogParams(databaseId, Origin.SCHEMA_TREE_CONTEXT_MENU))
   }
 
   private fun test_leftPanelView(

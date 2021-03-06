@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenHttpSettingsHype
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveJcenterHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSHA256FromGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
@@ -110,7 +111,7 @@ fun SyncIssueUsageReporter.collect(quickFixes: Collection<NotificationHyperlink>
     collect(quickFixes.mapNotNull { it.toSyncIssueQuickFix() })
 
 @Suppress("DUPLICATE_LABEL_IN_WHEN")
-private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
+fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.GradleSyncQuickFix? =
     when (this) {
       is AddGoogleMavenRepositoryHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK
       is BuildProjectHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.BUILD_PROJECT_HYPERLINK
@@ -152,6 +153,7 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
+      is RemoveJcenterHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_JCENTER_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 

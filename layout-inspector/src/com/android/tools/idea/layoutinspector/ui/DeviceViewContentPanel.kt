@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
@@ -30,10 +31,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
 import java.awt.Desktop
@@ -51,9 +53,13 @@ import java.net.URI
 
 private const val MARGIN = 50
 
-class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : JBPanelWithEmptyText() {
+class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
-  internal lateinit var selectProcessAction: SelectProcessAction
+  @VisibleForTesting
+  lateinit var selectProcessAction: SelectProcessAction
+
+  @VisibleForTesting
+  var showEmptyText = true
 
   val model = DeviceViewPanelModel(inspectorModel)
 
@@ -71,8 +77,11 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
   )
 
+  private val emptyText: StatusText = object : StatusText(this) {
+    override fun isStatusVisible() = !model.isActive && showEmptyText
+  }
+
   init {
-    background = primaryPanelBackground
     emptyText.appendLine("No process connected")
     emptyText.appendLine("Select process", SimpleTextAttributes.LINK_ATTRIBUTES) {
       val button = selectProcessAction.button
@@ -162,10 +171,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     g2d.setRenderingHints(HQ_RENDERING_HINTS)
     g2d.color = primaryPanelBackground
     g2d.fillRect(0, 0, width, height)
-    if (!model.isActive) {
-      super.paint(g2d)
-      return
-    }
+    emptyText.paint(this, g)
     g2d.translate(size.width / 2.0, size.height / 2.0)
     g2d.scale(viewSettings.scaleFraction, viewSettings.scaleFraction)
 

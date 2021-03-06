@@ -61,6 +61,7 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -2155,13 +2156,13 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testShowExportToFileDialogInvoked_table() {
     val table = SqliteTable("tableName", mock(), null, false)
-    val expectedDialogParams = ExportTableDialogParams(mockDatabaseConnectionId, table.name)
+    val expectedDialogParams = ExportTableDialogParams(mockDatabaseConnectionId, table.name, Origin.QUERY_RESULTS_EXPORT_BUTTON)
     testShowExportToFileDialogInvoked({ table }, mock(), expectedDialogParams)
   }
 
   fun testShowExportToFileDialogInvoked_query() {
     val sqliteStatement = SqliteStatement(SqliteStatementType.SELECT, "select * from table1337")
-    val expectedDialogParams = ExportQueryResultsDialogParams(mockDatabaseConnectionId, sqliteStatement)
+    val expectedDialogParams = ExportQueryResultsDialogParams(mockDatabaseConnectionId, sqliteStatement, Origin.QUERY_RESULTS_EXPORT_BUTTON)
     testShowExportToFileDialogInvoked({ null }, sqliteStatement, expectedDialogParams)
   }
 
@@ -2564,10 +2565,6 @@ class TableControllerTest : LightPlatformTestCase() {
 
   private fun SqliteColumn.toResultSetCol(): ResultSetSqliteColumn {
     return ResultSetSqliteColumn(name, affinity, isNullable, inPrimaryKey)
-  }
-
-  private fun List<SqliteColumn>.toResultSetCol(): List<ResultSetSqliteColumn> {
-    return map { ResultSetSqliteColumn(it.name, it.affinity, it.isNullable, it.inPrimaryKey) }
   }
 
   private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<SqliteValue>>) {

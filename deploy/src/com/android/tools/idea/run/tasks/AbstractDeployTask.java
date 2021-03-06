@@ -31,6 +31,7 @@ import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
@@ -39,7 +40,6 @@ import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
@@ -62,7 +62,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +69,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +94,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
                                             ChangeType.RESOURCE));
 
   @NotNull private final Project myProject;
-  @NotNull private final Map<String, List<File>> myPackages;
+  @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
@@ -102,7 +102,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   public AbstractDeployTask(
-      @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
+      @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
@@ -158,16 +158,14 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
                                      installer, ideService, metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
-    for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
-      String applicationId = entry.getKey();
-      List<File> apkFiles = entry.getValue();
+    for (ApkInfo apkInfo : myPackages) {
       try {
         launchContext.setLaunchApp(shouldTaskLaunchApp());
-        Deployer.Result result = perform(device, deployer, applicationId, apkFiles);
+        Deployer.Result result = perform(device, deployer, apkInfo);
         addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
         logAgentFailures(metrics.getAgentFailures());
         if (result.skippedInstall) {
-          idsSkippedInstall.add(applicationId);
+          idsSkippedInstall.add(apkInfo.getApplicationId());
         }
         if (result.needsRestart) {
           // TODO: fall back to using the suggested action, rather than blindly rerun
@@ -202,8 +200,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   abstract protected boolean shouldTaskLaunchApp();
 
-  abstract protected Deployer.Result perform(
-    IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
+  abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo) throws DeployerException;
 
   private String getLocalInstaller() {
     File path;
@@ -216,8 +213,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return path.getAbsolutePath();
   }
 
-  protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {
-    return ContainerUtil.map(apkFiles, File::getPath);
+  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
+    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkFile).map(File::getPath).collect(Collectors.toList());
   }
 
   @NotNull
@@ -386,8 +383,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   @Override
   public Collection<ApkInfo> getApkInfos() {
-    return myPackages.entrySet().stream().map((eachPackage) ->
-                                                ContainerUtil.map(eachPackage.getValue(), file -> new ApkInfo(file, eachPackage.getKey())))
-      .flatMap(List::stream).collect(ImmutableList.toImmutableList());
+    return myPackages;
   }
 }

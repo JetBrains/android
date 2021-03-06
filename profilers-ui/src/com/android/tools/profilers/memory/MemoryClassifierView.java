@@ -28,7 +28,8 @@ import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
@@ -47,7 +48,6 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSe
 import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
-import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -137,8 +137,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
+  private final CsvExporter myCsvExporter;
+
   public MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
     mySelection = selection;
+    myCsvExporter = new CsvExporter(() -> myTree, () -> myCaptureObject, ideProfilerComponents, selection.getIdeServices());
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
     myLoadingPanel.setLoadingText("");
@@ -191,6 +194,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     myAttributeColumns.put(
       ClassifierAttribute.REMAINING_SIZE,
       makeColumn("Remaining Size", 140, ClassifierSet::getTotalRemainingSize));
+    myAttributeColumns.put(
+      ClassifierAttribute.SHALLOW_DIFFERENCE,
+      makeColumn("Shallow Size Change", 110, ClassifierSet::getDeltaShallowSize));
   }
 
   /**
@@ -376,6 +382,11 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
       return null;
     });
+
+    if (mySelection.getIdeServices().getFeatureConfig().isMemoryCSVExportEnabled()) {
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeClassExportItem());
+      myContextMenuInstaller.installGenericContextMenu(myTree, myCsvExporter.makeInstanceExportItem());
+    }
 
     List<ClassifierAttribute> attributes = myCaptureObject.getClassifierAttributes();
     myTableColumnModel = new DefaultTableColumnModel();

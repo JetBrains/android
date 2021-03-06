@@ -16,8 +16,9 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.BuildAttributionManagerImpl
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.tools.idea.flags.StudioFlags
@@ -55,8 +56,8 @@ class CriticalPathAnalyzerTest {
     val analyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
 
-    val pluginA = createBinaryPluginIdentifierStub("pluginA")
-    val pluginB = createBinaryPluginIdentifierStub("pluginB")
+    val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
+    val pluginB = createBinaryPluginIdentifierStub("pluginB", "my.gradle.plugin.PluginB")
 
     wrapper.onBuildStart()
 
@@ -101,7 +102,12 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
+    wrapper.onBuildSuccess(
+      null,
+      GradlePluginsData.emptyData,
+      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      StudioProvidedInfo(null, null)
+    )
 
     // Then the analyzer should find this critical path
     // SAMPLE(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
@@ -120,9 +126,9 @@ class CriticalPathAnalyzerTest {
              TaskData.createTaskData(taskLast, pluginContainer)))
 
     assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(pluginContainer.getPlugin(pluginA, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(66)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(pluginContainer.getPlugin(pluginB, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(34)
 
 
@@ -150,7 +156,13 @@ class CriticalPathAnalyzerTest {
 
     // When the build is finished successfully and the analyzer is run
 
-    wrapper.onBuildSuccess(null, Mockito.mock(BuildEventsAnalysisResult::class.java))
+    wrapper.onBuildSuccess(
+      null,
+      GradlePluginsData.emptyData,
+
+      Mockito.mock(BuildEventsAnalysisResult::class.java),
+      StudioProvidedInfo(null, null)
+    )
 
     // Then the analyzer should find this critical path
     // A(10) -> B(5) -> D(25)
@@ -164,9 +176,9 @@ class CriticalPathAnalyzerTest {
              TaskData.createTaskData(taskE, pluginContainer)))
 
     assertThat(analyzer.result.pluginsDeterminingBuildDuration).hasSize(2)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(PluginData(pluginB, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].plugin).isEqualTo(pluginContainer.getPlugin(pluginB, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[0].buildDuration).isEqualTo(30)
-    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(PluginData(pluginA, ""))
+    assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].plugin).isEqualTo(pluginContainer.getPlugin(pluginA, ""))
     assertThat(analyzer.result.pluginsDeterminingBuildDuration[1].buildDuration).isEqualTo(25)
   }
 

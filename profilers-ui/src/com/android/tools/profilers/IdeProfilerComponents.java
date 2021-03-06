@@ -16,13 +16,14 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.stdui.ContentType;
+import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.inspectors.common.ui.dataviewer.DataViewer;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
+import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.profilers.stacktrace.StackTraceGroup;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 import javax.swing.JComponent;

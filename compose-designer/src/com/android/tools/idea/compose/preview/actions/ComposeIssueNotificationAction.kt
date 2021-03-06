@@ -22,6 +22,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnimatedIcon
+import icons.StudioIcons
 import javax.swing.Icon
 
 private const val COMPOSE_ISSUE_NOTIFICATION_ACTION = "Android.Designer.ComposeIssueNotificationAction"
@@ -33,6 +34,7 @@ class ComposeIssueNotificationAction : IssueNotificationAction() {
         it.status().hasSyntaxErrors -> AllIcons.General.Error to message("notification.syntax.errors")
         it.status().isRefreshing -> AnimatedIcon.Default() to message("notification.preview.refreshing")
         it.status().isOutOfDate -> AllIcons.General.Warning to message("notification.preview.out.of.date")
+        it.status().hasRuntimeErrors -> StudioIcons.Common.ERROR to message("notification.runtime.errors")
         else -> AllIcons.General.InspectionsOK  to message("notification.preview.up.to.date")
       }
     } ?: super.getNoErrorsIconAndDescription(event)

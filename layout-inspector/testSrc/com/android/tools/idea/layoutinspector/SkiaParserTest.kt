@@ -22,6 +22,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.LayoutInspectorUtils
@@ -34,6 +35,8 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
 import java.io.File
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -175,9 +178,23 @@ class SkiaParserIntegrationTest {
     assertThat(imageMap.values.map { it.size() }).containsExactly(8000000, 2000000, 800000)
     val expected = Node(1, Node(1), Node(2, Node(2)), Node(4, Node(4)))
     assertIdsEqual(expected, root)
-
+    assertImagesCorrect(root, imageMap)
     serverInfo.shutdown()
     serverThread.join()
+  }
+
+  private fun assertImagesCorrect(root: InspectorView, imageMap: Map<Int, ByteString>) {
+    val remainingImages = imageMap.toMutableMap()
+    assertImagesCorrectInternal(root, remainingImages)
+    assertThat(remainingImages).isEmpty()
+  }
+
+  private fun assertImagesCorrectInternal(node: InspectorView, remainingImages: MutableMap<Int, ByteString>) {
+    if (node.imageId != 0) {
+      assertTrue(node.image?.isEmpty != false)
+      assertTrue(remainingImages.remove(node.imageId) != null)
+    }
+    node.childrenList.forEach { assertImagesCorrectInternal(it, remainingImages) }
   }
 
   private fun assertIdsEqual(expected: Node, root: InspectorView) {

@@ -16,12 +16,14 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.idea.actions.SetColorBlindModeAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
@@ -36,6 +38,7 @@ import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -118,11 +121,22 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
+    NlDesignSurface nlDesignSurface = (NlDesignSurface) mySurface;
     DropDownAction designSurfaceMenu =
       new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, (NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, (NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, nlDesignSurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
+
+    if (StudioFlags.NL_COLORBLIND_MODE.get()) {
+      DefaultActionGroup colorBlindMode = DefaultActionGroup.createPopupGroup(() -> "Color Blind Modes");
+      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOPES, nlDesignSurface));
+      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, nlDesignSurface));
+      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, nlDesignSurface));
+      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, nlDesignSurface));
+      colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.TRITANOPES, nlDesignSurface));
+      designSurfaceMenu.addAction(colorBlindMode);
+    }
     designSurfaceMenu.addSeparator();
     // Get the action instead of creating a new one, to make the popup menu display the shortcut.
     designSurfaceMenu.addAction(RefreshRenderAction.getInstance());

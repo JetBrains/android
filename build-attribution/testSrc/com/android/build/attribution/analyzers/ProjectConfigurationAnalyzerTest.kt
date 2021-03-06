@@ -29,11 +29,11 @@ class ProjectConfigurationAnalyzerTest {
 
   private val analyzer = ProjectConfigurationAnalyzer(PluginContainer())
 
-  private val pluginA = createBinaryPluginIdentifierStub("pluginA")
-  private val pluginB = createBinaryPluginIdentifierStub("pluginB")
-  private val pluginC = createBinaryPluginIdentifierStub("pluginC")
-  private val pluginD = createBinaryPluginIdentifierStub("pluginD")
-  private val pluginE = createBinaryPluginIdentifierStub("pluginE")
+  private val pluginA = createBinaryPluginIdentifierStub("pluginA", "my.gradle.plugin.PluginA")
+  private val pluginB = createBinaryPluginIdentifierStub("pluginB", "my.gradle.plugin.PluginB")
+  private val pluginC = createBinaryPluginIdentifierStub("pluginC", "my.gradle.plugin.PluginC")
+  private val pluginD = createBinaryPluginIdentifierStub("pluginD", "my.gradle.plugin.PluginD")
+  private val pluginE = createBinaryPluginIdentifierStub("pluginE", "my.gradle.plugin.PluginE")
   private val buildScriptA = createScriptPluginIdentifierStub("buildA.gradle")
   private val buildScriptB = createScriptPluginIdentifierStub("buildB.gradle")
 
@@ -123,8 +123,9 @@ class ProjectConfigurationAnalyzerTest {
     analyzer.receiveEvent(createApplyPluginFinishEvent(pluginE, 200, afterEvaluateFinishEvent))
     analyzer.receiveEvent(afterEvaluateFinishEvent)
 
-    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(":app", 0, 4500))
-
+    analyzer.receiveEvent(createProjectConfigurationFinishEventStub(
+      ":app", 0, 4500, listOf(pluginA, buildScriptA, pluginB, buildScriptB, pluginC, pluginD, pluginE))
+    )
   }
 
   @Test
@@ -137,16 +138,17 @@ class ProjectConfigurationAnalyzerTest {
 
     assertThat(configurationData.projectPath).isEqualTo(":app")
 
-    val expectedPluginsConfiguration = listOf(PluginConfigurationData(PluginData(pluginA, ""), 500),
-                                              PluginConfigurationData(PluginData(pluginB, ""), 100),
-                                              PluginConfigurationData(PluginData(pluginC, ""), 400),
-                                              PluginConfigurationData(PluginData(pluginE, ""), 200))
+    val expectedPluginsConfiguration = listOf(
+      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginA"), 500),
+      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginB"), 100),
+      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginC"), 400),
+      PluginConfigurationData(PluginData(PluginData.PluginType.BINARY_PLUGIN, "my.gradle.plugin.PluginE"), 200)
+    )
 
     assertThat(
       analyzer.result.pluginsConfigurationDataMap.map { (plugin, time) ->
         PluginConfigurationData(plugin, time)
-      }).containsExactlyElementsIn(
-      expectedPluginsConfiguration)
+      }).containsExactlyElementsIn(expectedPluginsConfiguration)
 
     assertThat(configurationData.pluginsConfigurationData).containsExactlyElementsIn(expectedPluginsConfiguration)
 

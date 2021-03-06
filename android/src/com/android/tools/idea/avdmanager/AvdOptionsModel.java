@@ -580,7 +580,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (skinPath != null) {
       File skinFile = (skinPath.equals(AvdWizardUtils.NO_SKIN.getPath())) ? AvdWizardUtils.NO_SKIN : new File(skinPath);
 
-      if (skinFile.isDirectory()) {
+      if (skinFile.isDirectory() || FileUtil.filesEqual(skinFile, AvdWizardUtils.NO_SKIN)) {
         myAvdDeviceData.customSkinFile().setValue(skinFile);
       }
     }

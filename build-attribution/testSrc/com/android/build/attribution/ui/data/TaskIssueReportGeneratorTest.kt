@@ -86,12 +86,12 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
   @Test
   fun testAlwaysRunSingleTaskReported() {
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin com.android.application
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin com.android.build.gradle.internal.plugins.AppPlugin
 
 Always-Run Tasks
 Task runs on every build because it declares no outputs.
 
-Plugin: com.android.application
+Plugin: com.android.build.gradle.internal.plugins.AppPlugin
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
 Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
@@ -115,15 +115,15 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
   @Test
   fun testTaskWithTwoIssues() {
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginA
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin my.plugin.PluginA
 
 Always-Run Tasks
 This task might be setting its up-to-date check to always return false.
 
 Task Setup Issues
-Task declares the same output directory as task taskB from pluginB: '/tmp/tasks_sharing_output/test/path'.
+Task declares the same output directory as task taskB from my.plugin.PluginB: '/tmp/tasks_sharing_output/test/path'.
 
-Plugin: pluginA
+Plugin: my.plugin.PluginA
 Task: taskA
 Task type: UNKNOWN
 Issues for the same task were detected in 1 module(s), total execution time was 0.4s (5.0%), by module:
@@ -161,12 +161,12 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
   @Test
   fun testSameIssueInSeveralModules() {
     val expectedText = """
-At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin pluginB
+At 17:12, Nov 19, 2019, Android Studio detected the following issue(s) with Gradle plugin my.plugin.PluginB
 
 Always-Run Tasks
 Task runs on every build because it declares no outputs.
 
-Plugin: pluginB
+Plugin: my.plugin.PluginB
 Task: taskB
 Task type: UNKNOWN
 Issues for the same task were detected in 2 module(s), total execution time was 0.4s (5.0%), by module:

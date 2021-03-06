@@ -28,7 +28,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -420,24 +419,23 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else {
       ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
       LocalResourceRepository appResources = repoManager.getAppResources();
-      ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
         ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
         if (frameworkResources != null) {
-          addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
+          addResourceReferenceValuesFromRepo(frameworkResources, repoManager, element, prefix, type,
                                              ResourceNamespace.ANDROID, result, explicitResourceType);
         }
       }
 
       if (onlyNamespace == null) {
         for (ResourceNamespace namespace : appResources.getNamespaces()) {
-          addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, namespace, result,
+          addResourceReferenceValuesFromRepo(appResources, repoManager, element, prefix, type, namespace, result,
                                              explicitResourceType);
         }
       }
       else {
-        addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
+        addResourceReferenceValuesFromRepo(appResources, repoManager, element, prefix, type, onlyNamespace, result,
                                            explicitResourceType);
       }
       if (includeDynamicFeatures) {
@@ -480,15 +478,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private static void addResourceReferenceValuesFromRepo(ResourceRepository repo,
                                                          ResourceRepositoryManager repoManager,
-                                                         ResourceVisibilityLookup visibilityLookup,
                                                          @Nullable XmlElement element,
                                                          char prefix,
                                                          ResourceType type,
                                                          @NotNull ResourceNamespace onlyNamespace,
                                                          Collection<ResourceValue> result,
                                                          boolean explicitResourceType) {
-    Collection<String> names =
-      IdeResourcesUtil.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceVisibility.PUBLIC);
+    Collection<String> names = IdeResourcesUtil.getResourceItems(repo, onlyNamespace, type, ResourceVisibility.PUBLIC);
 
     ResourceNamespace.Resolver resolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     if (element != null) {

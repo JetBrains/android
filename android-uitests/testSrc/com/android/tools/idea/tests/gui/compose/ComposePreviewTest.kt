@@ -35,10 +35,8 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
-import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
-import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
@@ -47,7 +45,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -290,7 +287,7 @@ class ComposePreviewTest {
     composePreview.waitForSceneViewsCount(1)
 
     val animationInspectorButton = composePreview
-      .findActionButtonByIcon(ANIMATION_INSPECTOR)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     // There are no animations, so it's disabled
     assertFalse(animationInspectorButton.isEnabled)
 
@@ -307,64 +304,7 @@ class ComposePreviewTest {
   }
 
   @Test
-  @Ignore("b/172894609") // Ignore while we don't update the Compose version. We fixed a bug that fails to detect animations.
-  @Throws(Exception::class)
-  fun testAnimationButtonWhileInteractiveSwitch() {
-    val fixture = getSyncedProjectFixture()
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    var animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertNotNull(animButton)
-
-    composePreview.designSurface
-      .allSceneViews
-      .first()
-      .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-      .click()
-
-    composePreview.waitForRenderToFinish()
-
-    val toolbar =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-
-    try {
-      toolbar.findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR, 1)
-      fail("Expected not to find the Animation preview button.")
-    }
-    catch (e: WaitTimedOutError) {
-      // Expected to throw.
-    }
-
-    composePreview
-      .findActionButtonByText("Stop Interactive Preview")
-      .click()
-
-    composePreview.waitForRenderToFinish()
-
-    animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    // Animation inspector can be open again after exiting interactive mode.
-    assertNotNull(animButton)
-
-    fixture.editor.close()
-  }
-
-  @Test
   @RunIn(TestGroup.UNRELIABLE) // b/160776556
-  @Ignore("b/172894609") // Ignore while we don't update the Compose version. We fixed a bug that fails to detect animations.
   @Throws(Exception::class)
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
@@ -376,114 +316,98 @@ class ComposePreviewTest {
       }
 
     val fixture = getSyncedProjectFixture()
-    val composePreview = openComposePreview(fixture, "Animations.kt").waitForSceneViewsCount(2)
+    val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
+    // Last preview does not have an animation
+    noAnimationsComposePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
+    val animationPreviewButton =
+      noAnimationsComposePreview
+        .waitForRenderToFinish()
+        .waitForSceneViewsCount(1)
+        .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+    // Button should be disabled since there are no animations in this preview
+    assertFalse(animationPreviewButton.isEnabled)
+
+    noAnimationsComposePreview
+      .findActionButtonByText("Stop Interactive Mode")
+      .click()
+    noAnimationsComposePreview.waitForRenderToFinish()
+
+    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/MultipleComposePreviews.kt")
+
+    val composePreview = openComposePreview(fixture, "Animations.kt").waitForSceneViewsCount(2)
+    // First preview have an animation
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
       .click()
 
     composePreview
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
     assertNotNull(composePreview.findAnimationInspector())
 
-    composePreview
-      .findActionButtonByText("Stop Animation Preview")
-      .click()
-
-    composePreview
-      .waitForRenderToFinish()
-      .waitForSceneViewsCount(2)
-
-    assertNull(composePreview.findAnimationInspector())
-
-    fixture.editor.close()
-  }
-
-  @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/160776556
-  @Ignore("b/172894609") // This test should check that opening animation preview in one file closes the one in another file if it's open.
-  @Throws(Exception::class)
-  fun testOnlyOneAnimationInspectorCanBeOpen() {
-    val fixture = getSyncedProjectFixture()
-    val composePreview = openComposePreview(fixture, "Animations.kt")
-
-    var animButton =
-      composePreview.designSurface
+    // Open the animation inspector in another file
+    val otherComposePreview = openComposePreview(fixture, "Animations2.kt", false)
+    otherComposePreview
+      .designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
+      .click()
 
-    var interactivePreviewButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-    assertTrue(interactivePreviewButton.isEnabled)
+    otherComposePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
 
-    animButton.click()
-    composePreview.waitForRenderToFinish()
+    assertNotNull(otherComposePreview.findAnimationInspector())
 
-    // The button should be enabled, so we can close the animation inspector
-    animButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-    assertTrue(animButton.isEnabled)
+    val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
+    fixture.editor.open(animations1Relative)
+    // Animation Preview was closed in Animations.kt after we opened it in Animations2.kt
+    assertNull(composePreview.findAnimationInspector())
 
-    interactivePreviewButton =
-      composePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-    // We can't enter interactive mode for a preview being inspected in the animation inspector
-    assertFalse(interactivePreviewButton.isEnabled)
-
-    val otherComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
-
-    animButton =
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-
-    // The button should be disabled, as the animation inspector is open in Animations.kt
-    assertFalse(animButton.isEnabled)
-
-    // We can enter interactive mode for a preview even if another preview is being inspected in the animation inspector
-    assertTrue(
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-        .isEnabled
-    )
-
-    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations.kt")
+    // Return to Animations2.kt, where the Animation Preview should still be open
+    fixture.editor.closeFile(animations1Relative)
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
+    assertNotNull(otherComposePreview.findAnimationInspector())
 
-    Wait.seconds(3).expecting("Animation Inspection toolbar button to be enabled.").until {
-      // The button should now be enabled again, since the animation inspector was closed after closing Animations.kt
-      otherComposePreview.designSurface
-        .allSceneViews
-        .first()
-        .toolbar()
-        .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-        .isEnabled
-    }
+    // Clicking on the animation preview button should close the animation preview panel (and go to interactive mode)
+    otherComposePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
+    assertNull(otherComposePreview.findAnimationInspector())
 
-    fixture.editor.close()
+    otherComposePreview
+      .waitForRenderToFinish()
+      .waitForSceneViewsCount(1)
+      .findActionButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      .click()
+    assertNotNull(otherComposePreview.findAnimationInspector())
+
+    // Clicking on "Stop Interactive Mode" should also close the animation preview panel (going directly to static preview)
+    otherComposePreview
+      .findActionButtonByText("Stop Interactive Mode")
+      .click()
+
+    assertNull(otherComposePreview.findAnimationInspector())
+
+    fixture.editor.closeFile("app/src/main/java/google/simpleapplication/Animations2.kt")
   }
 
   @Test

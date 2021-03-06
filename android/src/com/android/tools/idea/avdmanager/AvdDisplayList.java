@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AbstractTableCellEditor;
@@ -60,6 +61,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,7 +85,9 @@ import javax.swing.SortOrder;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
@@ -105,7 +109,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final JPanel myCenterCardPanel;
   private final JPanel myNotificationPanel;
 
-  private final TableView<AvdInfo> myTable = new TableView<>();
+  private final AvdInfoTableView myTable = new AvdInfoTableView();
   private final ListTableModel<AvdInfo> myModel = new ListTableModel<>();
   private final Set<AvdSelectionListener> myListeners = new HashSet<>();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
@@ -428,7 +432,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
           return (avd1, avd2) -> collator.compare(avd1.getDisplayName(), avd2.getDisplayName());
         }
       },
-      new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
+      new AvdIconColumnInfo("Play Store") {
         private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
         private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
@@ -469,7 +473,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
           };
         }
       },
-      new AvdColumnInfo("API", JBUI.scale(50)) {
+      new AvdColumnInfo("API") {
         @Override
         public @NotNull String valueOf(@NotNull AvdInfo avdInfo) {
           return avdInfo.getAndroidVersion().getApiString();
@@ -539,12 +543,9 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   /**
    * This class extends {@link ColumnInfo} in order to pull an {@link Icon} value from a given {@link AvdInfo}.
    * This is the column info used for the Type and Status columns.
-   * It uses the icon field renderer ({@link #ourIconRenderer}) and does not sort by default. An explicit width may be used
-   * by calling the overloaded constructor, otherwise the column will be 50px wide.
+   * It uses the icon field renderer ({@link #ourIconRenderer}) and does not sort by default.
    */
   private static abstract class AvdIconColumnInfo extends ColumnInfo<AvdInfo, HighlightableIconPair> {
-    private final int myWidth;
-
     /**
      * Renders an icon in a small square field
      */
@@ -574,13 +575,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
 
     };
 
-    public AvdIconColumnInfo(@NotNull String name, int width) {
-      super(name);
-      myWidth = width;
-    }
-
     public AvdIconColumnInfo(@NotNull String name) {
-      this(name, JBUI.scale(50));
+      super(name);
     }
 
     @Nullable
@@ -588,29 +584,15 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public TableCellRenderer getRenderer(AvdInfo o) {
       return ourIconRenderer;
     }
-
-    @Override
-    public int getWidth(JTable table) {
-      return myWidth;
-    }
   }
 
   /**
    * This class extends {@link ColumnInfo} in order to pull a string value from a given {@link AvdInfo}.
    * This is the column info used for most of our table, including the Name, Resolution, and API level columns.
-   * An explicit width may be used by calling the overloaded constructor, otherwise the column will auto-scale
-   * to fill available space.
    */
   public abstract static class AvdColumnInfo extends ColumnInfo<AvdInfo, String> {
-    private final int myWidth;
-
-    public AvdColumnInfo(@NotNull String name, int width) {
-      super(name);
-      myWidth = width;
-    }
-
     public AvdColumnInfo(@NotNull String name) {
-      this(name, -1);
+      super(name);
     }
 
     @Nullable
@@ -621,11 +603,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         String s2 = valueOf(o2);
         return Comparing.compare(s1, s2);
       };
-    }
-
-    @Override
-    public int getWidth(JTable table) {
-      return myWidth;
     }
   }
 
@@ -673,7 +650,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * Custom table cell renderer that renders an action panel for a given AVD entry
    */
   private class AvdActionsColumnInfo extends ColumnInfo<AvdInfo, AvdInfo> {
-    private final int myWidth;
     private final int myNumVisibleActions;
 
     /**
@@ -684,7 +660,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
     }
 
     @Nullable
@@ -726,11 +701,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public boolean isCellEditable(AvdInfo avdInfo) {
       return true;
-    }
-
-    @Override
-    public int getWidth(JTable table) {
-      return myWidth;
     }
 
     public boolean cycleFocus(AvdInfo info, boolean backward) {
@@ -848,6 +818,97 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       JComponent result = (JComponent)myDefaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       result.setBorder(myBorder);
       return result;
+    }
+  }
+
+  /**
+   * Set preferred widths when rendering
+   */
+  private static class AvdInfoTableView extends TableView<AvdInfo> {
+    // Column indices
+    private static final int NAME = 1;
+    private static final int RESOLUTION = 3;
+    private static final int TARGET = 5;
+
+    private @Nullable List<Integer> myPreferredColumnWidths;
+
+    public AvdInfoTableView() {
+      setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+      addPropertyChangeListener(event -> {
+        if (event.getPropertyName().equals("model")) {
+          myPreferredColumnWidths = null;
+        }
+      });
+    }
+
+    @Override
+    public @NotNull Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
+      Component component = super.prepareRenderer(renderer, row, column);
+      columnModel.getColumn(column).setPreferredWidth(getColumnPreferredWidth(column));
+      return component;
+    }
+
+    @Override
+    public void tableChanged(TableModelEvent e) {
+      myPreferredColumnWidths = null;
+      super.tableChanged(e);
+    }
+
+    private int getColumnPreferredWidth(int columnIndex) {
+      if (myPreferredColumnWidths == null) {
+        myPreferredColumnWidths = calculatePreferredWidths();
+      }
+      return myPreferredColumnWidths.get(columnIndex);
+    }
+
+    private @NotNull List<Integer> calculatePreferredWidths() {
+      List<Integer> widths = new ArrayList<>(Collections.nCopies(columnModel.getColumnCount(), 0));
+      int tableWidth = getWidth() - getInsets().left - getInsets().right;
+      if (tableWidth <= 0) {
+        return widths;
+      }
+
+      int totalWidth = 0;
+      for (int columnIndex = 0; columnIndex < columnModel.getColumnCount(); columnIndex++) {
+        int preferredWidth = calculateColumnPreferredWidth(columnIndex);
+        widths.set(columnIndex, preferredWidth);
+        totalWidth += preferredWidth;
+      }
+
+      // Give remaining width to the name, resolution, and target columns
+      int remaining = tableWidth - totalWidth;
+      if (remaining > 0) {
+        widths.set(NAME, widths.get(NAME) + remaining * 3 / 5);
+        widths.set(RESOLUTION, widths.get(RESOLUTION) + remaining / 5);
+        widths.set(TARGET, widths.get(TARGET) + remaining - remaining * 3 / 5 - remaining / 5);
+      }
+      else {
+        // If remaining is negative, that means there isn't enough space. Reduce the resolution and target first
+        widths.set(RESOLUTION, widths.get(RESOLUTION) + remaining / 2);
+        widths.set(TARGET, widths.get(TARGET) + remaining / 2);
+      }
+
+      return widths;
+    }
+
+    private int calculateColumnPreferredWidth(int columnIndex) {
+      // Get header width
+      JTableHeader header = getTableHeader();
+      int headerGap = 17;
+      int width = header.getFontMetrics(header.getFont()).stringWidth(getColumnName(columnIndex))
+                  + JBUIScale.scale(headerGap);
+
+      // Check if any cells have wider data
+      for (int rowIndex = 0; rowIndex < getRowCount(); rowIndex++) {
+        TableCellRenderer cellRenderer = getCellRenderer(rowIndex, columnIndex);
+        Component component = super.prepareRenderer(cellRenderer, rowIndex, columnIndex);
+        int cellWidth = component.getPreferredSize().width + getIntercellSpacing().width;
+        if (cellWidth > width) {
+          width = cellWidth;
+        }
+      }
+
+      return width;
     }
   }
 }

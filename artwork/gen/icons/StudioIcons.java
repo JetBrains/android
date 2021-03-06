@@ -5,8 +5,9 @@ import com.intellij.openapi.util.IconLoader;
 import javax.swing.*;
 
 /**
- * Generated file from icon mapping process.  DO NOT EDIT DIRECTLY
- **/
+ * NOTE THIS FILE IS AUTO-GENERATED
+ * DO NOT EDIT IT BY HAND, speak with csinco@ first
+ */
 public class StudioIcons {
   // Collections of constants, do not instantiate.
   private StudioIcons() {}
@@ -39,7 +40,13 @@ public class StudioIcons {
   }
 
   public static class Common {
+
+    /** @deprecated use AllIcons.General.Add */
+    @Deprecated
     public static final Icon ADD = load("/studio/icons/common/add.svg"); // 16x16
+
+    /** @deprecated use AllIcons.Actions.Back */
+    @Deprecated
     public static final Icon BACK_ARROW = load("/studio/icons/common/back-arrow.svg"); // 16x16
     public static final Icon CHECKED = load("/studio/icons/common/checked.svg"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.svg"); // 16x16
@@ -47,25 +54,49 @@ public class StudioIcons {
     public static final Icon CROP = load("/studio/icons/common/crop.svg"); // 16x16
     public static final Icon CIRCLE_GREEN = load("/studio/icons/common/circle_green.svg"); // 10x10
     public static final Icon CIRCLE_RED = load("/studio/icons/common/circle_red.svg"); // 10x10
+
+    /** @deprecated use AllIcons.Actions.Gc */
+    @Deprecated
     public static final Icon DELETE = load("/studio/icons/common/delete.svg"); // 16x16
+
+    /** @deprecated use AllIcons.Actions.Edit */
+    @Deprecated
     public static final Icon EDIT = load("/studio/icons/common/edit.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.svg"); // 16x16
     public static final Icon ERROR_INLINE = load("/studio/icons/common/error-inline.svg"); // 16x16
     public static final Icon ERROR = load("/studio/icons/common/error.svg"); // 16x16
+
+    /** @deprecated use AllIcons.ToolbarDecorator.Export */
+    @Deprecated
     public static final Icon EXPORT = load("/studio/icons/common/export.svg"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.svg"); // 16x16
-    public static final Icon GRID_VIEW = load("/studio/icons/common/grid-view.svg"); // 17x16
+    public static final Icon GRID_VIEW = load("/studio/icons/common/grid-view.svg"); // 16x16
     public static final Icon HELP = load("/studio/icons/common/help.svg"); // 16x16
+
+    /** @deprecated use AllIcons.ToolbarDecorator.Import */
+    @Deprecated
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.svg"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.svg"); // 16x16
     public static final Icon INFO = load("/studio/icons/common/info.svg"); // 16x16
     public static final Icon LINK = load("/studio/icons/common/link.svg"); // 16x16
-    public static final Icon LIST_VIEW = load("/studio/icons/common/list-view.svg"); // 17x16
+    public static final Icon LIST_VIEW = load("/studio/icons/common/list-view.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon LOCKED_INLINE_SELECTED = load("/studio/icons/common/locked-inline-selected.svg"); // 16x16
     public static final Icon LOCKED_INLINE = load("/studio/icons/common/locked-inline.svg"); // 16x16
     public static final Icon MISSING = load("/studio/icons/common/missing.svg"); // 16x16
-    public static final Icon MOVE_DOWN_SELECTED = load("/studio/icons/common/move-down-selected.svg"); // 14x14
+    public static final Icon NAVIGATE_TO_SOURCE = load("/studio/icons/common/navigate-to-source.svg"); // 16x16
+
+    /** @deprecated use AllIcons.Actions.More */
+    @Deprecated
     public static final Icon OVERFLOW = load("/studio/icons/common/overflow.svg"); // 16x16
     public static final Icon PROPERTY_BOUND_FOCUS_LARGE = load("/studio/icons/common/property-bound-focus-large.svg"); // 14x24
     public static final Icon PROPERTY_BOUND_FOCUS = load("/studio/icons/common/property-bound-focus.svg"); // 14x20
@@ -78,17 +109,38 @@ public class StudioIcons {
     public static final Icon REMOVE = load("/studio/icons/common/remove.svg"); // 16x16
     public static final Icon REORDER = load("/studio/icons/common/reorder.svg"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.svg"); // 16x16
+
+    /** @deprecated use AllIcons.Actions.Find */
+    @Deprecated
     public static final Icon SEARCH = load("/studio/icons/common/search.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon SUCCESS_INLINE_SELECTED = load("/studio/icons/common/success-inline-selected.svg"); // 16x16
     public static final Icon SUCCESS_INLINE = load("/studio/icons/common/success-inline.svg"); // 16x16
     public static final Icon SUCCESS = load("/studio/icons/common/success.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon VISIBILITY_INLINE_SELECTED = load("/studio/icons/common/visibility-inline-selected.svg"); // 16x16
     public static final Icon VISIBILITY_INLINE = load("/studio/icons/common/visibility-inline.svg"); // 16x16
+
+    /** @deprecated use ColoredIconGenerator.kt */
+    @Deprecated
     public static final Icon WARNING_INLINE_SELECTED = load("/studio/icons/common/warning-inline-selected.svg"); // 16x16
     public static final Icon WARNING_INLINE = load("/studio/icons/common/warning-inline.svg"); // 16x16
     public static final Icon WARNING = load("/studio/icons/common/warning.svg"); // 16x16
+
+    /** @deprecated use AllIcons.General.ActualZoom */
+    @Deprecated
     public static final Icon ZOOM_ACTUAL = load("/studio/icons/common/zoom-actual.svg"); // 16x16
+
+    /** @deprecated use AllIcons.General.ZoomIn */
+    @Deprecated
     public static final Icon ZOOM_IN = load("/studio/icons/common/zoom-in.svg"); // 16x16
+
+    /** @deprecated use AllIcons.General.ZoomOut */
+    @Deprecated
     public static final Icon ZOOM_OUT = load("/studio/icons/common/zoom-out.svg"); // 16x16
     public static final Icon ZOOM_SELECT = load("/studio/icons/common/zoom-select.svg"); // 16x16
   }
@@ -194,13 +246,25 @@ public class StudioIcons {
     public static class Extras {
       public static final Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("/studio/icons/layout-editor/extras/download-overlay-legacy-large.svg"); // 24x24
       public static final Icon DOWNLOAD_OVERLAY_LEGACY = load("/studio/icons/layout-editor/extras/download-overlay-legacy.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
       public static final Icon PALETTE_DOWNLOAD_SELECTED = load("/studio/icons/layout-editor/extras/palette-download-selected.svg"); // 16x16
       public static final Icon PALETTE_DOWNLOAD = load("/studio/icons/layout-editor/extras/palette-download.svg"); // 16x16
       public static final Icon PIPETTE_LARGE = load("/studio/icons/layout-editor/extras/pipette-large.svg"); // 24x24
       public static final Icon PIPETTE = load("/studio/icons/layout-editor/extras/pipette.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
       public static final Icon ROOT_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/root-inline-selected.svg"); // 16x16
       public static final Icon ROOT_INLINE = load("/studio/icons/layout-editor/extras/root-inline.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
       public static final Icon VISIBILITY_GONE_INLINE_SELECTED = load("/studio/icons/layout-editor/extras/visibility-gone-inline-selected.svg"); // 16x16
+
+      /** @deprecated use StudioIcons.LayoutEditor.Properties.GONE */
+      @Deprecated
       public static final Icon VISIBILITY_GONE_INLINE = load("/studio/icons/layout-editor/extras/visibility-gone-inline.svg"); // 16x16
     }
 
@@ -276,6 +340,7 @@ public class StudioIcons {
       public static final Icon CUSTOM_VIEW = load("/studio/icons/layout-editor/palette/custom-view.svg"); // 16x16
       public static final Icon DATE_PICKER = load("/studio/icons/layout-editor/palette/date-picker.svg"); // 16x16
       public static final Icon DATE_TEXTFIELD = load("/studio/icons/layout-editor/palette/date-textfield.svg"); // 16x16
+      public static final Icon DIALOG_POPUP = load("/studio/icons/layout-editor/palette/dialog-popup.svg"); // 16x16
       public static final Icon EDIT_TEXT = load("/studio/icons/layout-editor/palette/edit-text.svg"); // 16x16
       public static final Icon EMAIL_TEXTFIELD = load("/studio/icons/layout-editor/palette/email-textfield.svg"); // 16x16
       public static final Icon EXPANDABLE_LIST_VIEW = load("/studio/icons/layout-editor/palette/expandable-list-view.svg"); // 16x16
@@ -414,6 +479,9 @@ public class StudioIcons {
       public static final Icon BARRIER_VERTICAL = load("/studio/icons/layout-editor/toolbar/barrier-vertical.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/baseline-aligned-constraint.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED_OFF = load("/studio/icons/layout-editor/toolbar/baseline-aligned-off.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
       public static final Icon BASELINE_ALIGNED_WHITE = load("/studio/icons/layout-editor/toolbar/baseline-aligned-white.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED = load("/studio/icons/layout-editor/toolbar/baseline-aligned.svg"); // 16x16
       public static final Icon BOTTOM_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/bottom-aligned-constraint.svg"); // 16x16
@@ -426,6 +494,9 @@ public class StudioIcons {
       public static final Icon CENTER_VERTICAL_PARENT_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/center-vertical-parent-constraint.svg"); // 16x16
       public static final Icon CENTER_VERTICAL_PARENT = load("/studio/icons/layout-editor/toolbar/center-vertical-parent.svg"); // 16x16
       public static final Icon CENTER_VERTICAL = load("/studio/icons/layout-editor/toolbar/center-vertical.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt  */
+      @Deprecated
       public static final Icon CLEAR_CONSTRAINTS_WHITE = load("/studio/icons/layout-editor/toolbar/clear-constraints-white.svg"); // 16x16
       public static final Icon CLEAR_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/clear-constraints.svg"); // 16x16
       public static final Icon CLEAR_WEIGHT = load("/studio/icons/layout-editor/toolbar/clear-weight.svg"); // 16x16
@@ -445,8 +516,20 @@ public class StudioIcons {
       public static final Icon CREATE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/create-constraints.svg"); // 16x16
       public static final Icon CREATE_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/create-horiz-chain.svg"); // 16x16
       public static final Icon CREATE_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/create-vert-chain.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
+      public static final Icon CYCLE_CHAIN_PACKED_WHITE = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed-white.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_PACKED = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
+      public static final Icon CYCLE_CHAIN_SPREAD_INLINE_WHITE = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline-white.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD_INLINE = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg"); // 16x16
+
+      /** @deprecated use ColoredIconGenerator.kt */
+      @Deprecated
+      public static final Icon CYCLE_CHAIN_SPREAD_WHITE = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread-white.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread.svg"); // 16x16
       public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/layout-editor/toolbar/device-automotive.svg"); // 16x16
       public static final Icon DEVICE_PHONE = load("/studio/icons/layout-editor/toolbar/device-phone.svg"); // 16x16
@@ -618,6 +701,9 @@ public class StudioIcons {
       public static final Icon BOOKMARK = load("/studio/icons/profiler/sessions/bookmark.svg"); // 16x16
       public static final Icon CPU = load("/studio/icons/profiler/sessions/cpu.svg"); // 16x16
       public static final Icon HEAP = load("/studio/icons/profiler/sessions/heap.svg"); // 16x16
+
+      /** @deprecated use AllIcons.Actions.MenuSaveall */
+      @Deprecated
       public static final Icon SAVE = load("/studio/icons/profiler/sessions/save.svg"); // 16x16
     }
 

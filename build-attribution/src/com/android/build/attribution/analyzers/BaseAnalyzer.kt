@@ -75,11 +75,11 @@ abstract class BaseAnalyzer<T : AnalyzerResult> {
    */
   protected fun applyIgnoredTasksFilter(task: TaskData): Boolean {
     // ignore tasks from our plugins
-    return !isAndroidPlugin(task.originPlugin) &&
+    return !task.originPlugin.isAndroidPlugin() &&
            // ignore tasks from Gradle plugins
-           !isGradlePlugin(task.originPlugin) &&
+           !task.originPlugin.isGradlePlugin() &&
            // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
-           !(task.taskName == "clean" && task.originPlugin.displayName == LifecycleBasePlugin::class.java.canonicalName) &&
+           !(task.taskName == "clean" && task.originPlugin.idName == LifecycleBasePlugin::class.java.canonicalName) &&
            // ignore custom delete tasks
            task.taskType != org.gradle.api.tasks.Delete::class.java.canonicalName
   }

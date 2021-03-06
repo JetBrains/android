@@ -151,6 +151,17 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     assertThat(stageView.captureElapsedTimeLabel.text).endsWith(TimeFormatter.getSimplifiedClockString(elapsed))
   }
 
+  @Test
+  fun `controls reflect dead session`() {
+    stage.studioProfilers.sessionsManager.endCurrentSession()
+    stageView.apply {
+      val descendants = (TreeWalker(component).descendants() + TreeWalker(toolbar).descendants()).toSet()
+      listOf(stopButton, forceGcButton, samplingMenu).forEach {
+        assertThat(it !in descendants || !it.isVisible)
+      }
+    }
+  }
+
   private fun tick() = timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
   private fun requestSamplingRate(rate: Int) =

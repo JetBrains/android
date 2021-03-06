@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices.Severity
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -34,6 +35,7 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController.EvaluationParams
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.DatabaseIdNotFoundException
 import com.android.tools.idea.sqlite.model.DatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.ExportDialogParams
@@ -61,6 +63,7 @@ import com.google.common.base.Stopwatch
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
@@ -254,7 +257,6 @@ class DatabaseInspectorControllerImpl(
   // TODO(161081452): move appPackageName and processDescriptor to OfflineModeManager
   override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) {
     databaseInspectorClientCommandsChannel = null
-    appInspectionIdeServices = null
     this.processDescriptor = null
     this.appPackageName = null
 
@@ -453,14 +455,12 @@ class DatabaseInspectorControllerImpl(
       val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
       if (oldTable == null) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
 
         diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
       }
       else if (oldTable != newTable) {
         val indexedColumnsToAdd = newTable.columns
-          .sortedBy { it.name }
           .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
           .filterNot { oldTable.columns.contains(it.sqliteColumn) }
 
@@ -557,7 +557,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun showExportDialog(exportDialogParams: ExportDialogParams) {
-    val view = viewFactory.createExportToFileView(project, exportDialogParams)
+    val view = viewFactory.createExportToFileView(project, exportDialogParams, databaseInspectorAnalyticsTracker)
     val controller = ExportToFileController(
       project,
       projectScope,
@@ -569,8 +569,25 @@ class DatabaseInspectorControllerImpl(
       releaseDatabaseLock = { databaseInspectorClientCommandsChannel?.releaseDatabaseLock(it)?.await() },
       taskExecutor = taskExecutor,
       edtExecutor = edtExecutor,
-      notifyExportComplete = { }, // TODO(161081452): implement export confirmation bubble
-      notifyExportError = { _, _ -> } // TODO(161081452): implement export error bubble
+      notifyExportInProgress = { job -> viewFactory.createExportInProgressView(project, job, taskExecutor.asCoroutineDispatcher()).show() },
+      notifyExportComplete = { request ->
+        appInspectionIdeServices?.showNotification( // TODO(161081452):  replace with a Toast
+          title = DatabaseInspectorBundle.message("export.notification.success.title"),
+          content = when (RevealFileAction.isSupported()) {
+            true -> DatabaseInspectorBundle.message("export.notification.success.message.reveal", RevealFileAction.getActionName())
+            else -> ""
+          },
+          hyperlinkClicked = { RevealFileAction.openFile(request.dstPath) }
+        )
+      },
+      notifyExportError = { _, throwable ->
+        if (throwable is CancellationException) return@ExportToFileController // normal cancellation of a coroutine as per Kotlin spec
+        appInspectionIdeServices?.showNotification(
+          title = DatabaseInspectorBundle.message("export.notification.error.title"),
+          content = throwable?.message ?: throwable?.toString() ?: "",
+          severity = Severity.ERROR
+        )
+      }
     )
     controller.setUp()
     controller.showView()

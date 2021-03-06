@@ -55,6 +55,7 @@ class BuildAttributionReportBuilder(
       override val issues = issueUiDataContainer.allIssueGroups()
       override val configurationTime = pluginConfigurationTimeReport
       override val annotationProcessors = AnnotationProcessorsReportBuilder(buildAnalysisResult).build()
+      override val confCachingData = buildAnalysisResult.getConfigurationCachingCompatibility()
     }
   }
 
@@ -99,7 +100,7 @@ class BuildAttributionReportBuilder(
     pluginCriticalPathBuildData: PluginBuildData,
     totalCriticalPathDuration: TimeWithPercentage
   ) = object : CriticalPathPluginUiData {
-    override val name = pluginCriticalPathBuildData.plugin.displayName
+    override val name = pluginCriticalPathBuildData.plugin.displayNames().first()
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, totalCriticalPathDuration.timeMs)
     override val criticalPathTasks = createPluginTasksCriticalPath(criticalPathTasks, criticalPathDuration)
     override val issues = issueUiDataContainer.pluginIssueGroups(pluginCriticalPathBuildData.plugin)
