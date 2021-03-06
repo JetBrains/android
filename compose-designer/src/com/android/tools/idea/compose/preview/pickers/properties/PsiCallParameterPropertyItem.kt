@@ -4,20 +4,13 @@ import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
-import org.jetbrains.kotlin.idea.util.ImportDescriptorResult
-import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
-import org.jetbrains.kotlin.resolve.source.getPsi
 
 /**
  * A [PsiPropertyItem] for a named parameter.
@@ -86,14 +79,9 @@ internal open class PsiCallParameterPropertyItem(
       }
       else {
         if (resolvedCall.call.valueArgumentList == null) {
-          val newArgumentsList = model.psiFactory.createCallArguments("()").apply {
-            addArgument(newValueArgument)
-          }
-          newValueArgument = resolvedCall.call.callElement.add(newArgumentsList) as KtValueArgument
+          resolvedCall.call.callElement.add(model.psiFactory.createCallArguments("()"))
         }
-        else {
-          newValueArgument = resolvedCall.call.valueArgumentList!!.addArgument(newValueArgument)
-        }
+        newValueArgument = resolvedCall.call.valueArgumentList!!.addArgument(newValueArgument)
       }
       argumentExpression = newValueArgument.getArgumentExpression()
       argumentExpression?.parent?.let {
