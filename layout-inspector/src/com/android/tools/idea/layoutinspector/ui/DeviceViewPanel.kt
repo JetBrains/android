@@ -42,17 +42,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
+import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.LayoutManager
 import java.awt.Point
@@ -61,6 +65,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.net.URI
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -394,7 +399,7 @@ class DeviceViewPanel(
     return panel
   }
 
-  object PauseLayoutInspectorAction : CheckboxAction("Live updates") {
+  object PauseLayoutInspectorAction : ToggleAction({ "Live Updates" }, LIVE_UPDATES), TooltipDescriptionProvider, TooltipLinkProvider {
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
@@ -406,8 +411,14 @@ class DeviceViewPanel(
         !currentClient.isConnected -> null
         isLowerThenApi29 -> "Live updates not available for devices below API 29"
         !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        else -> null
+        else -> "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device " +
+                "resources and might impact runtime performance."
       }
+      event.presentation.text = if (currentClient.isConnected) "Live Updates" else null
+    }
+
+    override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
+      Desktop.getDesktop().browse(URI("https://d.android.com/r/studio-ui/layout-inspector-live-updates"))
     }
 
     // When disconnected: display the default value after the inspector is connected to the device.
