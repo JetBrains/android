@@ -1102,10 +1102,17 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> ENABLE_APP_INSPECTION_DEV_MODE = Flag.create(
-    APP_INSPECTION, "enable.dev.mode", "Enable App Inspection Dev Mode",
-    "Enables development mode for App Inspection. Dev mode turns off features of bundling, which includes version checking " +
-    "and dynamic resolving of inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+  public static final Flag<Boolean> APP_INSPECTION_USE_DEV_JAR = Flag.create(
+    APP_INSPECTION, "use.dev.jar", "Use a precompiled, prebuilt inspector jar",
+    "If enabled, grab inspector jars from prebuilt locations, skipping over version checking and dynamic resolving of " +
+    "inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+    false
+  );
+
+  public static final Flag<Boolean> APP_INSPECTION_USE_SNAPSHOT_JAR = Flag.create(
+    APP_INSPECTION, "use.snapshot.jar", "Always extract latest inspector jar from library",
+    "If enabled, override normal inspector resolution logic, instead searching the IDE cache directly. This allows finding " +
+    "inspectors bundled in local, snapshot builds of Android libraries, as opposed to those released through the normal process on maven.",
     false
   );
   // endregion

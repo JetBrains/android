@@ -41,11 +41,6 @@ data class ArtifactCoordinate(
    */
   override fun toString() = "${groupId}:${artifactId}:${version}"
 
-  /**
-   * The file name of the artifact in question.
-   */
-  val fileName = "${artifactId}-${version}.${type}"
-
   fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate = AppInspection.ArtifactCoordinate.newBuilder()
     .setGroupId(groupId)
     .setArtifactId(artifactId)

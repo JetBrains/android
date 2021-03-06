@@ -46,6 +46,11 @@ class HttpArtifactResolver(
     }
   }
 
+  /**
+   * The file name of the artifact in question.
+   */
+  private val ArtifactCoordinate.fileName get() = "${artifactId}-${version}.${type}"
+
   private fun ArtifactCoordinate.getTmpFile() = tmpDir.resolve(fileName)
 
   private fun ArtifactCoordinate.toGMavenUrl() = URL(

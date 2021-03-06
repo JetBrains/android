@@ -59,7 +59,7 @@ class AppInspectorTabLaunchSupport(
                                    }
                                    .takeIf { it.isNotEmpty() } ?: return emptyList()
 
-    if (StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE.get()) {
+    if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
       // If in dev mode, launch with the provided development inspector jar.
       return applicableTabProviders
         .map {

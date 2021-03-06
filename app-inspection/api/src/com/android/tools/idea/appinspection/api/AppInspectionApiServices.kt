@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -26,7 +27,6 @@ import com.android.tools.idea.appinspection.internal.AppInspectionTargetManager
 import com.android.tools.idea.appinspection.internal.DefaultAppInspectionApiServices
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamManager
-import com.android.tools.profiler.proto.Common
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
@@ -87,4 +87,20 @@ interface AppInspectionApiServices {
       return DefaultAppInspectionApiServices(targetManager, createJarCopier, processNotifier)
     }
   }
+}
+
+/**
+ * Given a [process] and a coordinate describing a library, find and return the version string being used, or null if not used.
+ *
+ * For example, "androidx.compose.ui:ui" might return "1.0.0-beta02", for example, or null if the project doesn't use that library.
+ */
+suspend fun AppInspectionApiServices.findVersion(project: String,
+                                                 process: ProcessDescriptor,
+                                                 groupId: String,
+                                                 artifactId: String): String? {
+  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0", ArtifactCoordinate.Type.AAR)
+  return attachToProcess(process, project)
+           .getLibraryVersions(listOf(coordinateAnyVersion))
+           .singleOrNull()
+           ?.version
 }
