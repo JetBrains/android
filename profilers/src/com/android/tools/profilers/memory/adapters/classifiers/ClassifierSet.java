@@ -162,37 +162,33 @@ public abstract class ClassifierSet implements MemoryObject {
    * Note that instances at the baseline must be an allocation event.
    */
   public void addSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
-    changeSnapshotInstanceObject(instanceObject, true, Set::add);
+    changeSnapshotInstanceObject(instanceObject, SetOperation.ADD);
   }
 
   /**
    * Remove an instance from the baseline snapshot and update the accounting of the "total" values.
    */
   public void removeSnapshotInstanceObject(@NotNull InstanceObject instanceObject) {
-    changeSnapshotInstanceObject(instanceObject, false, Set::remove);
+    changeSnapshotInstanceObject(instanceObject, SetOperation.REMOVE);
   }
 
-  private void changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject,
-                                            boolean isAdding,
-                                            BiConsumer<Set<InstanceObject>, InstanceObject> handler) {
+  private void changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject, @NotNull SetOperation op) {
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, isAdding);
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
       assert classifierSet != null;
-      classifierSet.changeSnapshotInstanceObject(instanceObject, isAdding, handler);
+      classifierSet.changeSnapshotInstanceObject(instanceObject, op);
     }
     else {
-      assert isAdding == !mySnapshotInstances.contains(instanceObject);
-      handler.accept(mySnapshotInstances, instanceObject);
+      assert (op == SetOperation.ADD) != mySnapshotInstances.contains(instanceObject);
+      op.action.accept(mySnapshotInstances, instanceObject);
     }
 
-    int unit = isAdding ? 1 : -1;
-
-    mySnapshotObjectCount += unit;
-    myTotalNativeSize   += unit * validOrZero(instanceObject.getNativeSize());
-    myTotalShallowSize  += unit * validOrZero(instanceObject.getShallowSize());
-    myTotalRetainedSize += unit * validOrZero(instanceObject.getRetainedSize());
+    mySnapshotObjectCount += op.countChange;
+    myTotalNativeSize   += op.countChange * validOrZero(instanceObject.getNativeSize());
+    myTotalShallowSize  += op.countChange * validOrZero(instanceObject.getShallowSize());
+    myTotalRetainedSize += op.countChange * validOrZero(instanceObject.getRetainedSize());
     if (!instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += unit;
+      myInstancesWithStackInfoCount += op.countChange;
     }
     myInstanceFilterMatchCounter.invalidate();
     myNeedsRefiltering = true;
@@ -201,59 +197,54 @@ public abstract class ClassifierSet implements MemoryObject {
   // Add delta alloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean addDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, true, Set::add);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.ADD);
   }
 
   // Add delta dealloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean freeDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, true, Set::add);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.ADD);
   }
 
   // Remove delta instance alloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeAddedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, false, Set::remove);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.REMOVE);
   }
 
   // Remove delta instance dealloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeFreedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, false, Set::remove);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.REMOVE);
   }
 
-  private boolean changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject,
-                                                 boolean isAllocation,
-                                                 boolean isAdding,
-                                                 BiConsumer<Set<InstanceObject>, InstanceObject> handler) {
+  private boolean changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation, @NotNull SetOperation op) {
     boolean instanceChanged = false;
 
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, isAdding);
+      ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
       assert classifierSet != null;
-      instanceChanged = classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, isAdding, handler);
+      instanceChanged = classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, op);
     }
-    else if ((isAdding || !instanceObject.hasTimeData()) &&
+    else if ((op == SetOperation.ADD || !instanceObject.hasTimeData()) &&
              // `contains` is more expensive, so deferred to after above test fails.
              // This line is run often enough to make a difference.
-             (isAdding == !myDeltaInstances.contains(instanceObject))) {
-      handler.accept(myDeltaInstances, instanceObject);
+             ((op == SetOperation.ADD) != myDeltaInstances.contains(instanceObject))) {
+      op.action.accept(myDeltaInstances, instanceObject);
       instanceChanged = true;
     }
 
-    int unit = isAdding ? 1 : -1;
-
     if (isAllocation) {
-      myDeltaAllocations += unit * instanceObject.getInstanceCount();
-      myDeltaAllocationsSize += unit * instanceObject.getShallowSize();
+      myDeltaAllocations += op.countChange * instanceObject.getInstanceCount();
+      myDeltaAllocationsSize += op.countChange * instanceObject.getShallowSize();
     } else {
-      myDeltaDeallocations += unit * instanceObject.getInstanceCount();
-      myDeltaDeallocationsSize += unit * instanceObject.getShallowSize();
+      myDeltaDeallocations += op.countChange * instanceObject.getInstanceCount();
+      myDeltaDeallocationsSize += op.countChange * instanceObject.getShallowSize();
     }
 
-    int factor = unit * (isAllocation ? 1 : -1);
+    int factor = op.countChange * (isAllocation ? 1 : -1);
     long deltaNativeSize = factor * validOrZero(instanceObject.getNativeSize());
     long deltaShallowSize = factor * validOrZero(instanceObject.getShallowSize());
     long deltaRetainedSize = factor * validOrZero(instanceObject.getRetainedSize());
@@ -263,7 +254,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalRetainedSize += deltaRetainedSize;
 
     if (instanceChanged && !instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += unit;
+      myInstancesWithStackInfoCount += op.countChange;
       myNeedsRefiltering = true;
     }
 
@@ -546,5 +537,17 @@ public abstract class ClassifierSet implements MemoryObject {
 
   private static long validOrZero(long value) {
     return value == INVALID_VALUE ? 0L : value;
+  }
+
+  private enum SetOperation {
+    ADD(Set::add, 1),
+    REMOVE(Set::remove, -1);
+
+    public final BiConsumer<Set<InstanceObject>, InstanceObject> action;
+    public final int countChange;
+    SetOperation(BiConsumer<Set<InstanceObject>, InstanceObject> action, int countChange) {
+      this.action = action;
+      this.countChange = countChange;
+    }
   }
 }
