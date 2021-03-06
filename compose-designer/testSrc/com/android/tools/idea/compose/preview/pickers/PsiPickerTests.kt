@@ -109,7 +109,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @Test
   fun `updating model updates the psi correctly`() {
     @Language("kotlin")
-    val fileContent = """
+    val annotationWithParameters = """
       import $COMPOSABLE_ANNOTATION_FQN
       import $PREVIEW_TOOLING_PACKAGE.Preview
 
@@ -117,35 +117,22 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       @Preview(name = "Test")
       fun PreviewNoParameters() {
       }
-    """.trimIndent()
+      """.trimIndent()
 
-    val file = fixture.configureByText("Test.kt", fileContent)
-    val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
-    model.properties["", "name"].value = "NoHello"
+    assertUpdatingModelUpdatesPsiCorrectly(annotationWithParameters)
 
-    // Try to override our previous write. Only the last one should persist
-    model.properties["", "name"].value = "Hello"
-    assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
+    @Language("kotlin")
+    val emptyAnnotation = """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
-    // Add other properties
-    model.properties["", "group"].value = "Group2"
-    model.properties["", "widthDp"].value = "32"
-    assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
+      @Composable
+      @Preview
+      fun PreviewNoParameters() {
+      }
+      """.trimIndent()
 
-    // Set back to the default value
-    model.properties["", "group"].value = null
-    model.properties["", "widthDp"].value = null
-    assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
-
-    model.properties["", "name"].value = null
-    try {
-      model.properties["", "notexists"].value = "3"
-      fail("Nonexistent property should throw NoSuchElementException")
-    }
-    catch (expected: NoSuchElementException) {
-    }
-    assertEquals("@Preview", noParametersPreview.annotationText())
+    assertUpdatingModelUpdatesPsiCorrectly(emptyAnnotation)
   }
 
   @Test
@@ -195,5 +182,35 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("false", runReadAction { model.properties["", "showBackground"].defaultValue })
     assertEquals("false", runReadAction { model.properties["", "showDecoration"].defaultValue })
     assertEquals("0x0", runReadAction { model.properties["", "backgroundColor"].defaultValue })
+  }
+
+  private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
+    val file = fixture.configureByText("Test.kt", fileContent)
+    val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
+    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
+    model.properties["", "name"].value = "NoHello"
+
+    // Try to override our previous write. Only the last one should persist
+    model.properties["", "name"].value = "Hello"
+    assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
+
+    // Add other properties
+    model.properties["", "group"].value = "Group2"
+    model.properties["", "widthDp"].value = "32"
+    assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
+
+    // Set back to the default value
+    model.properties["", "group"].value = null
+    model.properties["", "widthDp"].value = null
+    assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
+
+    model.properties["", "name"].value = null
+    try {
+      model.properties["", "notexists"].value = "3"
+      fail("Nonexistent property should throw NoSuchElementException")
+    }
+    catch (expected: NoSuchElementException) {
+    }
+    assertEquals("@Preview", noParametersPreview.annotationText())
   }
 }
