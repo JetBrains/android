@@ -17,8 +17,10 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.ide.resolver.blaze.BlazeArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
+import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.project.AndroidProjectInfo
@@ -30,7 +32,12 @@ class ArtifactResolverFactory(
   override fun getArtifactResolver(project: Project): ArtifactResolver {
     return if (GradleProjectInfo.getInstance(project).isBuildWithGradle
                || AndroidProjectInfo.getInstance(project).isApkProject) {
-      HttpArtifactResolver(fileService)
+      if (StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()) {
+        ModuleSystemArtifactResolver(project)
+      }
+      else {
+        HttpArtifactResolver(fileService)
+      }
     }
     else {
       BlazeArtifactResolver(fileService, project)

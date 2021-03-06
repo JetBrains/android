@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
+import com.android.tools.idea.appinspection.api.blazeFileName
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
@@ -55,6 +56,7 @@ class BlazeArtifactResolver @VisibleForTesting constructor(
   ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
 
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
-    return httpArtifactResolver.resolveArtifact(artifactCoordinate) ?: moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)
+    return httpArtifactResolver.resolveArtifact(artifactCoordinate)
+           ?: moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)?.resolve(artifactCoordinate.blazeFileName)
   }
 }
