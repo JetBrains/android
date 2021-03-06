@@ -172,26 +172,30 @@ public abstract class ClassifierSet implements MemoryObject {
     changeSnapshotInstanceObject(instanceObject, SetOperation.REMOVE);
   }
 
-  private void changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject, @NotNull SetOperation op) {
+  private boolean changeSnapshotInstanceObject(@NotNull InstanceObject instanceObject, @NotNull SetOperation op) {
+    final boolean changed;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
       ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
-      assert classifierSet != null;
-      classifierSet.changeSnapshotInstanceObject(instanceObject, op);
+      changed = classifierSet != null &&
+                classifierSet.changeSnapshotInstanceObject(instanceObject, op);
     }
     else {
-      assert (op == SetOperation.ADD) != mySnapshotInstances.contains(instanceObject);
+      changed = (op == SetOperation.ADD) != mySnapshotInstances.contains(instanceObject);
       op.action.accept(mySnapshotInstances, instanceObject);
     }
 
-    mySnapshotObjectCount += op.countChange;
-    myTotalNativeSize   += op.countChange * validOrZero(instanceObject.getNativeSize());
-    myTotalShallowSize  += op.countChange * validOrZero(instanceObject.getShallowSize());
-    myTotalRetainedSize += op.countChange * validOrZero(instanceObject.getRetainedSize());
-    if (!instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += op.countChange;
+    if (changed) {
+      mySnapshotObjectCount += op.countChange;
+      myTotalNativeSize += op.countChange * validOrZero(instanceObject.getNativeSize());
+      myTotalShallowSize += op.countChange * validOrZero(instanceObject.getShallowSize());
+      myTotalRetainedSize += op.countChange * validOrZero(instanceObject.getRetainedSize());
+      if (!instanceObject.isCallStackEmpty()) {
+        myInstancesWithStackInfoCount += op.countChange;
+      }
+      myInstanceFilterMatchCounter.invalidate();
+      myNeedsRefiltering = true;
     }
-    myInstanceFilterMatchCounter.invalidate();
-    myNeedsRefiltering = true;
+    return changed;
   }
 
   // Add delta alloc information into the ClassifierSet
