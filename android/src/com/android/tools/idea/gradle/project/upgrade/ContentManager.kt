@@ -1,6 +1,13 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -13,7 +20,6 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -35,35 +41,29 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.util.EventListener
-import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
-import javax.swing.JTextField
 import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.event.TreeModelEvent
-import javax.swing.plaf.basic.BasicComboBoxEditor
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
-internal class ToolWindowModel(
-  var processor: AgpUpgradeRefactoringProcessor
-) {
+internal class ToolWindowModel(val project: Project, val current: GradleVersion) {
 
+  val selectedVersion = OptionalValueProperty<GradleVersion>(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+  private var processor: AgpUpgradeRefactoringProcessor? = null
+
+  //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
-
-  val version = StringValueProperty(processor.new.toString())
-
   val runDisabledTooltip = StringValueProperty()
   val runEnabled = BoolValueProperty(true)
 
@@ -110,28 +110,17 @@ internal class ToolWindowModel(
   }
 
   init {
-    //Listen for value changes
-    version.addListener {
-      val new = GradleVersion.tryParse(version.get())
-      if (new != null && processor.current < new) {
-        // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
-        processor = AgpUpgradeRefactoringProcessor(processor.project, processor.current, new)
-        refresh()
-      }
-      else {
-        runEnabled.set(false)
-        runDisabledTooltip.set("New version must be greater than current version")
-      }
-    }
     refresh()
+    selectedVersion.addListener { refresh() }
 
     // Request known versions.
-    ProgressManager.getInstance().run(object : Task.Backgroundable(processor.project, "Looking for known versions", false) {
+    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
-        knownVersions.value = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { it > processor.current }
+        val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+          .filter { it > current }
           .toList()
           .sortedDescending()
+        invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
       }
     })
   }
@@ -139,31 +128,44 @@ internal class ToolWindowModel(
   fun refresh() {
     showLoadingState.set(true)
     // First clear state
-    runEnabled.set(true)
+    runEnabled.set(false)
     runDisabledTooltip.clear()
     val root = (treeModel.root as CheckedTreeNode)
     root.removeAllChildren()
     treeModel.nodeStructureChanged(root)
 
+    val newVersion = selectedVersion.valueOrNull
+    // TODO(xof/mlazeba): check new version is greater than current here
+    // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
+    val newProcessor = newVersion?.let { AgpUpgradeRefactoringProcessor(project, current, it) }
+    processor = newProcessor
 
-    ApplicationManager.getApplication().executeOnPooledThread {
-      processor.ensureParsedModels()
+    if (newProcessor == null) {
+      showLoadingState.set(false)
+    }
+    else {
+      ApplicationManager.getApplication().executeOnPooledThread {
+        newProcessor.ensureParsedModels()
 
-      val projectFilesClean = isCleanEnoughProject(processor.project)
-      invokeLater(ModalityState.NON_MODAL) {
-        if (!projectFilesClean) {
-          runEnabled.set(false)
-          runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                                 "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                                 "can be handled separately.")
+        val projectFilesClean = isCleanEnoughProject(project)
+        invokeLater(ModalityState.NON_MODAL) {
+          if (!projectFilesClean) {
+            runEnabled.set(false)
+            runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                                   "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                                   "can be handled separately.")
+          }
+          else {
+            refreshTree(newProcessor)
+            runEnabled.set(true)
+          }
+          showLoadingState.set(false)
         }
-        refreshTree()
-        showLoadingState.set(false)
       }
     }
   }
 
-  private fun refreshTree() {
+  private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
     val root = treeModel.root as CheckedTreeNode
     root.removeAllChildren()
     //TODO(mlazeba): do we need the check about 'classpathRefactoringProcessor.isAlwaysNoOpForProject' meaning upgrade can not run?
@@ -181,7 +183,7 @@ internal class ToolWindowModel(
     treeModel.nodeStructureChanged(root)
   }
 
-  fun runUpgrade(showPreview: Boolean) {
+  fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
     processor.components().forEach { it.isEnabled = false }
     CheckboxTreeHelper.getCheckedNodes(AgpUpgradeComponentRefactoringProcessor::class.java, null, treeModel)
       .forEach { it.isEnabled = true }
@@ -206,11 +208,9 @@ class ContentManager(val project: Project) {
 
   fun showContent() {
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: return
-    val new = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     toolWindow.contentManager.removeAllContents(true)
-    val processor = AgpUpgradeRefactoringProcessor(project, current, new)
-    val model = ToolWindowModel(processor)
+    val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Upgrading project from AGP $current", true)
     content.isPinned = true
@@ -233,20 +233,59 @@ class ContentManager(val project: Project) {
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
       addTreeSelectionListener { e -> refreshDetailsPanel() }
     }
-    val textField = AgpVersionEditor(model, myBindings, myListeners)
+
+    val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
+      object : DefaultCommonComboBoxModel<GradleVersion>(
+        model.selectedVersion.valueOrNull?.toString() ?: "",
+        model.knownVersions.valueOrNull ?: emptyList()
+      ) {
+        init {
+          selectedItem = model.selectedVersion.valueOrNull
+          myListeners.listen(model.knownVersions) { knownVersions ->
+            removeAllElements()
+            selectedItem = model.selectedVersion.valueOrNull
+            knownVersions.orElse(emptyList()).forEach { addElement(it) }
+          }
+          placeHolderValue = "Select new version"
+        }
+
+        override val editingSupport = object : EditingSupport {
+          override val validation: EditingValidation = { value ->
+            val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+            when {
+              parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
+              parsed <= model.current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
+              else -> EDITOR_NO_ERROR
+            }
+          }
+        }
+      }).apply {
+      addActionListener {
+        this@View.model.selectedVersion.setNullableValue(
+          if (model.editingSupport.validation(model.text).first == EditingErrorCategory.ERROR)
+            null
+          else
+            when (val selected = selectedItem) {
+              is GradleVersion -> selected
+              is String ->
+                if (model.editingSupport.validation(selected).first == EditingErrorCategory.ERROR) null
+                else GradleVersion.tryParseAndroidGradlePluginVersion(selected)
+              else -> null
+            }
+        )
+      }
+    }
 
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refresh() }
+      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
-      myListeners.listen(this@View.model.runDisabledTooltip) { tooltip -> toolTipText = tooltip }
-      myListeners.listen(this@View.model.runEnabled) { state -> isEnabled = state }
+      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
-      myListeners.listen(this@View.model.runDisabledTooltip) { tooltip -> toolTipText = tooltip }
-      myListeners.listen(this@View.model.runEnabled) { state -> isEnabled = state }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
@@ -259,14 +298,19 @@ class ContentManager(val project: Project) {
       add(tree, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
 
-      fun updateState(loading: Boolean) = if (loading) {
-        startLoading()
-        detailsPanel.removeAll()
-        UIUtil.setEnabled(controlsPanel, false, true)
-      }
-      else {
-        stopLoading()
-        UIUtil.setEnabled(controlsPanel, true, true)
+      fun updateState(loading: Boolean) {
+        refreshButton.isEnabled = !loading
+        if (loading) {
+          startLoading()
+          detailsPanel.removeAll()
+          okButton.isEnabled = false
+          previewButton.isEnabled = false
+        }
+        else {
+          stopLoading()
+          okButton.isEnabled = model.runEnabled.get()
+          previewButton.isEnabled = model.runEnabled.get()
+        }
       }
 
       myListeners.listen(model.showLoadingState, ::updateState)
@@ -284,8 +328,8 @@ class ContentManager(val project: Project) {
 
     private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.processor.current} to"))
-      add(textField)
+      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to"))
+      add(versionTextField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
       // TODO(xof): make this look like a default button
@@ -330,78 +374,6 @@ class ContentManager(val project: Project) {
         }
       }
       super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
-    }
-  }
-
-  /**
-  Field is inspired by PSD AGP version field that shows known versions in dropdown but allows to type anything.
-  Info of where to look for further details on its implementation:
-  PSD has an AGP versions field that is an editable comboBox with selectable known versions.
-  The property is defined in [com.android.tools.idea.gradle.structure.model.PsProjectDescriptors.getAndroidGradlePluginVersion]
-  Gets known versions as [com.android.tools.idea.gradle.structure.model.helpers.PropertyKnownValuesKt.androidGradlePluginVersionValues]
-  (uses PsProject) that internally looks into all project repositories for known versions
-  (e.g. see [GoogleMavenRepository][com.android.ide.common.repository.GoogleMavenRepository]).
-  On UI side property uses [SimplePropertyEditor][com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor].
-
-  This implementation is partly copied from [RenderedComboBox in PSD][com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox]
-
-   */
-  private class AgpVersionEditor(
-    private val model: ToolWindowModel,
-    private val myBindings: BindingsManager,
-    private val myListeners: ListenerManager
-  ) : ComboBox<GradleVersion>() {
-    private val itemsModel = DefaultComboBoxModel<GradleVersion>()
-    private val comboBoxEditor = object : BasicComboBoxEditor() {
-      override fun createEditorComponent(): JTextField {
-        return JBTextField()
-      }
-    }
-    val textProperty = TextProperty(comboBoxEditor.editorComponent as JTextField)
-
-    init {
-      super.setModel(itemsModel)
-      isEditable = true
-      setEditor(comboBoxEditor)
-
-      myBindings.bindTwoWay(textProperty, model.version)
-      myListeners.listen(model.knownVersions) { knownVersions -> setKnownValues(knownVersions.orElse(emptyList())) }
-      setKnownValues(model.knownVersions.getValueOr(emptyList()))
-    }
-
-    /**
-     * Populates the drop-down list of the combo-box.
-     */
-    fun setKnownValues(knownValues: List<GradleVersion>) {
-      //Copied from com/android/tools/idea/gradle/structure/configurables/ui/RenderedComboBox.kt
-      //beingLoaded = true
-      try {
-        val prevItemCount = itemsModel.size
-        val selectedItem = itemsModel.selectedItem
-        val existing = (0 until itemsModel.size).asSequence().map { itemsModel.getElementAt(it) }.toMutableSet()
-        knownValues.forEachIndexed { index, value ->
-          if (existing.contains(value)) {
-            while (itemsModel.size > index && itemsModel.getElementAt(index) != value) {
-              itemsModel.removeElementAt(index)
-              existing.remove(value)
-            }
-          }
-          if (itemsModel.size == index || itemsModel.getElementAt(index) != value) {
-            itemsModel.insertElementAt(value, index)
-          }
-        }
-        if (isPopupVisible && prevItemCount == 0) {
-          hidePopup()
-          showPopup()
-        }
-        if (itemsModel.selectedItem != selectedItem) {
-          itemsModel.selectedItem = selectedItem
-        }
-        //updateWatermark()
-      }
-      finally {
-        //beingLoaded = false
-      }
     }
   }
 }
