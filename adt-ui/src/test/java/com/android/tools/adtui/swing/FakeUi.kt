@@ -216,7 +216,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   private fun isMouseTarget(target: Component): Boolean {
-    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty()
+    return target.mouseListeners.isNotEmpty() || target.mouseMotionListeners.isNotEmpty() || target.mouseWheelListeners.isNotEmpty() ||
+           target is ActionButton // ActionButton calls enableEvents and overrides processMouseEvent
   }
 
   /**

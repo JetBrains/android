@@ -57,7 +57,10 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -78,7 +81,6 @@ import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
@@ -102,10 +104,10 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isTrue()
+    assertThat(getPresentation(toggle).description).isNull()
   }
 
   @Test
@@ -116,10 +118,10 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isFalse()
-    assertThat(checkbox.toolTipText).isNull()
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isFalse()
+    assertThat(getPresentation(toggle).description).isNull()
   }
 
   @Test
@@ -133,10 +135,12 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isTrue()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
     assertThat(commands).containsExactly(Type.START)
   }
 
@@ -151,10 +155,12 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isFalse()
-    assertThat(checkbox.toolTipText).isNull()
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isFalse()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
     assertThat(commands).containsExactly(Type.REFRESH)
   }
 
@@ -168,11 +174,13 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    FakeUi(checkbox).mouse.click(10, 10)
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isFalse()
-    assertThat(checkbox.toolTipText).isNull()
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    val fakeUi = FakeUi(toggle)
+    fakeUi.mouse.moveTo(10, 10)
+    fakeUi.mouse.click(10, 10)
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isFalse()
+    assertThat(getPresentation(toggle).description).isNull()
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isFalse()
@@ -190,13 +198,15 @@ class DeviceViewPanelWithFullInspectorTest {
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
-    FakeUi(checkbox).mouse.click(10, 10)
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
+    val fakeUi = FakeUi(toggle)
+    fakeUi.mouse.moveTo(10, 10)
+    fakeUi.mouse.click(10, 10)
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isTrue()
+    assertThat(getPresentation(toggle).description).isNull()
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isTrue()
@@ -215,12 +225,16 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
 
-    FakeUi(checkbox).mouse.click(10, 10)
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isFalse()
-    assertThat(checkbox.toolTipText).isNull()
+    val fakeUi = FakeUi(toggle)
+    fakeUi.mouse.moveTo(10, 10)
+    fakeUi.mouse.click(10, 10)
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isFalse()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).containsExactly(Type.START, Type.STOP).inOrder()
@@ -240,14 +254,18 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
 
-    FakeUi(checkbox).mouse.click(10, 10)
-    assertThat(checkbox.isEnabled).isTrue()
-    assertThat(checkbox.isSelected).isTrue()
-    assertThat(checkbox.toolTipText).isNull()
+    val fakeUi = FakeUi(toggle)
+    fakeUi.mouse.moveTo(10, 10)
+    fakeUi.mouse.click(10, 10)
+    assertThat(toggle.isEnabled).isTrue()
+    assertThat(toggle.isSelected).isTrue()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might" +
+      " impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     assertThat(commands).containsExactly(Type.REFRESH, Type.START).inOrder()
@@ -351,10 +369,10 @@ class DeviceViewPanelTest {
     assertThat(viewSettings.scalePercent).isEqualTo(100)
 
     val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50) {
-          image()
-        }
+      view(VIEW1, 25, 30, 50, 50) {
+        image()
       }
+    }
 
     model.update(newWindow, listOf(ROOT), 0)
 
@@ -365,10 +383,10 @@ class DeviceViewPanelTest {
 
     // Update the model
     val newWindow2 = window(ROOT, ROOT, 0, 0, 100, 200) {
-        view(VIEW2, 50, 20, 30, 40) {
-          image()
-        }
+      view(VIEW2, 50, 20, 30, 40) {
+        image()
       }
+    }
     model.update(newWindow2, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
@@ -559,12 +577,12 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     val settings = DeviceViewSettings()
-        val toolbar = getToolbar(
+    val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isFalse()
-    assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isFalse()
+    assertThat(getPresentation(toggle).description).isEqualTo("Live updates not available for devices below API 29")
   }
 
   @Test
@@ -573,12 +591,12 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     val settings = DeviceViewSettings()
-        val toolbar = getToolbar(
+    val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
-    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
-    assertThat(checkbox.isEnabled).isFalse()
-    assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
+    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
+    assertThat(toggle.isEnabled).isFalse()
+    assertThat(getPresentation(toggle).description).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
   }
 }
 
@@ -699,3 +717,11 @@ private fun getToolbar(panel: DeviceViewPanel): JComponent =
     doLayout()
     return this
   }
+
+private fun getPresentation(button: ActionButton): Presentation {
+  val presentation = Presentation()
+  val event = AnActionEvent(null, DataManager.getInstance().getDataContext(button), "DynamicLayoutInspectorLeft", presentation,
+                            ActionManager.getInstance(), 0)
+  button.action.update(event)
+  return presentation
+}
