@@ -16,19 +16,16 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
-import com.android.builder.model.SyncIssue
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.API_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.APP_WITH_BUILDSRC
@@ -55,11 +52,12 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFI
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.fileUnderGradleRoot
-import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
+import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -67,17 +65,24 @@ import com.intellij.openapi.application.WriteAction.run
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil.toSystemDependentName
+import junit.framework.Assert.assertTrue
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
-import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 
 /**
@@ -101,62 +106,73 @@ bazel test \
 --nocache_test_results \
 --strategy=TestRunner=standalone \
 //tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots
- ```
+```
  */
-abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-  class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
-    fun testImportNoSync() {
-      prepareProjectForImport(SIMPLE_APPLICATION)
-      val request = GradleProjectImporter.Request(project)
-      GradleProjectImporter.configureNewProject(project)
-      GradleProjectImporter.getInstance().importProjectNoSync(request)
-      AndroidTestBase.refreshProjectFiles()
-      val text = project.saveAndDump()
-      assertIsEqualToSnapshot(text)
-    }
+@RunsInEdt
+open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
 
+  @get:Rule
+  val testName = TestName()
+
+  override fun getName(): String = testName.methodName
+
+  protected val projectName: String get() = "p/${getName()}"
+
+  @RunWith(JUnit4::class)
+  @RunsInEdt
+  class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
     // https://code.google.com/p/android/issues/detail?id=233038
-    open fun testLoadPlainJavaProject() {
+    @Test
+    fun testLoadPlainJavaProject() {
       val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
       assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=226802
+    @Test
     fun testNestedModule() {
       val text = importSyncAndDumpProject(NESTED_MODULE)
       assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=76444
+    @Test
     fun testWithEmptyGradleSettingsFileInSingleModuleProject() {
       val text = importSyncAndDumpProject(
         projectDir = BASIC,
-        patch = { createEmptyGradleSettingsFile() }
-      )
+        patch = { projectRootPath -> createEmptyGradleSettingsFile(projectRootPath) }
+      ) { it.saveAndDump() }
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testTransitiveDependencies() {
       // TODO(b/124505053): Remove almost identical snapshots when SDK naming is fixed.
       val text = importSyncAndDumpProject(TRANSITIVE_DEPENDENCIES)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testSimpleApplication() {
       val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testWithMlModels() {
       val text = importSyncAndDumpProject(APP_WITH_ML_MODELS)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testMultiFlavor() {
       val text = importSyncAndDumpProject(MULTI_FLAVOR)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testExternalSourceSets() {
       val projectRootPath = prepareGradleProject(NON_STANDARD_SOURCE_SETS, "project")
       openPreparedProject("project/application") { project ->
@@ -169,169 +185,196 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
     }
 
     // See https://code.google.com/p/android/issues/detail?id=74259
+    @Test
     fun testWithCentralBuildDirectoryInRootModuleDeleted() {
       val text = importSyncAndDumpProject(CENTRAL_BUILD_DIRECTORY, { projectRootPath ->
         // The bug appears only when the central build folder does not exist.
         val centralBuildDirPath = File(projectRootPath, join("central", "build"))
         val centralBuildParentDirPath = centralBuildDirPath.parentFile
         FileUtil.delete(centralBuildParentDirPath)
-      })
+      }) { it.saveAndDump() }
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testSyncWithKotlinDsl() {
       val text = importSyncAndDumpProject(KOTLIN_GRADLE_DSL)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testSyncKotlinProject() {
       // TODO(b/125321223): Remove suffixes from the snapshot files when fixed.
       val text = importSyncAndDumpProject(NEW_SYNC_KOTLIN_TEST)
       assertIsEqualToSnapshot(text)
     }
 
-    open fun testPsdDependency() {
-      val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY)
-      val secondSync = syncAndDumpProject()
-      // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
-      assertAreEqualToSnapshots(
-        firstSync to "",
-        secondSync to ".second_sync"
-      )
+    @Test
+    fun testPsdDependency() {
+      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
+        val firstSync = project.saveAndDump()
+        val secondSync = project.syncAndDumpProject()
+        // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
+        assertAreEqualToSnapshots(
+          firstSync to "",
+          secondSync to ".second_sync"
+        )
+      }
     }
 
-    open fun testPsdDependencyDeleteModule() {
-      val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY)
-      PsProjectImpl(project).let { projectModel ->
-        projectModel.removeModule(":moduleB")
-        projectModel.applyChanges()
+    @Test
+    fun testPsdDependencyDeleteModule() {
+      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
+        val beforeDelete = project.saveAndDump()
+        PsProjectImpl(project).let { projectModel ->
+          projectModel.removeModule(":moduleB")
+          projectModel.applyChanges()
+        }
+        val textAfterDelete = project.syncAndDumpProject()
+        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+        assertAreEqualToSnapshots(
+          beforeDelete to ".before_delete",
+          textAfterDelete to ".after_moduleb_deleted"
+        )
       }
-      val textAfterDelete = syncAndDumpProject()
-      // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-      assertAreEqualToSnapshots(
-        beforeDelete to ".before_delete",
-        textAfterDelete to ".after_moduleb_deleted"
-      )
     }
 
     // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
-    open fun testPsdDependencyAndroidToJavaModuleAndBack() {
-      val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY)
-      val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
-        val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
-        val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
-        val moduleCContent = moduleCFile.contentsToByteArray()
-        val jModuleMContent = jModuleMFile.contentsToByteArray()
-        moduleCFile.setBinaryContent(jModuleMContent)
-        moduleCContent
-      }
-      ApplicationManager.getApplication().saveAll()
-      val afterAndroidToJava = syncAndDumpProject()
-      // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+    @Test
+    fun testPsdDependencyAndroidToJavaModuleAndBack() {
+      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
+        val beforeAndroidToJava = project.saveAndDump()
+        val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
+          val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
+          val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
+          val moduleCContent = moduleCFile.contentsToByteArray()
+          val jModuleMContent = jModuleMFile.contentsToByteArray()
+          moduleCFile.setBinaryContent(jModuleMContent)
+          moduleCContent
+        }
+        ApplicationManager.getApplication().saveAll()
+        val afterAndroidToJava = project.syncAndDumpProject()
+        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
 
-      run<Throwable> {
-        val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
-        moduleCFile.setBinaryContent(oldModuleCContent)
+        run<Throwable> {
+          val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
+          moduleCFile.setBinaryContent(oldModuleCContent)
+        }
+        ApplicationManager.getApplication().saveAll()
+        val textAfterSecondChange = project.syncAndDumpProject()
+        // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
+        assertAreEqualToSnapshots(
+          beforeAndroidToJava to ".before_android_to_java",
+          afterAndroidToJava to ".after_android_to_java",
+          textAfterSecondChange to ".after_java_to_android"
+        )
       }
-      ApplicationManager.getApplication().saveAll()
-      val textAfterSecondChange = syncAndDumpProject()
-      // TODO(b/124497021): Remove duplicate dependencies from the snapshot by reverting to the main snapshot when the bug is fixed.
-      assertAreEqualToSnapshots(
-        beforeAndroidToJava to ".before_android_to_java",
-        afterAndroidToJava to ".after_android_to_java",
-        textAfterSecondChange to ".after_java_to_android"
-      )
     }
 
+    @Test
     fun testPsdSample() {
       val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testPsdSampleRenamingModule() {
-      val beforeRename = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
-      PsProjectImpl(project).let { projectModel ->
-        projectModel.removeModule(":nested1")
-        projectModel.removeModule(":nested1:deep")
-        with(projectModel.parsedModel.projectSettingsModel!!) {
-          addModulePath(":container1")
-          addModulePath(":container1:deep")
+      importSyncAndDumpProject(PSD_SAMPLE_GROOVY) { project ->
+        val beforeRename = project.saveAndDump()
+        PsProjectImpl(project).let { projectModel ->
+          projectModel.removeModule(":nested1")
+          projectModel.removeModule(":nested1:deep")
+          with(projectModel.parsedModel.projectSettingsModel!!) {
+            addModulePath(":container1")
+            addModulePath(":container1:deep")
+          }
+          projectModel.applyChanges()
         }
-        projectModel.applyChanges()
+        run<Throwable> {
+          project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
+        }
+        ApplicationManager.getApplication().saveAll()
+        val afterRename = project.syncAndDumpProject()
+        assertAreEqualToSnapshots(
+          beforeRename to "",
+          afterRename to ".after_rename"
+        )
       }
-      run<Throwable> {
-        project.guessProjectDir()!!.findFileByRelativePath("nested1")!!.rename("test", "container1")
-      }
-      ApplicationManager.getApplication().saveAll()
-      val afterRename = syncAndDumpProject()
-      assertAreEqualToSnapshots(
-        beforeRename to "",
-        afterRename to ".after_rename"
-      )
     }
 
+    @Test
     fun testPsdDependencyUpgradeLibraryModule() {
-      val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY)
-      PsProjectImpl(project).let { projectModel ->
-        projectModel
-          .findModuleByGradlePath(":modulePlus")!!
-          .dependencies
-          .findLibraryDependencies("com.example.libs", "lib1")
-          .forEach { it.version = "1.0".asParsed() }
-        projectModel
-          .findModuleByGradlePath(":mainModule")!!
-          .dependencies
-          .findLibraryDependencies("com.example.libs", "lib1")
-          .forEach { it.version = "0.9.1".asParsed() }
-        projectModel
-          .findModuleByGradlePath(":mainModule")!!
-          .dependencies
-          .findLibraryDependencies("com.example.jlib", "lib3")
-          .single().version = "0.9.1".asParsed()
-        projectModel.applyChanges()
+      importSyncAndDumpProject(PSD_DEPENDENCY) { project ->
+        val beforeLibUpgrade = project.saveAndDump()
+        PsProjectImpl(project).let { projectModel ->
+          projectModel
+            .findModuleByGradlePath(":modulePlus")!!
+            .dependencies
+            .findLibraryDependencies("com.example.libs", "lib1")
+            .forEach { it.version = "1.0".asParsed() }
+          projectModel
+            .findModuleByGradlePath(":mainModule")!!
+            .dependencies
+            .findLibraryDependencies("com.example.libs", "lib1")
+            .forEach { it.version = "0.9.1".asParsed() }
+          projectModel
+            .findModuleByGradlePath(":mainModule")!!
+            .dependencies
+            .findLibraryDependencies("com.example.jlib", "lib3")
+            .single().version = "0.9.1".asParsed()
+          projectModel.applyChanges()
+        }
+        val afterLibUpgrade = project.syncAndDumpProject()
+        // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
+        assertAreEqualToSnapshots(
+          beforeLibUpgrade to ".before_lib_upgrade",
+          afterLibUpgrade to ".after_lib_upgrade"
+        )
       }
-      val afterLibUpgrade = syncAndDumpProject()
-      // TODO(b/124677413): Remove irrelevant changes from the snapshot when the bug is fixed.
-      assertAreEqualToSnapshots(
-        beforeLibUpgrade to ".before_lib_upgrade",
-        afterLibUpgrade to ".after_lib_upgrade"
-      )
     }
 
+    @Test
     fun testTwoJarsWithTheSameName() {
       val text = importSyncAndDumpProject(TWO_JARS)
       // TODO(b/125680482): Update the snapshot when the bug is fixed.
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testWithCompositeBuild() {
       val text = importSyncAndDumpProject(COMPOSITE_BUILD)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testWithBuildSrc() {
       val text = importSyncAndDumpProject(APP_WITH_BUILDSRC)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testKapt() {
       val text = importSyncAndDumpProject(KOTLIN_KAPT)
       assertIsEqualToSnapshot(text)
     }
 
+    @Test
     fun testSwitchingVariants_simpleApplication() {
-      val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
-      val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "debug")
-      val debugAfter = project.saveAndDump()
-      assertAreEqualToSnapshots(
-        debugBefore to ".debug",
-        release to ".release",
-        debugAfter to ".debug"
-      )
+      importSyncAndDumpProject(SIMPLE_APPLICATION) { project ->
+        val debugBefore = project.saveAndDump()
+        switchVariant(project, ":app", "release")
+        val release = project.saveAndDump()
+        switchVariant(project, ":app", "debug")
+        val debugAfter = project.saveAndDump()
+        assertAreEqualToSnapshots(
+          debugBefore to ".debug",
+          release to ".release",
+          debugAfter to ".debug"
+        )
+      }
     }
 
+    @Test
     fun testReimportSimpleApplication() {
       val root = prepareGradleProject(SIMPLE_APPLICATION, "project")
       val before = openPreparedProject("project") { project: Project ->
@@ -347,34 +390,35 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       )
     }
 
+    @Test
     fun testSwitchingVariantsWithReopen_simpleApplication() {
       prepareGradleProject(SIMPLE_APPLICATION, "project")
       val debugBefore = openPreparedProject("project") { project: Project ->
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
+        switchVariant(project, ":app", "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
       val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
-      return  // b/178740252
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
         release to ".release",
-        reopenedRelease to ".release"
+//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
       )
     }
 
-    open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
+    @Test
+    fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
       prepareGradleProject(SIMPLE_APPLICATION, "project")
       val debugBefore = openPreparedProject("project") { project: Project ->
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
+        switchVariant(project, ":app", "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
           // Modify the project build file to ensure the project is synced when opened.
@@ -387,58 +431,62 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
       val reopenedRelease = openPreparedProject("project") { project ->
         project.saveAndDump()
       }
-      return  // b/178740252
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
         release to ".release",
-        reopenedRelease to ".release"
+//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
       )
     }
 
+    @Test
     fun testSwitchingVariants_variantSpecificDependencies() {
-      val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
+      importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES) { project ->
+        val freeDebugBefore = project.saveAndDump()
+        switchVariant(project, ":app", "paidDebug")
+        val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "paidDebug")
-      val paidDebug = project.saveAndDump()
+        switchVariant(project, ":app", "freeDebug")
+        val freeDebugAfter = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "freeDebug")
-      val freeDebugAfter = project.saveAndDump()
-
-      assertAreEqualToSnapshots(
-        freeDebugBefore to ".freeDebug",
-        paidDebug to ".paidDebug",
-        freeDebugAfter to ".freeDebug"
-      )
+        assertAreEqualToSnapshots(
+          freeDebugBefore to ".freeDebug",
+          paidDebug to ".paidDebug",
+          freeDebugAfter to ".freeDebug"
+        )
+      }
     }
 
+    @Test
     fun testCompatibilityWithAndroidStudio36Project() {
-      val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36)
-      assertIsEqualToSnapshot(text)
+      withJdkNamed18 {
+        val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36)
+        assertIsEqualToSnapshot(text)
+      }
     }
 
+    @Test
     fun testCompatibilityWithAndroidStudio36NoImlProject() {
-      val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36_NO_IML)
-      assertIsEqualToSnapshot(text)
+      withJdkNamed18 {
+        val text = importSyncAndDumpProject(COMPATIBILITY_TESTS_AS_36_NO_IML)
+        assertIsEqualToSnapshot(text)
+      }
     }
 
+    @Test
     fun testApiDependency() {
-      val text = importSyncAndDumpProject(
-        projectDir = API_DEPENDENCY,
-        issueFilter = AndroidGradleTests.SyncIssueFilter {
-          // ignore missing manifest errors
-          it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-        }
-      )
+      val text = importSyncAndDumpProject(projectDir = API_DEPENDENCY)
       assertIsEqualToSnapshot(text)
     }
   }
 
+  @Test
   fun testModulePerSourceSet() {
     StudioFlags.USE_MODULE_PER_SOURCE_SET.override(true)
     try {
       val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       assertIsEqualToSnapshot(text)
-    } finally {
+    }
+    finally {
       StudioFlags.USE_MODULE_PER_SOURCE_SET.clearOverride()
     }
   }
@@ -452,36 +500,51 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
 
-  private lateinit var ideComponents: IdeComponents
-
-  protected fun importSyncAndDumpProject(
+  protected fun <T> importSyncAndDumpProject(
     projectDir: String,
     patch: ((projectRootPath: File) -> Unit)? = null,
-    issueFilter: AndroidGradleTests.SyncIssueFilter? = null
-  ): String {
-    val projectRootPath = prepareProjectForImport(projectDir)
+    body: (Project) -> T
+  ): T {
+    val projectRootPath = prepareGradleProject(projectDir, projectName)
     patch?.invoke(projectRootPath)
-    // In order to display all the information we are interested in we need to force creation of missing content roots.
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(), issueFilter)
-    return project.saveAndDump()
+    return openPreparedProject(projectName) { project -> body(project) }
   }
 
-  protected fun syncAndDumpProject(): String {
+  protected fun importSyncAndDumpProject(projectDir: String): String =
+    importSyncAndDumpProject(projectDir) { it.saveAndDump() }
+
+  protected fun Project.syncAndDumpProject(): String {
     requestSyncAndWait()
-    return project.saveAndDump()
+    return this.saveAndDump()
   }
 
-  override fun setUp() {
-    super.setUp()
-    val project = project
-    ideComponents = IdeComponents(project)
-    val projectSettings = GradleProjectSettings()
-    projectSettings.distributionType = DEFAULT_WRAPPED
-    GradleSettings.getInstance(project).linkedProjectsSettings = listOf(projectSettings)
+  protected fun Project.requestSyncAndWait() {
+    AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
   }
 
-  protected fun createEmptyGradleSettingsFile() {
-    val settingsFilePath = File(projectFolderPath, FN_SETTINGS_GRADLE)
+  protected fun <T> withJdkNamed18(body: () -> T): T {
+    val newJdk = if (ProjectJdkTable.getInstance().findJdk("1.8") == null) {
+      val anyJdk = IdeSdks.getInstance().jdk!!
+      val newJdk = SdkConfigurationUtil.setupSdk(ProjectJdkTable.getInstance().allJdks, anyJdk.homeDirectory!!, JavaSdk.getInstance(),
+                                                 true, null, "1.8")!!
+      ApplicationManager.getApplication().runWriteAction { ProjectJdkTable.getInstance().addJdk(newJdk) }
+      newJdk
+    }
+    else {
+      null
+    }
+    try {
+      return body()
+    }
+    finally {
+      if (newJdk != null) {
+        ApplicationManager.getApplication().runWriteAction { ProjectJdkTable.getInstance().removeJdk(newJdk) }
+      }
+    }
+  }
+
+  protected fun createEmptyGradleSettingsFile(projectRootPath: File) {
+    val settingsFilePath = File(projectRootPath, FN_SETTINGS_GRADLE)
     assertTrue(FileUtil.delete(settingsFilePath))
     writeToFile(settingsFilePath, " ")
     assertAbout<FileSubject, File>(file()).that(settingsFilePath).isFile()
@@ -491,9 +554,5 @@ abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase()
   override fun getAdditionalRepos() =
     listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)))
 
-  private val tempSuffix: String = java.time.Clock.systemUTC().millis().toString()
-
-  override fun getBaseTestPath(): @SystemDependent String {
-    return File(super.getBaseTestPath(), tempSuffix).absolutePath
-  }
+  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 }
