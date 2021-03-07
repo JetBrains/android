@@ -391,6 +391,21 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
+    fun testReopenSimpleApplication() {
+      val root = prepareGradleProject(SIMPLE_APPLICATION, "project")
+      val before = openPreparedProject("project") { project: Project ->
+        project.saveAndDump()
+      }
+      val after = openPreparedProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        before to ".same",
+        after to ".same"
+      )
+    }
+
+    @Test
     fun testSwitchingVariantsWithReopen_simpleApplication() {
       prepareGradleProject(SIMPLE_APPLICATION, "project")
       val debugBefore = openPreparedProject("project") { project: Project ->
