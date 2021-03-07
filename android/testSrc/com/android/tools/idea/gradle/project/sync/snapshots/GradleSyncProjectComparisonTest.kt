@@ -104,7 +104,6 @@ bazel test \
  ```
  */
 abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-
   class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
     fun testImportNoSync() {
       prepareProjectForImport(SIMPLE_APPLICATION)

@@ -37,9 +37,9 @@ import java.util.Locale
 class ProjectDumper(
   private val offlineRepos: List<File> = getOfflineM2Repositories(),
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
+  private val devBuildHome: File = getStudioSourcesLocation(),
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
-  private val devBuildHome: File = getStudioSourcesLocation()
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
   private val systemHome = getSystemHomeLocation()
@@ -49,9 +49,12 @@ class ProjectDumper(
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
-    println("<HOME>        <== ${systemHome.absolutePath}")
     offlineRepos.forEach {
       println("                  ${it.absolutePath}")
+    }
+    println("<HOME>        <== ${systemHome.absolutePath}")
+    additionalRoots.forEach { (key, value) ->
+      println("<$key>        <== ${value.absolutePath}")
     }
   }
 
