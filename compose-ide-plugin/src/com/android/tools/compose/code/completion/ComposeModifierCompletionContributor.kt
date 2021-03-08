@@ -23,10 +23,10 @@ import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.InsertionContext
-import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.idea.completion.CollectRequiredTypesContextVariables
 import org.jetbrains.kotlin.idea.completion.CompletionSession
 import org.jetbrains.kotlin.idea.completion.InsertHandlerProvider
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
-import org.jetbrains.kotlin.idea.completion.asStringNameFilter
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
@@ -75,7 +74,6 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
-import org.jetbrains.kotlin.psi.psiUtil.isExtensionDeclaration
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -101,34 +99,40 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       return
     }
 
-    val isMethodCalledOnModifier = element.isMethodCalledOnModifier()
+    // It says "on imported" because only in that case we are able resolve that it called on Modifier.
+    val isMethodCalledOnImportedModifier = element.isMethodCalledOnModifier()
     ProgressManager.checkCanceled()
-    val isNewModifier = if (isMethodCalledOnModifier) false else element.isNewModifier()
-
-    if (!isMethodCalledOnModifier && !isNewModifier) return
+    val isModifierType = isMethodCalledOnImportedModifier || element.isModifierArgument || element.isModifierProperty
+    if (!isModifierType) return
 
     ProgressManager.checkCanceled()
 
-    //If code completion is called on existing modifier or Modifier object - use it, otherwise create fake "Modifier.<caret>" expression.
-    val nameExpression = if (isMethodCalledOnModifier) element.parent as KtSimpleNameExpression else createFakeExpression(element)
+    //If code completion is called on existing modifier or Modifier object (that is imported) - use it,
+    // otherwise create fake "Modifier.<caret>" expression where Modifier is resolvable.
+    val nameExpression = if (isMethodCalledOnImportedModifier) element.parent as KtSimpleNameExpression else createFakeExpression(element)
 
-    val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element, resultSet.prefixMatcher)
+    val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element)
 
     ProgressManager.checkCanceled()
     val (returnsModifier, others) = extensionFunctions.partition { it.returnType?.fqName?.asString() == modifierFqName }
-    val lookupElementFactory = createLookupElementFactory(parameters)
+    val lookupElementFactory = createLookupElementFactory(nameExpression, parameters)
 
+    val isNewModifier = !isMethodCalledOnImportedModifier && element.parentOfType<KtDotQualifiedExpression>() == null
     //Prioritise functions that return Modifier over other extension function.
     resultSet.addAllElements(returnsModifier.toLookupElements(lookupElementFactory, 2.0, insertModifier = isNewModifier))
-    resultSet.addAllElements(others.toLookupElements(lookupElementFactory, 0.0, insertModifier = isNewModifier))
+    //If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
+    if (isMethodCalledOnImportedModifier) {
+      resultSet.addAllElements(others.toLookupElements(lookupElementFactory, 0.0, insertModifier = isNewModifier))
+    }
 
     ProgressManager.checkCanceled()
 
     //If method is called on modifier [KotlinCompletionContributor] will add extensions function one more time, we need to filter them out.
-    if (isMethodCalledOnModifier) {
+    if (isMethodCalledOnImportedModifier) {
+      val extensionFunctionsNames = extensionFunctions.map { it.name.asString() }.toSet()
       resultSet.runRemainingContributors(parameters) { completionResult ->
-        val isExtensionDeclaration = completionResult.lookupElement.psiElement.safeAs<KtFunction>()?.isExtensionDeclaration()
-        if (isExtensionDeclaration != true) {
+        val skipResult = completionResult.lookupElement.psiElement.safeAs<KtFunction>()?.name?.let { extensionFunctionsNames.contains(it) }
+        if (skipResult != true) {
           resultSet.passResult(completionResult)
         }
       }
@@ -147,10 +151,9 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
   /**
    * Creates LookupElementFactory that is similar to the one kotlin-plugin uses during completion session.
-   * Code partially copied from [CompletionSession]
+   * Code partially copied from [CompletionSession].
    */
-  private fun createLookupElementFactory(parameters: CompletionParameters): LookupElementFactory {
-    val nameExpression = parameters.position.parent as KtSimpleNameExpression
+  private fun createLookupElementFactory(nameExpression: KtSimpleNameExpression, parameters: CompletionParameters): LookupElementFactory {
     val bindingContext = nameExpression.analyze(BodyResolveMode.PARTIAL_WITH_DIAGNOSTICS)
     val file = parameters.originalFile.safeAs<KtFile>()!!
     val resolutionFacade = file.getResolutionFacade()
@@ -185,8 +188,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   }
 
   private fun getExtensionFunctionsForModifier(nameExpression: KtSimpleNameExpression,
-                                               originalPosition: PsiElement,
-                                               prefixMatcher: PrefixMatcher): Collection<CallableDescriptor> {
+                                               originalPosition: PsiElement): Collection<CallableDescriptor> {
     val file = nameExpression.containingFile as KtFile
     val searchScope = getResolveScope(file)
     val resolutionFacade = file.getResolutionFacade()
@@ -203,11 +205,8 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     val indicesHelper = KotlinIndicesHelper(resolutionFacade, searchScope, ::isVisible, file = file)
-    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext,
-                                                       prefixMatcher.asStringNameFilter())
+    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext) { true }
   }
-
-  private fun PsiElement.isNewModifier() = isModifierArgument || isModifierProperty
 
   private val PsiElement.isModifierProperty: Boolean
     get() {
@@ -259,18 +258,40 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       private const val callOnModifierObject = "Modifier."
     }
 
+    override fun renderElement(presentation: LookupElementPresentation) {
+      super.renderElement(presentation)
+      presentation.itemText = lookupString
+    }
+
+    override fun getAllLookupStrings(): MutableSet<String> {
+      if (insertModifier) {
+        val lookupStrings = super.getAllLookupStrings().toMutableSet()
+        lookupStrings.add(callOnModifierObject + super.getLookupString())
+        return lookupStrings
+      }
+      return super.getAllLookupStrings()
+    }
+
+    override fun getLookupString(): String {
+      if (insertModifier) {
+        return callOnModifierObject + super.getLookupString()
+      }
+      return super.getLookupString()
+    }
+
     override fun handleInsert(context: InsertionContext) {
+      val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       if (insertModifier) {
         context.document.insertString(context.startOffset, callOnModifierObject)
         context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, context.startOffset + callOnModifierObject.length)
-        val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
         psiDocumentManager.commitAllDocuments()
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
-
-        val ktFile = context.file as KtFile
-        val modifierDescriptor = ktFile.resolveImportReference(FqName(modifierFqName)).singleOrNull() ?: return
-        ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, modifierDescriptor)
       }
+      val ktFile = context.file as KtFile
+      val modifierDescriptor = ktFile.resolveImportReference(FqName(modifierFqName)).singleOrNull()
+      modifierDescriptor?.let { ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it) }
+      psiDocumentManager.commitAllDocuments()
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
       super.handleInsert(context)
     }
   }
