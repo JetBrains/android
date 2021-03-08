@@ -24,11 +24,14 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID_2
@@ -562,6 +565,40 @@ class AppInspectionViewTest {
   }
 
   @Test
+  fun launchInspectorFailsBecauseProcessNoLongerExists() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabsAdded = CompletableDeferred<Unit>()
+
+    val apiServices = object : AppInspectionApiServices by appInspectionServiceRule.apiServices {
+      override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
+        throw AppInspectionProcessNoLongerExistsException("process no longer exists!")
+      }
+    }
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, apiServices,
+                                             ideServices,
+                                             { listOf(TestAppInspectorTabProvider2()) },
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+      inspectionView.tabsChangedFlow.first {
+        assertThat(inspectionView.inspectorTabs).isEmpty()
+        val statePanel = inspectionView.inspectorPanel.getComponent(0)
+        assertThat(statePanel).isInstanceOf(EmptyStatePanel::class.java)
+        assertThat((statePanel as EmptyStatePanel).reasonText).isEqualTo(AppInspectionBundle.message("select.process"))
+        tabsAdded.complete(Unit)
+      }
+    }
+
+    // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    tabsAdded.join()
+  }
+
+  @Test
   fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val tabsAdded = CompletableDeferred<Unit>()
@@ -684,7 +721,8 @@ class AppInspectionViewTest {
           override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
             return if (artifactCoordinate.groupId == "unresolvable") {
               null
-            } else {
+            }
+            else {
               Paths.get("path/to/inspector.jar")
             }
           }
