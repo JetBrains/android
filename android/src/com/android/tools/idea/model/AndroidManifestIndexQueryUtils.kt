@@ -77,7 +77,6 @@ private fun <T> AndroidFacet.queryManifestIndex(
  * Must be called in a smart read action.
  */
 fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
-  check(!DumbService.isDumb(this.module.project) && ApplicationManager.getApplication().isReadAccessAllowed)
   val activityWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
   val activityAliasWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
 
