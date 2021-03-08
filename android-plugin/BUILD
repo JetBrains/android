@@ -22,7 +22,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
         "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
-        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
+        "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
