@@ -38,6 +38,7 @@ fun ProjectDumper.dumpNdkIdeModel(project: Project) {
       head("MODULE") { module.name }
       nest {
         NdkModuleModel.get(module)?.let { it ->
+          prop("SelectedAbiName") { it.selectedAbi }
           if (it.ndkModel is V2NdkModel) dump(it.ndkModel.nativeModule)
           if (it.ndkModel is V1NdkModel) dump(it.ndkModel.androidProject)
         }
