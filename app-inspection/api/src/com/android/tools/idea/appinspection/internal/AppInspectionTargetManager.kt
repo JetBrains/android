@@ -18,12 +18,14 @@ package com.android.tools.idea.appinspection.internal
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.process.ProcessListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.getCompletedOrNull
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
+import io.grpc.StatusRuntimeException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -64,6 +66,12 @@ internal class AppInspectionTargetManager internal constructor(
     }
     try {
       return targetInfo.targetDeferred.await()
+    }
+    catch (e: StatusRuntimeException) {
+      // A gRPC exception can be thrown here if the process has ended. We cannot recover from this so we prompt user to restart app.
+      targets.remove(processDescriptor)
+      throw AppInspectionProcessNoLongerExistsException("Failed to connect to process ${processDescriptor.name}. The process has " +
+                                                        "likely ended. Please restart it so App Inspection can reconnect.", e)
     }
     catch (e: Throwable) {
       // On any exception, including cancellation, remove the target from the hashmap |targets|.

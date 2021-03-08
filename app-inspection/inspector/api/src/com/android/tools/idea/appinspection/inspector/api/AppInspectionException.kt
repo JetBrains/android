@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
-abstract class AppInspectionException(message: String) : Exception(message)
+abstract class AppInspectionException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
@@ -33,7 +33,7 @@ class AppInspectionCrashException(message: String): AppInspectionConnectionExcep
 /**
  * Base class for all service errors.
  */
-abstract class AppInspectionServiceException(message: String) : AppInspectionException(message)
+abstract class AppInspectionServiceException(message: String, cause: Throwable? = null) : AppInspectionException(message, cause)
 
 /**
  * Thrown when an error is encountered during inspector launch other than version incompatibility
@@ -47,7 +47,7 @@ class AppInspectionLaunchException(message: String) : AppInspectionServiceExcept
  * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
  * selects a process for inspection on device X right when X is shutting down.
  */
-class AppInspectionProcessNoLongerExistsException(message: String) : AppInspectionServiceException(message)
+class AppInspectionProcessNoLongerExistsException(message: String, cause: Throwable? = null) : AppInspectionServiceException(message, cause)
 
 /**
  * Thrown when launching an inspector that is incompatible with the version of the library in the running app.
