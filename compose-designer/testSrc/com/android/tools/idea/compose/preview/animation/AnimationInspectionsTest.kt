@@ -32,7 +32,7 @@ import org.junit.Test
 
 
 private const val LABEL_NOT_SET_INSPECTION_MESSAGE =
-  "PropKeys should set the label parameter so they can be inspected in the Animation Preview."
+  "The label parameter should be set so this transition can be better inspected in the Animation Preview."
 
 class AnimationInspectionsTest {
 
@@ -43,33 +43,26 @@ class AnimationInspectionsTest {
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "src/androidx/compose/animation/core/PropKey.kt",
+      "src/androidx/compose/animation/core/Transition.kt",
       // language=kotlin
       """
       package androidx.compose.animation.core
 
-      class IntPropKey(val label: String = "IntPropKey")
+      fun <T> updateTransition(targetState: T, label: String? = null) { }
       """.trimIndent()
     )
-    fixture.addFileToProjectAndInvalidate(
-      "src/androidx/compose/animation/PropertyKeys.kt",
-      // language=kotlin
-      """
-      package androidx.compose.animation
-
-      class ColorPropKey(val anotherParam: String = "Something", val label: String = "ColorPropKey")
-      """.trimIndent()
-    )
-    fixture.enableInspections(PropKeysLabelInspection() as InspectionProfileEntry)
+    fixture.enableInspections(UpdateTransitionLabelInspection() as InspectionProfileEntry)
   }
 
   @Test
   fun testLabelNotSet() {
     // language=kotlin
     val fileContent = """
-      import androidx.compose.animation.core.IntPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = IntPropKey()
+      fun MyComposable() {
+        updateTransition(targetState = false)
+      }
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
@@ -80,9 +73,11 @@ class AnimationInspectionsTest {
   fun testLabelSetExplicitly() {
     // language=kotlin
     val fileContent = """
-      import androidx.compose.animation.core.IntPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = IntPropKey("key")
+      fun MyComposable() {
+        updateTransition(targetState = false, label = "explicit label")
+      }
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
@@ -93,9 +88,11 @@ class AnimationInspectionsTest {
   fun testLabelSetImplicitly() {
     // language=kotlin
     val fileContent = """
-      import androidx.compose.animation.core.IntPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = IntPropKey(label = "key")
+      fun MyComposable() {
+        updateTransition(targetState = false, "implicit label")
+      }
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
@@ -106,9 +103,11 @@ class AnimationInspectionsTest {
   fun testSetOtherParameterImplicitly() {
     // language=kotlin
     val fileContent = """
-      import androidx.compose.animation.ColorPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = ColorPropKey("key")
+      fun MyComposable() {
+        updateTransition("this is the targetState")
+      }
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
@@ -119,17 +118,21 @@ class AnimationInspectionsTest {
   fun testQuickFix() {
     // language=kotlin
     val originalFileContent = """
-      import androidx.compose.animation.core.IntPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = IntPropKey()
+      fun MyComposable() {
+        updateTransition(targetState = false)
+      }
     """.trimIndent()
     fixture.configureByText("Test.kt", originalFileContent)
 
     // language=kotlin
     val fileContentAfterFix = """
-      import androidx.compose.animation.core.IntPropKey
+      import androidx.compose.animation.core.updateTransition
 
-      private val scale = IntPropKey(label = "")
+      fun MyComposable() {
+        updateTransition(targetState = false, label = "")
+      }
     """.trimIndent()
 
     val quickFix = (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
