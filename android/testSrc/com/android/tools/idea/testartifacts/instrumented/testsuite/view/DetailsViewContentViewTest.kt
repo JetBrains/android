@@ -33,8 +33,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.io.File
@@ -151,16 +149,6 @@ class DetailsViewContentViewTest {
   }
 
   @Test
-  fun logsViewWithNoLogsAndErrorStackTrace() {
-    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
-
-    view.setLogcat("")
-    view.setErrorStackTrace("error stack trace")
-    view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("\nerror stack trace")
-  }
-
-  @Test
   fun logsViewWithNoMessage() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
@@ -180,18 +168,6 @@ class DetailsViewContentViewTest {
     view.setLogcat("test logcat message 2")
     view.myLogsView.waitAllRequests()
     assertThat(view.myLogsView.text).isEqualTo("test logcat message 2\n")
-  }
-
-  @Test
-  fun logsViewShouldShouldNotRefreshWhenMessageUnchanged() {
-    val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger))
-
-    view.setLogcat("test logcat message")
-    view.setLogcat("test logcat message")
-    view.myLogsView.waitAllRequests()
-
-    verify(view, times(1)).refreshLogsView()
-    assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
   }
 
   @Test
