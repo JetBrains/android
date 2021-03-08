@@ -454,8 +454,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       // V2 model not available, fallback to V1 model.
       if (ideModels.getV1NativeProject() != null) {
         List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
-        if (ideModels.getV1NativeVariantAbis() != null) {
-          ideNativeVariantAbis.addAll(ideModels.getV1NativeVariantAbis());
+        if (ideModels.getV1NativeVariantAbi() != null) {
+          ideNativeVariantAbis.add(ideModels.getV1NativeVariantAbi());
         }
         // Inject cached variants from previous Gradle Sync.
         ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
