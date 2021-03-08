@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_IGNORE
 import com.android.SdkConstants.TOOLS_URI
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
@@ -132,6 +133,14 @@ class NlAtfIssue(
   override val fixes: Stream<Fix>
     get() {
       if (source is NlAttributesHolder) {
+        val fixes:MutableList<Fix> = mutableListOf();
+        result.mFix?.let {
+          val fix = Fix("Fix", it.description) {
+            applyFixWrapper(it)
+          }
+          fixes.add(fix)
+        }
+
         val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
           var attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE)
           if (attr != null && attr.isNotEmpty()) {
@@ -143,7 +152,8 @@ class NlAtfIssue(
           // Set attr automatically refreshes the surface.
           source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
         }
-        return listOf(ignore).stream()
+        fixes.add(ignore)
+        return fixes.stream()
       }
       return Stream.empty()
     }
@@ -162,4 +172,34 @@ class NlAtfIssue(
 
   /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
   val srcClass: String = result.mSourceClass
+
+  /**
+   * For compound fixes, all fixes should be gathered into one single undoable action.
+   */
+  private fun applyFixWrapper(fix: ValidatorData.Fix) {
+    if (source is NlComponentIssueSource) {
+      NlWriteCommandActionUtil.run(source.component, "Update issue source") {
+        applyFixImpl(fix, source.component)
+      }
+    }
+  }
+
+  private fun applyFixImpl(fix: ValidatorData.Fix, component: NlComponent) {
+    when (fix) {
+      is ValidatorData.RemoveViewAttributeFix ->
+        component.removeAttribute(fix.mViewAttribute.mNamespaceUri,
+                                  fix.mViewAttribute.mAttributeName)
+      is ValidatorData.SetViewAttributeFix ->
+        component.setAttribute(fix.mViewAttribute.mNamespaceUri,
+                               fix.mViewAttribute.mAttributeName,
+                               fix.mSuggestedValue)
+      is ValidatorData.CompoundFix ->
+        fix.mFixes.forEach {
+          applyFixImpl(it, component)
+        }
+      else -> {
+        // Do not apply the fix
+      }
+    }
+  }
 }
