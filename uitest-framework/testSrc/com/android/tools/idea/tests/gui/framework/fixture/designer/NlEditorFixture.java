@@ -367,12 +367,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public String getAdaptiveIconPathDescription() {
     DesignSurface surface = myDesignSurfaceFixture.target();
-    if (surface instanceof NlDesignSurface) {
-      return ((NlDesignSurface)surface).getAdaptiveIconShape().getPathDescription();
-    }
-    else {
-      throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
-    }
+    return surface.getConfiguration().getAdaptiveShape().getPathDescription();
   }
 
   /**

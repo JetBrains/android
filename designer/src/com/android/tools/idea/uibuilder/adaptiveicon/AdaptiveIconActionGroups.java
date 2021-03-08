@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.adaptiveicon;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.configurations.ShapeMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +37,8 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
     if (model != null) {
       group.add(new DensityMenuAction(model));
     }
-    group.add(new ShapeMenuAction((NlDesignSurface)mySurface));
     // TODO(b/136258816): Update to support multi-model
+    group.add(new ShapeMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     return group;
   }
