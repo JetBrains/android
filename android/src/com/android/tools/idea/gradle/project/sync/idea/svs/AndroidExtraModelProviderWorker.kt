@@ -364,8 +364,8 @@ internal class AndroidExtraModelProviderWorker(
       val preModuleDependencies = actionRunner.runActions(actions)
 
       preModuleDependencies.filterNotNull().forEach { result ->
-        result.module.addVariant(result.ideVariant)
-        result.nativeVariantAbi?.let { result.module.addNativeVariant(it) }
+        result.module.syncedVariant = result.ideVariant
+        result.module.syncedNativeVariant = result.nativeVariantAbi
       }
       propagatedToModules = preModuleDependencies.filterNotNull().flatMap { it.moduleDependencies }.takeUnless { it.isEmpty() }
     }
