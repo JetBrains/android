@@ -263,27 +263,15 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
    * Adds children modules' dependencies to own set of dependencies
    */
   @NotNull
-  private static DependencySet mergeSubmoduleDependencies(@NotNull DependencySet original,
-                                                          boolean mergeAndroid,
-                                                          boolean mergeUnit) {
+  private static DependencySet mergeSubmoduleDependencies(@NotNull DependencySet original) {
     // We have to copy the collection because the Map where it comes from is modified inside the loop (see http://b.android.com/230391)
     Set<ModuleDependency> moduleDependencies = new LinkedHashSet<>(original.onModules());
-    synchronized (ourLock) {
-      for (ModuleDependency moduleDependency : moduleDependencies) {
-        Module module = moduleDependency.getModule();
-        if (module != null) {
-          GradleTestArtifactSearchScopes moduleScope = getInstance(module);
-          if (moduleScope != null) {
-            original.addAll(moduleScope.getMainDependencies());
-            if (mergeAndroid) {
-              // NOTE: Merge main dependencies only. If a module's tests depend on another module, they depend on its main artifact.
-              original.addAll(moduleScope.getMainDependencies());
-            }
-            if (mergeUnit) {
-              // NOTE: Merge main dependencies only. If a module's tests depend on another module, they depend on its main artifact.
-              original.addAll(moduleScope.getMainDependencies());
-            }
-          }
+    for (ModuleDependency moduleDependency : moduleDependencies) {
+      Module module = moduleDependency.getModule();
+      if (module != null) {
+        GradleTestArtifactSearchScopes moduleScope = getInstance(module);
+        if (moduleScope != null) {
+          original.addAll(moduleScope.getMainDependencies());
         }
       }
     }
@@ -296,7 +284,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       if (myMainDependencies == null) {
         myMainDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
         myMainDependencies =
-          mergeSubmoduleDependencies(extractDependencies(myModule.getProject(), myAndroidModel.getMainArtifact()), false, false);
+          mergeSubmoduleDependencies(extractDependencies(myModule.getProject(), myAndroidModel.getMainArtifact()));
       }
       return myMainDependencies;
     }
@@ -309,7 +297,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         myUnitTestDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
         myUnitTestDependencies =
           mergeSubmoduleDependencies(
-            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getUnitTestArtifact()), false, true);
+            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getUnitTestArtifact()));
       }
       return myUnitTestDependencies;
     }
@@ -322,7 +310,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
         myAndroidTestDependencies = DependencySet.THROWING; // To prevent infinite recursion in case of loops between artifact dependencies.
         myAndroidTestDependencies =
           mergeSubmoduleDependencies(
-            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getAndroidTestArtifact()), true, false);
+            extractDependencies(myModule.getProject(), myAndroidModel.getSelectedVariant().getAndroidTestArtifact()));
       }
       return myAndroidTestDependencies;
     }
