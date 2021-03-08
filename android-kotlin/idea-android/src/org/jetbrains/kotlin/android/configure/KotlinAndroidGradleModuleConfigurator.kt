@@ -126,25 +126,31 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     state: LanguageFeature.State,
     forTests: Boolean
   ) {
-    if (feature == LanguageFeature.InlineClasses) {
-      val project = module.project
-      val projectBuildModel = ProjectBuildModel.get(project)
-      val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
-      when (state) {
-        LanguageFeature.State.ENABLED ->
-          moduleBuildModel.android().kotlinOptions().freeCompilerArgs().addListValue().setValue("-Xinline-classes")
-        LanguageFeature.State.DISABLED ->
-          moduleBuildModel.android().kotlinOptions().freeCompilerArgs().getListValue("-Xinline-classes")?.delete()
-        LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.ENABLED_WITH_WARNING -> Unit
+    val (enabledString, disabledString) = when (feature) {
+      LanguageFeature.InlineClasses -> "-Xinline-classes" to "-XXLanguage:-InlineClasses"
+      else -> "-XXLanguage:+${feature.name}" to "-XXLanguage:-${feature.name}"
+    }
+    val project = module.project
+    val projectBuildModel = ProjectBuildModel.get(project)
+    val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
+    val freeCompilerArgs = moduleBuildModel.android().kotlinOptions().freeCompilerArgs()
+    when (state) {
+      LanguageFeature.State.ENABLED -> {
+        freeCompilerArgs.getListValue(disabledString)?.delete()
+        freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue().setValue(enabledString)
       }
-      projectBuildModel.applyChanges()
-      moduleBuildModel.reparse()
-      moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
-        OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
+      LanguageFeature.State.DISABLED -> {
+        freeCompilerArgs.getListValue(enabledString)?.delete()
+        freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue().setValue(disabledString)
+      }
+      else -> {
+        throw UnsupportedOperationException("Setting a Kotlin language feature to state $state is unsupported in android-kotlin")
       }
     }
-    else {
-      super.changeGeneralFeatureConfiguration(module, feature, state, forTests)
+    projectBuildModel.applyChanges()
+    moduleBuildModel.reparse()
+    moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
+      OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
     }
   }
 
