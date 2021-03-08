@@ -28,6 +28,7 @@ class IdeAndroidModels(
   val androidProject: IdeAndroidProject,
   val fetchedVariants: List<IdeVariant>,
   val selectedVariantName: String,
+  val selectedAbiName: String?,
   val syncIssues: List<SyncIssueData>,
   val v2NativeModule: IdeNativeModule?,
   val v1NativeProject: IdeNativeAndroidProject?,

@@ -147,7 +147,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -448,6 +447,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (ideModels.getV2NativeModule() != null) {
       return new NdkModuleModel(moduleName,
                                 rootModulePath,
+                                ideModels.getSelectedAbiName(),
                                 new V2NdkModel(ideModels.getAndroidProject().getModelVersion(), ideModels.getV2NativeModule()));
     }
     else {
@@ -460,7 +460,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         // Inject cached variants from previous Gradle Sync.
         ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
 
-        return new NdkModuleModel(moduleName, rootModulePath, ideModels.getV1NativeProject(), ideNativeVariantAbis);
+        return new NdkModuleModel(moduleName,
+                                  rootModulePath,
+                                  ideModels.getSelectedAbiName(),
+                                  ideModels.getV1NativeProject(),
+                                  ideNativeVariantAbis);
       }
       else {
         return null;

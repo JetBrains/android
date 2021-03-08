@@ -107,6 +107,7 @@ class AndroidModule internal constructor(
   }
 
   var syncedVariant: IdeVariant? = null
+  var syncedNativeVariantAbiName: String? = null
   var syncedNativeVariant: IdeNativeVariantAbi? = null
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
@@ -135,6 +136,7 @@ class AndroidModule internal constructor(
       androidProject,
       syncedVariant?.let { listOf(it) } ?: prefetchedVariants.orEmpty(),
       selectedVariantName,
+      syncedNativeVariantAbiName,
       projectSyncIssues.orEmpty(),
       nativeModule,
       nativeAndroidProject,

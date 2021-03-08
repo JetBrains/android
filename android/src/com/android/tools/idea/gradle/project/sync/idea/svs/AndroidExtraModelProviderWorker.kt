@@ -365,7 +365,16 @@ internal class AndroidExtraModelProviderWorker(
 
       preModuleDependencies.filterNotNull().forEach { result ->
         result.module.syncedVariant = result.ideVariant
-        result.module.syncedNativeVariant = result.nativeVariantAbi
+        result.module.syncedNativeVariant = when (val nativeVariantAbiResult = result.nativeVariantAbi) {
+          is NativeVariantAbiResult.V1 -> nativeVariantAbiResult.variantAbi
+          is NativeVariantAbiResult.V2 -> null
+          NativeVariantAbiResult.None -> null
+        }
+        result.module.syncedNativeVariantAbiName = when (val nativeVariantAbiResult = result.nativeVariantAbi) {
+          is NativeVariantAbiResult.V1 -> nativeVariantAbiResult.variantAbi.abi
+          is NativeVariantAbiResult.V2 -> nativeVariantAbiResult.selectedAbiName
+          NativeVariantAbiResult.None -> null
+        }
       }
       propagatedToModules = preModuleDependencies.filterNotNull().flatMap { it.moduleDependencies }.takeUnless { it.isEmpty() }
     }
@@ -423,7 +432,7 @@ internal class AndroidExtraModelProviderWorker(
     val moduleConfiguration: ModuleConfiguration,
     val module: AndroidModule,
     val ideVariant: IdeVariant,
-    val nativeVariantAbi: IdeNativeVariantAbi?,
+    val nativeVariantAbi: NativeVariantAbiResult,
     val moduleDependencies: List<ModuleConfiguration>
   )
 
@@ -442,7 +451,7 @@ internal class AndroidExtraModelProviderWorker(
       module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variant.name)
       val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
       val nativeVariantAbi = abiToRequest
-        ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) }
+        ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) } ?: NativeVariantAbiResult.None
 
       val ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion)
       val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant)
@@ -514,21 +523,27 @@ internal class AndroidExtraModelProviderWorker(
     }
   }
 
+  sealed class NativeVariantAbiResult {
+    class V1(val variantAbi: IdeNativeVariantAbi) : NativeVariantAbiResult()
+    class V2(val selectedAbiName: String) : NativeVariantAbiResult()
+    object None : NativeVariantAbiResult()
+  }
+
   private fun BuildController.findNativeVariantAbiModel(
     modelCache: ModelCache,
     module: AndroidModule,
     variantName: String,
     abiToRequest: String
-  ): IdeNativeVariantAbi? {
+  ): NativeVariantAbiResult {
     return if (module.nativeModelVersion == AndroidModule.NativeModelVersion.V2) {
       // V2 model is available, trigger the sync with V2 API
       // NOTE: Even though we drop the value returned the side effects of this code are important. Native sync creates file on the disk
       // which are later used.
-      findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) { parameter ->
+      val model = findModel(module.findModelRoot, NativeModule::class.java, NativeModelBuilderParameter::class.java) { parameter ->
         parameter.variantsToGenerateBuildInformation = listOf(variantName)
         parameter.abisToGenerateBuildInformation = listOf(abiToRequest)
       }
-      null
+      if (model != null) NativeVariantAbiResult.V2(abiToRequest) else NativeVariantAbiResult.None
     }
     else {
       // Fallback to V1 models otherwise.
@@ -536,7 +551,7 @@ internal class AndroidExtraModelProviderWorker(
         parameter.setVariantName(variantName)
         parameter.setAbiName(abiToRequest)
       }
-      model?.let { modelCache.nativeVariantAbiFrom(model) }
+      if (model != null) NativeVariantAbiResult.V1(modelCache.nativeVariantAbiFrom(model)) else NativeVariantAbiResult.None
     }
   }
 
