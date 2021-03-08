@@ -54,7 +54,6 @@ import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -373,7 +372,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private final boolean myIsInPreview;
-  private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
   @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
@@ -653,15 +651,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       view.setForceLayersRepaint(value);
     }
     repaint();
-  }
-
-  public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
-    myAdaptiveIconShape = adaptiveIconShape;
-  }
-
-  @NotNull
-  public ShapeMenuAction.AdaptiveIconShape getAdaptiveIconShape() {
-    return myAdaptiveIconShape;
   }
 
   @NotNull

@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_FONT_SCALE;
@@ -224,6 +225,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   private float myFontScale = 1f;
   private int myUiModeFlagValue;
+  @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -333,6 +335,7 @@ public class Configuration implements Disposable, ModificationTracker {
     copy.myDisplayName = original.getDisplayName();
     copy.myFontScale = original.myFontScale;
     copy.myUiModeFlagValue = original.myUiModeFlagValue;
+    copy.myAdaptiveShape = original.myAdaptiveShape;
 
     return copy;
   }
@@ -1016,6 +1019,24 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public float getFontScale() {
     return myFontScale;
+  }
+
+  /**
+   * Sets the {@link AdaptiveIconShape} to use when rendering
+   */
+  public void setAdaptiveShape(@NotNull AdaptiveIconShape adaptiveShape) {
+    if (myAdaptiveShape != adaptiveShape) {
+      myAdaptiveShape = adaptiveShape;
+      updated(CFG_ADAPTIVE_SHAPE);
+    }
+  }
+
+  /**
+   * Returns the {@link AdaptiveIconShape} to use when rendering
+   */
+  @NotNull
+  public AdaptiveIconShape getAdaptiveShape() {
+    return myAdaptiveShape;
   }
 
   /**
