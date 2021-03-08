@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_IGNORE
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.error.IssueSource
@@ -125,6 +126,54 @@ class NlAtfIssueTest : LayoutTestCase() {
       val expected = "$getAttrResult,$srcClass"
       assertEquals(expected, testSrc.setAttrArgCaptor.value)
     }
+  }
+
+  fun testFixClickedWithSetViewAttributeFix() {
+    val testSrc = TestSource()
+    val attributeName = "textColor"
+    val suggestedValue = "#FFFFFF"
+    val fixDescription = "Set this item's android:textColor to #FFFFFF"
+    val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", attributeName)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    // Both fix button and ignore button are displayed
+    assertEquals(2, atfIssue.fixes.count())
+  }
+
+  fun testFixClickedWithRemoveViewAttributeFix() {
+    val testSrc = TestSource()
+    val attributeName = "contentDescription"
+    val fixDescription = "Remove this item's android:textColor to #FFFFFF"
+    val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", attributeName)
+    val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(viewAttribute, fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(removeAttributeFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    // Both fix button and ignore button are displayed
+    assertEquals(2, atfIssue.fixes.count())
+  }
+
+  fun testFixClickedWithCompoundFix() {
+    val testSrc = TestSource()
+    val setAttributeName = "textColor"
+    val suggestedValue = "#FFFFFF"
+    val setViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", setAttributeName)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(setViewAttribute, suggestedValue, "")
+    val removeAttributeName = "contentDescription"
+    val removeViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", removeAttributeName)
+    val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(removeViewAttribute, "")
+    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's andrid:textColor to #FFFFFF."
+    val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    // Both fix button and ignore button are displayed
+    assertEquals(2, atfIssue.fixes.count())
   }
 
   class TestSource : IssueSource, NlAttributesHolder {

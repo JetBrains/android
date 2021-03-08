@@ -26,7 +26,7 @@ import com.intellij.pom.Navigatable
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-private data class NlComponentIssueSource(internal val component: NlComponent) : IssueSource, NlAttributesHolder {
+data class NlComponentIssueSource(val component: NlComponent) : IssueSource, NlAttributesHolder {
   override val displayText: String = listOfNotNull(
     component.model.modelDisplayName,
     component.id,
