@@ -21,6 +21,8 @@ import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator
 import org.jetbrains.kotlin.config.LanguageFeature.InlineClasses
+import org.jetbrains.kotlin.config.LanguageFeature.MultiPlatformProjects
+import org.jetbrains.kotlin.config.LanguageFeature.State.DISABLED
 import org.jetbrains.kotlin.config.LanguageFeature.State.ENABLED
 import org.junit.Test
 import java.io.File
@@ -40,11 +42,55 @@ class ChangeProjectLanguageFeatureTest : GradleFileModelTestCase("tools/adt/idea
     verifyFileContents(mySubModuleBuildFile, TestFile.APP_ENABLE_INLINE_CLASSES_EXPECTED)
   }
 
+  @Test
+  fun testDisableInlineClasses() {
+    writeToBuildFile(TestFile.ROOT)
+    writeToSubModuleBuildFile(TestFile.APP)
+    writeToSettingsFile(subModuleSettingsText)
+
+    val configurator = KotlinAndroidGradleModuleConfigurator()
+    WriteCommandAction.runWriteCommandAction(project) {
+      configurator.changeGeneralFeatureConfiguration(mySubModule, InlineClasses, DISABLED, false)
+    }
+    verifyFileContents(myBuildFile, TestFile.ROOT)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APP_DISABLE_INLINE_CLASSES_EXPECTED)
+  }
+
+  @Test
+  fun testEnableMultiPlatformProjects() {
+    writeToBuildFile(TestFile.ROOT)
+    writeToSubModuleBuildFile(TestFile.APP)
+    writeToSettingsFile(subModuleSettingsText)
+
+    val configurator = KotlinAndroidGradleModuleConfigurator()
+    WriteCommandAction.runWriteCommandAction(project) {
+      configurator.changeGeneralFeatureConfiguration(mySubModule, MultiPlatformProjects, ENABLED, false)
+    }
+    verifyFileContents(myBuildFile, TestFile.ROOT)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APP_ENABLE_MULTI_PLATFORM_PROJECTS_EXPECTED)
+  }
+
+  @Test
+  fun testDisableMultiPlatformProjects() {
+    writeToBuildFile(TestFile.ROOT)
+    writeToSubModuleBuildFile(TestFile.APP)
+    writeToSettingsFile(subModuleSettingsText)
+
+    val configurator = KotlinAndroidGradleModuleConfigurator()
+    WriteCommandAction.runWriteCommandAction(project) {
+      configurator.changeGeneralFeatureConfiguration(mySubModule, MultiPlatformProjects, DISABLED, false)
+    }
+    verifyFileContents(myBuildFile, TestFile.ROOT)
+    verifyFileContents(mySubModuleBuildFile, TestFile.APP_DISABLE_MULTI_PLATFORM_PROJECTS_EXPECTED)
+  }
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     ROOT("root"),
     APP("app"),
-    APP_ENABLE_INLINE_CLASSES_EXPECTED("appEnableInlineClassesExpected")
+    APP_DISABLE_INLINE_CLASSES_EXPECTED("appDisableInlineClassesExpected"),
+    APP_ENABLE_INLINE_CLASSES_EXPECTED("appEnableInlineClassesExpected"),
+    APP_DISABLE_MULTI_PLATFORM_PROJECTS_EXPECTED("appDisableMultiPlatformProjectsExpected"),
+    APP_ENABLE_MULTI_PLATFORM_PROJECTS_EXPECTED("appEnableMultiPlatformProjectsExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
