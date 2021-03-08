@@ -70,7 +70,7 @@
                      key="inspection.no.multiple.preview.provider.description"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.PropKeysLabelInspection"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.UpdateTransitionLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
