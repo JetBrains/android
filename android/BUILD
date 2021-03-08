@@ -347,7 +347,7 @@ iml_module(
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/android-debuggers:intellij.android.debuggers[module]",
+        "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
