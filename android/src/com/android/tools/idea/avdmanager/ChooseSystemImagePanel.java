@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.repository.Revision;
+import com.android.tools.analytics.CommonMetricsData;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
@@ -24,9 +25,11 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
@@ -59,6 +62,9 @@ import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
  */
 public class ChooseSystemImagePanel extends JPanel
   implements SystemImageList.SystemImageSelectionListener, SystemImageListModel.StatusIndicator, Disposable {
+
+  private static final boolean IS_ARM64_HOST_OS = SystemInfo.isArm64 ||
+                                                  CommonMetricsData.getOsArchitecture() == ProductDetails.CpuArchitecture.X86_ON_ARM;
 
   private final List<Consumer<SystemImageDescription>> mySystemImageListeners = Lists.newArrayListWithExpectedSize(1);
 
@@ -116,18 +122,21 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   @VisibleForTesting
-  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice) {
+  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice,
+                                                              boolean isArm64HostOs) {
 
-    SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
+    Abi abi = Abi.getEnum(image.getAbiType());
+    SystemImageClassification classification = getClassificationFromParts(abi,
                                                                           image.getVersion().getApiLevel(),
-                                                                          image.getTag());
+                                                                          image.getTag(),
+                                                                          isArm64HostOs);
 
     if (theDevice != null && !image.getTag().equals(SystemImage.WEAR_TAG)) {
       // For non-Wear devices, adjust the recommendation based on Play Store
       if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
         if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
-          classification = SystemImageClassification.X86;
+          classification = (abi == Abi.X86 || abi == Abi.X86_64) ? SystemImageClassification.X86 : SystemImageClassification.OTHER;
         }
       }
       else {
@@ -142,27 +151,51 @@ public class ChooseSystemImagePanel extends JPanel
 
   @NotNull
   private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
-    return getClassificationForDevice(image, myDevice);
+    return getClassificationForDevice(image, myDevice, IS_ARM64_HOST_OS);
   }
 
   @NotNull
   @VisibleForTesting
-  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag) {
+  static SystemImageClassification getClassificationFromParts(Abi abi, int apiLevel, IdDisplay tag, boolean isArm64HostOs) {
     boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-    if (!isAvdIntel) {
+
+    if (isArm64HostOs) {
+      // Recommend only arm64 images.
+      // TODO(joshuaduong): For Arm hosts, we should remove the x86 tab and consider renaming the "other" tab to Arm. Also for M1 chips,
+      // arm32 may not be supported, so we could just have one list of arm64 images.
+      if (isAvdIntel) {
+        return SystemImageClassification.X86;
+      }
+
+      if (tag.equals(SystemImage.WEAR_TAG)) {
+        // For Wear, recommend based on API level (all Wear have Google APIs)
+        return (abi == Abi.ARM64_V8A && apiLevel >= MIN_RECOMMENDED_WEAR_API) ?
+               SystemImageClassification.RECOMMENDED : SystemImageClassification.OTHER;
+      }
+      if (apiLevel < MIN_RECOMMENDED_API) {
+        return SystemImageClassification.OTHER;
+      }
+      if (abi == Abi.ARM64_V8A && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
+        return SystemImageClassification.RECOMMENDED;
+      }
       return SystemImageClassification.OTHER;
-    }
-    if (tag.equals(SystemImage.WEAR_TAG)) {
+    } else {
+      if (!isAvdIntel) {
+        return SystemImageClassification.OTHER;
+      }
+
+      if (tag.equals(SystemImage.WEAR_TAG)) {
         // For Wear, recommend based on API level (all Wear have Google APIs)
         return (apiLevel >= MIN_RECOMMENDED_WEAR_API) ? SystemImageClassification.RECOMMENDED : SystemImageClassification.X86;
-    }
-    if (apiLevel < MIN_RECOMMENDED_API) {
+      }
+      if (apiLevel < MIN_RECOMMENDED_API) {
+        return SystemImageClassification.X86;
+      }
+      if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
+        return SystemImageClassification.RECOMMENDED;
+      }
       return SystemImageClassification.X86;
     }
-    if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
-      return SystemImageClassification.RECOMMENDED;
-    }
-    return SystemImageClassification.X86;
   }
 
   public static boolean systemImageMatchesDevice(@Nullable SystemImageDescription image, @Nullable Device device) {
