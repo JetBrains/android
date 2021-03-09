@@ -97,7 +97,7 @@ class DeviceViewPanel(
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
+  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings, disposableParent)
 
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
     private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||
@@ -353,6 +353,9 @@ class DeviceViewPanel(
     }
     if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
       return viewSettings
+    }
+    if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
+      return deviceViewPanelActionsToolbar.toggle3dActionButton
     }
     return null
   }
