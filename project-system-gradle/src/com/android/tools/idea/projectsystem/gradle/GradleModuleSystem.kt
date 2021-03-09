@@ -62,7 +62,6 @@ import java.io.File
 import java.nio.file.Path
 import java.util.Collections
 import java.util.concurrent.TimeUnit
-import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
  * Make [.getRegisteredDependency] return the direct module dependencies.
@@ -297,8 +296,8 @@ class GradleModuleSystem(
 
   override val codeShrinker: CodeShrinker?
     get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
-      BuildModelCodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
-      BuildModelCodeShrinker.R8 -> CodeShrinker.R8
+      com.android.ide.common.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      com.android.ide.common.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
       null -> null
     }
 

@@ -60,6 +60,7 @@ import com.android.builder.model.ViewBindingOptions
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.gradle.model.CodeShrinker
 import com.android.ide.common.gradle.model.IdeAaptOptions
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -752,7 +753,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
       bundleTaskOutputListingFile = copyNewModel(artifact::getBundleTaskOutputListingFile, ::deduplicateString),
       apkFromBundleTaskName = copyNewModel(artifact::getApkFromBundleTaskName, ::deduplicateString),
       apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
-      codeShrinker = copyNewProperty(artifact::getCodeShrinker),
+      codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST
     )
   }
@@ -1260,6 +1261,15 @@ private fun convertExecution(execution: TestOptions.Execution?): IdeTestOptions.
     TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
     TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
     else -> throw IllegalStateException("Unknown execution option: $execution")
+  }
+}
+
+private fun convertCodeShrinker(codeShrinker: com.android.builder.model.CodeShrinker?): CodeShrinker? {
+  return if (codeShrinker == null) null
+  else when (codeShrinker) {
+    com.android.builder.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+    com.android.builder.model.CodeShrinker.R8 -> CodeShrinker.R8
+    else -> throw IllegalStateException("Unknown code shrinker option: $codeShrinker")
   }
 }
 
