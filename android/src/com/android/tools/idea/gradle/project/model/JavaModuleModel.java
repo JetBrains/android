@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 
-import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;

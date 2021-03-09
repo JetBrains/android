@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.impl.ModelCache.Companion.safeGet
+import com.android.tools.idea.gradle.project.model.ModelCache.Companion.safeGet
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule

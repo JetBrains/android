@@ -19,7 +19,6 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
-import com.android.ide.common.gradle.model.impl.ModelCache
 import com.google.common.truth.Truth
 import org.junit.Test
 import java.io.File
