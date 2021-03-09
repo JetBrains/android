@@ -134,7 +134,6 @@ private fun ProjectDumper.dump(artifact: IdeNativeArtifact) {
   prop("Name") { artifact.name }
   prop("ToolChain") { artifact.toolChain }
   prop("GroupName") { artifact.groupName }
-  prop("assembleTaskName") { artifact.assembleTaskName }
   prop("ABI") { artifact.abi }
   prop("TargetName") { artifact.targetName }
   prop("OutputFile") { artifact.outputFile?.path?.toPrintablePath() }
@@ -150,7 +149,6 @@ private fun ProjectDumper.dump(artifact: IdeNativeArtifact) {
       }
   }
   artifact.exportedHeaders.forEach { prop("ExportedHeaders") { it.path.toPrintablePath() } }
-  artifact.runtimeFiles.forEach { prop("RuntimeFiles") { it.path.toPrintablePath() } }
 }
 
 private fun ProjectDumper.dump(nativeFile: IdeNativeFile) {

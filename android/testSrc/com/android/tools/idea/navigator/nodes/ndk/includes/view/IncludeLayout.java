@@ -171,12 +171,6 @@ public class IncludeLayout {
 
       @NonNull
       @Override
-      public String getAssembleTaskName() {
-        throw new RuntimeException();
-      }
-
-      @NonNull
-      @Override
       public Collection<IdeNativeFile> getSourceFiles() {
         return nativeFiles;
       }
@@ -202,12 +196,6 @@ public class IncludeLayout {
       @Nullable
       @Override
       public File getOutputFile() {
-        throw new RuntimeException();
-      }
-
-      @NonNull
-      @Override
-      public Collection<File> getRuntimeFiles() {
         throw new RuntimeException();
       }
     };
