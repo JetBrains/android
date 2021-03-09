@@ -1,7 +1,6 @@
 package com.android.ide.common.gradle.model
 
 import com.android.builder.model.AndroidGradlePluginProjectFlags
-import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
 import com.google.common.truth.Truth
@@ -21,7 +20,7 @@ class IdeAndroidGradlePluginProjectFlagsTest {
 
     @Test
     fun testLegacyDefaults() {
-        val flags = IdeAndroidGradlePluginProjectFlagsImpl()
+        val flags = parse()
         Truth.assertThat(flags.applicationRClassConstantIds).isTrue()
         Truth.assertThat(flags.testRClassConstantIds).isTrue()
         Truth.assertThat(flags.transitiveRClasses).isTrue()
