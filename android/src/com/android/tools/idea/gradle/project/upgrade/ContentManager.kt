@@ -20,6 +20,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -169,10 +170,12 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     val root = treeModel.root as CheckedTreeNode
     root.removeAllChildren()
     //TODO(mlazeba): do we need the check about 'classpathRefactoringProcessor.isAlwaysNoOpForProject' meaning upgrade can not run?
-    fun <T : DefaultMutableTreeNode> populateNecessity(necessity: AgpUpgradeComponentNecessity,
-                                                       constructor: (Any) -> (T)): CheckedTreeNode {
+    fun <T : DefaultMutableTreeNode> populateNecessity(
+      necessity: AgpUpgradeComponentNecessity,
+      constructor: (Any) -> (T)
+    ): CheckedTreeNode {
       val node = CheckedTreeNode(necessity)
-      processor.activeComponentsForNecessity(necessity).forEach { component -> node.add(constructor(component)) }
+      processor.activeComponentsForNecessity(necessity).forEach { component -> node.add(constructor(toStepPresentation(component))) }
       node.let { if (it.childCount > 0) root.add(it) }
       return node
     }
@@ -185,8 +188,8 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
 
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
     processor.components().forEach { it.isEnabled = false }
-    CheckboxTreeHelper.getCheckedNodes(AgpUpgradeComponentRefactoringProcessor::class.java, null, treeModel)
-      .forEach { it.isEnabled = true }
+    CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
+      .forEach { it.processor.isEnabled = true }
 
     DumbService.getInstance(processor.project).smartInvokeLater {
       processor.setPreviewUsages(showPreview)
@@ -197,6 +200,47 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
 
   interface ChangeListener : EventListener {
     fun modelChanged()
+  }
+
+  interface StepUiPresentation {
+    val pageHeader: String
+    val treeText: String
+    val helpLinkUrl: String?
+  }
+
+  interface StepUiWithComboSelectorPresentation {
+    val elements: List<Any>
+    var selectedValue: Any
+  }
+
+  // TODO(mlazeba/xof): temporary here, need to be defined in processor itself probably
+  private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) = when (processor) {
+    is Java8DefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
+      override val pageHeader: String
+        get() = processor.commandName
+      override val treeText: String
+        get() = processor.noLanguageLevelAction.toString()
+      override val elements: List<Java8DefaultRefactoringProcessor.NoLanguageLevelAction>
+        get() = listOf(
+          Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
+          Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
+        )
+      override var selectedValue: Any
+        get() = processor.noLanguageLevelAction
+        set(value) {
+          if (value is Java8DefaultRefactoringProcessor.NoLanguageLevelAction) processor.noLanguageLevelAction = value
+        }
+    }
+    else -> DefaultStepPresentation(processor)
+  }
+
+  private open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
+    override val pageHeader: String
+      get() = treeText
+    override val treeText: String
+      get() = processor.commandName
+    override val helpLinkUrl: String?
+      get() = processor.getReadMoreUrl()
   }
 }
 
@@ -339,17 +383,18 @@ class ContentManager(val project: Project) {
 
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
-      val selectedProcessor = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? AgpUpgradeComponentRefactoringProcessor
-      if (selectedProcessor != null) {
-        detailsPanel.add(JBLabel(selectedProcessor.commandName))
-        selectedProcessor.getReadMoreUrl()?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
-        if (selectedProcessor is Java8DefaultRefactoringProcessor) {
-          ComboBox(arrayOf(
-            Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT,
-            Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
-          )).apply {
-            item = selectedProcessor.noLanguageLevelAction
-            addActionListener { selectedProcessor.noLanguageLevelAction = this.item }
+      val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
+      if (selectedStep is ToolWindowModel.StepUiPresentation) {
+        detailsPanel.add(JBLabel(selectedStep.pageHeader))
+        selectedStep.helpLinkUrl?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
+        if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
+          ComboBox(selectedStep.elements.toTypedArray()).apply {
+            item = selectedStep.selectedValue
+            addActionListener {
+              selectedStep.selectedValue = this.item
+              tree.repaint()
+              refreshDetailsPanel()
+            }
             detailsPanel.add(this)
           }
         }
@@ -370,7 +415,14 @@ class ContentManager(val project: Project) {
       if (value is DefaultMutableTreeNode) {
         when (val o = value.userObject) {
           is AgpUpgradeComponentNecessity -> textRenderer.append(o.description())
-          is AgpUpgradeComponentRefactoringProcessor -> textRenderer.append(o.commandName)
+          is ToolWindowModel.StepUiPresentation -> {
+            textRenderer.append(o.treeText)
+            if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
+              textRenderer.icon = AllIcons.Actions.Edit
+              textRenderer.isIconOnTheRight = true
+              textRenderer.iconTextGap =  10
+            }
+          }
         }
       }
       super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
