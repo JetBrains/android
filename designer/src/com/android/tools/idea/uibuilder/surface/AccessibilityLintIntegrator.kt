@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.ATTR_IGNORE_A11Y_LINTS
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.error.Issue
@@ -25,6 +26,8 @@ import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.uibuilder.handlers.IncludeHandler
+import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
@@ -71,22 +74,64 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints]
    * in order for issues to be visible.
    */
-  fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
-    component?.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
-      if (it.contains(result.mSourceClass)) {
+  fun createIssue(result: ValidatorData.Issue, component: NlComponent) {
+    component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
+      if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
         return
       }
     }
 
-    val source = if (component == null) {
-      IssueSource.NONE
-    }
-    else {
-      IssueSource.fromNlComponent(component)
-    }
-    issues.add(NlAtfIssue(result, source))
+    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component)))
   }
 
+  /** Handles case where we have ATF issues and include tags. */
+  fun handleInclude(layoutParser: NlScannerLayoutParser, surface: NlDesignSurface) {
+    layoutParser.includeComponents.forEach {
+      if (it.getAttribute(TOOLS_URI, ATTR_IGNORE_A11Y_LINTS) == null) {
+        issues.add(NlATFIncludeIssue(it, surface))
+      }
+    }
+  }
+}
+
+/**  Issue created for <include> */
+class NlATFIncludeIssue(private val include: NlComponent, private val surface: NlDesignSurface): Issue() {
+  override val summary: String
+    get() = "Included layout may contain accessibility issues."
+  override val description: String
+    get() = "We found some potential accessibility issues that may have came from included layout."
+  override val severity: HighlightSeverity
+    get() = HighlightSeverity.WARNING
+  override val source: IssueSource
+    get() = IssueSource.fromNlComponent(include)
+  override val category: String
+    get() = Category.A11Y.name
+
+  override val fixes: Stream<Fix>
+    get() {
+      val ignore = Fix("Ignore", "Ignore this check if it is false positive.") {
+        var attr = include.getAttribute(TOOLS_URI, ATTR_IGNORE)
+        attr = if (attr != null && attr.isNotEmpty()) {
+          "$attr,$ATTR_IGNORE_A11Y_LINTS"
+        } else {
+          ATTR_IGNORE_A11Y_LINTS
+        }
+        NlWriteCommandActionUtil.run(include, "Ignore A11Y lints") {
+          // Set attr automatically refreshes the surface.
+          include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+        }
+      }
+      val goto = Fix("Open the layout", "Open the include layout.") {
+        include.viewHandler?.let { handler ->
+          surface.sceneManager?.viewEditor?.let { viewEditor ->
+            if (handler is IncludeHandler) {
+              IncludeHandler.openIncludedLayout(include, viewEditor)
+            }
+          }
+        }
+      }
+      return listOf(ignore, goto).stream()
+    }
 }
 
 /**  Issue created by [ValidatorData.Issue] */

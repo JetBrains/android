@@ -24,16 +24,27 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 
 @RunWith(JUnit4::class)
 class NlLayoutScannerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
+
+  @Mock
+  lateinit var mockSurface: NlDesignSurface
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+  }
 
   private fun createScanner(): NlLayoutScanner {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
@@ -78,7 +89,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
 
     assertFalse(scanner.listeners.contains(listener))
   }
@@ -99,7 +110,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)
@@ -122,7 +133,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)
@@ -145,7 +156,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
 
     assertNotNull(validatorResult)
     assertEquals(componentSize, validatorResult!!.issues.size)
@@ -186,7 +197,7 @@ class NlLayoutScannerTest {
       }
     }
     scanner.addListener(listener)
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
 
     // Expect the results to be filtered.
     assertNotNull(validatorResult)

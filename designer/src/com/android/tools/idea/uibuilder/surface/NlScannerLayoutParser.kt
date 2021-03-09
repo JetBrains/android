@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import android.view.View
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
@@ -34,9 +35,23 @@ class NlScannerLayoutParser {
   @VisibleForTesting
   val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
 
+  /** Returns the list of [NlComponent] that is <[SdkConstants.VIEW_INCLUDE]> */
+  val includeComponents: List<NlComponent>
+    get() = _includeComponents
+
+  private val _includeComponents = ArrayList<NlComponent>()
+
   /** It's needed to build bridge from [Long] to [View] to [NlComponent]. */
   fun buildViewToComponentMap(component: NlComponent) {
     val root = tryFindingRootWithViewInfo(component)
+    val className = root.tagName
+    if (className == SdkConstants.VIEW_INCLUDE) {
+      if (root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) != SdkConstants.ATTR_IGNORE_A11Y_LINTS) {
+        _includeComponents.add(root)
+        return
+      }
+    }
+
     root.viewInfo?.viewObject?.let { viewObj ->
       val view = viewObj as View
       viewToComponent[view] = component
@@ -84,10 +99,11 @@ class NlScannerLayoutParser {
   fun clear() {
     viewToComponent.clear()
     idToComponent.clear()
+    _includeComponents.clear()
   }
 
   /** Returns true if all maps are cleared. Flase otherwise. */
   fun isEmpty(): Boolean {
-    return viewToComponent.isEmpty() && idToComponent.isEmpty()
+    return viewToComponent.isEmpty() && idToComponent.isEmpty() && _includeComponents.isEmpty()
   }
 }
