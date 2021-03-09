@@ -30,15 +30,22 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
+
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbarProvider(
   deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
+
+  val toggle3dActionButton: ActionButton
+    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)!!
 
   init {
     updateToolbar()
@@ -88,8 +95,9 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
     add(ZoomResetAction())
   }
 
-  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
-                                                       DefaultActionGroup().apply { add(Toggle3dAction) })
+  val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
+
+  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomInAction())

@@ -527,15 +527,20 @@ class DeviceViewPanelTest {
     val fakeUi = FakeUi(contentPanel)
     fakeUi.keyboard.setFocus(contentPanel)
 
+    // Rotate the model so that dragging would normally rotate
+    contentPanel.model.xOff = 0.02
+
     startPan(fakeUi, panel)
     fakeUi.mouse.drag(20, 20, -10, -10, panButton)
-    TestCase.assertEquals(0.0, contentPanel.model.xOff)
+    // Unchanged--we panned instead
+    TestCase.assertEquals(0.02, contentPanel.model.xOff)
     TestCase.assertEquals(0.0, contentPanel.model.yOff)
     assertThat(viewport.viewPosition).isEqualTo(Point(10, 10))
 
     endPan(fakeUi, panel)
+    // Now we'll actually rotate
     fakeUi.mouse.drag(20, 20, -10, -10)
-    TestCase.assertEquals(-0.01, contentPanel.model.xOff)
+    TestCase.assertEquals(0.01, contentPanel.model.xOff)
     TestCase.assertEquals(-0.01, contentPanel.model.yOff)
   }
 }
