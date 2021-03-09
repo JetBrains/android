@@ -57,7 +57,7 @@ class NlLayoutScanner(
   /**
    * Validate the layout and update the lint accordingly.
    */
-  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
+  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel, surface: NlDesignSurface) {
     when (val validatorResult = renderResult.validatorResult) {
       is ValidatorHierarchy -> {
         if (!validatorResult.isHierarchyBuilt) {
@@ -65,10 +65,10 @@ class NlLayoutScanner(
           listeners.forEach { it.lintUpdated(null) }
           return
         }
-        validateAndUpdateLint(renderResult, LayoutValidator.validate(validatorResult), model)
+        validateAndUpdateLint(renderResult, LayoutValidator.validate(validatorResult), model, surface)
       }
       is ValidatorResult -> {
-        validateAndUpdateLint(renderResult, validatorResult, model)
+        validateAndUpdateLint(renderResult, validatorResult, model, surface)
       }
       else -> {
         // Result not available.
@@ -80,7 +80,8 @@ class NlLayoutScanner(
   private fun validateAndUpdateLint(
       renderResult: RenderResult,
       validatorResult: ValidatorResult,
-      model: NlModel) {
+      model: NlModel,
+      surface: NlDesignSurface) {
     lintIntegrator.clear()
     layoutParser.clear()
 
@@ -91,15 +92,30 @@ class NlLayoutScanner(
         // Result not available.
         return
       }
+
+      var issuesWithoutSources = 0
       val root = components[0]
       layoutParser.buildViewToComponentMap(root)
       validatorResult.issues.forEach {
         if ((it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
             it.mType == ValidatorData.Type.ACCESSIBILITY) {
-          lintIntegrator.createIssue(it, layoutParser.findComponent(it, validatorResult.srcMap))
+          val component = layoutParser.findComponent(it, validatorResult.srcMap)
+          if (component == null) {
+            issuesWithoutSources++
+          } else {
+            lintIntegrator.createIssue(it, component)
+          }
         }
         // TODO: b/180069618 revisit metrics. Should log each issue.
       }
+
+      if (issuesWithoutSources > 0) {
+        if (layoutParser.includeComponents.isNotEmpty()) {
+          // Some issues found without source. Handle them accordingly.
+          lintIntegrator.handleInclude(layoutParser, surface)
+        }
+      }
+
       lintIntegrator.populateLints()
       result = validatorResult
     } finally {

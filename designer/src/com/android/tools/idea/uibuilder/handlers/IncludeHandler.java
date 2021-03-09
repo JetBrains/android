@@ -126,8 +126,7 @@ public final class IncludeHandler extends ViewHandler {
    *
    * @param component  The include component
    */
-  private static void openIncludedLayout(@NotNull NlComponent component, @NotNull ViewEditor editor) {
-    NlModel model = component.getModel();
+  public static void openIncludedLayout(@NotNull NlComponent component, @NotNull ViewEditor editor) {
     String attribute = component.getAttribute(null, ATTR_LAYOUT);
     if (attribute == null) {
       return;

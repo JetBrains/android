@@ -40,7 +40,7 @@ class NlLayoutScannerControl(
   override val issues get() = scanner.issues
 
   override fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(renderResult, model, surface)
   }
 
   /** Listener for issue panel open/close */

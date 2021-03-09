@@ -19,6 +19,7 @@ import android.view.View
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -143,5 +144,27 @@ class NlScannerLayoutParserTest {
     val result = layoutParser.tryFindingRootWithViewInfo(root)
 
     assertEquals(root, result)
+  }
+
+  companion object {
+    /** Returns parser and the root component */
+    fun createComponentWithInclude(): NlComponent {
+      val helper = ScannerTestHelper()
+      val root = helper.buildNlComponent()
+      val include = helper.buildNlComponent(tagName = "include")
+      Mockito.`when`(root.children).thenReturn(listOf(include))
+
+      return root
+    }
+  }
+
+  @Test
+  fun buildViewWithInclude() {
+    val parser = NlScannerLayoutParser()
+    val root = createComponentWithInclude()
+
+    assertTrue(parser.includeComponents.isEmpty())
+    parser.buildViewToComponentMap(root)
+    assertEquals(1, parser.includeComponents.size)
   }
 }
