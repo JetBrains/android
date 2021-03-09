@@ -285,6 +285,11 @@ studio_plugin(
     directory = "android-ndk",
     libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
+    resources = {
+        "resources/lldb": [
+            "//prebuilts/tools:lldb-bundle",
+        ],
+    },
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -507,9 +512,6 @@ android_studio(
         ":com.google.urlassistant",
     ],
     resources = {
-        "bin/lldb": [
-            "//prebuilts/tools:lldb-bundle",
-        ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
             "//tools/adt/idea/android/lib:licenses",
