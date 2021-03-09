@@ -27,7 +27,7 @@ import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.impl.BuildFolderPaths
-import com.android.ide.common.gradle.model.impl.ModelCache
+import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions
