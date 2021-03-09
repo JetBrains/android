@@ -374,9 +374,7 @@ class TaskUnderPluginDetailsNodeDescriptor(
   val filteredWarnings: List<TaskIssueUiData>
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.task(taskData)
-
-  // TODO (b/150295612): add new page type, there is no matching one in the old model.
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.PLUGIN_TASK_WARNINGS
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
@@ -419,7 +417,7 @@ class ConfigurationCachingRootNodeDescriptor(
   val projectConfigurationTime: TimeWithPercentage
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.configurationCachingRoot
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_ROOT
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Configuration cache",
@@ -444,7 +442,7 @@ class ConfigurationCachingWarningNodeDescriptor(
   val projectConfigurationTime: TimeWithPercentage
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.configurationCachingWarning(data)
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_PLUGIN_WARNING
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = data.plugin.displayNames().first(),

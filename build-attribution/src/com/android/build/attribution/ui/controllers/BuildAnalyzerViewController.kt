@@ -140,8 +140,7 @@ class BuildAnalyzerViewController(
 
   override fun dontShowAgainNoGCSettingWarningClicked() {
     BuildAttributionWarningsFilter.getInstance(project).suppressNoGCSettingWarning = true
-    //TODO (mlazeba): add separate event to analytics
-    analytics.reportUnregisteredEvent()
+    analytics.noGCSettingWarningSuppressed()
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
