@@ -233,9 +233,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels);
-    if (androidModels != null) {
-      CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
-    }
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels != null ? androidModels.getAndroidProject() : null);
 
     return moduleDataNode;
@@ -297,6 +294,17 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradleVersion latestVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get());
     if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
       throw new AgpUpgradeRequiredException(project, currentAgpVersion);
+    }
+  }
+
+  @Override
+  public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule) {
+    DataNode<AndroidModuleModel> androidModelNode = find(ideModule, ANDROID_MODEL);
+    if (androidModelNode == null) {
+      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    } else {
+      CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
     }
   }
 
