@@ -422,7 +422,7 @@ class ConfigurationCachingRootNodeDescriptor(
   override val analyticsPageType = PageType.UNKNOWN_PAGE
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
-      mainText = "Configuration caching",
+      mainText = "Configuration cache",
       suffix = when (data) {
         is AGPUpdateRequired -> "AGP upgrade required"
         is IncompatiblePluginsDetected -> data.upgradePluginWarnings.size.let {
