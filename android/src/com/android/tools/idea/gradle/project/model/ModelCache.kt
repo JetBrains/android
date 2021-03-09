@@ -24,6 +24,7 @@ import com.android.build.VariantOutput
 import com.android.builder.model.AaptOptions
 import com.android.builder.model.AndroidArtifact
 import com.android.builder.model.AndroidGradlePluginProjectFlags
+import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ApiVersion
@@ -1025,7 +1026,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
   )
 
   fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
-    IdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
+    createIdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
 
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
@@ -1054,7 +1055,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
     val isBaseSplit = copyNewProperty({ project.isBaseSplit }, false)
     val agpFlags: IdeAndroidGradlePluginProjectFlags = copyNewProperty(
       { androidGradlePluginProjectFlagsFrom(project.flags) },
-      IdeAndroidGradlePluginProjectFlagsImpl()
+      createIdeAndroidGradlePluginProjectFlagsImpl()
     )
     return IdeAndroidProjectImpl(
       modelVersion = project.modelVersion,
@@ -1311,3 +1312,21 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   // Otherwise fall back to the first alphabetically
   return sortedNames.first()
 }
+
+private fun createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap: Map<BooleanFlag, Boolean>): IdeAndroidGradlePluginProjectFlagsImpl {
+  return IdeAndroidGradlePluginProjectFlagsImpl(
+    applicationRClassConstantIds = booleanFlagMap.getBooleanFlag(BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS),
+    testRClassConstantIds = booleanFlagMap.getBooleanFlag(BooleanFlag.TEST_R_CLASS_CONSTANT_IDS),
+    transitiveRClasses = booleanFlagMap.getBooleanFlag(BooleanFlag.TRANSITIVE_R_CLASS),
+    usesCompose = booleanFlagMap.getBooleanFlag(BooleanFlag.JETPACK_COMPOSE),
+    mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(BooleanFlag.ML_MODEL_BINDING)
+  )
+}
+
+/**
+ * Create an empty set of flags for older AGPs and for studio serialization.
+ */
+private fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap = emptyMap())
+
+private fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
+
