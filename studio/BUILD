@@ -212,6 +212,9 @@ studio_plugin(
         "sdklib.jar": [
             "//tools/base/sdklib:studio.android.sdktools.sdklib",
         ],
+        "utp.jar": [
+            "//tools/adt/idea/utp",
+        ],
         "wizard-template.jar": [
             "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
             "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin",
