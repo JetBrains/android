@@ -201,72 +201,87 @@ public abstract class ClassifierSet implements MemoryObject {
   // Add delta alloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean addDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.ADD);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.ADD).instanceChanged;
   }
 
   // Add delta dealloc information into the ClassifierSet
   // Return true if the set did not contain the instance prior to invocation
   public boolean freeDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.ADD);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.ADD).instanceChanged;
   }
 
   // Remove delta instance alloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeAddedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.REMOVE);
+    return changeDeltaInstanceInformation(instanceObject, true, SetOperation.REMOVE).instanceChanged;
   }
 
   // Remove delta instance dealloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
   public boolean removeFreedDeltaInstanceObject(@NotNull InstanceObject instanceObject) {
-    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.REMOVE);
+    return changeDeltaInstanceInformation(instanceObject, false, SetOperation.REMOVE).instanceChanged;
   }
 
-  private boolean changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation, @NotNull SetOperation op) {
-    boolean instanceChanged = false;
+  private enum DeltaChange {
+    UNCHANGED(false, false),
+    INSTANCE_MODIFIED(true, false),
+    INSTANCE_ADDED_OR_REMOVED(true, true);
+    public final boolean countsChanged, instanceChanged;
+    DeltaChange(boolean countsChanged, boolean instanceChanged) {
+      this.countsChanged = countsChanged;
+      this.instanceChanged = instanceChanged;
+    }
+  }
 
+  private DeltaChange changeDeltaInstanceInformation(@NotNull InstanceObject instanceObject, boolean isAllocation, @NotNull SetOperation op) {
+    final DeltaChange change;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
       ClassifierSet classifierSet = myClassifier.getClassifierSet(instanceObject, op == SetOperation.ADD);
-      assert classifierSet != null;
-      instanceChanged = classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, op);
+      change = classifierSet != null
+               ? classifierSet.changeDeltaInstanceInformation(instanceObject, isAllocation, op)
+               : DeltaChange.UNCHANGED;
     }
     else if ((op == SetOperation.ADD || !instanceObject.hasTimeData()) &&
              // `contains` is more expensive, so deferred to after above test fails.
              // This line is run often enough to make a difference.
              ((op == SetOperation.ADD) != myDeltaInstances.contains(instanceObject))) {
       op.action.accept(myDeltaInstances, instanceObject);
-      instanceChanged = true;
-    }
-
-    if (isAllocation) {
-      myDeltaAllocations += op.countChange * instanceObject.getInstanceCount();
-      myDeltaAllocationsSize += op.countChange * instanceObject.getShallowSize();
+      change = DeltaChange.INSTANCE_ADDED_OR_REMOVED;
     } else {
-      myDeltaDeallocations += op.countChange * instanceObject.getInstanceCount();
-      myDeltaDeallocationsSize += op.countChange * instanceObject.getShallowSize();
+      change = DeltaChange.INSTANCE_MODIFIED;
     }
 
-    int factor = op.countChange * (isAllocation ? 1 : -1);
-    long deltaNativeSize = factor * validOrZero(instanceObject.getNativeSize());
-    long deltaShallowSize = factor * validOrZero(instanceObject.getShallowSize());
-    long deltaRetainedSize = factor * validOrZero(instanceObject.getRetainedSize());
-    myTotalNativeSize   += deltaNativeSize;
-    myDeltaShallowSize  += deltaShallowSize;
-    myTotalShallowSize  += deltaShallowSize;
-    myTotalRetainedSize += deltaRetainedSize;
+    if (change.countsChanged) {
+      if (isAllocation) {
+        myDeltaAllocations += op.countChange * instanceObject.getInstanceCount();
+        myDeltaAllocationsSize += op.countChange * instanceObject.getShallowSize();
+      }
+      else {
+        myDeltaDeallocations += op.countChange * instanceObject.getInstanceCount();
+        myDeltaDeallocationsSize += op.countChange * instanceObject.getShallowSize();
+      }
 
-    if (instanceChanged && !instanceObject.isCallStackEmpty()) {
-      myInstancesWithStackInfoCount += op.countChange;
-      myNeedsRefiltering = true;
+      int factor = op.countChange * (isAllocation ? 1 : -1);
+      long deltaNativeSize = factor * validOrZero(instanceObject.getNativeSize());
+      long deltaShallowSize = factor * validOrZero(instanceObject.getShallowSize());
+      long deltaRetainedSize = factor * validOrZero(instanceObject.getRetainedSize());
+      myTotalNativeSize += deltaNativeSize;
+      myDeltaShallowSize += deltaShallowSize;
+      myTotalShallowSize += deltaShallowSize;
+      myTotalRetainedSize += deltaRetainedSize;
+
+      if (change.instanceChanged && !instanceObject.isCallStackEmpty()) {
+        myInstancesWithStackInfoCount += op.countChange;
+        myNeedsRefiltering = true;
+      }
+
+      if (change.instanceChanged) {
+        myInstanceFilterMatchCounter.invalidate();
+      }
     }
-
-    if (instanceChanged) {
-      myInstanceFilterMatchCounter.invalidate();
-    }
-
-    return instanceChanged;
+    return change;
   }
 
   public void clearClassifierSets() {
