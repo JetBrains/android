@@ -649,7 +649,7 @@ public final class StudioFlags {
     "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
-    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", false);
+    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.tree.options", "Add view options to component tree",
     "If enabled, the component tree will have extra options under the gear dropdown.", false);
