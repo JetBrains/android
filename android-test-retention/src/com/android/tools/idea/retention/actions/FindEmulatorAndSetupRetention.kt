@@ -28,6 +28,7 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.sdk.AndroidSdks
@@ -157,7 +158,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
           }?.forEach {
             it.getClient(packageName)?.kill()
           }
-          var adbDevice: IDevice? = null
           val deviceReadySignal = CountDownLatch(1)
           // After loading a snapshot, the following events will happen:
           // Device disconnects -> device reconnects-> device client list changes
@@ -167,7 +167,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
 
             override fun deviceConnected(device: IDevice) {
               if (emulatorSerialString == device.serialNumber) {
-                adbDevice = device
                 deviceReadySignal.countDown()
                 AndroidDebugBridge.removeDeviceChangeListener(this)
               }
@@ -176,7 +175,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
             // Sometimes it reports back in device changed instead of connected.
             override fun deviceChanged(device: IDevice, changeMask: Int) {
               if (device.isOnline && emulatorSerialString == device.serialNumber) {
-                adbDevice = device;
                 deviceReadySignal.countDown()
                 AndroidDebugBridge.removeDeviceChangeListener(this)
               }
@@ -196,25 +194,25 @@ class FindEmulatorAndSetupRetention : AnAction() {
           } finally {
             AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
           }
-          if (adbDevice == null) {
-            showErrorMessage(project, "Failed to connect to device.")
-            return
-          }
-          val targetDevice = adbDevice!!
+
+          // Adb reports device connected, but occasionally it will still give us a stale device.
+          // This happens a lot on AOSP images.
+          lateinit var targetDevice: IDevice
+          val adb = requireNotNull(AndroidDebugBridge.getBridge())
 
           // Check if the ddm client is ready.
           // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
           // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
           // and wait even if we use callbacks.
+          LOG.info("Checking client for $packageName.")
           ProgressIndicatorUtils.awaitWithCheckCanceled {
-            if (targetDevice.getClient(packageName) == null) {
-              Thread.sleep(10)
-              false
-            }
-            else {
-              true
-            }
+            // We need to refresh the device list.
+            targetDevice = adb.devices.find { device ->
+              device.serialNumber == emulatorSerialString
+            }?: return@awaitWithCheckCanceled false
+            return@awaitWithCheckCanceled DeploymentApplicationService.getInstance().findClient(targetDevice, packageName).isNotEmpty()
           }
+          LOG.info("Client ready.")
           indicator.fraction = CLIENTS_READY_FRACTION
 
           val debugSessionReadySignal = CountDownLatch(1)
