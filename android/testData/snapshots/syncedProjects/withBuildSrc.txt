@@ -597,20 +597,111 @@ PROJECT                       : testWithBuildSrc
             IsExported                    : false
             Name                          : Gradle: gradle-api-<GRADLE_VERSION> [=]
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>
+        LIBRARY                       : Gradle: gradle-installation-beacon-7.0
             LibraryLevel                  : project
             IsModuleLevel                 : false
             Scope                         : Compile
             IsExported                    : false
-            Name                          : Gradle: gradle-installation-beacon-<GRADLE_VERSION> [=]
-            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: groovy-all-1.3-2.5.12
+            Name                          : Gradle: gradle-installation-beacon-7.0 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-7.0.jar!/
+        LIBRARY                       : Gradle: groovy-3.0.7
             LibraryLevel                  : project
             IsModuleLevel                 : false
             Scope                         : Compile
             IsExported                    : false
-            Name                          : Gradle: groovy-all-1.3-2.5.12 [=]
-            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.12.jar!/
+            Name                          : Gradle: groovy-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-ant-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-ant-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-ant-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-astbuilder-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-astbuilder-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-astbuilder-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-console-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-console-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-console-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-datetime-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-datetime-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-datetime-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-dateutil-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-dateutil-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-dateutil-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-groovydoc-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-groovydoc-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-groovydoc-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-json-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-json-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-json-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-nio-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-nio-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-nio-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-sql-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-sql-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-sql-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-templates-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-templates-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-templates-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-test-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-test-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-test-3.0.7.jar!/
+        LIBRARY                       : Gradle: groovy-xml-3.0.7
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: groovy-xml-3.0.7 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-xml-3.0.7.jar!/
+        LIBRARY                       : Gradle: javaparser-core-3.17.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: javaparser-core-3.17.0 [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
         LIBRARY                       : Gradle: kotlin-reflect-<KOTLIN_VERSION>
             LibraryLevel                  : project
             IsModuleLevel                 : false
