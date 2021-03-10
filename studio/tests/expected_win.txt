@@ -2235,6 +2235,7 @@ android-studio/plugins/android/resources/transport/native/agent/armeabi-v7a/libj
 android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
+android-studio/plugins/android/resources/transport/x86_64/transport
 android-studio/plugins/c-clangd/lib/LICENSE.txt
 android-studio/plugins/c-clangd/lib/c-clangd.jar
 android-studio/plugins/c-plugin/bin/clang/win/clang-tidy.exe
