@@ -195,12 +195,12 @@ class WarningsViewDetailPagesFactory(
 
     val contentHtml = when (uiData) {
       is AGPUpdateRequired -> """
-        <b>AGP update required to make configuration cache available</b>
+        <b>Android Gradle plugin update required to make configuration cache available</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        AGP supports configuration cache from ${uiData.recommendedVersion}.
-        Current version of AGP is ${uiData.currentVersion}.
-        Please, update your AGP version.
+        Android Gradle plugin supports configuration cache from ${uiData.recommendedVersion}.
+        Current version is ${uiData.currentVersion}.
+        Please, update your Android Gradle plugin.
       """.trimIndent().insertBRTags()
       is NoIncompatiblePlugins -> """
         <b>Try to turn configuration cache on</b>
