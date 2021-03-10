@@ -17,7 +17,7 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.ide.common.gradle.model.ClassFieldStub
-import com.android.ide.common.gradle.model.convertLibraryToExternalLibrary
+import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder
 import com.android.ide.common.util.PathString

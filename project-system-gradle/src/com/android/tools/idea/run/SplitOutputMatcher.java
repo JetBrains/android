@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.ide.common.build;
+package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
