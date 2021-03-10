@@ -63,7 +63,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
   /** When the tool window is hidden, the ID of the last selected Emulator, otherwise null. */
   private var lastSelectedEmulatorId: EmulatorId? = null
   /** When the tool window is hidden, the state of the UI for all emulators, otherwise empty. */
-  private val savedUiState = hashMapOf<EmulatorId, EmulatorUiState>()
+  private val savedUiState = hashMapOf<EmulatorId, EmulatorToolWindowPanel.UiState>()
   private val emulators = hashSetOf<EmulatorController>()
   private val properties = PropertiesComponent.getInstance(project)
   // IDs of recently launched AVDs keyed by themselves.
@@ -82,12 +82,14 @@ internal class EmulatorToolWindowManager private constructor(private val project
       panel.emulator.shutdown()
 
       panels.remove(panel)
+      savedUiState.remove(panel.emulator.emulatorId)
       if (panels.isEmpty()) {
         createPlaceholderPanel()
         hideLiveIndicator(getToolWindow())
       }
     }
   }
+
   private val connectionStateListener = object: ConnectionStateListener {
     @AnyThread
     override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
@@ -233,7 +235,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
     // Not maintained when the tool window is visible.
     lastSelectedEmulatorId = null
-    savedUiState.clear()
 
     val contentManager = toolWindow.contentManager
     if (contentManager.contentCount == 0) {
@@ -251,29 +252,27 @@ internal class EmulatorToolWindowManager private constructor(private val project
     contentCreated = false
 
     lastSelectedEmulatorId = selectedPanel?.id
-    for (panel in panels) {
-      savedUiState[panel.emulator.emulatorId] = panel.uiState
-    }
 
     RunningEmulatorCatalog.getInstance().removeListener(this)
     for (emulator in emulators) {
       emulator.removeConnectionStateListener(connectionStateListener)
     }
     emulators.clear()
-    val contentManager = toolWindow.contentManager
-    contentManager.removeContentManagerListener(contentManagerListener)
-    contentManager.removeAllContents(true)
-    selectedPanel?.destroyContent()
+    selectedPanel?.let {
+      savedUiState[it.emulator.emulatorId] = it.destroyContent()
+    }
     selectedPanel = null
     panels.clear()
     recentLaunches.invalidateAll()
+    val contentManager = toolWindow.contentManager
+    contentManager.removeContentManagerListener(contentManagerListener)
+    contentManager.removeAllContents(true)
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
 
-    val uiState = savedUiState.computeIfAbsent(emulator.emulatorId) { EmulatorUiState() }
-    val panel = EmulatorToolWindowPanel(project, emulator, uiState)
+    val panel = EmulatorToolWindowPanel(project, emulator)
     val toolWindow = getToolWindow()
     val contentManager = toolWindow.contentManager
     if (panels.isEmpty()) {
@@ -281,7 +280,6 @@ internal class EmulatorToolWindowManager private constructor(private val project
       showLiveIndicator(toolWindow)
     }
 
-    panel.zoomToolbarVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
@@ -292,6 +290,8 @@ internal class EmulatorToolWindowManager private constructor(private val project
       putUserData(ID_KEY, panel.id)
       setPreferredFocusedComponent { panel.getPreferredFocusableComponent() }
     }
+
+    panel.zoomToolbarVisible = zoomToolbarIsVisible
 
     val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
     assert(index >= 0)
@@ -344,7 +344,7 @@ internal class EmulatorToolWindowManager private constructor(private val project
 
       if (id != null) {
         selectedPanel = findPanelByGrpcPort(id.grpcPort)
-        selectedPanel?.createContent(deviceFrameVisible)
+        selectedPanel?.createContent(deviceFrameVisible, savedUiState.remove(id))
         ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
       }
     }

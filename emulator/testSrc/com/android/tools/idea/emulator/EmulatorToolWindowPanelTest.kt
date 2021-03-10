@@ -215,8 +215,8 @@ class EmulatorToolWindowPanelTest {
     viewport.viewPosition = scrollPosition
 
     // Recreate panel content.
-    panel.destroyContent()
-    panel.createContent(true)
+    val uiState = panel.destroyContent()
+    panel.createContent(true, uiState)
     emulatorView = panel.emulatorView ?: throw AssertionError()
     ui.layoutAndDispatchEvents()
 
@@ -460,7 +460,7 @@ class EmulatorToolWindowPanelTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController, EmulatorUiState())
+    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
     Disposer.register(testRootDisposable) {
       panel.destroyContent()
       emulator.stop()

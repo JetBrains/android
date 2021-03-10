@@ -21,7 +21,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPane
-import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollBar
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -38,7 +37,6 @@ import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.JScrollBar
@@ -50,33 +48,44 @@ import javax.swing.plaf.ScrollBarUI
  * Represents a single Emulator display.
  */
 class EmulatorDisplayPanel(
-  val emulator: EmulatorController
-) : BorderLayoutPanel(), DataProvider {
+  disposableParent: Disposable,
+  val emulator: EmulatorController,
+  displayId: Int,
+  displaySize: Dimension?,
+  zoomToolbarVisible: Boolean,
+  deviceFrameVisible: Boolean = false,
+) : BorderLayoutPanel(), DataProvider, Disposable {
 
-  var emulatorView: EmulatorView? = null
+  val emulatorView: EmulatorView
   private val scrollPane: JScrollPane
-  private val layeredPane: JLayeredPane
-  private val zoomControlsLayerPane: JPanel
-  private var loadingPanel: JBLoadingPanel? = null
   private val centerPanel: BorderLayoutPanel
-  private var contentDisposable: Disposable? = null
-  private var floatingToolbar: JComponent? = null
-  private var savedEmulatorViewPreferredSize: Dimension? = null
-  private var savedScrollPosition: Point? = null
+  private var floatingToolbar: JComponent
 
   val component: JComponent
     get() = this
 
-  var zoomToolbarVisible = false
+  val displayId
+    get() = emulatorView.displayId
+
+  var zoomToolbarVisible: Boolean
+    get() = floatingToolbar.isVisible
+    set(value) { floatingToolbar.isVisible = value }
+
+  internal var zoomScrollState: ZoomScrollState
+    get() = ZoomScrollState(scrollPane.viewport.viewPosition, emulatorView.explicitlySetPreferredSize)
     set(value) {
-      field = value
-      floatingToolbar?.let { it.isVisible = value }
+      if (value.preferredViewSize != null) {
+        emulatorView.preferredSize = value.preferredViewSize
+        scrollPane.viewport.viewPosition = value.viewPosition
+      }
     }
 
   init {
+    Disposer.register(disposableParent, this)
+
     background = primaryPanelBackground
 
-    zoomControlsLayerPane = JPanel().apply {
+    val zoomControlsLayerPane = JPanel().apply {
       layout = BorderLayout()
       border = JBUI.Borders.empty(UIUtil.getScrollBarWidth())
       isOpaque = false
@@ -98,7 +107,7 @@ class EmulatorDisplayPanel(
       }
     }
 
-    layeredPane = JLayeredPane().apply {
+    val layeredPane = JLayeredPane().apply {
       layout = LayeredPaneLayoutManager()
       isFocusable = true
       setLayer(zoomControlsLayerPane, JLayeredPane.PALETTE_LAYER)
@@ -109,80 +118,44 @@ class EmulatorDisplayPanel(
     }
 
     centerPanel = NotificationHolderPanel()
-  }
 
-  fun getPreferredFocusableComponent(): JComponent {
-    return emulatorView ?: this
-  }
+    emulatorView = EmulatorView(this, emulator, displayId, displaySize, deviceFrameVisible)
 
-  fun setDeviceFrameVisible(visible: Boolean) {
-    emulatorView?.deviceFrameVisible = visible
-  }
+    floatingToolbar = EmulatorZoomToolbarProvider.createToolbar(this, this)
+    floatingToolbar.isVisible = zoomToolbarVisible
+    zoomControlsLayerPane.add(EmulatorZoomToolbarProvider.createToolbar(this, this), BorderLayout.EAST)
 
-  fun createContent(deviceFrameVisible: Boolean) {
-    try {
-      val disposable = Disposer.newDisposable()
-      contentDisposable = disposable
+    scrollPane.setViewportView(emulatorView)
 
-      val toolbar = EmulatorZoomToolbarProvider.createToolbar(this, disposable)
-      toolbar.isVisible = zoomToolbarVisible
-      floatingToolbar = toolbar
-      zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)
+    addToCenter(centerPanel)
 
-      val emulatorView = EmulatorView(disposable, emulator, deviceFrameVisible)
-      emulatorView.background = background
-      this.emulatorView = emulatorView
-      scrollPane.setViewportView(emulatorView)
+    val loadingPanel = EmulatorLoadingPanel(this)
+    loadingPanel.add(layeredPane, BorderLayout.CENTER)
+    centerPanel.addToCenter(loadingPanel)
 
-      addToCenter(centerPanel)
-
-      val loadingPanel = EmulatorLoadingPanel(disposable)
-      this.loadingPanel = loadingPanel
-      loadingPanel.add(layeredPane, BorderLayout.CENTER)
-      centerPanel.addToCenter(loadingPanel)
-
+    if (displayId == PRIMARY_DISPLAY_ID) {
       loadingPanel.setLoadingText("Connecting to the Emulator")
       loadingPanel.startLoading() // The stopLoading method is called by EmulatorView after the gRPC connection is established.
-
-      // Restore zoom and scroll state.
-      val emulatorViewPreferredSize = savedEmulatorViewPreferredSize
-      if (emulatorViewPreferredSize != null) {
-        emulatorView.preferredSize = emulatorViewPreferredSize
-        scrollPane.viewport.viewPosition = savedScrollPosition
-      }
-
-      loadingPanel.repaint()
     }
-    catch (e: Exception) {
-      val label = "Unable to create emulator view: $e"
-      add(JLabel(label), BorderLayout.CENTER)
-    }
+
+    loadingPanel.repaint()
   }
 
-  fun destroyContent() {
-    savedEmulatorViewPreferredSize = emulatorView?.explicitlySetPreferredSize
-    savedScrollPosition = scrollPane.viewport.viewPosition
-
-    contentDisposable?.let { Disposer.dispose(it) }
-    contentDisposable = null
-
-    zoomControlsLayerPane.removeAll()
-    floatingToolbar = null
-
-    emulatorView = null
-    scrollPane.setViewportView(null)
-
-    loadingPanel = null
-    removeAll()
+  override fun dispose() {
   }
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      EMULATOR_CONTROLLER_KEY.name -> emulator
+      EMULATOR_CONTROLLER_KEY.name -> emulatorView.emulator
       EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> emulatorView
       else -> null
     }
   }
+
+  /**
+   * Zoom and scroll state of the panel.
+   */
+  class ZoomScrollState(val viewPosition: Point, val preferredViewSize: Dimension?)
 
   private class LayeredPaneLayoutManager : LayoutManager {
 
