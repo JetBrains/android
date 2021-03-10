@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.convertLibraryToExternalLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary

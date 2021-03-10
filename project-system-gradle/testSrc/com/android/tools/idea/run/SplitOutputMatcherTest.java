@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.common.build;
+package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
 import com.android.build.FilterData;

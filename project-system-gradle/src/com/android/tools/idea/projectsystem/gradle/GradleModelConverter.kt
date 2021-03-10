@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.common.gradle.model
+package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.gradle.model.IdeAndroidLibrary
+import com.android.ide.common.gradle.model.IdeJavaLibrary
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.ExternalLibrary
