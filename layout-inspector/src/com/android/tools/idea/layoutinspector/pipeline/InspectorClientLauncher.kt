@@ -43,10 +43,10 @@ import java.util.concurrent.TimeUnit
  * @param executor The executor which will handle connecting / launching the current client. This
  * should not be the UI thread, in order to avoid blocking the UI during this time.
  */
-class InspectorClientLauncher(adb: AndroidDebugBridge,
-                              processes: ProcessesModel,
-                              clientCreators: List<(Params) -> InspectorClient?>,
-                              parentDisposable: Disposable,
+class InspectorClientLauncher(private val adb: AndroidDebugBridge,
+                              private val processes: ProcessesModel,
+                              private val clientCreators: List<(Params) -> InspectorClient?>,
+                              private val parentDisposable: Disposable,
                               @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
 
@@ -91,46 +91,48 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
 
   init {
     processes.addSelectedProcessListeners(executor) {
-      val process = processes.selectedProcess
-
-      var validClientConnected = false
-      if (process != null && process.isRunning) {
-        val params = object : Params {
-          override val adb: AndroidDebugBridge = adb
-          override val process: ProcessDescriptor = process
-          override val disposable: Disposable = parentDisposable
-        }
-
-        for (createClient in clientCreators) {
-          val client = createClient(params)
-          if (client != null) {
-            try {
-              val latch = CountDownLatch(1)
-              client.registerStateCallback { state ->
-                if (state == InspectorClient.State.CONNECTED || state == InspectorClient.State.DISCONNECTED) {
-                  validClientConnected = (state == InspectorClient.State.CONNECTED)
-                  latch.countDown()
-                }
-              }
-
-              activeClient = client // client.connect() call internally might throw
-              latch.await()
-              if (validClientConnected) {
-                break
-              }
-            }
-            catch (ignored: Exception) {
-            }
-          }
-        }
-      }
-
-      if (!validClientConnected) {
-        activeClient = DisconnectedClient
-      }
+      handleProcess(processes.selectedProcess)
     }
 
     Disposer.register(parentDisposable) {
+      activeClient = DisconnectedClient
+    }
+  }
+
+  private fun handleProcess(process: ProcessDescriptor?) {
+    var validClientConnected = false
+    if (process != null && process.isRunning && enabled) {
+      val params = object : Params {
+        override val adb: AndroidDebugBridge = this@InspectorClientLauncher.adb
+        override val process: ProcessDescriptor = process
+        override val disposable: Disposable = parentDisposable
+      }
+
+      for (createClient in clientCreators) {
+        val client = createClient(params)
+        if (client != null) {
+          try {
+            val latch = CountDownLatch(1)
+            client.registerStateCallback { state ->
+              if (state == InspectorClient.State.CONNECTED || state == InspectorClient.State.DISCONNECTED) {
+                validClientConnected = (state == InspectorClient.State.CONNECTED)
+                latch.countDown()
+              }
+            }
+
+            activeClient = client // client.connect() call internally might throw
+            latch.await()
+            if (validClientConnected) {
+              break
+            }
+          }
+          catch (ignored: Exception) {
+          }
+        }
+      }
+    }
+
+    if (!validClientConnected) {
       activeClient = DisconnectedClient
     }
   }
@@ -144,6 +146,24 @@ class InspectorClientLauncher(adb: AndroidDebugBridge,
         field = value
         clientChangedCallbacks.forEach { callback -> callback(value) }
         value.connect()
+      }
+    }
+
+  /**
+   * Whether or not this launcher will currently respond to new processes or not. With this
+   * property, we can stop launching new inspectors when the parent tool window is minimized.
+   *
+   * If the launcher is enabled while the current client is disconnected, this class will attempt
+   * to relaunch the currently selected process, if any. This mimics the user starting an activity
+   * if the tool window had been open at the time.
+   */
+  var enabled = true
+    set(value) {
+      if (field != value) {
+        field = value
+        if (!activeClient.isConnected && value) {
+          handleProcess(processes.selectedProcess)
+        }
       }
     }
 
