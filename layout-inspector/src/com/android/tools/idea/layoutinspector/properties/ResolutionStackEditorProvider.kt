@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.LinkPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
 import javax.swing.JComponent
 
@@ -37,11 +38,11 @@ class ResolutionStackEditorProvider(
   override fun createEditor(property: InspectorPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, asTableCellEditor)
     model.isUsedInRendererWithSelection = true
-    model.readOnly = property.type != PropertyType.LAMBDA
+    model.readOnly = property !is LinkPropertyItem
     return if (property is InspectorGroupPropertyItem) Pair(model, ResolutionElementEditor(resolutionStackModel, model, editor))
            else Pair(model, editor)
   }
 
   fun isValueEditable(property: InspectorPropertyItem): Boolean =
-    ResolutionElementEditor.hasLinkPanel(property) || property.type == PropertyType.LAMBDA
+    ResolutionElementEditor.hasLinkPanel(property) || property is LinkPropertyItem
 }
