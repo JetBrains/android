@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.IdeAaptOptions
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeApiVersion
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeBuildType
@@ -34,9 +35,9 @@ import com.android.ide.common.gradle.model.IdeModuleLibrary
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeSourceProviderContainer
 import com.android.ide.common.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.utils.FileUtils
 import java.io.File
 
@@ -761,7 +762,7 @@ class LintModelFactory : LintModelModuleLoader {
 
     companion object {
         /**
-         * Returns the [LintModelModuleType] for the given type ID. Type ids must be one of the values defined by
+         * Returns the [LintModelModuleType] for the given [typeId]. Type ids must be one of the values defined by
          * AndroidProjectTypes.PROJECT_TYPE_*.
          */
         @JvmStatic
@@ -774,6 +775,22 @@ class LintModelFactory : LintModelModuleLoader {
                 AndroidProjectTypes.PROJECT_TYPE_FEATURE -> LintModelModuleType.FEATURE
                 AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
                 else -> throw IllegalArgumentException("The value $typeId is not a valid project type ID")
+            }
+        }
+
+        /**
+         * Returns the [LintModelModuleType] for the given [type].
+         */
+        @JvmStatic
+        fun getModuleType(type: IdeAndroidProjectType): LintModelModuleType {
+            return when (type) {
+                IdeAndroidProjectType.PROJECT_TYPE_APP -> LintModelModuleType.APP
+                IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> LintModelModuleType.LIBRARY
+                IdeAndroidProjectType.PROJECT_TYPE_TEST -> LintModelModuleType.TEST
+                IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> LintModelModuleType.INSTANT_APP
+                IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> LintModelModuleType.FEATURE
+                IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
+                IdeAndroidProjectType.PROJECT_TYPE_ATOM -> throw IllegalArgumentException("The value $type is not a valid project type ID")
             }
         }
 

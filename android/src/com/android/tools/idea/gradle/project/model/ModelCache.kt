@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.project.model
 
+import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.build.FilterData
 import com.android.build.OutputFile
@@ -67,6 +68,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeDependencies
@@ -1282,12 +1284,23 @@ private fun convertNamespacing(namespacing: AaptOptions.Namespacing): IdeAaptOpt
   }
 }
 
-private fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): Int {
+private fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when(this) {
+    AndroidProjectTypes.PROJECT_TYPE_APP -> IdeAndroidProjectType.PROJECT_TYPE_APP
+    AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+    AndroidProjectTypes.PROJECT_TYPE_TEST -> IdeAndroidProjectType.PROJECT_TYPE_TEST
+    AndroidProjectTypes.PROJECT_TYPE_ATOM -> IdeAndroidProjectType.PROJECT_TYPE_ATOM
+    AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP
+    AndroidProjectTypes.PROJECT_TYPE_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_FEATURE
+    AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
+    else -> error("Unknown Android project type: $this")
+}
+
+private fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): IdeAndroidProjectType {
   if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
-    return project.projectType
+    return project.projectType.toIdeAndroidProjectType()
   }
   // Support for old Android Gradle Plugins must be maintained.
-  return if (project.isLibrary) IdeAndroidProject.PROJECT_TYPE_LIBRARY else IdeAndroidProject.PROJECT_TYPE_APP
+  return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
 }
 
 @VisibleForTesting

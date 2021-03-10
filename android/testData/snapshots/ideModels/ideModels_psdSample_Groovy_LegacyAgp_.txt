@@ -1,7 +1,7 @@
 MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : 4.1.0
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -2552,7 +2552,7 @@ MODULE                        : project.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.dyn_feature
     ModelVersion                  : 4.1.0
-    ProjectType                   : 6
+    ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
     buildToolsVersion             : 29.0.2
@@ -2837,7 +2837,7 @@ MODULE                        : project.dyn_feature
 MODULE                        : project.jav
 MODULE                        : project.lib
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : 30.0.2
@@ -4687,7 +4687,7 @@ MODULE                        : project.lib
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/build [-]
     buildToolsVersion             : 29.0.2
@@ -4975,7 +4975,7 @@ MODULE                        : project.nested1
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1.deep
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
     buildToolsVersion             : 29.0.2
@@ -5268,7 +5268,7 @@ MODULE                        : project.nested1.deep
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/build [-]
     buildToolsVersion             : 29.0.2
@@ -5695,7 +5695,7 @@ MODULE                        : project.nested2
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.deep
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
     buildToolsVersion             : 29.0.2
@@ -5984,7 +5984,7 @@ MODULE                        : project.nested2.deep
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
     ModelVersion                  : 4.1.0
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
     buildToolsVersion             : 29.0.2

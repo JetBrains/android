@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
@@ -32,15 +31,15 @@ import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeApiVersion;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
-import com.android.ide.common.gradle.model.IdeProductFlavor;
 import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
@@ -81,7 +80,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2021-01-31/3";
+  private final static String ourAndroidSyncVersion = "2021-03-10/1";
 
   @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
@@ -525,7 +524,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @Nullable
   public IdeAndroidArtifact getArtifactForAndroidTest() {
-    return getAndroidProject().getProjectType() == PROJECT_TYPE_TEST ?
+    return getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST ?
            getSelectedVariant().getMainArtifact() :
            getSelectedVariant().getAndroidTestArtifact();
   }

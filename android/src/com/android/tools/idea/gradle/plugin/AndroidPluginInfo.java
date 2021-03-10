@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -27,16 +32,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidPluginInfo {
   public static final String APPLICATION_PLUGIN_ID = "com.android.application";
@@ -86,7 +85,7 @@ public class AndroidPluginInfo {
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-      if (gradleModel != null && gradleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+      if (gradleModel != null && gradleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
         // This is the 'app' module in the project.
         return new AndroidPluginInfo(module, gradleModel.getModelVersion(), null);
       }

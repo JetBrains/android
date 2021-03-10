@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.structure.model.ModuleKind
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
@@ -31,8 +33,6 @@ import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.moduleTypeFromAndroidModuleType
 import com.android.tools.idea.gradle.structure.model.parsedModelModuleType
-import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.util.GradleUtil.getAndroidModuleIcon
 import com.android.utils.combineAsCamelCase
 import com.android.utils.usLocaleCapitalize
@@ -91,7 +91,7 @@ class PsAndroidModule(
     projectType =
       moduleTypeFromAndroidModuleType(resolvedModel?.androidProject?.projectType).takeUnless { it == PsModuleType.UNKNOWN }
       ?: parsedModel?.parsedModelModuleType() ?: PsModuleType.UNKNOWN
-    isLibrary = projectType.androidModuleType != PROJECT_TYPE_APP
+    isLibrary = projectType.androidModuleType != IdeAndroidProjectType.PROJECT_TYPE_APP
     rootDir = resolvedModel?.rootDirPath ?: parsedModel?.virtualFile?.path?.let { File(it).parentFile }
     icon = projectType.androidModuleType?.let { getAndroidModuleIcon(it) }
 
