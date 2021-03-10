@@ -31,8 +31,12 @@ import org.junit.Rule
 import org.junit.Test
 
 
-private const val LABEL_NOT_SET_INSPECTION_MESSAGE =
+private const val UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE =
   "The label parameter should be set so this transition can be better inspected in the Animation Preview."
+
+private const val TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE =
+  "The label parameter should be set so this transition property can be better inspected in the Animation Preview. " +
+  "Otherwise, a default name will be used to represent the property."
 
 class AnimationInspectionsTest {
 
@@ -48,10 +52,26 @@ class AnimationInspectionsTest {
       """
       package androidx.compose.animation.core
 
-      fun <T> updateTransition(targetState: T, label: String? = null) { }
+      class Transition {}
+
+      fun Transition.animateFloat(transitionSpec: () -> Unit, label: String = "FloatAnimation") {}
+
+      fun <T> updateTransition(targetState: T, label: String? = null) {}
+      """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/androidx/compose/animation/TransitionProperties.kt",
+      // language=kotlin
+      """
+      package androidx.compose.animation
+
+      fun Transition.animateColor(transitionSpec: () -> Unit, label: String = "ColorAnimation") {}
+
+      fun animateColorAsState(transitionSpec: () -> Unit, label: String = "ColorState") {}
       """.trimIndent()
     )
     fixture.enableInspections(UpdateTransitionLabelInspection() as InspectionProfileEntry)
+    fixture.enableInspections(TransitionPropertiesLabelInspection() as InspectionProfileEntry)
   }
 
   @Test
@@ -66,7 +86,7 @@ class AnimationInspectionsTest {
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(LABEL_NOT_SET_INSPECTION_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
+    assertEquals(UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
   }
 
   @Test
@@ -111,11 +131,117 @@ class AnimationInspectionsTest {
     """.trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals(LABEL_NOT_SET_INSPECTION_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
+    assertEquals(UPDATE_TRANSITION_LABEL_NOT_SET_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
   }
 
   @Test
-  fun testQuickFix() {
+  fun testAnimateFloatAnimationCorePackageLabelNotSet() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.core.animateFloat
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateFloat(transitionSpec = {})
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
+  }
+
+  @Test
+  fun testAnimateFloatAnimationCorePackageLabelSet() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.core.animateFloat
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateFloat(transitionSpec = {}, label = "float property")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun testAnimateColorAnimationPackageLabelNotSet() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.animateColor
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateColor(transitionSpec = {})
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(TRANSITION_PROPERTY_LABEL_NOT_SET_MESSAGE, fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description)
+  }
+
+  @Test
+  fun testAnimateColorAnimationPackageLabelSet() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.animateColor
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateColor(transitionSpec = {}, label = "color property")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun testAnimateColorCustomPackage() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateColor(transitionSpec = {})
+      }
+
+      fun Transition.animateColor(transitionSpec: (String) -> Unit, label: String = "ColorAnimation") {
+        transitionSpec(label)
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    // The animateColor method is not defined in one of the Compose animation packages, so we don't show a warning.
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun testAnimateColorAsStateAnimationPackage() {
+    // language=kotlin
+    val fileContent = """
+      import androidx.compose.animation.animateColorAsState
+
+      fun MyComposable() {
+        animateColorAsState(transitionSpec = {})
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    // The animateColorAsState method is defined in one of the Compose animation packages, but it's not a Transition extension function so
+    // we don't show a warning.
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun testQuickFixUpdateTransition() {
     // language=kotlin
     val originalFileContent = """
       import androidx.compose.animation.core.updateTransition
@@ -132,6 +258,42 @@ class AnimationInspectionsTest {
 
       fun MyComposable() {
         updateTransition(targetState = false, label = "")
+      }
+    """.trimIndent()
+
+    val quickFix = (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
+    assertEquals("Add label parameter", quickFix.text)
+    assertEquals("Compose preview", quickFix.familyName)
+
+    ApplicationManager.getApplication().invokeAndWait {
+      CommandProcessor.getInstance().executeCommand(fixture.project, { runWriteAction { quickFix.applyFix() } }, "Add Label Argument", null)
+    }
+
+    fixture.checkResult(fileContentAfterFix)
+  }
+
+  @Test
+  fun testQuickFixTransitionProperty() {
+    // language=kotlin
+    val originalFileContent = """
+      import androidx.compose.animation.core.animateFloat
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateFloat(transitionSpec = {})
+      }
+    """.trimIndent()
+    fixture.configureByText("Test.kt", originalFileContent)
+
+    // language=kotlin
+    val fileContentAfterFix = """
+      import androidx.compose.animation.core.animateFloat
+      import androidx.compose.animation.core.Transition
+
+      fun MyComposable() {
+        val transition = Transition()
+        transition.animateFloat(transitionSpec = {}, label = "")
       }
     """.trimIndent()
 

@@ -75,7 +75,15 @@
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
                      groupKey="inspection.group.name"
-                     key="inspection.no.label.parameter.set.name"
+                     key="inspection.update.transition.no.label.parameter.set.name"
+                     level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
