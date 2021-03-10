@@ -106,6 +106,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
+        "//tools/adt/idea/utp[module]",
     ],
 )
 
@@ -368,6 +369,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
+        "//tools/adt/idea/utp[module, test]",
     ],
 )
 

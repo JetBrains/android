@@ -1602,6 +1602,7 @@ android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/util-2.2.4.jar
+android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
