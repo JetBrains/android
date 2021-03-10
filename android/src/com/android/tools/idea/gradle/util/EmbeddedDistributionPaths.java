@@ -209,7 +209,7 @@ public class EmbeddedDistributionPaths {
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
+      File jdkRootPath = new File(ideHomePath, "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }
