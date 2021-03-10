@@ -1,5 +1,6 @@
 package com.android.tools.idea.editors.literals
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
@@ -10,6 +11,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.ListenerCollection
+import com.android.utils.reflection.qualifiedName
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.Disposable
@@ -26,6 +28,7 @@ import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.WeakList
@@ -35,6 +38,8 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 internal val LITERAL_TEXT_ATTRIBUTE_KEY = TextAttributesKey.createTextAttributesKey("LiveLiteralsHighlightAttribute")
 
@@ -214,6 +219,12 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   companion object {
+    private val DOCUMENT_SNAPSHOT_KEY: Key<LiteralReferenceSnapshot> = Key.create(Companion::DOCUMENT_SNAPSHOT_KEY.qualifiedName)
+
+    private fun Document.getCachedDocumentSnapshot() = getUserData(DOCUMENT_SNAPSHOT_KEY)
+    private fun Document.putCachedDocumentSnapshot(snapshot: LiteralReferenceSnapshot) = putUserData(DOCUMENT_SNAPSHOT_KEY, snapshot)
+    private fun Document.clearCachedDocumentSnapshot() = putUserData(DOCUMENT_SNAPSHOT_KEY, null)
+
     @JvmStatic
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
 
@@ -257,12 +268,14 @@ class LiveLiteralsService private constructor(private val project: Project,
   private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(listenerExecutor)
 
   private val literalsManager = LiteralsManager()
-  private val documentSnapshots = mutableMapOf<Document, LiteralReferenceSnapshot>()
+  /** Lock that guards the activation/deactivation of this service. */
+  private val serviceStateLock = ReentrantLock()
 
   /**
    * [Disposable] that tracks the current activation. If the service is deactivated, this [Disposable] will be disposed.
    * It can be used to register anything that should be disposed when the service is not running.
    */
+  @GuardedBy("serviceStateLock")
   private var activationDisposable: Disposable? = null
 
   private val updateMergingQueue = MergingUpdateQueue("Live literals change queue",
@@ -286,8 +299,18 @@ class LiveLiteralsService private constructor(private val project: Project,
   val isAvailable: Boolean
     get() = deploymentReportService.hasActiveDevices
 
+  /**
+   * Returns all the [Editor]s that have a [Document] with a cached [LiteralReferenceSnapshot].
+   */
+  private val editorWithCachedSnapshot: List<Editor>
+    get() = EditorFactory.getInstance().allEditors
+      .filter { it.project == project && it.document.getCachedDocumentSnapshot() != null }
+
   @TestOnly
-  fun allConstants(): Collection<LiteralReference> = documentSnapshots.flatMap { (_, snapshot) -> snapshot.all }
+  fun allConstants(): Collection<LiteralReference> =
+    editorWithCachedSnapshot
+      .mapNotNull { it.document.getCachedDocumentSnapshot() }
+      .flatMap { it.all }
 
   /**
    * Method called to notify the listeners than a constant has changed.
@@ -314,9 +337,7 @@ class LiveLiteralsService private constructor(private val project: Project,
   private fun onDocumentsUpdated(document: Collection<Document>, @Suppress("UNUSED_PARAMETER") lastUpdateNanos: Long) {
     val updateList = ArrayList<LiteralReference>()
     document.flatMap {
-      synchronized(this@LiveLiteralsService) {
-        documentSnapshots[it]?.modified ?: emptyList()
-      }
+      it.getCachedDocumentSnapshot()?.modified ?: emptyList()
     }.forEach {
       val constantValue = it.constantValue ?: return@forEach
       it.usages.forEach { elementPath ->
@@ -329,9 +350,22 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
     }
 
+
     if (!updateList.isEmpty()) {
       fireOnLiteralsChanged(updateList)
     }
+  }
+
+  private fun newFileSnapshotForDocument(file: PsiFile, document: Document): LiteralReferenceSnapshot {
+    val fileSnapshot = literalsManager.findLiterals(file)
+
+    if (fileSnapshot.all.isNotEmpty()) {
+      availableListener.onAvailable()
+
+      document.putCachedDocumentSnapshot(fileSnapshot)
+    }
+
+    return fileSnapshot
   }
 
   /**
@@ -339,19 +373,8 @@ class LiveLiteralsService private constructor(private val project: Project,
    */
   private fun addDocumentTracking(parentDisposable: Disposable, editor: Editor, document: Document) {
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
-    val fileSnapshot = literalsManager.findLiterals(file)
-
-    if (fileSnapshot.all.isNotEmpty()) {
-      availableListener.onAvailable()
-
-      documentSnapshots[document] = fileSnapshot
-
-      Disposer.register(parentDisposable) {
-        documentSnapshots.remove(document)
-      }
-    }
-
-    val tracker = HighlightTracker(file, editor, fileSnapshot)
+    val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
+    val tracker = HighlightTracker(file, editor, cachedSnapshot)
     trackers.add(tracker)
     Disposer.register(parentDisposable, tracker)
     editor.addEditorMouseListener(object : EditorMouseListener {
@@ -387,7 +410,6 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
-  @Synchronized
   private fun activateTracking() {
     if (Disposer.isDisposed(this)) return
     log.debug("activateTracking")
@@ -404,31 +426,46 @@ class LiveLiteralsService private constructor(private val project: Project,
       override fun editorCreated(event: EditorFactoryEvent) {
         if (event.editor.project == project) addDocumentTracking(newActivationDisposable, event.editor, event.editor.document)
       }
-
-      override fun editorReleased(event: EditorFactoryEvent) {
-        documentSnapshots.remove(event.editor.document)
-      }
     }, newActivationDisposable)
 
 
     setupChangeListener(project, ::onDocumentsUpdated, newActivationDisposable, updateMergingQueue)
     setupBuildListener(project, object : BuildListener {
+      private var buildStarted = false
+
       override fun buildSucceeded() {
-        // The project has built successfully so we can drop the constants that we were keeping.
-        ProjectConstantRemapper.getInstance(project).clearConstants(null)
+        if (buildStarted) {
+          // The project has built successfully so we can drop the constants that we were keeping.
+          ProjectConstantRemapper.getInstance(project).clearConstants(null)
+          buildStarted = false
+        }
       }
 
       override fun buildFailed() {
+        buildStarted = false
       }
 
       override fun buildStarted() {
+        buildStarted = true
         // Stop the literals listening while the build happens
         deactivateTracking()
+        // Clear all snapshots
+        editorWithCachedSnapshot.forEach {
+          it.document.clearCachedDocumentSnapshot()
+        }
       }
     }, newActivationDisposable)
 
     if (Disposer.tryRegister(this, newActivationDisposable)) {
-      activationDisposable = newActivationDisposable
+      serviceStateLock.withLock {
+        val previousActivationDisposable = activationDisposable
+        activationDisposable = newActivationDisposable
+
+        previousActivationDisposable
+      }?.let {
+        // Disposes the current activation if already exists
+        Disposer.dispose(it)
+      }
     }
     else {
       Disposer.dispose(newActivationDisposable)
@@ -439,14 +476,14 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   private fun deactivateTracking() {
     log.debug("deactivateTracking")
-    synchronized(this) {
+    serviceStateLock.withLock {
       trackers.clear()
       val previousActivationDisposable = activationDisposable
       activationDisposable = null
 
       previousActivationDisposable
     }?.let {
-      // Dispose the previous activation outside of the synchronized lock
+      // Dispose the previous activation outside of the lock
       Disposer.dispose(it)
     }
     LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
