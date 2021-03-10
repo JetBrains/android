@@ -94,6 +94,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
         // Android model is null for the root project module.
         val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
+          project,
           androidModel.androidProject.name,
           androidModel.androidProject.compileTarget,
           androidModel.androidProject.bootClasspath,

@@ -26,6 +26,8 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.OrderRootType.CLASSES
@@ -64,6 +66,7 @@ fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
  * Thirdly we check to see if the SDK is an add-on.
  */
 fun AndroidSdks.computeSdkReloadingAsNeeded(
+  project: Project,
   moduleName: String,
   compileTarget: String,
   bootClasspath: Collection<String>,
@@ -88,7 +91,13 @@ fun AndroidSdks.computeSdkReloadingAsNeeded(
   // 3 - We may have had an Sdk downloaded by AGP and it has not yet been registered by studio. Here we attempt to
   // find any unregistered sdks.
   val progress = StudioLoggerProgressIndicator(AndroidGradleProjectResolver::class.java)
-  tryToChooseSdkHandler().getSdkManager(progress).reloadLocalIfNeeded(progress)
+  ProgressManager.getInstance().runProcessWithProgressSynchronously(
+    { tryToChooseSdkHandler().getSdkManager(progress).reloadLocalIfNeeded(progress) },
+    "Reloading SDKs",
+    false,
+    project
+  );
+
 
   val androidSdkHomePath = ideSdks.androidSdkPath
   if (androidSdkHomePath == null) {
