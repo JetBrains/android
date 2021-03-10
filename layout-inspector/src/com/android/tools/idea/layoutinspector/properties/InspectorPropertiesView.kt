@@ -19,6 +19,7 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.LinkPropertyItem
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
 import com.android.tools.property.ptable2.PTableItem
@@ -47,8 +48,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
       when (property.type) {
         Type.DRAWABLE,
         Type.COLOR -> ControlType.COLOR_EDITOR
-        Type.LAMBDA -> ControlType.LINK_EDITOR
-        else -> ControlType.TEXT_EDITOR
+        else -> if (property is LinkPropertyItem) ControlType.LINK_EDITOR else ControlType.TEXT_EDITOR
       }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
@@ -104,7 +105,7 @@ class ComposeParametersDataGenerator(
       )
     }
     else {
-      return ParameterGroupItem(
+      val group = ParameterGroupItem(
         name,
         type,
         value.toString(),
@@ -114,6 +115,10 @@ class ComposeParametersDataGenerator(
         index,
         reference,
         elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId) })
+      if (type == PropertyType.ITERABLE && reference != null && group.children.isNotEmpty()) {
+        group.children.add(ShowMoreElementsItem(group))
+      }
+      return group
     }
   }
 }

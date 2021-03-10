@@ -18,6 +18,7 @@ package com.android.tools.property.ptable2.impl
 import com.google.common.annotations.VisibleForTesting
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableGroupModification
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
@@ -25,6 +26,7 @@ import com.intellij.util.ThreeState
 import java.util.Collections
 import java.util.IdentityHashMap
 import javax.swing.table.AbstractTableModel
+import kotlin.math.min
 
 /**
  * A table model implementation for a JTable.
@@ -131,6 +133,35 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
       return editable.toBoolean()
     }
 
+  fun updateGroupItems(group: PTableGroupItem, modification: PTableGroupModification) {
+    // Update the parent map with the modified children of the group.
+    removeParents(modification.removed)
+    addParents(group, modification.added)
+    if (!isExpanded(group)) {
+      return
+    }
+    val index = indexOf(group)
+    if (index < 0) {
+      return
+    }
+    // If the group is expanded we must update the items on the table model such that the
+    // correct child elements are visible in the table.
+    val first = index + 1
+    val alreadyExpanded = group.children.size - modification.added.size + modification.removed.size
+    val itemsToCopy = min(alreadyExpanded, group.children.size)
+    // Copy the current children over the currently expanded items in the model.
+    group.children.copyInto(items, first, 0, itemsToCopy)
+    if (alreadyExpanded > group.children.size) {
+      // Remove the excess items that were expanded before this modification
+      items.subList(first + group.children.size, first + alreadyExpanded).clear()
+    }
+    else if (alreadyExpanded < group.children.size) {
+      // Add the extra items that were added with this modification
+      items.addAll(first + itemsToCopy, group.children.subList(itemsToCopy, group.children.size))
+    }
+    fireTableDataChanged()
+  }
+
   private fun groupAt(index: Int): PTableGroupItem? {
     if (index < 0 || index >= items.size) {
       return null
@@ -213,11 +244,35 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   private fun computeParents(group: PTableGroupItem) {
-    group.children.forEach {
+    addParents(group, group.children)
+  }
+
+  private fun addParents(group: PTableGroupItem, added: List<PTableItem>) {
+    added.forEach {
       parentItems[it] = group
       if (it is PTableGroupItem) {
-        computeParents(it)
+        addParents(it, it.children)
       }
+    }
+  }
+
+  private fun removeParents(removed: List<PTableItem>) {
+    removed.forEach {
+      parentItems.remove(it)
+      if (it is PTableGroupItem) {
+        removeParents(it.children)
+      }
+    }
+  }
+
+  private fun <E> List<E>.copyInto(
+    destination: MutableList<E>,
+    destinationOffset: Int = 0,
+    startIndex: Int = 0,
+    endIndex: Int = size
+  ) {
+    for (index in startIndex until endIndex) {
+      destination[destinationOffset + index - startIndex] = this[index]
     }
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -27,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
@@ -51,13 +54,23 @@ import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableGroupModification
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.runInEdt
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.spy
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
@@ -394,6 +407,7 @@ class AppInspectionPropertiesProviderTest {
             type = ComposeProtocol.Parameter.Type.STRING
             name = 116
             int32Value = 204
+            index = 0
             Reference {
               composableId = -5
               parameterIndex = 0
@@ -403,6 +417,7 @@ class AppInspectionPropertiesProviderTest {
             type = ComposeProtocol.Parameter.Type.INT32
             name = 115
             int32Value = 812
+            index = 1
           }
           Element {
             type = ComposeProtocol.Parameter.Type.STRING
@@ -424,11 +439,16 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(1, "lines"),
       ComposableString(2, "firstLine"),
       ComposableString(3, "lastLine"),
+      ComposableString(4, "list"),
+      ComposableString(5, "[0]"),
+      ComposableString(6, "[3]"),
 
       // String values
       ComposableString(21, "MyLineClass"),
       ComposableString(22, "Hello World"),
       ComposableString(23, "End of Text"),
+      ComposableString(25, "a"),
+      ComposableString(26, "b"),
     )
 
     private val expandedParameter =
@@ -441,11 +461,108 @@ class AppInspectionPropertiesProviderTest {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 2
           int32Value = 22
+          index = 0
         }
         Element {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 3
           int32Value = 23
+          index = 1
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.ITERABLE
+          name = 4
+          index = 3
+          Reference {
+            composableId = -5
+            parameterIndex = 0
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 5
+            int32Value = 25
+            index = 0
+          }
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 6
+            int32Value = 26
+            index = 3
+          }
+        }
+      }
+
+    private val firstExpandedListStrings = listOf(
+      // parameter names
+      ComposableString(1, "list"),
+      ComposableString(2, "[4]"),
+      ComposableString(3, "[6]"),
+
+      // String values
+      ComposableString(22, "c"),
+      ComposableString(23, "d"),
+    )
+
+    private val firstExpandedListParameter =
+      ExpandedParameter {
+        type = ComposeProtocol.Parameter.Type.ITERABLE
+        name = 1
+        index = 3
+        Reference {
+          composableId = -5
+          parameterIndex = 0
+          addAllCompositeIndex(listOf(11, 3))
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 2
+          int32Value = 22
+          index = 4
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 3
+          int32Value = 23
+          index = 6
+        }
+      }
+
+    private val secondExpandedListStrings = listOf(
+      // parameter names
+      ComposableString(1, "list"),
+      ComposableString(2, "[7]"),
+      ComposableString(3, "[10]"),
+      ComposableString(4, "[11]"),
+
+      // String values
+      ComposableString(22, "e"),
+      ComposableString(23, "f"),
+      ComposableString(24, "g"),
+    )
+
+    private val secondExpandedListParameter =
+      ExpandedParameter {
+        type = ComposeProtocol.Parameter.Type.ITERABLE
+        name = 1
+        index = 3
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 2
+          int32Value = 22
+          index = 7
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 3
+          int32Value = 23
+          index = 10
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 4
+          int32Value = 24
+          index = 11
         }
       }
 
@@ -460,6 +577,11 @@ class AppInspectionPropertiesProviderTest {
      * Map of "composable ID" to number of times parameters were requested for it.
      */
     private val getParametersRequestCount = mutableMapOf<Long, Int>()
+
+    /**
+     * Map of responses to expected [GetParameterDetailsCommand]s.
+     */
+    private val parameterDetailsCommands = mutableMapOf<GetParameterDetailsCommand, GetParameterDetailsResponse>()
 
     init {
       viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
@@ -529,18 +651,62 @@ class AppInspectionPropertiesProviderTest {
 
       composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
         ComposeProtocol.Response.newBuilder().apply {
-          getParameterDetailsResponseBuilder.apply {
-            rootViewId = command.getParameterDetailsCommand.rootViewId
-            if (command.getParameterDetailsCommand.reference.composableId == -5L &&
-                command.getParameterDetailsCommand.reference.parameterIndex == 0 &&
-                command.getParameterDetailsCommand.reference.compositeIndexCount == 1 &&
-                command.getParameterDetailsCommand.reference.compositeIndexList[0] == 11) {
-              addAllStrings(expandedStrings)
-              parameter = expandedParameter
-            }
-          }
+          getParameterDetailsResponse = parameterDetailsCommands[command.getParameterDetailsCommand] ?: error("Unexpected command")
         }.build()
       }
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 0
+            addCompositeIndex(11)
+          }
+          maxElements = 5
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(expandedStrings)
+        parameter = expandedParameter
+      }.build()
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 0
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          startIndex = 4
+          maxElements = 2
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(firstExpandedListStrings)
+        parameter = firstExpandedListParameter
+      }.build()
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 0
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          startIndex = 7
+          maxElements = 4
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(secondExpandedListStrings)
+        parameter = secondExpandedListParameter
+      }.build()
     }
 
     fun getPropertiesRequestCountFor(viewId: Long): Int {
@@ -858,17 +1024,86 @@ class AppInspectionPropertiesProviderTest {
     // The last element of parameter is a reference to a value that has not been loaded from the agent yet.
     // When the last element is expanded in the UI the child elements will be loaded from the agent.
     val propertyDownloadedLatch = CountDownLatch(1)
+    val last = parameter.children.last() as ParameterGroupItem
     runInEdt {
-      val last = parameter.children.last() as ParameterGroupItem
       assertThat(last.children).isEmpty()
       last.expandWhenPossible { restructured ->
         assertThat(restructured).isTrue()
         assertProperty(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
         assertProperty(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
+        assertProperty(last.children[2], "list", PropertyType.ITERABLE, "")
+        assertThat(last.children.size).isEqualTo(3)
+        val list = last.children.last() as ParameterGroupItem
+        assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+        assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+        assertThat(list.children[2]).isInstanceOf(ShowMoreElementsItem::class.java)
+        assertThat(list.children[2].index).isEqualTo(4)
+        assertThat(list.children.size).isEqualTo(3)
         propertyDownloadedLatch.countDown()
       }
     }
     propertyDownloadedLatch.await()
+
+    // The list parameter from the expanded parameter is a List of String where only a part of the elements
+    // have been downloaded. Download some more elements (first time).
+    val moreListElements1 = CountDownLatch(1)
+    val table1 = spy(PTable.create(mock()))
+    val event1: AnActionEvent = mock()
+    doAnswer {
+      val modification = it.getArgument<PTableGroupModification>(1)
+      assertThat(modification.added).hasSize(2)
+      assertThat(modification.removed).isEmpty()
+      moreListElements1.countDown()
+    }.`when`(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    doAnswer {
+      table1.component
+    }.`when`(event1).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    val list = last.children.last() as ParameterGroupItem
+    runInEdt {
+      val showMoreItem = list.children[2] as ShowMoreElementsItem
+      // Click the "Show more" link:
+      showMoreItem.link.actionPerformed(event1)
+    }
+    moreListElements1.await()
+    assertProperty(list, "list", PropertyType.ITERABLE, "")
+    assertThat(list.reference).isNotNull()
+    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertThat(list.children[4]).isInstanceOf(ShowMoreElementsItem::class.java)
+    assertThat(list.children[4].index).isEqualTo(7)
+    assertThat(list.children.size).isEqualTo(5)
+
+    // Expand the list a second time:
+    val moreListElements2 = CountDownLatch(1)
+    val table2 = spy(PTable.create(mock()))
+    val event2: AnActionEvent = mock()
+    doAnswer {
+      val modification = it.getArgument<PTableGroupModification>(1)
+      assertThat(modification.added).hasSize(3)
+      assertThat(modification.removed).hasSize(1)
+      moreListElements2.countDown()
+    }.`when`(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    doAnswer {
+      table2.component
+    }.`when`(event2).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    runInEdt {
+      val showMoreItem = list.children[4] as ShowMoreElementsItem
+      // Click the "Show more" link:
+      showMoreItem.link.actionPerformed(event2)
+    }
+    moreListElements2.await()
+    assertProperty(list, "list", PropertyType.ITERABLE, "")
+    assertThat(list.reference).isNull()
+    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertProperty(list.children[4], "[7]", PropertyType.STRING, "e")
+    assertProperty(list.children[5], "[10]", PropertyType.STRING, "f")
+    assertProperty(list.children[6], "[11]", PropertyType.STRING, "g")
+    assertThat(list.children.size).isEqualTo(7)
   }
 
   @Test
