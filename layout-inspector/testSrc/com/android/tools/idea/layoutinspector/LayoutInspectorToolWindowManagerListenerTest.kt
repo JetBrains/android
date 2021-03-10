@@ -20,7 +20,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
 import org.junit.Test
@@ -28,13 +27,25 @@ import org.junit.Test
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
 
 class LayoutInspectorToolWindowManagerListenerTest {
+  private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) : ToolWindowHeadlessManagerImpl(project) {
+    var notificationText = ""
+
+    override fun getToolWindow(id: String?): ToolWindow {
+      return toolWindow
+    }
+
+    override fun notifyByBalloon(toolWindowId: String, type: MessageType, htmlBody: String) {
+      notificationText = htmlBody
+    }
+  }
+
   private class FakeToolWindow(
     project: Project,
-    private val toolWindowManager: ToolWindowManager,
     private val listener: LayoutInspectorToolWindowManagerListener
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
     var shouldBeAvailable = true
-    var visible = true
+    var visible = false
+    val manager = FakeToolWindowManager(project, this)
 
     override fun setAvailable(available: Boolean, runnable: Runnable?) {
       shouldBeAvailable = available
@@ -44,12 +55,12 @@ class LayoutInspectorToolWindowManagerListenerTest {
 
     override fun show(runnable: Runnable?) {
       visible = true
-      listener.stateChanged(toolWindowManager)
+      listener.stateChanged(manager)
     }
 
     override fun hide(runnable: Runnable?) {
       visible = false
-      listener.stateChanged(toolWindowManager)
+      listener.stateChanged(manager)
     }
 
     override fun isVisible(): Boolean {
@@ -63,28 +74,30 @@ class LayoutInspectorToolWindowManagerListenerTest {
   }
 
   @Test
+  fun clientOnlyLaunchedIfWindowIsNotMinimized() {
+    val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    toolWindow.show()
+    toolWindow.hide()
+    assertThat(toolWindow.visible).isFalse()
+    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+
+    toolWindow.show()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+  }
+
+  @Test
   fun testShowInspectionNotificationWhenInspectorIsRunning() {
-    val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.inspector)
+    val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
 
-    var notificationText = ""
-
-    lateinit var toolWindow: ToolWindow
-    val toolWindowManager = object : ToolWindowHeadlessManagerImpl(inspectorRule.project) {
-
-      override fun getToolWindow(id: String?): ToolWindow {
-        return toolWindow
-      }
-
-      override fun notifyByBalloon(toolWindowId: String, type: MessageType, htmlBody: String) {
-        notificationText = htmlBody
-      }
-    }
-    toolWindow = FakeToolWindow(inspectorRule.project, toolWindowManager, listener)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
 
     // bubble isn't shown when inspection not running
     toolWindow.show()
     toolWindow.hide()
-    assertThat(notificationText).isEmpty()
+    assertThat(toolWindow.manager.notificationText).isEmpty()
 
     // Attach to a fake process.
     inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
@@ -92,12 +105,28 @@ class LayoutInspectorToolWindowManagerListenerTest {
     // Check bubble is shown.
     toolWindow.show()
     toolWindow.hide()
-    assertThat(notificationText).isNotEmpty()
+    assertThat(toolWindow.manager.notificationText).isNotEmpty()
 
     // Message is only shown once
-    notificationText = ""
+    toolWindow.manager.notificationText = ""
     toolWindow.show()
     toolWindow.hide()
-    assertThat(notificationText).isEmpty()
+    assertThat(toolWindow.manager.notificationText).isEmpty()
+  }
+
+  @Test
+  fun clientCanBeDisconnectedWhileMinimized() {
+    val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
+    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+
+    toolWindow.show()
+    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+
+    toolWindow.hide()
+    assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
+
+    inspectorRule.processNotifier.fireDisconnected(LEGACY_PROCESS)
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
   }
 }
