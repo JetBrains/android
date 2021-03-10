@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,12 @@ package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeFilterData;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -138,7 +137,7 @@ public class SplitOutputMatcher {
     @Nullable
     private static String getFilter(
             @NonNull IdeAndroidArtifactOutput variantOutput, @NonNull String filterType) {
-        for (FilterData filterData : variantOutput.getFilters()) {
+        for (IdeFilterData filterData : variantOutput.getFilters()) {
             if (filterData.getFilterType().equals(filterType)) {
                 return filterData.getIdentifier();
             }

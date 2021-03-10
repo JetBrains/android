@@ -16,9 +16,10 @@
 package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
-import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeFilterData;
+import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import junit.framework.TestCase;
@@ -85,10 +86,10 @@ public class SplitOutputMatcherTest extends TestCase {
 
         @NonNull
         @Override
-        public Collection<FilterData> getFilters() {
-            ImmutableList.Builder<FilterData> filters = ImmutableList.builder();
+        public Collection<IdeFilterData> getFilters() {
+            ImmutableList.Builder<IdeFilterData> filters = ImmutableList.builder();
             if (abiFilter != null) {
-                filters.add(FakeFilterData.Builder.build(OutputFile.ABI, abiFilter));
+                filters.add(new IdeFilterDataImpl(abiFilter, OutputFile.ABI));
             }
             return filters.build();
         }
@@ -102,37 +103,6 @@ public class SplitOutputMatcherTest extends TestCase {
         @Override
         public String toString() {
             return "FilteredOutput{" + abiFilter + '}';
-        }
-    }
-
-    private static final class FakeFilterData implements FilterData {
-
-        private final String filterType;
-
-        private final String identifier;
-
-        FakeFilterData(String filterType, String identifier) {
-            this.filterType = filterType;
-            this.identifier = identifier;
-        }
-
-        @NonNull
-        @Override
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        @NonNull
-        @Override
-        public String getFilterType() {
-            return filterType;
-        }
-
-        public static class Builder {
-
-            public static FilterData build(final String filterType, final String identifier) {
-                return new FakeFilterData(filterType, identifier);
-            }
         }
     }
 

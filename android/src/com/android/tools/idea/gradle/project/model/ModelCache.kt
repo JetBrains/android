@@ -69,6 +69,7 @@ import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeDependencies
 import com.android.ide.common.gradle.model.IdeDependenciesInfo
+import com.android.ide.common.gradle.model.IdeFilterData
 import com.android.ide.common.gradle.model.IdeJavaLibrary
 import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.gradle.model.IdeLintOptions
@@ -672,10 +673,10 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
   }
 
   fun filterDataFrom(data: FilterData): IdeFilterDataImpl {
-    return IdeFilterDataImpl(_identifier = data.identifier, _filterType = data.filterType)
+    return IdeFilterDataImpl(identifier = data.identifier, filterType = data.filterType)
   }
 
-  fun copyFilters(output: VariantOutput): Collection<FilterData> {
+  fun copyFilters(output: VariantOutput): Collection<IdeFilterData> {
     return copy(
       fun(): Collection<FilterData> =
         try {
