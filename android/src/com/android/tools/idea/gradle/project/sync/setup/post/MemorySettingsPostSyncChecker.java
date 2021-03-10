@@ -25,11 +25,8 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.NotificationsManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ex.ApplicationEx;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
@@ -99,45 +96,24 @@ public class MemorySettingsPostSyncChecker {
                             String.valueOf(currentXmx),
                             String.valueOf(recommended)));
     notification.setTitle(AndroidBundle.message("memory.settings.postsync.title", ApplicationNamesInfo.getInstance().getFullProductName()));
-
-    NotificationAction saveRestartAction =
-      NotificationAction.createSimple(AndroidBundle.messagePointer("memory.settings.postsync.save"), () -> {
-        log(EventKind.SAVE_AND_RESTART, currentXmx, recommended);
-        MemorySettingsUtil.saveXmx(recommended);
-        Application app = ApplicationManager.getApplication();
-        if (app instanceof ApplicationEx) {
-          ((ApplicationEx)app).restart(true);
-        }
-      });
-    NotificationAction configAction =
-      NotificationAction.createSimple(AndroidBundle.messagePointer("memory.settings.postsync.configure"), () -> {
-        log(EventKind.CONFIGURE, currentXmx, recommended);
-        ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
-        notification.expire();
-        // Do not show the notification again for the project
-        reminder.setDoNotAskForProject(true);
-      });
-
-    notification.addAction(saveRestartAction);
-    notification.addAction(configAction);
-    notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.postsync.do.not.ask.for.project")) {
-        @Override
-        public void actionPerformed(AnActionEvent e, Notification n) {
-          log(EventKind.DO_NOT_ASK, currentXmx, recommended);
-          n.expire();
-          reminder.setDoNotAskForProject(true);
-        }
-      });
-    notification.addAction(
-      new NotificationAction(AndroidBundle.message("memory.settings.postsync.do.not.show.again")) {
-        @Override
-        public void actionPerformed(AnActionEvent e, Notification n) {
-          log(EventKind.DO_NOT_ASK, currentXmx, recommended);
-          n.expire();
-          reminder.setDoNotAskForApplication(true);
-        }
-      });
+    notification.addAction(NotificationAction.createSimpleExpiring(AndroidBundle.message("memory.settings.postsync.save"), () -> {
+      log(EventKind.SAVE_AND_RESTART, currentXmx, recommended);
+      MemorySettingsUtil.saveXmx(recommended);
+      ApplicationManagerEx.getApplicationEx().restart(true);
+    }));
+    notification.addAction(NotificationAction.createSimpleExpiring(AndroidBundle.message("memory.settings.postsync.configure"), () -> {
+      log(EventKind.CONFIGURE, currentXmx, recommended);
+      ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
+      reminder.setDoNotAskForProject(true);
+    }));
+    notification.addAction(NotificationAction.createSimpleExpiring(AndroidBundle.message("memory.settings.postsync.do.not.ask.for.project"), () -> {
+      log(EventKind.DO_NOT_ASK, currentXmx, recommended);
+      reminder.setDoNotAskForProject(true);
+    }));
+    notification.addAction(NotificationAction.createSimpleExpiring(AndroidBundle.message("memory.settings.postsync.do.not.show.again"), () -> {
+      log(EventKind.DO_NOT_ASK, currentXmx, recommended);
+      reminder.setDoNotAskForApplication(true);
+    }));
 
     notification.notify(project);
   }
