@@ -176,11 +176,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> ASSET_COPY_MATERIAL_ICONS = Flag.create(
     ASSET, "copy.material.icons", "Allow copying icons to Sdk folder",
     "Allow the IconPickerDialog in Asset Studio to copy bundled material icons in to the Android/Sdk folder",
-    false);
+    true);
   public static final Flag<Boolean> ASSET_DOWNLOAD_MATERIAL_ICONS = Flag.create(
     ASSET, "download.material.icons", "Allow downloading icons to Sdk folder",
     "Allow the IconPickerDialog in Asset Studio to download any new material icons in to the Android/Sdk folder",
-    false);
+    true);
   //endregion
 
   //region Layout Editor
