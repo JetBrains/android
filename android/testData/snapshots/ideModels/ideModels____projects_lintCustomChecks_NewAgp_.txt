@@ -1,7 +1,7 @@
 MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -345,7 +345,7 @@ MODULE                        : project.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library/build [-]
     buildToolsVersion             : 30.0.2
@@ -658,7 +658,7 @@ MODULE                        : project.library
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library-remote
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library-remote/build [-]
     buildToolsVersion             : 30.0.2

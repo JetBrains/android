@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle.sync
 
+import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags
@@ -252,7 +254,16 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
 private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: AndroidModuleModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
-  androidFacet.properties.PROJECT_TYPE = androidModuleModel.androidProject.projectType
+  @Suppress("DEPRECATION")
+  androidFacet.properties.PROJECT_TYPE = when(androidModuleModel.androidProject.projectType) {
+    IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidProjectTypes.PROJECT_TYPE_ATOM
+    IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidProjectTypes.PROJECT_TYPE_APP
+    IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+    IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
+  }
 
   val modulePath = androidModuleModel.rootDirPath
   val sourceProvider = androidModuleModel.defaultSourceProvider

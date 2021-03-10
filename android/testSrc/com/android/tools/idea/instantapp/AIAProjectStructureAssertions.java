@@ -18,6 +18,7 @@ package com.android.tools.idea.instantapp;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.AndroidProjectTypes;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.gradle.model.IdeModuleLibrary;
@@ -40,7 +41,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_APP, true);
+    assertModuleIsValidForAIA(module, expectedDependencies, IdeAndroidProjectType.PROJECT_TYPE_APP, true);
   }
 
   /**
@@ -51,7 +52,7 @@ public class AIAProjectStructureAssertions {
     throws InterruptedException {
     // At the moment we have no way to actually get InstantApp module dependencies (they aren't reported in the model) so we can't check
     // them. Hence expectedDependencies is replaced with ImmutableList.of() below
-    assertModuleIsValidForAIA(module, ImmutableList.of(), AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP, false);
+    assertModuleIsValidForAIA(module, ImmutableList.of(), IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP, false);
   }
 
   /**
@@ -60,7 +61,7 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIAFeature(@NotNull Module module,
                                                    @NotNull Collection<String> expectedDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_FEATURE, false);
+    assertModuleIsValidForAIA(module, expectedDependencies, IdeAndroidProjectType.PROJECT_TYPE_FEATURE, false);
   }
 
   /**
@@ -68,16 +69,16 @@ public class AIAProjectStructureAssertions {
    */
   public static void assertModuleIsValidAIABaseFeature(@NotNull Module module,
                                                        @NotNull Collection<String> expectedDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, expectedDependencies, AndroidProjectTypes.PROJECT_TYPE_FEATURE, true);
+    assertModuleIsValidForAIA(module, expectedDependencies, IdeAndroidProjectType.PROJECT_TYPE_FEATURE, true);
   }
 
   private static void assertModuleIsValidForAIA(@NotNull Module module,
                                                 @NotNull Collection<String> expectedDependencies,
-                                                int moduleType,
-                                                boolean isBaseFeature) throws InterruptedException {
+                                                IdeAndroidProjectType moduleType,
+                                                boolean isBaseFeature) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertThat(module).isNotNull();
-    int projectType = model.getAndroidProject().getProjectType();
+    IdeAndroidProjectType projectType = model.getAndroidProject().getProjectType();
     assertThat(projectType).named("Module type").isEqualTo(moduleType);
     assertThat(model.getAndroidProject().isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 

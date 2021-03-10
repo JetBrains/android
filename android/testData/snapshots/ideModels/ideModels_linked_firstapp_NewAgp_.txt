@@ -1,7 +1,7 @@
 MODULE                        : My_First_App
 MODULE                        : My_First_App.app
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -2025,7 +2025,7 @@ MODULE                        : My_First_App.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
     buildToolsVersion             : 30.0.2

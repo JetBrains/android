@@ -1,7 +1,7 @@
 MODULE                        : application
 MODULE                        : application.app
     ModelVersion                  : 4.1.0
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/application/app/build [-]
     buildToolsVersion             : 30.0.2

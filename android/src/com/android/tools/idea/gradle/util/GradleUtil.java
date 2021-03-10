@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.EXT_GRADLE;
@@ -66,10 +61,11 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -190,7 +186,7 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static Icon getAndroidModuleIcon(int androidProjectType) {
+  public static Icon getAndroidModuleIcon(@NotNull IdeAndroidProjectType androidProjectType) {
     switch (androidProjectType) {
       case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
@@ -547,7 +543,7 @@ public final class GradleUtil {
       if (androidModel != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
         else {

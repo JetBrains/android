@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.intellij.util.containers.ContainerUtil.map;
 
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -134,7 +134,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   private FileRootSearchScope getSourceScope(@NotNull String artifactName) {
     Set<File> roots = new HashSet<>();
 
-    if (artifactName.equals(ARTIFACT_ANDROID_TEST) && myAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_TEST) {
+    if (artifactName.equals(ARTIFACT_ANDROID_TEST) && myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       // Special case where android tests correspond actually to the _main_ artifact (i.e. com.android.test plugin).
       // There is only instrumentation test artifacts in this project type so the whole directory is in testing scope.
       roots.add(myAndroidModel.getRootDirPath());

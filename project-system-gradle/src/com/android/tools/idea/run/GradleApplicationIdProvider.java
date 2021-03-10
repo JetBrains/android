@@ -23,7 +23,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePa
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
-import com.android.builder.model.TestedTargetVariant;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -127,7 +127,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel == null ||
         !androidModel.getFeatures().isPostBuildSyncSupported() ||
-        androidModel.getAndroidProject().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+        androidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
       return null;
     }
 

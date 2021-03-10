@@ -1,7 +1,7 @@
 MODULE                        : TestCompositeLib1
 MODULE                        : TestCompositeLib1.app
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -2068,7 +2068,7 @@ MODULE                        : TestCompositeLib1.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : TestCompositeLib1.lib
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
     buildToolsVersion             : 30.0.2
@@ -4037,7 +4037,7 @@ MODULE                        : TestCompositeLib1.lib
 MODULE                        : TestCompositeLib3
 MODULE                        : TestCompositeLib3.app
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -6068,7 +6068,7 @@ MODULE                        : TestCompositeLib3.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : TestCompositeLib3.lib
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
     buildToolsVersion             : 30.0.2
@@ -7940,7 +7940,7 @@ MODULE                        : composite4
 MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 0
+    ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
@@ -10028,7 +10028,7 @@ MODULE                        : project.app
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.lib
     ModelVersion                  : 7.0.0-dev
-    ProjectType                   : 1
+    ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
     buildToolsVersion             : 30.0.2

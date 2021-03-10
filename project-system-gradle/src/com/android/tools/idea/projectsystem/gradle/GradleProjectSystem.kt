@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -45,7 +44,6 @@ import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
@@ -96,7 +94,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getDefaultApkFile(): VirtualFile? {
     return ModuleManager.getInstance(project).modules.asSequence()
       .mapNotNull { AndroidModuleModel.get(it) }
-      .filter { it.androidProject.projectType == PROJECT_TYPE_APP }
+      .filter { it.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {

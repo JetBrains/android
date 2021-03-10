@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.ModelCache.Companion.safeGet
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
@@ -85,7 +86,7 @@ class AndroidModule internal constructor(
   /** New V2 model. It's only set if [nativeAndroidProject] is not set. */
   private val nativeModule: IdeNativeModule?
 ) : GradleModule(gradleProject) {
-  val projectType: Int get() = androidProject.projectType
+  val projectType: IdeAndroidProjectType get() = androidProject.projectType
 
   /** Names of all currently fetch variants (currently pre single-variant-sync only). */
   val fetchedVariantNames: Collection<String> = prefetchedVariants?.map { it.name }?.toSet().orEmpty()

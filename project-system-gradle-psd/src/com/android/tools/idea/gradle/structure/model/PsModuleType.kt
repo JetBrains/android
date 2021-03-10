@@ -15,29 +15,30 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.structure.model.meta.asString
 
-enum class PsModuleType(val androidModuleType: Int? = null) {
+enum class PsModuleType(val androidModuleType: IdeAndroidProjectType? = null) {
   UNKNOWN,
-  ANDROID_APP(AndroidProjectTypes.PROJECT_TYPE_APP),
-  ANDROID_LIBRARY(AndroidProjectTypes.PROJECT_TYPE_LIBRARY),
-  ANDROID_INSTANTAPP(AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP),
-  ANDROID_FEATURE(AndroidProjectTypes.PROJECT_TYPE_FEATURE),
-  ANDROID_DYNAMIC_FEATURE(AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE),
-  ANDROID_TEST(AndroidProjectTypes.PROJECT_TYPE_TEST),
+  ANDROID_APP(IdeAndroidProjectType.PROJECT_TYPE_APP),
+  ANDROID_LIBRARY(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+  ANDROID_INSTANTAPP(IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+  ANDROID_FEATURE(IdeAndroidProjectType.PROJECT_TYPE_FEATURE),
+  ANDROID_DYNAMIC_FEATURE(IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE),
+  ANDROID_TEST(IdeAndroidProjectType.PROJECT_TYPE_TEST),
   JAVA,
 }
 
-fun moduleTypeFromAndroidModuleType(androidModuleType: Int?): PsModuleType = when (androidModuleType) {
-  AndroidProjectTypes.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
-  AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
-  AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
-  AndroidProjectTypes.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
-  AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
-  AndroidProjectTypes.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
-  else -> PsModuleType.UNKNOWN
+fun moduleTypeFromAndroidModuleType(androidModuleType: IdeAndroidProjectType?): PsModuleType = when (androidModuleType) {
+  null -> PsModuleType.UNKNOWN
+  IdeAndroidProjectType.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
+  IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
+  IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
+  IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
+  IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE
+  IdeAndroidProjectType.PROJECT_TYPE_TEST -> PsModuleType.ANDROID_TEST
+  IdeAndroidProjectType.PROJECT_TYPE_ATOM -> PsModuleType.UNKNOWN
 }
 
 fun moduleProjectTypeFromPlugin(plugin: String): PsModuleType = when (plugin) {

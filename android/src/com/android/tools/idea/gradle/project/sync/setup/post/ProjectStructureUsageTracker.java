@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
@@ -25,8 +24,9 @@ import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.Na
 import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -90,7 +90,7 @@ public class ProjectStructureUsageTracker {
     for (Module module : modules) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
-        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_LIBRARY) {
+        if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
           libCount++;
           continue;
@@ -131,7 +131,7 @@ public class ProjectStructureUsageTracker {
           // @formatter:off
           androidModule.setModuleName(AnonymizerUtil.anonymizeUtf8(module.getName()))
                        .setSigningConfigCount(moduleAndroidProject.getSigningConfigs().size())
-                       .setIsLibrary(moduleAndroidProject.getProjectType() == PROJECT_TYPE_LIBRARY)
+                       .setIsLibrary(moduleAndroidProject.getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)
                        .setBuildTypeCount(androidModel.getBuildTypeNames().size())
                        .setFlavorCount(androidModel.getProductFlavorNames().size())
                        .setFlavorDimension(moduleAndroidProject.getFlavorDimensions().size());
