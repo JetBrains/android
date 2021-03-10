@@ -74,7 +74,7 @@ def _get_mac(dep):
 
 MAC = struct(
     name = "mac",
-    jre = "jre/jdk/",
+    jre = "jre/",
     get = _get_mac,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",

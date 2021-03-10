@@ -149,16 +149,16 @@ class StudioTests(unittest.TestCase):
       found = False
       for f in file.infolist():
         is_symlink = (f.external_attr & 0x20000000) > 0
-        if f.filename.endswith("Contents/jre/jdk/Contents/MacOS/libjli.dylib"):
+        if f.filename.endswith("Contents/jre/Contents/MacOS/libjli.dylib"):
           found = True
-          self.assertFalse(is_symlink, "Contents/jre/jdk/Contents/MacOS/libjli.dylib should not be symlink")
+          self.assertFalse(is_symlink, "Contents/jre/Contents/MacOS/libjli.dylib should not be symlink")
         elif f.filename.endswith("Contents/MacOS/studio"):
           self.assertFalse(f.external_attr == 0x1ED0000, "studio should be \"-rwxr-xr-x\"")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
         else:
           self.assertFalse(f.external_attr == 0, "Unix attributes are missing from the entry")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
-      self.assertTrue(found, "Android Studio.*.app/Contents/jre/jdk/Contents/MacOS/libjli.dylib not found")
+      self.assertTrue(found, "Android Studio.*.app/Contents/jre/Contents/MacOS/libjli.dylib not found")
 
   def test_all_files_writable(self):
     for platform in PLATFORMS:
