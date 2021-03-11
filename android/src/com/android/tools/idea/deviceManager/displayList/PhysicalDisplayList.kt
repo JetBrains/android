@@ -31,15 +31,10 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.AbstractAction
 import javax.swing.BoxLayout
-import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.ListSelectionListener
@@ -71,9 +66,6 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
   }
   private val listeners: MutableSet<DeviceSelectionListener> = mutableSetOf()
 
-  private var latestSearchString: String = "" // TODO: use this
-
-  // TODO(qumeric): consider the case when serial numbers clash
   private val deviceMap: MutableMap<SerialNumber, NamedDevice> = mutableMapOf()
 
   /*private val deviceNames: MutableMap<SerialNumber, String> = mutableMapOf(
@@ -82,15 +74,14 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
 
   private val deviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
     override fun deviceChanged(device: IDevice, changeMask: Int) {
-      // TODO(qumeric): can device change serial number?
-      // deviceMap[device.serialNumber] = device
       refreshDevices()
     }
 
     override fun deviceConnected(device: IDevice) {
       if (!deviceMap.keys.contains(device.serialNumber)) {
         deviceMap[device.serialNumber] = NamedDevice(device.serialNumber, device)
-      } else {
+      }
+      else {
         deviceMap[device.serialNumber] = NamedDevice(deviceMap[device.serialNumber]!!.name, device)
       }
       refreshDevices()
@@ -138,24 +129,8 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
       selectionModel.addListSelectionListener(this)
       addMouseListener(editingListener)
       addMouseMotionListener(editingListener)
-      addMouseListener(LaunchListener())
-      getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).apply {
-        // TODO(qumeric): consider changing this
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "enter")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteAvd")
-        put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "deleteAvd")
-      }
     }
-    table.actionMap.apply {
-      // put("selectPreviousColumnCell", CycleAction(true))
-      // put("selectNextColumnCell", CycleAction(false))
-      put("enter", object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) {
-          doAction()
-        }
-      })
-    }
+
     refreshDevices()
 
     model.columnInfos = newColumns().toArray(ColumnInfo.EMPTY_ARRAY)
@@ -188,22 +163,12 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
     }
   }
 
-  // TODO(qumeric):
-  /*fun updateSearchResults(searchString: String?) {
-    if (searchString != null) {
-      latestSearchString = searchString
-    }
-    model.items = avds.filter {
-      it.displayName.contains(latestSearchString, ignoreCase = true)
-    }
-  }*/
-
   /**
    * Reload AVD definitions from disk and repopulate the table
    */
   fun refreshDevices() {
     model.items = deviceMap.values.toList()
-    // TODO(qumeric) sometimes status is not updated to "EMPTY" when we do unplug devices.
+    // TODO Sometimes the status is not reset to EMPTY when a user unplugs devices
     val status = if (model.items.isEmpty()) EMPTY else NONEMPTY
     //updateSearchResults(null)
     (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
@@ -271,25 +236,13 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
   fun newColumns(): Collection<ColumnInfo<NamedDevice, *>> {
     return listOf(
       object : PhysicalDeviceColumnInfo("Device") {
-        override fun valueOf(item: NamedDevice): String? = item.name
+        override fun valueOf(item: NamedDevice): String = item.name
       },
       object : PhysicalDeviceColumnInfo("API") {
-        override fun valueOf(item: NamedDevice): String? = item.device.version.apiString
+        override fun valueOf(item: NamedDevice): String = item.device.version.apiString
       },
       PhysicalDeviceActionsColumnInfo("Actions", deviceProvider = this)
     )
-  }
-
-  private inner class LaunchListener : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-      if (e.clickCount == 2) {
-        doAction()
-      }
-    }
-  }
-
-  private fun doAction() {
-    // TODO
   }
 
   companion object {
