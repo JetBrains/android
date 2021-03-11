@@ -47,10 +47,9 @@ class ProvideLintFeedbackPanelTest : AndroidTestCase() {
         }
       }
 
-      val usages = usageTracker.usages
+      val usages = usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_ACTION }
       assertThat(usages).hasSize(1)
       with(usages[0].studioEvent) {
-        assertThat(kind).isEqualTo(AndroidStudioEvent.EventKind.LINT_ACTION)
         with(lintAction) {
           assertThat(issueId).isEqualTo("NewApi")
           assertThat(lintFeedback).isEqualTo(LintAction.LintFeedback.FALSE_POSITIVE)
