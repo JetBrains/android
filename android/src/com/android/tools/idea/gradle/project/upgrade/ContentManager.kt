@@ -209,6 +209,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
   }
 
   interface StepUiWithComboSelectorPresentation {
+    val label: String
     val elements: List<Any>
     var selectedValue: Any
   }
@@ -216,6 +217,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
   // TODO(mlazeba/xof): temporary here, need to be defined in processor itself probably
   private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) = when (processor) {
     is Java8DefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
+      override val label: String = "Action on no explicit Java language level: "
       override val pageHeader: String
         get() = processor.commandName
       override val treeText: String
@@ -395,7 +397,11 @@ class ContentManager(val project: Project) {
               tree.repaint()
               refreshDetailsPanel()
             }
-            detailsPanel.add(this)
+            val comboPanel = JBPanel<JBPanel<*>>()
+            comboPanel.layout = HorizontalLayout(0)
+            comboPanel.add(JBLabel(selectedStep.label))
+            comboPanel.add(this)
+            detailsPanel.add(comboPanel)
           }
         }
       }
