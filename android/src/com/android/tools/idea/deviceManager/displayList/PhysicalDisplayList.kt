@@ -273,7 +273,7 @@ class PhysicalDisplayList(override val project: Project?) : JPanel(), ListSelect
       object : PhysicalDeviceColumnInfo("Device") {
         override fun valueOf(item: NamedDevice): String? = item.name
       },
-      object : PhysicalDeviceColumnInfo("Api") {
+      object : PhysicalDeviceColumnInfo("API") {
         override fun valueOf(item: NamedDevice): String? = item.device.version.apiString
       },
       PhysicalDeviceActionsColumnInfo("Actions", deviceProvider = this)
