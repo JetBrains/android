@@ -35,8 +35,11 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
+import javax.swing.Timer
 
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
+
+private const val ROTATION_DURATION = 300L
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbarProvider(
@@ -61,7 +64,16 @@ object Toggle3dAction : AnAction(MODE_3D) {
       model.resetRotation()
     }
     else {
-      model.rotate(0.45, 0.06)
+      val start = System.currentTimeMillis()
+      Timer(1) { timerEvent ->
+        val elapsed = System.currentTimeMillis() - start
+        if (elapsed > ROTATION_DURATION) {
+          (timerEvent.source as Timer).stop()
+        }
+        model.xOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.45 / ROTATION_DURATION
+        model.yOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.06 / ROTATION_DURATION
+        model.refresh()
+      }.start()
     }
   }
 
