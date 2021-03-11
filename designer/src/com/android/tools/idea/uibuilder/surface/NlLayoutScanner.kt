@@ -98,14 +98,13 @@ class NlLayoutScanner(
             it.mType == ValidatorData.Type.ACCESSIBILITY) {
           lintIntegrator.createIssue(it, layoutParser.findComponent(it, validatorResult.srcMap))
         }
-        metricTracker.trackIssue(it)
+        // TODO: b/180069618 revisit metrics. Should log each issue.
       }
       lintIntegrator.populateLints()
       result = validatorResult
     } finally {
       layoutParser.clear()
-      metricTracker.trackResult(renderResult, validatorResult)
-      metricTracker.logEvents()
+      // TODO: b/180069618 revisit metrics. Should log render result here.
       listeners.forEach { it.lintUpdated(result) }
     }
   }

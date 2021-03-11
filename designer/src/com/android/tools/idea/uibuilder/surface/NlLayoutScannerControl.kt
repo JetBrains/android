@@ -47,16 +47,14 @@ class NlLayoutScannerControl(
   @VisibleForTesting
   val issuePanelListener = IssuePanel.MinimizeListener {
     // TODO: b/180069618 revisit metrics.
-    if (it) {
-      // Minimized
-      metricTracker.trackIssuePanelClosed()
-    }
+    // Logging when error panel closed/open is no longer as relevant since ATF always runs.
   }
 
   /** Listener when individual issues are expanded */
   private val issueExpandListener = IssuePanel.ExpandListener { issue, expanded ->
     if (scanner.issues.contains(issue)) {
-      metricTracker.trackIssueExpanded(issue, expanded)
+      // TODO: b/180069618 revisit metrics.
+      // Logging when error panel closed/open is no longer as relevant since ATF always runs.
     }
   }
 
