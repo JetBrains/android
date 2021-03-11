@@ -229,7 +229,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
     val key = pushKey(deviceId, pushId)
     val timeMs = deploymentStartTimes.getIfPresent(key)?.let {
       msProvider() - it
-    } ?: return
+    }
     val deviceType = activeDevices[deviceId] ?: LiveLiteralsMonitorHandler.DeviceType.UNKNOWN
     val stats = currentStatsCollector.getOrCreate(deviceType) { RemoteStatsCollector(msProvider) }
 
@@ -240,7 +240,7 @@ private class LiveLiteralsDiagnosticsRemoteReporterImpl(private val msProvider: 
       stats.failedDeployments++
     }
 
-    stats.deployTimeMsPercentiles.addSample(timeMs.toDouble())
+    timeMs?.let { stats.deployTimeMsPercentiles.addSample(it.toDouble()) }
     stats.problemsPercentiles.addSample(problems.size.toDouble())
   }
 

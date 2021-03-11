@@ -172,9 +172,12 @@ class AndroidLiveLiteralDeployMonitor {
               }
             }
             LOGGER.info("Invoking Deployer.updateLiveLiteral for %s", packageName);
+            String deviceId = adb.getSerial() + "#" + packageName;
+            String pushKey = String.valueOf(params.hashCode());
+            LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, pushKey);
             List<LiveLiteralDeployer.UpdateLiveLiteralError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
             LiveLiteralsService.getInstance(project)
-                .liveLiteralPushed(adb.getSerial() + "#" + packageName, "" + params.hashCode(), errors.stream().map(
+                .liveLiteralPushed(deviceId, pushKey, errors.stream().map(
                   e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
                 ).collect(Collectors.toList()));
           }
