@@ -104,6 +104,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setName("Pixel 4 API 29")
       .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -125,6 +126,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setName("Pixel 4 API 29")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
@@ -165,6 +167,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     List<Device> devices = Collections.singletonList(device);
@@ -188,6 +191,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -210,6 +214,7 @@ public final class SelectMultipleDevicesDialogTest {
       .setName("Pixel 4 API 30")
       .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();

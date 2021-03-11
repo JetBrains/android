@@ -15,16 +15,36 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.android.ddmlib.IDevice.HardwareFeature.TV;
+import static com.android.ddmlib.IDevice.HardwareFeature.WATCH;
+import static com.intellij.icons.AllIcons.General.WarningDecorator;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
 import static org.junit.Assert.assertEquals;
 
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.LayeredIcon;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import javax.swing.Icon;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,6 +54,24 @@ import org.mockito.Mockito;
 public final class VirtualDeviceTest {
   private static final Key DEVICE_KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
+  private void assertIconSimilar(Icon expectedIcon, Icon actualIcon) throws IOException {
+    BufferedImage expectedIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(expectedIcon, ScaleContext.createIdentity()));
+    BufferedImage actualIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(actualIcon, ScaleContext.createIdentity()));
+    ImageDiffUtil.assertImageSimilar("icon", expectedIconImage, actualIconImage, 0);
+  }
+
+  @Before
+  public void activateIconLoader() {
+    IconManager.activate();
+    IconLoader.activate();
+  }
+
+  @After
+  public void deactivateIconLoader() {
+    IconManager.deactivate();
+    IconLoader.deactivate();
+  }
+
   @Test
   public void getDefaultTarget() {
     // Arrange
@@ -41,6 +79,7 @@ public final class VirtualDeviceTest {
       .setName("Pixel 4 API 30")
       .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
@@ -58,6 +97,7 @@ public final class VirtualDeviceTest {
       .setName("Pixel 4 API 30")
       .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
@@ -76,6 +116,7 @@ public final class VirtualDeviceTest {
       .setKey(DEVICE_KEY)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     // Act
@@ -95,6 +136,7 @@ public final class VirtualDeviceTest {
       .setName("Pixel 4 API 30")
       .setKey(DEVICE_KEY)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(snapshotKey))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
@@ -108,5 +150,72 @@ public final class VirtualDeviceTest {
                                            new BootWithSnapshotTarget(DEVICE_KEY, snapshotKey));
 
     assertEquals(expectedTargets, actualTargets);
+  }
+
+  @Test
+  public void testGetConnectedPhoneWithoutErrorOrWarningIcon() throws IOException {
+    AndroidDevice phoneAndroidDevice = Mockito.mock(AndroidDevice.class);
+
+    Device connectedPhoneWithoutErrorOrWarning = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(phoneAndroidDevice)
+      .setType(Device.Type.PHONE)
+      .build();
+
+    assertIconSimilar(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_PHONE), connectedPhoneWithoutErrorOrWarning.getIcon());
+  }
+
+  @Test
+  public void testGetNotConnectedWearIcon() throws IOException {
+    AndroidDevice wearAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(wearAndroidDevice.supportsFeature(WATCH)).thenReturn(true);
+
+    Device notConnectedWear = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setAndroidDevice(wearAndroidDevice)
+      .setType(Device.Type.WEAR)
+      .build();
+
+    assertIconSimilar(VIRTUAL_DEVICE_WEAR, notConnectedWear.getIcon());
+  }
+
+  @Test
+  public void testGetConnectedWearWithErrorIcon() throws IOException {
+    AndroidDevice wearAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(wearAndroidDevice.supportsFeature(WATCH)).thenReturn(true);
+
+    Device connectedWearWithError = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(wearAndroidDevice)
+      .setType(Device.Type.WEAR)
+      .setLaunchCompatibility(new LaunchCompatibility(LaunchCompatibility.State.ERROR, "error"))
+      .build();
+
+    //TODO(b/180670146): replace with error decorator.
+    assertIconSimilar(
+      new LayeredIcon(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_WEAR), WarningDecorator),
+      connectedWearWithError.getIcon()
+    );
+  }
+
+  @Test
+  public void testGetNotConnectedTvWithWarningIcon() throws IOException {
+    AndroidDevice tvAndroidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(tvAndroidDevice.supportsFeature(TV)).thenReturn(true);
+
+    Device notConnectedTvWithWarning = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(DEVICE_KEY)
+      .setAndroidDevice(tvAndroidDevice)
+      .setType(Device.Type.TV)
+      .setLaunchCompatibility(new LaunchCompatibility(LaunchCompatibility.State.WARNING, "warning"))
+      .build();
+
+    assertIconSimilar(new LayeredIcon(VIRTUAL_DEVICE_TV, WarningDecorator), notConnectedTvWithWarning.getIcon());
   }
 }

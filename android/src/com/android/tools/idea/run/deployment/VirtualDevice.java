@@ -25,7 +25,9 @@ import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -44,8 +46,9 @@ import org.jetbrains.annotations.Nullable;
  * Device.myKey may be a VirtualDevicePath, VirtualDeviceName, or SerialNumber depending on what the IDevice returns and myNameKey is null.
  */
 final class VirtualDevice extends Device {
-  @VisibleForTesting
-  static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+  private static final Icon ourPhoneIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+  private static final Icon ourWearIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
+  private static final Icon ourTvIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
 
   /**
    * The virtual device names match with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator
@@ -82,6 +85,7 @@ final class VirtualDevice extends Device {
       .setAndroidDevice(connectedDevice.getAndroidDevice())
       .setNameKey(nameKey)
       .addAllSnapshots(device.getSnapshots())
+      .setType(device.getType())
       .build();
   }
 
@@ -141,6 +145,11 @@ final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
+      return this;
+    }
+
     @NotNull
     @Override
     VirtualDevice build() {
@@ -175,7 +184,36 @@ final class VirtualDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return isConnected() ? ourConnectedIcon : StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+    Icon deviceIcon;
+    switch (getType()) {
+      case TV:
+        deviceIcon = ourTvIcon;
+        break;
+      case WEAR:
+        deviceIcon = ourWearIcon;
+        break;
+      case PHONE:
+        deviceIcon = ourPhoneIcon;
+        break;
+      default:
+        throw new IllegalStateException("Unexpected device type: " + getType());
+    }
+
+    if (isConnected()) {
+      deviceIcon = ExecutionUtil.getLiveIndicator(deviceIcon);
+    }
+
+    switch (getLaunchCompatibility().getState()) {
+      case ERROR:
+        //TODO(b/180670146): replace with error decorator b/180670146
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case WARNING:
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case OK:
+        return deviceIcon;
+      default:
+        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
+    }
   }
 
   @Override

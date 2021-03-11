@@ -23,6 +23,7 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.LayeredIcon;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
@@ -35,8 +36,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice extends Device {
-  private static final Icon ourValidIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-  private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
+  private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+  private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
+  private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
   @NotNull
   static PhysicalDevice newDevice(@NotNull ConnectedDevice device,
@@ -50,6 +52,7 @@ final class PhysicalDevice extends Device {
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(device.getAndroidDevice())
+      .setType(device.getType())
       .build();
   }
 
@@ -62,7 +65,7 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
-    private @NotNull Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+    @NotNull Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
       myLaunchCompatibility = launchCompatibility;
       return this;
     }
@@ -88,6 +91,11 @@ final class PhysicalDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
+      return this;
+    }
+
     @NotNull
     @Override
     PhysicalDevice build() {
@@ -102,7 +110,32 @@ final class PhysicalDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK) ? ourValidIcon : ourInvalidIcon;
+    Icon deviceIcon;
+    switch (getType()) {
+      case TV:
+        deviceIcon = ourTvIcon;
+        break;
+      case WEAR:
+        deviceIcon = ourWearIcon;
+        break;
+      case PHONE:
+        deviceIcon = ourPhoneIcon;
+        break;
+      default:
+        throw new IllegalStateException("Unexpected device type: " + getType());
+    }
+
+    switch (getLaunchCompatibility().getState()) {
+      case ERROR:
+        //TODO(b/180670146): replace with error decorator b/180670146
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case WARNING:
+        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+      case OK:
+        return deviceIcon;
+      default:
+        throw new IllegalStateException("Unexpected device state: " + getLaunchCompatibility().getState());
+    }
   }
 
   /**

@@ -52,6 +52,11 @@ final class ConnectedDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setType(@NotNull Type type) {
+      myType = type;
+      return this;
+    }
+
     @NotNull
     @Override
     ConnectedDevice build() {
