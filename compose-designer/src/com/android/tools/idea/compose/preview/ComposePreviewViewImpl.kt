@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
@@ -26,7 +27,10 @@ import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
+import com.android.tools.idea.compose.preview.util.requestBuild
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.shortcuts.asString
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -121,9 +125,9 @@ interface ComposePreviewView {
   fun updateVisibilityAndNotifications()
 
   /**
-   * Hides the content if visible and displays the given [message].
+   * Hides the content if visible and displays the given [message] and the optional [actionData].
    */
-  fun showModalErrorMessage(message: String)
+  fun showModalErrorMessage(message: String, actionData: ActionData? = null)
 
   /**
    * If the content is not already visible it shows the given message.
@@ -336,9 +340,9 @@ internal class ComposePreviewViewImpl(private val project: Project,
     updateVisibilityAndNotifications()
   }
 
-  override fun showModalErrorMessage(message: String) = UIUtil.invokeLaterIfNeeded {
+  override fun showModalErrorMessage(message: String, actionData: ActionData?) = UIUtil.invokeLaterIfNeeded {
     log.debug("showModelErrorMessage: $message")
-    loadingStopped(message)
+    loadingStopped(message, actionData)
   }
 
   override fun updateNotifications(parentEditor: FileEditor) = UIUtil.invokeLaterIfNeeded {
@@ -365,7 +369,10 @@ internal class ComposePreviewViewImpl(private val project: Project,
   override fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible && projectBuildStatusManager.status == NeedsBuild) {
       log.debug("Needs successful build")
-      showModalErrorMessage(message("panel.needs.build"))
+      val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
+      showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
+        mainSurface.model?.module?.let { requestBuild(project, it, true) }
+      })
     }
     else {
       if (hasRendered) {
