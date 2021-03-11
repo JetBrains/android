@@ -232,6 +232,9 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
         set(value) {
           if (value is Java8DefaultRefactoringProcessor.NoLanguageLevelAction) processor.noLanguageLevelAction = value
         }
+      init {
+        selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+      }
     }
     else -> DefaultStepPresentation(processor)
   }
