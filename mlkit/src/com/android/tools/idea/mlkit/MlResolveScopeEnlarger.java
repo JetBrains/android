@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
 public class MlResolveScopeEnlarger extends ResolveScopeEnlarger {
   @Nullable
   @Override
-  public SearchScope getAdditionalResolveScope(@NotNull VirtualFile file, Project project) {
+  public SearchScope getAdditionalResolveScope(@NotNull VirtualFile file, @NotNull Project project) {
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     return module != null ? getAdditionalResolveScope(module) : null;
   }
