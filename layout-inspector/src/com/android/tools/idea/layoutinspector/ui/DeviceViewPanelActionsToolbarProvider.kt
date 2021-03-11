@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.PanSurfaceAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
@@ -23,9 +24,12 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -35,6 +39,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import javax.swing.Timer
 
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
@@ -60,12 +65,24 @@ class DeviceViewPanelActionsToolbarProvider(
 object Toggle3dAction : AnAction(MODE_3D) {
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient as? AppInspectionInspectorClient
+    val zoomable = event.getData(ZOOMABLE_KEY) ?: return
+
     if (model.isRotated) {
+      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP, zoomable.scale.toFloat())
       model.resetRotation()
     }
     else {
-      val start = System.currentTimeMillis()
-      Timer(1) { timerEvent ->
+      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, zoomable.scale.toFloat())
+      var start = 0L
+      Timer(10) { timerEvent ->
+        // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
+        if (model.pictureType != AndroidWindow.ImageType.SKP) {
+          return@Timer
+        }
+        if (start == 0L) {
+          start = System.currentTimeMillis()
+        }
         val elapsed = System.currentTimeMillis() - start
         if (elapsed > ROTATION_DURATION) {
           (timerEvent.source as Timer).stop()

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.UNKNOWN
  import com.android.tools.idea.layoutinspector.model.DrawViewChild
@@ -111,6 +112,10 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
         model.windows.values.any { it.imageType == BITMAP_AS_REQUESTED } -> {
           // If we find that we've requested and received a png, that's what we'll use first
           BITMAP_AS_REQUESTED
+        }
+        model.windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
+          // If all windows are SKP, use that
+          AndroidWindow.ImageType.SKP
         }
         else -> {
           UNKNOWN
