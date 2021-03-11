@@ -82,4 +82,5 @@ interface ViewActionHandlers {
 
   /** Called when user clicks on configuration cache link on build overview page. */
   fun openConfigurationCacheWarnings()
+  fun runAgpUpgrade()
 }

@@ -51,12 +51,13 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.JBDimension
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.BoxLayout
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
@@ -191,7 +192,7 @@ class WarningsViewDetailPagesFactory(
 
   private fun createConfigurationCachingRootDetailsPage(uiData: ConfigurationCachingCompatibilityProjectResult,
                                                         projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    layout = VerticalLayout(10, SwingConstants.LEFT)
 
     val contentHtml = when (uiData) {
       is AGPUpdateRequired -> """
@@ -200,7 +201,6 @@ class WarningsViewDetailPagesFactory(
         
         Android Gradle plugin supports configuration cache from ${uiData.recommendedVersion}.
         Current version is ${uiData.currentVersion}.
-        Please, update your Android Gradle plugin.
       """.trimIndent().insertBRTags()
       is NoIncompatiblePlugins -> """
         <b>Try to turn configuration cache on</b>
@@ -251,7 +251,10 @@ class WarningsViewDetailPagesFactory(
       ConfigurationCachingTurnedOn -> ""
     }
 
-    add(htmlTextLabelWithLinesWrap(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    if (uiData is AGPUpdateRequired) {
+      add(JButton("Update Android Gradle plugin").apply { addActionListener { actionHandlers.runAgpUpgrade() }})
+    }
   }
 
   private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
@@ -283,16 +286,14 @@ class WarningsViewDetailPagesFactory(
   private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
     "<p>" +
     "You could save ${configurationTime.durationStringHtml()} (${configurationTime.percentageStringHtml()} total build time) by turning " +
-    "<a href='${BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING.name}'>configuration cache</a> on. " +
+    "<a href='${BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING.name}'>configuration cache</a> on.<br/>" +
     "With configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
     "</p>"
 
   private fun String.insertBRTags(): String = replace("\n", "<br/>\n")
 
   private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {
-    maximumSize = JBDimension(600, Int.MAX_VALUE)
-    minimumSize = JBDimension(300, 0)
-    alignmentX = 0f
+    border = JBUI.Borders.emptyLeft(3)
     addHyperlinkListener { e ->
       //TODO (mlazeba): extract duplicated logic, same in BuldOverview page for example. Time to introduce some link handler.
       if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
