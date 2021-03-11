@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.DefaultLogger;
@@ -23,6 +24,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.TestLoggerFactory;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,7 +141,7 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
 
     RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
-                                                             toClassTransform(ThreadLocalRenameTransform::new),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.CustomThreadLocal");
@@ -156,7 +159,7 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
 
     RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
-                                                             toClassTransform(ThreadLocalRenameTransform::new),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.ThreadLocalContainer");
@@ -224,7 +227,7 @@ public class RenderClassLoaderTest {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
 
     TestableRenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
-                                                             toClassTransform(ThreadLocalRenameTransform::new),
+                                                             toClassTransform(ThreadLocalTrackingTransform::new),
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     assertFalse(loader.isInsiderJarClassLoader());
@@ -234,6 +237,35 @@ public class RenderClassLoaderTest {
     } catch (ClassNotFoundException ignored) {
     }
     assertFalse(loader.isInsiderJarClassLoader());
+  }
+
+  @Test
+  public void testThreadControllingTransform_replacesThreads() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/threadControllingTransform/mythreadcontrolling.jar");
+
+    RenderClassLoader plainLoader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                                  ClassTransform.getIdentity(),
+                                                                  ImmutableList.of(jarSource.toURI().toURL()));
+
+    Class<?> threadCreationClass = plainLoader.loadClassFromNonProjectDependency("com.mythreadcontrollingjar.ThreadCreator");
+    Method threadFactory = threadCreationClass.getMethod("createIllegalThread");
+    assertThat(threadFactory.invoke(null)).isInstanceOf(Thread.class);
+    assertThat(threadFactory.invoke(null)).isNotInstanceOf(TrackingThread.class);
+
+    RenderClassLoader intrumentingLoader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             toClassTransform(ThreadControllingTransform::new),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    threadCreationClass = intrumentingLoader.loadClassFromNonProjectDependency("com.mythreadcontrollingjar.ThreadCreator");
+
+    threadFactory = threadCreationClass.getMethod("createIllegalThread");
+    assertThat(threadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+
+    Method customThreadFactory = threadCreationClass.getMethod("createCustomIllegalThread");
+    assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+
+    Method coroutineThreadFactory = threadCreationClass.getMethod("createCoroutineThread");
+    assertThat(coroutineThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
   }
 
   public static class MyLoggerFactory implements Logger.Factory {
