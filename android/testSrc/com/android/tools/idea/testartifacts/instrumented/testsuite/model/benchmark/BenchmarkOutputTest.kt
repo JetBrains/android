@@ -33,7 +33,7 @@ class BenchmarkOutputTest {
   fun simpleSingleLineBenchmarkPrint() {
     val line = "test benchmark line"
     val benchmark = BenchmarkOutput(line)
-    val expectedOutput = "benchmark: $line\n"
+    val expectedOutput = "$line\n"
     validateConsoleOutput(benchmark, expectedOutput)
   }
 
@@ -42,7 +42,7 @@ class BenchmarkOutputTest {
     val line1 = "test benchmark line 1"
     val line2 = "test benchmark line 2"
     val benchmark = BenchmarkOutput("$line1\n$line2")
-    val expectedOutput = "benchmark: $line1\nbenchmark: $line2\n"
+    val expectedOutput = "$line1\n$line2\n"
     validateConsoleOutput(benchmark, expectedOutput)
   }
 
@@ -50,7 +50,7 @@ class BenchmarkOutputTest {
   fun hyperlinkSingleLineBenchmarkPrint() {
     val line1 = "This [link me](file://is/a/hyperlink/test)"
     val benchmark = BenchmarkOutput("$line1")
-    val expectedOutput = "benchmark: This link me\n"
+    val expectedOutput = "This link me\n"
     val expectedHyperlink = mutableListOf("link me")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
   }
@@ -60,7 +60,7 @@ class BenchmarkOutputTest {
     val line1 = "This [link me](file://is/a/hyperlink/test)"
     val line2 = "This [second link](file://a/second/hyperlink)"
     val benchmark = BenchmarkOutput("$line1\n$line2")
-    val expectedOutput = "benchmark: This link me\nbenchmark: This second link\n"
+    val expectedOutput = "This link me\nThis second link\n"
     val expectedHyperlink = mutableListOf("link me", "second link")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
   }
@@ -69,7 +69,7 @@ class BenchmarkOutputTest {
   fun hyperlinkInlineFormatBenchmarkPrint() {
     val line1 = "This [link me](file://is/a/hyperlink/test)\tmin: [trace](/path/to/trace)\tmax: [trace2](/path/to/trace)"
     val benchmark = BenchmarkOutput("$line1")
-    val expectedOutput = "benchmark: This link me\tmin: trace\tmax: trace2\n"
+    val expectedOutput = "This link me\tmin: trace\tmax: trace2\n"
     val expectedHyperlink = mutableListOf("link me", "trace", "trace2")
     validateConsoleOutput(benchmark, expectedOutput, expectedHyperlink)
   }

@@ -202,7 +202,7 @@ class DetailsViewContentViewTest {
     view.setBenchmarkText(BenchmarkOutput("test benchmark message"))
     view.myBenchmarkView.waitAllRequests()
 
-    assertThat(view.myBenchmarkView.text).isEqualTo("benchmark: test benchmark message\n")
+    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
   }
 
