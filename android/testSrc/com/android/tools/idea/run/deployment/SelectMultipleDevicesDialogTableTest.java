@@ -50,6 +50,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setName("Pixel 3 API 29")
       .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false));
@@ -68,6 +69,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setName("Pixel 3 API 29")
       .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false));
@@ -96,6 +98,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
@@ -121,6 +124,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
       .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
@@ -145,12 +149,14 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Arrays.asList(device1, device2), () -> false);
@@ -178,6 +184,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setName("Pixel 4 API 30")
       .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();

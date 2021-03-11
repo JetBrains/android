@@ -32,6 +32,8 @@ public abstract class Device {
   @NotNull
   private final String myName;
 
+  private final @NotNull Type myType;
+
   @NotNull
   private final LaunchCompatibility myLaunchCompatibility;
 
@@ -59,6 +61,8 @@ public abstract class Device {
     @Nullable
     AndroidDevice myAndroidDevice;
 
+    @Nullable Type myType;
+
     Builder() {
       myLaunchCompatibility = LaunchCompatibility.YES;
     }
@@ -70,6 +74,7 @@ public abstract class Device {
   Device(@NotNull Builder builder) {
     assert builder.myName != null;
     myName = builder.myName;
+    myType = builder.myType;
 
     myLaunchCompatibility = builder.myLaunchCompatibility;
 
@@ -161,5 +166,15 @@ public abstract class Device {
   @Override
   public final String toString() {
     return myName;
+  }
+
+  @NotNull Type getType() {
+    return myType;
+  }
+
+  enum Type {
+    PHONE,
+    WEAR,
+    TV
   }
 }
