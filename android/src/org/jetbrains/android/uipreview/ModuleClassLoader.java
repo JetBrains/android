@@ -28,7 +28,8 @@ import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
 import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
-import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
+import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
+import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -124,7 +125,8 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    ThreadLocalRenameTransform::new,
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -132,7 +134,8 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    ThreadLocalRenameTransform::new,
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
     PreviewAnimationClockMethodTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
