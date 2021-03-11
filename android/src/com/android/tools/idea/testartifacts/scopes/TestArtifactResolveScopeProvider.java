@@ -36,10 +36,7 @@ import org.jetbrains.annotations.Nullable;
 public class TestArtifactResolveScopeProvider extends ResolveScopeProvider {
   @Nullable
   @Override
-  public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, @Nullable Project project) {
-    if (project == null) {
-      return null;
-    }
+  public GlobalSearchScope getResolveScope(@NotNull VirtualFile file, @NotNull Project project) {
     if (!TestSourcesFilter.isTestSources(file, project)) {
       return null;
     }
