@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.common.toInt
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -137,7 +138,11 @@ class ViewAndroidWindow(
       baos.write(buffer, 0, count)
     }
 
-    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(baos.toByteArray()), rootView.width, rootView.height)
+
+    val inflatedBytes = baos.toByteArray()
+    val width = inflatedBytes.toInt()
+    val height = inflatedBytes.sliceArray(4..7).toInt()
+    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(inflatedBytes, 8, inflatedBytes.size - 8), width, height)
 
     ViewNode.writeDrawChildren { drawChildren ->
       rootView.flatten().forEach { it.drawChildren().clear() }

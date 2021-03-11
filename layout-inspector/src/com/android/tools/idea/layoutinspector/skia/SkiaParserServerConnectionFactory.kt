@@ -23,6 +23,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.common.toInt
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
@@ -261,15 +262,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     if (data.slice(0..7) != "skiapict".toByteArray(Charsets.US_ASCII).asList() || data.size < 12) {
       throw InvalidPictureException()
     }
-
-    var skpVersion = 0
-    var mult = 1
-    // assume little endian for now
-    for (i in 0..3) {
-      skpVersion += data[i + 8] * mult
-      mult = mult shl 8
-    }
-    return skpVersion
+    return data.sliceArray(8..11).toInt()
   }
 }
 
