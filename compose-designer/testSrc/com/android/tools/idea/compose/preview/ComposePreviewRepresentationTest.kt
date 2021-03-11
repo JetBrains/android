@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -54,7 +55,7 @@ internal class TestComposePreviewView(override val pinnedSurface: NlDesignSurfac
   override fun updateVisibilityAndNotifications() {
   }
 
-  override fun showModalErrorMessage(message: String) {
+  override fun showModalErrorMessage(message: String, actionData: ActionData?) {
   }
 
   override fun updateProgress(message: String) {
