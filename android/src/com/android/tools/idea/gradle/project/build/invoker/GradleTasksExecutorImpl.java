@@ -340,9 +340,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         handleTaskExecutionError(e);
       }
       finally {
+        Application application = ApplicationManager.getApplication();
         if (buildError != null) {
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildFailure(attributionFileDir);
+            final File finalAttributionFileDir = attributionFileDir;
+            final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
+            application.invokeLater(() -> {
+              if (!project.isDisposed()) {
+                finalBuildAttributionManager.onBuildFailure(finalAttributionFileDir);
+              }
+            });
           }
 
           if (wasBuildCanceled(buildError)) {
@@ -360,8 +367,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         taskListener.onEnd(id);
         myBuildStopper.remove(id);
 
-        String gradleOutput = output.toString();
-        Application application = ApplicationManager.getApplication();
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
           if (isNotEmpty(testOutput)) {

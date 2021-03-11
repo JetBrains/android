@@ -105,7 +105,6 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     }
     assertThat(gradleBuildStateBuildStartedNotificationReceived).isTrue()
     assertThat(gradleBuildStateBuildFinishedNotificationReceived).isTrue()
-    // TODO(b/144510710)
-    //assertThat(gradleBuildInvokedExecutedPostBuildTasks).isTrue()
+    assertThat(gradleBuildInvokedExecutedPostBuildTasks).isTrue()
   }
 }
