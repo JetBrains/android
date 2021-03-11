@@ -813,6 +813,17 @@ public class RenderErrorContributor {
             .build();
           continue;
         }
+        else if (ILayoutLog.TAG_THREAD_CREATION.equals(tag)) {
+          Throwable throwable = message.getThrowable();
+          HtmlBuilder builder = new HtmlBuilder();
+          reportThrowable(builder, throwable, false);
+          addIssue()
+            .setSeverity(HighlightSeverity.WARNING)
+            .setSummary(message.getHtml())
+            .setHtmlContent(builder)
+            .build();
+          continue;
+        }
       }
 
       HtmlBuilder builder = new HtmlBuilder();

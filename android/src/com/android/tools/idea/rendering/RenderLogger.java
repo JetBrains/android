@@ -565,6 +565,15 @@ public class RenderLogger implements IRenderLogger {
       }
       return;
     }
+    else if (TAG_THREAD_CREATION.equals(tag)) {
+      addTag(tag);
+      RenderProblem problem = RenderProblem.createPlain(WARNING, description).tag(tag);
+      if (data instanceof Throwable) {
+        problem.throwable((Throwable)data);
+      }
+      addMessage(problem);
+      return;
+    }
 
     addTag(tag);
     addMessage(RenderProblem.createPlain(WARNING, description).tag(tag));

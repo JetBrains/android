@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.classloading;
 import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.google.common.collect.ImmutableList;
+import com.google.common.truth.ThrowableSubject;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -49,6 +50,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_WARN_NEW_THREADS;
 import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
@@ -93,6 +95,7 @@ public class RenderClassLoaderTest {
     if (myOriginalFactory != null) {
       Logger.setFactory(myOriginalFactory.getClass());
     }
+    NELE_WARN_NEW_THREADS.clearOverride();
   }
 
   @Test
@@ -240,7 +243,7 @@ public class RenderClassLoaderTest {
   }
 
   @Test
-  public void testThreadControllingTransform_replacesThreads() throws Exception {
+  public void testThreadControllingTransform_failIfIllegalThread() throws Exception {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/threadControllingTransform/mythreadcontrolling.jar");
 
     RenderClassLoader plainLoader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
@@ -257,15 +260,31 @@ public class RenderClassLoaderTest {
                                                              ImmutableList.of(jarSource.toURI().toURL()));
 
     threadCreationClass = intrumentingLoader.loadClassFromNonProjectDependency("com.mythreadcontrollingjar.ThreadCreator");
-
     threadFactory = threadCreationClass.getMethod("createIllegalThread");
-    assertThat(threadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+
+    NELE_WARN_NEW_THREADS.override(true);
+    try {
+      threadFactory.invoke(null);
+      fail();
+    } catch (InvocationTargetException ex) {
+      assertThat(ex.getCause()).isInstanceOf(IllegalStateException.class);
+    }
 
     Method customThreadFactory = threadCreationClass.getMethod("createCustomIllegalThread");
-    assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
 
+    try {
+      customThreadFactory.invoke(null);
+      fail();
+    } catch (InvocationTargetException ex) {
+      assertThat(ex.getCause()).isInstanceOf(IllegalStateException.class);
+    }
     Method coroutineThreadFactory = threadCreationClass.getMethod("createCoroutineThread");
     assertThat(coroutineThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+
+    NELE_WARN_NEW_THREADS.override(false);
+
+    assertThat(threadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
+    assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
   }
 
   public static class MyLoggerFactory implements Logger.Factory {
