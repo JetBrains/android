@@ -447,6 +447,7 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(21, "MyLineClass"),
       ComposableString(22, "Hello World"),
       ComposableString(23, "End of Text"),
+      ComposableString(24, "List[12]"),
       ComposableString(25, "a"),
       ComposableString(26, "b"),
     )
@@ -472,6 +473,7 @@ class AppInspectionPropertiesProviderTest {
         Element {
           type = ComposeProtocol.Parameter.Type.ITERABLE
           name = 4
+          int32Value = 24
           index = 3
           Reference {
             composableId = -5
@@ -500,6 +502,7 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(3, "[6]"),
 
       // String values
+      ComposableString(21, "List[12]"),
       ComposableString(22, "c"),
       ComposableString(23, "d"),
     )
@@ -508,6 +511,7 @@ class AppInspectionPropertiesProviderTest {
       ExpandedParameter {
         type = ComposeProtocol.Parameter.Type.ITERABLE
         name = 1
+        int32Value = 21
         index = 3
         Reference {
           composableId = -5
@@ -536,6 +540,7 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(4, "[11]"),
 
       // String values
+      ComposableString(21, "List[12]"),
       ComposableString(22, "e"),
       ComposableString(23, "f"),
       ComposableString(24, "g"),
@@ -545,6 +550,7 @@ class AppInspectionPropertiesProviderTest {
       ExpandedParameter {
         type = ComposeProtocol.Parameter.Type.ITERABLE
         name = 1
+        int32Value = 21
         index = 3
         Element {
           type = ComposeProtocol.Parameter.Type.STRING
@@ -1031,7 +1037,7 @@ class AppInspectionPropertiesProviderTest {
         assertThat(restructured).isTrue()
         assertProperty(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
         assertProperty(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
-        assertProperty(last.children[2], "list", PropertyType.ITERABLE, "")
+        assertProperty(last.children[2], "list", PropertyType.ITERABLE, "List[12]")
         assertThat(last.children.size).isEqualTo(3)
         val list = last.children.last() as ParameterGroupItem
         assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
@@ -1065,7 +1071,7 @@ class AppInspectionPropertiesProviderTest {
       showMoreItem.link.actionPerformed(event1)
     }
     moreListElements1.await()
-    assertProperty(list, "list", PropertyType.ITERABLE, "")
+    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNotNull()
     assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
     assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
@@ -1094,7 +1100,7 @@ class AppInspectionPropertiesProviderTest {
       showMoreItem.link.actionPerformed(event2)
     }
     moreListElements2.await()
-    assertProperty(list, "list", PropertyType.ITERABLE, "")
+    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNull()
     assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
     assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
