@@ -42,6 +42,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
+import com.android.tools.layoutinspector.toBytes
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.ProjectRule
@@ -77,9 +78,9 @@ class AppInspectionTreeLoaderTest {
       graphics.drawImage(origImage, 0, 0, null)
       val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
                                                       ShortArray(image.width * image.height)) as ShortArray
-      val imageBytes = ArrayList<Byte>(image.width * image.height * 2)
+      val imageBytes = ArrayList<Byte>(image.width * image.height * 2 + 8)
       dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-      bytes = imageBytes.toByteArray().compress()
+      bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + imageBytes).toByteArray().compress()
     }
   }
 
