@@ -62,6 +62,7 @@ open class FakeDatabaseInspectorAnalyticsTracker : DatabaseInspectorAnalyticsTra
     sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
     destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
+    outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
   ) {
   }

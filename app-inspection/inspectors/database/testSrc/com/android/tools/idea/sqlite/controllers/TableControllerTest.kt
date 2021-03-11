@@ -2156,7 +2156,7 @@ class TableControllerTest : LightPlatformTestCase() {
 
   fun testShowExportToFileDialogInvoked_table() {
     val table = SqliteTable("tableName", mock(), null, false)
-    val expectedDialogParams = ExportTableDialogParams(mockDatabaseConnectionId, table.name, Origin.QUERY_RESULTS_EXPORT_BUTTON)
+    val expectedDialogParams = ExportTableDialogParams(mockDatabaseConnectionId, table.name, Origin.TABLE_CONTENTS_EXPORT_BUTTON)
     testShowExportToFileDialogInvoked({ table }, mock(), expectedDialogParams)
   }
 

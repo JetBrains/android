@@ -49,6 +49,7 @@ interface DatabaseInspectorAnalyticsTracker {
     sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
     destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
+    outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
   )
 }
@@ -122,6 +123,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
     sourceFormat: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat,
     destination: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination,
     durationMs: Int,
+    outcome: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome,
     connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
   ) {
     val event = AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.newBuilder()
@@ -129,6 +131,7 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
       .setSourceFormat(sourceFormat)
       .setDestination(destination)
       .setExportDurationMs(durationMs)
+      .setOutcome(outcome)
       .build()
 
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()

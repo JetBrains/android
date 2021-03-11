@@ -58,16 +58,19 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLines
 import com.android.tools.idea.sqlite.utils.unzipTo
 import com.android.tools.idea.testing.runDispatching
+import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.mock.MockVirtualFile
@@ -95,7 +98,6 @@ import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -104,6 +106,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -307,16 +310,17 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     verifyExportCallbacks: (durationMs: Long) -> Unit = { durationMs ->
       assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS)
       assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
-      assertAnalyticsTrackerCall(analyticsTracker, exportRequest, durationMs)
+      assertAnalyticsTrackerCall(analyticsTracker, exportRequest, durationMs, Outcome.SUCCESS_OUTCOME)
     }
   ) {
     // then: compare output file(s) with expected output
-    val start = System.currentTimeMillis()
+    val stopwatch = Stopwatch.createStarted()
     submitExportRequest(exportRequest)
     verify(exportInProgressListener).invoke(controller.lastExportJob!!)
     awaitExportComplete(5000L)
+    stopwatch.stop()
 
-    verifyExportCallbacks(System.currentTimeMillis() - start)
+    verifyExportCallbacks(stopwatch.elapsed(MILLISECONDS))
     exportRequest.srcDatabase.let { db -> assertThat(databaseLockingTestFixture.wasLocked(db)).isEqualTo(db is LiveSqliteDatabaseId) }
 
     val actualFiles = decompress(exportRequest.dstPath).sorted()
@@ -331,10 +335,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private fun assertAnalyticsTrackerCall(
     analyticsTracker: DatabaseInspectorAnalyticsTracker,
     exportRequest: ExportRequest,
-    maxDurationMs: Long
+    maxDurationMs: Long,
+    expectedOutcome: Outcome
   ) {
-    assertThat(exportProcessedListener.scenario).isEqualTo(SUCCESS) // double checking that we are in a success case
-
     // Using captors below to go the opposite way than the prod code: from analytics values to export-request values.
     // Otherwise we'd end up with a copy of production code in the tests (which would be of questionable value).
     val sourceCaptor = ArgumentCaptor.forClass(Source::class.java)
@@ -342,6 +345,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val destinationCaptor = ArgumentCaptor.forClass(Destination::class.java)
     val durationMsCaptor = ArgumentCaptor.forClass(Int::class.java)
     val connectivityStateCaptor = ArgumentCaptor.forClass(ConnectivityState::class.java)
+    val outcomeCaptor = ArgumentCaptor.forClass(Outcome::class.java)
 
     // `trackExportCompleted` does not accept null values and ArgumentCaptor for classes cannot work around that.
     // Using fallback values () below to work around it. These don't affect verifications.
@@ -350,6 +354,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       sourceFormatCaptor.capture() ?: SourceFormat.UNKNOWN_SOURCE_FORMAT,
       destinationCaptor.capture() ?: Destination.UNKNOWN_DESTINATION,
       durationMsCaptor.capture(),
+      outcomeCaptor.capture() ?: Outcome.UNKNOWN_OUTCOME,
       connectivityStateCaptor.capture() ?: ConnectivityState.UNKNOWN_CONNECTIVITY_STATE
     )
 
@@ -400,6 +405,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       ConnectivityState.CONNECTIVITY_OFFLINE -> assertThat(exportRequest.srcDatabase).isInstanceOf(FileSqliteDatabaseId::class.java)
       else -> fail()
     }
+
+    assertThat(outcomeCaptor.allValues.single()).isEqualTo(expectedOutcome)
   }
 
   @Suppress("BlockingMethodInNonBlockingContext") // [CountDownLatch#await]
@@ -420,6 +427,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
 
     // submit export request
     val exportRequest = ExportTableRequest(databaseId, "ignored", CSV(SEMICOLON), Paths.get("/dst/path"))
+    val stopwatch = Stopwatch.createStarted()
     submitExportRequest(exportRequest)
 
     // verify that in-progress-listener (responsible for the progress bar) got called
@@ -429,14 +437,16 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     assertThat(job.isActive).isTrue()
 
     // cancel the job simulating the cancel button invoked by the user
-    job.cancel()
+    job.cancel(UserCancellationException())
 
     // verify the job gets cancelled and notifyError gets the confirmation
     awaitExportComplete(500L)
+    stopwatch.stop()
     assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
     assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
     assertThat(exportProcessedListener.capturedError).isInstanceOf(CancellationException::class.java)
-    verifyNoInteractions(analyticsTracker)
+
+    assertAnalyticsTrackerCall(analyticsTracker, exportRequest, stopwatch.elapsed(MILLISECONDS), Outcome.CANCELLED_BY_USER_OUTCOME)
   }
 
   fun testExportDatabaseToCsvFileDb() = testExportDatabaseToCsv(DatabaseType.File)
@@ -528,6 +538,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     )
 
     // when/then
+    val stopwatch = Stopwatch.createStarted()
     testExport(
       exportRequest = exportRequest,
       decompress = {
@@ -542,7 +553,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
           it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
         }
         assertWithMessage("Expecting a SQLite exception caused by an invalid query.").that(sqlException).isNotNull()
-        verifyNoInteractions(analyticsTracker)
+        stopwatch.stop()
+        assertAnalyticsTrackerCall(analyticsTracker, exportRequest, stopwatch.elapsed(MILLISECONDS), Outcome.ERROR_OUTCOME)
       }
     )
   }
