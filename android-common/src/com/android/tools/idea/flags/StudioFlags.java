@@ -593,6 +593,12 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
+
+  public static final Flag<Boolean> ALLOW_JDK_PER_PROJECT = Flag.create(
+    GRADLE_IDE, "jdk.allow.jdk.per.project", "Allow Gradle JDK per project", "Allows setting JDK per project.", true);
+
+  public static final Flag<Boolean> SHOW_JDK_PATH = Flag.create(
+    GRADLE_IDE, "jdk.show.path", "Show JDK path in settings", "Shows JDK path for each item in Gradle settings.", true);
   //endregion
 
   //region Database Inspector
