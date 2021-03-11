@@ -370,6 +370,10 @@ public final class StudioFlags {
     "Enable all the various tools related to better support for tablets and other form factors.",
     false);
 
+  public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
+    NELE, "preview.warn.new.threads", "Enable new threads warning",
+    "Display a warning if user code creates new threads in the preview",
+    true);
   //endregion
 
   //region Navigation Editor
