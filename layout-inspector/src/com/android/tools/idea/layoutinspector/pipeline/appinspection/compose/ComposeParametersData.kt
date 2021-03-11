@@ -77,6 +77,7 @@ class ComposeParametersDataGenerator(
     }
 
     val value: Any = when (type) {
+      Parameter.Type.ITERABLE,
       Parameter.Type.STRING -> stringTable[int32Value]
       Parameter.Type.BOOLEAN -> (int32Value == 1)
       Parameter.Type.INT32 -> int32Value
