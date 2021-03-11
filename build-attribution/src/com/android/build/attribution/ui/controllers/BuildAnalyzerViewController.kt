@@ -25,6 +25,7 @@ import com.android.build.attribution.ui.model.TasksFilter
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
+import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
@@ -141,6 +142,16 @@ class BuildAnalyzerViewController(
   override fun dontShowAgainNoGCSettingWarningClicked() {
     BuildAttributionWarningsFilter.getInstance(project).suppressNoGCSettingWarning = true
     analytics.noGCSettingWarningSuppressed()
+  }
+
+  override fun openConfigurationCacheWarnings() {
+    val currentAnalyticsPage = analytics.getStateFromModel(model)
+    val duration = runAndMeasureDuration {
+      model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+      model.warningsPageModel.selectPageById(WarningsPageId.configurationCachingRoot)
+    }
+    val newAnalyticsPage = analytics.getStateFromModel(model)
+    analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
@@ -39,7 +40,7 @@ import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkEvent.EventType
 
 class BuildOverviewPageView(
   val model: BuildAnalyzerViewModel,
@@ -51,15 +52,22 @@ class BuildOverviewPageView(
     layout = VerticalLayout(0, SwingConstants.LEFT)
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
+    val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData != ConfigurationCachingTurnedOn)
+      " - <a href='configuration-cache'>Optimize this</a>."
+    else ""
     val text = """
       <b>Build finished on ${buildFinishedTime}</b><br/>
       Total build duration was ${buildSummary.totalBuildDuration.durationStringHtml()}.<br/>
       <br/>
       Includes:<br/>
-      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}<br/>
+      Build configuration: ${buildSummary.configurationDuration.durationStringHtml()}$optionalConfigurationCacheLink<br/>
       Critical path tasks execution: ${buildSummary.criticalPathDuration.durationStringHtml()}<br/>
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text))
+    add(htmlTextLabelWithFixedLines(text).apply {
+      addHyperlinkListener {
+        if (it.eventType == EventType.ACTIVATED && it.description == "configuration-cache") actionHandlers.openConfigurationCacheWarnings()
+      }
+    })
   }
 
   private val linksPanel = JPanel().apply {
@@ -86,7 +94,8 @@ class BuildOverviewPageView(
     val gcTime = model.reportUiData.buildSummary.garbageCollectionTime
     val panelHeader = "<b>Gradle Daemon Memory Utilization</b>"
     val descriptionText: String = buildString {
-      append("${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
+      append(
+        "${gcTime.percentageStringHtml()} (${gcTime.durationStringHtml()}) of your build’s time was dedicated to garbage collection during this build.<br/>")
       if (model.shouldWarnAboutGC) {
         append("To reduce the amount of time spent on garbage collection, please consider increasing the Gradle daemon heap size.<br/>")
       }
@@ -109,7 +118,7 @@ class BuildOverviewPageView(
     """.trimMargin())
     defaultGCUsageWarning.name = "no-gc-setting-warning"
     defaultGCUsageWarning.addHyperlinkListener { e ->
-      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+      if (e.eventType == EventType.ACTIVATED) {
         if (e.description == "suppress") {
           val confirmationResult = Messages.showOkCancelDialog(
             "Click OK to hide this warning in future builds.",

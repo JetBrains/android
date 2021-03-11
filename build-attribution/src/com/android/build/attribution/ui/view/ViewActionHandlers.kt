@@ -77,6 +77,9 @@ interface ViewActionHandlers {
   /** Called when selection in warnings grouping control is changed by the user. */
   fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean)
 
-  /** Called when user clicks and confirms on a GC warning hiding link.  */
+  /** Called when user clicks and confirms on a GC warning hiding link. */
   fun dontShowAgainNoGCSettingWarningClicked()
+
+  /** Called when user clicks on configuration cache link on build overview page. */
+  fun openConfigurationCacheWarnings()
 }
