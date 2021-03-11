@@ -22,9 +22,8 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.util.EnumSet
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 /**
  * Client for communicating with the agent.
@@ -54,7 +53,7 @@ interface InspectorClient {
     SUPPORTS_FILTERING_SYSTEM_NODES,
 
     /**
-     * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
+     * Indicates that this client is able to send [LayoutInspectorViewProtocol.Screenshot.Type.SKP] screenshots.
      */
     SUPPORTS_SKP,
 
@@ -130,6 +129,11 @@ interface InspectorClient {
    * [isCapturing] is true.
    */
   fun refresh()
+
+  /**
+   * Set the requested screenshot type and zoom to be provided by the device.
+   */
+  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float = 1.0f) {}
 
   /**
    * Report this client's capabilities so that external systems can check what functionality is

@@ -157,6 +157,6 @@ class AppInspectionInspectorClient(
     }
   }
 
-  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type, scale: Float = 1.0f) =
+  override fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float) =
     viewInspector.updateScreenshotType(type, scale)
 }

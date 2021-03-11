@@ -144,12 +144,14 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  fun updateScreenshotType(type: Screenshot.Type, scale: Float = 1.0f) {
+  fun updateScreenshotType(type: Screenshot.Type?, scale: Float = 1.0f) {
     scope.launch {
       messenger.sendCommand {
         updateScreenshotTypeCommandBuilder.apply {
-          this.type = type
-          this.scale = scale
+          if (type != null) {
+            this.type = type
+          }
+          this.scale = if (scale == 0f) 1f else scale
         }
       }
     }
