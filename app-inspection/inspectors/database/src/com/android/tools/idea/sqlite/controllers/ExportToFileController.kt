@@ -45,10 +45,12 @@ import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.android.tools.idea.sqlite.model.isQueryStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination
+import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.openapi.Disposable
@@ -56,6 +58,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -129,23 +132,34 @@ class ExportToFileController(
   }
 
   private suspend fun export(params: ExportRequest) = withContext(edtDispatcher) {
+    val stopwatch = Stopwatch.createStarted()
     try {
-      val stopwatch = Stopwatch.createStarted()
       doExport(params)
       stopwatch.stop()
 
-      trackExportCompleted(params, stopwatch.elapsed(MILLISECONDS)) // TODO(161081452): confirm only recording success cases
+      trackExportCompleted(params, stopwatch.elapsed(MILLISECONDS), Outcome.SUCCESS_OUTCOME)
       notifyExportComplete(params)
     }
     catch (t: Throwable) {
       // TODO(161081452): refine what we catch
       // TODO(161081452): add logging
+
+      stopwatch.stop()
+
+      val outcome = when(t) {
+        // TODO(161081452): update with CANCELLED_BY_OFFLINE_MODE_CHANGE_OUTCOME once offline-mode-triggered cancellation is implemented
+        is UserCancellationException -> Outcome.CANCELLED_BY_USER_OUTCOME
+        is CancellationException -> Outcome.CANCELLED_OTHER_OUTCOME
+        else -> Outcome.ERROR_OUTCOME
+      }
+
+      trackExportCompleted(params, stopwatch.elapsed(MILLISECONDS), outcome)
       notifyExportError(params, t)
     }
   }
 
   /** Notifies [analyticsTracker] of a successful export operation */
-  private fun trackExportCompleted(params: ExportRequest, exportDurationMs: Long) {
+  private fun trackExportCompleted(params: ExportRequest, exportDurationMs: Long, outcome: Outcome) {
     val source: Source = when (params) {
       is ExportDatabaseRequest -> Source.DATABASE_SOURCE
       is ExportTableRequest -> Source.TABLE_SOURCE
@@ -164,7 +178,7 @@ class ExportToFileController(
       is LiveSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_ONLINE
       is FileSqliteDatabaseId -> ConnectivityState.CONNECTIVITY_OFFLINE
     }
-    analyticsTracker.trackExportCompleted(source, sourceFormat, destination, exportDurationMs.toInt(), connectivityState)
+    analyticsTracker.trackExportCompleted(source, sourceFormat, destination, exportDurationMs.toInt(), outcome, connectivityState)
   }
 
   private suspend fun doExport(params: ExportRequest): Unit = withContext(taskDispatcher) {
