@@ -73,9 +73,13 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
+/** Timeout used in this test. While debugging, you may want extend the timeout */
+private const val TIMEOUT = 1L
+private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionPropertiesProviderTest {
@@ -777,7 +781,7 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -787,7 +791,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[3]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("text", PropertyType.STRING, "Next")
@@ -798,7 +802,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[4]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("minWidth", PropertyType.INT32, "200")
@@ -810,7 +814,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
@@ -831,7 +835,7 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -841,7 +845,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[1]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
       // Technically the view with ID #1 has no properties, but synthetic properties are always added
       result.table.run {
@@ -865,8 +869,8 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedSignal.take() // Event triggered by tree #1
-    modelUpdatedSignal.take() // Event triggered by tree #2
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #2
 
     val provider = inspectorRule.inspectorClient.provider
 
@@ -899,7 +903,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(nodeInTree1).get() // First fetch after layout event, not cached
     assertThat(inspectorState.getPropertiesRequestCountFor(nodeInTree1.drawId)).isEqualTo(2)
@@ -921,7 +925,7 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because everything should
     // be cached now.
@@ -936,7 +940,7 @@ class AppInspectionPropertiesProviderTest {
       assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       inspectorRule.inspectorModel[id]!!.let { targetNode ->
         provider.requestProperties(targetNode).get()
-        val result = resultQueue.take()
+        val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
         assertThat(result.view).isSameAs(targetNode)
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
@@ -953,7 +957,7 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -963,7 +967,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-2]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("text", PropertyType.STRING, "placeholder")
@@ -973,7 +977,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-3]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("maxLines", PropertyType.INT32, "16")
@@ -983,7 +987,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-4]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
@@ -995,7 +999,7 @@ class AppInspectionPropertiesProviderTest {
 
     val parameter = inspectorRule.inspectorModel[-5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
 
       result.table.run {
@@ -1025,7 +1029,7 @@ class AppInspectionPropertiesProviderTest {
         propertyExpandedLatch.countDown()
       }
     }
-    propertyExpandedLatch.await()
+    propertyExpandedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // The last element of parameter is a reference to a value that has not been loaded from the agent yet.
     // When the last element is expanded in the UI the child elements will be loaded from the agent.
@@ -1048,7 +1052,7 @@ class AppInspectionPropertiesProviderTest {
         propertyDownloadedLatch.countDown()
       }
     }
-    propertyDownloadedLatch.await()
+    propertyDownloadedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // The list parameter from the expanded parameter is a List of String where only a part of the elements
     // have been downloaded. Download some more elements (first time).
@@ -1070,7 +1074,7 @@ class AppInspectionPropertiesProviderTest {
       // Click the "Show more" link:
       showMoreItem.link.actionPerformed(event1)
     }
-    moreListElements1.await()
+    moreListElements1.await(TIMEOUT, TIMEOUT_UNIT)
     assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNotNull()
     assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
@@ -1099,7 +1103,7 @@ class AppInspectionPropertiesProviderTest {
       // Click the "Show more" link:
       showMoreItem.link.actionPerformed(event2)
     }
-    moreListElements2.await()
+    moreListElements2.await(TIMEOUT, TIMEOUT_UNIT)
     assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNull()
     assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
@@ -1122,8 +1126,8 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedSignal.take() // Event triggered by tree #1
-    modelUpdatedSignal.take() // Event triggered by tree #2
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #2
 
     val provider = inspectorRule.inspectorClient.provider
 
@@ -1142,7 +1146,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(composableNode).get() // First fetch after layout event, not cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
@@ -1153,7 +1157,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the second tree, which should not affect the cache of the
     // first
     inspectorState.triggerLayoutCapture(rootId = 101)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(composableNode).get()  // Should still be cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
@@ -1169,7 +1173,7 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because everything should
     // be cached now.
@@ -1184,7 +1188,7 @@ class AppInspectionPropertiesProviderTest {
       assertThat(inspectorState.getParametersRequestCountFor(id)).isEqualTo(0)
       inspectorRule.inspectorModel[id]!!.let { targetNode ->
         provider.requestProperties(targetNode).get()
-        val result = resultQueue.take()
+        val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
         assertThat(result.view).isSameAs(targetNode)
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
