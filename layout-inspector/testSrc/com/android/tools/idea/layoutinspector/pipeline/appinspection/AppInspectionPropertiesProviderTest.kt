@@ -52,6 +52,7 @@ import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable2.PTable
@@ -61,7 +62,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.openapi.application.runInEdt
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import org.junit.Before
@@ -72,7 +72,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
@@ -775,7 +774,7 @@ class AppInspectionPropertiesProviderTest {
   fun canQueryPropertiesForViews() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
@@ -829,7 +828,7 @@ class AppInspectionPropertiesProviderTest {
   fun syntheticPropertiesAlwaysAdded() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
@@ -919,7 +918,7 @@ class AppInspectionPropertiesProviderTest {
   fun snapshotModeSendsAllPropertiesAtOnce() {
     InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
@@ -951,7 +950,7 @@ class AppInspectionPropertiesProviderTest {
   fun canQueryParametersForComposables() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
@@ -1016,8 +1015,8 @@ class AppInspectionPropertiesProviderTest {
 
     // The 1st element of parameter is a reference to parameter itself.
     // When the 1st sub element is expanded in the UI the child elements should be copied from parameter.
-    val propertyExpandedLatch = CountDownLatch(1)
-    runInEdt {
+    val propertyExpandedLatch = ReportingCountDownLatch(1)
+    propertyExpandedLatch.runInEdt {
       val first = parameter.children.first() as ParameterGroupItem
       assertThat(first.children).isEmpty()
       first.expandWhenPossible { restructured ->
@@ -1033,9 +1032,9 @@ class AppInspectionPropertiesProviderTest {
 
     // The last element of parameter is a reference to a value that has not been loaded from the agent yet.
     // When the last element is expanded in the UI the child elements will be loaded from the agent.
-    val propertyDownloadedLatch = CountDownLatch(1)
+    val propertyDownloadedLatch = ReportingCountDownLatch(1)
     val last = parameter.children.last() as ParameterGroupItem
-    runInEdt {
+    propertyDownloadedLatch.runInEdt {
       assertThat(last.children).isEmpty()
       last.expandWhenPossible { restructured ->
         assertThat(restructured).isTrue()
@@ -1056,7 +1055,7 @@ class AppInspectionPropertiesProviderTest {
 
     // The list parameter from the expanded parameter is a List of String where only a part of the elements
     // have been downloaded. Download some more elements (first time).
-    val moreListElements1 = CountDownLatch(1)
+    val moreListElements1 = ReportingCountDownLatch(1)
     val table1 = spy(PTable.create(mock()))
     val event1: AnActionEvent = mock()
     doAnswer {
@@ -1069,7 +1068,7 @@ class AppInspectionPropertiesProviderTest {
       table1.component
     }.`when`(event1).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
     val list = last.children.last() as ParameterGroupItem
-    runInEdt {
+    moreListElements1.runInEdt {
       val showMoreItem = list.children[2] as ShowMoreElementsItem
       // Click the "Show more" link:
       showMoreItem.link.actionPerformed(event1)
@@ -1086,7 +1085,7 @@ class AppInspectionPropertiesProviderTest {
     assertThat(list.children.size).isEqualTo(5)
 
     // Expand the list a second time:
-    val moreListElements2 = CountDownLatch(1)
+    val moreListElements2 = ReportingCountDownLatch(1)
     val table2 = spy(PTable.create(mock()))
     val event2: AnActionEvent = mock()
     doAnswer {
@@ -1098,7 +1097,7 @@ class AppInspectionPropertiesProviderTest {
     doAnswer {
       table2.component
     }.`when`(event2).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
-    runInEdt {
+    moreListElements2.runInEdt {
       val showMoreItem = list.children[4] as ShowMoreElementsItem
       // Click the "Show more" link:
       showMoreItem.link.actionPerformed(event2)
@@ -1167,7 +1166,7 @@ class AppInspectionPropertiesProviderTest {
   fun snapshotModeSendsAllParametersAtOnce() {
     InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
