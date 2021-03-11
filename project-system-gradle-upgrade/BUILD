@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-6.5",
         "//tools/base/build-system:gradle-distrib-6.7.1",
         "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:4.0.0",
         "//tools/base/build-system/previous-versions:4.1.0",
         "//tools/base/build-system/previous-versions:4.2.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
