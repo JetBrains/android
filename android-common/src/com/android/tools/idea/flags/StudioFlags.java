@@ -160,6 +160,12 @@ public final class StudioFlags {
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
     "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
     true);
+
+  public static final Flag<Boolean> PROFILEABLE = Flag.create(
+    PROFILER, "profileable", "Support profileable processes on S+",
+    "Show profileable processes on S and later",
+    false
+  );
   //endregion
 
   //region ML

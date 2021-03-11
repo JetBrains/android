@@ -157,6 +157,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myUseTraceProcessor = true;
 
   /**
+   * Whether we support profileable processes
+   */
+  private boolean myProfileableEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -286,6 +291,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
+      }
+
+      @Override
+      public boolean isProfileableEnabled() {
+        return myProfileableEnabled;
       }
 
       @Override
@@ -479,8 +489,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
-
   public void enableUseTraceProcessor(boolean enabled) {
     myUseTraceProcessor = enabled;
+  }
+
+  public void enableProfileable(boolean enabled) {
+    myProfileableEnabled = enabled;
   }
 }
