@@ -47,6 +47,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -205,7 +206,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
                     @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ClassBinaryCache cache,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache);
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache, !SystemInfo.isWindows);
     Disposer.register(renderContext.getModule(), this);
     myModuleReference = new WeakReference<>(renderContext.getModule());
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
