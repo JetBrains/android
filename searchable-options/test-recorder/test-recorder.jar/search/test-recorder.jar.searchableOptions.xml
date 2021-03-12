@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="espresso" path="ActionManager" hit="Record Espresso Test" />
@@ -97,4 +96,3 @@
     <option name="use" hit="Use text for element matching" />
   </configurable>
 </options>
-

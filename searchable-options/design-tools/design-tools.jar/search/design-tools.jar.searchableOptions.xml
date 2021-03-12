@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="action" path="ActionManager" hit="Add Action" />
@@ -188,4 +187,3 @@
     <option name="split" hit="Split" />
   </configurable>
 </options>
-

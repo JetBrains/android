@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="add" path="ActionManager" hit="Add Cloud snapshot location" />
@@ -28,4 +27,3 @@
     <option name="source" path="ActionManager" hit="Setup on Google Cloud Source Repositories..." />
   </configurable>
 </options>
-

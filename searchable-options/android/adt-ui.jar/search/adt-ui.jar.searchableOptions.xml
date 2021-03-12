@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
     <option name="reset" path="ActionManager" hit="Reset Zoom" />
@@ -42,4 +41,3 @@
     <option name="zoom" path="ActionManager" hit="Zoom to actual size of preview" />
   </configurable>
 </options>
-
