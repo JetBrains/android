@@ -34,10 +34,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], for disabling [StudioFlags.AUTO_IMPORT] specific tests.
+ * Tests for [AndroidMavenImportIntentionAction], for disabling [StudioFlags.SUGGESTED_IMPORT] specific tests.
  */
 @RunsInEdt
-class AndroidMavenImportIntentionActionAutoImportDisabledTest {
+class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule

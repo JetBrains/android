@@ -139,8 +139,8 @@ class MavenImportUtilsKtTest {
   private fun verify(artifactId: String) {
     val event = tracker.usages
       .map { it.studioEvent }
-      .filter { it.kind == AndroidStudioEvent.EventKind.AUTO_IMPORT_EVENT }
-      .map { it.autoImportEvent }
+      .filter { it.kind == AndroidStudioEvent.EventKind.SUGGESTED_IMPORT_EVENT }
+      .map { it.suggestedImportEvent }
       .single()
 
     assertThat(event.artifactId).isEqualTo(artifactId)

@@ -36,7 +36,7 @@ import org.junit.runners.Parameterized
 
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], regardless of enabling or disabling [StudioFlags.AUTO_IMPORT].
+ * Tests for [AndroidMavenImportIntentionAction], regardless of enabling or disabling [StudioFlags.SUGGESTED_IMPORT].
  */
 @RunsInEdt
 @RunWith(Parameterized::class)

@@ -33,10 +33,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], for enabling [StudioFlags.AUTO_IMPORT] specific tests.
+ * Tests for [AndroidMavenImportIntentionAction], for enabling [StudioFlags.SUGGESTED_IMPORT] specific tests.
  */
 @RunsInEdt
-class AndroidMavenImportIntentionActionAutoImportEnabledTest {
+class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule

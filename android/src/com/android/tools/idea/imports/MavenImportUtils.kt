@@ -19,7 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AutoImportEvent
+import com.google.wireless.android.sdk.stats.SuggestedImportEvent
 
 /**
  * Tracks user interaction with suggested import support.
@@ -29,12 +29,12 @@ import com.google.wireless.android.sdk.stats.AutoImportEvent
 internal fun trackSuggestedImport(artifactId: String) {
   if (!StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) return
 
-  val autoImportEvent = AutoImportEvent.newBuilder()
+  val suggestedImportEvent = SuggestedImportEvent.newBuilder()
     .setArtifactId(artifactId)
 
   AndroidStudioEvent.newBuilder()
-    .setKind(AndroidStudioEvent.EventKind.AUTO_IMPORT_EVENT) //TODO: rename to suggested import.
-    .setAutoImportEvent(autoImportEvent)
+    .setKind(AndroidStudioEvent.EventKind.SUGGESTED_IMPORT_EVENT)
+    .setSuggestedImportEvent(suggestedImportEvent)
     .let { UsageTracker.log(it) }
 }
 
