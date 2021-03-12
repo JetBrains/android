@@ -106,8 +106,21 @@ class UtpTestResultAdapter(private val protoFile: File) {
           deviceInfo.displayName(),
           deviceInfo.avdName,
           deviceType,
-          AndroidVersion(deviceInfo.apiLevel)
-        )
+          AndroidVersion(deviceInfo.apiLevel),
+        )?.apply {
+          if (deviceInfo.manufacturer.isNotBlank()) {
+            additionalInfo["Manufacturer"] = deviceInfo.manufacturer
+          }
+          if (deviceInfo.model.isNotBlank()) {
+            additionalInfo["Model"] = deviceInfo.model
+          }
+          if (deviceInfo.processorsCount > 0) {
+            additionalInfo["Processor"] = deviceInfo.processorsList.joinToString("\n")
+          }
+          if (deviceInfo.ramInBytes > 0) {
+            additionalInfo["RAM"] = String.format("%.1f GB", deviceInfo.ramInBytes.toFloat() / 1000 / 1000 / 1000)
+          }
+        }
         id += 1
         return@map DeviceTestSuite(device)
       }
