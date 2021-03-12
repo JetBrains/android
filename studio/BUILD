@@ -55,6 +55,7 @@ studio_plugin(
         "//tools/adt/idea/nav/editor:eclipse-layout-kernel",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
