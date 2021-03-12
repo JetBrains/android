@@ -34,7 +34,8 @@ class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension()
     parameters: MutableMap<String, String>) {
     try {
       val addTestListenerScript = ResourceUtil.getResource(
-        GradleAndroidProjectResolverExtension::class.java, "utp", "addGradleAndroidTestListener.gradle.kts")
+        GradleAndroidProjectResolverExtension::class.java, "utp", "addGradleAndroidTestListener.gradle")
+      // Note: initScriptConsumer doesn't support Kotlin DSL.
       initScriptConsumer.consume(Resources.toString(addTestListenerScript, Charsets.UTF_8))
     }
     catch (e: Exception) {
