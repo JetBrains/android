@@ -91,7 +91,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     scheduler.execute(ServerFlagDownloader::downloadServerFlagList);
 
     setupAnalytics();
-    disableKaptImportHandlers();
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
@@ -246,11 +245,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }
-  }
-
-  private static void disableKaptImportHandlers() {
-    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
-    resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.intellij.projectImport.ProjectOpenProcessor
-import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor
+import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 
-class AndroidGradleOpenProjectProcessorInitializer : Runnable {
+class DisableKaptProjectResolverExtensionInitializer : Runnable {
   override fun run() {
-    ProjectOpenProcessor.EXTENSION_POINT_NAME.getPoint().unregisterExtension(GradleProjectOpenProcessor::class.java)
+    val resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.point
+    resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension::class.java)
   }
 }
