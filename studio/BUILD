@@ -112,6 +112,7 @@ studio_plugin(
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
             "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
+            "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",

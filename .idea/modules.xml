@@ -128,6 +128,8 @@
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/databinding/intellij.android.databinding.iml" filepath="$PROJECT_DIR$/databinding/intellij.android.databinding.iml" />
       <module fileurl="file://$PROJECT_DIR$/databinding/intellij.android.databinding.tests.iml" filepath="$PROJECT_DIR$/databinding/intellij.android.databinding.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/debuggers/intellij.android.debuggers.iml" filepath="$PROJECT_DIR$/debuggers/intellij.android.debuggers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/debuggers/intellij.android.debuggers.tests.iml" filepath="$PROJECT_DIR$/debuggers/intellij.android.debuggers.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/deploy/intellij.android.deploy.iml" filepath="$PROJECT_DIR$/deploy/intellij.android.deploy.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer/intellij.android.designer.iml" filepath="$PROJECT_DIR$/designer/intellij.android.designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" filepath="$PROJECT_DIR$/designer-perf-tests/intellij.android.designer-perf-tests.iml" />
