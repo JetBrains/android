@@ -16,10 +16,13 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
+import com.android.tools.idea.nav.safeargs.psi.GRADLE_VERSION_ZERO
+import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtArgsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtDirectionsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.getKotlinType
@@ -66,6 +69,9 @@ class KtDescriptorCacheModuleService(val module: Module) {
   @GuardedBy("lock")
   private var lastModificationCount = -1L
 
+  @GuardedBy("lock")
+  private var lastVersion = GRADLE_VERSION_ZERO
+
   private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
 
   class NavEntryKt(
@@ -85,24 +91,25 @@ class KtDescriptorCacheModuleService(val module: Module) {
     ProgressManager.checkCanceled()
 
     if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
+    val facet = module.androidFacet!!
 
     if (DumbService.isDumb(module.project)) {
       LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
       return descriptorsCache
     }
 
-    val packageFqName = AndroidFacet.getInstance(module)?.let {
-      val packageName = getPackageName(it) ?: return@let null
-      FqName(packageName)
-    } ?: return descriptorsCache
+    val packageFqName = getPackageName(facet)?.let { packageName -> FqName(packageName) }
+                        ?: return descriptorsCache
 
     synchronized(lock) {
       val now = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
+      val currVersion = facet.findNavigationVersion()
 
-      if (lastModificationCount != now) {
+      if (lastModificationCount != now || lastVersion != currVersion) {
         val moduleNavResources = getNavResourceFromIndex()
 
         val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
+
 
         val packageDescriptors = packageResourceData.moduleNavResource
           .asSequence()
@@ -110,8 +117,9 @@ class KtDescriptorCacheModuleService(val module: Module) {
             val backingXmlFile = PsiManager.getInstance(module.project).findFile(navEntry.file)
             val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
 
-            val packages = createArgsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString()) +
-                           createDirectionsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString())
+            val packages =
+              createArgsPackages(moduleDescriptor, currVersion, navEntry, sourceElement, packageFqName.asString()) +
+              createDirectionsPackages(moduleDescriptor, navEntry, sourceElement, packageFqName.asString())
 
             packages.asSequence()
           }
@@ -119,6 +127,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
         descriptorsCache = packageDescriptors
         lastModificationCount = now
+        lastVersion = currVersion
       }
 
       // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService
@@ -163,6 +172,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
 
   private fun createArgsPackages(
     moduleDescriptor: ModuleDescriptor,
+    navigationVersion: GradleVersion,
     entry: NavEntryKt,
     sourceElement: SourceElement,
     modulePackage: String,
@@ -194,8 +204,8 @@ class KtDescriptorCacheModuleService(val module: Module) {
           listOf(ktType)
         }
 
-        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), packageName, className,
-                                                        destination, superTypesProvider, resolvedSourceElement, storageManager)
+        val packageDescriptor = KtArgsPackageDescriptor(SafeArgsModuleInfo(moduleDescriptor, module), navigationVersion, packageName,
+                                                        className, destination, superTypesProvider, resolvedSourceElement, storageManager)
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }

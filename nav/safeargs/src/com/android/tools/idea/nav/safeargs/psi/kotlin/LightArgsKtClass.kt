@@ -16,7 +16,9 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
@@ -70,11 +72,13 @@ import org.jetbrains.kotlin.utils.Printer
  *
  *       companion object {
  *          fun fromBundle(bundle: Bundle): FirstFragmentArgs
+ *          fun fromSavedStateHandle(handle: SavedStateHandle): FirstFragmentArgs
  *       }
  *
  * ```
  */
 class LightArgsKtClass(
+  private val navigationVersion: GradleVersion,
   name: Name,
   private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,
@@ -123,23 +127,44 @@ class LightArgsKtClass(
 
       private inner class CompanionScope : MemberScopeImpl() {
         private val companionMethods = storageManager.createLazyValue {
-          val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
+          val methods = mutableListOf<SimpleFunctionDescriptor>()
+
+          val fromBundleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
             val bundleType = argsClassDescriptor.builtIns.getKotlinType("android.os.Bundle", null, argsClassDescriptor.module)
-            val valueParameter = ValueParameterDescriptorImpl(
+            val bundleParam = ValueParameterDescriptorImpl(
               method, null, 0, Annotations.EMPTY, Name.identifier("bundle"), bundleType,
               false, false, false, null, SourceElement.NO_SOURCE
             )
-            listOf(valueParameter)
+            listOf(bundleParam)
           }
 
-          val fromBundle = argsClassDescriptor.createMethod(
+          methods.add(argsClassDescriptor.createMethod(
             name = "fromBundle",
             returnType = argsClassDescriptor.getDefaultType(),
             dispatchReceiver = companionObject,
-            valueParametersProvider = valueParametersProvider
-          )
+            valueParametersProvider = fromBundleParametersProvider
+          ))
 
-          listOf(fromBundle)
+          if (navigationVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+            val fromSavedStateHandleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
+              val handleType =
+                argsClassDescriptor.builtIns.getKotlinType("androidx.lifecycle.SavedStateHandle", null, argsClassDescriptor.module)
+              val handleParam = ValueParameterDescriptorImpl(
+                method, null, 0, Annotations.EMPTY, Name.identifier("savedStateHandle"), handleType,
+                false, false, false, null, SourceElement.NO_SOURCE
+              )
+              listOf(handleParam)
+            }
+
+            methods.add(argsClassDescriptor.createMethod(
+              name = "fromSavedStateHandle",
+              returnType = argsClassDescriptor.getDefaultType(),
+              dispatchReceiver = companionObject,
+              valueParametersProvider = fromSavedStateHandleParametersProvider
+            ))
+          }
+
+          methods
         }
 
         override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,

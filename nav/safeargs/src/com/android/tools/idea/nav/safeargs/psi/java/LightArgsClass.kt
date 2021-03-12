@@ -16,11 +16,12 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
-import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -48,6 +49,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * ```
  *  class EditorFragmentArgs implements NavArgs {
  *    static EditorFragmentArgs fromBundle(Bundle bundle);
+ *    static EditorFragmentArgs fromSavedStateHandle(SavedStateHandle handle);
  *    Bundle toBundle();
  *    String getMessage();
  *  }
@@ -55,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class LightArgsClass(facet: AndroidFacet,
                      private val modulePackage: String,
+                     private val navigationVersion: GradleVersion,
                      navigationResource: ResourceItem,
                      val destination: NavDestinationData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, destination) {
@@ -93,24 +96,35 @@ class LightArgsClass(facet: AndroidFacet,
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
     val bundleType = parsePsiType(modulePackage, "android.os.Bundle", null, this)
-    val fromBundle = createMethod(name = "fromBundle",
-                                  modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                                  returnType = annotateNullability(thisType))
-      .addParameter("bundle", bundleType)
 
-    val toBundle = createMethod(
-      name = "toBundle",
-      returnType = annotateNullability(bundleType)
-    )
+    val methods = mutableListOf<PsiMethod>()
 
-    val getters: Array<PsiMethod> = destination.arguments.map { arg ->
+    methods.addAll(destination.arguments.map { arg ->
       val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       createMethod(name = "get${arg.name.toUpperCamelCase()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
                    returnType = annotateNullability(psiType, arg.isNonNull()))
-    }.toTypedArray()
+    })
 
-    return getters + fromBundle + toBundle
+    methods.add(createMethod(name = "fromBundle",
+                             modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                             returnType = annotateNullability(thisType))
+                  .addParameter("bundle", bundleType))
+
+    if (navigationVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+      val savedStateHandleType = parsePsiType(modulePackage, "androidx.lifecycle.SavedStateHandle", null, this)
+      methods.add(createMethod(name = "fromSavedStateHandle",
+                               modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                               returnType = annotateNullability(thisType))
+                    .addParameter("savedStateHandle", savedStateHandleType))
+    }
+
+    methods.add(createMethod(
+      name = "toBundle",
+      returnType = annotateNullability(bundleType)
+    ))
+
+    return methods.toTypedArray()
   }
 
   private fun computeFields(): Array<PsiField> {
