@@ -510,6 +510,13 @@
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor"
                             order="last, before javaLegacy"/>
+    <completion.contributor language="any"
+                            implementationClass="com.android.tools.idea.gradle.completions.GradleDependencyCompletionContributor" />
+    <completion.confidence language="any"
+                           id="EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInStringLiteralForGradleDependencyCompletion"
+                           order="first"/>
+
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
     <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"
