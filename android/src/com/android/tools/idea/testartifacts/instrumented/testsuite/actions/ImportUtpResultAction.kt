@@ -133,7 +133,7 @@ class ImportUtpResultAction(icon: Icon? = null,
     val defaultPath = getDefaultAndroidGradlePluginTestOutputFile(project)
     chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
-        .withFileFilter { it.extension == "pb" },
+        .withFileFilter { it.name == "test-result.pb" },
       e.project,
       defaultPath
     ) { file: VirtualFile ->
