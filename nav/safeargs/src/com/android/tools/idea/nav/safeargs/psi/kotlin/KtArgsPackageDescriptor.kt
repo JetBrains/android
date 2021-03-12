@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModuleInfo
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -39,6 +40,7 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  */
 class KtArgsPackageDescriptor(
   private val containingModuleInfo: SafeArgsModuleInfo,
+  private val navigationVersion: GradleVersion,
   fqName: FqName,
   val className: Name,
   private val destination: NavDestinationData,
@@ -58,7 +60,7 @@ class KtArgsPackageDescriptor(
 
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
     private val lightClass = storageManager.createLazyValue {
-      LightArgsKtClass(className, destination, superTypesProvider(safeArgsPackageDescriptor),
+      LightArgsKtClass(navigationVersion, className, destination, superTypesProvider(safeArgsPackageDescriptor),
                        sourceElement, safeArgsPackageDescriptor, storageManager)
     }
 
