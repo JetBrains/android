@@ -291,14 +291,22 @@ class UtpTestResultAdapterTest {
     val deviceApi2 = 28
     val deviceInfoProtoFile1 = temporaryFolder.newFile()
     val deviceInfoProtoFile2 = temporaryFolder.newFile()
+    val manufacturer1 = "manufacturer 1"
+    val manufacturer2 = "manufacturer 2"
+    val model1 = "model 1"
+    val model2 = "model 2"
     AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
       apiLevel = deviceApi1.toString()
       name = deviceName1
+      manufacturer = manufacturer1
+      model = model1
     }.build().writeTo(deviceInfoProtoFile1.outputStream())
     AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.newBuilder().apply {
       apiLevel = deviceApi2.toString()
       name = deviceName2
       avdName = deviceName2
+      manufacturer = manufacturer2
+      model = model2
     }.build().writeTo(deviceInfoProtoFile2.outputStream())
     val testClass1 = "ExampleInstrumentedTest1"
     val testClass2 = "ExampleInstrumentedTest2"
@@ -342,9 +350,11 @@ class UtpTestResultAdapterTest {
     utpTestResultAdapter.forwardResults(mockListener)
     val deviceMatcher1 = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == deviceName1 && device?.deviceType == AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+      && device.additionalInfo["Manufacturer"] == manufacturer1 && device.additionalInfo["Model"] == model1
     }
     val deviceMatcher2 = ArgumentMatcher<AndroidDevice> { device ->
       device?.deviceName == deviceName2 && device?.deviceType == AndroidDeviceType.LOCAL_EMULATOR
+      && device.additionalInfo["Manufacturer"] == manufacturer2 && device.additionalInfo["Model"] == model2
     }
     val testCaseMatcher1= ArgumentMatcher<AndroidTestCase> { testCase ->
       testCase?.methodName == testMethod1 && testCase?.className == testClass1 && testCase?.packageName == TEST_PACKAGE_NAME
