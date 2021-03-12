@@ -23,7 +23,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 
 /**
- * Lookup from class names to maven.google.com artifacts by reading indices from [GMavenIndexRepository].
+ * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
  *
  * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes` to include in
  * go/studio-auto-import-packages.
@@ -56,6 +56,10 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
   override fun findKtxLibrary(artifact: String): String? {
     return lookup.ktxMap[artifact]
+  }
+
+  override fun getCoordinates(): Collection<Coordinate> {
+    return lookup.coordinateList
   }
 
   private fun generateLookup(): LookupData {
@@ -91,6 +95,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   private fun readIndexArray(reader: JsonReader): LookupData {
     val fqcnMap = mutableMapOf<String, List<Library>>()
     val ktxMap = mutableMapOf<String, String>()
+    val coordinateList = mutableListOf<Coordinate>()
 
     reader.beginArray()
     while (reader.hasNext()) {
@@ -111,12 +116,15 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
         }
 
       // Update "artifact to the associated KTX artifact" map.
-      val entry = indexData.toKtxMapEntry() ?: continue
-      ktxMap[entry.targetLibrary] = entry.ktxLibrary
+      indexData.toKtxMapEntry()?.let {
+        ktxMap[it.targetLibrary] = it.ktxLibrary
+      }
 
+      // Update maven artifact coordinate list.
+      coordinateList.add(Coordinate(indexData.groupId, indexData.artifactId, indexData.version))
     }
     reader.endArray()
-    return LookupData(fqcnMap, ktxMap)
+    return LookupData(fqcnMap, ktxMap, coordinateList)
   }
 
   @Throws(IOException::class)
@@ -240,21 +248,26 @@ data class GMavenArtifactIndex(
 data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
 
 /**
- * Lookup data extracted from a index file.
+ * Lookup data extracted from an index file.
  */
 data class LookupData(
   /**
-   * A map from simple class names to the corresponding [MavenClassRegistryBase.Library]s
+   * A map from simple class names to the corresponding [MavenClassRegistryBase.Library] objects.
    */
   val classNameMap: Map<String, List<MavenClassRegistryBase.Library>>,
   /**
    * A map from non-KTX libraries to the associated KTX libraries.
    */
-  val ktxMap: Map<String, String>
+  val ktxMap: Map<String, String>,
+
+  /**
+   * A list of Google Maven [MavenClassRegistryBase.Coordinate].
+   */
+  val coordinateList: List<MavenClassRegistryBase.Coordinate>,
 ) {
   companion object {
     @JvmStatic
-    val EMPTY = LookupData(emptyMap(), emptyMap())
+    val EMPTY = LookupData(emptyMap(), emptyMap(), emptyList())
   }
 }
 

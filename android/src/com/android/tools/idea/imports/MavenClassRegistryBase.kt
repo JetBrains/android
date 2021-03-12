@@ -16,7 +16,7 @@
 package com.android.tools.idea.imports
 
 /**
- * Lookup from class names to maven.google.com artifacts.
+ * Registry provides lookup service for Google Maven Artifacts when asked.
  */
 abstract class MavenClassRegistryBase {
   /**
@@ -29,6 +29,11 @@ abstract class MavenClassRegistryBase {
   data class Library(val artifact: String, val packageName: String, val version: String? = null)
 
   /**
+   * Coordinate for Google Maven artifact.
+   */
+  data class Coordinate(val groupId: String, val artifactId: String, val version: String)
+
+  /**
    * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.
    */
   abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
@@ -37,6 +42,11 @@ abstract class MavenClassRegistryBase {
    * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx library is provided.
    */
   abstract fun findKtxLibrary(artifact: String): String?
+
+  /**
+   * Returns a collection of [Coordinate].
+   */
+  abstract fun getCoordinates(): Collection<Coordinate>
 
   /**
    * For the given runtime artifact, if it also requires an annotation processor, provide it
