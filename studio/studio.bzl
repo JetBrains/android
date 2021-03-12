@@ -4,8 +4,8 @@ load("//tools/base/bazel:utils.bzl", "dir_archive")
 load("@bazel_tools//tools/jdk:toolchain_utils.bzl", "find_java_toolchain")
 
 def _zipper(ctx, desc, map, out, deps = []):
-    files = [f for (p, f) in map]
-    zipper_files = [r + "=" + f.path + "\n" for r, f in map]
+    files = [f for (p, f) in map if f]
+    zipper_files = [r + "=" + (f.path if f else "") + "\n" for r, f in map]
     zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
     zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
     zipper_args += ["@" + zipper_list.path]
@@ -445,7 +445,7 @@ def _android_studio_os(ctx, platform, out):
     for plugin, jars in searchable_options.items():
         for jar, so_files in jars.items():
             so_jar = ctx.actions.declare_file(ctx.attr.name + ".so.%s.%s.%s.zip" % (platform.name, plugin, jar))
-            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/%s" % f.basename, f) for f in so_files], so_jar)
+            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/", None)] + [("search/%s" % f.basename, f) for f in so_files], so_jar)
             so_jars += [("%splugins/%s/lib/%s" % (platform.base_path, plugin, jar), so_jar)]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
