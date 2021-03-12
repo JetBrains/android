@@ -40,11 +40,13 @@ class ImportTestsFromFileAction: AnAction(SmRunnerBundle.message("sm.test.runner
     FileChooser.chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
         .withFileFilter {
-          (it.extension == "pb" && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
+          (it.name == "test-result.pb" && StudioFlags.UTP_TEST_RESULT_SUPPORT.get())
           || FileTypeRegistry.getInstance().isFileOfType(it, XmlFileType.INSTANCE)
         },
       e.project, null) { file ->
-      if (file.extension == "pb") {
+      // The file filter does not work on Mac very well. Let's do our best and also
+      // handle the situation when users might select the text proto version.
+      if (file.extension == "pb" || file.extension == "textproto") {
         ImportUtpResultAction(importFile = file).actionPerformed(e)
       } else {
         object: AbstractImportTestsAction(null, null, null) {

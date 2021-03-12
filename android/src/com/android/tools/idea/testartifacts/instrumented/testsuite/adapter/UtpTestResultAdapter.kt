@@ -27,11 +27,15 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.Timestamp
+import com.google.protobuf.TextFormat
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.openapi.util.io.FileUtil.exists
 import java.io.File
+import java.io.IOException
+import java.nio.charset.Charset
+
 
 @VisibleForTesting
 const val DEVICE_INFO_LABEL = "device-info"
@@ -55,7 +59,17 @@ private typealias DeviceMap = Map<Pair<String, AndroidDeviceType>, DeviceTestSui
  * @param listener the listener to receive the test results
  */
 class UtpTestResultAdapter(private val protoFile: File) {
-  private val resultProto = TestSuiteResultProto.TestSuiteResult.parseFrom(protoFile.inputStream())
+  private val resultProto: TestSuiteResultProto.TestSuiteResult = protoFile.let {
+    if (it.extension == "textproto") {
+      val builder = TestSuiteResultProto.TestSuiteResult.newBuilder()
+      TextFormat.merge(it.readText(Charset.defaultCharset()),
+                       builder)
+      builder.build()
+    } else {
+      TestSuiteResultProto.TestSuiteResult.parseFrom(it.inputStream())
+    }
+  }
+
   private val dir = protoFile.parentFile
   private val deviceMap = getDeviceMap(dir, resultProto)
 
