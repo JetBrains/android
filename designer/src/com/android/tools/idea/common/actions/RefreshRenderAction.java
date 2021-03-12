@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.common.actions;
 
+import static com.android.tools.idea.ui.designer.DesignSurfaceNotificationManagerKt.NOTIFICATION_KEY;
+
 import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderUtils;
+import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -40,13 +43,13 @@ public class RefreshRenderAction extends AnAction {
       e.getPresentation().setEnabled(false);
       return;
     }
-    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null);
+    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null && e.getData(NOTIFICATION_KEY) != null);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
-    RenderUtils.clearCache(surface.getConfigurations());
-    surface.forceUserRequestedRefresh();
+    DesignSurfaceNotificationManager notification = e.getData(NOTIFICATION_KEY);
+    RenderUtils.refreshRenderAndNotify(surface, notification);
   }
 }
