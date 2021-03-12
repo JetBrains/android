@@ -1081,15 +1081,19 @@ public class RenderErrorContributor {
     }
     builder.endList();
 
-    builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-    builder.addLink("Tip: Try to ", "build", " the project.",
-                    myLinkManager.createBuildProjectUrl());
-    addRefreshAction(builder);
+    builder
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink("Tip: Try to ", "build", " the project.",
+                    myLinkManager.createBuildProjectUrl())
+      .newline()
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink("Tip: Try to ", "refresh", " the layout.",
+               myLinkManager.createRefreshRenderUrl())
+      .newline();
     if (foundCustomView) {
       builder.newline()
         .add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
     }
-    builder.newline().newline();
 
     addIssue()
       .setSeverity(HighlightSeverity.ERROR)

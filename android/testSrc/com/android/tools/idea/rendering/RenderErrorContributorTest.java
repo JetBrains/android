@@ -294,8 +294,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
@@ -315,8 +315,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
@@ -337,9 +337,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
-      "<BR/>",
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
       issues.get(0));
   }
 
@@ -830,9 +829,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
-      "<BR/>",
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
       issues.get(0));
   }
 
