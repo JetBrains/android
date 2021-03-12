@@ -64,6 +64,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,6 +122,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
 
   /** Notification panel to be used for the surface. */
   private final EditorNotificationPanel myNotificationPanel = new EditorNotificationPanel();
+
+  /** Timer used for notification that hides itself after timeout. */
+  @Nullable
+  private Timer myNotificationTimer;
 
   /**
    * Creates a new {@link DesignerEditorPanel}.
@@ -381,6 +386,36 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   public void showNotification(String text) {
     myNotificationPanel.setText(text);
     myNotificationPanel.setVisible(true);
+    if (myNotificationTimer != null && myNotificationTimer.isRunning()) {
+      // If new notification is showing stop any previous intents to timeout and hide.
+      myNotificationTimer.stop();
+    }
+  }
+
+  @Override
+  public void showThenHideNotification(String text, int timems) {
+    showNotification(text);
+    if (myNotificationTimer == null) {
+      myNotificationTimer = new Timer(timems, e -> {
+        hideNotification();
+      });
+      myNotificationTimer.setRepeats(false);
+      myNotificationTimer.start();
+      return;
+    }
+
+    if (myNotificationTimer.isRunning()) {
+      // This should not happen since showNotification should stop any timer.
+      // Safeguard incase showNotification impl changes.
+      Logger.getInstance("Notification")
+        .warn("Notification timer for DesignSurfaceNotificationManager should not be running at this time.");
+      return;
+    }
+
+    if (myNotificationTimer.getInitialDelay() != timems) {
+      myNotificationTimer.setInitialDelay(timems);
+    }
+    myNotificationTimer.restart();
   }
 
   @Override

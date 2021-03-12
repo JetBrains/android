@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.designer;
+package com.android.tools.idea.ui.designer
 
+import com.android.tools.idea.rendering.RenderUtils
 import com.intellij.openapi.actionSystem.DataKey
 
 /** Control for notification created through EditorNotification that spans over DesignSurface. */
@@ -23,11 +24,13 @@ interface DesignSurfaceNotificationManager {
   /** show notification with given text. */
   fun showNotification(text: String)
 
+  /** show and hide notification after [timems]*/
+  fun showThenHideNotification(text: String, timems: Int)
+
   /** hide the notification if it was showing. No-op otherwise. */
   fun hideNotification()
 }
 
-
-/** Data key to retrieve [DesignSurfaceNotificationManager] which controls the notification status of [NlDesignSurface] */
+/** Data key to retrieve [DesignSurfaceNotificationManager] which controls the notification status of [EditorDesignSurface] */
 @JvmField
 val NOTIFICATION_KEY = DataKey.create<DesignSurfaceNotificationManager>(DesignSurfaceNotificationManager::class.java.name)
