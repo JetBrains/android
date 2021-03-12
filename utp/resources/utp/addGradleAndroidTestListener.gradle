@@ -22,12 +22,12 @@ import java.lang.reflect.Proxy
  */
 class SetupUtpTestResultListenerAction implements Action<TaskExecutionGraph> {
 
-  static final ON_RESULT_TAG = "UTP_TEST_RESULT_ON_TEST_RESULT_EVENT"
-  static final ON_COMPLETED_TAG = "UTP_TEST_RESULT_ON_COMPLETED"
-  static final ON_ERROR_TAG = "UTP_TEST_RESULT_ON_ERROR"
-
   @Override
   void execute(TaskExecutionGraph taskGraph) {
+    final String ON_RESULT_TAG = "UTP_TEST_RESULT_ON_TEST_RESULT_EVENT"
+    final String ON_COMPLETED_TAG = "UTP_TEST_RESULT_ON_COMPLETED"
+    final String ON_ERROR_TAG = "UTP_TEST_RESULT_ON_ERROR"
+
     taskGraph.allTasks.each { task ->
       Class<?> testTaskClass
       try {

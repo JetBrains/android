@@ -13,3 +13,13 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
     ],
 )
+
+# Export addGradleAndroidTestListener.gradle init script for integration tests.
+genrule(
+    name = "addGradleAndroidTestListener",
+    testonly = 1,
+    srcs = ["resources/utp/addGradleAndroidTestListener.gradle"],
+    outs = ["addGradleAndroidTestListener.gradle"],
+    cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
+)
