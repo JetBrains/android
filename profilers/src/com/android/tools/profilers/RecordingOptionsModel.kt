@@ -38,6 +38,10 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   val builtInOptions: List<RecordingOption> get() = Collections.unmodifiableList(builtInOptionList)
   val customConfigurationModel: MutableComboBoxModel<RecordingOption> = ConfigModel(emptyArray())
 
+  // Map each option that's not currently ready to a message explaining why
+  // This is also the source of truth regarding whether option is ready
+  private val notReadyOptions = mutableMapOf<RecordingOption, String>()
+
   val isSelectedOptionBuiltIn get() = selectedOption in builtInOptionList
   val isSelectedOptionCustom get() = selectedOption in customConfigurationModel
 
@@ -51,7 +55,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 
   fun canStop() = isRecording && selectedOption?.stopAction != null
-  fun canStart() = !isRecording && selectedOption != null
+  fun canStart() = !isRecording && selectedOption != null && selectedOption !in notReadyOptions
 
   fun start() {
     require(canStart()) { "Cannot record while another session is on-going" }
@@ -98,6 +102,22 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     (customConfigurationModel as ConfigModel).removeAllElements()
   }
 
+  fun setOptionNotReady(opt: RecordingOption, message: String) {
+    require (opt in builtInOptions) { "Marking options not ready is only supported for builtin options for now" }
+    notReadyOptions[opt] = message
+    changed(Aspect.READY_OPTIONS_CHANGED)
+  }
+
+  fun setOptionReady(opt: RecordingOption) {
+    if (opt in notReadyOptions) {
+      notReadyOptions.remove(opt)
+      changed(Aspect.READY_OPTIONS_CHANGED)
+    }
+  }
+
+  fun getOptionNotReadyMessage(opt: RecordingOption) = notReadyOptions[opt]
+  fun isOptionReady(opt: RecordingOption) = getOptionNotReadyMessage(opt) == null
+
   /**
    * Check if the recording option is recognized by this model
    */
@@ -122,6 +142,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     RECORDING_CHANGED,
     SELECTION_CHANGED,
     BUILT_IN_OPTIONS_CHANGED,
+    READY_OPTIONS_CHANGED,
     // only fired when the configuration list changes between empty <-> non-empty
     CONFIGURATIONS_EMPTINESS_CHANGED,
   }
