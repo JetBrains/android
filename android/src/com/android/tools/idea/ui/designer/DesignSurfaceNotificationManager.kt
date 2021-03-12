@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.editor
+package com.android.tools.idea.ui.designer;
+
+import com.intellij.openapi.actionSystem.DataKey
 
 /** Control for notification created through EditorNotification that spans over DesignSurface. */
 interface DesignSurfaceNotificationManager {
@@ -24,3 +26,8 @@ interface DesignSurfaceNotificationManager {
   /** hide the notification if it was showing. No-op otherwise. */
   fun hideNotification()
 }
+
+
+/** Data key to retrieve [DesignSurfaceNotificationManager] which controls the notification status of [NlDesignSurface] */
+@JvmField
+val NOTIFICATION_KEY = DataKey.create<DesignSurfaceNotificationManager>(DesignSurfaceNotificationManager::class.java.name)
