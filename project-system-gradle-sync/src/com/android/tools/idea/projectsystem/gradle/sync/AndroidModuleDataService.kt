@@ -52,9 +52,11 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -90,20 +92,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     for (module in modelsProvider.modules) {
       val androidModel = modelsByModuleName[module.name]
       if (androidModel != null) {
-        // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
-        // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
-        // Android model is null for the root project module.
-        val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
-          project,
-          androidModel.androidProject.name,
-          androidModel.androidProject.compileTarget,
-          androidModel.androidProject.bootClasspath,
-          IdeSdks.getInstance()
-        )
-        if (sdkToUse != null) {
-          modelsProvider.getModifiableRootModel(module).sdk = sdkToUse
-        }
-
         // Create the Android facet and attache to the module.
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
                            ?: createAndroidFacet(module, modelsProvider)
@@ -128,6 +116,36 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     if (modelsByModuleName.isNotEmpty()) {
       moduleValidator.fixAndReportFoundIssues()
+    }
+  }
+
+  override fun postProcess(toImport: MutableCollection<DataNode<AndroidModuleModel>>,
+                           projectData: ProjectData?,
+                           project: Project,
+                           modelsProvider: IdeModifiableModelsProvider) {
+    super.postProcess(toImport, projectData, project, modelsProvider)
+    for (nodeToImport in toImport) {
+      val mainModuleDataNode = ExternalSystemApiUtil.findParent(
+        nodeToImport,
+        ProjectKeys.MODULE
+      ) ?: continue
+      val mainModuleData = mainModuleDataNode.data
+      val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
+
+      val androidModel = nodeToImport.data
+      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
+      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
+      // Android model is null for the root project module.
+      val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
+        project,
+        androidModel.androidProject.name,
+        androidModel.androidProject.compileTarget,
+        androidModel.androidProject.bootClasspath,
+        IdeSdks.getInstance()
+      )
+      if (sdkToUse != null) {
+        modelsProvider.getModifiableRootModel(mainIdeModule).sdk = sdkToUse
+      }
     }
   }
 
