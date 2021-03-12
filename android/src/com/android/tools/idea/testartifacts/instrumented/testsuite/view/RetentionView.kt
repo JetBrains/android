@@ -496,6 +496,8 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     if (testStartTime != null && testStartTime != 0L) {
       text += "Test failed: ${testStartTime?.formatTime()?.escapeHtml()}<br>"
     }
+    text += "<br><b>Note: </b> After loading the snapshot, the <b>Debugger</b> tool window might not automatically select your app’s " +
+            "thread. Make sure to navigate to your app’s thread in the dropdown menu to view your app’s call stack.<br>"
     val snapshotFile = myRetentionPanel.getSnapshotFile()
     if (snapshotFile != null) {
       text += "<br><b>Test snapshot</b><br>"
