@@ -6,11 +6,15 @@ iml_module(
     srcs = ["src"],
     iml_files = ["utp.iml"],
     resources = ["resources"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 
@@ -21,5 +25,12 @@ genrule(
     srcs = ["resources/utp/addGradleAndroidTestListener.gradle"],
     outs = ["addGradleAndroidTestListener.gradle"],
     cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "libstudio.android-test-plugin-result-listener-gradle-proto",
+    jars = ["//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto.jar"],
     visibility = ["//visibility:public"],
 )

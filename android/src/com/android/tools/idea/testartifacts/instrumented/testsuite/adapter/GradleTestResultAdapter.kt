@@ -17,17 +17,27 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.android.tools.utp.TaskOutputProcessorListener
 
 /**
  * An adapter to parse instrumentation test result protobuf messages from AGP and forward them to AndroidTestResultListener
  */
-class GradleTestResultAdapter(val deviceList: List<IDevice>, val listener: AndroidTestResultListener) {
-  /**
-   * Schedule test suite for selected devices when instrumentation tests are executed by AGP
-   */
-  fun scheduleTestSuite() {
-    for (device in deviceList) {
-      listener.onTestSuiteScheduled(convertIDeviceToAndroidDevice(device))
-    }
+class GradleTestResultAdapter(val device: IDevice, val listener: AndroidTestResultListener): TaskOutputProcessorListener {
+
+  init {
+    // Schedule test suite for selected devices when instrumentation tests are executed by AGP.
+    listener.onTestSuiteScheduled(convertIDeviceToAndroidDevice(device))
   }
+
+  override fun onTestSuiteStarted() {}
+
+  override fun onTestCaseStarted() {}
+
+  override fun onTestCaseFinished() {}
+
+  override fun onTestSuiteFinished() {}
+
+  override fun onError() {}
+
+  override fun onComplete() {}
 }

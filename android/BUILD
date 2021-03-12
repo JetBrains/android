@@ -455,6 +455,7 @@ filegroup(
         "//tools/base/tracer:trace_agent",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
+        "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
