@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="studio-plugin-properties-resource-bundle-editor">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/properties-resource-bundle-editor/lib/properties-resource-bundle-editor.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/properties-resource-bundle-editor/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/properties-resource-bundle-editor/lib/properties-resource-bundle-editor.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/properties-resource-bundle-editor/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>

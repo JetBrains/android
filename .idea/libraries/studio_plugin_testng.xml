@@ -1,18 +1,18 @@
 <component name="libraryTable">
   <library name="studio-plugin-testng">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/aopalliance-1.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/guice-4.1.0-no_aop.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/javax.inject-1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/jcommander-1.72.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/resources_en.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/testng-7.1.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/testng-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/testng/lib/testng-rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/aopalliance-1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/guice-4.1.0-no_aop.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/javax.inject-1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/jcommander-1.72.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/testng-7.1.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/testng-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/testng/lib/testng-rt.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/android-studio-sources.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/android-studio-sources.zip!/" />
     </SOURCES>
   </library>
 </component>
