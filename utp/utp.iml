@@ -22,5 +22,16 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module-library">
+      <library name="utp-core-proto" type="repository">
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha02" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha02/core-proto-0.0.8-alpha02.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>
