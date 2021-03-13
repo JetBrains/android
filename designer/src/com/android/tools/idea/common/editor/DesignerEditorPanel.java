@@ -25,10 +25,12 @@ import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
@@ -61,6 +63,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -92,6 +95,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface mySurface;
+  @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
@@ -135,6 +139,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    * @param file the file being open by the editor.
    * @param workBench workbench containing a design surface and a number of tool window definitions (also passed in the constructor).
    * @param surface a function that produces a design surface given a design editor panel. Ideally, this panel is passed to the function.
+   * @param modelProvider a model provider to provide a {@link NlModel} for this editor.
    * @param toolWindowDefinitions list of tool windows to be added to the workbench.
    * @param bottomModelComponent function that receives a {@link DesignSurface} and an {@link NlModel}, and returns a {@link JComponent} to
    *                             be added on the bottom of this panel. The component might be associated with the model, so we need to
@@ -143,6 +148,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    */
   public DesignerEditorPanel(@NotNull DesignerEditor editor, @NotNull Project project, @NotNull VirtualFile file,
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
+                             @NotNull ModelProvider modelProvider,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @Nullable BiFunction<? super DesignSurface, ? super NlModel, JComponent> bottomModelComponent,
                              @NotNull State defaultEditorPanelState) {
@@ -155,6 +161,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
+    myModelProvider = modelProvider;
 
     myAccessoryPanel = mySurface.getAccessoryPanel();
 
@@ -236,7 +243,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions,
                              @NotNull State defaultState) {
-    this(editor, project, file, workBench, surface, toolWindowDefinitions, null, defaultState);
+    this(editor, project, file, workBench, surface, ModelProvider.defaultModelProvider, toolWindowDefinitions, null, defaultState);
   }
 
   @NotNull
@@ -322,11 +329,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
         throw new WaitingForGradleSyncException("Waiting for next gradle sync to set AndroidFacet.");
       }
     }
-    NlModel model = NlModel.builder(facet, myFile, mySurface.getConfigurationManager(facet).getConfiguration(myFile))
-      .withParentDisposable(myEditor)
-      .withComponentRegistrar(mySurface.getComponentRegistrar())
-      .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
-      .build();
+    NlModel model = myModelProvider.createModel(myEditor, myProject, facet, mySurface.getComponentRegistrar(), myFile);
+
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.
     myProject.getMessageBus().connect(mySurface).subscribe(ProjectTopics.MODULES, new ModuleListener() {
@@ -473,6 +477,28 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     SPLIT,
     /** Surface is deactivated and not being displayed. */
     DEACTIVATED
+  }
+
+  /**
+   * Used to provide the {@link NlModel}s for the editor file.
+   */
+  public interface ModelProvider {
+
+    ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) ->
+      NlModel.builder(facet, file, ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file))
+        .withParentDisposable(disposable)
+        .withComponentRegistrar(componentRegistrar)
+        .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
+        .build();
+
+    /**
+     * The function Create the {@link NlModel}s for the given virtual file.
+     */
+    NlModel createModel(@NotNull Disposable parentDisposable,
+                        @NotNull Project project,
+                        @NotNull AndroidFacet facet,
+                        @NotNull Consumer<NlComponent> componentRegistrar,
+                        @NotNull VirtualFile file);
   }
 
   private static class WaitingForGradleSyncException extends RuntimeException {

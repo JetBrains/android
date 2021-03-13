@@ -49,6 +49,12 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private static final int TICKER_STEP = 1000 / 30; // 30 FPS
   private static final Font BUTTON_FONT = UIUtil.getLabelFont(UIUtil.FontSize.MINI);
 
+  protected static final String DEFAULT_PLAY_TOOLTIP = "Play";
+  protected static final String DEFAULT_PAUSE_TOOLTIP = "Pause";
+  protected static final String DEFAULT_STOP_TOOLTIP = "Reset";
+  protected static final String DEFAULT_FRAME_FORWARD_TOOLTIP = "Step forward";
+  protected static final String DEFAULT_FRAME_BACK_TOOLTIP = "Step backward";
+
   @NotNull private final AnimationListener myListener;
   private final JButton myPlayButton;
   private final JButton myPauseButton;
@@ -60,6 +66,8 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private final long myTickStepMs;
 
   private final long myMinTimeMs;
+
+  private final JPanel myControlBar;
   /**
    * Slider that allows stepping frame by frame at different speeds
    */
@@ -84,7 +92,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * @param minTimeMs        Start milliseconds for the animation
    * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
-  private AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
+  protected AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
                            long minTimeMs, long initialMaxTimeMs) {
     Disposer.register(parentDisposable, this);
 
@@ -93,28 +101,30 @@ public class AnimationToolbar extends JPanel implements Disposable {
     myMinTimeMs = minTimeMs;
     myMaxTimeMs = initialMaxTimeMs;
 
-    Box buttonsPanel = Box.createHorizontalBox();
-    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", "Play", this::onPlay);
+    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP, this::onPlay);
     myPlayButton.setEnabled(true);
-    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", "Pause", this::onPause);
+    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP, this::onPause);
     myPauseButton.setEnabled(true);
-    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", "Reset", this::onStop);
-    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", "Step forward", this::onFrameFwd);
-    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward", "Step backward", this::onFrameBck);
+    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", DEFAULT_STOP_TOOLTIP, this::onStop);
+    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward",
+                                        DEFAULT_FRAME_FORWARD_TOOLTIP, this::onFrameFwd);
+    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward",
+                                        DEFAULT_FRAME_BACK_TOOLTIP, this::onFrameBck);
 
-    JPanel controlBar = new JPanel(new FlowLayout()) {
+    myControlBar = new JPanel(new FlowLayout()) {
       @Override
       public void updateUI() {
         setUI(new DesignSurfaceToolbarUI());
       }
     };
 
+    Box buttonsPanel = Box.createHorizontalBox();
     buttonsPanel.add(myStopButton);
     buttonsPanel.add(myFrameBckButton);
     buttonsPanel.add(myPlayButton);
     buttonsPanel.add(myPauseButton);
     buttonsPanel.add(myFrameFwdButton);
-    controlBar.add(buttonsPanel);
+    myControlBar.add(buttonsPanel);
 
 
     if (isUnlimitedAnimationToolbar()) {
@@ -139,12 +149,12 @@ public class AnimationToolbar extends JPanel implements Disposable {
       myTimeSliderModel.addChangeListener(myTimeSliderChangeModel);
       timeSlider.setModel(myTimeSliderModel);
       buttonsPanel.add(new JSeparator(SwingConstants.VERTICAL));
-      controlBar.add(timeSlider);
+      myControlBar.add(timeSlider);
     }
 
     myFrameControl = new JSlider(-5, 5, 0);
     myFrameControl.setSnapToTicks(true);
-    add(controlBar);
+    add(myControlBar);
 
     myFrameControl.addChangeListener(e -> {
       stopFrameTicker();
@@ -175,6 +185,11 @@ public class AnimationToolbar extends JPanel implements Disposable {
     });
 
     onStop();
+  }
+
+  @NotNull
+  protected JPanel getControlBar() {
+    return myControlBar;
   }
 
   /**
@@ -236,21 +251,49 @@ public class AnimationToolbar extends JPanel implements Disposable {
   }
 
   /**
-   * Set the enabled state of all the toolbar controls
+   * Set the enabled states of all the toolbar controls
    */
-  private void setEnabledState(boolean play, boolean pause, boolean stop, boolean frame) {
-    myPlayButton.setVisible(play);
-    myPauseButton.setVisible(pause);
+  protected void setEnabledState(boolean play, boolean pause, boolean stop, boolean frame) {
+    myPlayButton.setEnabled(play);
+    myPauseButton.setEnabled(pause);
     myStopButton.setEnabled(stop);
     myFrameFwdButton.setEnabled(frame);
     myFrameBckButton.setEnabled(frame);
     myFrameControl.setEnabled(frame);
   }
 
+  /**
+   * Set the visibilities of all the toolbar controls
+   */
+  protected void setVisibilityState(boolean play, boolean pause, boolean stop, boolean frame) {
+    myPlayButton.setVisible(play);
+    myPauseButton.setVisible(pause);
+    myStopButton.setVisible(stop);
+    myFrameFwdButton.setVisible(frame);
+    myFrameBckButton.setVisible(frame);
+    myFrameControl.setVisible(frame);
+  }
+
+  /**
+   * Set the tooltips of all the toolbar controls
+   */
+  protected void setTooltips(@Nullable String play,
+                             @Nullable String pause,
+                             @Nullable String stop,
+                             @Nullable String frameForward,
+                             @Nullable String frameback) {
+    myPlayButton.setToolTipText(play);
+    myPauseButton.setToolTipText(pause);
+    myStopButton.setToolTipText(stop);
+    myFrameFwdButton.setToolTipText(frameForward);
+    myFrameBckButton.setToolTipText(frameback);
+  }
+
   private void onPlay() {
     stopFrameTicker();
 
     setEnabledState(false, true, true, false);
+    setVisibilityState(false, true, true, true);
 
     myLastTickMs = System.currentTimeMillis();
     myTicker = EdtExecutorService.getScheduledExecutorInstance().scheduleWithFixedDelay(() -> {
@@ -263,6 +306,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
 
   private void onPause() {
     setEnabledState(true, false, true, true);
+    setVisibilityState(true, false, true, true);
 
     stopFrameTicker();
   }
@@ -277,7 +321,8 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private void onStop() {
     stopFrameTicker();
 
-    setEnabledState(true, false, false, true);
+    setEnabledState(true, false, false, false);
+    setVisibilityState(true, false, true, true);
     setFramePosition(myMinTimeMs, false);
   }
 
@@ -378,9 +423,5 @@ public class AnimationToolbar extends JPanel implements Disposable {
   @Override
   public void dispose() {
     stopFrameTicker();
-  }
-
-  public interface AnimationListener {
-    void animateTo(long framePositionMs);
   }
 }
