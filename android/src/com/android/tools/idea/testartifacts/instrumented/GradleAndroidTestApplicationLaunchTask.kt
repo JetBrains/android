@@ -129,8 +129,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
       val adapters = myGradleConnectedAndroidTestInvoker.getDevices().map {
-        GradleTestResultAdapter(it, androidTestResultListener)
-      }
+        val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
+        adapter.device.id to adapter
+      }.toMap()
 
       val path: File = getBaseDirPath(project)
       val taskNames: List<String> = listOf("connectedAndroidTest")

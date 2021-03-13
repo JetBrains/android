@@ -17,20 +17,27 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argThat
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
+import com.google.testing.platform.proto.api.core.TestCaseProto
+import com.google.testing.platform.proto.api.core.TestResultProto
+import com.google.testing.platform.proto.api.core.TestStatusProto
+import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 
@@ -53,18 +60,64 @@ class GradleTestResultAdapterTest {
   }
 
   @Test
-  fun testScheduleTestSuite() {
-    GradleTestResultAdapter(mockDevice1, mockListener)
-
-    val captor: ArgumentCaptor<AndroidDevice> = ArgumentCaptor.forClass(AndroidDevice::class.java)
-    verify(mockListener, times(1)).onTestSuiteScheduled(capture(captor))
-    assertThat(captor.value).isEqualTo(AndroidDevice(
+  fun getDevice() {
+    val expectedDevice = AndroidDevice(
       "mockDevice1SerialNumber",
       "mockDevice1AvdName",
       "mockDevice1AvdName",
       AndroidDeviceType.LOCAL_EMULATOR,
-      AndroidVersion(29)))
+      AndroidVersion(29))
+
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+
+    assertThat(adapter.device).isEqualTo(expectedDevice)
   }
 
-  private fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
+  @Test
+  fun runTestSuiteWithOneTestCaseAndPassed() {
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+
+    verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
+
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+      scheduledTestCaseCount = 1
+    }.build())
+
+    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+    })
+
+    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+      testPackage = "com.example.test"
+      testClass = "ExampleTest"
+      testMethod = "testExample"
+    }.build())
+
+    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+    })
+
+    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+      testCaseBuilder.apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }
+      testStatus = TestStatusProto.TestStatus.PASSED
+    }.build())
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+    })
+
+    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+      testStatus = TestStatusProto.TestStatus.PASSED
+    }.build())
+
+    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.PASSED
+    })
+  }
 }

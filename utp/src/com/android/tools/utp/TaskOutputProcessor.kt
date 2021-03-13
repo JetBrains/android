@@ -16,14 +16,17 @@
 package com.android.tools.utp
 
 import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto.TestResultEvent
+import com.google.testing.platform.proto.api.core.TestCaseProto
+import com.google.testing.platform.proto.api.core.TestResultProto
+import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import java.util.Base64
 
 /**
  * Processes UTP test results XML tags in stdout text from Gradle task.
  *
- * @param listeners a list of listeners to be notified of test events
+ * @param listeners a map from device ID to listener to be notified of test events
  */
-class TaskOutputProcessor(val listeners: List<TaskOutputProcessorListener>) {
+class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener>) {
 
   companion object {
     const val ON_RESULT_OPENING_TAG = "<UTP_TEST_RESULT_ON_TEST_RESULT_EVENT>"
@@ -53,11 +56,11 @@ class TaskOutputProcessor(val listeners: List<TaskOutputProcessorListener>) {
         true
       }
       trimmedLine == ON_ERROR_TAG -> {
-        listeners.forEach(TaskOutputProcessorListener::onError)
+        listeners.values.forEach(TaskOutputProcessorListener::onError)
         true
       }
       trimmedLine == ON_COMPLETED_TAG -> {
-        listeners.forEach(TaskOutputProcessorListener::onComplete)
+        listeners.values.forEach(TaskOutputProcessorListener::onComplete)
         true
       }
       else -> false
@@ -67,19 +70,43 @@ class TaskOutputProcessor(val listeners: List<TaskOutputProcessorListener>) {
   private fun processEvent(event: TestResultEvent) {
     when(event.stateCase) {
       TestResultEvent.StateCase.TEST_SUITE_STARTED -> {
-        listeners.forEach(TaskOutputProcessorListener::onTestSuiteStarted)
+        processTestSuiteStarted(event)
       }
       TestResultEvent.StateCase.TEST_CASE_STARTED -> {
-        listeners.forEach(TaskOutputProcessorListener::onTestCaseStarted)
+        processTestCaseStarted(event)
       }
       TestResultEvent.StateCase.TEST_CASE_FINISHED -> {
-        listeners.forEach(TaskOutputProcessorListener::onTestCaseFinished)
+        processTestCaseFinished(event)
       }
       TestResultEvent.StateCase.TEST_SUITE_FINISHED -> {
-        listeners.forEach(TaskOutputProcessorListener::onTestSuiteFinished)
+        processTestSuiteFinished(event)
       }
       else -> {}
     }
+  }
+
+  private fun processTestSuiteStarted(event: TestResultEvent) {
+    val testSuiteStarted = event.testSuiteStarted
+    val testSuite = testSuiteStarted.testSuiteMetadata.unpack(TestSuiteResultProto.TestSuiteMetaData::class.java)
+    listeners[event.deviceId]?.onTestSuiteStarted(testSuite)
+  }
+
+  private fun processTestCaseStarted(event: TestResultEvent) {
+    val testCaseStarted = event.testCaseStarted
+    val testCase = testCaseStarted.testCase.unpack(TestCaseProto.TestCase::class.java)
+    listeners[event.deviceId]?.onTestCaseStarted(testCase)
+  }
+
+  private fun processTestCaseFinished(event: TestResultEvent) {
+    val testCaseFinished = event.testCaseFinished
+    val testCaseResult = testCaseFinished.testCaseResult.unpack(TestResultProto.TestResult::class.java)
+    listeners[event.deviceId]?.onTestCaseFinished(testCaseResult)
+  }
+
+  private fun processTestSuiteFinished(event: TestResultEvent) {
+    val testSuiteFinished = event.testSuiteFinished
+    val testSuiteResult = testSuiteFinished.testSuiteResult.unpack(TestSuiteResultProto.TestSuiteResult::class.java)
+    listeners[event.deviceId]?.onTestSuiteFinished(testSuiteResult)
   }
 }
 
