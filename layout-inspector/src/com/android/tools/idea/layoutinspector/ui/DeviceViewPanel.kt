@@ -431,7 +431,7 @@ class DeviceViewPanel(
 class MyViewportLayoutManager(
   private val viewport: JViewport,
   private val layerSpacing: () -> Int,
-  private val rootLocation: () -> Point
+  private val rootLocation: () -> Point?
 ) : LayoutManager by viewport.layout {
   private var lastLayerSpacing = INITIAL_LAYER_SPACING
   private var lastRootLocation: Point? = null
@@ -473,15 +473,16 @@ class MyViewportLayoutManager(
       else -> {
         origLayout.layoutContainer(parent)
         val lastRoot = lastRootLocation
-        if (viewport.view.size != lastViewSize && lastRoot != null) {
-          val newRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+        val currentRootLocation = rootLocation()
+        if (viewport.view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
+          val newRootLocation = SwingUtilities.convertPoint(viewport.view, currentRootLocation, viewport)
           viewport.viewPosition = Point(viewport.viewPosition).apply {
             translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
           }
         }
       }
     }
-    lastRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+    lastRootLocation = rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
     lastViewSize = viewport.view.size
   }
 }
