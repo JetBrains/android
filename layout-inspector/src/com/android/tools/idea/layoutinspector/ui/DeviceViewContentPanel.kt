@@ -63,9 +63,9 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
   val model = DeviceViewPanelModel(inspectorModel)
 
-  val rootLocation: Point
+  val rootLocation: Point?
     get() {
-      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: Point(0,0)
+      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
       return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
                    (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
     }

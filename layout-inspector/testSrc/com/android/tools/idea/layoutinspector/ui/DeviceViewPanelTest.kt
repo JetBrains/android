@@ -575,7 +575,7 @@ class MyViewportLayoutManagerTest {
 
   private var layerSpacing = INITIAL_LAYER_SPACING
 
-  private var rootPosition = Point(400, 500)
+  private var rootPosition: Point? = Point(400, 500)
 
   @get:Rule
   val edtRule = EdtRule()
@@ -667,6 +667,14 @@ class MyViewportLayoutManagerTest {
 
     // scroll changes to keep view in the same place
     assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+
+    // disconnect, no root location
+    contentPanel.preferredSize = Dimension(0, 0)
+    rootPosition = null
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // scroll goes back to origin
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(0, 0))
   }
 }
 
