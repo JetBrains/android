@@ -584,7 +584,7 @@ MODULE                        : project.app
             ProductFlavors                : basic
             ProductFlavors                : bar
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileBasicBarDebugSources
                 AssembleTaskName              : assembleBasicBarDebug
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
@@ -1222,7 +1222,7 @@ MODULE                        : project.app
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicBarDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/basicBar/debug/output-metadata.json [-]
@@ -1946,7 +1946,7 @@ MODULE                        : project.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicBarDebugUnitTestSources
                 AssembleTaskName              : assembleBasicBarDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -2765,7 +2765,7 @@ MODULE                        : project.dyn_feature
             DisplayName                   : debug
             InstantAppCompatible          : false
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
@@ -2786,7 +2786,7 @@ MODULE                        : project.dyn_feature
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -2816,7 +2816,7 @@ MODULE                        : project.dyn_feature
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -3058,7 +3058,7 @@ MODULE                        : project.lib
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -3598,7 +3598,7 @@ MODULE                        : project.lib
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -4148,7 +4148,7 @@ MODULE                        : project.lib
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -4898,7 +4898,7 @@ MODULE                        : project.nested1
             DisplayName                   : debug
             InstantAppCompatible          : false
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -4920,7 +4920,7 @@ MODULE                        : project.nested1
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/nested1/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -4953,7 +4953,7 @@ MODULE                        : project.nested1
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -5191,7 +5191,7 @@ MODULE                        : project.nested1.deep
             ResourceConfigurations        : en
             ResourceConfigurations        : fr
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -5213,7 +5213,7 @@ MODULE                        : project.nested1.deep
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -5246,7 +5246,7 @@ MODULE                        : project.nested1.deep
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -5582,7 +5582,7 @@ MODULE                        : project.nested2
             InstantAppCompatible          : false
             ProductFlavors                : basic
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileBasicDebugSources
                 AssembleTaskName              : assembleBasicDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -5616,7 +5616,7 @@ MODULE                        : project.nested2
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/basic/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/nested2/build/outputs/apk/androidTest/basic/debug/output-metadata.json [-]
@@ -5661,7 +5661,7 @@ MODULE                        : project.nested2
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicDebugUnitTestSources
                 AssembleTaskName              : assembleBasicDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -5906,7 +5906,7 @@ MODULE                        : project.nested2.deep
             DisplayName                   : debug
             InstantAppCompatible          : false
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -5928,7 +5928,7 @@ MODULE                        : project.nested2.deep
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -5961,7 +5961,7 @@ MODULE                        : project.nested2.deep
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -6195,7 +6195,7 @@ MODULE                        : project.nested2.trans.deep2
             DisplayName                   : debug
             InstantAppCompatible          : false
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -6217,7 +6217,7 @@ MODULE                        : project.nested2.trans.deep2
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -6250,7 +6250,7 @@ MODULE                        : project.nested2.trans.deep2
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]

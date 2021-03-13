@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl;
@@ -44,7 +45,7 @@ public class IdeAndroidArtifactImplTest {
     @Test
     public void model1_dot_5() {
         AndroidArtifactStub original =
-                new AndroidArtifactStub() {
+                new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN) {
                     @Override
                     @NonNull
                     public InstantRun getInstantRun() {
@@ -87,7 +88,7 @@ public class IdeAndroidArtifactImplTest {
     @Test
     public void nullAbiFilterMappedToEmptySet() throws Throwable {
         AndroidArtifact original =
-                new AndroidArtifactStub() {
+                new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN) {
                     @Nullable
                     @Override
                     public Set<String> getAbiFilters() {

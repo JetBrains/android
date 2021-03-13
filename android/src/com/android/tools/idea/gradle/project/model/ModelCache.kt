@@ -69,6 +69,7 @@ import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeDependencies
@@ -731,7 +732,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
     agpVersion: GradleVersion?
   ): IdeAndroidArtifactImpl {
     return IdeAndroidArtifactImpl(
-      name = artifact.name,
+      name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
@@ -765,7 +766,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
 
   fun javaArtifactFrom(artifact: JavaArtifact): IdeJavaArtifactImpl {
     return IdeJavaArtifactImpl(
-      name = artifact.name,
+      name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
@@ -1349,3 +1350,9 @@ private fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGra
 
 private fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
 
+private fun convertArtifactName(name: String): IdeArtifactName = when(name) {
+  AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
+  AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
+  AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
+  else -> error("Invalid android artifact name: $name")
+}

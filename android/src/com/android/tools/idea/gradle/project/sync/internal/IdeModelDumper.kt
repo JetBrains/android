@@ -216,7 +216,7 @@ private fun ProjectDumper.dump(moduleLibrary: IdeModuleLibrary) {
 }
 
 private fun ProjectDumper.dump(ideBaseArtifact: IdeBaseArtifact) {
-  prop("Name") { ideBaseArtifact.name }
+  prop("Name") { ideBaseArtifact.name.toString() }
   prop("CompileTaskName") { ideBaseArtifact.compileTaskName }
   prop("AssembleTaskName") { ideBaseArtifact.assembleTaskName }
   prop("AssembleTaskOutputListingFile") { ideBaseArtifact.assembleTaskOutputListingFile.toPrintablePath() }
