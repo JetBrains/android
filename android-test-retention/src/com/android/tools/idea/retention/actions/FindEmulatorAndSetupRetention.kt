@@ -42,6 +42,7 @@ import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.debugger.ui.DebuggerContentInfo
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
@@ -55,10 +56,14 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.Project
+import com.intellij.ui.AppUIUtil
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebugSessionListener
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XDebuggerManagerListener
+import com.intellij.xdebugger.frame.XExecutionStack
+import com.intellij.xdebugger.frame.XStackFrame
+import com.intellij.xdebugger.frame.XSuspendContext
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
@@ -73,6 +78,7 @@ private const val PUSH_SNAPSHOT_FRACTION = 0.6
 private const val LOAD_SNAPSHOT_FRACTION = 0.7
 private const val CLIENTS_READY_FRACTION = 0.8
 private const val DEBUGGER_CONNECTED_FRACTION = 0.9
+private const val DEBUGGER_PAUSED_FRACTION = 0.95
 
 private const val NOTIFICATION_GROUP_NAME = "Retention Snapshot Load"
 
@@ -251,6 +257,59 @@ class FindEmulatorAndSetupRetention : AnAction() {
           })
           currentSession.pause()
           ProgressIndicatorUtils.awaitWithCheckCanceled(pauseSignal)
+          indicator.fraction = DEBUGGER_PAUSED_FRACTION
+          val stackReadySignal = CountDownLatch(1)
+          // Switch focus to the debugger
+          AppUIUtil.invokeOnEdt {
+            currentSession.ui.run {
+              selectAndFocus(findContent(DebuggerContentInfo.FRAME_CONTENT), true, false)
+            }
+          }
+          // Find user content
+          currentSession.suspendContext.computeExecutionStacks(object: XSuspendContext.XExecutionStackContainer {
+            var foundUserFrame = false
+            override fun errorOccurred(errorMessage: String) {
+              stackReadySignal.countDown()
+              LOG.warn("$errorMessage")
+            }
+
+            override fun addExecutionStack(executionStacks: MutableList<out XExecutionStack>, last: Boolean) {
+              if (foundUserFrame) {
+                return
+              }
+              for (stack in executionStacks) {
+                stack.computeStackFrames(0, object  : XExecutionStack.XStackFrameContainer {
+                  override fun errorOccurred(errorMessage: String) {
+                    stackReadySignal.countDown()
+                    LOG.warn("$errorMessage")
+                  }
+
+                  override fun addStackFrames(stackFrames: MutableList<out XStackFrame>, last: Boolean) {
+                    if (foundUserFrame) {
+                      return
+                    }
+                    for (frame in stackFrames) {
+                      if (frame.sourcePosition?.file?.canonicalPath?.startsWith(
+                          project.basePath?:"") == true) {
+                          frame.sourcePosition?.createNavigatable(project)?.also {
+                            AppUIUtil.invokeOnEdt {
+                              currentSession.setCurrentStackFrame(stack, frame)
+                              stackReadySignal.countDown()
+                            }
+                            foundUserFrame = true
+                            return@addStackFrames
+                          }
+                        }
+                    }
+                  }
+                })
+              }
+              if (last && !foundUserFrame) {
+                stackReadySignal.countDown()
+              }
+            }
+          })
+          ProgressIndicatorUtils.awaitWithCheckCanceled(stackReadySignal)
           LOG.info("Ready for debugging.")
         }
       })
