@@ -11,6 +11,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

@@ -27,7 +27,12 @@ class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
   }
 
   override fun getAmStartOptions(module: Module, applicationId: String, launchOptions: LaunchOptions, device: IDevice): String {
-    // TODO(b/182023904)
-    return ""
+    return if (FlagController.isCoroutineDebuggerEnabled) {
+      // TODO(b/182023904)
+      ""
+    }
+    else {
+      ""
+    }
   }
 }

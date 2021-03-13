@@ -579,6 +579,14 @@ public final class StudioFlags {
     "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
     false
   );
+
+  public static final Flag<Boolean> COROUTINE_DEBUGGER_ENABLE = Flag.create(
+    RUNDEBUG,
+    "coroutine.debugger.enable",
+    "Enable Coroutine Debugger",
+    "Enables the Coroutine Debugger, that shows up as a panel in the debugger when debugging an app that uses coroutines",
+    false
+  );
   //endregion
 
   //region Gradle Project System
