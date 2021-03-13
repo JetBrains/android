@@ -195,6 +195,10 @@ public final class StudioFlags {
     NELE, "animated.preview", "Show preview animations toolbar",
     "Show an animations bar that allows playback of vector drawable animations.",
     true);
+  public static final Flag<Boolean> NELE_ANIMATED_SELECTOR_PREVIEW = Flag.create(
+    NELE, "animated.selector.preview", "Show preview animations toolbar for animated selector",
+    "Show an animations bar that allows playback of transitions in animated selector.",
+    false);
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ANIMATIONS = Flag.create(
     NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
     "Show an animations bar that allows playback of MotionLayout animations.",

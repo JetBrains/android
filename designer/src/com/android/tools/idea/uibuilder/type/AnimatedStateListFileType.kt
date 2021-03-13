@@ -16,9 +16,30 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlFile
 
-object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_SELECTOR)) {
+object AnimatedStateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR)) {
   override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
+}
+
+const val TEMP_ANIMATED_SELECTOR_FOLDER = "drawable-temp"
+
+/**
+ * A temp Animated Vector drawable file which is created for previewing transitions in animated selector file.
+ */
+object AnimatedStateListTempFile : DrawableFileType(setOf()) {
+  override fun isResourceTypeOf(file: PsiFile): Boolean {
+    return file is XmlFile &&
+           ApplicationManager.getApplication().runReadAction(Computable { file.parent?.name == TEMP_ANIMATED_SELECTOR_FOLDER })
+  }
+
+  override fun getToolbarActionGroups(surface: DesignSurface): ToolbarActionGroups {
+    return StateListActionGroups(surface)
+  }
 }
