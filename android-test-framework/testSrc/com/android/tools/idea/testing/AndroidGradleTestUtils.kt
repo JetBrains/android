@@ -32,7 +32,7 @@ import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.ViewBindingOptions
-import com.android.ide.common.gradle.model.impl.ModelCache
+import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub

@@ -15,10 +15,23 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 
 const val KEY_HIDE_SYSTEM_NODES = "live.layout.inspector.tree.hide.system"
 const val DEFAULT_HIDE_SYSTEM_NODES = true
+
+private const val KEY_COMPOSE_AS_CALLSTACK = "live.layout.inspector.tree.compose.callstack"
+private const val DEFAULT_COMPOSE_AS_CALLSTACK = true
+
+private const val KEY_INCLUDE_DRAWABLES_IN_CALLSTACK = "live.layout.inspector.tree.compose.drawables"
+private const val DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK = true
+
+private const val KEY_COMPACT_TREE = "live.layout.inspector.tree.compact"
+private const val DEFAULT_COMPACT_TREE = false
+
+private const val KEY_SUPPORT_LINES = "live.layout.inspector.tree.lines"
+private const val DEFAULT_SUPPORT_LINES = true
 
 /**
  * Global Tree settings.
@@ -29,8 +42,32 @@ object TreeSettings {
    * The units to be used for all attributes with dimension values.
    */
   var hideSystemNodes: Boolean
-    get() = PropertiesComponent.getInstance().getBoolean(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
-    set(value) {
-      PropertiesComponent.getInstance().setValue(KEY_HIDE_SYSTEM_NODES, value, DEFAULT_HIDE_SYSTEM_NODES)
-    }
+    get() = get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
+    set(value) = set(KEY_HIDE_SYSTEM_NODES, value, DEFAULT_HIDE_SYSTEM_NODES)
+
+  var composeAsCallstack: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_COMPOSE_AS_CALLSTACK, DEFAULT_COMPOSE_AS_CALLSTACK)
+    set(value) = set(KEY_COMPOSE_AS_CALLSTACK, value, DEFAULT_COMPOSE_AS_CALLSTACK)
+
+  var composeDrawablesInCallstack: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_INCLUDE_DRAWABLES_IN_CALLSTACK, DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK)
+    set(value) = set(KEY_INCLUDE_DRAWABLES_IN_CALLSTACK, value, DEFAULT_INCLUDE_DRAWABLES_IN_CALLSTACK)
+
+  var compactTree: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_COMPACT_TREE, DEFAULT_COMPACT_TREE)
+    set(value) = set(KEY_COMPACT_TREE, value, DEFAULT_COMPACT_TREE)
+
+  var supportLines: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get() &&
+            get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)
+    set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
+
+  private fun get(key: String, defaultValue: Boolean): Boolean =
+    PropertiesComponent.getInstance().getBoolean(key, defaultValue)
+
+  private fun set(key: String, value: Boolean, defaultValue: Boolean) =
+    PropertiesComponent.getInstance().setValue(key, value, defaultValue)
 }

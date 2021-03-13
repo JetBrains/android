@@ -18,20 +18,20 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 
-import com.android.AndroidProjectTypes;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -355,7 +355,7 @@ public class DynamicAppUtils {
     if (configuration instanceof AndroidTestRunConfiguration) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel != null) {
-        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return true;
         }
       }
@@ -422,7 +422,7 @@ public class DynamicAppUtils {
         if (model == null) {
           return null;
         }
-        if (model.getAndroidProject().getProjectType() != AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        if (model.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
           return null;
         }
         String gradlePath = getGradlePath(module);
@@ -445,9 +445,9 @@ public class DynamicAppUtils {
       if (androidModuleModel == null) {
         return false;
       }
-      int type = androidModuleModel.getAndroidProject().getProjectType();
-      return type == AndroidProjectTypes.PROJECT_TYPE_FEATURE || // Legacy
-             type == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+      IdeAndroidProjectType type = androidModuleModel.getAndroidProject().getProjectType();
+      return type == IdeAndroidProjectType.PROJECT_TYPE_FEATURE || // Legacy
+             type == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE;
     }).collect(Collectors.toList());
   }
 

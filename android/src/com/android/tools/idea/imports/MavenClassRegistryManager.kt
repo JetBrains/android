@@ -40,17 +40,17 @@ class MavenClassRegistryManager : Disposable {
   private var gMavenIndexRepository: GMavenIndexRepository? = null
 
   init {
-    if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
+    if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
       gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
       Disposer.register(this, gMavenIndexRepository!!)
     }
   }
 
   /**
-   * Switches between local and remote registry by [StudioFlags.ENABLE_AUTO_IMPORT].
+   * Switches between local and remote registry by [StudioFlags.ENABLE_SUGGESTED_IMPORT].
    */
   fun getMavenClassRegistry(): MavenClassRegistryBase {
-    return if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
+    return if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
       gMavenIndexRepository!!.getMavenClassRegistry()
     }
     else {

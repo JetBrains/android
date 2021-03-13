@@ -33,6 +33,7 @@ import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,7 +83,7 @@ public class CodeGenerationTest {
   @Test
   public void codeGeneration() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CodeGeneration");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CodeGeneration", Wait.seconds(120));
     guiTest.waitForBackgroundTasks();
 
     // Add Surround With and Unwrap code

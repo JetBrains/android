@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
-import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.google.common.base.Joiner;

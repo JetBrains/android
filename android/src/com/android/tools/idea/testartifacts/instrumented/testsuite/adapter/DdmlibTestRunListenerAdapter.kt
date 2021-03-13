@@ -24,16 +24,26 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.ClassUtil
+import java.io.File
 
 /**
  * An adapter to translate [ITestRunListener] callback methods into [AndroidTestResultListener].
  */
-class DdmlibTestRunListenerAdapter(device: IDevice,
+class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
                                    private val listener: AndroidTestResultListener) : ITestRunListener {
 
   companion object {
+    private val logger = Logger.getInstance(DdmlibTestRunListenerAdapter::class.java)
     const val BENCHMARK_TEST_METRICS_KEY = "android.studio.display.benchmark"
+    const val BENCHMARK_V2_TEST_METRICS_KEY = "android.studio.v2display.benchmark"
+    const val BENCHMARK_PATH_TEST_METRICS_KEY = "android.studio.v2display.benchmark.outputDirPath"
     private val benchmarkPrefixRegex = "^benchmark:( )?".toRegex(RegexOption.MULTILINE)
 
     /**
@@ -41,12 +51,17 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
      */
     private fun getBenchmarkOutput(testMetrics: MutableMap<String, String>): String {
       // Workaround solution for b/154322086.
-      return benchmarkPrefixRegex
-        .replace(testMetrics.getOrDefault(BENCHMARK_TEST_METRICS_KEY, ""), "")
+      // Newer libraries output strings on both BENCHMARK_TEST_METRICS_KEY and BENCHMARK_V2_OUTPUT_TEST_METRICS_KEY.
+      // The V2 supports linking while the V1 does not. This is done to maintain backward compatibility with older versions of studio.
+      var key = BENCHMARK_TEST_METRICS_KEY
+      if (testMetrics.containsKey(BENCHMARK_V2_TEST_METRICS_KEY)) {
+        key = BENCHMARK_V2_TEST_METRICS_KEY
+      }
+      return benchmarkPrefixRegex.replace(testMetrics.getOrDefault(key, ""), "")
     }
   }
 
-  private val myDevice = convertIDeviceToAndroidDevice(device)
+  private val myDevice = convertIDeviceToAndroidDevice(myIDevice)
 
   private lateinit var myTestSuite: AndroidTestSuite
   private val myTestCases = mutableMapOf<TestIdentifier, AndroidTestCase>()
@@ -106,6 +121,7 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
     testCase.logcat = testMetrics.getOrDefault(DDMLIB_LOGCAT, "")
     testCase.benchmark = getBenchmarkOutput(testMetrics)
     testCase.endTimestampMillis = System.currentTimeMillis()
+    copyBenchmarkFilesIfNeeded(testCase.benchmark, testMetrics.getOrDefault(BENCHMARK_PATH_TEST_METRICS_KEY, ""))
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 
@@ -132,5 +148,35 @@ class DdmlibTestRunListenerAdapter(device: IDevice,
 
     myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.PASSED
     listener.onTestSuiteFinished(myDevice, myTestSuite)
+  }
+
+  private fun copyBenchmarkFilesIfNeeded(benchmark: String, deviceRoot: String) {
+    if (benchmark.isBlank() || deviceRoot.isBlank()) {
+      return;
+    }
+    val benchmarkOutput = BenchmarkOutput(benchmark)
+    for (line in benchmarkOutput.lines) {
+      var match = line.matches
+      while (match != null) {
+        val link = match.groups[BenchmarkOutput.LINK_GROUP]?.value ?: ""
+        if (link.startsWith(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX)) {
+          val task = object : Task.Backgroundable(null, "Pulling: $link", true) {
+            override fun run(indicator: ProgressIndicator) {
+              val relativeFilePath = link.replace(BenchmarkOutput.BENCHMARK_TRACE_FILE_PREFIX, "")
+              val localFilePath = FileUtil.getTempDirectory() + File.separator + relativeFilePath
+              val localFile = File(localFilePath)
+              localFile.deleteOnExit()
+              if (!localFile.exists() && (localFile.parentFile.exists() || localFile.parentFile.mkdirs())) {
+                myIDevice.pullFile("$deviceRoot/$relativeFilePath", localFile.absolutePath)
+              } else {
+                logger.warn("Unable to copy latest trace file ($relativeFilePath) from device (${myIDevice.serialNumber})")
+              }
+            }
+          }
+          ProgressManager.getInstance().run(task)
+        }
+        match = match.next()
+      }
+    }
   }
 }

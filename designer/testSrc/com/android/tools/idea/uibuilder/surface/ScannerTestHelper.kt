@@ -163,14 +163,14 @@ class ScannerTestHelper {
   companion object {
 
     /** Create a default issue builder with all the requirements. */
-    fun createTestIssueBuilder(): ValidatorData.Issue.IssueBuilder {
+    fun createTestIssueBuilder(fix: ValidatorData.Fix? = null): ValidatorData.Issue.IssueBuilder {
       return ValidatorData.Issue.IssueBuilder()
         .setCategory("")
         .setType(ValidatorData.Type.ACCESSIBILITY)
         .setMsg("Test")
         .setLevel(ValidatorData.Level.ERROR)
         .setSrcId(-1)
-        .setFix(ValidatorData.Fix(""))
+        .setFix(fix)
         .setSourceClass("")
     }
   }

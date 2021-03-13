@@ -176,11 +176,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> ASSET_COPY_MATERIAL_ICONS = Flag.create(
     ASSET, "copy.material.icons", "Allow copying icons to Sdk folder",
     "Allow the IconPickerDialog in Asset Studio to copy bundled material icons in to the Android/Sdk folder",
-    false);
+    true);
   public static final Flag<Boolean> ASSET_DOWNLOAD_MATERIAL_ICONS = Flag.create(
     ASSET, "download.material.icons", "Allow downloading icons to Sdk folder",
     "Allow the IconPickerDialog in Asset Studio to download any new material icons in to the Android/Sdk folder",
-    false);
+    true);
   //endregion
 
   //region Layout Editor
@@ -649,7 +649,10 @@ public final class StudioFlags {
     "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
-    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", false);
+    "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.tree.options", "Add view options to component tree",
+    "If enabled, the component tree will have extra options under the gear dropdown.", false);
   //endregion
 
   //region Embedded Emulator
@@ -1102,10 +1105,17 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> ENABLE_APP_INSPECTION_DEV_MODE = Flag.create(
-    APP_INSPECTION, "enable.dev.mode", "Enable App Inspection Dev Mode",
-    "Enables development mode for App Inspection. Dev mode turns off features of bundling, which includes version checking " +
-    "and dynamic resolving of inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+  public static final Flag<Boolean> APP_INSPECTION_USE_DEV_JAR = Flag.create(
+    APP_INSPECTION, "use.dev.jar", "Use a precompiled, prebuilt inspector jar",
+    "If enabled, grab inspector jars from prebuilt locations, skipping over version checking and dynamic resolving of " +
+    "inspector artifacts from maven. This is useful for devs who want to load locally built inspectors.",
+    false
+  );
+
+  public static final Flag<Boolean> APP_INSPECTION_USE_SNAPSHOT_JAR = Flag.create(
+    APP_INSPECTION, "use.snapshot.jar", "Always extract latest inspector jar from library",
+    "If enabled, override normal inspector resolution logic, instead searching the IDE cache directly. This allows finding " +
+    "inspectors bundled in local, snapshot builds of Android libraries, as opposed to those released through the normal process on maven.",
     false
   );
   // endregion
@@ -1148,12 +1158,13 @@ public final class StudioFlags {
   );
   // endregion
 
-  //region Auto-import
-  private static final FlagGroup AUTO_IMPORT = new FlagGroup(FLAGS, "auto.import", "Auto-import Support");
-  public static final Flag<Boolean> ENABLE_AUTO_IMPORT = Flag.create(
-    AUTO_IMPORT, "enable", "Enable auto-import support",
-    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index and generate corresponding " +
-    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in MavenClassRegistry",
+  //region Suggested Import(s)
+  private static final FlagGroup SUGGESTED_IMPORT = new FlagGroup(FLAGS, "suggested.import", "Suggested import");
+  public static final Flag<Boolean> ENABLE_SUGGESTED_IMPORT = Flag.create(
+    SUGGESTED_IMPORT, "enable", "Enable suggested import",
+    "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index/... and generate corresponding " +
+    "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in " +
+    "MavenClassRegistryFromHardcodedMap.",
     false
   );
   // endregion

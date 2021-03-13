@@ -58,6 +58,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -89,7 +90,9 @@ class AppInspectionView @VisibleForTesting constructor(
   getPreferredProcesses: () -> List<String>
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
-  private val inspectorPanel = JPanel(BorderLayout())
+
+  @VisibleForTesting
+  val inspectorPanel = JPanel(BorderLayout())
 
   private var tabsChangedListener: (() -> Unit)? = null
 
@@ -214,10 +217,87 @@ class AppInspectionView @VisibleForTesting constructor(
     launchInspectorTabsForCurrentProcess(true)
   }
 
+  private fun CoroutineScope.launchInspectorForTab(
+    params: LaunchableInspectorTabLaunchParams,
+    tab: AppInspectorTabShell,
+    force: Boolean
+  ) = launch {
+    val provider = params.provider
+    try {
+      val client = apiServices.launchInspector(
+        LaunchParameters(
+          currentProcess,
+          provider.inspectorId,
+          params.jar,
+          project.name,
+          (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+          force
+        )
+      )
+      withContext(uiDispatcher) {
+        tab.setComponent(provider.createTab(project, ideServices, currentProcess, client).component)
+      }
+      launch {
+        if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
+          AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
+          // Wait until AFTER we're disposed before showing the notification. This ensures if
+          // the user hits restart, which requests launching a new inspector, it won't reuse
+          // the existing client. (Users probably would never hit restart fast enough but it's
+          // possible to trigger in tests.)
+          showCrashNotification(provider.displayName)
+        }
+      }
+    }
+    catch (e: CancellationException) {
+      // We don't log but rethrow cancellation exceptions because they are expected as part of the operation. For example: the service
+      // cancels all outstanding futures when it is turned off.
+      throw e
+    }
+    catch (e: AppInspectionProcessNoLongerExistsException) {
+      // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
+      // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
+      withContext(uiDispatcher) {
+        tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.name)))
+      }
+    }
+    catch (e: AppInspectionLaunchException) {
+      // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
+      // the old inspector is still running.
+      withContext(uiDispatcher) {
+        tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", provider.displayName)))
+        ideServices.showNotification(
+          AppInspectionBundle.message("notification.failed.launch", e.message!!),
+          severity = AppInspectionIdeServices.Severity.ERROR,
+          hyperlinkClicked = hyperlinkClicked
+        )
+      }
+    }
+    catch (e: AppInspectionVersionIncompatibleException) {
+      withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
+    }
+    catch (e: AppInspectionLibraryMissingException) {
+      withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
+    }
+    catch (e: AppInspectionAppProguardedException) {
+      withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(appProguardedMessage)) }
+    }
+    catch (e: Exception) {
+      Logger.getInstance(AppInspectionView::class.java).error(e)
+    }
+  }
+
   private fun launchInspectorTabsForCurrentProcess(force: Boolean = false) = scope.launch {
     val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactService)
+
     // Triage the applicable inspector tab providers into those that can be launched, and those that can't.
-    val applicableTabs = launchSupport.getApplicableTabLaunchParams(currentProcess)
+    val applicableTabs = try {
+      launchSupport.getApplicableTabLaunchParams(currentProcess)
+    }
+    catch (e: AppInspectionProcessNoLongerExistsException) {
+      // Process died before we got a chance to connect, so we won't be launching any inspector tabs this time.
+      emptyList()
+    }
+
     val launchableInspectors = applicableTabs
       .filterIsInstance<LaunchableInspectorTabLaunchParams>()
       .associateWith { AppInspectorTabShell(it.provider) }
@@ -225,72 +305,7 @@ class AppInspectionView @VisibleForTesting constructor(
       .filterIsInstance<StaticInspectorTabLaunchParams>()
       .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(it.toInfoMessageTab()) } }
 
-    launchableInspectors.forEach { (params, tab) ->
-      val provider = params.provider
-      launch {
-        try {
-          val client = apiServices.launchInspector(
-            LaunchParameters(
-              currentProcess,
-              provider.inspectorId,
-              params.jar,
-              project.name,
-              (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
-              force
-            )
-          )
-          withContext(uiDispatcher) {
-            tab.setComponent(provider.createTab(project, ideServices, currentProcess, client).component)
-          }
-          launch {
-            if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
-              AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-              // Wait until AFTER we're disposed before showing the notification. This ensures if
-              // the user hits restart, which requests launching a new inspector, it won't reuse
-              // the existing client. (Users probably would never hit restart fast enough but it's
-              // possible to trigger in tests.)
-              showCrashNotification(provider.displayName)
-            }
-          }
-        }
-        catch (e: CancellationException) {
-          // We don't log but rethrow cancellation exceptions because they are expected as part of the operation. For example: the service
-          // cancels all outstanding futures when it is turned off.
-          throw e
-        }
-        catch (e: AppInspectionProcessNoLongerExistsException) {
-          // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
-          // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
-          withContext(uiDispatcher) {
-            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", currentProcess.name)))
-          }
-        }
-        catch (e: AppInspectionLaunchException) {
-          // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
-          // the old inspector is still running.
-          withContext(uiDispatcher) {
-            tab.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", provider.displayName)))
-            ideServices.showNotification(
-              AppInspectionBundle.message("notification.failed.launch", e.message!!),
-              severity = AppInspectionIdeServices.Severity.ERROR,
-              hyperlinkClicked = hyperlinkClicked
-            )
-          }
-        }
-        catch (e: AppInspectionVersionIncompatibleException) {
-          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
-        }
-        catch (e: AppInspectionLibraryMissingException) {
-          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
-        }
-        catch (e: AppInspectionAppProguardedException) {
-          withContext(uiDispatcher) { tab.setComponent(EmptyStatePanel(appProguardedMessage)) }
-        }
-        catch (e: Exception) {
-          Logger.getInstance(AppInspectionView::class.java).error(e)
-        }
-      }
-    }
+    launchableInspectors.forEach { (params, tab) -> launchInspectorForTab(params, tab, force) }
 
     withContext(uiDispatcher)
     {

@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.devices.Abi;
 import com.google.common.base.Joiner;
@@ -26,7 +25,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
 import java.util.EnumSet;
@@ -38,33 +36,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LaunchCompatibility {
+  public static final LaunchCompatibility YES = new LaunchCompatibility(State.OK, null);
+
   @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
 
-  private final ThreeState myCompatible;
   private final String myReason;
+  private final State myState;
 
-  public static final LaunchCompatibility YES = new LaunchCompatibility(ThreeState.YES, null);
-
-  public LaunchCompatibility(ThreeState compatible, @Nullable String reason) {
-    myCompatible = compatible;
+  public LaunchCompatibility(@NotNull State state, @Nullable String reason) {
     myReason = reason;
+    myState = state;
   }
 
   public LaunchCompatibility combine(@NotNull LaunchCompatibility other) {
-    if (myCompatible == ThreeState.NO) {
+    if (myState == State.ERROR) {
       return this;
     }
-    if (other.myCompatible == ThreeState.NO) {
+    if (other.myState == State.ERROR) {
       return other;
     }
-    if (myCompatible == ThreeState.UNSURE) {
+    if (myState == State.WARNING) {
       return this;
     }
     return other;
-  }
-
-  public ThreeState isCompatible() {
-    return myCompatible;
   }
 
   @Nullable
@@ -72,21 +66,25 @@ public class LaunchCompatibility {
     return myReason;
   }
 
+  public @NotNull State getState() {
+    return myState;
+  }
+
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("compatible", myCompatible).add("reason", myReason).toString();
+    return MoreObjects.toStringHelper(this).add("state", myState).add("reason", myReason).toString();
   }
 
   @Override
   public boolean equals(Object o) {
     return o instanceof LaunchCompatibility &&
-           myCompatible == ((LaunchCompatibility)o).myCompatible &&
+           myState == ((LaunchCompatibility)o).myState &&
            Objects.equal(myReason, ((LaunchCompatibility)o).myReason);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myCompatible, myReason);
+    return Objects.hashCode(myState, myReason);
   }
 
   /**
@@ -115,21 +113,21 @@ public class LaunchCompatibility {
                                     minSdkVersion,
                                     deviceVersion,
                                     minSdkVersion.getCodename() == null ? ">" : "!=");
-      return new LaunchCompatibility(ThreeState.NO, reason);
+      return new LaunchCompatibility(State.WARNING, reason);
     }
 
     EnumSet<IDevice.HardwareFeature> requiredFeatures;
     try {
       requiredFeatures = getRequiredHardwareFeatures.fun(facet);
     }
-    catch(IndexNotReadyException e) {
-      return new LaunchCompatibility(ThreeState.UNSURE, "Required features are unsure because indices are not ready.");
+    catch (IndexNotReadyException e) {
+      return new LaunchCompatibility(State.ERROR, "Required features are unsure because indices are not ready.");
     }
 
     // check if the device provides the required features
     for (IDevice.HardwareFeature feature : requiredFeatures) {
       if (!device.supportsFeature(feature)) {
-        return new LaunchCompatibility(ThreeState.NO, "missing feature: " + feature);
+        return new LaunchCompatibility(State.WARNING, "missing feature: " + feature);
       }
     }
 
@@ -138,7 +136,8 @@ public class LaunchCompatibility {
     // non-watch apks to be installed on it.
     if (device.supportsFeature(IDevice.HardwareFeature.WATCH)) {
       if (!requiredFeatures.contains(IDevice.HardwareFeature.WATCH)) {
-        return new LaunchCompatibility(ThreeState.NO, "missing uses-feature watch, non-watch apks cannot be launched on a watch");
+        return new LaunchCompatibility(State.WARNING,
+                                       "missing uses-feature watch, non-watch apks cannot be launched on a watch");
       }
     }
 
@@ -150,7 +149,7 @@ public class LaunchCompatibility {
       }
 
       if (Sets.intersection(supportedAbis, deviceAbis).isEmpty()) {
-        return new LaunchCompatibility(ThreeState.NO, "Device supports " + Joiner.on(", ").join(deviceAbis) +
+        return new LaunchCompatibility(State.WARNING, "Device supports " + Joiner.on(", ").join(deviceAbis) +
                                                       ", but APK only supports " + Joiner.on(", ").join(supportedAbis));
       }
     }
@@ -171,43 +170,16 @@ public class LaunchCompatibility {
     if (GOOGLE_APIS_TARGET_NAME.equals(targetName)) {
       // We'll assume that Google APIs are available on all devices.
       return YES;
-    } else {
+    }
+    else {
       // Unsure because we don't have an easy way of determining whether those libraries are on a device
-      return new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: " + targetName);
+      return new LaunchCompatibility(State.ERROR, "unsure if device supports addon: " + targetName);
     }
   }
 
-  private static LaunchCompatibility isCompatibleAddonAvd(IAndroidTarget projectTarget, ISystemImage image) {
-    // validate that the vendor is the same for both the project and the avd
-    if (!StringUtil.equals(projectTarget.getVendor(), image.getAddonVendor().getDisplay())) {
-      String reason =
-        String.format("AVD vendor (%1$s) != AVD target (%2$s)", image.getAddonVendor().getDisplay(), projectTarget.getVendor());
-      return new LaunchCompatibility(ThreeState.NO, reason);
-    }
-
-    if (!StringUtil.equals(projectTarget.getName(), image.getTag().getDisplay())) {
-      String reason =
-        String.format("AVD target name (%1$s) != Project target name (%2$s)", image.getTag().getDisplay(), projectTarget.getName());
-      return new LaunchCompatibility(ThreeState.NO, reason);
-    }
-
-    return YES;
-  }
-
-  /** Returns whether a project with given minSdkVersion and target platform can be run on an AVD with given target platform. */
-  @NotNull
-  public static LaunchCompatibility canRunOnAvd(@NotNull AndroidVersion minSdkVersion,
-                                                @NotNull IAndroidTarget projectTarget,
-                                                @NotNull ISystemImage image) {
-    AndroidVersion avdVersion = image.getAndroidVersion();
-    if (!avdVersion.canRun(minSdkVersion)) {
-      String reason = String.format("minSdk(%1$s) %3$s deviceSdk(%2$s)",
-                                    minSdkVersion,
-                                    avdVersion,
-                                    minSdkVersion.getCodename() == null ? ">" : "!=");
-      return new LaunchCompatibility(ThreeState.NO, reason);
-    }
-
-    return projectTarget.isPlatform() ? YES : isCompatibleAddonAvd(projectTarget, image);
+  public enum State {
+    OK,
+    WARNING,
+    ERROR
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.intellijplatform;
 
-import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
@@ -70,7 +69,7 @@ public class GotoDeclarationTest {
   @Test
   public void gotoDeclaration() throws Exception  {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CodeGeneration");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CodeGeneration", Wait.seconds(120));
     guiTest.waitForBackgroundTasks();
 
     EditorFixture editorFixture = ideFrame.getEditor();

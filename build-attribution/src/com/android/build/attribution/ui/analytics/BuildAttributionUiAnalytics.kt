@@ -156,6 +156,10 @@ class BuildAttributionUiAnalytics(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
   )
 
+  fun noGCSettingWarningSuppressed() =doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.CONFIGURE_GC_WARNING_SUSPEND_CLICKED)
+  )
+
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)

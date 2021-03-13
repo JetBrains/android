@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.run
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
@@ -42,7 +42,7 @@ private fun getModuleGradlePaths(modules: List<Module>): Set<String> {
     .mapNotNull { AndroidModuleModel.get(it) }
     .forEach { androidModel ->
       val androidProject = androidModel.androidProject
-      if (androidProject.projectType == PROJECT_TYPE_TEST) {
+      if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
         gradlePaths.addAll(androidModel.selectedVariant.testedTargetVariants.map { it.targetProjectPath })
       }
       gradlePaths.addAll(androidProject.dynamicFeatures)

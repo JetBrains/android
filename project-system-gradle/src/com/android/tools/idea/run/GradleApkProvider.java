@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
@@ -33,9 +31,9 @@ import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
@@ -44,6 +42,7 @@ import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -170,12 +169,12 @@ public class GradleApkProvider implements ApkProvider {
 
     List<ApkInfo> apkList = new ArrayList<>();
 
-    int projectType = androidModel.getAndroidProject().getProjectType();
-    if (projectType == PROJECT_TYPE_APP ||
-        projectType == PROJECT_TYPE_INSTANTAPP ||
-        projectType == PROJECT_TYPE_TEST ||
-        projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
-      String pkgName = projectType == PROJECT_TYPE_TEST
+    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_APP ||
+        projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
+        projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST ||
+        projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
+      String pkgName = projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST
                        ? myApplicationIdProvider.getTestPackageName()
                        : myApplicationIdProvider.getPackageName();
       if (pkgName == null) {
@@ -199,7 +198,7 @@ public class GradleApkProvider implements ApkProvider {
 
         case AppBundleOutputModel:
           Module baseAppModule = myFacet.getModule();
-          if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
+          if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
             // If it's instrumented test for dynamic feature module, the base-app module is retrieved,
             // and then Apks from bundle are able to be extracted.
             baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
@@ -217,7 +216,7 @@ public class GradleApkProvider implements ApkProvider {
     apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
 
     if (myTest) {
-      if (projectType == PROJECT_TYPE_TEST) {
+      if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
         if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
           apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
         }
@@ -500,7 +499,7 @@ public class GradleApkProvider implements ApkProvider {
     }
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
-    if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
+    if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         myOutputKindProvider.apply(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
         androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();

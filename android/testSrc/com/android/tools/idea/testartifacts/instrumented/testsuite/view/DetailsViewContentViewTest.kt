@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -33,6 +34,8 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import java.io.File
@@ -149,6 +152,16 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun logsViewWithNoLogsAndErrorStackTrace() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
+
+    view.setLogcat("")
+    view.setErrorStackTrace("error stack trace")
+    view.myLogsView.waitAllRequests()
+    assertThat(view.myLogsView.text).isEqualTo("\nerror stack trace")
+  }
+
+  @Test
   fun logsViewWithNoMessage() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
@@ -171,13 +184,25 @@ class DetailsViewContentViewTest {
   }
 
   @Test
+  fun logsViewShouldShouldNotRefreshWhenMessageUnchanged() {
+    val view = spy(DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger))
+
+    view.setLogcat("test logcat message")
+    view.setLogcat("test logcat message")
+    view.myLogsView.waitAllRequests()
+
+    verify(view, times(1)).refreshLogsView()
+    assertThat(view.myLogsView.text).isEqualTo("test logcat message\n")
+  }
+
+  @Test
   fun benchmarkTab() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
-    view.setBenchmarkText("test benchmark message")
+    view.setBenchmarkText(BenchmarkOutput("test benchmark message"))
     view.myBenchmarkView.waitAllRequests()
 
-    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message")
+    assertThat(view.myBenchmarkView.text).isEqualTo("benchmark: test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
   }
 
@@ -185,7 +210,7 @@ class DetailsViewContentViewTest {
   fun benchmarkTabIsHiddenIfNoOutput() {
     val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger)
 
-    view.setBenchmarkText("")
+    view.setBenchmarkText(BenchmarkOutput.Empty)
     view.myBenchmarkView.waitAllRequests()
 
     assertThat(view.myBenchmarkView.text).isEqualTo("")
@@ -202,6 +227,6 @@ class DetailsViewContentViewTest {
   }
 
   private fun device(id: String, name: String): AndroidDevice {
-    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 }

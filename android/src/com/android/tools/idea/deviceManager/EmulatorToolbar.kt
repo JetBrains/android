@@ -28,6 +28,7 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.border.Border
 import javax.swing.event.DocumentEvent
@@ -42,7 +43,7 @@ class EmulatorToolbar(
   searchDocumentListener: DocumentListener
 ) {
   private val createAvdAction = CreateAvdAction(avdInfoProvider)
-  private val newButton = CommonButton(AllIcons.General.Add).apply {
+  private val newButton = JButton("Create new AVD").apply {
     addActionListener(createAvdAction)
   }
 
@@ -64,7 +65,7 @@ class EmulatorToolbar(
   // Consider using delegation? Or some pattern like MVVM.
   val panel = panel {
     row {
-      newButton()
+      newButton().withLeftGap()
       separator()
       refreshButton()
       helpButton()

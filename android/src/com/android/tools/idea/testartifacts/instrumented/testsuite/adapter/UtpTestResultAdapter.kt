@@ -85,6 +85,7 @@ class UtpTestResultAdapter(private val protoFile: File) {
   private fun getDeviceMap(dir: File, resultProto: TestSuiteResultProto.TestSuiteResult): DeviceMap {
     val defaultDevice = AndroidDevice(DEFAULT_DEVICE_NAME,
                                       DEFAULT_DEVICE_NAME,
+                                      DEFAULT_DEVICE_NAME,
                                       DEFAULT_DEVICE_TYPE,
                                       AndroidVersion.DEFAULT)
     val defaultDeviceSuite = DeviceTestSuite(defaultDevice)
@@ -94,12 +95,19 @@ class UtpTestResultAdapter(private val protoFile: File) {
       if (deviceInfo == null) {
         return@map defaultDeviceSuite
       } else {
-        val deviceType = if (deviceInfo.avdName == "") {
-          AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-        } else {
-          AndroidDeviceType.LOCAL_EMULATOR
+        val deviceType = when {
+          deviceInfo.avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+          deviceInfo.gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
+          else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
         }
-        val device = AndroidDevice(id.toString(), deviceInfo.displayName(), deviceType, AndroidVersion(deviceInfo.apiLevel))
+
+        val device = AndroidDevice(
+          id.toString(),
+          deviceInfo.displayName(),
+          deviceInfo.avdName,
+          deviceType,
+          AndroidVersion(deviceInfo.apiLevel)
+        )
         id += 1
         return@map DeviceTestSuite(device)
       }
@@ -191,12 +199,10 @@ private fun TestResultProto.TestResult.getDeviceInfo(dir: File): AndroidTestDevi
 private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.displayName(): String =
     if (gradleDslDeviceName.isNotEmpty()) "Gradle:$gradleDslDeviceName" else name
 
-private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType {
-  if (avdName == "") {
-    return AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
-  } else {
-    return AndroidDeviceType.LOCAL_EMULATOR
-  }
+private fun AndroidTestDeviceInfoProto.AndroidTestDeviceInfo.deviceType(): AndroidDeviceType = when {
+    avdName.isEmpty() -> AndroidDeviceType.LOCAL_PHYSICAL_DEVICE
+    gradleDslDeviceName.isEmpty() -> AndroidDeviceType.LOCAL_EMULATOR
+    else -> AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR
 }
 
 // Try to find a file. The fallbacks of file path is as follows:

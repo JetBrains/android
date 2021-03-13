@@ -218,8 +218,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final InteractionManager myInteractionManager;
-  protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
-  private List<PanZoomListener> myZoomListeners;
+  private final Object myListenersLock = new Object();
+  @GuardedBy("myListenersLock")
+  protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
+  @GuardedBy("myListenersLock")
+  @NotNull private ArrayList<PanZoomListener> myZoomListeners = new ArrayList<>();
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   private final ReentrantReadWriteLock myModelToSceneManagersLock = new ReentrantReadWriteLock();
@@ -631,6 +634,26 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   * Gets a copy of {@code myListeners} under a lock. Use this method instead of accessing the listeners directly.
+   */
+  @NotNull
+  private ImmutableList<DesignSurfaceListener> getListeners() {
+    synchronized (myListenersLock) {
+      return ImmutableList.copyOf(myListeners);
+    }
+  }
+
+  /**
+   * Gets a copy of {@code myZoomListeners} under a lock. Use this method instead of accessing the listeners directly.
+   */
+  @NotNull
+  private ImmutableList<PanZoomListener> getZoomListeners() {
+    synchronized (myListenersLock) {
+      return ImmutableList.copyOf(myZoomListeners);
+    }
+  }
+
+  /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, it will
    * be moved to the bottom of the list and a refresh will be triggered.
    * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
@@ -655,7 +678,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         revalidateScrollArea();
 
         // TODO(b/147225165): The tasks depends on model inflating callback should be moved to ModelListener#modelDerivedDataChanged.
-        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+        for (DesignSurfaceListener listener : getListeners()) {
           listener.modelChanged(this, model);
         }
       }, EdtExecutorService.getInstance());
@@ -683,7 +706,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     SceneManager manager = addModel(model);
 
     EdtExecutorService.getInstance().execute(() -> {
-      for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      for (DesignSurfaceListener listener : getListeners()) {
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
         //       to address that.
         listener.modelChanged(this, model);
@@ -771,7 +794,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
         // TODO: The listeners have the expectation of the call happening in the EDT. We need
         //       to address that.
-        for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+        for (DesignSurfaceListener listener : getListeners()) {
           listener.modelChanged(this, model);
         }
       }, EdtExecutorService.getInstance());
@@ -791,6 +814,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
+    synchronized (myListenersLock) {
+      myListeners.clear();
+      myZoomListeners.clear();
+    }
     myInteractionManager.stopListening();
     Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
     synchronized (myRenderFutures) {
@@ -1278,18 +1305,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   private void notifyScaleChanged(double previousScale, double newScale) {
-    if (myZoomListeners != null) {
-      for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.zoomChanged(previousScale, newScale);
-      }
+    for (PanZoomListener myZoomListener : getZoomListeners()) {
+      myZoomListener.zoomChanged(previousScale, newScale);
     }
   }
 
   private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
-    if (myZoomListeners != null) {
-      for (PanZoomListener myZoomListener : myZoomListeners) {
-        myZoomListener.panningChanged(adjustmentEvent);
-      }
+    for (PanZoomListener myZoomListener : getZoomListeners()) {
+      myZoomListener.panningChanged(adjustmentEvent);
     }
   }
 
@@ -1340,7 +1363,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public abstract Consumer<NlComponent> getComponentRegistrar();
 
   protected void activatePreferredEditor(@NotNull NlComponent component) {
-    for (DesignSurfaceListener listener : new ArrayList<>(myListeners)) {
+    for (DesignSurfaceListener listener : getListeners()) {
       if (listener.activatePreferredEditor(this, component)) {
         break;
       }
@@ -1348,26 +1371,27 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public void addListener(@NotNull DesignSurfaceListener listener) {
-    myListeners.remove(listener); // ensure single registration
-    myListeners.add(listener);
+    synchronized (myListenersLock) {
+      myListeners.remove(listener); // ensure single registration
+      myListeners.add(listener);
+    }
   }
 
   public void removeListener(@NotNull DesignSurfaceListener listener) {
-    myListeners.remove(listener);
+    synchronized (myListenersLock) {
+      myListeners.remove(listener);
+    }
   }
 
   public void addPanZoomListener(PanZoomListener listener) {
-    if (myZoomListeners == null) {
-      myZoomListeners = Lists.newArrayList();
-    }
-    else {
+    synchronized (myListenersLock) {
       myZoomListeners.remove(listener);
+      myZoomListeners.add(listener);
     }
-    myZoomListeners.add(listener);
   }
 
   public void removePanZoomListener(PanZoomListener listener) {
-    if (myZoomListeners != null) {
+    synchronized (myListenersLock) {
       myZoomListeners.remove(listener);
     }
   }

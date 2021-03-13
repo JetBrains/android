@@ -187,7 +187,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
    * class can be loaded from the file system correctly.
    */
   @NotNull
-  private static String nonProjectClassNameLookup(@NotNull String name) {
+  private static String onDiskClassNameLookup(@NotNull String name) {
     return StringUtil.trimStart(name, INTERNAL_PACKAGE);
   }
 
@@ -205,7 +205,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
                     @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ClassBinaryCache cache,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup, cache);
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache);
     Disposer.register(renderContext.getModule(), this);
     myModuleReference = new WeakReference<>(renderContext.getModule());
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
@@ -385,9 +385,10 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @NotNull
   @Override
   public PseudoClass locatePseudoClass(@NotNull String classFqn) {
-    PseudoClass pseudoClass = super.locatePseudoClass(classFqn);
+    String diskLookupName = onDiskClassNameLookup(classFqn);
+    PseudoClass pseudoClass = super.locatePseudoClass(diskLookupName);
 
-    if (!pseudoClass.getName().equals(classFqn)) {
+    if (!pseudoClass.getName().equals(diskLookupName)) {
       Module module = myModuleReference.get();
       if (module == null || module.isDisposed()) {
         return PseudoClass.Companion.objectPseudoClass();
@@ -395,7 +396,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
 
       VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
         .getClassFileFinderForSourceFile(mySourceFileProvider.get())
-        .findClassFile(classFqn);
+        .findClassFile(diskLookupName);
       if (classFile != null) {
         try {
           return PseudoClass.Companion.fromByteArray(classFile.contentsToByteArray(), this);
@@ -406,7 +407,13 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
       }
     }
 
-    return pseudoClass;
+    if (isRepackagedClass(classFqn)) {
+      // If this is one of the repackaged classes, we have to restore the name. This will be usually the case when we are, for example,
+      // looking for a super class of a repackaged class. For example _layoutlib_._internal_.repackagedname.classB will have a as super
+      // repackagename.classA. We need to make sure that class is resolved as _layoutlib_._internal_.repackagedname.classA.
+      classFqn = INTERNAL_PACKAGE + classFqn;
+    }
+    return pseudoClass.withNewName(classFqn);
   }
 
   /**
@@ -421,7 +428,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
 
     VirtualFile classFile = ProjectSystemUtil.getModuleSystem(module)
       .getClassFileFinderForSourceFile(mySourceFileProvider.get())
-      .findClassFile(name);
+      .findClassFile(onDiskClassNameLookup(name));
 
     if (classFile == null) {
       return null;

@@ -88,7 +88,7 @@ abstract class PoliteAndroidVirtualFileListener(val project: Project) : VirtualF
   protected fun possiblyIrrelevantFileChanged(file: VirtualFile) = runIfRelevant(file, this::fileChanged)
 
   private inline fun runIfRelevant(file: VirtualFile, block: (PathString, AndroidFacet) -> Unit) {
-    if (!isPossiblyRelevant(file)) return
+    if (!file.isValid || !isPossiblyRelevant(file)) return
     val facet = AndroidFacet.getInstance(file, project) ?: return
     if (isRelevant(file, facet)) {
       block(file.toPathString(), facet)

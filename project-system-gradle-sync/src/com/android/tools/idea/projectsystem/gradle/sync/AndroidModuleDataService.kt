@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle.sync
 
+import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags
@@ -47,7 +49,6 @@ import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ModifiableFacetModel
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -57,7 +58,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleGrouper
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task.Backgroundable
@@ -113,17 +113,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val androidModel = nodeToImport.data
       androidModel.setModule(mainIdeModule)
 
-      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
-      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
-      // Android model is null for the root project module.
-      val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
-        androidModel.androidProject.name,
-        androidModel.androidProject.compileTarget,
-        androidModel.androidProject.bootClasspath,
-        IdeSdks.getInstance()
-      )
-      val languageLevel = androidModel.javaLanguageLevel
-
       var mainArtifactModule : Module? = null
       val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
         modelsProvider.findIdeModule(dataNode.data).also { module ->
@@ -146,8 +135,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         } else {
           removeAllFacets(facetModel, AndroidFacet.ID)
         }
-
-        module.setupSdkAndLanguageLevel(modelsProvider, languageLevel, sdkToUse)
 
         moduleValidator.validate(module, androidModel)
       }
@@ -211,6 +198,41 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       }
     })
   }
+
+  override fun postProcess(toImport: MutableCollection<DataNode<AndroidModuleModel>>,
+                           projectData: ProjectData?,
+                           project: Project,
+                           modelsProvider: IdeModifiableModelsProvider) {
+    super.postProcess(toImport, projectData, project, modelsProvider)
+    // We need to set the SDK in postProcess since we need to ensure that this is run after the code in
+    // KotlinGradleAndroidModuleModelProjectDataService.
+    for (nodeToImport in toImport) {
+      val mainModuleDataNode = ExternalSystemApiUtil.findParent(
+        nodeToImport,
+        ProjectKeys.MODULE
+      ) ?: continue
+      val mainModuleData = mainModuleDataNode.data
+      val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
+
+      val androidModel = nodeToImport.data
+      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
+      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
+      // Android model is null for the root project module.
+      val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
+        androidModel.androidProject.name,
+        androidModel.androidProject.compileTarget,
+        androidModel.androidProject.bootClasspath,
+        IdeSdks.getInstance()
+      )
+
+      val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
+        modelsProvider.findIdeModule(dataNode.data)
+      }
+      modules.forEach { module ->
+        module.setupSdkAndLanguageLevel(modelsProvider, androidModel.javaLanguageLevel, sdkToUse)
+      }
+    }
+  }
 }
 
 /**
@@ -232,7 +254,16 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
 private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: AndroidModuleModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
-  androidFacet.properties.PROJECT_TYPE = androidModuleModel.androidProject.projectType
+  @Suppress("DEPRECATION")
+  androidFacet.properties.PROJECT_TYPE = when(androidModuleModel.androidProject.projectType) {
+    IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidProjectTypes.PROJECT_TYPE_ATOM
+    IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidProjectTypes.PROJECT_TYPE_APP
+    IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_FEATURE
+    IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
+    IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
+  }
 
   val modulePath = androidModuleModel.rootDirPath
   val sourceProvider = androidModuleModel.defaultSourceProvider

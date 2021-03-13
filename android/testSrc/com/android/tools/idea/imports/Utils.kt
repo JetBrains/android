@@ -64,7 +64,7 @@ internal fun assertBuildGradle(projectRule: AndroidGradleProjectRule, check: (St
 
 internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
   get() {
-    val mavenClassRegistry = if (StudioFlags.ENABLE_AUTO_IMPORT.get()) {
+    val mavenClassRegistry = if (StudioFlags.ENABLE_SUGGESTED_IMPORT.get()) {
       val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
       `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
         """
@@ -75,7 +75,8 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "artifactId": "palette",
                 "version": "1.0.0",
                 "fqcns": [
-                  "androidx.palette.graphics.Palette"
+                  "androidx.palette.graphics.Palette",
+                  "androidx.palette.graphics.FakeClass"
                 ]
               },
               {
@@ -84,7 +85,8 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "version": "2.2.6",
                 "fqcns": [
                   "androidx.room.Room",
-                  "androidx.room.RoomDatabase"
+                  "androidx.room.RoomDatabase",
+                  "androidx.room.FakeClass"
                 ]
               },
               {
@@ -93,6 +95,14 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "version": "1.1.0",
                 "fqcns": [
                   "androidx.recyclerview.widget.RecyclerView"
+                ]
+              },
+              {
+                "groupId": "androidx.camera",
+                "artifactId": "camera-view",
+                "version": "1.0.0-alpha22",
+                "fqcns": [
+                  "androidx.camera.view.PreviewView"
                 ]
               }
             ]

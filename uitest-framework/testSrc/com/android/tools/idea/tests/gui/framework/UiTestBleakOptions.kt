@@ -38,6 +38,7 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   // don't report growing weak or soft maps. Nodes whose weak or soft referents have been GC'd will be removed from the map during some
   // future map operation.
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentWeakHashMap#myMap" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentWeakValueHashMap#myMap" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentWeakKeyWeakValueHashMap#myMap" },
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.util.containers.WeakHashMap#myMap" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentSoftHashMap#myMap" },
@@ -45,7 +46,7 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap#myMap" },
 
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.fileEditor.impl.FileDocumentManagerImpl#myDocumentCache" },
-  IgnoreListEntry { it.leaktrace.signatureAt(-4) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.android.tools.idea.configurations.ConfigurationManager#myCache" },
   IgnoreListEntry { it.leaktrace.signatureAt(-4) == "com.maddyhome.idea.copyright.util.NewFileTracker#newFiles" }, // b/126417715
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.vfs.newvfs.impl.VfsData\$Segment#myObjectArray" },
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.vcs.impl.FileStatusManagerImpl#myCachedStatuses" },
@@ -64,8 +65,8 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
     it.leaktrace.signatureAt(-4) == "com.intellij.openapi.util.Disposer#ourTree"
   },
   IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.openapi.application.impl.ReadMostlyRWLock#readers" },
-  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "org.jdom.JDOMInterner#myElements" },
-  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "org.jdom.JDOMInterner#myStrings" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-4) == "org.jdom.JDOMInterner#myElements" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-4) == "org.jdom.JDOMInterner#myStrings" },
   // coroutine scheduler thread pool: b/140457368
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "kotlinx.coroutines.scheduling.CoroutineScheduler#workers" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.ide.plugins.MainRunner$1#threads" },
@@ -73,21 +74,20 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry { it.leaktrace.signatureAt(-4) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myDocumentStacks" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces" },
   IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals" },
-  IgnoreListEntry { it.leaktrace.signatureAt(2) == "com.android.tools.idea.io.netty.buffer.ByteBufAllocator#DEFAULT" }
+  IgnoreListEntry { it.leaktrace.signatureAt(2) == "com.android.tools.idea.io.netty.buffer.ByteBufAllocator#DEFAULT" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-1) == "com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectModelSynchronizer#incomingChanges" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.workspaceModel.ide.impl.jps.serialization.JpsProjectSerializersImpl#internalSourceToExternal" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.util.concurrency.AppDqlayQueue#q" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-3) == "com.intellij.execution.process.ProcessIOExecutorService#workers" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-5) == "com.intellij.util.containers.RecentStringInterner#myInterns" },
+  IgnoreListEntry { it.leaktrace.signatureAt(-2) == "com.intellij.util.xml.EvaluatedXmlNameImpl#ourInterned" },
+
 ))
 
 /**
  * Known issues must have a corresponding tracking bug and should be removed as soon as they're fixed.
  */
 private val knownIssues = IgnoreList<LeakInfo>(listOf(
-  IgnoreListEntry { info ->
-    // b/144418512: Compose Preview leaking ModuleClassLoader
-    info.leaktrace.size == 1 // Only ROOT
-     // 2 new instances of ModuleClassLoader are added
-     && info.addedChildren.size == 2
-     && info.addedChildren[0].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
-     && info.addedChildren[1].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
-  },
   IgnoreListEntry {
     // b/151316853; upstream bug: IDEA-234673
     it.leaktrace.signatureAt(-2) == "com.intellij.ide.util.treeView.AbstractTreeUi#myElementToNodeMap"

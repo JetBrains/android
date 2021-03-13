@@ -125,11 +125,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +143,7 @@ public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
-  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
+  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
@@ -166,10 +166,12 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static final Map<Path, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<Path, AvdManagerConnection> ourAvdCache = ContainerUtil.createWeakMap();
+  private static final @NotNull Map<@NotNull Path, @NotNull AvdManagerConnection> ourGradleAvdCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
 
-  private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
+  private static @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> ourConnectionFactory =
+    AvdManagerConnection::new;
 
   @Nullable
   private final AndroidSdkHandler mySdkHandler;
@@ -179,6 +181,8 @@ public class AvdManagerConnection {
 
   @Nullable
   private AvdManager myAvdManager;
+
+  private final @Nullable Path myAvdHomeFolder;
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
@@ -192,28 +196,62 @@ public class AvdManagerConnection {
   @NotNull
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
     Path sdkPath = handler.getLocation();
-    if (!ourCache.containsKey(sdkPath)) {
-      ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
-    }
-    return ourCache.get(sdkPath);
+    return ourAvdCache.computeIfAbsent(
+      sdkPath, path -> {
+        try {
+          return ourConnectionFactory.apply(handler, AndroidLocationsSingleton.INSTANCE.getAvdLocation());
+        }
+        catch (AndroidLocationsException e) {
+          IJ_LOG.warn(e);
+          return NULL_CONNECTION;
+        }
+      });
   }
 
-  private AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler) {
-    this(sdkHandler, MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()));
+  public synchronized static @NotNull AvdManagerConnection getDefaultGradleAvdManagerConnection() {
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    if (handler.getLocation() == null) {
+      return NULL_CONNECTION;
+    }
+    return getGradleAvdManagerConnection(handler);
+  }
+
+  public synchronized static @NotNull AvdManagerConnection getGradleAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
+    Path sdkPath = handler.getLocation();
+    return ourGradleAvdCache.computeIfAbsent(
+      sdkPath, path -> {
+        try {
+          return ourConnectionFactory.apply(handler, AndroidLocationsSingleton.INSTANCE.getGradleAvdLocation());
+        }
+        catch (AndroidLocationsException e) {
+          IJ_LOG.warn(e);
+          return NULL_CONNECTION;
+        }
+      });
+  }
+
+  private AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler, @Nullable Path avdHomeFolder) {
+    this(sdkHandler, avdHomeFolder, MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()));
   }
 
   @VisibleForTesting
-  public AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler, @NotNull ListeningExecutorService edtListeningExecutorService) {
+  public AvdManagerConnection(
+      @Nullable AndroidSdkHandler sdkHandler,
+      @Nullable Path avdHomeFolder,
+      @NotNull ListeningExecutorService edtListeningExecutorService) {
     mySdkHandler = sdkHandler;
     myEdtListeningExecutorService = edtListeningExecutorService;
+    myAvdHomeFolder = avdHomeFolder;
   }
 
   /**
    * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
    */
   @VisibleForTesting
-  protected synchronized static void setConnectionFactory(@NotNull Function<AndroidSdkHandler, AvdManagerConnection> factory) {
-    ourCache.clear();
+  protected synchronized static void setConnectionFactory(
+    @NotNull BiFunction<@Nullable AndroidSdkHandler, @Nullable Path, @NotNull AvdManagerConnection> factory) {
+    ourAvdCache.clear();
+    ourGradleAvdCache.clear();
     ourConnectionFactory = factory;
   }
 
@@ -226,8 +264,15 @@ public class AvdManagerConnection {
         IJ_LOG.warn("No Android SDK Found");
         return false;
       }
+      if (myAvdHomeFolder == null) {
+        IJ_LOG.warn("No AVD Home Folder");
+        return false;
+      }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, AndroidLocationsSingleton.INSTANCE.getAvdLocation().toFile(), SDK_LOG);
+        myAvdManager = AvdManager.getInstance(
+          mySdkHandler,
+          myAvdHomeFolder.toFile(),
+          SDK_LOG);
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
@@ -578,6 +623,7 @@ public class AvdManagerConnection {
     Optional<Collection<String>> params = Optional.ofNullable(System.getenv("studio.emu.params")).map(Splitter.on(',')::splitToList);
 
     return factory.newEmulatorCommandBuilder(emulator.toPath(), avd)
+      .setAvdHome(myAvdManager.getBaseAvdFolder().toPath())
       .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
       .setStudioParams(writeParameterFile().orElse(null))
       .setLaunchInToolWindow(shouldBeLaunchedEmbedded(project, avd))
@@ -622,7 +668,7 @@ public class AvdManagerConnection {
             !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID)));
   }
 
-  public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
+  private static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
     return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
            project != null && ToolWindowManager.getInstance(project).getToolWindow("Android Emulator") != null;
   }

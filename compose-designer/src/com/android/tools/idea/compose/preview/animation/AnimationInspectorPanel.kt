@@ -83,7 +83,7 @@ import kotlin.math.ceil
 private val LOG = Logger.getInstance(AnimationInspectorPanel::class.java)
 
 /**
- * Height of the animation inspector timeline header, i.e. "Prop Keys" panel title and timeline labels.
+ * Height of the animation inspector timeline header, i.e. Transition Properties panel title and timeline labels.
  */
 private const val TIMELINE_HEADER_HEIGHT = 25
 
@@ -126,9 +126,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Swing components cannot be placed into different containers, so we add the shared timeline to the active tab on tab change.
         tab.addTimeline()
         timeline.selectedTab = tab
-        // Set the clock time when changing tabs to update the current tab's prop keys panel. Note we don't do that when old selection is
-        // null, as that will happen when adding/selecting the first tab to the tabbed pane. In that case, the set clock logic will be
-        // handled by updateTransitionStates.
+        // Set the clock time when changing tabs to update the current tab's transition properties panel. Note we don't do that when old
+        // selection is null, as that will happen when adding/selecting the first tab to the tabbed pane. In that case, the set clock logic
+        // will be handled by updateTransitionStates.
         if (oldSelection != null) {
           timeline.setClockTime(timeline.cachedVal)
         }
@@ -267,6 +267,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     add(noAnimationsPanel, TabularLayout.Constraint(1, 0, 2))
     // Reset tab names, so when new tabs are added they start as #1
     tabNamesCount.clear()
+    timeline.cachedVal = -1 // Reset the timeline cached value, so when new tabs are added, any new value will trigger an update
   }
 
   /**
@@ -365,11 +366,17 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       val startState = startStateComboBox.selectedItem
       val toState = endStateComboBox.selectedItem
 
-      if (!executeOnRenderThread { clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState) }) return
+      if (!executeOnRenderThread(longTimeout) {
+          clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState)
+        }) return
 
-      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
-      timeline.setClockTime(0, longTimeout) // Make sure that clock time is actually set in case timeline was already in 0.
+      // Set the timeline to 0
+      timeline.setClockTime(0, longTimeout)
       updateTimelineWindowSize(longTimeout)
+      // Update the cached value manually to prevent the timeline to set the clock time to 0 using the short timeout.
+      timeline.cachedVal = 0
+      // Move the timeline slider to 0.
+      UIUtil.invokeLaterIfNeeded { timeline.jumpToStart() }
     }
 
     /**
@@ -443,7 +450,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         // Bottom border separating this title header from the properties panel.
         border = MatteBorder(0, 0, 1, 0, JBColor.border())
         background = UIUtil.getTextFieldBackground()
-        add(JBLabel(message("animation.inspector.prop.keys.title")).apply {
+        add(JBLabel(message("animation.inspector.transition.properties.panel.title")).apply {
           border = JBUI.Borders.empty(0, 5)
         }, TabularLayout.Constraint(0, 0))
       }

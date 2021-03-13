@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
 import com.android.tools.idea.gradle.project.sync.internal.dumpProject
@@ -36,7 +37,13 @@ fun Project.saveAndDump(
 ): String {
   save()
   ApplicationManager.getApplication().saveAll()
-  val dumper = ProjectDumper(androidSdk = getSdk().toFile(), offlineRepos = getOfflineM2Repositories(), additionalRoots = additionalRoots)
+  val dumper = ProjectDumper(
+    androidSdk = getSdk().toFile(),
+    offlineRepos = getOfflineM2Repositories(),
+    additionalRoots = additionalRoots,
+    devBuildHome = TestUtils.getWorkspaceRoot().toFile()
+  )
+
   dumpToAction(this, dumper)
   return dumper.toString()
 }

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
@@ -136,8 +135,8 @@ public class ProjectStructure {
   }
 
   private static boolean isApp(@NotNull AndroidModuleModel androidModel) {
-    int projectType = androidModel.getAndroidProject().getProjectType();
-    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
+    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    return projectType == IdeAndroidProjectType.PROJECT_TYPE_APP || projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP;
   }
 
   @NotNull

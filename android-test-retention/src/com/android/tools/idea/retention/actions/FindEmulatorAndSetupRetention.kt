@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
+import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -27,13 +28,15 @@ import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.run.editor.AndroidDebugger
 import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.testartifacts.instrumented.DEVICE_NAME_KEY
+import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS
+import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
@@ -89,11 +92,21 @@ class FindEmulatorAndSetupRetention : AnAction() {
         override fun run(indicator: ProgressIndicator) {
           indicator.isIndeterminate = false
           indicator.fraction = 0.0
-          val deviceName = dataContext.getData(DEVICE_NAME_KEY)
+          val deviceName = dataContext.getData(AVD_NAME_KEY)
+          val isManagedDevice = dataContext.getData(IS_MANAGED_DEVICE)!!
           val catalog = RunningEmulatorCatalog.getInstance()
           val androidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
           val logWrapper = LogWrapper(LOG)
-          val avdManager = AvdManager.getInstance(androidSdkHandler, logWrapper)
+          val baseAvdFolder = if (isManagedDevice) {
+            AndroidLocationsSingleton.gradleAvdLocation
+          } else {
+            AndroidLocationsSingleton.avdLocation
+          }
+          val avdManager = AvdManager.getInstance(
+            androidSdkHandler,
+            baseAvdFolder.toFile(),
+            logWrapper
+          )
           val avdInfo = avdManager?.getAvd(deviceName, true)
           try {
             AndroidDebugBridge.init(true)
@@ -112,6 +125,7 @@ class FindEmulatorAndSetupRetention : AnAction() {
           if (!avdManager.isAvdRunning(avdInfo, logWrapper)) {
             val deviceFuture = bootEmulator(project,
                                             avdInfo,
+                                            isManagedDevice,
                                             (dataContext.getData(EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS) ?: listOf<String>()) as List<String>
             )
             val device = ProgressIndicatorUtils.awaitWithCheckCanceled(deviceFuture)
@@ -144,7 +158,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
           }?.forEach {
             it.getClient(packageName)?.kill()
           }
-          var adbDevice: IDevice? = null
           val deviceReadySignal = CountDownLatch(1)
           // After loading a snapshot, the following events will happen:
           // Device disconnects -> device reconnects-> device client list changes
@@ -154,7 +167,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
 
             override fun deviceConnected(device: IDevice) {
               if (emulatorSerialString == device.serialNumber) {
-                adbDevice = device
                 deviceReadySignal.countDown()
                 AndroidDebugBridge.removeDeviceChangeListener(this)
               }
@@ -163,7 +175,6 @@ class FindEmulatorAndSetupRetention : AnAction() {
             // Sometimes it reports back in device changed instead of connected.
             override fun deviceChanged(device: IDevice, changeMask: Int) {
               if (device.isOnline && emulatorSerialString == device.serialNumber) {
-                adbDevice = device;
                 deviceReadySignal.countDown()
                 AndroidDebugBridge.removeDeviceChangeListener(this)
               }
@@ -183,25 +194,25 @@ class FindEmulatorAndSetupRetention : AnAction() {
           } finally {
             AndroidDebugBridge.removeDeviceChangeListener(deviceChangeListener)
           }
-          if (adbDevice == null) {
-            showErrorMessage(project, "Failed to connect to device.")
-            return
-          }
-          val targetDevice = adbDevice!!
+
+          // Adb reports device connected, but occasionally it will still give us a stale device.
+          // This happens a lot on AOSP images.
+          lateinit var targetDevice: IDevice
+          val adb = requireNotNull(AndroidDebugBridge.getBridge())
 
           // Check if the ddm client is ready.
           // Alternatively we can register a callback to check clients. But the IDeviceChangeListener does not really deliver all new
           // client events. Also, because of the implementation of ProgressIndicatorUtils.awaitWithCheckCanceled, it is going to poll
           // and wait even if we use callbacks.
+          LOG.info("Checking client for $packageName.")
           ProgressIndicatorUtils.awaitWithCheckCanceled {
-            if (targetDevice.getClient(packageName) == null) {
-              Thread.sleep(10)
-              false
-            }
-            else {
-              true
-            }
+            // We need to refresh the device list.
+            targetDevice = adb.devices.find { device ->
+              device.serialNumber == emulatorSerialString
+            }?: return@awaitWithCheckCanceled false
+            return@awaitWithCheckCanceled DeploymentApplicationService.getInstance().findClient(targetDevice, packageName).isNotEmpty()
           }
+          LOG.info("Client ready.")
           indicator.fraction = CLIENTS_READY_FRACTION
 
           val debugSessionReadySignal = CountDownLatch(1)
@@ -253,9 +264,15 @@ class FindEmulatorAndSetupRetention : AnAction() {
   }
 }
 
-private fun bootEmulator(project: Project, avdInfo: AvdInfo, parameters: List<String>): ListenableFuture<IDevice> {
-  return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project,
-                                                                        avdInfo
+private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Boolean, parameters: List<String>): ListenableFuture<IDevice> {
+  val avdManagerConnection = if (isManagedDevice) {
+    AvdManagerConnection.getDefaultGradleAvdManagerConnection()
+  } else {
+    AvdManagerConnection.getDefaultAvdManagerConnection()
+  }
+  return avdManagerConnection.startAvd(
+    project,
+    avdInfo
   ) { emulator, avd ->
      EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
   }

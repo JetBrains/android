@@ -34,6 +34,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
@@ -43,14 +45,14 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardPointNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
@@ -79,6 +81,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -140,7 +143,6 @@ import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.Arrays
-import java.util.HashSet
 import java.util.UUID
 import java.util.function.Supplier
 import javax.swing.AbstractAction
@@ -279,10 +281,12 @@ class AgpUpgradeRefactoringProcessor(
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
     MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
-    REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this)
+    REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
+    MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
+  var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -315,8 +319,9 @@ class AgpUpgradeRefactoringProcessor(
     }
 
     foundUsages = usages.size > 0
+    this.usages = usages.toTypedArray()
     trackProcessorUsage(FIND_USAGES, usages.size)
-    return usages.toTypedArray()
+    return this.usages
   }
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>): Boolean {
@@ -511,7 +516,8 @@ class AgpUpgradeRefactoringProcessor(
   //  could just inline its effect.
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
     val refactoringRunnable = Runnable {
-      val usagesToRefactor = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+      val notExcludedUsages = UsageViewUtil.getNotExcludedUsageInfos(usageView)
+      val usagesToRefactor = this.usages.filter { notExcludedUsages.contains(it) } // preserve found order
       val infos = usagesToRefactor.toArray(UsageInfo.EMPTY_ARRAY)
       if (ensureElementsWritable(infos, viewDescriptor)) {
         execute(infos)
@@ -1919,13 +1925,17 @@ class AddBuildTypeFirebaseCrashlyticsUsageInfo(
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addBuildTypeFirebaseCrashlyticsUsageInfo.tooltipText")
 }
 
-data class BooleanPropertiesMoveRefactoringInfo(
+interface PropertiesOperationInfo {
+  fun findBuildModelUsages(processor: AgpUpgradeComponentRefactoringProcessor, buildModel: GradleBuildModel): ArrayList<UsageInfo>
+}
+
+data class PropertiesOperationsRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val propertyMoveInfos: List<BooleanPropertyMoveInfo>
+  val propertiesOperationInfos: List<PropertiesOperationInfo>
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1942,14 +1952,8 @@ data class BooleanPropertiesMoveRefactoringInfo(
     override fun findComponentUsages(): Array<out UsageInfo> {
       val usages = ArrayList<UsageInfo>()
       projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        propertyMoveInfos.forEach propertyInfo@{ propertyInfo ->
-          val propertyModel = buildModel.(propertyInfo.sourcePropertyModelGetter)()
-          if (propertyModel.getValue(BOOLEAN_TYPE) != null) {
-            val psiElement = propertyModel.psiElement ?: return@propertyInfo
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
-            val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, buildModel)
-            usages.add(usageInfo)
-          }
+        propertiesOperationInfos.forEach propertyInfo@{ propertyInfo ->
+          usages.addAll(propertyInfo.findBuildModelUsages(this, buildModel))
         }
       }
       return usages.toArray(UsageInfo.EMPTY_ARRAY)
@@ -1965,127 +1969,111 @@ data class BooleanPropertiesMoveRefactoringInfo(
       }
     }
 
-    val info = this@BooleanPropertiesMoveRefactoringInfo
+    val info = this@PropertiesOperationsRefactoringInfo
   }
 }
 
-data class BooleanPropertyMoveInfo(
-  val sourcePropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
-  val destinationPropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
+data class MovePropertiesInfo(
+  val sourceToDestinationPropertyModelGetters: List<
+    Pair<GradleBuildModel.() -> ResolvedPropertyModel, GradleBuildModel.() -> ResolvedPropertyModel>>,
   val tooltipTextSupplier: Supplier<String>,
-  val usageType: UsageType
-) {
+  val usageType: UsageType,
+): PropertiesOperationInfo {
 
-  inner class UsageInfo(
+  override fun findBuildModelUsages(
+    processor: AgpUpgradeComponentRefactoringProcessor,
+    buildModel: GradleBuildModel
+  ): ArrayList<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
+      val sourceModel = buildModel.(sourceGetter)()
+      if (sourceModel.getValue(OBJECT_TYPE) != null) {
+        val destinationModel = buildModel.(destinationGetter)()
+        val psiElement = sourceModel.psiElement ?: return@forEach
+        val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
+        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, destinationModel)
+        usages.add(usageInfo)
+      }
+    }
+    return usages
+  }
+
+  inner class MovePropertyUsageInfo(
     element: WrappedPsiElement,
-    val buildModel: GradleBuildModel
+    val sourcePropertyModel: ResolvedPropertyModel,
+    val destinationPropertyModel: ResolvedPropertyModel,
   ) : GradleBuildModelUsageInfo(element) {
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-      val valueModel = buildModel.sourcePropertyModelGetter().unresolvedModel
+      val valueModel = sourcePropertyModel.unresolvedModel
 
       val value: Any = when (valueModel.valueType) {
-        GradlePropertyModel.ValueType.BOOLEAN -> valueModel.getValue(BOOLEAN_TYPE) ?: return
+        GradlePropertyModel.ValueType.LIST -> valueModel.getValue(LIST_TYPE) ?: return
         GradlePropertyModel.ValueType.REFERENCE -> valueModel.getValue(REFERENCE_TO_TYPE) ?: return
-        else -> return
+        else -> valueModel.getValue(OBJECT_TYPE) ?: return
       }
 
-      buildModel.destinationPropertyModelGetter().setValue(value)
-      buildModel.sourcePropertyModelGetter().delete()
+      destinationPropertyModel.setValue(value)
+      sourcePropertyModel.delete()
     }
 
     override fun getTooltipText(): String = tooltipTextSupplier.get()
 
-    override fun getDiscriminatingValues(): List<Any> = listOf(this@BooleanPropertyMoveInfo)
+    override fun getDiscriminatingValues(): List<Any> = listOf(this@MovePropertiesInfo)
   }
 }
 
-val VIEW_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
-  sourcePropertyModelGetter = { android().viewBinding().enabled() },
-  destinationPropertyModelGetter = { android().buildFeatures().viewBinding() },
+val VIEW_BINDING_ENABLED_INFO = MovePropertiesInfo(
+  sourceToDestinationPropertyModelGetters = listOf(
+    Pair({ android().viewBinding().enabled() }, { android().buildFeatures().viewBinding() }),
+  ),
   tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
   usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
 )
 
-val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
-  sourcePropertyModelGetter = { android().dataBinding().enabled() },
-  destinationPropertyModelGetter = { android().buildFeatures().dataBinding() },
+val DATA_BINDING_ENABLED_INFO = MovePropertiesInfo(
+  sourceToDestinationPropertyModelGetters = listOf(
+    Pair({ android().dataBinding().enabled() }, { android().buildFeatures().dataBinding() }),
+  ),
   tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
   usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
 )
 
-val MIGRATE_TO_BUILD_FEATURES_INFO = BooleanPropertiesMoveRefactoringInfo(
+val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("4.0.0-alpha05"),
   requiredFromVersion = GradleVersion.parse("7.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   componentKind = MIGRATE_TO_BUILD_FEATURES,
-  propertyMoveInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
+  propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
 
-data class RemovePropertiesRefactoringInfo(
-  val optionalFromVersion: GradleVersion,
-  val requiredFromVersion: GradleVersion,
-  val commandNameSupplier: Supplier<String>,
-  val processedElementsHeaderSupplier: Supplier<String>,
-  val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
-  val removePropertiesInfos: List<RemovePropertiesInfo>
-) {
-
-  inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
-    constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
-
-    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
-
-    override fun getCommandName(): String = commandNameSupplier.get()
-
-    override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-      builder.setKind(componentKind)
-
-    override fun findComponentUsages(): Array<out UsageInfo> {
-      val usages = ArrayList<UsageInfo>()
-      projectBuildModel.allIncludedBuildModels.forEach buildModel@{ buildModel ->
-        removePropertiesInfos.forEach propertyInfo@{ propertyInfo ->
-          val models = buildModel.(propertyInfo.propertyModelGetter)()
-          models.forEach model@{ model ->
-            val psiElement = model.representativeContainedPsiElement ?: return@model
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, propertyInfo.usageType)
-            val usageInfo = propertyInfo.UsageInfo(wrappedPsiElement, buildModel)
-            usages.add(usageInfo)
-          }
-        }
-      }
-      return usages.toArray(UsageInfo.EMPTY_ARRAY)
-    }
-
-    override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
-      return object : UsageViewDescriptorAdapter() {
-        override fun getElements(): Array<PsiElement> {
-          return PsiElement.EMPTY_ARRAY
-        }
-
-        override fun getProcessedElementsHeader(): String = processedElementsHeaderSupplier.get()
-      }
-    }
-
-    val info = this@RemovePropertiesRefactoringInfo
-  }
-}
-
 data class RemovePropertiesInfo(
-  val propertyModelGetter: GradleBuildModel.() -> List<GradleDslModel>,
+  val propertyModelListGetter: GradleBuildModel.() -> List<GradleDslModel>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
-) {
-  inner class UsageInfo(
+): PropertiesOperationInfo {
+
+  override fun findBuildModelUsages(
+    processor: AgpUpgradeComponentRefactoringProcessor,
+    buildModel: GradleBuildModel
+  ): ArrayList<UsageInfo> {
+    val usages = ArrayList<UsageInfo>()
+    buildModel.(propertyModelListGetter)().forEach { model ->
+      val psiElement = model.representativeContainedPsiElement ?: return@forEach
+      val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
+      val usageInfo = this.RemovePropertyUsageInfo(wrappedPsiElement, model)
+      usages.add(usageInfo)
+    }
+    return usages
+  }
+
+  inner class RemovePropertyUsageInfo(
     element: WrappedPsiElement,
-    val buildModel: GradleBuildModel
+    val model: GradleDslModel
   ) : GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-      buildModel.propertyModelGetter().forEach {
-        it.delete()
-      }
+      model.delete()
     }
 
     override fun getTooltipText(): String = tooltipTextSupplier.get()
@@ -2095,19 +2083,46 @@ data class RemovePropertiesInfo(
 }
 
 val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
-  propertyModelGetter = { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
+  propertyModelListGetter = { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
   tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
   usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
 )
 
-val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
+val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
   requiredFromVersion = GradleVersion.parse("8.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
   componentKind = REMOVE_SOURCE_SET_JNI,
-  removePropertiesInfos = listOf(SOURCE_SET_JNI_INFO)
+  propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
 )
+
+val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
+  PropertiesOperationsRefactoringInfo(
+    optionalFromVersion = GradleVersion.parse("7.0.0-alpha08"),
+    requiredFromVersion = GradleVersion.parse("8.0.0"),
+    commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
+    processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
+    componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
+    propertiesOperationInfos = listOf(
+      MovePropertiesInfo(
+        sourceToDestinationPropertyModelGetters = listOf(
+          Pair({ android().aaptOptions().ignoreAssets() }, { android().androidResources().ignoreAssets() }),
+          Pair({ android().aaptOptions().noCompress() }, { android().androidResources().noCompress() }),
+          Pair({ android().aaptOptions().failOnMissingConfigEntry() }, { android().androidResources().failOnMissingConfigEntry() }),
+          Pair({ android().aaptOptions().additionalParameters() }, { android().androidResources().additionalParameters() }),
+          Pair({ android().aaptOptions().namespaced() }, { android().androidResources().namespaced() }),
+        ),
+        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.move.tooltipText"),
+        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.move.usageType"))
+      ),
+      RemovePropertiesInfo(
+        propertyModelListGetter = { listOf(android().aaptOptions()) },
+        tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.androidResourcesUsageInfo.remove.tooltipText"),
+        usageType = UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.remove.usageType")),
+      )
+    )
+  )
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.

@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -69,7 +67,7 @@ public class ConflictSet {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
-      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
         continue;
       }
       String gradlePath = getGradlePath(module);

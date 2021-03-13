@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
-import com.intellij.util.ThreeState;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -185,10 +184,10 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
       if (AvdManagerConnection.isSystemImageDownloadProblem(myAvdInfo.getStatus())) {
         // The original error message includes the name of the AVD which is already shown in the UI.
         // Make the error message simpler here:
-        compatibility = new LaunchCompatibility(ThreeState.UNSURE, "Missing system image");
+        compatibility = new LaunchCompatibility(LaunchCompatibility.State.ERROR, "Missing system image");
       }
       else {
-        compatibility = new LaunchCompatibility(ThreeState.NO, myAvdInfo.getErrorMessage());
+        compatibility = new LaunchCompatibility(LaunchCompatibility.State.ERROR, myAvdInfo.getErrorMessage());
       }
     }
     return compatibility

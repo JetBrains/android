@@ -12,11 +12,10 @@ PROJECT                       : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/AS36.iml [-]
+        ModuleFile                    : <PROJECT>/AS36.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle

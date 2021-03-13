@@ -51,16 +51,16 @@ class TraceProcessorDaemonManagerTest {
     val executor = Executors.newSingleThreadExecutor()
     val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.waitForRunningOrFailed(0)
+    listener.waitUntilTerminated(0)
     val port = listener.selectedPort
     val status = listener.status
 
     assertThat(port).isEqualTo(40000)
-    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
+    assertThat(status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
 
     listenerRunnable.get()
     assertThat(listener.selectedPort).isEqualTo(40000)
-    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.RUNNING)
+    assertThat(listener.status).isEqualTo(TraceProcessorDaemonManager.DaemonStatus.END_OF_STREAM)
   }
 
   @Test
@@ -71,7 +71,7 @@ class TraceProcessorDaemonManagerTest {
     val executor = Executors.newSingleThreadExecutor()
     val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.waitForRunningOrFailed(0)
+    listener.waitForStatusChangeOrTerminated(0)
     val port = listener.selectedPort
     val status = listener.status
 
@@ -91,7 +91,7 @@ class TraceProcessorDaemonManagerTest {
     val executor = Executors.newSingleThreadExecutor()
     val listenerRunnable = executor.submit(RunListener(listener))
 
-    listener.waitForRunningOrFailed(0)
+    listener.waitForStatusChangeOrTerminated(0)
     val port = listener.selectedPort
     val status = listener.status
 
@@ -116,7 +116,7 @@ class TraceProcessorDaemonManagerTest {
     val listenerRunnable = executor.submit(RunListener(listener))
 
     // As holderRunnable is holding reader's lock, so the reader can't return and will timeout.
-    listener.waitForRunningOrFailed(5000)
+    listener.waitForStatusChangeOrTerminated(5000)
     val port = listener.selectedPort
     val status = listener.status
 

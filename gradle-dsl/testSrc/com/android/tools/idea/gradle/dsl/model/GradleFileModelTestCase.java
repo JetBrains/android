@@ -34,9 +34,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
@@ -102,11 +100,21 @@ import org.junit.runners.Parameterized;
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized.class)
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
+  protected GradleFileModelTestCase() {
+    super();
+    myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser";
+  }
+
+  protected GradleFileModelTestCase(@NotNull String testDataRelativePath) {
+    super();
+    myTestDataRelativePath = testDataRelativePath;
+  }
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
-  protected String myTestDataPath;
+  protected String myTestDataRelativePath;
+  protected String myTestDataResolvedPath;
 
   @Parameter
   public String myTestDataExtension;
@@ -245,7 +253,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       return null;
     });
 
-    myTestDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").toString();
+    myTestDataResolvedPath = TestUtils.resolveWorkspacePath(myTestDataRelativePath).toString();
   }
 
   @NotNull
@@ -276,7 +284,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
-    final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
+    final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
     saveFileUnderWrite(destination, loadText(virtualTestFile));
@@ -304,7 +312,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
-    final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
+    final File testFile = fileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     assumeTrue(testFile.exists());
     return loadFile(testFile);
   }
@@ -442,7 +450,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
-    verifyFileContents(file, loadFile(expected.toFile(myTestDataPath, myTestDataExtension)));
+    verifyFileContents(file, loadFile(expected.toFile(myTestDataResolvedPath, myTestDataExtension)));
   }
 
   protected void applyChangesAndReparse(@NotNull final ProjectBuildModel buildModel) {

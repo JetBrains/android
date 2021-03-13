@@ -57,21 +57,31 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --tes
 @RunWith(Parameterized::class)
 class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
 
-  data class TestProject(val template: String, val pathToOpen: String = "") {
+  data class TestProject(
+    val template: String,
+    val pathToOpen: String = "",
+    val incompatibleWithAgps: Set<AgpVersion> = emptySet()
+  ) {
     override fun toString(): String = "${template.removePrefix("projects/")}$pathToOpen"
   }
 
-  data class LegacyAgp(val useOldAgp: Boolean) {
-    override fun toString(): String  = if (useOldAgp) "LegacyAgp" else "NewAgp"
+  enum class AgpVersion(
+    val suffix: String,
+    val legacyAgpVersion: String? = null
+  ) {
+    CURRENT("NewAgp"),
+    LEGACY("LegacyAgp", "4.1.0");
+
+    override fun toString(): String = suffix
   }
 
   @JvmField
   @Parameterized.Parameter(0)
-  var testProjectName: TestProject? = null
+  var agpVersion: AgpVersion? = null
 
   @JvmField
   @Parameterized.Parameter(1)
-  var isUseLegacyAgp: LegacyAgp? = null
+  var testProjectName: TestProject? = null
 
   companion object {
     private val projectsList = listOf(
@@ -81,19 +91,19 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks"))
+      TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY)))
 
     @Suppress("unused")
     @Contract(pure = true)
     @JvmStatic
-    @Parameterized.Parameters(name = "{0}\${1}")
+    @Parameterized.Parameters(name = "{1}\${0}")
     fun testProjects(): Collection<*> {
-      return mutableListOf<Any>().apply {
-        projectsList.forEach {
-          if (it != TestProject("../projects/lintCustomChecks")) addAll(listOf(arrayOf(it, LegacyAgp(true))))
-          addAll(listOf(arrayOf(it, LegacyAgp(false))))
+      return AgpVersion.values()
+        .flatMap { agpVersion ->
+          projectsList
+            .filter { agpVersion !in it.incompatibleWithAgps }
+            .map { listOf(agpVersion, it).toTypedArray() }
         }
-      }
     }
   }
 
@@ -108,17 +118,18 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos(): Collection<File> =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+
   override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/ideModels"
 
   @Test
   fun testIdeModels() {
     val projectName = testProjectName ?: error("unit test parameter not initialized")
-    val gradleVersion = isUseLegacyAgp ?: error("unit test parameter not initialized")
+    val agpVersion = agpVersion ?: error("unit test parameter not initialized")
     val root = prepareGradleProject(
       projectName.template,
       "project",
       null,
-      if (gradleVersion.useOldAgp) "4.1.0" else null
+      agpVersion.legacyAgpVersion
     )
     openPreparedProject("project${testProjectName?.pathToOpen}") { project ->
       val dump = project.saveAndDump(mapOf("ROOT" to root)) { project, projectDumper -> projectDumper.dumpAndroidIdeModel(project) }

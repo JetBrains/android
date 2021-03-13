@@ -25,7 +25,6 @@ import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl
-import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl

@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -306,10 +307,16 @@ internal class ComposePreviewViewImpl(private val project: Project,
     val issueErrorSplitter = IssuePanelSplitter(mainSurface, contentPanel)
 
     init(issueErrorSplitter, mainSurface, listOf(), false)
-    showLoading(message("panel.building"))
+    hideContent()
+    showLoading(when {
+                  projectBuildStatusManager.isBuilding -> message("panel.building")
+                  DumbService.getInstance(project).isDumb -> message("panel.indexing")
+                  else -> message("panel.initializing")
+                })
   }
 
   override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
+    log.debug("updateProgress: $message")
     if (isMessageVisible) {
       showLoading(message)
       hideContent()

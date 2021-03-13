@@ -70,7 +70,7 @@ class AppInspectionInspectorRule : TestRule {
   private val inspectionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION, true)
   private val composeFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT, true)
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
-  private val devModeFlagRule = SetFlagRule(StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE, true)
+  private val devModeFlagRule = SetFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   private val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 

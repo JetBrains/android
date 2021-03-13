@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
@@ -34,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -79,6 +79,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val pluginModel = mock(PluginModel::class.java)
     val buildTypeModel = mock(BuildTypeModel::class.java)
     val androidModel = mock(AndroidModel::class.java)
+    val resolvedPropertyModel = mock(ResolvedPropertyModel::class.java)
 
     val usageInfos = listOf(
       AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
@@ -105,9 +106,11 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      VIEW_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
-      DATA_BINDING_ENABLED_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
-      SOURCE_SET_JNI_INFO.UsageInfo(wrappedPsiElement, gradleBuildModel),
+      VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, gradleBuildModel),
+      (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
     )
     usageInfos.forEach { one ->
       usageInfos.filter { it !== one }.forEach { two ->

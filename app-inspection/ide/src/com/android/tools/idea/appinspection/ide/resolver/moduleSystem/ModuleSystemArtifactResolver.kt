@@ -36,12 +36,10 @@ import java.nio.file.Path
  */
 class ModuleSystemArtifactResolver(private val project: Project) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
-    var path: Path? = null
-    for (module in project.allModules()) {
-      val moduleSystem = project.getProjectSystem().getModuleSystem(module)
-      path = moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) ?: continue
-      break
-    }
-    return path?.resolve(artifactCoordinate.blazeFileName)
+    val projectSystem = project.getProjectSystem()
+    return project.allModules().asSequence()
+      .map { module -> projectSystem.getModuleSystem(module) }
+      .mapNotNull { moduleSystem -> moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
+      .firstOrNull()
   }
 }

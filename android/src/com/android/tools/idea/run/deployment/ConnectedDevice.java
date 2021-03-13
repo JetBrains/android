@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -34,14 +35,8 @@ final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    Builder setLaunchCompatibility(@NotNull LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -117,8 +112,7 @@ final class ConnectedDevice extends Device {
     Device device = (Device)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice());
@@ -127,8 +121,7 @@ final class ConnectedDevice extends Device {
   @Override
   public int hashCode() {
     return Objects.hash(getName(),
-                        isValid(),
-                        getValidityReason(),
+                        getLaunchCompatibility(),
                         getKey(),
                         getConnectionTime(),
                         getAndroidDevice());

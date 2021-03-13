@@ -28,8 +28,10 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -38,6 +40,8 @@ import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import java.util.concurrent.Callable;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,8 +62,8 @@ public class ActionBarHandler extends ActionBarCallback {
   private static final Pattern MENU_FIELD_PATTERN = Pattern.compile("R\\.menu\\.([a-z0-9_]+)"); //$NON-NLS-1$
 
   @Nullable private final Object myCredential;
-  @NotNull private RenderTask myRenderTask;
-  @Nullable private List<ResourceReference> myMenus;
+  @NotNull private final RenderTask myRenderTask;
+  @Nullable private ImmutableList<ResourceReference> myMenus;
 
   ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
     myRenderTask = renderTask;
@@ -100,6 +104,53 @@ public class ActionBarHandler extends ActionBarCallback {
     return ourShowMenu || myRenderTask.getContext().getFolderType() == ResourceFolderType.MENU;
   }
 
+  private void updateMenusInBackground(@NotNull Project project, @NotNull String fqn, @NotNull ResourceNamespace namespace) {
+    Callable<Collection<ResourceReference>> calculateMenus = () -> {
+      // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
+      // This is just a simple textual search; we need to replace this with a proper model lookup.
+      PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
+      if (clz != null) {
+        for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
+          if (method instanceof PsiCompiledElement) {
+            continue;
+          }
+          // TODO: This should instead try to use the GotoRelated implementation's notion
+          // of associated activities; see what is done in
+          // AndroidMissingOnClickHandlerInspection. However, the AndroidGotoRelatedProvider
+          // will first need to properly handle menus.
+          String matchText = method.getText();
+          Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
+          Set<ResourceReference> menus = new TreeSet<>(Comparator.comparing(ResourceReference::getName));
+          int index = 0;
+          while (true) {
+            if (matcher.find(index)) {
+              String name = matcher.group(1);
+              menus.add(new ResourceReference(namespace, ResourceType.MENU, name));
+              index = matcher.end();
+            }
+            else {
+              break;
+            }
+          }
+          if (!menus.isEmpty()) {
+            return menus;
+          }
+        }
+      }
+
+      return ImmutableList.of();
+    };
+
+    ReadAction.nonBlocking(calculateMenus)
+      .inSmartMode(project)
+      .coalesceBy(project, this, fqn)
+      .finishOnUiThread(ModalityState.defaultModalityState(), menus -> {
+        if (!menus.isEmpty()) {
+          myMenus = ImmutableList.copyOf(menus);
+        }
+      }).submit(AppExecutorUtil.getAppExecutorService());
+  }
+
   @Override
   @NotNull
   public List<ResourceReference> getMenuIds() {
@@ -117,53 +168,19 @@ public class ActionBarHandler extends ActionBarCallback {
         String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
         if (commaSeparatedMenus != null) {
           List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
-          myMenus = new ArrayList<>(names.size());
-          for (String name : names) {
-            myMenus.add(new ResourceReference(namespace, ResourceType.MENU, name));
-          }
+          myMenus = names.stream()
+            .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
+            .collect(ImmutableList.toImmutableList());
         } else {
           String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
           if (fqn != null) {
-            Project project = xmlFile.getProject();
-            DumbService.getInstance(project).smartInvokeLater(() -> {
-              // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
-              // This is just a simple textual search; we need to replace this with a proper model lookup.
-              PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
-              if (clz != null) {
-                for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
-                  if (method instanceof PsiCompiledElement) {
-                    continue;
-                  }
-                  // TODO: This should instead try to use the GotoRelated implementation's notion
-                  // of associated activities; see what is done in
-                  // AndroidMissingOnClickHandlerInspection. However, the AndroidGotoRelatedProvider
-                  // will first need to properly handle menus.
-                  String matchText = method.getText();
-                  Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-                  Set<ResourceReference> menus = new TreeSet<>(Comparator.comparing(ResourceReference::getName));
-                  int index = 0;
-                  while (true) {
-                    if (matcher.find(index)) {
-                      String name = matcher.group(1);
-                      menus.add(new ResourceReference(namespace, ResourceType.MENU, name));
-                      index = matcher.end();
-                    }
-                    else {
-                      break;
-                    }
-                  }
-                  if (!menus.isEmpty()) {
-                    myMenus = new ArrayList<>(menus);
-                  }
-                }
-              }
-            });
+            updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
           }
         }
       }
 
       if (myMenus == null) {
-        myMenus = Collections.emptyList();
+        myMenus = ImmutableList.of();
       }
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
@@ -200,7 +217,7 @@ public class ActionBarHandler extends ActionBarCallback {
    * To set no menu, pass an empty list.
    */
   public void setMenuIds(@Nullable List<ResourceReference> menus) {
-    myMenus = menus;
+    myMenus = menus != null ? ImmutableList.copyOf(menus) : ImmutableList.of();
   }
 
   @Nullable

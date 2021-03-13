@@ -28,6 +28,7 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -45,7 +46,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -396,7 +396,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private boolean isRowCompatible(int row) {
     // Use the value already computed in the table to avoid having to compute it again.
     Object compatibility = myDeviceTable.getValueAt(row, COMPATIBILITY_COLUMN_INDEX);
-    return compatibility instanceof LaunchCompatibility && ((LaunchCompatibility)compatibility).isCompatible() != ThreeState.NO;
+    return compatibility instanceof LaunchCompatibility && ((LaunchCompatibility)compatibility).getState() != State.ERROR;
   }
 
   public void finish() {
@@ -536,12 +536,12 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       }
 
       LaunchCompatibility compatibility = (LaunchCompatibility)value;
-      ThreeState compatible = compatibility.isCompatible();
-      if (compatible == ThreeState.YES) {
+      State state = compatibility.getState();
+      if (state == State.OK) {
         append("Yes");
       }
       else {
-        if (compatible == ThreeState.NO) {
+        if (state == State.ERROR) {
           append("No", SimpleTextAttributes.ERROR_ATTRIBUTES);
         }
         else {

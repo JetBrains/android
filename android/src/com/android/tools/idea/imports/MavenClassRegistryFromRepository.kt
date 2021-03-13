@@ -175,6 +175,7 @@ data class GMavenArtifactIndex(
         val library = MavenClassRegistryBase.Library(
           artifact = "$groupId:$artifactId",
           packageName = fqName.parent().asString(),
+          version = version
         )
         fqName.shortName().asString() to library
       }

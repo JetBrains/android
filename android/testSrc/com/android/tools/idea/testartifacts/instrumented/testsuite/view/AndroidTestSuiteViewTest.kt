@@ -673,7 +673,7 @@ class AndroidTestSuiteViewTest {
   }
 
   private fun device(id: String, name: String, apiVersion: Int = 28): AndroidDevice {
-    return AndroidDevice(id, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(apiVersion))
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(apiVersion))
   }
 
   private fun TreeTableView.getItem(index: Int): AndroidTestResults {

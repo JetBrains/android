@@ -601,9 +601,10 @@ java_test(
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
+    flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
     tags = COMMON_TAGS + [
-        "qa_sanity",  # fails 2 out of 3000 runs
+        "ui_test",
         "no_crostini",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",

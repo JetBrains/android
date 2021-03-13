@@ -72,12 +72,14 @@ public class ScreenView extends ScreenViewBase {
   public static final ContentSizePolicy DEVICE_CONTENT_SIZE_POLICY = (screenView, outDimension) -> {
     Configuration configuration = screenView.getConfiguration();
     Device device = configuration.getCachedDevice();
-    State state = configuration.getDeviceState();
-    if (device != null && state != null) {
-      HardwareConfig config =
-        new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
+    if (device != null) {
+      State state = configuration.getDeviceState();
+      if (state != null) {
+        HardwareConfig config =
+          new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
-      outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
+        outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
+      }
     }
   };
 

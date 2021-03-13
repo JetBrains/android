@@ -116,9 +116,9 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module-library">
       <library name="utp-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha02" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha02/core-proto-0.0.8-alpha02.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

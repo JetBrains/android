@@ -191,16 +191,23 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
   orderRootTypes.forEach { type ->
     library
       .getUrls(type)
-      .filter { file ->
-        !file.toPrintablePath().contains("<M2>") ||
-        (type != OrderRootType.DOCUMENTATION &&
-         type != OrderRootType.SOURCES &&
-         type != JavadocOrderRootType.getInstance())
+      .filterNot { file ->
+        // Do not allow sources and java docs coming from cache sources as their content may change.
+        (file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+        (type == OrderRootType.DOCUMENTATION ||
+         type == OrderRootType.SOURCES ||
+         type == JavadocOrderRootType.getInstance())
       }
       .filter { file ->
         !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
       }
-      .map { file -> file.toPrintablePath().replaceMatchingVersion(androidVersion) }
+      .map { file ->
+        file.toPrintablePath().replaceMatchingVersion(androidVersion).also {
+          if (type == OrderRootType.SOURCES || type == OrderRootType.DOCUMENTATION || type == JavadocOrderRootType.getInstance()) {
+            println("$file -> $it")
+          }
+        }
+      }
       .sorted()
       .forEach { printerPath ->
         // TODO(b/124659827): Include source and JavaDocs artifacts when available.

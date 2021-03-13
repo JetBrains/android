@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="libapp-processes-proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/ddmlib/libapp-processes-proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

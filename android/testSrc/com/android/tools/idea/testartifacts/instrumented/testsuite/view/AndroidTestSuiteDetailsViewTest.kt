@@ -16,6 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
@@ -67,7 +68,7 @@ class AndroidTestSuiteDetailsViewTest {
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
-    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+    view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     view.setAndroidTestResults(createTestResults(AndroidTestCaseResult.PASSED))
 
     assertThat(view.titleTextView.text).isEqualTo("packageName.className.methodName")
@@ -78,7 +79,7 @@ class AndroidTestSuiteDetailsViewTest {
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponentsNoTestResultAvailable() {
     val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockController, mockListener, projectRule.project, mockLogger)
-    view.addDevice(AndroidDevice("id", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
+    view.addDevice(AndroidDevice("id", "deviceName", "deviceName", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
 
     view.setAndroidTestResults(createTestResults(null))
 
@@ -129,7 +130,7 @@ class AndroidTestSuiteDetailsViewTest {
       override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO
       override fun getTotalDuration(): Duration = Duration.ZERO
       override fun getErrorStackTrace(device: AndroidDevice): String = ""
-      override fun getBenchmark(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
       override fun getRetentionInfo(device: AndroidDevice): File? = null
       override fun getRetentionSnapshot(device: AndroidDevice): File? = null
     }

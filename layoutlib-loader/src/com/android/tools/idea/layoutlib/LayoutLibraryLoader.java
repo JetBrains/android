@@ -87,7 +87,7 @@ public class LayoutLibraryLoader {
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
     library =
       LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "/icu/", enumMap, layoutLog)) {
+    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "/icu/icudt66l.dat", enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;

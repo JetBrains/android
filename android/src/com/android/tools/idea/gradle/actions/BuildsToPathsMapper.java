@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.actions;
 
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 
-import com.android.AndroidProjectTypes;
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
@@ -27,6 +25,7 @@ import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -108,8 +107,8 @@ public class BuildsToPathsMapper {
       outputFolderOrFile = getOutputFileOrFolderFromListingFile(androidModel, buildVariant, outputType, false);
     }
     else if (postBuildModel != null) {
-      if (androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP ||
-          androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE) {
+      if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP ||
+          androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
         if (isAppBundle) {
           outputFolderOrFile = tryToGetOutputPostBuildBundleFile(module, postBuildModel, buildVariant);
         }
@@ -117,7 +116,7 @@ public class BuildsToPathsMapper {
           outputFolderOrFile = tryToGetOutputPostBuildApkFile(module, postBuildModel, buildVariant);
         }
       }
-      else if (androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
+      else if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
         outputFolderOrFile = tryToGetOutputPostBuildInstantApp(module, postBuildModel, buildVariant);
       }
     }

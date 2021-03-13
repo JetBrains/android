@@ -27,8 +27,10 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
@@ -41,20 +43,26 @@ import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
+import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
 import com.android.tools.adtui.TabularLayout
+import com.intellij.ide.BrowserUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkEvent
 
 /**
  * This class creates task detail pages from the node provided.
@@ -94,8 +102,10 @@ class WarningsViewDetailPagesFactory(
     is TaskUnderPluginDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.taskData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
-    is ConfigurationCachingRootNodeDescriptor -> createConfigurationCachingRootDetailsPage(nodeDescriptor.data)
-    is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data)
+    is ConfigurationCachingRootNodeDescriptor -> createConfigurationCachingRootDetailsPage(nodeDescriptor.data,
+                                                                                           nodeDescriptor.projectConfigurationTime)
+    is ConfigurationCachingWarningNodeDescriptor -> createConfigurationCachingWarningPage(nodeDescriptor.data,
+                                                                                          nodeDescriptor.projectConfigurationTime)
   }.apply {
     name = nodeDescriptor.pageId.id
   }
@@ -179,69 +189,118 @@ class WarningsViewDetailPagesFactory(
     add(linkPanel, TabularLayout.Constraint(2, 2))
   }
 
-  private fun createConfigurationCachingRootDetailsPage(uiData: ConfigurationCachingCompatibilityProjectResult) = JPanel().apply {
-    layout = BorderLayout()
+  private fun createConfigurationCachingRootDetailsPage(uiData: ConfigurationCachingCompatibilityProjectResult,
+                                                        projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
     val contentHtml = when (uiData) {
       is AGPUpdateRequired -> """
-        <b>AGP update required to make configuration caching available</b>
+        <b>Android Gradle plugin update required to make configuration cache available</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        AGP supports <a href=''>configuration caching</a> from ${uiData.recommendedVersion}.
-        Current version of AGP is ${uiData.currentVersion}.
-        Please, <a href=''>update your AGP version</a>.
+        Android Gradle plugin supports configuration cache from ${uiData.recommendedVersion}.
+        Current version is ${uiData.currentVersion}.
+        Please, update your Android Gradle plugin.
       """.trimIndent().insertBRTags()
       is NoIncompatiblePlugins -> """
-        <b>Try to turn configuration caching on</b>
+        <b>Try to turn configuration cache on</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        All plugins applied in this build that we know about are compatible with <a href=''>configuration caching</a>.
-        This means that you can try to turn the configuration caching on to benefit from it.
+        All plugins applied in this build that we know about are compatible with configuration cache.
+        This means that you can try to turn the configuration cache on to benefit from it.
         Note that we check only for a limited number of popular plugins so there still might be non-compatible plugins in your build.
         In case of any problems a detailed html report will be generated by gradle to help you address them.
-        <a href=''>Try to run build with configuration caching enabled.</a>
         
-        <b>List of applied plugins we were not able to recognise:</b>
-        ${uiData.unrecognizedPlugins.joinToString(prefix = "<il>", postfix = "</il>", separator = "") { "<li>$it</li>" }}
+        ${
+        if (uiData.unrecognizedPlugins.isNotEmpty()) uiData.unrecognizedPlugins.joinToString(
+          prefix = "<b>List of applied plugins we were not able to recognise:</b><ul>",
+          postfix = "</ul>",
+          separator = ""
+        ) { "<li>$it</li>" }
+        else ""
+      }
       """.trimIndent().insertBRTags()
-      is IncompatiblePluginsDetected -> """
-        <b>Some plugins are not compatible with configuration caching</b>
+      is IncompatiblePluginsDetected -> {
+        val incompatiblePluginsCountLine = uiData.incompatiblePluginWarnings.size.let {
+          when (it) {
+            0 -> null
+            1 -> "1 plugin is not known to have compatible version yet, please contact plugin providers for details."
+            else -> "$it plugins are not known to have compatible version yet, please contact plugin providers for details."
+          }
+        }
+
+        val upgradablePluginsCountLine = uiData.upgradePluginWarnings.size.let {
+          when (it) {
+            0 -> null
+            1 -> "1 plugin can be updated to the compatible version."
+            else -> "$it plugins can be updated to the compatible version."
+          }
+        }
+        val pluginsCountLines = sequenceOf(upgradablePluginsCountLine, incompatiblePluginsCountLine).filterNotNull()
+          .joinToString(prefix = "<ul>", postfix = "</ul>", separator = "") { "<li>$it</li>" }
+        """
+        <b>Some plugins are not compatible with configuration cache</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        Some of the plugins applied are known to be not compatible with <a href=''>configuration caching</a> in versions used in this build.
-        ${uiData.upgradePluginWarnings.size} plugins can be updated to the compatible version.
-        ${uiData.incompatiblePluginWarnings.size} plugins are not known to have compatible version yet, please contact plugin providers for details.
+        Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.
+        $pluginsCountLines
         You can find details on each plugin on corresponding sub-pages.
       """.trimIndent().insertBRTags()
+      }
       // Can not happen as we don't create pages for this state.
       ConfigurationCachingTurnedOn -> ""
     }
 
-    add(htmlTextLabelWithFixedLines(contentHtml), BorderLayout.CENTER)
+    add(htmlTextLabelWithLinesWrap(contentHtml).setupConfigurationCachingDescriptionPane())
   }
 
-  private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning) = JPanel().apply {
-    layout = BorderLayout()
+  private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
+                                                    projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
+    layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
     val contentHtml = if (data.requiredVersion != null) """
-        <b>${data.plugin.displayNames().first()}</b>
+        <b>${data.plugin.displayName}: update required</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        The version of this plugin used in this build is not compatible with configuration caching.
-        Update to ${data.requiredVersion} or higher to get <a href=''>the benefits of gradle configuration caching</a>.
+        Update this plugin to ${data.requiredVersion} or higher to make configuration cache available.
         
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
-        <a href=''>Update plugin.</a>
       """.trimIndent().insertBRTags()
-      else """
-        <b>${data.plugin.displayNames().first()}</b>
+    else """
+        <b>${data.plugin.displayName}: not compatible</b>
+        ${configurationCachingDescriptionHeader(projectConfigurationTime)}
         
-        The version of this plugin used in this build is not compatible with configuration caching and we don’t know the version when it becomes compatible.
-        In order to get <a href=''>the benefits of gradle configuration caching</a> you have to <a href=''>contact the plugin developer</a> or find an alternative for this plugin.
+        The version of this plugin used in this build is not compatible with configuration cache and we don’t know the version when it becomes compatible.
         
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
       """.trimIndent().insertBRTags()
 
-    add(htmlTextLabelWithFixedLines(contentHtml), BorderLayout.CENTER)
+    add(htmlTextLabelWithLinesWrap(contentHtml).setupConfigurationCachingDescriptionPane())
   }
 
+  private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
+    "<p>" +
+    "You could save ${configurationTime.durationStringHtml()} (${configurationTime.percentageStringHtml()} total build time) by turning " +
+    "<a href='${BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING.name}'>configuration cache</a> on. " +
+    "With configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
+    "</p>"
+
   private fun String.insertBRTags(): String = replace("\n", "<br/>\n")
+
+  private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {
+    maximumSize = JBDimension(600, Int.MAX_VALUE)
+    minimumSize = JBDimension(300, 0)
+    alignmentX = 0f
+    addHyperlinkListener { e ->
+      //TODO (mlazeba): extract duplicated logic, same in BuldOverview page for example. Time to introduce some link handler.
+      if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+        BuildAnalyzerBrowserLinks.valueOf(e.description).let {
+          BrowserUtil.browse(it.urlTarget)
+          actionHandlers.helpLinkClicked(it)
+        }
+      }
+    }
+  }
 }

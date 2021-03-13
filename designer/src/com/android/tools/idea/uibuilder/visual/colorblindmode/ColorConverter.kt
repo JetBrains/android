@@ -63,15 +63,17 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   }
 
   /**
-   * Corrects alpha value as interpolation doesn't work with alpha.
-   * Precondition : alpha is never 0.
+   * Corrects alpha value assuming background is white
+   * @param color int containing rgb color (e.g. 0xFFFFFF)
+   * @param alpha value from [1,255]
    */
   private fun alphaCorrect(color: Int): Int {
     val a = a(color).toDouble() / 255.0
+    val whiteBg = (1 - a) * 255
 
-    return combine(r(color).toDouble() * a,
-            g(color).toDouble() * a,
-            b(color).toDouble() * a)
+    return combine(a * r(color).toDouble() + whiteBg,
+                   a * g(color).toDouble() + whiteBg,
+                   a * b(color).toDouble() + whiteBg)
   }
 
   override fun dispose() {

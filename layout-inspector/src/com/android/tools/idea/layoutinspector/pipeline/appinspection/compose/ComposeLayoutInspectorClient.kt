@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
+import com.android.tools.idea.appinspection.api.findVersion
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
+import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
@@ -41,11 +43,11 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetPara
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Response
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
+
 private val DEV_JAR = AppInspectorJar("compose-ui-inspection.jar",
                                       developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/compose/ui/")
-
 private val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate(
-  "androidx.compose.ui", "ui", "1.0.0-beta01", ArtifactCoordinate.Type.AAR
+  "androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR
 )
 
 @VisibleForTesting
@@ -73,15 +75,22 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     suspend fun launch(apiServices: AppInspectionApiServices,
                        process: ProcessDescriptor,
                        model: InspectorModel): ComposeLayoutInspectorClient? {
-      val jar = if (StudioFlags.ENABLE_APP_INSPECTION_DEV_MODE.get()) {
-        DEV_JAR
+      val jar = if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
+        DEV_JAR // This branch is used by tests
       }
       else {
-        InspectorArtifactService.instance
-          .getOrResolveInspectorArtifact(MINIMUM_COMPOSE_COORDINATE, model.project)
-          ?.let { inspectorPath ->
-            AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
-          } ?: return null
+        val version =
+          apiServices.findVersion(model.project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId, MINIMUM_COMPOSE_COORDINATE.artifactId)
+          ?: return null
+
+        val resolved =
+          InspectorArtifactService.instance.getOrResolveInspectorJar(model.project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
+        if (resolved == null) {
+          // If here, app is using a version of compose old enough that it was before we embedded inspectors into it
+          InspectorBannerService.getInstance(model.project).setNotification(INCOMPATIBLE_LIBRARY_MESSAGE)
+          return null
+        }
+        resolved
       }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old version was

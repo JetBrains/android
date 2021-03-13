@@ -696,13 +696,9 @@ class EmulatorView(
     }
   }
 
-  /** Rounds the given value down to 1 or 2 if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
+  /** Rounds the given value down to an integer if it is above 1, or to the nearest multiple of 1/128 if it is below 1. */
   private fun roundScale(value: Double): Double {
-    return when {
-      value > 2 -> 2.0
-      value > 1 -> 1.0
-      else -> round(value * 128) / 128
-    }
+    return if (value >= 1) floor(value) else round(value * 128) / 128
   }
 
   private fun requestScreenshotFeed() {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
 import com.android.builder.model.NativeAndroidProject
@@ -25,11 +24,12 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.impl.BuildFolderPaths
-import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.project.model.ModelCache
 import com.android.tools.idea.gradle.project.sync.FullSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.Modules
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
@@ -364,8 +364,8 @@ internal class AndroidExtraModelProviderWorker(
       val preModuleDependencies = actionRunner.runActions(actions)
 
       preModuleDependencies.filterNotNull().forEach { result ->
-        result.module.addVariant(result.ideVariant)
-        result.nativeVariantAbi?.let { result.module.addNativeVariant(it) }
+        result.module.syncedVariant = result.ideVariant
+        result.module.syncedNativeVariant = result.nativeVariantAbi
       }
       propagatedToModules = preModuleDependencies.filterNotNull().flatMap { it.moduleDependencies }.takeUnless { it.isEmpty() }
     }
@@ -388,7 +388,7 @@ internal class AndroidExtraModelProviderWorker(
           // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
           // dependencies of others and will be visited sooner and the configurations created below will be discarded. This is fine since
           // `createRequestedModuleConfiguration()` is cheap.
-          module.projectType == AndroidProjectTypes.PROJECT_TYPE_APP -> 1
+          module.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP -> 1
           else -> 2
         }
       }

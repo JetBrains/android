@@ -31,7 +31,7 @@ class IdeAndroidModels(
   val syncIssues: List<SyncIssueData>,
   val v2NativeModule: IdeNativeModule?,
   val v1NativeProject: IdeNativeAndroidProject?,
-  val v1NativeVariantAbis: List<IdeNativeVariantAbi>?
+  val v1NativeVariantAbi: IdeNativeVariantAbi?
 ) : Serializable
 
 class IdeAndroidNativeVariantsModels(

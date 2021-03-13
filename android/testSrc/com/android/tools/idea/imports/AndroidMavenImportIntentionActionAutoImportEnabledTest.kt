@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -43,7 +44,7 @@ class AndroidMavenImportIntentionActionAutoImportEnabledTest {
 
   @Before
   fun setUp() {
-    StudioFlags.ENABLE_AUTO_IMPORT.override(true)
+    StudioFlags.ENABLE_SUGGESTED_IMPORT.override(true)
     ApplicationManager.getApplication().replaceService(
       MavenClassRegistryManager::class.java,
       fakeMavenClassRegistryManager,
@@ -53,7 +54,7 @@ class AndroidMavenImportIntentionActionAutoImportEnabledTest {
 
   @After
   fun tearDown() {
-    StudioFlags.ENABLE_AUTO_IMPORT.clearOverride()
+    StudioFlags.ENABLE_SUGGESTED_IMPORT.clearOverride()
   }
 
   @Test
@@ -71,6 +72,57 @@ class AndroidMavenImportIntentionActionAutoImportEnabledTest {
     val action = AndroidMavenImportIntentionAction()
     val element = projectRule.fixture.moveCaret("RecyclerView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isFalse()
+  }
+
+  @Test
+  fun doNotSuggestIfAnyIsAlreadyDepended() {
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule) {
+      !it.contains("androidx.palette:palette:") &&
+      !it.contains("androidx.palette:palette-ktx:") &&
+      !it.contains("androidx.room:room-runtime:")
+    }
+    projectRule.fixture.loadNewFile(
+      "app/src/main/java/test/pkg/imports/MainActivity2.kt",
+      """
+        package test.pkg.imports
+        val someClass = FakeClass() // Here FakeClass is an unresolvable symbol
+      """.trimIndent()
+    )
+    val source = projectRule.fixture.editor.document.text
+    val action = AndroidMavenImportIntentionAction()
+    var element = projectRule.fixture.moveCaret("FakeClass|()")
+    var available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    // Since we have more than one suggestion, we just show general text `Add library dependency` here.
+    assertThat(action.text).isEqualTo("Add library dependency")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    // The deterministic order of suggestions are ensured, so the first option `androidx.palette:palette` is applied.
+    assertBuildGradle(projectRule) {
+      it.contains("implementation 'androidx.palette:palette:") &&
+      it.contains("implementation 'androidx.palette:palette-ktx:")
+    }
+
+    val newSource = projectRule.fixture.editor.document.text
+    val diff = TestUtils.getDiff(source, newSource, 1)
+    assertThat(diff.trim()).isEqualTo(
+      """
+      @@ -2 +2
+        package test.pkg.imports
+      +
+      + import androidx.palette.graphics.FakeClass
+      +
+        val someClass = FakeClass() // Here FakeClass is an unresolvable symbol
+      """.trimIndent().trim()
+    )
+
+    // Since we have added on `androidx.palette:palette`, no dependencies are to be suggested any more.
+    element = projectRule.fixture.moveCaret("FakeClass|()")
+    available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isFalse()
   }
 }

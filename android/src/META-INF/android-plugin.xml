@@ -505,6 +505,9 @@
     <completion.contributor language="JAVA"
                             implementationClass="com.android.tools.idea.lang.IntDefCompletionContributorJava"
                             order="first, before AndroidJavaCompletionContributor"/>
+    <completion.contributor language="JAVA"
+                            implementationClass="org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor"
+                            order="last, before javaLegacy"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
 

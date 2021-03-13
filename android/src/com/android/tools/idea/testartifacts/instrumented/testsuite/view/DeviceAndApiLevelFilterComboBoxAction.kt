@@ -71,7 +71,7 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
     // you call because it resolves device name lazily.
     actionGroup.addAll(myAvailableDevices.map { Pair(it.getName(), it) }.toSortedSet(compareBy { it.first }).map { (name, device) ->
       val icon = when(device.deviceType) {
-        AndroidDeviceType.LOCAL_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+        AndroidDeviceType.LOCAL_EMULATOR, AndroidDeviceType.LOCAL_GRADLE_MANAGED_EMULATOR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
         AndroidDeviceType.LOCAL_PHYSICAL_DEVICE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
       }
       createFilterAction(name, icon) { it.id == device.id || it.getName() == device.getName() }

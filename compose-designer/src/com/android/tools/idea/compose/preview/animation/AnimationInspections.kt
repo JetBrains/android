@@ -28,39 +28,32 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 
 private const val LABEL_PARAMETER = "label"
-private const val PROP_KEY_SUFFIX = "PropKey"
-private const val COMPOSE_ANIMATION_PACKAGE = "androidx.compose.animation"
+private const val UPDATE_TRANSITION_FQN = "androidx.compose.animation.core.updateTransition"
 
 /**
- * Inspection to verify that Compose animations PropKeys have their `label` parameter set. This parameter is used by the animation tooling
- * to identify the PropKeys when inspecting animations in the Animation Preview.
+ * Inspection to verify that the `label` parameter is set for `updateTransition` calls that create Compose transition animations. This
+ * parameter is used by the animation tooling to identify the transition when inspecting animations in the Animation Preview.
  */
-class PropKeysLabelInspection : AbstractKotlinInspection() {
+class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
     if (StudioFlags.COMPOSE_ANIMATION_PREVIEW_LABEL_INSPECTION.get() && session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
-          // First, check we're analyzing a PropKey
-          val propKey = (expression.firstChild as? KtNameReferenceExpression)
-                    ?.resolveToCall()?.resultingDescriptor?.returnType?.fqName ?: return
-          val shortName = propKey.shortNameOrSpecial()
-          if (shortName.isSpecial || !shortName.toString().endsWith(PROP_KEY_SUFFIX)) return
-          // Next, double-check they're defined within the Compose Animation package
-          if (!propKey.parent().toString().startsWith(COMPOSE_ANIMATION_PACKAGE)) return
+          val resolvedExpression = expression.resolveToCall() ?: return
+          // First, check we're analyzing an updateTransition call
+          if (resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() != UPDATE_TRANSITION_FQN) return
 
-          // Finally, verify the PropKey has the `label` parameter set, otherwise show a weak warning.
-          val resolvedExpression = expression.resolveToCall()
-          if (expression.valueArguments.any { resolvedExpression?.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER }) {
-            // PropKey has the label parameter set.
+          // Finally, verify the updateTransition has the `label` parameter set, otherwise show a weak warning.
+          if (expression.valueArguments.any { resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER }) {
+            // This updateTransition call already has the label parameter set.
             return
           }
           holder.registerProblem(
@@ -76,10 +69,10 @@ class PropKeysLabelInspection : AbstractKotlinInspection() {
     }
 
   /**
-   * Add the `label` parameter to a PropKey expression. For example:
-   * `FloatPropKey()` -> `FloatPropKey(label = "")`
+   * Add the `label` parameter to an updateTransition expression. For example:
+   * `updateTransition(targetState = state)` -> `updateTransition(targetState = state, label = "")`
    */
-  private class AddLabelFieldQuickFix(propKeyExpression: KtCallExpression) : LocalQuickFixOnPsiElement(propKeyExpression) {
+  private class AddLabelFieldQuickFix(updateTransition: KtCallExpression) : LocalQuickFixOnPsiElement(updateTransition) {
     override fun getFamilyName() = message("inspection.group.name")
 
     override fun getText() = message("inspection.no.label.parameter.set.quick.fix.text")

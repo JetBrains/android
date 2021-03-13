@@ -19,7 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.io.IdeFileService
 import com.google.common.annotations.VisibleForTesting
@@ -49,6 +51,16 @@ interface InspectorArtifactService {
   }
 }
 
+/**
+ * A helper function that returns an [AppInspectorJar] directly instead of a path.
+ */
+suspend fun InspectorArtifactService.getOrResolveInspectorJar(project: Project, coordinate: ArtifactCoordinate): AppInspectorJar? {
+  return getOrResolveInspectorArtifact(coordinate, project)
+    ?.let { inspectorPath ->
+      AppInspectorJar(inspectorPath.fileName.toString(), inspectorPath.parent.toString(), inspectorPath.parent.toString())
+    }
+}
+
 class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor(
   private val fileService: FileService,
   private val artifactResolverFactory: ArtifactResolverFactoryBase = ArtifactResolverFactory(fileService),
@@ -61,7 +73,9 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
 
   @WorkerThread
   override suspend fun getOrResolveInspectorArtifact(artifactCoordinate: ArtifactCoordinate, project: Project): Path? {
-    return jarPaths.getInspectorArchive(artifactCoordinate) ?: run {
+    // Ignore the cache when searching snapshots, as we can't assume that a library with the same version is actually the same one.
+    // A developer could have built a new snapshot since last time we checked.
+    return jarPaths.getInspectorArchive(artifactCoordinate).takeUnless { StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() } ?: run {
       val library = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate) ?: return null
       return try {
         val targetDir = unzipDir.resolve(artifactCoordinate.getTmpDirName())

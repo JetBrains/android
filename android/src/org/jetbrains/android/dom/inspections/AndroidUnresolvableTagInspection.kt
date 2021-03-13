@@ -6,6 +6,7 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.imports.AndroidMavenImportFix
 import com.android.tools.idea.imports.MavenClassRegistryManager
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -46,6 +47,8 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
+    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported()) return ProblemDescriptor.EMPTY_ARRAY
+
     if (isRelevantFile(facet, file)) {
       val visitor = MyVisitor(manager, isOnTheFly)
       file.accept(visitor)
@@ -114,7 +117,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
               it.artifact
             }
 
-            fixes.add(AndroidMavenImportFix(className, resolvedArtifact))
+            fixes.add(AndroidMavenImportFix(className, resolvedArtifact, it.version))
           }
           .toList()
 

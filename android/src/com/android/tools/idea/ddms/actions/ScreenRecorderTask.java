@@ -18,11 +18,9 @@ package com.android.tools.idea.ddms.actions;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
-import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -41,15 +39,12 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ScreenRecorderTask extends Task.Backgroundable {
+final class ScreenRecorderTask extends Task.Modal {
   private static final CharSequence MEDIA_UNSUPPORTED_ERROR = "-1010";
 
-  private final boolean myLaunchEmulatorInToolWindowCheckBoxSelected;
-  private final @NotNull AtomicBoolean mySentToBackground;
   private final IDevice myDevice;
   private final CountDownLatch myCompletionLatch;
   private final CollectingOutputReceiver myReceiver;
@@ -60,10 +55,8 @@ final class ScreenRecorderTask extends Task.Backgroundable {
                             @NotNull CountDownLatch completionLatch,
                             @NotNull CollectingOutputReceiver receiver,
                             @Nullable Path hostTmpFileName) {
-    super(project, "Screen recorder", true, PerformInBackgroundOption.DEAF);
+    super(project, ScreenRecorderAction.TITLE, true);
 
-    myLaunchEmulatorInToolWindowCheckBoxSelected = AvdManagerConnection.isEmulatorToolWindowAvailable(project);
-    mySentToBackground = new AtomicBoolean();
     myDevice = device;
     myCompletionLatch = completionLatch;
     myReceiver = receiver;
@@ -71,28 +64,9 @@ final class ScreenRecorderTask extends Task.Backgroundable {
   }
 
   @Override
-  public boolean isConditionalModal() {
-    return !myLaunchEmulatorInToolWindowCheckBoxSelected;
-  }
-
-  @Override
-  public void processSentToBackground() {
-    super.processSentToBackground();
-    mySentToBackground.set(true);
-  }
-
-  @Override
   public void run(@NotNull ProgressIndicator indicator) {
     int elapsedTime = 0; // elapsed time in seconds
     indicator.setIndeterminate(true);
-
-    // The dialog always starts out modal. If the "Launch in a tool window" emulator setting is checked, hint to the user that they need to
-    // click the Background button in the dialog to minimize it to the Studio status bar so they can interact with the rest of Studio
-    // (including the emulator tool window).
-    if (myLaunchEmulatorInToolWindowCheckBoxSelected) {
-      indicator.setText("Recording. Background dialog to interact with Android Studio.");
-    }
-
     while (true) {
       try {
         if (myCompletionLatch.await(1, TimeUnit.SECONDS)) {
@@ -101,13 +75,8 @@ final class ScreenRecorderTask extends Task.Backgroundable {
 
         // update elapsed time in seconds
         elapsedTime++;
-
-        // If the emulator setting is not checked, make the dialog behave as before. If it is checked then show the old text when the dialog
-        // has been minimized to the status bar to make it clearer to the user that recording is still happening.
-        if (!myLaunchEmulatorInToolWindowCheckBoxSelected || mySentToBackground.get()) {
-          indicator.setText(
-            String.format(Locale.US, "Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
-        }
+        indicator.setText(
+          String.format(Locale.US, "Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
 
         // If using emulator screen recording feature, stop the recording if the emulator dies
         EmulatorConsole console = null;

@@ -105,7 +105,6 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -778,7 +777,7 @@ public class EditorFixture {
   @NotNull
   public VisualizationFixture getVisualizationTool() {
     if (!isVisualizationToolShowing()) {
-      myFrame.invokeMenuPath("View", "Tool Windows", AndroidBundle.message("android.layout.visual.tool.window.title"));
+      myFrame.invokeMenuPath("View", "Tool Windows", VisualizationManager.TOOL_WINDOW_ID);
     }
 
     Wait.seconds(20).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());

@@ -30,7 +30,7 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.impl.ModelCache;
+import com.android.tools.idea.gradle.project.model.ModelCache;
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;

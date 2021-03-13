@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
@@ -227,18 +228,15 @@ private class WarningsTreeStructure(
 
       // Add configuration caching issues
       if (reportData.confCachingData != ConfigurationCachingTurnedOn) {
-        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(reportData.confCachingData)).apply {
+        val configurationDuration = reportData.buildSummary.configurationDuration
+        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(reportData.confCachingData, configurationDuration)).apply {
           reportData.confCachingData.let {
             if (it is IncompatiblePluginsDetected) {
-              it.incompatiblePluginWarnings.forEach {
-                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it)))
-              }
               it.upgradePluginWarnings.forEach {
-                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it)))
+                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
               }
-              (it.incompatiblePluginWarnings.size + it.upgradePluginWarnings.size).let { confCachingWarnings ->
-                treeStats.filteredWarningsCount += confCachingWarnings
-                treeStats.totalWarningsCount += confCachingWarnings
+              it.incompatiblePluginWarnings.forEach {
+                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
               }
             }
             // Update tree stats.
@@ -376,9 +374,7 @@ class TaskUnderPluginDetailsNodeDescriptor(
   val filteredWarnings: List<TaskIssueUiData>
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.task(taskData)
-
-  // TODO (b/150295612): add new page type, there is no matching one in the old model.
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.PLUGIN_TASK_WARNINGS
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = taskData.taskPath,
@@ -417,22 +413,36 @@ class AnnotationProcessorDetailsNodeDescriptor(
 
 /** Descriptor for the configuration caching problems page node. */
 class ConfigurationCachingRootNodeDescriptor(
-  val data: ConfigurationCachingCompatibilityProjectResult
+  val data: ConfigurationCachingCompatibilityProjectResult,
+  val projectConfigurationTime: TimeWithPercentage
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.configurationCachingRoot
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_ROOT
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
-      mainText = "Configuration caching",
-      suffix = warningsCountString(data.warningsCount())
+      mainText = "Configuration cache",
+      suffix = when (data) {
+        is AGPUpdateRequired -> "Android Gradle plugin upgrade required"
+        is IncompatiblePluginsDetected -> data.upgradePluginWarnings.size.let {
+          when (it) {
+            0 -> ""
+            1 -> "1 plugin requires upgrade"
+            else -> "$it plugins require upgrade"
+          }
+        }
+        is NoIncompatiblePlugins -> ""
+        ConfigurationCachingTurnedOn -> ""
+      },
+      rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
     )
 }
 
 class ConfigurationCachingWarningNodeDescriptor(
-  val data: IncompatiblePluginWarning
+  val data: IncompatiblePluginWarning,
+  val projectConfigurationTime: TimeWithPercentage
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.configurationCachingWarning(data)
-  override val analyticsPageType = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.CONFIGURATION_CACHE_PLUGIN_WARNING
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = data.plugin.displayNames().first(),

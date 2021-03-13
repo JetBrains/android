@@ -18,14 +18,12 @@ package com.android.tools.idea.run.deployment;
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ThreeState;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystem;
@@ -192,11 +190,8 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       return builder.build();
     }
 
-    LaunchCompatibility compatibility = myChecker.validate(device);
-
     return builder
-      .setValid(!compatibility.isCompatible().equals(ThreeState.NO))
-      .setValidityReason(compatibility.getReason())
+      .setLaunchCompatibility(myChecker.validate(device))
       .build();
   }
 }

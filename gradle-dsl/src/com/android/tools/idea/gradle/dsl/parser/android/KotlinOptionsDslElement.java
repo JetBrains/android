@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.KotlinOptionsModelImpl.FREE_COMPILER_ARGS;
 import static com.android.tools.idea.gradle.dsl.model.android.KotlinOptionsModelImpl.JVM_TARGET;
 import static com.android.tools.idea.gradle.dsl.model.android.KotlinOptionsModelImpl.USE_IR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -35,13 +36,15 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class KotlinOptionsDslElement extends GradleDslBlockElement {
+  public static final PropertiesElementDescription<KotlinOptionsDslElement> KOTLIN_OPTIONS =
+    new PropertiesElementDescription<>("kotlinOptions", KotlinOptionsDslElement.class, KotlinOptionsDslElement::new);
+
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> modelNameMap = Stream.of(new Object[][]{
+    {"freeCompilerArgs", property, FREE_COMPILER_ARGS, VAR},
     {"jvmTarget", property, JVM_TARGET, VAR},
     {"useIR", property, USE_IR, VAR},
   }).collect(toModelMap());
-  public static final PropertiesElementDescription<KotlinOptionsDslElement> KOTLIN_OPTIONS =
-    new PropertiesElementDescription<>("kotlinOptions", KotlinOptionsDslElement.class, KotlinOptionsDslElement::new);
 
   @Override
   @NotNull

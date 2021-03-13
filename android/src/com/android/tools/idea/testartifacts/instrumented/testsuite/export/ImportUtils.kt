@@ -147,6 +147,7 @@ private class ImportAndroidTestMatrixRunProfileState(
                 val device = AndroidDevice(
                   attributes.getValue("id"),
                   attributes.getValue("deviceName"),
+                  attributes.getValue("deviceName"),
                   AndroidDeviceType.valueOf(attributes.getValue("deviceType")),
                   AndroidVersion(attributes.getValue("version").toInt())
                 )

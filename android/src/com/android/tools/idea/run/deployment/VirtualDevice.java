@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -75,8 +76,7 @@ final class VirtualDevice extends Device {
 
     return new Builder()
       .setName(device.getName())
-      .setValid(connectedDevice.isValid())
-      .setValidityReason(connectedDevice.getValidityReason())
+      .setLaunchCompatibility(connectedDevice.getLaunchCompatibility())
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
@@ -97,14 +97,8 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setValid(boolean valid) {
-      myValid = valid;
-      return this;
-    }
-
-    @NotNull
-    Builder setValidityReason(@Nullable String validityReason) {
-      myValidityReason = validityReason;
+    Builder setLaunchCompatibility(LaunchCompatibility launchCompatibility) {
+      myLaunchCompatibility = launchCompatibility;
       return this;
     }
 
@@ -259,8 +253,7 @@ final class VirtualDevice extends Device {
     VirtualDevice device = (VirtualDevice)object;
 
     return getName().equals(device.getName()) &&
-           isValid() == device.isValid() &&
-           Objects.equals(getValidityReason(), device.getValidityReason()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
@@ -273,8 +266,7 @@ final class VirtualDevice extends Device {
   public int hashCode() {
     return Objects.hash(
       getName(),
-      isValid(),
-      getValidityReason(),
+      getLaunchCompatibility(),
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),

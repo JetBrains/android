@@ -82,7 +82,7 @@ class BuildAttributionAnalyticsManager(
       transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData(), analysisResult.getTotalConfigurationData())
     analyzersDataBuilder.tasksConfigurationIssuesAnalyzerData =
       transformTasksConfigurationIssuesAnalyzerData(analysisResult.getTasksSharingOutput())
-
+    //TODO (b/177051800): log configuration cache data
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
 

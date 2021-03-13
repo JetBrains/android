@@ -62,7 +62,7 @@ final class Devices {
   }
 
   static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {
-    return getText(device.getName(), key == null ? null : key.toString(), bootOption, device.getValidityReason());
+    return getText(device.getName(), key == null ? null : key.toString(), bootOption, device.getLaunchCompatibility().getReason());
   }
 
   private static @NotNull String getText(@NotNull String device,

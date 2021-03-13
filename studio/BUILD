@@ -12,7 +12,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2/repository/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09:jetifier-core",
         "//prebuilts/tools/common/m2/repository/com/google/auto/auto-common/0.10:auto-common",
         "//prebuilts/tools/common/m2/repository/com/google/flatbuffers/flatbuffers-java/1.12.0:flatbuffers-java",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha01:utp-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha02:utp-core-proto",
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:juniversalchardet",
         "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.10.0:javapoet",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
@@ -32,6 +32,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
+        "//tools/adt/idea/.idea/libraries:libapp-processes-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
@@ -104,7 +105,7 @@ studio_plugin(
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
-            "//tools/adt/idea/android-debuggers:intellij.android.debuggers",
+            "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
@@ -124,6 +125,7 @@ studio_plugin(
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
+            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
             "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
@@ -283,6 +285,11 @@ studio_plugin(
     directory = "android-ndk",
     libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
+    resources = {
+        "resources/lldb": [
+            "//prebuilts/tools:lldb-bundle",
+        ],
+    },
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -505,9 +512,6 @@ android_studio(
         ":com.google.urlassistant",
     ],
     resources = {
-        "bin/lldb": [
-            "//prebuilts/tools:lldb-bundle",
-        ],
         "license": [
             # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
             "//tools/adt/idea/android/lib:licenses",
@@ -523,9 +527,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 10,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

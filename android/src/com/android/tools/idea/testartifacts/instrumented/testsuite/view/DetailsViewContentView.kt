@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -50,7 +52,7 @@ import javax.swing.JPanel
 /**
  * Shows detailed tests results for a selected device.
  */
-class DetailsViewContentView(parentDisposable: Disposable, project: Project, logger: AndroidTestSuiteLogger) {
+class DetailsViewContentView(parentDisposable: Disposable, private val project: Project, logger: AndroidTestSuiteLogger) {
 
   /**
    * Returns the root panel.
@@ -70,6 +72,7 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
   private var myLogcat = ""
   private var myErrorStackTrace = ""
   private var myRetentionSnapshot: File? = null
+  private var needsRefreshLogsView: Boolean = true
 
   init {
     val tabs = createTabs(project, parentDisposable)
@@ -160,20 +163,29 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
   }
 
   fun setLogcat(logcat: String) {
-    myLogcat = logcat
-    refreshLogsView()
+    // force refresh myLogsView on first call to setLogcat
+    needsRefreshLogsView = needsRefreshLogsView || (myLogcat != logcat)
+    if (needsRefreshLogsView) {
+      myLogcat = logcat
+      refreshLogsView()
+    }
   }
 
   fun setErrorStackTrace(errorStackTrace: String) {
-    myErrorStackTrace = errorStackTrace
-    refreshTestResultLabel()
-    refreshLogsView()
+    needsRefreshLogsView = myErrorStackTrace != errorStackTrace
+    if (needsRefreshLogsView) {
+      myErrorStackTrace = errorStackTrace
+      refreshTestResultLabel()
+      refreshLogsView()
+    }
   }
 
-  fun setBenchmarkText(benchmarkText: String) {
+  fun setBenchmarkText(benchmarkText: BenchmarkOutput) {
     myBenchmarkView.clear()
-    myBenchmarkView.print(benchmarkText, ConsoleViewContentType.NORMAL_OUTPUT)
-    myBenchmarkTab.isHidden = StringUtil.isEmpty(benchmarkText)
+    for (line in benchmarkText.lines) {
+      line.print(myBenchmarkView, ConsoleViewContentType.NORMAL_OUTPUT, BenchmarkLinkListener(project))
+    }
+    myBenchmarkTab.isHidden = benchmarkText.lines.isEmpty()
   }
 
   fun setRetentionInfo(retentionInfo: File?) {
@@ -251,7 +263,8 @@ class DetailsViewContentView(parentDisposable: Disposable, project: Project, log
     }
   }
 
-  private fun refreshLogsView() {
+  @VisibleForTesting fun refreshLogsView() {
+    needsRefreshLogsView = false
     myLogsView.clear()
     if (StringUtil.isEmptyOrSpaces(myLogcat) && StringUtil.isEmptyOrSpaces(myErrorStackTrace)) {
       myLogsView.print("No logcat output for this device.",
