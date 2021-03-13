@@ -282,6 +282,10 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         // These happen when users unplug their devices or if studio is closed. We don't need to surface the exceptions here.
         myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
       }
+      catch (RuntimeException e) {
+        getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+      }
     }
 
     /**

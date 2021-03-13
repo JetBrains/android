@@ -372,7 +372,12 @@ public final class TransportFileManager implements TransportFileCopier {
 
   @NotNull
   private Abi getBestAbi(@NotNull DeployableFile hostFile) {
-    return getBestAbis(hostFile).get(0);
+    List<Abi> abis = getBestAbis(hostFile);
+    if (abis.isEmpty()){
+      throw new RuntimeException("Could not find ABI file for: " + hostFile.getFileName());
+    } else {
+      return abis.get(0);
+    }
   }
 
   @NotNull
