@@ -179,8 +179,8 @@ open class InspectorPropertyItem(
     if (sp.isNaN()) {
       return initialValue
     }
-    if (lookup.resourceLookup.dpi <= 0) {
-      // If we are unable to get the dpi from the device, just show in sp
+    if (lookup.resourceLookup.dpi <= 0 || lookup.resourceLookup.fontScale <= 0.0f) {
+      // If we are unable to get the dpi or scale factor from the device, just show in sp
       return "${formatFloat(sp)}sp"
     }
     return when (PropertiesSettings.dimensionUnits) {

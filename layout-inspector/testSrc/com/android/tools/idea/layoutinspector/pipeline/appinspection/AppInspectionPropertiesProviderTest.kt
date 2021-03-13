@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.resources.Density
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -301,7 +302,7 @@ class AppInspectionPropertiesProviderTest {
       // placeholder for RESOURCE parameter
       ComposableString(109, "elevation"), // DIMENSION_DP
       ComposableString(110, "fontSize"), // DIMENSION_SP
-      // placeholder for DIMENSION_EM parameter
+      ComposableString(111, "textSize"), // DIMENSION_EM
       ComposableString(112, "onTextLayout"), // LAMBDA
       // placeholder for FUNCTION_REFERENCE parameter
       ComposableString(114, "dataObject"),
@@ -389,6 +390,14 @@ class AppInspectionPropertiesProviderTest {
           floatValue = 16f
         }
         Parameter {
+          type = ComposeProtocol.Parameter.Type.DIMENSION_EM
+          name = 111
+          floatValue = 2f
+        }
+      },
+      ParameterGroup {
+        composableId = -5
+        Parameter {
           type = ComposeProtocol.Parameter.Type.LAMBDA
           name = 112
           lambdaValueBuilder.apply {
@@ -399,9 +408,6 @@ class AppInspectionPropertiesProviderTest {
             endLineNumber = 21
           }
         }
-      },
-      ParameterGroup {
-        composableId = -5
         Parameter {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 114
@@ -413,7 +419,7 @@ class AppInspectionPropertiesProviderTest {
             index = 0
             Reference {
               composableId = -5
-              parameterIndex = 0
+              parameterIndex = 1
             }
           }
           Element {
@@ -429,7 +435,7 @@ class AppInspectionPropertiesProviderTest {
             index = 11
             Reference {
               composableId = -5
-              parameterIndex = 0
+              parameterIndex = 1
               addCompositeIndex(11)
             }
           }
@@ -480,7 +486,7 @@ class AppInspectionPropertiesProviderTest {
           index = 3
           Reference {
             composableId = -5
-            parameterIndex = 0
+            parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
           Element {
@@ -518,7 +524,7 @@ class AppInspectionPropertiesProviderTest {
         index = 3
         Reference {
           composableId = -5
-          parameterIndex = 0
+          parameterIndex = 1
           addAllCompositeIndex(listOf(11, 3))
         }
         Element {
@@ -669,7 +675,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
-            parameterIndex = 0
+            parameterIndex = 1
             addCompositeIndex(11)
           }
           maxElements = 5
@@ -686,7 +692,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
-            parameterIndex = 0
+            parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
           startIndex = 4
@@ -704,7 +710,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
-            parameterIndex = 0
+            parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
           startIndex = 7
@@ -736,6 +742,12 @@ class AppInspectionPropertiesProviderTest {
         layoutEventBuilder.apply {
           addAllStrings(viewStrings)
           this.rootView = rootView
+          appContextBuilder.apply {
+            configurationBuilder.apply {
+              density = Density.HIGH.dpiValue
+              fontScale = 1.5f
+            }
+          }
         }
       }
       if (isLastCapture) {
@@ -989,10 +1001,16 @@ class AppInspectionPropertiesProviderTest {
       val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
-        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
-        // TODO(b/179324422): Investigate DIMENSION_SP formatting
-        assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
+        PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.5px")
+        assertProperty("fontSize", PropertyType.DIMENSION_SP, "36.0px")
+        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
+      }
+      result.table.run {
+        PropertiesSettings.dimensionUnits = DimensionUnits.DP
+        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0dp")
+        assertProperty("fontSize", PropertyType.DIMENSION_SP, "16.0sp")
+        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
       }
     }
 
@@ -1002,8 +1020,9 @@ class AppInspectionPropertiesProviderTest {
       assertThat(result.view).isSameAs(targetNode)
 
       result.table.run {
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
         assertProperty("dataObject", PropertyType.STRING, "PojoClass")
-        val groupItem = this.first as ParameterGroupItem
+        val groupItem = this[ANDROID_URI, "dataObject"] as ParameterGroupItem
         assertProperty(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
         assertProperty(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
         assertProperty(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
