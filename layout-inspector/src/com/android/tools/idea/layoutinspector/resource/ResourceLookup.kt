@@ -39,6 +39,8 @@ import com.intellij.util.ui.ColorIcon
 import org.jetbrains.android.facet.AndroidFacet
 import javax.swing.Icon
 
+private const val DEFAULT_FONT_SCALE = 1.0f
+
 /**
  * Utility for looking up resources in a project.
  *
@@ -60,7 +62,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * The fontScale currently used on the device.
    */
-  var fontScale: Float = 0.0f
+  var fontScale: Float = DEFAULT_FONT_SCALE
 
   /**
    * Update the configuration after a possible configuration change detected on the device.
@@ -68,7 +70,7 @@ class ResourceLookup(private val project: Project) {
   fun updateConfiguration(appContext: AppContext, stringTable: StringTable) {
     val config = appContext.configuration
     dpi = if (config.density != 0) config.density else DEFAULT_DENSITY
-    fontScale = config.fontScale
+    fontScale = if (config.fontScale != 0.0f) config.fontScale else DEFAULT_FONT_SCALE
     val loader = ConfigurationLoader(appContext, stringTable)
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
     if (facet == null) {
