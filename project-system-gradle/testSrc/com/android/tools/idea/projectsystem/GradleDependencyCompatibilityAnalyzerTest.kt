@@ -18,8 +18,8 @@ package com.android.tools.idea.projectsystem
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
-import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.MockitoKt.mock
@@ -40,6 +40,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import java.io.File
 import java.nio.file.Paths
 import java.util.Collections
 import java.util.concurrent.TimeUnit
@@ -453,9 +454,12 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
    */
   private fun createFakeModel(module: Module, artifacts: List<String>): AndroidModuleModel {
     val project = androidProject ?: createAndroidProject()
-    val ideDependencies = IdeDependenciesStubBuilder().apply {
-      androidLibraries = artifacts.map { l2AndroidLibrary(it) }
-    }.build()
+    val ideDependencies = IdeDependenciesImpl(
+      androidLibraries = artifacts.map { ideAndroidLibrary(it) },
+      javaLibraries = emptyList(),
+      moduleDependencies = emptyList(),
+      runtimeOnlyClasses = emptyList()
+    )
     val model = Mockito.mock(AndroidModuleModel::class.java)
     `when`(model.androidProject).thenReturn(project)
     `when`(model.selectedMainCompileLevel2Dependencies).thenReturn(ideDependencies)
@@ -469,3 +473,26 @@ class GradleDependencyCompatibilityAnalyzerTest: AndroidTestCase() {
     return androidProject!!
   }
 }
+
+private fun ideAndroidLibrary(artifactAddress: String) =
+  IdeAndroidLibraryImpl(
+    artifactAddress = artifactAddress,
+    folder = File("libraryFolder"),
+    manifest = "manifest.xml",
+    jarFile = "file.jar",
+    compileJarFile = "api.jar",
+    resFolder = "res",
+    resStaticLibrary = File("libraryFolder/res.apk"),
+    assetsFolder = "assets",
+    localJars = listOf(),
+    jniFolder = "jni",
+    aidlFolder = "aidl",
+    renderscriptFolder = "renderscriptFolder",
+    proguardRules = "proguardRules",
+    lintJar = "lint.jar",
+    externalAnnotations = "externalAnnotations",
+    publicResources = "publicResources",
+    artifact = File("artifactFile"),
+    symbolFile = "symbolFile",
+    isProvided = false
+  )
