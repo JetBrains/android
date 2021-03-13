@@ -36,9 +36,9 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -244,13 +244,13 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           commandLineArguments.add(PARALLEL_BUILD_OPTION);
         }
 
-        commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
 
         AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
           attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
-          commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
+          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
