@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_APK_SELECT_CONFIG;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_ABI;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API_CODENAME;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_DENSITY;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
+import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API_CODENAME;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
+import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
+import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
+import static com.android.builder.model.AndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.run.GradleApkProvider.POST_BUILD_MODEL;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
