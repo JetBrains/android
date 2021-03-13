@@ -511,11 +511,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
   public static String getModuleName(@NotNull IdeBaseArtifact artifact) {
     switch (artifact.getName()) {
-      case ARTIFACT_NAME_MAIN: return "main";
-      case ARTIFACT_NAME_UNIT_TEST: return "unitTest";
-      case ARTIFACT_NAME_ANDROID_TEST: return "androidTest";
+      case MAIN:
+        return "main";
+      case UNIT_TEST:
+        return "unitTest";
+      case ANDROID_TEST:
+        return "androidTest";
+      default:
+        throw new IllegalStateException("Unknown artifact name: " + artifact.getName());
     }
-    return artifact.getName();
   }
 
   /**

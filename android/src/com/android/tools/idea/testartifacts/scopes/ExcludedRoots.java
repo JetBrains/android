@@ -22,6 +22,7 @@ import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeArtifactName;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
@@ -147,7 +148,7 @@ class ExcludedRoots {
       action.accept(file);
     }
 
-    String artifactName = artifact.getName();
+    IdeArtifactName artifactName = artifact.getName();
     List<IdeSourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
     for (IdeSourceProvider sourceProvider : testSourceProviders) {
       for (File file : getAllSourceFolders(sourceProvider)) {

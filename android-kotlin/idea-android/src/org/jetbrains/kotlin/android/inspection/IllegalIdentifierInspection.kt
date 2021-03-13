@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.inspection
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.util.androidFacet
@@ -113,7 +113,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
         val androidFacet = AndroidFacet.getInstance(module) ?: return emptyList()
         val androidModuleModel = AndroidModuleModel.get(androidFacet) ?: return emptyList()
 
-        return androidModuleModel.getTestSourceProviders(ARTIFACT_UNIT_TEST).flatMap { it.javaDirectories + it.kotlinDirectories }
+        return androidModuleModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST).flatMap { it.javaDirectories + it.kotlinDirectories }
     }
 
     private fun getIoFile(virtualFile: VirtualFile): File? {

@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
+import com.android.ide.common.gradle.model.IdeArtifactName;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,15 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 class Configuration {
-  static final Configuration MAIN = new Configuration("Main", ARTIFACT_MAIN);
+  static final Configuration MAIN = new Configuration("Main", IdeArtifactName.MAIN);
   static final Configuration ANDROID_TEST = new Configuration(AndroidBundle.message("android.test.run.configuration.type.name"),
-                                                              ARTIFACT_ANDROID_TEST);
-  static final Configuration UNIT_TEST = new Configuration("Local Unit Tests", ARTIFACT_UNIT_TEST);
+                                                              IdeArtifactName.ANDROID_TEST);
+  static final Configuration UNIT_TEST = new Configuration("Local Unit Tests", IdeArtifactName.UNIT_TEST);
 
   @NotNull private final String myName;
-  @Nullable private final String myArtifactName;
+  @Nullable private final IdeArtifactName myArtifactName;
 
-  Configuration(@NotNull String name, @Nullable String artifactName) {
+  Configuration(@NotNull String name, @Nullable IdeArtifactName artifactName) {
     myName = name;
     myArtifactName = artifactName;
   }
@@ -44,7 +42,7 @@ class Configuration {
   }
 
   @Nullable
-  String getArtifactName() {
+  IdeArtifactName getArtifactName() {
     return myArtifactName;
   }
 

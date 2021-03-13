@@ -251,7 +251,7 @@ MODULE                        : project.app
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
@@ -276,7 +276,7 @@ MODULE                        : project.app
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 AbiFilters                    : x86
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -308,7 +308,7 @@ MODULE                        : project.app
                     Execution                     : HOST
                 AbiFilters                    : x86
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]

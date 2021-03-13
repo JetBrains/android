@@ -23,6 +23,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -87,7 +88,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     writeToFile(outputFile, new GradleBuildOutputUtilTest().getSingleAPKOutputFileText());
 
     FileStructure fileStructure = new FileStructure(rootFile);
-    AndroidArtifactStub androidArtifact = new AndroidArtifactStub("test", "test", "test", fileStructure);
+    AndroidArtifactStub androidArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, "test", "test", fileStructure);
     VariantStub variant = new VariantStub("test", "test", fileStructure, androidArtifact);
 
     AndroidProjectStub androidProject = new AndroidProjectStub("MyApp", fileStructure);

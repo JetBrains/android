@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -45,7 +44,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
   fun testModuleDependenciesAreResolved() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
 
-    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(ARTIFACT_MAIN)!!
+    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.MAIN)!!
     val artifactDependencies = freeReleaseMainArtifact.dependencies
 
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
@@ -54,13 +53,13 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
     assertThat(referredArtifact, notNullValue())
     assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
-    assertThat(referredArtifact.resolvedName, equalTo(ARTIFACT_MAIN))
+    assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
   }
 
   fun testUnitTestArtifactModuleDependenciesAreResolved() {
     val appModule = project.findModuleByName("app") as PsAndroidModule
 
-    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(ARTIFACT_UNIT_TEST)!!
+    val freeReleaseMainArtifact = appModule.findVariant("freeRelease")?.findArtifact(IdeArtifactName.UNIT_TEST)!!
     val artifactDependencies = freeReleaseMainArtifact.dependencies
 
     val moduleDependency = artifactDependencies.findModuleDependency(":mainModule")
@@ -69,7 +68,7 @@ class PsModuleAndroidDependencyTest : DependencyTestCase() {
     val referredArtifact = (moduleDependency?.targetModuleResolvedDependencies as? PsAndroidArtifactDependencyCollection)?.artifact
     assertThat(referredArtifact, notNullValue())
     assertThat(referredArtifact!!.parent.name, equalTo("freeRelease"))
-    assertThat(referredArtifact.resolvedName, equalTo(ARTIFACT_MAIN))
+    assertThat(referredArtifact.resolvedName, equalTo(IdeArtifactName.MAIN))
   }
 
   fun testDeclaredDependenciesReindexed() {

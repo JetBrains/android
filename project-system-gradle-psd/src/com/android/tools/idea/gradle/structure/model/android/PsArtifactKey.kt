@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.ide.common.gradle.model.IdeArtifactName
+
 data class PsArtifactKey(
   val variantKey: PsVariantKey,
-  val artifactName: String
+  val artifactName: IdeArtifactName
 ) {
   fun findArtifact(module: PsAndroidModule): PsAndroidArtifact? = module.findVariant(variantKey)?.findArtifact(artifactName)
   override fun toString(): String = "${variantKey.name} $artifactName"
