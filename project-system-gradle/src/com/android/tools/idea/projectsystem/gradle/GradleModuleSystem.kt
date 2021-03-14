@@ -238,7 +238,7 @@ class GradleModuleSystem(
   private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel): String? {
     val variant = gradleModel.selectedVariant
     val versionNameWithSuffix = variant.versionNameWithSuffix
-    val versionNameSuffix = variant.versionNameWithSuffix
+    val versionNameSuffix = variant.versionNameSuffix
     return when {
       versionNameWithSuffix != null && versionNameWithSuffix.isNotEmpty() -> versionNameWithSuffix
       versionNameSuffix.isNullOrEmpty() -> null
