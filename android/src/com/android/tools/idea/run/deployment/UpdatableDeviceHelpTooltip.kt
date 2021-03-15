@@ -28,7 +28,7 @@ internal open class UpdatableDeviceHelpTooltip : HelpTooltip() {
   private var myCompatibility: LaunchCompatibility? = null
 
   init {
-    getDismissDelay()
+    initDismissDelay()
     createMouseListeners()
   }
 
