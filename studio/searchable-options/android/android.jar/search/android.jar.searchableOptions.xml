@@ -885,7 +885,7 @@
     <option name="download" hit="Download location" />
     <option name="location" hit="Download location" />
   </configurable>
-  <configurable id="nele.options" configurable_name="Layout Editor">
+  <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />
     <option name="compose" hit="Compose files:" />
     <option name="files" hit="Compose files:" />
@@ -893,9 +893,9 @@
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />
     <option name="design" hit="Design" />
+    <option name="design" hit="Design Tools" />
+    <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
-    <option name="editor" hit="Layout Editor" />
-    <option name="layout" hit="Layout Editor" />
     <option name="files" hit="Other Kotlin files:" />
     <option name="kotlin" hit="Other Kotlin files:" />
     <option name="other" hit="Other Kotlin files:" />
