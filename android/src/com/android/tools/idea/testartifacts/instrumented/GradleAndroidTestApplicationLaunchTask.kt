@@ -26,9 +26,11 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -139,19 +141,26 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
                                                                              ExternalSystemTaskType.EXECUTE_TASK, project)
       val taskOutputProcessor = TaskOutputProcessor(adapters)
       val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
+        val outputLineProcessor = TaskOutputLineProcessor(object:TaskOutputLineProcessor.LineProcessor {
+          override fun processLine(line: String) {
+            val processedText = taskOutputProcessor.process(line)
+            if (!(processedText.isBlank() && line != processedText)) {
+              consolePrinter.stdout(processedText)
+            }
+          }
+        })
         override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
           super.onTaskOutput(id, text, stdOut)
-
-          val processedText = if (stdOut) {
-            taskOutputProcessor.process(text)
+          if (stdOut) {
+            outputLineProcessor.append(text)
           } else {
-            text
+            processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
           }
-          consolePrinter.stdout(processedText)
         }
 
         override fun onEnd(id: ExternalSystemTaskId,) {
           super.onEnd(id)
+          outputLineProcessor.close()
           processHandler.detachProcess()
         }
       }
