@@ -21,6 +21,7 @@ import com.android.tools.compose.COMPOSE_ALIGNMENT_VERTICAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
+import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -102,10 +103,6 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
       .get(classFqName, project, project.allScope())
       .firstOrNull()
       .safeAs()
-  }
-
-  private fun KotlinType.isClassOrExtendsClass(classFqName:String): Boolean {
-    return fqName?.asString() == classFqName || supertypes().any { it.fqName?.asString() == classFqName }
   }
 
   private fun getAlignments(project: Project, alignmentFqName: String): Collection<KtDeclaration> {
