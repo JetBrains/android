@@ -20,7 +20,7 @@ import com.android.flags.ifEnabled
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.actions.SetScreenViewProviderAction
-import com.android.tools.idea.common.editor.DesignerEditorPanel
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -116,9 +116,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       }
     }
 
-    override fun createCustomComponent(presentation: Presentation, place: String) = super.createCustomComponent(presentation, place).apply {
-      border = JBUI.Borders.empty(1, 2)
-    }
+    override fun createCustomComponent(presentation: Presentation, place: String) =
+      ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
   }
 }
 
