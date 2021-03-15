@@ -1,6 +1,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.adtui.HtmlLabel
+import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
@@ -389,22 +391,30 @@ class ContentManager(val project: Project) {
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
-      if (selectedStep is ToolWindowModel.StepUiPresentation) {
-        detailsPanel.add(JBLabel(selectedStep.pageHeader))
-        selectedStep.helpLinkUrl?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
-        if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
-          ComboBox(selectedStep.elements.toTypedArray()).apply {
-            item = selectedStep.selectedValue
-            addActionListener {
-              selectedStep.selectedValue = this.item
-              tree.repaint()
-              refreshDetailsPanel()
+      when (selectedStep) {
+        is AgpUpgradeComponentNecessity -> {
+          val label = HtmlLabel()
+          setUpAsHtmlLabel(label)
+          label.text = "<h4><b>${selectedStep.treeText()}</b></h4><p>${selectedStep.description().replace("\n", "<br>")}</p>"
+          detailsPanel.add(label)
+        }
+        is ToolWindowModel.StepUiPresentation -> {
+          detailsPanel.add(JBLabel(selectedStep.pageHeader))
+          selectedStep.helpLinkUrl?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
+          if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
+            ComboBox(selectedStep.elements.toTypedArray()).apply {
+              item = selectedStep.selectedValue
+              addActionListener {
+                selectedStep.selectedValue = this.item
+                tree.repaint()
+                refreshDetailsPanel()
+              }
+              val comboPanel = JBPanel<JBPanel<*>>()
+              comboPanel.layout = HorizontalLayout(0)
+              comboPanel.add(JBLabel(selectedStep.label))
+              comboPanel.add(this)
+              detailsPanel.add(comboPanel)
             }
-            val comboPanel = JBPanel<JBPanel<*>>()
-            comboPanel.layout = HorizontalLayout(0)
-            comboPanel.add(JBLabel(selectedStep.label))
-            comboPanel.add(this)
-            detailsPanel.add(comboPanel)
           }
         }
       }
@@ -450,4 +460,24 @@ private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
   OPTIONAL_INDEPENDENT -> "Optional steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
+}
+
+private fun AgpUpgradeComponentNecessity.description() = when (this) {
+  MANDATORY_INDEPENDENT ->
+    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "You can choose to do them in separate steps, in advance of the Android\n" +
+    "Gradle Plugin upgrade itself."
+  MANDATORY_CODEPENDENT ->
+    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "They must all happen together, at the same time as the Android Gradle Plugin\n" +
+    "upgrade itself."
+  OPTIONAL_CODEPENDENT ->
+    "These steps are not required to perform the upgrade of this project.  You\n" +
+    "can choose to do them, but only if the Android Gradle Plugin is upgraded\n" +
+    "to its new version."
+  OPTIONAL_INDEPENDENT ->
+    "These steps are not required to perform the upgrade of this project.  You\n" +
+    "can choose to do them, with or without upgrading the Android Gradle Plugin\n" +
+    "to its new version."
+  else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }
