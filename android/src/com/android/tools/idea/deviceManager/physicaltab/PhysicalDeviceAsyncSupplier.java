@@ -29,6 +29,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -74,7 +75,7 @@ final class PhysicalDeviceAsyncSupplier {
     return AdbService.getInstance().getDebugBridge(adb.toFile());
   }
 
-  @NotNull ListenableFuture<@NotNull Collection<@NotNull PhysicalDevice>> get() {
+  @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> get() {
     // noinspection UnstableApiUsage
     return FluentFuture.from(myService.submit(() -> myGetAdb.apply(myProject)))
       .transformAsync(myGetDebugBridge, myService)
@@ -100,7 +101,7 @@ final class PhysicalDeviceAsyncSupplier {
   /**
    * Called by a pooled application thread
    */
-  private static @NotNull Collection<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+  private static @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
     return devices.stream()
       .filter(device -> !device.isEmulator())
       .map(IDevice::getSerialNumber)

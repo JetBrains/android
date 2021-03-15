@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.deviceManager
 
-import com.android.tools.idea.deviceManager.displayList.PhysicalDisplayList
+import com.android.tools.idea.deviceManager.physicaltab.PhysicalDevicePanel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.layout.panel
@@ -23,7 +23,6 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.BadLocationException
 import javax.swing.text.Document
-
 
 class PhysicalTab(project: Project, toolWindow: ToolWindow) {
   private val searchDocumentListener = object : DocumentListener {
@@ -49,7 +48,7 @@ class PhysicalTab(project: Project, toolWindow: ToolWindow) {
     }
   }
 
-  val avdDisplayList = PhysicalDisplayList(project)
+  val avdDisplayList = PhysicalDevicePanel(project)
   val toolbar = PhysicalToolbar(project, searchDocumentListener)
   val content = panel {
     row  {
