@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
 
@@ -36,4 +38,8 @@ fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
     }
   }
   return false
+}
+
+internal fun KotlinType.isClassOrExtendsClass(classFqName:String): Boolean {
+  return fqName?.asString() == classFqName || supertypes().any { it.fqName?.asString() == classFqName }
 }
