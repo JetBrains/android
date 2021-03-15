@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AndroidComponentDownloader {
 
   private static final Logger LOG = Logger.getInstance(AndroidComponentDownloader.class);
-  private static final String VERSION = "27.1.1.0";
+  private static final String VERSION = "27.1.1.1";
   public static final String BINTRAY_ANDROID_TOOLS_BASE =
     "https://cache-redirector.jetbrains.com/jetbrains.bintray.com/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/base/";
   public static final String ZIP = "zip";
@@ -159,12 +159,11 @@ public abstract class AndroidComponentDownloader {
   @NotNull
   protected abstract String getArtifactName();
 
-  private File getPluginDir() {
+  public File getPluginDir() {
     return new File(PathManager.getSystemPath(), "android/" + getArtifactName() + "/" + getVersion());
   }
 
   public File getHostDir(String hostReleaseDir) {
-    String path = StringUtil.trimStart(hostReleaseDir, "plugins/android");
-    return new File(getPluginDir(), path);
+    return new File(getPluginDir(), hostReleaseDir);
   }
 }
