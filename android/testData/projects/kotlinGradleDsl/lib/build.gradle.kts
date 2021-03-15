@@ -24,5 +24,5 @@ configure<LibraryExtension> {
 }
 
 dependencies {
-    "implementation"(kotlin("stdlib", "1.4.30"))
+    "implementation"(kotlin("stdlib", "1.4.31"))
 }

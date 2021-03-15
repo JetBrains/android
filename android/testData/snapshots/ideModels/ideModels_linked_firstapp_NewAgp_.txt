@@ -784,19 +784,19 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -1374,15 +1374,15 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -1406,7 +1406,7 @@ MODULE                        : My_First_App.app
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -1975,19 +1975,19 @@ MODULE                        : My_First_App.app
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -2784,19 +2784,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -3339,19 +3339,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -3912,19 +3912,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
