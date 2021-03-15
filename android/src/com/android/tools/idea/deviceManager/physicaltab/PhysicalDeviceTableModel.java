@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,10 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
   private final @NotNull List<@NotNull PhysicalDevice> myDevices;
+
+  PhysicalDeviceTableModel() {
+    this(Collections.emptyList());
+  }
 
   PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
     myDevices = devices;

@@ -16,7 +16,6 @@
 package com.android.tools.idea.deviceManager
 
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.deviceManager.displayList.openWifiPairingDialog
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
@@ -35,9 +34,7 @@ class PhysicalToolbar(
   val project: Project?,
   searchDocumentListener: DocumentListener
 ) {
-  private val newButton = JButton("Pair using Wi-Fi").apply {
-    addActionListener { if (project != null) openWifiPairingDialog(project) }
-  }
+  private val newButton = JButton("Pair using Wi-Fi")
 
   private val refreshButton = CommonButton(AllIcons.Actions.Refresh).apply {
     // TODO(qumeric): do we need it? (supposed to run `adb` reconnect)

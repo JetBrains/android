@@ -24,8 +24,8 @@ import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Future;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +52,7 @@ public final class PhysicalDeviceAsyncSupplierTest {
                                                                            path -> Futures.immediateFuture(bridge));
 
     // Act
-    Future<Collection<PhysicalDevice>> future = supplier.get();
+    Future<List<PhysicalDevice>> future = supplier.get();
 
     // Assert
     assertEquals(Collections.singletonList(new PhysicalDevice("86UX00F4R")), future.get());
