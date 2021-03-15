@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
@@ -74,7 +75,6 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   override fun hideIfNoVisibleChildren(): Boolean = true
 
-  override fun createCustomComponent(presentation: Presentation, place: String) = super.createCustomComponent(presentation, place).apply {
-    border = JBUI.Borders.empty(1, 2)
-  }
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
 }
