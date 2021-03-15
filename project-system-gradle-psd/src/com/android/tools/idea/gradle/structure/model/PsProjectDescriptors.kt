@@ -54,7 +54,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
   val androidGradlePluginVersion: SimpleProperty<PsProject, String> = run {
     fun ArtifactDependencyModel.isAgp() = configurationName() == "classpath" && compactNotation().startsWith("$AGP_GROUP_ID_NAME:")
 
-    property(
+    val coreProperty = property(
       "Android Gradle Plugin Version",
       resolvedValueGetter = { null },
       parsedPropertyGetter = {
@@ -84,6 +84,14 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       knownValuesGetter = ::androidGradlePluginVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
+    val ret = object : ModelSimpleProperty<PsProject, String> by coreProperty {
+      override fun bind(model: PsProject): ModelPropertyCore<String> {
+        val gradleModelCoreProperty = coreProperty.bind(model)
+        return object : ModelPropertyCore<String> by gradleModelCoreProperty {
+        }
+      }
+    }
+    ret
   }
 
   val gradleVersion: SimpleProperty<PsProject, String> = run {
