@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
   </component>
 </module>
