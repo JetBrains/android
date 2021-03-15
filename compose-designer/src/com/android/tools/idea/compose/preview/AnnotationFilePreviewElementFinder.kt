@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -31,11 +32,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElementOfType
+import java.util.concurrent.Callable
 
 /**
  * Finds any methods annotated with any of the given [annotations] FQCN or the given [shortAnnotationName].
@@ -100,10 +103,20 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
   @Slow
-  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> =
-    DumbService.getInstance(project).runReadActionInSmartMode<Collection<PreviewElement>> {
-      findAllPreviewAnnotations(project, vFile)
-        .mapNotNull { (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement() }
-        .distinct()
-    }
+  override fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<PreviewElement> = if (DumbService.isDumb(project))
+    emptyList()
+  else
+    ReadAction
+      .nonBlocking(Callable<Collection<PreviewElement>> {
+        findAllPreviewAnnotations(project, vFile)
+          .mapNotNull {
+            ProgressManager.checkCanceled()
+            (it.psiOrParent.toUElementOfType() as? UAnnotation)?.toPreviewElement()
+          }
+          .distinct()
+      })
+      .inSmartMode(project)
+      .coalesceBy(project, vFile)
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .get()
 }
