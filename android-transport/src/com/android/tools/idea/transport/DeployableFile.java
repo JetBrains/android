@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.idea.IdeInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
 import java.io.File;
@@ -93,14 +94,8 @@ public final class DeployableFile {
       return dir;
     }
 
-    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
-    dir = AndroidProfilerDownloader.getInstance().getHostDir(myReleaseDir);
-    if (dir.exists()) {
-      return dir;
-    } else {
-      // Development mode
-      return new File(myHomePathSupplier.get(), myDevDir);
-    }
+    // Development mode
+    return new File(myHomePathSupplier.get(), myDevDir);
   }
 
   public static class Builder {
@@ -109,7 +104,14 @@ public final class DeployableFile {
     // TODO b/122597221 refactor general agent code to be outside of profiler-specific directory.
     @NotNull private String myDevDir = getDevDir(Constants.PERFA_DEV_DIR);
     @Nullable private String myOnDeviceAbiFileNameFormat;
-    @NotNull private Supplier<String> myHomePathSupplier = () -> PathManager.getHomePath();
+    @NotNull private Supplier<String> myHomePathSupplier = () -> {
+      if (IdeInfo.getInstance().isAndroidStudio()){
+        return PathManager.getHomePath();
+      } else {
+        AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+        return AndroidProfilerDownloader.getInstance().getPluginDir().getAbsolutePath();
+      }
+    };
 
     private boolean myExecutable = false;
 

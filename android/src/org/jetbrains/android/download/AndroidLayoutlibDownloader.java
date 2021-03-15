@@ -36,11 +36,6 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
     return "jar";
   }
 
-  @Override
-  protected File getTargetDir(File dir) {
-    return new File(dir, "lib/layoutlib");
-  }
-
   public static AndroidLayoutlibDownloader getInstance() {
     return AndroidLayoutlibDownloader.Holder.INSTANCE;
   }
