@@ -20,7 +20,9 @@ import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.util.ui.JBUI
 
 /**
  * Interface to be used by components that can switch [SurfaceLayoutManager]s.
@@ -63,12 +65,16 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
     override fun isSelected(e: AnActionEvent): Boolean = layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)
   }
 
-  override fun hideIfNoVisibleChildren(): Boolean = true
-
   init {
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
     }
+  }
+
+  override fun hideIfNoVisibleChildren(): Boolean = true
+
+  override fun createCustomComponent(presentation: Presentation, place: String) = super.createCustomComponent(presentation, place).apply {
+    border = JBUI.Borders.empty(1, 2)
   }
 }

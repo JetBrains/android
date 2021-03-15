@@ -56,6 +56,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -63,6 +64,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
@@ -83,25 +85,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS).visibleOnlyInComposeStaticPreview(),
       StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       StudioFlags.COMPOSE_BLUEPRINT_MODE.ifEnabled {
-        if (surface is NlDesignSurface) {
-          DropDownAction(message("action.scene.mode.title"), message(
-            "action.scene.mode.description"),
-            // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
-                         StudioIcons.LayoutEditor.Toolbar.VIEW_MODE).apply {
-            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
-            addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
-            StudioFlags.COMPOSE_COLORBLIND_MODE.ifEnabled {
-              addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
-                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
-                addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
-              })
-            }
-          }.visibleOnlyInComposeStaticPreview()
-        }
-        else null
+        if (surface is NlDesignSurface) BlueprintModeDropDownAction(surface).visibleOnlyInComposeStaticPreview() else null
       }
     )
   )
@@ -111,6 +95,31 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { AnimationInteractiveSwitchAction() },
     ComposeIssueNotificationAction.getInstance()
   ))
+
+  private class BlueprintModeDropDownAction(private val surface: NlDesignSurface)
+    : DropDownAction(message("action.scene.mode.title"),
+                     message("action.scene.mode.description"),
+    // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
+                     StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
+
+    init {
+      addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+      addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+      StudioFlags.COMPOSE_COLORBLIND_MODE.ifEnabled {
+        addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
+          addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
+          addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
+        })
+      }
+    }
+
+    override fun createCustomComponent(presentation: Presentation, place: String) = super.createCustomComponent(presentation, place).apply {
+      border = JBUI.Borders.empty(1, 2)
+    }
+  }
 }
 
 /**
@@ -205,7 +214,7 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
 }
 
 // We will default to split mode if there are @Preview annotations in the file or if the file contains @Composable.
-private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() = when(preferredComposableEditorMode) {
+private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() = when (preferredComposableEditorMode) {
   AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
   AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
   AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
@@ -213,7 +222,7 @@ private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibilit
 }
 
 // We will default to code mode for kotlin files not containing any @Composable functions.
-private fun AndroidEditorSettings.GlobalState.preferredKotlinEditorVisibility() = when(preferredKotlinEditorMode) {
+private fun AndroidEditorSettings.GlobalState.preferredKotlinEditorVisibility() = when (preferredKotlinEditorMode) {
   AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
   AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
   AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
