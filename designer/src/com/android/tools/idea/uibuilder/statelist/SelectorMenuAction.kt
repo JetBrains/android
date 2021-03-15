@@ -19,7 +19,6 @@ import android.widget.ImageView
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.primitives.Ints
 import com.intellij.openapi.actionSystem.AnAction
@@ -67,10 +66,12 @@ class StateListMenu(designSurface: DesignSurface): JComponent() {
   init {
     val height = State.values().size * STATE_ITEM_HEIGHT_PX
 
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    layout = BoxLayout(this, BoxLayout.Y_AXIS).apply {
+      background = secondaryPanelBackground
+    }
     border = JBUI.Borders.empty(5, 14, 5, 14)
     preferredSize = JBUI.size(PICKER_WIDTH_PX, height)
-    background = PICKER_BACKGROUND_COLOR
+    background = secondaryPanelBackground
 
     for (state in State.values()) {
       add(createStateItem(designSurface, state))
@@ -82,15 +83,15 @@ private fun createStateItem(designSurface: DesignSurface, state: State): JPanel 
   val stateItemPanel = JPanel(GridBagLayout()).apply {
     preferredSize = JBUI.size(PICKER_WIDTH_PX, STATE_ITEM_HEIGHT_PX)
     border = JBUI.Borders.empty(0, 2, 2, 2)
-    background = PICKER_BACKGROUND_COLOR
+    background = secondaryPanelBackground
   }
 
   val trueButton = JBRadioButton("True").apply {
-    background = PICKER_BACKGROUND_COLOR
+    background = secondaryPanelBackground
     border = JBUI.Borders.empty(0, 10, 0, 10)
   }
   val falseButton = JBRadioButton("False").apply {
-    background = PICKER_BACKGROUND_COLOR
+    background = secondaryPanelBackground
     border = JBUI.Borders.empty(0, 10, 0, 10)
   }
   val buttonGroup = ButtonGroup()
