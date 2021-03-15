@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -58,9 +59,15 @@ open class ViewNode(
   var textValue: String,
   var layoutFlags: Int
 ) {
+  /** constructor for synthetic nodes */
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, 0, 0, 0, 0, null, null, "", 0)
+
   /** The bounds used by android for layout. Always a rectangle. */
   val layoutBounds: Rectangle
     get() = Rectangle(x, y, width, height)
+
+  @Suppress("LeakingThis")
+  val treeNode = TreeViewNode(this)
 
   private var _transformedBounds = bounds
 

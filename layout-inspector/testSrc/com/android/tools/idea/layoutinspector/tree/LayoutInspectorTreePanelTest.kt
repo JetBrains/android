@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
@@ -59,6 +60,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
+import java.util.concurrent.TimeUnit
 import javax.swing.JTree
 
 private val PROCESS = MODERN_DEVICE.createProcess()
@@ -100,7 +102,7 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
-    tree.setToolContext(inspector)
+    setToolContext(tree, inspector)
 
     model.setSelection(model["title"], SelectionOrigin.INTERNAL)
 
@@ -130,23 +132,23 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
-    tree.setToolContext(inspector)
+    setToolContext(tree, inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
     assertThat(model[ROOT]!!.qualifiedName).isEqualTo(DECOR_VIEW)
 
     model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(2)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
@@ -160,23 +162,23 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
-    tree.setToolContext(inspector)
+    setToolContext(tree, inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(1)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     assertThat(jtree.rowCount).isEqualTo(2)
-    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1])
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3])
+    assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
@@ -191,11 +193,10 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
-    tree.setToolContext(inspector)
+    setToolContext(tree, inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     UIUtil.dispatchAllInvocationEvents()
-    TreeUtil.expandAll(jtree)
-    UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.promiseExpandAll(jtree).blockingGet(10, TimeUnit.SECONDS)
 
     var selectedView: ViewNode? = null
     var selectionOrigin = SelectionOrigin.INTERNAL
@@ -208,5 +209,13 @@ class LayoutInspectorTreePanelTest {
     assertThat(selectionOrigin).isEqualTo(SelectionOrigin.COMPONENT_TREE)
     assertThat(selectedView?.drawId).isEqualTo(VIEW2)
     assertThat(selectedView?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+  }
+
+  private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
+    tree.setToolContext(inspector)
+    // Normally the tree would have received structural changes when the mode was loaded.
+    // Mimic that here:
+    val model = inspector.layoutInspectorModel
+    model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, true) } }
   }
 }

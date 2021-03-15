@@ -58,7 +58,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, null, "", 0)
+  val root = ViewNode("root - hide")
 
   val hasSubImages
     get() = windows.values.any { it.hasSubImages }
