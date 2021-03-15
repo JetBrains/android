@@ -391,16 +391,20 @@ class ContentManager(val project: Project) {
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
+      val label = HtmlLabel()
+      setUpAsHtmlLabel(label)
       when (selectedStep) {
         is AgpUpgradeComponentNecessity -> {
-          val label = HtmlLabel()
-          setUpAsHtmlLabel(label)
           label.text = "<h4><b>${selectedStep.treeText()}</b></h4><p>${selectedStep.description().replace("\n", "<br>")}</p>"
           detailsPanel.add(label)
         }
         is ToolWindowModel.StepUiPresentation -> {
-          detailsPanel.add(JBLabel(selectedStep.pageHeader))
-          selectedStep.helpLinkUrl?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
+          val text = StringBuilder("<h4><b>${selectedStep.pageHeader}</b></h4>")
+          selectedStep.helpLinkUrl?.let { url ->
+            text.append("<p><a href='$url'>Read more</a>.</p>")
+          }
+          label.text = text.toString()
+          detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
             ComboBox(selectedStep.elements.toTypedArray()).apply {
               item = selectedStep.selectedValue
