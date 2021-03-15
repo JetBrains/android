@@ -17,9 +17,10 @@
 package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,11 +34,22 @@ public class TerminateVMAction extends AbstractClientAction {
 
   @Override
   protected void performAction(@NotNull Client c) {
-    // Kill the app in case it's in the crashed state.
-    // Note that ClientData#getPackageName doesn't necessarily have the real package name, so hopefully:
-    // 1) This won't kill the wrong process if a global process rename happens to overlap with another app.
-    // 2) We don't have a global process rename, since we don't know its package name here (prior to R).
-    c.getDevice().kill(c.getClientData().getPackageName());
-    c.kill();
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (!c.isValid()) {
+        return;
+      }
+
+      try {
+        // Kill the app in case it's in the crashed state.
+        // Note that ClientData#getPackageName doesn't necessarily have the real package name, so hopefully:
+        // 1) This won't kill the wrong process if a global process rename happens to overlap with another app.
+        // 2) We don't have a global process rename, since we don't know its package name here (prior to R).
+        c.getDevice().kill(c.getClientData().getPackageName());
+        c.kill();
+      }
+      catch (Throwable t) {
+        Logger.getInstance(TerminateVMAction.class).warn(t);
+      }
+    });
   }
 }
