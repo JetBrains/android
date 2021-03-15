@@ -89,7 +89,7 @@ public class CreateDefaultActivityTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createDefaultActivity() {
-    myDialog.clickFinishAndWaitForSyncToFinish();
+    myDialog.clickFinishAndWaitForSyncToFinish(Wait.seconds(120));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
