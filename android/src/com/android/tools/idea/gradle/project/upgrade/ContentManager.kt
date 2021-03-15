@@ -423,7 +423,7 @@ class ContentManager(val project: Project) {
                                    hasFocus: Boolean) {
       if (value is DefaultMutableTreeNode) {
         when (val o = value.userObject) {
-          is AgpUpgradeComponentNecessity -> textRenderer.append(o.description())
+          is AgpUpgradeComponentNecessity -> textRenderer.append(o.treeText())
           is ToolWindowModel.StepUiPresentation -> {
             textRenderer.append(o.treeText)
             if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
@@ -444,7 +444,7 @@ private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
-private fun AgpUpgradeComponentNecessity.description() = when (this) {
+private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
   MANDATORY_CODEPENDENT -> "Upgrade steps"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
