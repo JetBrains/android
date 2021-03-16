@@ -48,10 +48,11 @@ class PropertyLink(private val model: LinkPropertyEditorModel): JPanel(BorderLay
 
   private fun updateFromModel() {
     label.text = model.value
+    label.foreground = model.displayedForeground(UIUtil.getLabelForeground())
     link.text = model.linkProperty.link.templateText
-    link.isUsedInTableRendererWithSelection = model.isUsedInRendererWithSelection
-    link.foreground = model.displayedForeground(UIUtil.getLabelForeground())
+    link.foreground = model.displayedForeground(link.normalForegroundColor)
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
+    isOpaque = model.isUsedInRendererWithSelection
   }
 
   private fun linkActivated() {
