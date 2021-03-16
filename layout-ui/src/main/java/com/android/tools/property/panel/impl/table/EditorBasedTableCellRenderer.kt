@@ -48,7 +48,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                                                         private val editorProvider: EditorProvider<P>,
                                                         private val fontSize: UIUtil.FontSize,
                                                         private var defaultRenderer: PTableCellRenderer) : PTableCellRenderer {
-  private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
+  // Temporary disable the component cache: b/182947968
+  // private val componentCache = mutableMapOf<ControlKey, Pair<PropertyEditorModel, JComponent>>()
   private val leftSpacing = JBUI.scale(LEFT_STANDARD_INDENT) + JBUI.scale(MIN_SPACING) + UIUtil.getTreeCollapsedIcon().iconWidth
   private val depthIndent = JBUI.scale(DEPTH_INDENT)
 
@@ -61,7 +62,9 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val controlType = controlTypeProvider(property)
     val hasBrowseButton = property.browseButton != null
     val key = ControlKey(controlType, hasBrowseButton)
-    val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
+
+    // Temporary disable the component cache: b/182947968
+    val (model, editor) = /* componentCache[key] ?: */ createEditor(key, property, column, depth, table.gridLineColor)
     model.isUsedInRendererWithSelection = isSelected && hasFocus
     model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
     model.property = property
@@ -74,7 +77,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
   fun updateUI(newDefaultRenderer: PTableCellRenderer) {
     // After a LaF change: regenerate the editors to reflect the UI changes.
     defaultRenderer = newDefaultRenderer
-    componentCache.clear()
+    // Temporary disable the component cache: b/182947968
+    // componentCache.clear()
   }
 
   private fun createEditor(key: ControlKey,
@@ -87,9 +91,10 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val panel = VariableHeightPanel(editor)
     panel.border = createBorder(column, depth, editor, gridLineColor)
     val result = Pair(model, panel)
-    if (!model.isCustomHeight) {
-      componentCache[key] = result
-    }
+    // Temporary disable the component cache: b/182947968
+    // if (!model.isCustomHeight) {
+    //   componentCache[key] = result
+    // }
     return result
   }
 
