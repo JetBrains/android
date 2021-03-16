@@ -16,10 +16,15 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.ExtractKotlinFunctionHandler
@@ -28,21 +33,44 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorConfiguration
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.util.Collections
 
-class ComposableFunctionExtractableAnalyserTest : JavaCodeInsightFixtureTestCase() {
-  public override fun setUp() {
-    super.setUp()
-    StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
+class ComposableFunctionExtractableAnalyserTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+
+  @Before
+  fun setUp() {
+    (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     StudioFlags.COMPOSE_FUNCTION_EXTRACTION.clearOverride()
-    super.tearDown()
   }
 
-  fun test() {
+  private val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
+    override fun configureAndRun(project: Project,
+                                 editor: Editor,
+                                 descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
+                                 onFinish: (ExtractionResult) -> Unit) {
+      val newDescriptor = descriptorWithConflicts.descriptor.copy(suggestedNames = Collections.singletonList("newComposableFunction"))
+      doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
+    }
+  }
+
+  @RunsInEdt
+  @Test
+  fun testComposableFunction() {
     myFixture.loadNewFile(
       "src/com/example/MyViews.kt",
       // language=kotlin
@@ -58,16 +86,7 @@ class ComposableFunctionExtractableAnalyserTest : JavaCodeInsightFixtureTestCase
       """.trimIndent()
     )
 
-    val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
-      override fun configureAndRun(project: Project,
-                                   editor: Editor,
-                                   descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-                                   onFinish: (ExtractionResult) -> Unit) {
-        val newDescriptor = descriptorWithConflicts.descriptor.copy(suggestedNames = Collections.singletonList("newComposableFunction"))
-        doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
-      }
-    }
-    ExtractKotlinFunctionHandler(helper = helper).invoke(project, myFixture.editor, myFixture.file, null)
+    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
 
     myFixture.checkResult(
       //language=kotlin
@@ -85,6 +104,54 @@ class ComposableFunctionExtractableAnalyserTest : JavaCodeInsightFixtureTestCase
         private fun newComposableFunction() {
             print(true)
         }
+      """.trimIndent()
+    )
+  }
+
+  @RunsInEdt
+  @Test
+  fun testComposableContext() {
+    myFixture.loadNewFile(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun myWidget(context: @Composable () -> Unit) {}
+
+      fun setContent() {
+        myWidget {
+          <selection>print(true)</selection>
+        }
+      }
+      """.trimIndent()
+    )
+
+    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+
+    myFixture.checkResult(
+      //language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun myWidget(context: @Composable () -> Unit) {}
+
+      fun setContent() {
+        myWidget {
+            newComposableFunction()
+        }
+      }
+
+      @Composable
+      private fun newComposableFunction() {
+          print(true)
+      }
       """.trimIndent()
     )
   }
