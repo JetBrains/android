@@ -2388,10 +2388,7 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBhaiksuki-
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBrahmi-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBuginese-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBuhid-Regular.ttf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-0.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-1.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-2.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-3.otf
+android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular.ttc
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCanadianAboriginal-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCarian-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansChakma-Regular.otf
@@ -2584,10 +2581,7 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifArmenian-
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifArmenian-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Bold.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Regular.ttf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-0.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-1.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-2.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-3.otf
+android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular.ttc
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Bold.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifEthiopic-Bold.otf

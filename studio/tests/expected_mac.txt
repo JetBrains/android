@@ -2383,10 +2383,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fon
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansBrahmi-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansBuginese-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansBuhid-Regular.ttf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-0.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-1.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-2.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-3.otf
+Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular.ttc
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCanadianAboriginal-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansCarian-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSansChakma-Regular.otf
@@ -2579,10 +2576,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fon
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifArmenian-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Bold.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Regular.ttf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-0.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-1.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-2.otf
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-3.otf
+Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular.ttc
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Bold.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifEthiopic-Bold.otf
