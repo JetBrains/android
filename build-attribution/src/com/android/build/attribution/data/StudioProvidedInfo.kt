@@ -16,8 +16,28 @@
 package com.android.build.attribution.data
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.util.GradleProperties
+import com.intellij.openapi.project.Project
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?
-)
+) {
+  companion object {
+    private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
+
+    fun fromProject(project: Project) = StudioProvidedInfo(
+      agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
+      configurationCachingGradlePropertyState = GradleProperties(project).properties.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+    )
+
+    fun turnOnConfigurationCacheInProperties(project: Project) {
+      GradleProperties(project).apply {
+        properties.setProperty("org.gradle.unsafe.configuration-cache", "true")
+        save()
+      }
+      //TODO should we open file?
+    }
+  }
+}
