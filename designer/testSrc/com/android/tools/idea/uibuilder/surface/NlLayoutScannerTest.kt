@@ -48,8 +48,8 @@ class NlLayoutScannerTest {
 
   private fun createScanner(): NlLayoutScanner {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
-    val metricTracker = NlLayoutScannerMetricTrackerTest.createMetricTracker()
-    return NlLayoutScanner(issueModel, projectRule.fixture.testRootDisposable!!, metricTracker)
+    Mockito.`when`(mockSurface.issueModel).thenReturn(issueModel)
+    return NlLayoutScanner(mockSurface, projectRule.fixture.testRootDisposable!!)
   }
 
   @Test
@@ -89,7 +89,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
+    scanner.validateAndUpdateLint(renderResult, model)
 
     assertFalse(scanner.listeners.contains(listener))
   }
@@ -110,7 +110,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
+    scanner.validateAndUpdateLint(renderResult, model)
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)
@@ -133,7 +133,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
+    scanner.validateAndUpdateLint(renderResult, model)
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)
@@ -156,7 +156,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
+    scanner.validateAndUpdateLint(renderResult, model)
 
     assertNotNull(validatorResult)
     assertEquals(componentSize, validatorResult!!.issues.size)
@@ -197,7 +197,7 @@ class NlLayoutScannerTest {
       }
     }
     scanner.addListener(listener)
-    scanner.validateAndUpdateLint(renderResult, model, mockSurface)
+    scanner.validateAndUpdateLint(renderResult, model)
 
     // Expect the results to be filtered.
     assertNotNull(validatorResult)
