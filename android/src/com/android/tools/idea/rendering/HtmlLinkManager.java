@@ -174,12 +174,10 @@ public class HtmlLinkManager {
       handleReplaceTagsUrl(url, module, file);
     }
     else if (url.equals(URL_BUILD)) {
-      assert dataContext != null;
       assert module != null;
       handleBuildProjectUrl(url, module.getProject());
     }
     else if (url.equals(URL_SYNC)) {
-      assert dataContext != null;
       assert module != null;
       handleSyncProjectUrl(url, module.getProject());
     }
