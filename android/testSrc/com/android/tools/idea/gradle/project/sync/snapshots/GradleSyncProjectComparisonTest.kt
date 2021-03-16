@@ -369,6 +369,7 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
+    @Bombed(year = 2021, month = 4, day = 6, user = "Andrei.Kuznetsov", description = "Bomb due to execution timeout at TC")
     fun testSwitchingVariantsWithReopen_simpleApplication() {
       prepareGradleProject(SIMPLE_APPLICATION, "project")
       val debugBefore = openPreparedProject("project") { project: Project ->
@@ -389,6 +390,7 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
+    @Bombed(year = 2021, month = 4, day = 6, user = "Andrei.Kuznetsov", description = "Bomb due to execution timeout at TC")
     open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
       prepareGradleProject(SIMPLE_APPLICATION, "project")
       val debugBefore = openPreparedProject("project") { project: Project ->
