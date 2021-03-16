@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -294,11 +295,10 @@ public final class CreateClassAction extends AnAction {
     assert project != null;
 
     Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
-    if (editor instanceof EditorEx) {
-      EditorEx editorEx = (EditorEx)editor;
+    if (editor != null) {
       AnActionEvent newEvent =
-        new AnActionEvent(event.getInputEvent(), editorEx.getDataContext(), ActionPlaces.UNKNOWN, event.getPresentation(),
-                          event.getActionManager(), 0);
+        new AnActionEvent(event.getInputEvent(), EditorUtil.getEditorDataContext(editor),
+                          ActionPlaces.UNKNOWN, event.getPresentation(), event.getActionManager(), 0);
       ActionManager.getInstance().getAction("OverrideMethods").actionPerformed(newEvent);
     }
   }
