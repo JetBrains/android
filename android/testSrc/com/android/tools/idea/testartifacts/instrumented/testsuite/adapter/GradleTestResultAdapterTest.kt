@@ -120,4 +120,56 @@ class GradleTestResultAdapterTest {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.PASSED
     })
   }
+
+  @Test
+  fun runTestSuiteWithOneTestCaseAndFailed() {
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+
+    verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
+
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+      scheduledTestCaseCount = 1
+    }.build())
+
+    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+    })
+
+    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+      testPackage = "com.example.test"
+      testClass = "ExampleTest"
+      testMethod = "testExample"
+    }.build())
+
+    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+    })
+
+    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+      testCaseBuilder.apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }
+      testStatus = TestStatusProto.TestStatus.FAILED
+      errorBuilder.apply {
+        errorMessage = "ErrorStackTrace"
+      }
+    }.build())
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.FAILED &&
+      it.errorStackTrace == "ErrorStackTrace"
+    })
+
+    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+      testStatus = TestStatusProto.TestStatus.FAILED
+    }.build())
+
+    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
+    })
+  }
 }
