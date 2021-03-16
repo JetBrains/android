@@ -89,6 +89,15 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private static final String ACTION_COLLAPSE = "collapse";
   private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
+  /** Event listeners for the issue panel */
+  public interface EventListener {
+    /** Called when the panel is expanded or minimized */
+    void onPanelExpanded(boolean isExpanded);
+
+    /** Called when the individual issue is expanded or minimized */
+    void onIssueExpanded(@Nullable Issue issue, boolean isExpanded);
+  }
+
   private final HashBiMap<Issue, IssueView> myDisplayedError = HashBiMap.create();
   private final IssueModel myIssueModel;
   private final JPanel myErrorListPanel;
@@ -97,8 +106,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final JBScrollPane myScrollPane;
   private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
-  private final List<MinimizeListener> myMinimizeListener = new ArrayList();
-  private ExpandListener myExpandListener;
+  private final List<EventListener> myEventListeners = new ArrayList<>();
   @Nullable private IssueView mySelectedIssueView;
   @Nullable private Issue mySelectedIssue;
 
@@ -432,24 +440,20 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     revalidate();
     repaint();
 
-    if (!myMinimizeListener.isEmpty()) {
-      UIUtil.invokeLaterIfNeeded(() -> myMinimizeListener.forEach(it ->
-        it.onMinimizeChanged(isMinimized)
+    if (!myEventListeners.isEmpty()) {
+      UIUtil.invokeLaterIfNeeded(() -> myEventListeners.forEach(it ->
+        it.onPanelExpanded(!isMinimized)
       ));
     }
   }
 
-  public void addMinimizeListener(@Nullable MinimizeListener listener) {
-    myMinimizeListener.add(listener);
+  public void addEventListener(@NotNull EventListener listener) {
+    myEventListeners.add(listener);
   }
 
-  public void setExpandListener(ExpandListener listener) {
-    myExpandListener = listener;
-  }
-
-  @Nullable
-  public ExpandListener getExpandListener() {
-    return myExpandListener;
+  @NotNull
+  public List<EventListener> getEventListeners() {
+    return myEventListeners;
   }
 
   @Nullable
@@ -462,8 +466,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   @Override
   public void dispose() {
-    myMinimizeListener.clear();
-    myExpandListener = null;
+    myEventListeners.clear();
     mySelectedIssue = null;
     mySelectedIssueView = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
@@ -591,14 +594,6 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       myDisplayedError.clear();
       updateErrorList();
     }
-  }
-
-  public interface MinimizeListener {
-    void onMinimizeChanged(boolean isMinimized);
-  }
-
-  public interface ExpandListener {
-    void onExpanded(Issue issue, boolean isExpanded);
   }
 
   /**

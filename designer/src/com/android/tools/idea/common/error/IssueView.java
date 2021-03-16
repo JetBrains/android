@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
@@ -27,6 +26,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -211,10 +211,10 @@ public class IssueView extends JPanel {
     myDetailPanel.setVisible(myIsExpanded);
     myExpandIcon.setIcon(myIsExpanded ? UIUtil.getTreeExpandedIcon() : UIUtil.getTreeCollapsedIcon());
 
-    IssuePanel.ExpandListener expandListener = myContainerIssuePanel.getExpandListener();
-    if (expandListener != null) {
-      expandListener.onExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
-    }
+    List<IssuePanel.EventListener> eventListeners = myContainerIssuePanel.getEventListeners();
+    eventListeners.forEach(listener -> {
+      listener.onIssueExpanded(myContainerIssuePanel.getSelectedIssue(), expanded);
+    });
 
     // ColumnHeaderPanel from panel need layout again.
     myContainerIssuePanel.revalidate();
