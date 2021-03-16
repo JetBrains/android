@@ -1171,7 +1171,7 @@ public final class StudioFlags {
     "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index/... and generate corresponding " +
     "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in " +
     "MavenClassRegistryFromHardcodedMap.",
-    false
+    true
   );
   // endregion
 
