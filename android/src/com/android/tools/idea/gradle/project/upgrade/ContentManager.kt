@@ -54,6 +54,7 @@ import java.util.EventListener
 import javax.swing.JButton
 import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.border.EmptyBorder
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -379,7 +380,7 @@ class ContentManager(val project: Project) {
 
     private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to"))
+      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to").also { it.border = JBUI.Borders.empty(0, 6) })
       add(versionTextField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
@@ -415,7 +416,7 @@ class ContentManager(val project: Project) {
               }
               val comboPanel = JBPanel<JBPanel<*>>()
               comboPanel.layout = HorizontalLayout(0)
-              comboPanel.add(JBLabel(selectedStep.label))
+              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4) })
               comboPanel.add(this)
               detailsPanel.add(comboPanel)
             }
