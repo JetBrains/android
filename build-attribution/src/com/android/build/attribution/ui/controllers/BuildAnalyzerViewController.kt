@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.TaskUiData
@@ -28,13 +29,20 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
+import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.util.containers.toArray
 import java.time.Duration
 
 class BuildAnalyzerViewController(
@@ -159,6 +167,18 @@ class BuildAnalyzerViewController(
   override fun runAgpUpgrade() {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
     //TODO (b/177051800): add agp upgrade event to analytics
+    analytics.reportUnregisteredEvent()
+  }
+
+  override fun runTestConfigurationCachingBuild() {
+    GradleBuildInvoker.getInstance(project).rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+    //TODO (b/177051800): add event to analytics
+    analytics.reportUnregisteredEvent()
+  }
+
+  override fun turnConfigurationCachingOnInProperties() {
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+    //TODO (b/177051800): add event to analytics
     analytics.reportUnregisteredEvent()
   }
 

@@ -26,9 +26,7 @@ import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
-import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.components.ServiceManager
@@ -61,10 +59,7 @@ class BuildAttributionManagerImpl(
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
           val pluginsData = ServiceManager.getService(KnownGradlePluginsService::class.java).gradlePluginsData
-          val studioProvidedInfo = StudioProvidedInfo(
-            agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
-            configurationCachingGradlePropertyState = GradleProperties(project).properties.getProperty("org.gradle.unsafe.configuration-cache")
-          )
+          val studioProvidedInfo = StudioProvidedInfo.fromProject(project)
           analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
         }
         finally {
