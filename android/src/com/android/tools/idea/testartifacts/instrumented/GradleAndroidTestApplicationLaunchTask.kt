@@ -30,6 +30,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_T
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -179,6 +181,14 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
           processHandler.detachProcess()
         }
       }
+
+      processHandler.addProcessListener(object: ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          if (willBeDestroyed) {
+            AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+          }
+        }
+      })
       AndroidGradleTaskManager().executeTasks(externalTaskId, taskNames, path.path, getGradleExecutionSettings(), null, listener)
     }
     return LaunchResult.success()
