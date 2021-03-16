@@ -25,6 +25,8 @@ import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
+import com.android.tools.idea.layoutinspector.skia.InvalidPictureException
+import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -153,13 +155,17 @@ class ViewAndroidWindow(
   ): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
-
-      if (root == null) {
-        // We were unable to parse the skia image. Allow the user to interact with the component tree.
-        errorMessage = "Invalid picture data received from device. Rotation disabled."
-      }
-      root
+      skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
+    }
+    catch (ex: InvalidPictureException) {
+      // It looks like what we got wasn't an SKP at all.
+      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      null
+    }
+    catch (ex: ParsingFailedException) {
+      // It looked like a valid picture, but we were unable to parse it.
+      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      null
     }
     catch (ex: UnsupportedPictureVersionException) {
       errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."

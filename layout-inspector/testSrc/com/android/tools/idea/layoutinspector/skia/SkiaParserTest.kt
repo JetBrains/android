@@ -19,16 +19,19 @@ import com.android.flags.junit.SetFlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.image.BufferedImage
 import kotlin.test.assertTrue
 
@@ -92,6 +95,25 @@ class SkiaParserTest {
     val child3 = root.children[2]
     assertThat(child3.id).isEqualTo(1)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/buildTreeImg3.png"), child3.image as BufferedImage, 0.0)
+  }
+}
+
+class SkiaParserWithSdkTest {
+  val projectRule = AndroidProjectRule.inMemory()
+  private val fakeSdkRule = FakeSdkRule(projectRule).withLocalPackage("skiaparser;1")
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
+
+  @Test
+  fun testUnsupportedVersion() {
+    var called = false
+    try {
+      SkiaParserImpl({ called = true }).getViewTree("skiapict".toByteArray().plus(byteArrayOf(127, 1, 2, 3, 4, 5)), emptyList(), 1.0)
+      fail()
+    }
+    catch (expected: UnsupportedPictureVersionException) {}
+    assertThat(called).isTrue()
   }
 }
 

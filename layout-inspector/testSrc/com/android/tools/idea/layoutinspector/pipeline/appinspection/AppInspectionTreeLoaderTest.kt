@@ -36,6 +36,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRec
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.skia.InvalidPictureException
+import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.LayoutInspectorUtils
@@ -299,7 +301,7 @@ class AppInspectionTreeLoaderTest {
     assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
   }
 
-  private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any?) {
+  private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
     val banner = InspectorBanner(projectRule.project)
 
     val skiaParser: SkiaParser = mock()
@@ -324,9 +326,16 @@ class AppInspectionTreeLoaderTest {
   }
 
   @Test
+  fun testSkpParsingFailed() {
+    assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
+      throw ParsingFailedException()
+    }
+  }
+
+  @Test
   fun testInvalidSkp() {
     assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
-      null
+      throw InvalidPictureException()
     }
   }
 
