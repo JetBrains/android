@@ -570,7 +570,7 @@ public final class StudioFlags {
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT_TOOL_WINDOW = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant.tool.window", "Enable the AGP Upgrade Assistant Tool Window",
-    "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", false);
+    "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
