@@ -15,137 +15,141 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.ide.common.rendering.api.ViewInfo
-import com.android.ide.common.rendering.api.Result
+import com.android.tools.idea.common.analytics.CommonNopTracker
+import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueSource
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderResultStats
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.ValidatorData
-import com.android.tools.idea.validator.ValidatorResult
-import com.google.common.collect.ImmutableList
-import com.google.wireless.android.sdk.stats.AtfAuditResult
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.lang.annotation.HighlightSeverity
-import org.mockito.Mockito
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 
+@RunWith(JUnit4::class)
 class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
 
-  companion object {
-    private const val TOTAL_RENDER_TIME = 20L
-    private const val ERROR_COUNT = 5
-    private const val COMPONENT_COUNT = 2
-    private const val IS_RENDER_SUCCESS = false
+  @Mock
+  lateinit var mockSurface: NlDesignSurface
 
-    fun createMetricTracker(): NlLayoutScannerMetricTracker {
-      return NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    }
-
-    private fun mockNlDesignSurface(): NlDesignSurface {
-      val surface = Mockito.mock(NlDesignSurface::class.java)
-      val sceneManager = Mockito.mock(LayoutlibSceneManager::class.java)
-      Mockito.`when`(surface!!.sceneManager).thenReturn(sceneManager)
-
-      val issueModel = Mockito.mock(IssueModel::class.java)
-      Mockito.`when`(surface!!.issueModel).thenReturn(issueModel)
-      Mockito.`when`(issueModel.issueCount).thenReturn(ERROR_COUNT)
-      return surface
-    }
+  @Before
+  fun setup() {
+    MockitoAnnotations.openMocks(this)
+    (CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker).resetLastTrackedEvent()
   }
 
-  fun testTrackTrigger() {
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    tracker.trackTrigger(AtfAuditResult.Trigger.ISSUE_PANEL)
-
-    assertEquals(AtfAuditResult.Trigger.ISSUE_PANEL, tracker.metric.trigger)
+  @Test
+  fun renderResultMetricsNotValid() {
+    val renderMetric = RenderResultMetricData()
+    assertFalse(renderMetric.isValid())
   }
 
-  fun testTrackResult() {
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    val mockResult = mockRenderResult()
-    tracker.trackResult(mockResult, mockResult.validatorResult as ValidatorResult)
-
-    assertEquals(AtfAuditResult.Trigger.UNKNOWN_TRIGGER, tracker.metric.trigger)
-    assertEquals(TOTAL_RENDER_TIME, tracker.metric.renderMs)
-    assertEquals(COMPONENT_COUNT, tracker.metric.componentCount)
-    assertEquals(ERROR_COUNT, tracker.metric.errorCounts)
-    assertEquals(IS_RENDER_SUCCESS, tracker.metric.isRenderResultSuccess)
+  @Test
+  fun renderResultMetricsValid() {
+    val renderMetric = RenderResultMetricData()
+    renderMetric.scanMs = 1
+    renderMetric.renderMs = 1
+    renderMetric.componentCount = 1
+    assertTrue(renderMetric.isValid())
   }
 
-  fun testLogEvents() {
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    val mockResult = mockRenderResult()
-    tracker.trackResult(mockResult, mockResult.validatorResult as ValidatorResult)
-    tracker.logEvents()
+  @Test
+  fun trackIssueInvalidRender() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val nlAtfIssues = setOf(createTestNlAtfIssue())
+    val renderResultMetricData = RenderResultMetricData()
 
-    // Logging must clear all metrics
-    assertEquals(AtfAuditResult.Trigger.UNKNOWN_TRIGGER, tracker.metric.trigger)
-    assertEquals(0L, tracker.metric.renderMs)
-    assertEquals(0, tracker.metric.componentCount)
-    assertEquals(0, tracker.metric.errorCounts)
-    assertEquals(true, tracker.metric.isRenderResultSuccess)
+    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
+
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertNull(usageTracker.lastTrackedEvent)
   }
 
-  fun testTrackIssue() {
-    val countSize = 10
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
+  @Test
+  fun trackIssueNoIssues() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val nlAtfIssues = setOf<Issue>()
+    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
 
-    for (i in 0 until countSize) {
-      val issue: ValidatorData.Issue = buildIssue()
-      tracker.trackIssue(issue)
-    }
+    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
 
-    assertEquals(countSize, tracker.metric.counts.size)
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertNull(usageTracker.lastTrackedEvent)
   }
 
-  fun testIssueExpandedNotNlAtfIssue() {
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    assertTrue(tracker.expandedTracker.opened.isEmpty())
+  @Test
+  fun trackIssueNoNlAtfIssues() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val nlAtfIssues = setOf<Issue>(TestIssue())
+    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
 
-    val issue = TestIssue()
-    tracker.trackIssueExpanded(issue, true)
+    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
 
-    assertTrue(tracker.expandedTracker.opened.isEmpty())
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertNull(usageTracker.lastTrackedEvent)
   }
 
-  fun testIssueExpanded() {
-    val tracker = NlLayoutScannerMetricTracker(mockNlDesignSurface())
-    val issue = NlAtfIssue(buildIssue(), IssueSource.NONE)
+  @Test
+  fun trackIssues() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val nlAtfIssues = setOf(createTestNlAtfIssue())
+    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
 
-    tracker.trackIssueExpanded(issue, true)
+    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
 
-    assertEquals(1, tracker.expandedTracker.opened.size)
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
   }
 
-  private fun buildIssue(): ValidatorData.Issue {
-    return ValidatorData.Issue.IssueBuilder().setCategory("category")
-      .setType(ValidatorData.Type.ACCESSIBILITY)
-      .setMsg("Message")
-      .setLevel(ValidatorData.Level.ERROR)
-      .setSourceClass("SourceClass")
-      .build()
+  @Test
+  fun trackExpandedNotAtfIssue() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    tracker.trackFirstExpanded(TestIssue())
+
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertNull(usageTracker.lastTrackedEvent)
   }
 
-  private fun mockRenderResult(): RenderResult {
-    val result = Mockito.mock(RenderResult::class.java)
+  @Test
+  fun trackExpandedAlreadyContained() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val issue = createTestNlAtfIssue()
+    tracker.expanded.add(issue)
 
-    val validatorResult = ValidatorResult.Builder().build()
-    Mockito.`when`(result.validatorResult).thenReturn(validatorResult)
+    tracker.trackFirstExpanded(issue)
 
-    val builder = ImmutableList.Builder<ViewInfo>()
-    for (i in 0 until COMPONENT_COUNT) {
-      builder.add(Mockito.mock(ViewInfo::class.java))
-    }
-    Mockito.`when`(result.rootViews).thenReturn(builder.build())
-    Mockito.`when`(result.stats).thenReturn(RenderResultStats(renderDurationMs = TOTAL_RENDER_TIME))
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertNull(usageTracker.lastTrackedEvent)
+  }
 
-    val renderResult = Mockito.mock(Result::class.java)
-    Mockito.`when`(result.renderResult).thenReturn(renderResult)
-    Mockito.`when`(renderResult.isSuccess).thenReturn(IS_RENDER_SUCCESS)
+  @Test
+  fun trackExpanded() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val issue = createTestNlAtfIssue()
+    tracker.trackFirstExpanded(issue)
 
-    return result
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
+    assertTrue(tracker.expanded.contains(issue))
+  }
+
+  @Test
+  fun clear() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val issue = createTestNlAtfIssue()
+    tracker.expanded.add(issue)
+
+    tracker.clear()
+    assertEmpty(tracker.expanded)
+  }
+
+  private fun createTestNlAtfIssue(): NlAtfIssue {
+    val issue: ValidatorData.Issue = ScannerTestHelper.createTestIssueBuilder().build()
+    return NlAtfIssue(issue, IssueSource.NONE)
   }
 
   private class TestIssue : Issue() {

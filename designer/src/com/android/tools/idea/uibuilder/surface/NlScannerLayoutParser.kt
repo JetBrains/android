@@ -41,9 +41,14 @@ class NlScannerLayoutParser {
 
   private val _includeComponents = ArrayList<NlComponent>()
 
+  /** Counts number of components with [View] info. */
+  var componentCount = 0
+    private set
+
   /** It's needed to build bridge from [Long] to [View] to [NlComponent]. */
   fun buildViewToComponentMap(component: NlComponent) {
     val root = tryFindingRootWithViewInfo(component)
+    componentCount++
     val className = root.tagName
     if (className == SdkConstants.VIEW_INCLUDE) {
       if (root.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE) != SdkConstants.ATTR_IGNORE_A11Y_LINTS) {
@@ -100,6 +105,7 @@ class NlScannerLayoutParser {
     viewToComponent.clear()
     idToComponent.clear()
     _includeComponents.clear()
+    componentCount = 0
   }
 
   /** Returns true if all maps are cleared. Flase otherwise. */
