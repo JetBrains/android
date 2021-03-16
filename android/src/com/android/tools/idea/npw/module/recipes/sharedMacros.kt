@@ -98,16 +98,16 @@ fun androidConfig(
   targetApi: String,
   useAndroidX: Boolean,
   isLibraryProject: Boolean,
-  hasApplicationId: Boolean = false,
-  applicationId: String = "",
-  hasTests: Boolean = false,
-  canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false,
-  enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  explicitApplicationId: Boolean,
+  applicationId: String,
+  hasTests: Boolean,
+  canUseProguard: Boolean,
+  addLintOptions: Boolean,
+  enableCpp: Boolean,
+  cppStandard: CppStandardType
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
-  val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
+  val applicationIdBlock = renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }
   val testsBlock = renderIf(hasTests) {
     "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
   }

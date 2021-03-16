@@ -44,18 +44,17 @@ fun buildGradle(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(parseRevision(buildToolsVersion))
-  val isApplicationProject = !isLibraryProject
 
   val androidConfigBlock = androidConfig(
-    buildApiString,
-    explicitBuildToolsVersion,
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    useAndroidX,
-    isLibraryProject,
-    isApplicationProject,
-    packageName,
+    buildApiString = buildApiString,
+    explicitBuildToolsVersion = explicitBuildToolsVersion,
+    buildToolsVersion = buildToolsVersion,
+    minApi = minApi,
+    targetApi = targetApi,
+    useAndroidX = useAndroidX,
+    isLibraryProject = isLibraryProject,
+    explicitApplicationId = !isLibraryProject,
+    applicationId = packageName,
     hasTests = hasTests,
     canUseProguard = true,
     addLintOptions = addLintOptions,
