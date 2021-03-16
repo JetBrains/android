@@ -113,8 +113,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @Nullable private final DataProvider myDelegateDataProvider;
 
-  private final DataContext myDataContext = DataManager.getInstance().getDataContext(this);
-
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
@@ -838,7 +836,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
             renderIssueProviders = results.entrySet().stream()
               .map(entry -> {
                 RenderErrorModel errorModel = RenderErrorModelFactory
-                  .createErrorModel(NlDesignSurface.this, entry.getValue(), myDataContext);
+                  .createErrorModel(NlDesignSurface.this, entry.getValue(), null);
                 return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
               })
               .collect(ImmutableList.toImmutableList());
