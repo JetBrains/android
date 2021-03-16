@@ -523,34 +523,36 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   }
 
   /**
-   * Select the first issue related to the provided component and scroll the viewport to this issue
+   * Select the highest severity issue related to the provided component and scroll the viewport to this issue
    *
    * @param component      The component owning the issue to show
    * @param collapseOthers if true, all other issues will be collapsed
    */
-  public void showIssueForComponent(NlComponent component, boolean collapseOthers) {
-    Issue issue = myIssueModel.findIssue(component);
-    if (issue != null) {
-      IssueView issueView = myDisplayedError.get(issue);
-      if (issueView != null) {
-        setSelectedIssue(issueView);
-        issueView.setExpanded(true);
+  public void showIssueForComponent(@NotNull NlComponent component, boolean collapseOthers) {
+    Issue issue = myIssueModel.getHighestSeverityIssue(component);
+    if (issue == null) {
+      return;
+    }
 
-        // Collapse all other issue
-        if (collapseOthers) {
-          for (IssueView other : myDisplayedError.values()) {
-            if (other != issueView) {
-              other.setExpanded(false);
-            }
+    IssueView issueView = myDisplayedError.get(issue);
+    if (issueView != null) {
+      setSelectedIssue(issueView);
+      issueView.setExpanded(true);
+
+      // Collapse all other issue
+      if (collapseOthers) {
+        for (IssueView other : myDisplayedError.values()) {
+          if (other != issueView) {
+            other.setExpanded(false);
           }
         }
       }
-      setMinimized(false);
-      if (issueView != null) {
-        JViewport viewport = myScrollPane.getViewport();
-        viewport.validate();
-        viewport.setViewPosition(issueView.getLocation());
-      }
+    }
+    setMinimized(false);
+    if (issueView != null) {
+      JViewport viewport = myScrollPane.getViewport();
+      viewport.validate();
+      viewport.setViewPosition(issueView.getLocation());
     }
   }
 
