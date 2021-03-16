@@ -77,7 +77,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_GRADLE_KTS_OPTION = Flag.create(
     NPW, "show.gradle.kts.option", "Show gradle kts option",
     "Shows an option on new Project/Module to allow the use of Kotlin script",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
