@@ -60,6 +60,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
   save(
     buildGradle(
+      projectData.gradlePluginVersion,
       useGradleKts,
       false,
       true,

@@ -63,6 +63,7 @@ fun RecipeExecutor.generateCommonModule(
 
   save(
     buildGradle(
+      agpVersion,
       useKts,
       isLibraryProject,
       data.isDynamic,
