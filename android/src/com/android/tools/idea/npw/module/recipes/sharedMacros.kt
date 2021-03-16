@@ -90,7 +90,19 @@ fun proguardConfig(
     """
   }
 
+fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVersion: GradlePluginVersion): String {
+  val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
+  val versionNumber = fieldValue.toIntOrNull()
+  return when {
+    isNewAGP && versionNumber == null -> "${fieldName}Preview \"$fieldValue\""
+    isNewAGP -> "$fieldName $versionNumber"
+    versionNumber == null -> "${fieldName}Version \"$fieldValue\""
+    else -> "${fieldName}Version $versionNumber"
+  }
+}
+
 fun androidConfig(
+  gradlePluginVersion: GradlePluginVersion,
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: Revision,
@@ -144,13 +156,13 @@ fun androidConfig(
 
   return """
     android {
-    compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
+    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
     $buildToolsVersionBlock
 
     defaultConfig {
       $applicationIdBlock
-      minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
-      targetSdkVersion ${targetApi.toIntOrNull() ?: "\"$targetApi\""}
+      ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
+      ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
       versionCode 1
       versionName "1.0"
 
