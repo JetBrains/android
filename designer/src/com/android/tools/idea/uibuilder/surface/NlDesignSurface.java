@@ -491,7 +491,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     });
 
     if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
-      myScannerControl = new NlLayoutScannerControl(this, this);
+      myScannerControl = new NlLayoutScanner(this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
