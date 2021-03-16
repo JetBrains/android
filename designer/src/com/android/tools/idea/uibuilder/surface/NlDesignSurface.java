@@ -802,8 +802,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
           RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                    ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                    : RenderErrorModelFactory
-                                     .createErrorModel(NlDesignSurface.this, result,
-                                                       DataManager.getInstance().getDataContext(getIssuePanel()));
+                                     .createErrorModel(NlDesignSurface.this, result, null);
           if (myRenderIssueProvider != null) {
             getIssueModel().removeIssueProvider(myRenderIssueProvider);
           }
