@@ -62,10 +62,10 @@ class SkiaParserImpl(
     scale: Double,
     isInterrupted: () -> Boolean
   ): SkiaViewNode {
-    if (connection == null) {
-      connection = connectionFactory.createConnection(data)
-    }
     try {
+      if (connection == null) {
+        connection = connectionFactory.createConnection(data)
+      }
       val (root, images) = connection?.getViewTree(data, requestedNodes, scale) ?: throw Exception("connection can't be null here")
       return buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id }) ?: throw ParsingFailedException()
     }

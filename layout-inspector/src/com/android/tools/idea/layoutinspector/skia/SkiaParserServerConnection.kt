@@ -39,6 +39,7 @@ import io.grpc.stub.StreamObserver
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.math.min
@@ -224,6 +225,12 @@ class SkiaParserServerConnection(private val serverPath: Path) {
       }
     }
 
-    return Pair(responseFuture.get(), images)
+    val root = try {
+      responseFuture.get()
+    }
+    catch (executionException: ExecutionException) {
+      throw executionException.cause ?: executionException
+    }
+    return Pair(root, images)
   }
 }
