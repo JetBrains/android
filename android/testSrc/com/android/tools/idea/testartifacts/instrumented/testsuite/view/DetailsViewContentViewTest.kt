@@ -158,7 +158,7 @@ class DetailsViewContentViewTest {
     view.setLogcat("")
     view.setErrorStackTrace("error stack trace")
     view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("\nerror stack trace")
+    assertThat(view.myLogsView.text).isEqualTo("error stack trace")
   }
 
   @Test
