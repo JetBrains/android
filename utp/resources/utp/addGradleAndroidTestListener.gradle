@@ -41,8 +41,14 @@ class SetupUtpTestResultListenerAction implements Action<TaskExecutionGraph> {
         return
       }
 
-      def listenerClass = task.class.classLoader.loadClass(
-        "com.android.build.gradle.internal.testing.utp.UtpTestResultListener")
+      Class<?> listenerClass
+      try {
+        listenerClass = task.class.classLoader.loadClass(
+          "com.android.build.gradle.internal.testing.utp.UtpTestResultListener")
+      } catch (ClassNotFoundException e) {
+        // Project's AGP version is too old and UtpTestResultListener is not available.
+        return
+      }
 
       def listener = Proxy.newProxyInstance(
         listenerClass.classLoader,
