@@ -1480,6 +1480,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     return usages.toTypedArray()
   }
 
+  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration"
+
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(COMPILE_RUNTIME_CONFIGURATION)
 
