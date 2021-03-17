@@ -669,7 +669,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }?.let { selectedPreviewElement ->
         surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
       }?.let {
-        surface.scrollToVisible(it)
+        surface.scrollToVisible(it, true)
       }
     }
   }
