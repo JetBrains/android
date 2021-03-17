@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -70,11 +69,10 @@ class DeviceViewPanelActionsToolbarProvider(
 object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
-    val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient as? AppInspectionInspectorClient
+    val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient
     val zoomable = event.getData(ZOOMABLE_KEY) ?: return
 
     if (model.isRotated) {
-      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP, zoomable.scale.toFloat())
       model.resetRotation()
     }
     else {

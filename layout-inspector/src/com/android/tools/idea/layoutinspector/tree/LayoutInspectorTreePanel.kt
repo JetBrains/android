@@ -91,6 +91,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   override fun setToolContext(toolContext: LayoutInspector?) {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector = toolContext
+    nodeType.model = layoutInspector?.layoutInspectorModel
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     componentTreeModel.treeRoot = layoutInspector?.layoutInspectorModel?.root
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
@@ -131,6 +132,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private class InspectorViewNodeType : ViewNodeType<ViewNode>() {
+    var model: InspectorModel? = null
     private var hideTopSystemNodes = TreeSettings.hideSystemNodes
 
     fun update() {
@@ -157,7 +159,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       else -> node.children.flatMap { if (isTopSystemNode(it)) it.children else listOf(it)  }
     }
 
-    override fun isEnabled(node: ViewNode) = node.visible
+    override fun isEnabled(node: ViewNode) = model?.isVisible(node) == true
 
     /**
      * Return true if this is a system node that is a child of the generated root node in [InspectorModel].

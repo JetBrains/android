@@ -67,6 +67,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   val isEmpty
     get() = windows.isEmpty()
 
+  private val hiddenNodes = mutableSetOf<ViewNode>()
+
   /**
    * Get a ViewNode by drawId
    */
@@ -180,6 +182,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
     lastGeneration = generation
     idLookup.clear()
+    val allNodes = root.flatten().toSet()
+    hiddenNodes.removeIf { !allNodes.contains(it) }
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
@@ -198,6 +202,33 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
   }
 
+  fun showAll() {
+    hiddenNodes.clear()
+    notifyModified()
+  }
+
+  fun hideSubtree(node: ViewNode) {
+    hiddenNodes.addAll(node.flatten())
+    notifyModified()
+  }
+
+  fun showOnlySubtree(subtreeRoot: ViewNode) {
+    hiddenNodes.clear()
+    lateinit var findNodes: (ViewNode) -> Sequence<ViewNode>
+    findNodes = { node -> node.children.asSequence().filter { it != subtreeRoot }.flatMap { findNodes(it) }.plus(node) }
+    hiddenNodes.addAll(findNodes(root).plus(root))
+    notifyModified()
+  }
+
+  fun showOnlyParents(node: ViewNode) {
+    hiddenNodes.clear()
+    hiddenNodes.addAll(root.flatten().minus(node.parentSequence))
+    notifyModified()
+  }
+
+  fun isVisible(node: ViewNode) = !hiddenNodes.contains(node)
+
+  fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }

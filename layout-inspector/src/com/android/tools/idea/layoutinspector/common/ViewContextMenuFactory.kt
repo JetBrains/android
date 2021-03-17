@@ -16,9 +16,11 @@
 package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -30,6 +32,7 @@ import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.containers.toArray
 import com.intellij.util.text.nullize
 import icons.StudioIcons
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -39,18 +42,16 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
   if (inspectorModel.isEmpty) {
     return
   }
-  val root = inspectorModel.root
   val actionManager = ActionManager.getInstance()
   val group = object : ActionGroup("", true) {
-    override fun getChildren(unused: AnActionEvent?): Array<AnAction> {
+    override fun getChildren(event: AnActionEvent?): Array<AnAction> {
       val showAllAction = object : AnAction("Show All") {
-        override fun actionPerformed(unused: AnActionEvent) {
-          root.flatten().forEach { it.visible = true }
-          inspectorModel.notifyModified()
+        override fun actionPerformed(event: AnActionEvent) {
+          inspectorModel.showAll()
         }
 
         override fun update(actionEvent: AnActionEvent) {
-          actionEvent.presentation.isEnabled = root.flatten().any { !it.visible }
+          actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
         }
       }
 
@@ -60,27 +61,27 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
         viewMenu.addAll(views.map { SelectViewAction(it, inspectorModel) })
         result.add(viewMenu)
       }
-      if (inspectorModel.hasSubImages) {
+
+      val client = event?.let { LayoutInspector.get(it)?.currentClient }
+      if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
         if (views.isNotEmpty()) {
           val topView = views.first()
           result.add(object : AnAction("Hide Subtree") {
-            override fun actionPerformed(unused: AnActionEvent) {
-              topView.flatten().forEach { it.visible = false }
-              inspectorModel.notifyModified()
+            override fun actionPerformed(event: AnActionEvent) {
+              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              inspectorModel.hideSubtree(topView)
             }
           })
           result.add(object : AnAction("Show Only Subtree") {
-            override fun actionPerformed(unused: AnActionEvent) {
-              root.flatten().forEach { it.visible = false }
-              topView.flatten().forEach { it.visible = true }
-              inspectorModel.notifyModified()
+            override fun actionPerformed(event: AnActionEvent) {
+              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              inspectorModel.showOnlySubtree(topView)
             }
           })
           result.add(object : AnAction("Show Only Parents") {
-            override fun actionPerformed(unused: AnActionEvent) {
-              root.flatten().forEach { it.visible = false }
-              generateSequence(topView) { it.parent }.forEach { it.visible = true }
-              inspectorModel.notifyModified()
+            override fun actionPerformed(event: AnActionEvent) {
+              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              inspectorModel.showOnlyParents(topView)
             }
           })
         }

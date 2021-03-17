@@ -203,7 +203,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
                               minLevel: Int,
                               drawChildren: ViewNode.() -> List<DrawViewNode>) {
     var newLevelIndex = levelListCollector.size
-    if (root.owner.visible) {
+    if (model.isVisible(root.owner)) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
       // in the next level above that (that is, the last level, starting from the top, where there's space).
       val rootArea = Area(root.owner.transformedBounds)
