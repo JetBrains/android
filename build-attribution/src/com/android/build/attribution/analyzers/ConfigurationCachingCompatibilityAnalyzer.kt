@@ -34,20 +34,24 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private var appliedPlugins: Map<String, List<PluginData>> = emptyMap()
   private var knownPlugins: List<GradlePluginsData.PluginInfo> = emptyList()
   private var currentAgpVersion: GradleVersion? = null
-  private var configurationCachingGradleFlagState: String? = null
+  private var configurationCachingGradlePropertiesFlagState: String? = null
+  private var configurationCacheInBuildState: Boolean? = null
 
   override fun cleanupTempState() {
     buildscriptClasspath.clear()
     appliedPlugins = emptyMap()
     knownPlugins = emptyList()
     currentAgpVersion = null
-    configurationCachingGradleFlagState = null
+    configurationCachingGradlePropertiesFlagState = null
+    configurationCacheInBuildState = null
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     buildscriptClasspath.addAll(
       androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { GradleCoordinate.parseCoordinateString(it) }
     )
+    configurationCacheInBuildState = androidGradlePluginAttributionData.buildInfo?.configurationCacheIsOn
+    currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { GradleVersion.tryParse(it) }
   }
 
   override fun receiveKnownPluginsData(data: GradlePluginsData) {
@@ -56,8 +60,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalysisResult, studioProvidedInfo: StudioProvidedInfo) {
     appliedPlugins = analyzersResult.getAppliedPlugins()
-    currentAgpVersion = studioProvidedInfo.agpVersion
-    configurationCachingGradleFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
+    if (currentAgpVersion == null) currentAgpVersion = studioProvidedInfo.agpVersion
+    configurationCachingGradlePropertiesFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
     ensureResultCalculated()
   }
 
@@ -66,7 +70,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   }
 
   private fun compute(appliedPlugins: List<PluginData>): ConfigurationCachingCompatibilityProjectResult {
-    if ("true" == configurationCachingGradleFlagState) return ConfigurationCachingTurnedOn
+    if (configurationCacheInBuildState == true) return ConfigurationCachingTurnedOn
     if (buildscriptClasspath.isEmpty()) {
       // Possible that we are using an old AGP. Need to check the known version from sync.
       currentAgpVersion?.let {
