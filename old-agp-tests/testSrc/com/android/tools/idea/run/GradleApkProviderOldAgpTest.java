@@ -70,7 +70,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     GradleApkProvider provider =
       new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
     outputProvider.setInstantAppProjectBuildOutput(myAndroidFacet, createInstantAppProjectBuildOutputMock("debug", apk));
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertSize(1, apks);
     assertEquals(apk, apks.iterator().next().getFile());
   }
@@ -78,7 +78,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
   public void testGetApks() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY, null, null, "3.5.0");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(apks).hasSize(1);
 
     ApkInfo apk = getFirstItem(apks);
@@ -92,7 +92,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     loadProject(RUN_CONFIG_ACTIVITY, null, null, "3.5.0");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(apks).hasSize(2);
 
     // Sort the APKs to keep test consistent.
@@ -124,7 +124,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     loadProject(TEST_ONLY_MODULE, "test", null, "3.5.0");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.testmodule"))
       .findFirst().orElse(null);
     assertThat(testApk).isNotNull();
@@ -156,7 +156,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet),
                                                        outputProvider, false, it -> GradleApkProvider.OutputKind.AppBundleOutputModel);
     outputProvider.setAppBundleProjectBuildOutput(myAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertSize(1, apks);
     ApkInfo apkInfo = apks.iterator().next();
     assertThat(apkInfo.getFiles().size()).isEqualTo(3);
@@ -183,7 +183,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
                                                        outputProvider, true, it -> GradleApkProvider.OutputKind.AppBundleOutputModel);
     outputProvider.setAppBundleProjectBuildOutput(baseAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
     outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", testApk));
-    IDevice iDevice = mock(IDevice.class);
+    IDevice iDevice = mockDevice();
     when(iDevice.getVersion()).thenReturn(new AndroidVersion(27));
     Collection<ApkInfo> apks = provider.getApks(iDevice);
     assertSize(2, apks);
@@ -215,12 +215,12 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
   public void testGetApksForTestBuddyApks() throws Exception {
     loadProject(BUDDY_APKS, "app", null, "3.5.0");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(Iterables.transform(apks, ApkInfo::getApplicationId))
       .containsExactly("google.testapplication", "google.testapplication.test", "com.linkedin.android.testbutler");
 
     // Check that we don't leak the NIO filesystem, which would prevent us from doing this twice in a row:
-    provider.getApks(mock(IDevice.class));
+    provider.getApks(mockDevice());
   }
 
   // Disabled because of b/163602530
@@ -231,7 +231,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     GradleApkProvider provider =
       new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
     outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", apk));
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertSize(1, apks);
     assertEquals(apk, apks.iterator().next().getFile());
   }
@@ -257,7 +257,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     }
 
     outputProvider.setProjectBuildOutput(myAndroidFacet, createProjectBuildOutputMock("debug", apk));
-    Collection<ApkInfo> apkInfos = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apkInfos = provider.getApks(mockDevice());
     Collection<File> apks = Collections2.transform(apkInfos, ApkInfo::getFile);
     assertThat(apks).containsExactly(apk, testedApk);
   }
