@@ -89,6 +89,7 @@ import com.intellij.build.events.StartBuildEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -112,9 +113,9 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
@@ -163,12 +164,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   // https://code.google.com/p/android/issues/detail?id=233038
   public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
+
+    // Delete local.properties if exists
+    File localProps = new File(getProjectFolderPath(), "local.properties");
+    WriteAction.runAndWait(() -> LocalFileSystem.getInstance().findFileByIoFile(localProps).delete(this));
+    assertFalse(localProps.exists());
+
+    // Ensure import works with no local.properties created beforehand
     importProject();
 
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     for (Module module : modules) {
       ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
+
+    // Ensure no local.properties was created in IDEA.
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      assertFalse(localProps.exists());
     }
   }
 
