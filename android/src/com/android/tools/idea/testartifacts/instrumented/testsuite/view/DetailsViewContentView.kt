@@ -271,8 +271,10 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
                        ConsoleViewContentType.NORMAL_OUTPUT)
       return
     }
-    myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
-    myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    if (!StringUtil.isEmptyOrSpaces(myLogcat)) {
+      myLogsView.print(myLogcat, ConsoleViewContentType.NORMAL_OUTPUT)
+      myLogsView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    }
     myLogsView.print(myErrorStackTrace, ConsoleViewContentType.ERROR_OUTPUT)
   }
 }
