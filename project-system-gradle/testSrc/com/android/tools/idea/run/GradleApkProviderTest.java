@@ -23,7 +23,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.containers.ContainerUtil.map;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;

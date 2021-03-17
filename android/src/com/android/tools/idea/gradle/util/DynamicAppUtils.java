@@ -315,7 +315,7 @@ public class DynamicAppUtils {
       getLogger().warn("Post build model is null. Build might have failed.");
       return null;
     }
-    AppBundleProjectBuildOutput output = model.findAppBundleProjectBuildOutput(module);
+    AppBundleProjectBuildOutput output = model.findAppBundleProjectBuildOutput(GradleUtil.getGradlePath(module));
     if (output == null) {
       getLogger().warn("Project output is null. Build may have failed.");
       return null;

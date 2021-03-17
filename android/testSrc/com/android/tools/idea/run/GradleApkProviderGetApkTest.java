@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -161,6 +162,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
     when(projectBuildOutput.getVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
 
-    when(myPostBuildModel.findProjectBuildOutput(facet)).thenReturn(projectBuildOutput);
+    when(myPostBuildModel.findProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(projectBuildOutput);
   }
 }

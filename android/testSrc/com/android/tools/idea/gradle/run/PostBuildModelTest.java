@@ -15,24 +15,18 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.builder.model.InstantAppProjectBuildOutput;
-import com.android.builder.model.ProjectBuildOutput;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.builder.model.InstantAppProjectBuildOutput;
+import com.android.builder.model.ProjectBuildOutput;
+import com.intellij.testFramework.PlatformTestCase;
+import java.util.HashMap;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link PostBuildModel}.
@@ -42,10 +36,6 @@ public class PostBuildModelTest extends PlatformTestCase {
   @Mock private ProjectBuildOutput myLibOutput;
   @Mock private InstantAppProjectBuildOutput myInstantAppOutput;
 
-  private Module myLibModule;
-  private Module myJavaLibModule;
-  private Module myInstantAppModule;
-
   private PostBuildModel myModel;
 
   @Override
@@ -53,24 +43,11 @@ public class PostBuildModelTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    GradleFacet facet = createAndAddGradleFacet(myModule);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = ":app";
-
-    myLibModule = createModule("lib");
-    facet = createAndAddGradleFacet(myLibModule);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = ":lib";
-
-    myInstantAppModule = createModule("instantapp");
-    facet = createAndAddGradleFacet(myInstantAppModule);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = ":instantapp";
-
     OutputBuildAction.PostBuildProjectModels outputs = new PostBuildProjectModelsBuilder().
       setModelForModule(":app", ProjectBuildOutput.class, myAppOutput).
       setModelForModule(":lib", ProjectBuildOutput.class, myLibOutput).
       setModelForModule(":instantapp", InstantAppProjectBuildOutput.class, myInstantAppOutput).
       build();
-
-    myJavaLibModule = createModule("javaLib");
 
     myModel = new PostBuildModel(outputs);
   }
@@ -83,30 +60,6 @@ public class PostBuildModelTest extends PlatformTestCase {
     assertNull(myModel.findProjectBuildOutput(":instantapp"));
     assertSame(myInstantAppOutput, myModel.findInstantAppProjectBuildOutput(":instantapp"));
     assertNull(myModel.findProjectBuildOutput(":javaLib"));
-  }
-
-  public void testFindOutputModelForModule() {
-    assertSame(myAppOutput, myModel.findProjectBuildOutput(myModule));
-    assertNull(myModel.findInstantAppProjectBuildOutput(myModule));
-    assertSame(myLibOutput, myModel.findProjectBuildOutput(myLibModule));
-    assertNull(myModel.findInstantAppProjectBuildOutput(myLibModule));
-    assertNull(myModel.findProjectBuildOutput(myInstantAppModule));
-    assertSame(myInstantAppOutput, myModel.findInstantAppProjectBuildOutput(myInstantAppModule));
-    assertNull(myModel.findProjectBuildOutput(myJavaLibModule));
-  }
-
-  public void testFindOutputModelForFacet() {
-    AndroidFacet androidFacet = createAndAddAndroidFacet(myModule);
-    assertSame(myAppOutput, myModel.findProjectBuildOutput(androidFacet));
-    assertNull(myModel.findInstantAppProjectBuildOutput(androidFacet));
-
-    androidFacet = createAndAddAndroidFacet(myLibModule);
-    assertSame(myLibOutput, myModel.findProjectBuildOutput(androidFacet));
-    assertNull(myModel.findInstantAppProjectBuildOutput(androidFacet));
-
-    androidFacet = createAndAddAndroidFacet(myInstantAppModule);
-    assertNull(myModel.findProjectBuildOutput(androidFacet));
-    assertSame(myInstantAppOutput, myModel.findInstantAppProjectBuildOutput(androidFacet));
   }
 
   private static class PostBuildProjectModelsBuilder {

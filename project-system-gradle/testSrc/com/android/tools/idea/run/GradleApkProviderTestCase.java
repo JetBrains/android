@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,16 +42,16 @@ public abstract class GradleApkProviderTestCase extends AndroidGradleTestCase {
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
     void setProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull ProjectBuildOutput projectBuildOutput) {
-      when(myPostBuildModel.findProjectBuildOutput(facet)).thenReturn(projectBuildOutput);
+      when(myPostBuildModel.findProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(projectBuildOutput);
     }
 
     void setInstantAppProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull InstantAppProjectBuildOutput instantAppProjectBuildOutput) {
-      when(myPostBuildModel.findInstantAppProjectBuildOutput(facet)).thenReturn(instantAppProjectBuildOutput);
+      when(myPostBuildModel.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(instantAppProjectBuildOutput);
     }
 
     void setAppBundleProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull AppBundleProjectBuildOutput output) {
-      when(myPostBuildModel.findAppBundleProjectBuildOutput(facet)).thenReturn(output);
-      when(myPostBuildModel.findAppBundleProjectBuildOutput(facet.getModule())).thenReturn(output);
+      when(myPostBuildModel.findAppBundleProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(output);
+      when(myPostBuildModel.findAppBundleProjectBuildOutput(getGradlePath(facet.getModule()))).thenReturn(output);
     }
 
     @Override

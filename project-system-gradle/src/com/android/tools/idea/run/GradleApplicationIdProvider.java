@@ -20,6 +20,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
@@ -136,7 +137,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    InstantAppProjectBuildOutput projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(myFacet);
+    InstantAppProjectBuildOutput projectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(getGradlePath(myFacet.getModule()));
     if (projectBuildOutput == null) {
       return null;
     }
