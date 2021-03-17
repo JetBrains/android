@@ -620,6 +620,11 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> SHOW_JDK_PATH = Flag.create(
     GRADLE_IDE, "jdk.show.path", "Show JDK path in settings", "Shows JDK path for each item in Gradle settings.", true);
+
+  public static final Flag<Boolean> GRADLE_SYNC_USE_V2_MODEL = Flag.create(
+    GRADLE_IDE, "gradle.sync.use.v2", "Use V2 Builder models", "Enable fetching V2 builder models from AGP when syncing.", false);
+
+
   //endregion
 
   //region Database Inspector
