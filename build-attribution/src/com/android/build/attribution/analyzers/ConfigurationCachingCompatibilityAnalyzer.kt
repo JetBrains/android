@@ -23,7 +23,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 
 /** Minimal AGP version that supports configuration caching. */
-private val minAGPVersion = GradleVersion.parse("4.2.0-alpha16")
+private val minAGPVersion = GradleVersion.parse("7.0.0-alpha10")
 
 class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCachingCompatibilityProjectResult>(),
     BuildAttributionReportAnalyzer,
@@ -121,7 +121,7 @@ sealed class ConfigurationCachingCompatibilityProjectResult : AnalyzerResult
 data class AGPUpdateRequired(
   val currentVersion: GradleVersion
 ) : ConfigurationCachingCompatibilityProjectResult() {
-  val recommendedVersion = GradleVersion.parse("4.2")
+  val recommendedVersion = GradleVersion.parse("7.0.0")
   val dependencyCoordinates = GradlePluginsData.DependencyCoordinates("com.android.tools.build", "gradle")
 }
 

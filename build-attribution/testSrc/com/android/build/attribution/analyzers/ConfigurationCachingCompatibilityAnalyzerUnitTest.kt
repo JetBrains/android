@@ -45,7 +45,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   @Test
   fun `AGP compatible, no other plugins`() = test(TestCase(
-    agpVersion = GradleVersion.parse("4.2.0"),
+    agpVersion = GradleVersion.parse("7.0.0"),
     pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
@@ -175,7 +175,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun testPluginAppliedInSeveralProjects() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
-    val agpVersionString = "4.2.0"
+    val agpVersionString = "7.0.0"
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "false"
@@ -206,7 +206,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun testWhenCCFlagIsAlreadyOn() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
-    val agpVersionString = "4.2.0"
+    val agpVersionString = "7.0.0"
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "true"
@@ -234,7 +234,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     }, projectPath)
 
   data class TestCase(
-    val agpVersion: GradleVersion = GradleVersion.parse("4.2.0"),
+    val agpVersion: GradleVersion = GradleVersion.parse("7.0.0"),
     val pluginsApplied: List<PluginData>,
     val buildscriptDependenciesInfo: Set<String>,
     val knownPluginsData: GradlePluginsData,
