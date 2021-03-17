@@ -68,6 +68,16 @@ class BestOutputFinder {
       apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, variantAbiFilters, abis);
       outputCount = builtArtifact.getElements().size();
     }
+    verifyApkCollectionIsNotEmpty(apkFiles, variant, abis, outputCount);
+    // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
+    return apkFiles.get(0);
+  }
+
+  private static void verifyApkCollectionIsNotEmpty(@NotNull List<File> apkFiles,
+                                                    @NotNull IdeVariant variant,
+                                                    @NotNull List<String> abis,
+                                                    int outputCount)
+    throws ApkProvisionException {
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
                                              variant.getDisplayName(),
@@ -75,7 +85,5 @@ class BestOutputFinder {
                                              Joiner.on(", ").join(abis));
       throw new ApkProvisionException(message);
     }
-    // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
-    return apkFiles.get(0);
   }
 }
