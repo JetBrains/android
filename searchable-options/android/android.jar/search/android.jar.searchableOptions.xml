@@ -476,10 +476,14 @@
     <option name="press" path="ActionManager" hit="Press the second button" />
     <option name="second" path="ActionManager" hit="Press the second button" />
     <option name="the" path="ActionManager" hit="Press the second button" />
+    <option name="profile" path="ActionManager" hit="Profile" />
     <option name="apk" path="ActionManager" hit="Profile or Debug APK" />
     <option name="debug" path="ActionManager" hit="Profile or Debug APK" />
     <option name="or" path="ActionManager" hit="Profile or Debug APK" />
     <option name="profile" path="ActionManager" hit="Profile or Debug APK" />
+    <option name="configuration" path="ActionManager" hit="Profile selected configuration" />
+    <option name="profile" path="ActionManager" hit="Profile selected configuration" />
+    <option name="selected" path="ActionManager" hit="Profile selected configuration" />
     <option name="profile" path="ActionManager" hit="Profile..." />
     <option name="a" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="and" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />

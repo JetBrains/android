@@ -33,7 +33,8 @@
     <androidLaunchTaskContributor implementation="com.android.tools.idea.profilers.AndroidProfilerLaunchTaskContributor" />
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
-    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
+    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor"/>
+    <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutorGroup"/>
     <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.profilers.capture.CpuCaptureFileType"

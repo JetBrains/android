@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.StudioProgramRunner
@@ -32,9 +33,9 @@ class ProfilerProgramRunner : StudioProgramRunner() {
   override fun getRunnerId() = "ProfilerProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
+    // Super class canRun checks if profile is AndroidRunConfigurationBase.
     return super.canRun(executorId, profile) &&
-           ProfileRunExecutor.EXECUTOR_ID == executorId &&  // Super class canRun checks if profile is AndroidRunConfigurationBase.
-           (profile as AndroidRunConfigurationBase).isProfilable
+           canRunByProfiler(executorId, profile as AndroidRunConfigurationBase)
   }
 
   override fun canRunWithMultipleDevices(executorId: String) = false
@@ -86,6 +87,21 @@ class ProfilerProgramRunner : StudioProgramRunner() {
       }
       val featureTracker = StudioFeatureTracker(project)
       featureTracker.trackRunWithProfiling()
+    }
+
+    private fun canRunByProfiler(executorId: String, androidRunConfig: AndroidRunConfigurationBase): Boolean {
+      if (androidRunConfig.isProfilable) {
+        if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+          // Profileable Builds support multiple profiling modes, wrapped in an ExecutorGroup.
+          val setting = ProfileRunExecutorGroup.getInstance()?.getRegisteredSettings(executorId) ?: return false
+          // Pass profiling mode to AGP.
+          androidRunConfig.profilerState.PROFILING_MODE = setting.profilingMode
+          return true
+        }
+        // Legacy profiler executor.
+        return ProfileRunExecutor.EXECUTOR_ID == executorId
+      }
+      return false
     }
   }
 }

@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ExecutorIconProvider
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.Executor
+import com.intellij.execution.Executor.ActionWrapper
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidUtils
@@ -53,6 +57,23 @@ class ProfileRunExecutor : DefaultRunExecutor(), ExecutorIconProvider {
   }
 
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
+
+  /**
+   * Wraps the original action so that it's only visible when the feature flag is true.
+   * Can be removed once the feature flag is removed.
+   */
+  override fun runnerActionsGroupExecutorActionCustomizer() = ActionWrapper { original ->
+    object : EmptyAction.MyDelegatingAction(original) {
+      override fun update(e: AnActionEvent) {
+        if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+          e.presentation.isEnabledAndVisible = false
+        }
+        else {
+          super.update(e)
+        }
+      }
+    }
+  }
 
   companion object {
     const val EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID
