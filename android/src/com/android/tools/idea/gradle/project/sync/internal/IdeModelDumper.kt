@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeApiVersion
 import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeDependencies
 import com.android.ide.common.gradle.model.IdeDependenciesInfo
@@ -167,11 +168,8 @@ private fun ProjectDumper.dump(ideAndroidArtifact: IdeAndroidArtifact) {
   dump(ideAndroidArtifact as IdeBaseArtifact) // dump the IdeBaseArtifact part first.
   prop("SigningConfigName") { ideAndroidArtifact.signingConfigName }
   prop("IsSigned") { ideAndroidArtifact.isSigned.toString() }
-  prop("BundleTaskName") { ideAndroidArtifact.bundleTaskName }
-  prop("BundleTaskOutputListingFile") { ideAndroidArtifact.bundleTaskOutputListingFile?.toPrintablePath() }
-  prop("ApkFromBundleTaskName") { ideAndroidArtifact.apkFromBundleTaskName }
-  prop("ApkFromBundleTaskOutputListingFile") { ideAndroidArtifact.apkFromBundleTaskOutputListingFile?.toPrintablePath() }
   prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }
+  dump(ideAndroidArtifact.buildInformation)
   ideAndroidArtifact.generatedResourceFolders.forEach { prop("GeneratedResourceFolders") { it.path.toPrintablePath() } }
   ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
   ideAndroidArtifact.testOptions?.let { dump(it) }
@@ -219,7 +217,6 @@ private fun ProjectDumper.dump(ideBaseArtifact: IdeBaseArtifact) {
   prop("Name") { ideBaseArtifact.name.toString() }
   prop("CompileTaskName") { ideBaseArtifact.compileTaskName }
   prop("AssembleTaskName") { ideBaseArtifact.assembleTaskName }
-  prop("AssembleTaskOutputListingFile") { ideBaseArtifact.assembleTaskOutputListingFile.toPrintablePath() }
   prop("ClassFolder") { ideBaseArtifact.classesFolder.path.toPrintablePath() }
   prop("JavaResourcesFolder") { ideBaseArtifact.javaResourcesFolder?.path?.toPrintablePath() }
   prop("IsTestArtifact") { ideBaseArtifact.isTestArtifact.toString() }
@@ -489,12 +486,19 @@ private fun ProjectDumper.dump(variantBuildInformation: IdeVariantBuildInformati
   head("VariantBuildInformation")
     nest {
       prop("VariantName") { variantBuildInformation.variantName }
-      prop("AssembleTaskName") { variantBuildInformation.assembleTaskName }
-      prop("AssembleTaskOutputListingFile") { variantBuildInformation.assembleTaskOutputListingFile?.toPrintablePath() }
-      prop("BundleTaskName") { variantBuildInformation.bundleTaskName }
-      prop("BundleTaskOutputListingFile") { variantBuildInformation.bundleTaskOutputListingFile?.toPrintablePath() }
-      prop("ApkFromBundleTaskName") { variantBuildInformation.apkFromBundleTaskName }
-      prop("ApkFromBundleTaskOutputListingFile") { variantBuildInformation.apkFromBundleTaskOutputListingFile?.toPrintablePath() }
+      dump(variantBuildInformation.buildInformation)
+    }
+}
+
+private fun ProjectDumper.dump(info: IdeBuildTasksAndOutputInformation) {
+  head("BuildTasksAndOutputInformation")
+    nest {
+      prop("AssembleTaskName") { info.assembleTaskName }
+      prop("AssembleTaskOutputListingFile") { info.assembleTaskOutputListingFile?.toPrintablePath() }
+      prop("BundleTaskName") { info.bundleTaskName }
+      prop("BundleTaskOutputListingFile") { info.bundleTaskOutputListingFile?.toPrintablePath() }
+      prop("ApkFromBundleTaskName") { info.apkFromBundleTaskName }
+      prop("ApkFromBundleTaskOutputListingFile") { info.apkFromBundleTaskOutputListingFile?.toPrintablePath() }
     }
 }
 

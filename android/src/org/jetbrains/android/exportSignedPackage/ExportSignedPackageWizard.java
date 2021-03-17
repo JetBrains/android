@@ -311,7 +311,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().warn("Could not get tasks for target " + targetType + " on variant " + variantName);
       }
       else {
-        String taskName = targetType.equals(BUNDLE) ? buildInformation.getBundleTaskName() : buildInformation.getAssembleTaskName();
+        String taskName = targetType.equals(BUNDLE)
+                          ? buildInformation.getBuildInformation().getBundleTaskName()
+                          : buildInformation.getBuildInformation().getAssembleTaskName();
         taskNames.add(taskName);
       }
     }
@@ -357,10 +359,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   private static String getTaskName(IdeVariant v, String targetType) {
     if (targetType.equals(BUNDLE)) {
-      return v.getMainArtifact().getBundleTaskName();
+      return v.getMainArtifact().getBuildInformation().getBundleTaskName();
     }
     else {
-      return v.getMainArtifact().getAssembleTaskName();
+      return v.getMainArtifact().getBuildInformation().getAssembleTaskName();
     }
   }
 

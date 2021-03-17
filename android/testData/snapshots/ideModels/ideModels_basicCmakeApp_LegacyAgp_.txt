@@ -210,20 +210,22 @@ MODULE                        : project.app
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
-            BundleTaskName                : bundleDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
-            BundleTaskName                : bundleRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -236,7 +238,6 @@ MODULE                        : project.app
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -249,11 +250,14 @@ MODULE                        : project.app
                 Level2Dependencies
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 AbiFilters                    : x86
@@ -261,7 +265,6 @@ MODULE                        : project.app
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -280,9 +283,12 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -293,7 +299,6 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true

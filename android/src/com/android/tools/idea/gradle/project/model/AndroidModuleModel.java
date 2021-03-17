@@ -79,7 +79,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Placeholder application id if the project is never built before, there is no way to get application id.
   public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
-  private final static String ourAndroidSyncVersion = "2021-03-10/1";
+  private final static String ourAndroidSyncVersion = "2021-03-17/1";
 
   @Nullable public transient Object lintModuleModelCache;
   @Nullable private transient Module myModule;
@@ -575,7 +575,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
-    state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+    state.ASSEMBLE_TASK_NAME = mainArtifact.getBuildInformation().getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
     state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());
 

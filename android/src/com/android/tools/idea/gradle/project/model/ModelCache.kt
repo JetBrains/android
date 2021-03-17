@@ -96,6 +96,7 @@ import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryCore
 import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
 import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
 import com.android.ide.common.gradle.model.impl.IdeClassFieldImpl
@@ -735,7 +736,6 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
       classesFolder = artifact.classesFolder,
       javaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder),
       ideSetupTaskNames = copyNewPropertyWithDefault(artifact::getIdeSetupTaskNames,
@@ -755,10 +755,15 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
       isSigned = artifact.isSigned,
       additionalRuntimeApks = copy(artifact::getAdditionalRuntimeApks, ::deduplicateFile),
       testOptions = copyNewModel(artifact::getTestOptions, ::testOptionsFrom),
-      bundleTaskName = copyNewModel(artifact::getBundleTaskName, ::deduplicateString),
-      bundleTaskOutputListingFile = copyNewModel(artifact::getBundleTaskOutputListingFile, ::deduplicateString),
-      apkFromBundleTaskName = copyNewModel(artifact::getApkFromBundleTaskName, ::deduplicateString),
-      apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
+      buildInformation = IdeBuildTasksAndOutputInformationImpl(
+        assembleTaskName = artifact.assembleTaskName.deduplicate(),
+        assembleTaskOutputListingFile =
+        copyNewModel(artifact::getAssembleTaskOutputListingFile, ::deduplicateString)?.takeUnless { it.isEmpty() },
+        bundleTaskName = copyNewModel(artifact::getBundleTaskName, ::deduplicateString),
+        bundleTaskOutputListingFile = copyNewModel(artifact::getBundleTaskOutputListingFile, ::deduplicateString),
+        apkFromBundleTaskName = copyNewModel(artifact::getApkFromBundleTaskName, ::deduplicateString),
+        apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
+      ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST
     )
@@ -769,7 +774,6 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
       name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
-      assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
       classesFolder = artifact.classesFolder,
       javaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder),
       ideSetupTaskNames = copy(artifact::getIdeSetupTaskNames, ::deduplicateString).toList(),
@@ -1001,12 +1005,14 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
 
   fun ideVariantBuildInformationFrom(model: VariantBuildInformation): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
     variantName = model.variantName,
-    assembleTaskName = model.assembleTaskName,
-    assembleTaskOutputListingFile = model.assembleTaskOutputListingFile,
-    bundleTaskName = model.bundleTaskName,
-    bundleTaskOutputListingFile = model.bundleTaskOutputListingFile,
-    apkFromBundleTaskName = model.apkFromBundleTaskName,
-    apkFromBundleTaskOutputListingFile = model.apkFromBundleTaskOutputListingFile
+    buildInformation = IdeBuildTasksAndOutputInformationImpl(
+      assembleTaskName = model.assembleTaskName.deduplicate(),
+      assembleTaskOutputListingFile = model.assembleTaskOutputListingFile?.deduplicate(),
+      bundleTaskName = model.bundleTaskName?.deduplicate(),
+      bundleTaskOutputListingFile = model.bundleTaskOutputListingFile?.deduplicate(),
+      apkFromBundleTaskName = model.apkFromBundleTaskName?.deduplicate(),
+      apkFromBundleTaskOutputListingFile = model.apkFromBundleTaskOutputListingFile?.deduplicate()
+    )
   )
 
   fun createVariantBuildInformation(
