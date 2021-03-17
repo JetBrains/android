@@ -22,7 +22,6 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.google.common.base.Joiner;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
@@ -35,15 +34,21 @@ class BestOutputFinder {
   @NotNull
   File findBestOutput(@NotNull IdeVariant variant,
                       @NotNull List<String> abis,
-                      @NotNull List<IdeAndroidArtifactOutput> outputs)
-    throws ApkProvisionException {
+                      @NotNull List<IdeAndroidArtifactOutput> outputs) throws ApkProvisionException {
+    return findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), abis, outputs);
+  }
+
+  @NotNull
+  File findBestOutput(@NotNull String variantDisplayName,
+                      @NotNull Set<String> artifactAbiFilters,
+                      @NotNull List<String> abis,
+                      @NotNull List<IdeAndroidArtifactOutput> outputs) throws ApkProvisionException {
     if (outputs.isEmpty()) {
-      throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
+      throw new ApkProvisionException("No outputs for the main artifact of variant: " + variantDisplayName);
     }
-    Set<String> variantAbiFilters = variant.getMainArtifact().getAbiFilters();
     List<File> apkFiles =
-      ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, abis), IdeAndroidArtifactOutput::getOutputFile);
-    verifyApkCollectionIsNotEmpty(apkFiles, variant, abis, outputs.size());
+      ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, artifactAbiFilters, abis), IdeAndroidArtifactOutput::getOutputFile);
+    verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, outputs.size());
     // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
     return apkFiles.get(0);
   }
@@ -51,21 +56,28 @@ class BestOutputFinder {
   @NotNull
   File findBestOutput(@NotNull IdeVariant variant, @NotNull List<String> abis, @NotNull GenericBuiltArtifacts builtArtifact)
     throws ApkProvisionException {
-    Set<String> variantAbiFilters = variant.getMainArtifact().getAbiFilters();
-    List<File> apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, variantAbiFilters, abis);
-    verifyApkCollectionIsNotEmpty(apkFiles, variant, abis, builtArtifact.getElements().size());
+    return findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), abis, builtArtifact);
+  }
+
+  @NotNull
+  File findBestOutput(@NotNull String variantDisplayName,
+                      @NotNull Set<String> artifactAbiFilters,
+                      @NotNull List<String> abis,
+                      @NotNull GenericBuiltArtifacts builtArtifact) throws ApkProvisionException {
+    List<File> apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, artifactAbiFilters, abis);
+    verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, builtArtifact.getElements().size());
     // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
     return apkFiles.get(0);
   }
 
   private static void verifyApkCollectionIsNotEmpty(@NotNull List<File> apkFiles,
-                                                    @NotNull IdeVariant variant,
+                                                    @NotNull String variantDisplayName,
                                                     @NotNull List<String> abis,
                                                     int outputCount)
     throws ApkProvisionException {
     if (apkFiles.isEmpty()) {
       String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
-                                             variant.getDisplayName(),
+                                             variantDisplayName,
                                              outputCount,
                                              Joiner.on(", ").join(abis));
       throw new ApkProvisionException(message);
