@@ -330,7 +330,6 @@ class ContentManager(val project: Project) {
 
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refresh() }
-      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
@@ -338,6 +337,7 @@ class ContentManager(val project: Project) {
     }
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
+      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
