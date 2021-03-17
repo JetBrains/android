@@ -1140,11 +1140,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Ensures that the given model is visible in the surface by scrolling to it if needed.
-   * If the {@link SceneView} is partially visible, no scroll will happen.
+   * If the {@link SceneView} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
    */
-  public final void scrollToVisible(@NotNull SceneView sceneView) {
+  public final void scrollToVisible(@NotNull SceneView sceneView, boolean forceScroll) {
     Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
-    if (rectangle != null && !getViewport().getViewRect().intersects(rectangle)) {
+    if (forceScroll || (rectangle != null && !getViewport().getViewRect().intersects(rectangle))) {
       Dimension defaultOffset = getDefaultOffset();
       setScrollPosition(rectangle.x - defaultOffset.width, rectangle.y - defaultOffset.height);
     }
@@ -1152,11 +1152,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Ensures that the given model is visible in the surface by scrolling to it if needed.
-   * If the {@link NlModel} is partially visible, no scroll will happen.
+   * If the {@link NlModel} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
    */
-  public final void scrollToVisible(@NotNull NlModel model) {
+  public final void scrollToVisible(@NotNull NlModel model, boolean forceScroll) {
     getSceneViews().stream().filter(sceneView -> sceneView.getSceneManager().getModel() == model).findFirst()
-      .ifPresent(this::scrollToVisible);
+      .ifPresent(sceneView -> scrollToVisible(sceneView, forceScroll));
   }
 
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
