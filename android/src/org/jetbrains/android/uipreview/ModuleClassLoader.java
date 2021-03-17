@@ -51,6 +51,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -163,23 +164,13 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   /**
    * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
    */
-  private Map<String, VirtualFile> myClassFiles;
+  private final Map<String, VirtualFile> myClassFiles = new ConcurrentHashMap<>();
   /**
    * Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader
    */
-  private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
+  private final Map<String, ClassModificationTimestamp> myClassFilesLastModified = new ConcurrentHashMap<>();
 
   private final List<URL> mAdditionalLibraries;
-
-  private static class ClassModificationTimestamp {
-    public final long timestamp;
-    public final long length;
-
-    ClassModificationTimestamp(long timestamp, long length) {
-      this.timestamp = timestamp;
-      this.length = length;
-    }
-  }
 
   private final Set<String> loadedClasses = new HashSet<>();
 
@@ -491,12 +482,8 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @Override
   @Nullable
   protected Class<?> loadClassFile(@NotNull String name, @NotNull VirtualFile classFile) {
-    if (myClassFiles == null) {
-      myClassFiles = new ConcurrentHashMap<>();
-      myClassFilesLastModified = new ConcurrentHashMap<>();
-    }
     myClassFiles.put(name, classFile);
-    myClassFilesLastModified.put(name, new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
+    myClassFilesLastModified.put(name, ClassModificationTimestamp.fromVirtualFile(classFile));
 
     return super.loadClassFile(name, classFile);
   }
@@ -610,9 +597,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
    */
   @Nullable
   private VirtualFile getClassFile(@NotNull String className) {
-    if (myClassFiles == null) {
-      return null;
-    }
     VirtualFile file = myClassFiles.get(className);
     if (file == null) {
       return null;
@@ -624,28 +608,23 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
    */
   boolean isUpToDate() {
-    if (myClassFiles != null) {
-      for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
-        String className = entry.getKey();
-        VirtualFile classFile = entry.getValue();
-        if (!classFile.isValid()) {
-          return false;
-        }
-        ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
-        if (lastModifiedStamp != null) {
-          long loadedModifiedTime = lastModifiedStamp.timestamp;
-          long loadedModifiedLength = lastModifiedStamp.length;
-          long classFileModifiedTime = classFile.getTimeStamp();
-          long classFileModifiedLength = classFile.getLength();
-          if ((classFileModifiedTime > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModifiedTime)
-              || loadedModifiedLength != classFileModifiedLength) {
-            return false;
-          }
-        }
+    // We check the dependencies first since it does not require disk access.
+    if (!areDependenciesUpToDate()) return false;
+
+    for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
+      VirtualFile classFile = entry.getValue();
+      if (!classFile.isValid()) {
+        return false;
+      }
+
+      String className = entry.getKey();
+      ClassModificationTimestamp lastModifiedStamp = myClassFilesLastModified.get(className);
+      if (lastModifiedStamp != null && !lastModifiedStamp.isUpToDate(classFile)) {
+        return false;
       }
     }
 
-    return areDependenciesUpToDate();
+    return true;
   }
 
   public boolean isClassLoaded(@NotNull String className) {
@@ -676,6 +655,9 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
 
   @Override
   public void dispose() {
+    myClassFiles.clear();
+    myClassFilesLastModified.clear();
+
     Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
     if (threadLocals == null || threadLocals.isEmpty()) {
       return;
