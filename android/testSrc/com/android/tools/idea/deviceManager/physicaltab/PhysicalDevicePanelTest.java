@@ -19,9 +19,14 @@ import static org.junit.Assert.assertEquals;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -29,9 +34,19 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
+  private @Nullable PhysicalDevicePanel myPanel;
+
+  @After
+  public void disposeOfPanel() {
+    assert myPanel != null;
+    Disposer.dispose(myPanel);
+  }
+
   @Test
   public void newPhysicalDevicePanel() {
     // Arrange
+    Supplier<Disposable> newPhysicalDeviceChangeListener = () -> Mockito.mock(Disposable.class);
+
     PhysicalDevice device = new PhysicalDevice("86UX00F4R");
 
     PhysicalDeviceAsyncSupplier supplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
@@ -40,9 +55,9 @@ public final class PhysicalDevicePanelTest {
     Executor executor = MoreExecutors.directExecutor();
 
     // Act
-    PhysicalDevicePanel panel = new PhysicalDevicePanel(supplier, executor);
+    myPanel = new PhysicalDevicePanel(newPhysicalDeviceChangeListener, supplier, executor);
 
     // Assert
-    assertEquals(Collections.singletonList(Arrays.asList(device, "API", "Type", "Actions")), panel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(device, "API", "Type", "Actions")), myPanel.getData());
   }
 }

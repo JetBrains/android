@@ -18,8 +18,10 @@ package com.android.tools.idea.deviceManager.physicaltab;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -28,6 +30,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.JTable;
@@ -35,16 +38,20 @@ import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> {
+final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
+  private final @NotNull Supplier<@NotNull Disposable> myNewPhysicalDeviceChangeListener;
   private @Nullable JTable myTable;
 
-  public PhysicalDevicePanel(@Nullable Project project) {
-    this(new PhysicalDeviceAsyncSupplier(project), EdtExecutorService.getInstance());
+  PhysicalDevicePanel(@Nullable Project project) {
+    this(PhysicalDeviceChangeListener::new, new PhysicalDeviceAsyncSupplier(project), EdtExecutorService.getInstance());
   }
 
   @VisibleForTesting
-  PhysicalDevicePanel(@NotNull PhysicalDeviceAsyncSupplier supplier, @NotNull Executor executor) {
+  PhysicalDevicePanel(@NotNull Supplier<@NotNull Disposable> newPhysicalDeviceChangeListener,
+                      @NotNull PhysicalDeviceAsyncSupplier supplier,
+                      @NotNull Executor executor) {
     super(new BorderLayout());
+    myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
 
     add(new JBTable(new PhysicalDeviceTableModel()).getTableHeader(), BorderLayout.NORTH);
     add(new JBLabel("No physical devices added. Connect a device via USB cable.", SwingConstants.CENTER), BorderLayout.CENTER);
@@ -62,7 +69,11 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> {
     @Override
     public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
       assert devices != null;
-      JTable table = new JBTable(new PhysicalDeviceTableModel(devices));
+      PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+
+      Disposer.register(myPanel, myPanel.myNewPhysicalDeviceChangeListener.get());
+
+      JTable table = new JBTable(model);
 
       myPanel.myTable = table;
 
@@ -74,6 +85,10 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> {
     public void onFailure(@NotNull Throwable throwable) {
       Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
     }
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @VisibleForTesting
