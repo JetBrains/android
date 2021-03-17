@@ -21,6 +21,8 @@ import static org.mockito.Mockito.when;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -28,6 +30,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GradleApkProviderTestCase extends AndroidGradleTestCase {
+  protected IDevice mockDevice() {
+    IDevice mock = mock(IDevice.class);
+    AndroidVersion version = new AndroidVersion(21, null);
+    when(mock.getVersion()).thenReturn(version);
+    return mock;
+  }
+
   protected static class PostBuildModelProviderStub implements PostBuildModelProvider {
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
