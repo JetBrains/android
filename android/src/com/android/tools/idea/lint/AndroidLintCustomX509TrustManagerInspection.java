@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.X509TrustManagerDetector;
 import org.jetbrains.android.util.AndroidBundle;
 
-public class AndroidLintTrustAllX509TrustManagerInspection extends AndroidLintInspectionBase {
-  public AndroidLintTrustAllX509TrustManagerInspection() {
-    super(AndroidBundle.message("android.lint.inspections.trust.all.x509.trust.manager"), X509TrustManagerDetector.TRUSTS_ALL);
+public class AndroidLintCustomX509TrustManagerInspection extends AndroidLintInspectionBase {
+  public AndroidLintCustomX509TrustManagerInspection() {
+    super(AndroidBundle.message("android.lint.inspections.custom.x509.trust.manager"), X509TrustManagerDetector.IMPLEMENTS_CUSTOM);
   }
 }
