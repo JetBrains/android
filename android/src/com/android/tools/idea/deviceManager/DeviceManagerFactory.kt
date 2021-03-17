@@ -16,6 +16,7 @@
 package com.android.tools.idea.deviceManager
 
 import com.android.tools.idea.deviceManager.groups.DeviceGroupsTabPanel
+import com.android.tools.idea.deviceManager.physicaltab.PhysicalTabContent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
@@ -32,13 +33,11 @@ import javax.swing.JComponent
 // It should match id in a corresponding .xml
 const val DEVICE_MANAGER_ID = "Device Manager"
 const val emulatorTabName = "Emulator"
-const val physicalTabName = "Physical"
 const val deviceGroupsTabName = "Device Groups"
 
 class DeviceManagerFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val emulatorTab = EmulatorTab(project, toolWindow)
-    val physicalTab = PhysicalTab(project, toolWindow)
     val contentFactory = ContentFactory.SERVICE.getInstance()
 
     fun createTab(content: JComponent, name: String) {
@@ -46,7 +45,8 @@ class DeviceManagerFactory : ToolWindowFactory {
     }
 
     createTab(emulatorTab.content, emulatorTabName)
-    createTab(physicalTab.content, physicalTabName)
+    toolWindow.contentManager.addContent(PhysicalTabContent.create(contentFactory, project))
+
     if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {
       createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
     }
