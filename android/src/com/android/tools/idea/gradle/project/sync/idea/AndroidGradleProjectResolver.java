@@ -847,11 +847,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void preImportCheck() {
-    // FIXME-ank4: it should be OK to import gradle project in IDEA without Android SDK
-    if (!IdeInfo.getInstance().isAndroidStudio()){
-      return;
-    }
-
     // Don't run pre-import checks for the buildSrc project.
     if (resolverCtx.getBuildSrcGroup() != null) {
       return;
@@ -867,7 +862,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     displayInternalWarningIfForcedUpgradesAreDisabled();
     expireProjectUpgradeNotifications(myProjectFinder.findProject(resolverCtx));
 
-    cleanUpHttpProxySettings();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
+      // (https://youtrack.jetbrains.com/issue/IDEA-245273, see BaseResolverExtension#getExtraJvmArgs)
+      // To be discussed with the AOSP team to find a way to unify configuration across IDEA and AndroidStudio.
+      cleanUpHttpProxySettings();
+    }
   }
 
   @Override
