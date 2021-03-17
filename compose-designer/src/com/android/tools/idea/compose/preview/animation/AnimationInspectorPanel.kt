@@ -268,6 +268,10 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     // Reset tab names, so when new tabs are added they start as #1
     tabNamesCount.clear()
     timeline.cachedVal = -1 // Reset the timeline cached value, so when new tabs are added, any new value will trigger an update
+    // The animation panel might not have the focus when the "No animations" panel is displayed, i.e. when a live literal is changed in the
+    // editor and we need to refresh the animation preview so it displays the most up-to-date animations. For that reason, we need to make
+    // sure the animation panel is repainted correctly.
+    repaint()
   }
 
   /**
