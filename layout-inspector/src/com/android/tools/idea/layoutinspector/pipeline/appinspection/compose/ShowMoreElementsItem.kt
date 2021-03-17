@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
  */
 class ShowMoreElementsItem(
   val array: ParameterGroupItem
-): ParameterItem("...", PropertyType.STRING, null, array.viewId, array.lookup, array.rootId, array.lastRealChildReferenceIndex + 1),
+): ParameterItem("...", PropertyType.SHOW_MORE_LINK, null, array.viewId, array.lookup, array.rootId, array.lastRealChildReferenceIndex + 1),
    LinkPropertyItem
 {
   override val link = object : AnAction("Show More") {

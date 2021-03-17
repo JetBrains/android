@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.ptable2.PTableItem
@@ -34,7 +35,7 @@ class EmptyTablePanelTest {
   fun testUpdates() {
     val addAction = AddAction()
     val pTableModel = MyPTableModel()
-    val tableLineModel = FakeTableLineModel(pTableModel, false)
+    val tableLineModel = FakeTableLineModel(pTableModel, mock(), false)
     val panel = EmptyTablePanel(addAction, tableLineModel)
     assertThat(panel.isVisible).isTrue()
 

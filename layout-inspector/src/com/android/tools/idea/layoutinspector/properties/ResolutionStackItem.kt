@@ -37,4 +37,9 @@ class ResolutionStackItem(
   property.group,
   reference,
   property.viewId,
-  property.lookup)
+  property.lookup) {
+
+  /** This item need a ResolutionEditor for display */
+  override val needsResolutionEditor: Boolean
+    get() = true
+}

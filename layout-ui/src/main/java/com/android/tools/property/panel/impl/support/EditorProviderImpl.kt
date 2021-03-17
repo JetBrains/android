@@ -77,6 +77,9 @@ class EditorProviderImpl<in P : PropertyItem>(
         val editor = PropertyLink(model)
         Pair(model, addActionButtonBinding(model, editor))
       }
+
+      ControlType.CUSTOM_EDITOR_1,   // Placeholders for custom controls
+      ControlType.CUSTOM_EDITOR_2 -> throw NotImplementedError()
     }
 
   private fun createComboBoxEditor(property: P,

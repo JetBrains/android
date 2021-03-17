@@ -25,6 +25,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
+import org.jetbrains.annotations.VisibleForTesting
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
@@ -43,7 +44,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     private set
 
   override var properties: PropertiesTable<InspectorPropertyItem> = PropertiesTable.emptyTable()
-    private set
+    @VisibleForTesting set
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   var layoutInspector: LayoutInspector? by Delegates.observable(null, ::inspectorChanged)
