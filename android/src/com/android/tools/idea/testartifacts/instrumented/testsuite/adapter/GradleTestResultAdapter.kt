@@ -95,10 +95,6 @@ class GradleTestResultAdapter(device: IDevice,
     myTestSuite.result = testSuiteResult.testStatus.toAndroidTestSuiteResult()
     listener.onTestSuiteFinished(device, myTestSuite)
   }
-
-  override fun onError() {}
-
-  override fun onComplete() {}
 }
 
 private fun TestCaseProto.TestCase.toTestIdentifier(): TestIdentifier {

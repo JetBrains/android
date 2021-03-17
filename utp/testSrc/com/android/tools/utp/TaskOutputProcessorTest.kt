@@ -68,7 +68,6 @@ class TaskOutputProcessorTest {
       ${testCaseStartedEvent()}
       ${testCaseFinishedEvent()}
       ${testSuiteFinishedEvent()}
-      <UTP_TEST_RESULT_ON_COMPLETED />
       > Task :app:connectedDebugAndroidTest
       """.trimIndent()
     val processor = TaskOutputProcessor(mapOf("" to mockListener))
@@ -87,7 +86,6 @@ class TaskOutputProcessorTest {
       verify(mockListener).onTestCaseStarted(eq(TestCaseProto.TestCase.getDefaultInstance()))
       verify(mockListener).onTestCaseFinished(eq(TestResultProto.TestResult.getDefaultInstance()))
       verify(mockListener).onTestSuiteFinished(eq(TestSuiteResultProto.TestSuiteResult.getDefaultInstance()))
-      verify(mockListener).onComplete()
       verifyNoMoreInteractions()
     }
   }
