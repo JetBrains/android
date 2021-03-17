@@ -57,4 +57,8 @@ open class InspectorGroupPropertyItem(
     this(namespace, name, type, value, classLocation, group, source, viewId, lookup, mutableListOf<InspectorPropertyItem>()) {
     stack.mapTo(children as MutableList) { (reference, value) -> ResolutionStackItem(this, reference, value) }
   }
+
+  /** This item need a ResolutionEditor for display */
+  override val needsResolutionEditor: Boolean
+    get() = true
 }

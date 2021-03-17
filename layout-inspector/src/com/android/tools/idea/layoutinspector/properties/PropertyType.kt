@@ -43,4 +43,5 @@ enum class PropertyType {
   LAMBDA,
   FUNCTION_REFERENCE,
   ITERABLE,
+  SHOW_MORE_LINK,
 }

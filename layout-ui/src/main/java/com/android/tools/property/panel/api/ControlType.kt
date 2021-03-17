@@ -29,4 +29,6 @@ enum class ControlType {
   FLAG_EDITOR,
   COLOR_EDITOR,
   LINK_EDITOR,
+  CUSTOM_EDITOR_1,
+  CUSTOM_EDITOR_2,
 }

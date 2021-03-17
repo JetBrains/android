@@ -77,6 +77,10 @@ open class InspectorPropertyItem(
       dimensionValue = computeDimensionValue(value)
     }
 
+  /** Return true if this property has details that will require a ResolutionEditor */
+  open val needsResolutionEditor: Boolean
+    get() = false
+
   /**
    * The integer value of a dimension or -1 for other types.
    *
