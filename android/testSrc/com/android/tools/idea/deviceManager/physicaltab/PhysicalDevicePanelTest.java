@@ -24,7 +24,7 @@ import com.intellij.openapi.util.Disposer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Test;
@@ -45,9 +45,9 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanel() {
     // Arrange
-    Supplier<Disposable> newPhysicalDeviceChangeListener = () -> Mockito.mock(Disposable.class);
+    Function<PhysicalDeviceTableModel, Disposable> newPhysicalDeviceChangeListener = model -> Mockito.mock(Disposable.class);
 
-    PhysicalDevice device = new PhysicalDevice("86UX00F4R");
+    PhysicalDevice device = PhysicalDevice.newConnectedDevice("86UX00F4R");
 
     PhysicalDeviceAsyncSupplier supplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
     Mockito.when(supplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(device)));

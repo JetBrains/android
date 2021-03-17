@@ -30,7 +30,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.JTable;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
-  private final @NotNull Supplier<@NotNull Disposable> myNewPhysicalDeviceChangeListener;
+  private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
   private @Nullable JTable myTable;
 
   PhysicalDevicePanel(@Nullable Project project) {
@@ -47,7 +47,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   }
 
   @VisibleForTesting
-  PhysicalDevicePanel(@NotNull Supplier<@NotNull Disposable> newPhysicalDeviceChangeListener,
+  PhysicalDevicePanel(@NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Executor executor) {
     super(new BorderLayout());
@@ -71,7 +71,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
       assert devices != null;
       PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
-      Disposer.register(myPanel, myPanel.myNewPhysicalDeviceChangeListener.get());
+      Disposer.register(myPanel, myPanel.myNewPhysicalDeviceChangeListener.apply(model));
 
       JTable table = new JBTable(model);
 

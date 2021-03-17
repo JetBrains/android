@@ -15,23 +15,31 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.Disposable;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeListener {
+  private final @NotNull PhysicalDeviceTableModel myModel;
+
   /**
    * Called by the event dispatch thread
    */
-  PhysicalDeviceChangeListener() {
+  @UiThread
+  PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
+    myModel = model;
     AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
   /**
    * Called by the event dispatch thread
    */
+  @UiThread
   @Override
   public void dispose() {
     AndroidDebugBridge.removeDeviceChangeListener(this);
@@ -40,20 +48,31 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   /**
    * Called by the device list monitor thread
    */
+  @WorkerThread
   @Override
   public void deviceConnected(@NotNull IDevice device) {
+    EdtExecutorService.getInstance().execute(() -> {
+      PhysicalDevice connectedDevice = PhysicalDevice.newConnectedDevice(device.getSerialNumber());
+      myModel.handleConnectedDevice(connectedDevice);
+    });
   }
 
   /**
    * Called by the device list monitor thread
    */
+  @WorkerThread
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
+    EdtExecutorService.getInstance().execute(() -> {
+      PhysicalDevice disconnectedDevice = PhysicalDevice.newDisconnectedDevice(device.getSerialNumber());
+      myModel.handleDisconnectedDevice(disconnectedDevice);
+    });
   }
 
   /**
    * Called by the device list monitor and the device client monitor threads
    */
+  @WorkerThread
   @Override
   public void deviceChanged(@NotNull IDevice device, int mask) {
   }
