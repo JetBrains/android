@@ -209,6 +209,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     val pageHeader: String
     val treeText: String
     val helpLinkUrl: String?
+    val shortDescription: String?
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -249,6 +250,8 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
       get() = processor.commandName
     override val helpLinkUrl: String?
       get() = processor.getReadMoreUrl()
+    override val shortDescription: String?
+      get() = processor.getShortDescription()
   }
 }
 
@@ -401,8 +404,15 @@ class ContentManager(val project: Project) {
         }
         is ToolWindowModel.StepUiPresentation -> {
           val text = StringBuilder("<h4><b>${selectedStep.pageHeader}</b></h4>")
+          val paragraph = selectedStep.helpLinkUrl != null || selectedStep.shortDescription != null
+          if (paragraph) text.append("<p>")
+          selectedStep.shortDescription?.let { description ->
+            text.append(description.replace("\n", "<br>"))
+            selectedStep.helpLinkUrl?.let { text.append("  ") }
+          }
           selectedStep.helpLinkUrl?.let { url ->
-            text.append("<p><a href='$url'>Read more</a>.</p>")
+            // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
+            text.append("<a href='$url'>Read more</a>.")
           }
           label.text = text.toString()
           detailsPanel.add(label)
