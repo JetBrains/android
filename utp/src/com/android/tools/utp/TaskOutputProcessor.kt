@@ -31,8 +31,6 @@ class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener
   companion object {
     const val ON_RESULT_OPENING_TAG = "<UTP_TEST_RESULT_ON_TEST_RESULT_EVENT>"
     const val ON_RESULT_CLOSING_TAG = "</UTP_TEST_RESULT_ON_TEST_RESULT_EVENT>"
-    const val ON_COMPLETED_TAG = "<UTP_TEST_RESULT_ON_COMPLETED />"
-    const val ON_ERROR_TAG = "<UTP_TEST_RESULT_ON_ERROR />"
   }
 
   /**
@@ -53,14 +51,6 @@ class TaskOutputProcessor(val listeners: Map<String, TaskOutputProcessorListener
         val base64EncodedProto = trimmedLine.removeSurrounding(ON_RESULT_OPENING_TAG, ON_RESULT_CLOSING_TAG)
         val eventProto = decodeBase64EncodedProto(base64EncodedProto)
         processEvent(eventProto)
-        true
-      }
-      trimmedLine == ON_ERROR_TAG -> {
-        listeners.values.forEach(TaskOutputProcessorListener::onError)
-        true
-      }
-      trimmedLine == ON_COMPLETED_TAG -> {
-        listeners.values.forEach(TaskOutputProcessorListener::onComplete)
         true
       }
       else -> false

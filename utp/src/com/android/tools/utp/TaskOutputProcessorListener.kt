@@ -43,15 +43,4 @@ interface TaskOutputProcessorListener {
    * Called when a test suite execution is finished.
    */
   fun onTestSuiteFinished(testSuiteResult: TestSuiteResult)
-
-  /**
-   * Called when an error happens in AGP/UTP communication. If this method is invoked,
-   * it's the last method call and no more methods including [onComplete] are invoked.
-   */
-  fun onError()
-
-  /**
-   * Called when all test result events are processed successfully.
-   */
-  fun onComplete()
 }
