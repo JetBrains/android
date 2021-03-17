@@ -40,7 +40,6 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
@@ -54,17 +53,16 @@ import java.util.EventListener
 import javax.swing.JButton
 import javax.swing.JTree
 import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
-internal class ToolWindowModel(val project: Project, val current: GradleVersion) {
+class ToolWindowModel(val project: Project, val current: GradleVersion) {
 
   val selectedVersion = OptionalValueProperty<GradleVersion>(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
-  private var processor: AgpUpgradeRefactoringProcessor? = null
+  var processor: AgpUpgradeRefactoringProcessor? = null
 
   //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
@@ -148,25 +146,38 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
       showLoadingState.set(false)
     }
     else {
-      ApplicationManager.getApplication().executeOnPooledThread {
-        newProcessor.ensureParsedModels()
-
-        val projectFilesClean = isCleanEnoughProject(project)
-        invokeLater(ModalityState.NON_MODAL) {
-          if (!projectFilesClean) {
-            runEnabled.set(false)
-            runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                                   "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                                   "can be handled separately.")
-          }
-          else {
-            refreshTree(newProcessor)
-            runEnabled.set(true)
-          }
-          showLoadingState.set(false)
-        }
+      val application = ApplicationManager.getApplication()
+      if (application.isUnitTestMode) {
+        parseAndSetEnabled(newProcessor)
+      } else {
+        application.executeOnPooledThread { parseAndSetEnabled(newProcessor) }
       }
     }
+  }
+
+  private fun parseAndSetEnabled(newProcessor: AgpUpgradeRefactoringProcessor) {
+    val application = ApplicationManager.getApplication()
+    newProcessor.ensureParsedModels()
+    val projectFilesClean = isCleanEnoughProject(project)
+    if (application.isUnitTestMode) {
+      setEnabled(newProcessor, projectFilesClean)
+    } else {
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean) }
+    }
+  }
+
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
+    if (!projectFilesClean) {
+      runEnabled.set(false)
+      runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                             "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                             "can be handled separately.")
+    }
+    else {
+      refreshTree(newProcessor)
+      runEnabled.set(true)
+    }
+    showLoadingState.set(false)
   }
 
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
