@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
@@ -378,7 +379,7 @@ public class GradleApkProvider implements ApkProvider {
 
     ModelCache modelCache = ModelCache.create();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
+      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
         throw new ApkProvisionException(
           "Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
@@ -391,7 +392,7 @@ public class GradleApkProvider implements ApkProvider {
       }
     }
     else {
-      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(facet);
+      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
         return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
       }

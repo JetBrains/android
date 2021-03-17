@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.build.OutputFile;
 import com.android.builder.model.AppBundleProjectBuildOutput;
@@ -145,7 +146,7 @@ public class BuildsToPathsMapper {
   private static File tryToGetOutputPostBuildApkFile(@NotNull Module module,
                                                      @NotNull PostBuildModel postBuildModel,
                                                      @NotNull String buildVariant) {
-    ProjectBuildOutput projectBuildOutput = postBuildModel.findProjectBuildOutput(module);
+    ProjectBuildOutput projectBuildOutput = postBuildModel.findProjectBuildOutput(getGradlePath(module));
     if (projectBuildOutput == null) {
       return null;
     }
@@ -168,7 +169,7 @@ public class BuildsToPathsMapper {
   private static File tryToGetOutputPostBuildBundleFile(@NotNull Module module,
                                                         @NotNull PostBuildModel postBuildModel,
                                                         @NotNull String buildVariant) {
-    AppBundleProjectBuildOutput appBundleProjectBuildOutput = postBuildModel.findAppBundleProjectBuildOutput(module);
+    AppBundleProjectBuildOutput appBundleProjectBuildOutput = postBuildModel.findAppBundleProjectBuildOutput(getGradlePath(module));
     if (appBundleProjectBuildOutput == null) {
       return null;
     }
@@ -186,7 +187,7 @@ public class BuildsToPathsMapper {
   private static File tryToGetOutputPostBuildInstantApp(@NotNull Module module,
                                                         @NotNull PostBuildModel postBuildModel,
                                                         @NotNull String buildVariant) {
-    InstantAppProjectBuildOutput instantAppProjectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(module);
+    InstantAppProjectBuildOutput instantAppProjectBuildOutput = postBuildModel.findInstantAppProjectBuildOutput(getGradlePath(module));
     if (instantAppProjectBuildOutput == null) {
       return null;
     }
