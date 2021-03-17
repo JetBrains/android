@@ -30,6 +30,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -102,8 +103,10 @@ public final class SdkSync {
               error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
             }
             String format =
-              "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
-            Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
+              "%1$s\n\n%3$s will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
+            Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath(),
+                                                   ApplicationNamesInfo.getInstance().getFullProductName()),
+                                     ERROR_DIALOG_TITLE);
           }
           setProjectSdk(localProperties, ideAndroidSdkPath);
         });
@@ -142,24 +145,25 @@ public final class SdkSync {
     }
 
     if (!filesEqual(ideAndroidSdkPath, projectAndroidSdkPath)) {
-      String msg = String.format("The project and Android Studio point to different Android SDKs.\n\n" +
-                                 "Android Studio's default SDK is in:\n" +
+      String msg = String.format("The project and %3$s point to different Android SDKs.\n\n" +
+                                 "%3$s's default SDK is in:\n" +
                                  "%1$s\n\n" +
                                  "The project's SDK (specified in local.properties) is in:\n" +
                                  "%2$s\n\n" +
                                  "To keep results consistent between IDE and command line builds, only one path can be used. " +
                                  "Do you want to:\n\n" +
-                                 "[1] Use Android Studio's default SDK (modifies the project's local.properties file.)\n\n" +
-                                 "[2] Use the project's SDK (modifies Android Studio's default.)\n\n" +
+                                 "[1] Use %3$s's default SDK (modifies the project's local.properties file.)\n\n" +
+                                 "[2] Use the project's SDK (modifies %3$s's default.)\n\n" +
                                  "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
                                  "necessary Android platforms or build tools.",
-                                 ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
+                                 ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath(),
+                                 ApplicationNamesInfo.getInstance().getFullProductName());
       ApplicationManager.getApplication().invokeAndWait(() -> {
         // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
         // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
         // showing a message, to ensure that the message shows in the IDE instance containing the project.
         boolean result = MessageDialogBuilder.yesNo("Android SDK Manager", msg)
-          .yesText("Use Android Studio's SDK")
+          .yesText("Use " + ApplicationNamesInfo.getInstance().getFullProductName() + "'s SDK")
           .noText("Use Project's SDK")
           .ask(project);
         if (result) {
