@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.google.common.base.Joiner;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -31,12 +30,6 @@ import org.jetbrains.annotations.NotNull;
  * Find the best output for the selected device and variant when multiple splits are available.
  */
 class BestOutputFinder {
-  @NotNull
-  File findBestOutput(@NotNull IdeVariant variant,
-                      @NotNull List<String> abis,
-                      @NotNull List<IdeAndroidArtifactOutput> outputs) throws ApkProvisionException {
-    return findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), abis, outputs);
-  }
 
   @NotNull
   File findBestOutput(@NotNull String variantDisplayName,
@@ -51,12 +44,6 @@ class BestOutputFinder {
     verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, outputs.size());
     // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
     return apkFiles.get(0);
-  }
-
-  @NotNull
-  File findBestOutput(@NotNull IdeVariant variant, @NotNull List<String> abis, @NotNull GenericBuiltArtifacts builtArtifact)
-    throws ApkProvisionException {
-    return findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), abis, builtArtifact);
   }
 
   @NotNull

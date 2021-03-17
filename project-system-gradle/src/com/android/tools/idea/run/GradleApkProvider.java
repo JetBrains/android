@@ -349,7 +349,8 @@ public class GradleApkProvider implements ApkProvider {
     if (builtArtifacts == null) {
       throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
     }
-    return myBestOutputFinder.findBestOutput(variant, deviceAbis, builtArtifacts);
+    return myBestOutputFinder
+      .findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, builtArtifacts);
   }
 
   @NotNull
@@ -360,7 +361,7 @@ public class GradleApkProvider implements ApkProvider {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
     @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return myBestOutputFinder.findBestOutput(variant, deviceAbis, outputs);
+    return myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
   }
 
   @NotNull
@@ -428,7 +429,7 @@ public class GradleApkProvider implements ApkProvider {
     // In this case we try to get an APK known at sync time, if any.
     return outputs.isEmpty()
            ? getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact)
-           : myBestOutputFinder.findBestOutput(variant, deviceAbis, outputs);
+           : myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
   }
 
   /**
