@@ -49,12 +49,13 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
 
   private val mockAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
     override fun getTotalBuildTimeMs(): Long = 10000
+    override fun getConfigurationPhaseTimeMs(): Long = 1000
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule1)
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
       project(":module1", 1000, listOf(
         plugin(pluginA, 200),
         plugin(pluginB, 100),
-        plugin(pluginC, 700)
+        plugin(pluginC, 600)
       ))
     )
 
