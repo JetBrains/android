@@ -800,6 +800,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 
   open fun getReadMoreUrl(): String? = null
 
+  open fun getShortDescription(): String? = null
+
   /**
    * Return whether this refactoring processor is known to perform no changes to the project, no matter what the settings
    * of the processor are; a return value of false may nevertheless lead to no changes, but true must never be returned
