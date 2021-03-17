@@ -24,6 +24,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -381,6 +382,11 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         if (Messages.showYesNoDialog(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.restart.needed")),
                                      IdeBundle.message("title.restart.needed"),
                                      Messages.getQuestionIcon()) == Messages.YES) {
+
+          // workaround for b/182536388
+          // ApplicationImpl hides all frames, that cause deadlock in AWT
+          Registry.get("ide.instant.shutdown").setValue(false);
+
           ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
         }
         changed = true;
