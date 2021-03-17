@@ -510,7 +510,7 @@ public class GradleApkProvider implements ApkProvider {
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         myOutputKindProvider.apply(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
-        androidModuleModel.getMainArtifact().isSigned()) {
+        isArtifactSigned(androidModuleModel)) {
       return ImmutableList.of();
     }
 
@@ -633,6 +633,11 @@ public class GradleApkProvider implements ApkProvider {
       assert output != null;
       return output.getOutputFile();
     }
+  }
+
+  private boolean isArtifactSigned(AndroidModuleModel androidModuleModel) {
+    IdeAndroidArtifact artifact = myTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
+    return artifact != null && artifact.isSigned();
   }
 
   @NotNull
