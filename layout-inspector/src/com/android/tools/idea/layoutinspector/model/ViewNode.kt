@@ -92,9 +92,6 @@ open class ViewNode(
   val unqualifiedName: String
     get() = qualifiedName.substringAfterLast('.')
 
-  // TODO: move to draw node
-  var visible = true
-
   val isDimBehind: Boolean
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
