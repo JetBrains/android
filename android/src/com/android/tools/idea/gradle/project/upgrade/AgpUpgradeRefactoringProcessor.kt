@@ -1313,6 +1313,13 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
   override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
 
+  override fun getShortDescription(): String? =
+    """
+      The default Java Language Level is now Java 8, rather than the previous
+      Java 7.  If your project requires building with Java 7, the project's
+      build files need explicit Language Level directives.
+    """.trimIndent()
+
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
 
@@ -1483,6 +1490,23 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
   }
 
   override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration"
+
+  override fun getShortDescription(): String? = let {
+    val mandatory = necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
+    if (mandatory)
+      """
+        Some dependencies have been added to configurations which have been
+        removed.  Those configurations must be replaced with their updated
+        equivalents.
+      """.trimIndent()
+    else
+      """
+        Some dependencies have been added to configurations which have been
+        deprecated.  Those configurations should be replaced with their
+        updated equivalents.
+      """.trimIndent()
+  }
+
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(COMPILE_RUNTIME_CONFIGURATION)
