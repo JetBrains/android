@@ -60,9 +60,9 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.wizard.template.SKIP_LINE
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
+import com.android.tools.idea.wizard.template.withoutSkipLines
 import com.android.utils.XmlUtils.XML_PROLOG
 import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
@@ -691,11 +691,6 @@ private const val OTHER_CONFIGURATION = "__other__"
  */
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
-
-private fun CharSequence.withoutSkipLines() = this.split("\n")
-  .filter { it.trim() != SKIP_LINE }
-  .joinToString("\n")
-  .replace(SKIP_LINE, "") // for some SKIP_LINEs which are not on their own line
 
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
