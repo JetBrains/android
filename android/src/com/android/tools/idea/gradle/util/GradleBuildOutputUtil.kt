@@ -155,10 +155,10 @@ private fun getOutputListingFileFromVariantBuildInformation(androidModel: Androi
   }
   buildInformation ?: return null
   return when (outputType) {
-    OutputType.Apk -> buildInformation.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> buildInformation.apkFromBundleTaskOutputListingFile
+    OutputType.Apk -> buildInformation.buildInformation.assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> buildInformation.buildInformation.apkFromBundleTaskOutputListingFile
     else -> { // OutputType.Bundle
-      buildInformation.bundleTaskOutputListingFile
+      buildInformation.buildInformation.bundleTaskOutputListingFile
     }
   }
 }
@@ -170,10 +170,10 @@ private fun getOutputListingFileFromVariantBuildInformation(androidModel: Androi
  */
 private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArtifact, outputType: OutputType): String? {
   return when (outputType) {
-    OutputType.Apk -> testArtifact.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> testArtifact.apkFromBundleTaskOutputListingFile
+    OutputType.Apk -> testArtifact.buildInformation.assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> testArtifact.buildInformation.apkFromBundleTaskOutputListingFile
     else -> { // OutputType.Bundle
-      testArtifact.bundleTaskOutputListingFile
+      testArtifact.buildInformation.bundleTaskOutputListingFile
     }
   }
 }

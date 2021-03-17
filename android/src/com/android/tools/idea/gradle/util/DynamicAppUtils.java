@@ -195,7 +195,7 @@ public class DynamicAppUtils {
     if (androidModule == null) {
       return false;
     }
-    return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBundleTaskName());
+    return !StringUtil.isEmpty(androidModule.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName());
   }
 
   /**
