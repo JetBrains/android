@@ -26,7 +26,6 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
-import com.android.ide.common.repository.GradleVersion
 import kotlinx.collections.immutable.toImmutableMap
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
@@ -34,6 +33,7 @@ interface BuildEventsAnalysisResult {
   fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getTotalBuildTimeMs(): Long
+  fun getConfigurationPhaseTimeMs(): Long
   fun getCriticalPathTasks(): List<TaskData>
   fun getTasksDeterminingBuildDuration(): List<TaskData>
   fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
@@ -111,6 +111,16 @@ class BuildEventsAnalyzersProxy(
 
   override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> {
     return annotationProcessorsAnalyzer.result.nonIncrementalAnnotationProcessorsData
+  }
+
+  /** Time that includes task graph computation and other configuration activities before the tasks execution starts. */
+  override fun getConfigurationPhaseTimeMs(): Long {
+    return criticalPathAnalyzer.result.run {
+      val firstTaskStartTime = tasksDeterminingBuildDuration.minBy { it.executionStartTime } ?.executionStartTime
+      // TODO (b/183590011): also change starting point based on first configuration event
+      // If there are no tasks on critical path (no-op build?) let's use buildFinishedTimestamp.
+      (firstTaskStartTime ?: buildFinishedTimestamp) - buildStartedTimestamp
+    }
   }
 
   override fun getTotalBuildTimeMs(): Long {
