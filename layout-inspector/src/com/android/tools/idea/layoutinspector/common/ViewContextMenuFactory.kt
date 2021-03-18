@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.common
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -32,7 +33,6 @@ import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.containers.toArray
 import com.intellij.util.text.nullize
 import icons.StudioIcons
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -68,19 +68,19 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
           val topView = views.first()
           result.add(object : AnAction("Hide Subtree") {
             override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
               inspectorModel.hideSubtree(topView)
             }
           })
           result.add(object : AnAction("Show Only Subtree") {
             override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
               inspectorModel.showOnlySubtree(topView)
             }
           })
           result.add(object : AnAction("Show Only Parents") {
             override fun actionPerformed(event: AnActionEvent) {
-              client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, -1f)
+              client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
               inspectorModel.showOnlyParents(topView)
             }
           })

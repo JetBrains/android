@@ -133,7 +133,7 @@ interface InspectorClient {
   /**
    * Set the requested screenshot type and zoom to be provided by the device.
    */
-  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float = 1.0f) {}
+  fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float = 1.0f) {}
 
   /**
    * Report this client's capabilities so that external systems can check what functionality is

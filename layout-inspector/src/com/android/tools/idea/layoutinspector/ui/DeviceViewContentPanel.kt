@@ -41,7 +41,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
@@ -182,14 +181,15 @@ class DeviceViewContentPanel(
     inspectorModel.modificationListeners.add { _, _, _ ->
       // SKP is needed if the view is rotated or if anything is hidden. We have to check on each update, since previously-hidden nodes
       // may have been removed.
-      if (model.pictureType == AndroidWindow.ImageType.SKP && !model.isRotated && !inspectorModel.hasHiddenNodes()) {
+      val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
+      if (inspectorModel.pictureType == AndroidWindow.ImageType.SKP &&
+          client?.isCapturing == true &&
+          !model.isRotated && !inspectorModel.hasHiddenNodes()) {
         // We know for sure there's not a hidden descendant now, so update the field in case it was out of date.
         if (toResetCount++ > FRAMES_BEFORE_RESET_TO_BITMAP) {
           toResetCount = 0
-          val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
-          if (client?.isConnected == true) {
-            client.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP, -1f)
-          }
+          // Be sure to reset the scale as well, since if we were previously paused the scale will be set to 1.
+          client.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, viewSettings.scaleFraction.toFloat())
         }
       }
       else {
