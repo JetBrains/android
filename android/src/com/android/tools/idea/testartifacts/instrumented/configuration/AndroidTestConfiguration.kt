@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.configuration
 
-import com.intellij.openapi.application.ApplicationInfo
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.RoamingType
 import com.intellij.openapi.components.ServiceManager
@@ -28,9 +26,8 @@ import com.intellij.util.xmlb.XmlSerializerUtil
        storages = [Storage(value = "android-test-configuration.xml",
                            roamingType = RoamingType.DISABLED)])
 data class AndroidTestConfiguration(
-  // Use the new Android Test Matrix for both single and multi-device test results
-  // TODO(b/162020400): Change default value to true once the new view is stabilized.
-  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = !isStableBuild(),
+  // Use the new Android Test Matrix for both single and multi-device test results.
+  var ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX: Boolean = true,
   // Show the opt-in banner in the legacy results UI.
   var SHOW_ANDROID_TEST_MATRIX_OPT_IN_BANNER: Boolean = true
 ) : PersistentStateComponent<AndroidTestConfiguration> {
@@ -42,9 +39,4 @@ data class AndroidTestConfiguration(
   override fun loadState(state: AndroidTestConfiguration) {
     XmlSerializerUtil.copyBean(state, this)
   }
-}
-
-private fun isStableBuild(): Boolean {
-  val app = ApplicationManager.getApplication() ?: return false
-  return !(app.isInternal || app.isEAP || ApplicationInfo.getInstance().build.isSnapshot)
 }
