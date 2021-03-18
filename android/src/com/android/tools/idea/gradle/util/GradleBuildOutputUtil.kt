@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
@@ -62,12 +63,10 @@ enum class OutputType {
  * The related fields in [IdeAndroidArtifact] are subject to removal, after test variants being added to [IdeVariantBuildInformation] in the future.
  */
 fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, outputType: OutputType, isTest: Boolean): String? {
-  return if (isTest) {
-    androidModel.selectedVariant.androidTestArtifact?.let { getOutputListingFileFromAndroidArtifact(it, outputType) }
-  }
-  else {
-    getOutputListingFileFromVariantBuildInformation(androidModel, variantName, outputType)
-  }
+  val outputInformation =
+    if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
+    else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
+  return outputInformation?.getOutputListingFile(outputType)
 }
 
 /**
@@ -144,42 +143,21 @@ private fun getOutputType(module: Module, configuration: AndroidRunConfiguration
   }
 }
 
-/**
- * Find the output listing file to use from [IdeVariantBuildInformation].
- */
-private fun getOutputListingFileFromVariantBuildInformation(androidModel: AndroidModuleModel,
-                                                            variantName: String,
-                                                            outputType: OutputType): String? {
-  val buildInformation = androidModel.androidProject.variantsBuildInformation.firstOrNull {
-    it.variantName == variantName
-  }
-  buildInformation ?: return null
+private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
+  return firstOrNull { it.variantName == variantName }?.buildInformation
+}
+
+private fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
   return when (outputType) {
-    OutputType.Apk -> buildInformation.buildInformation.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> buildInformation.buildInformation.apkFromBundleTaskOutputListingFile
-    else -> { // OutputType.Bundle
-      buildInformation.buildInformation.bundleTaskOutputListingFile
-    }
+    OutputType.Apk -> assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
+    else -> bundleTaskOutputListingFile
   }
 }
 
-/**
- * Find the output listing file to use from [IdeAndroidArtifact].
- *
- * TODO: replace this method with [getOutputListingFileFromVariantBuildInformation] when [IdeVariantBuildInformation] contains test variants.
- */
-private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArtifact, outputType: OutputType): String? {
-  return when (outputType) {
-    OutputType.Apk -> testArtifact.buildInformation.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> testArtifact.buildInformation.apkFromBundleTaskOutputListingFile
-    else -> { // OutputType.Bundle
-      testArtifact.buildInformation.bundleTaskOutputListingFile
-    }
-  }
-}
-
-fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String) : GenericBuiltArtifacts? {
-  val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
+fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String): GenericBuiltArtifacts? {
+  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName) ?: return null
+  val listingFile = variantBuildInformation.getOutputListingFile(OutputType.Apk) ?: return null
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
     return builtArtifacts
@@ -191,11 +169,12 @@ fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: Strin
 
 class LastBuildOrSyncService {
   // Do not set outside of tests or this class!!
-  @Volatile var lastBuildOrSyncTimeStamp = -1L
+  @Volatile
+  var lastBuildOrSyncTimeStamp = -1L
     @VisibleForTesting set
 }
 
-internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAdapter() {
+internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListenerAdapter() {
   override fun onEnd(id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
       ServiceManager.getService(project, LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
@@ -228,4 +207,4 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
   LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
 
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp : Long)
+data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long)
