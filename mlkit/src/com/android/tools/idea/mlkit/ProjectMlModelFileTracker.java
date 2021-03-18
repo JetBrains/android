@@ -51,7 +51,7 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
 
     project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
-      public void after(@NotNull List<? extends VFileEvent> events) {
+      public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
         boolean hasModelFile = false;
         boolean needRebuildIndex = false;
         for (VFileEvent event : events) {

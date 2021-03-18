@@ -775,7 +775,7 @@ public class ResourceNotificationManager {
     }
 
     @Override
-    public void after(@NotNull List<? extends VFileEvent> events) {
+    public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
       events.stream()
         .filter(event -> {
           VirtualFile file = event.getFile();
