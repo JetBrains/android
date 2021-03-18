@@ -23,6 +23,7 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.helpText
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
@@ -46,10 +47,12 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
@@ -58,6 +61,8 @@ import java.awt.Container
 import java.awt.Cursor
 import java.awt.Desktop
 import java.awt.Dimension
+import java.awt.FlowLayout
+import java.awt.Graphics
 import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.event.KeyAdapter
@@ -69,6 +74,7 @@ import java.net.URI
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
 import javax.swing.JViewport
@@ -170,6 +176,32 @@ class DeviceViewPanel(
 
   private val actionToolbar: ActionToolbar
 
+  private val bubbleLabel = JLabel()
+
+  private val bubble = object: JPanel(FlowLayout()) {
+    init {
+      add(JLabel(StudioIcons.Common.INFO_INLINE))
+      add(bubbleLabel)
+      isOpaque = false
+      border = BorderFactory.createEmptyBorder(0, 5, 0, 5)
+      isVisible = false
+    }
+
+    override fun paint(g: Graphics) {
+      g.color = JBColor.WHITE
+      g.fillRoundRect(0, 1, width, height - 2, height - 2, height - 2)
+      g.color = helpText
+      super.paint(g)
+    }
+  }
+
+  private var infoText: String?
+    get() = bubbleLabel.text
+    set(text) {
+      bubbleLabel.text = text
+      bubble.isVisible = !text.isNullOrBlank()
+    }
+
   init {
     val loadingPane = JBLoadingPanel(BorderLayout(), disposableParent)
     loadingPane.addListener(object: JBLoadingPanelListener {
@@ -227,14 +259,15 @@ class DeviceViewPanel(
     add(toolbarComponent, BorderLayout.NORTH)
     loadingPane.add(layeredPane, BorderLayout.CENTER)
     add(loadingPane, BorderLayout.CENTER)
+    val model = layoutInspector.layoutInspectorModel
     processes.addSelectedProcessListeners(newSingleThreadExecutor()) {
       if (processes.selectedProcess?.isRunning == true) {
-        if (layoutInspector.layoutInspectorModel.isEmpty) {
+        if (model.isEmpty) {
           loadingPane.startLoading()
         }
       }
     }
-    layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
+    model.modificationListeners.add { old, new, _ ->
       if (old == null && new != null) {
         loadingPane.stopLoading()
       }
@@ -242,6 +275,13 @@ class DeviceViewPanel(
     contentPanel.model.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         actionToolbar.updateActionsImmediately()
+        infoText = when {
+          layoutInspector.currentClient.isCapturing && contentPanel.model.isRotated ->
+            "Device performance reduced when inspecting in 3D mode with Live Updates enabled"
+          layoutInspector.currentClient.isCapturing && model.hasHiddenNodes() ->
+            "Device performance reduced when views are hidden and Live Updates are enabled"
+          else -> null
+        }
       }
     }
 
@@ -261,10 +301,14 @@ class DeviceViewPanel(
     }
 
     layeredPane.add(floatingToolbar)
+
+    layeredPane.setLayer(bubble, JLayeredPane.PALETTE_LAYER)
+
+    layeredPane.add(bubble)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     // Zoom to fit on initial connect
-    layoutInspector.layoutInspectorModel.modificationListeners.add { _, new, _ ->
+    model.modificationListeners.add { _, new, _ ->
       if (contentPanel.model.maxWidth == 0) {
         contentPanel.model.refresh()
         if (!zoom(ZoomType.FIT)) {
@@ -290,7 +334,7 @@ class DeviceViewPanel(
         ApplicationManager.getApplication().executeOnPooledThread {
           deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
           prevZoom = viewSettings.scalePercent
-          layoutInspector.layoutInspectorModel.windows.values.forEach {
+          model.windows.values.forEach {
             it.refreshImages(viewSettings.scaleFraction)
           }
           contentPanel.model.refresh()
@@ -305,6 +349,8 @@ class DeviceViewPanel(
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
                                      layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)
+    bubble.size = bubble.preferredSize
+    bubble.location = Point(TOOLBAR_INSET, layeredPane.height - bubble.height - TOOLBAR_INSET)
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -429,6 +475,7 @@ class DeviceViewPanel(
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
+      event.getData(DEVICE_VIEW_MODEL_KEY)?.fireModified()
       val currentClient = client(event)
       if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
         when (state) {
