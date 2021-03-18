@@ -286,7 +286,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     @UiThread
     @Override
-    public void before(@NotNull List<? extends VFileEvent> events) {
+    public void before(@NotNull List<? extends @NotNull VFileEvent> events) {
       for (VFileEvent event : events) {
         if (event instanceof VFileMoveEvent) {
           onFileOrDirectoryRemoved(((VFileMoveEvent)event).getFile());
@@ -302,7 +302,7 @@ public class AndroidFileChangeListener implements Disposable {
     }
 
     @Override
-    public void after(@NotNull List<? extends VFileEvent> events) {
+    public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
       for (VFileEvent event : events) {
         if (event instanceof VFileCreateEvent) {
           VFileCreateEvent createEvent = (VFileCreateEvent)event;
