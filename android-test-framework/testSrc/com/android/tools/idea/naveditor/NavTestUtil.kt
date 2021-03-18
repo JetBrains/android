@@ -23,8 +23,6 @@ import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 private const val NAVIGATION_ID = "android.arch.navigation"
 private const val SUPPORT_ID = "com.android.support"
 
-// FIXME-ank4
-// private val REPO = Paths.get(PathManager.getHomePath()).relativize(AndroidTestPaths.prebuiltsRepo()).toString() // TODO-ank: use Path instead of String
 private val REPO = TestUtils.getPrebuiltOfflineMavenRepo().path
 private val NAVIGATION_PATH = "$REPO/android/arch/navigation"
 private val SUPPORT_PATH = "$REPO/com/android/support"
