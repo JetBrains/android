@@ -311,7 +311,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                                        @NotNull ApkProvider apkProvider,
                                                        @NotNull LaunchOptions launchOptions) {
-    if (StudioFlags.UTP_INSTRUMENTATION_TESTING.get()) {
+    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE()) {
       return new GradleAndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
                                                   TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME);
     } else {
