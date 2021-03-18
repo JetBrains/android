@@ -60,6 +60,7 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
     }
 
     assertEquals(sdk, androidSdks.computeSdkReloadingAsNeeded(
+      project,
       "ModuleName",
       "WatchedCompileTarget",
       listOf(),

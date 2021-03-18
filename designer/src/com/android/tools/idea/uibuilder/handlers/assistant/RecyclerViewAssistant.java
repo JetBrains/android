@@ -306,7 +306,12 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
         CommandProcessor.getInstance().addAffectedFiles(project, virtualFile);
       }
 
-      return PsiManager.getInstance(project).findFile(file);
+      PsiManager manager = PsiManager.getInstance(project);
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        manager.reloadFromDisk(psiFile);
+      }
+      return psiFile;
     });
   }
 

@@ -209,36 +209,47 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
       }
 
       val psi = AndroidPsiUtils.getPsiFileSafely(model.project, model.virtualFile) as? XmlFile ?: return@executeOnPooledThread
+      surface.model?.project?.let { project ->
+        (list.model as DefaultListModel).clear()
+        DumbService.getInstance(project).waitForSmartMode()
+        doLoad(psi)
+      }
+    }
+  }
 
-      ProgressManager.getInstance().executeProcessUnderProgress(
-        {
-          surface.model?.project?.let { project ->
-            val listModel = list.model as DefaultListModel
-            listModel.clear()
-            val module = surface.model?.module
-            if (module != null) {
-              DumbService.getInstance(project).runReadActionInSmartMode {
-                findReferences(psi, module).forEach { listModel.addElement(SmartPointerManager.createPointer(it)) }
-              }
-            }
-          }
-          val name = if (list.model.size == 0) {
-            "EMPTY"
-          }
-          else {
-            "LIST"
-          }
-          cardLayout.show(this, name)
-        }, EmptyProgressIndicator())
+  private fun doLoad(psiFile: XmlFile) {
+    val cancellableAction = {
+      val listModel = list.model as DefaultListModel
+      listModel.clear()
+      val module = surface.model?.module
+      if (module != null) {
+        val newReferences = findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
+        newReferences.forEach { listModel.addElement(it) }
+      }
+      val name = if (list.model.size == 0) {
+        "EMPTY"
+      }
+      else {
+        "LIST"
+      }
+      cardLayout.show(this, name)
+    }
+    repeat(1000) {
+      if (ProgressManager.getInstance().runInReadActionWithWriteActionPriority(cancellableAction, EmptyProgressIndicator())) {
+        return
+      }
+      Thread.sleep(10)
     }
   }
 }
 
 @VisibleForTesting
 fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
+  ProgressManager.checkCanceled()
   val result = mutableListOf<XmlTag>()
   val query: Query<PsiReference> = ReferencesSearch.search(psi)
   for (ref: PsiReference in query) {
+    ProgressManager.checkCanceled()
     val element = ref.element as? XmlAttributeValue ?: continue
     val file = element.containingFile as? XmlFile ?: continue
     if (!isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
@@ -279,7 +290,7 @@ private fun createEmptyPanel(): Component {
   return panel
 }
 
-private fun addLabel(text: String, container: Container, separation: Int = 0) {
+private fun addLabel(text: String, container: Container) {
   val label = JBLabel(text)
   label.isEnabled = false
   container.add(label)
