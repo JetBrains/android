@@ -62,13 +62,10 @@ final class Devices {
   }
 
   static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {
-    return getText(device.getName(), key == null ? null : key.toString(), bootOption, device.getLaunchCompatibility().getReason());
+    return getText(device.getName(), key == null ? null : key.toString(), bootOption);
   }
 
-  private static @NotNull String getText(@NotNull String device,
-                                         @Nullable String key,
-                                         @Nullable String bootOption,
-                                         @Nullable String reason) {
+  private static @NotNull String getText(@NotNull String device, @Nullable String key, @Nullable String bootOption) {
     StringBuilder builder = new StringBuilder(device);
 
     if (key != null) {
@@ -82,13 +79,6 @@ final class Devices {
       builder
         .append(" - ")
         .append(bootOption);
-    }
-
-    if (reason != null) {
-      builder
-        .append(" (")
-        .append(reason)
-        .append(')');
     }
 
     return builder.toString();
