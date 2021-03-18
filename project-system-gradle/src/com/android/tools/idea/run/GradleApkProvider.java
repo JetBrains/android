@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
@@ -512,7 +513,7 @@ public class GradleApkProvider implements ApkProvider {
       return ImmutableList.of();
     }
 
-    File outputFile = GradleUtil.getOutputFile(androidModuleModel);
+    File outputFile = getOutputFile(androidModuleModel);
     String outputFileName = outputFile == null ? "Unknown output" : outputFile.getName();
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
@@ -612,6 +613,26 @@ public class GradleApkProvider implements ApkProvider {
     return fileName.substring(0, separatorIndex);
   }
 
+  /**
+   * Get the main output APK file for the selected variant.
+   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
+   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
+   *
+   * @return the main output file for selected variant.
+   */
+  @Nullable
+  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
+    }
+    else {
+      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+      if (outputs.isEmpty()) return null;
+      IdeAndroidArtifactOutput output = getFirstItem(outputs);
+      assert output != null;
+      return output.getOutputFile();
+    }
+  }
 
   @NotNull
   private static Logger getLogger() {
