@@ -210,7 +210,6 @@ class WarningsViewDetailPagesFactory(
     val contentHtml = """
         <b>Android Gradle plugin update required to make configuration cache available</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        
         Android Gradle plugin supports configuration cache from ${uiData.recommendedVersion}.
         Current version is ${uiData.currentVersion}.
         $appliedAGPPluginsList
@@ -241,7 +240,6 @@ class WarningsViewDetailPagesFactory(
     val contentHtml = """
         <b>Some plugins are not compatible with configuration cache</b>
         ${configurationCachingDescriptionHeader(configurationTime)}
-        
         Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.
         $pluginsCountLines
         You can find details on each plugin on corresponding sub-pages.
@@ -285,7 +283,6 @@ class WarningsViewDetailPagesFactory(
     val contentHtml = if (data.requiredVersion != null) """
         <b>${data.plugin.displayName}: update required</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        
         Update this plugin to ${data.requiredVersion} or higher to make configuration cache available.
         
         Plugin version: ${data.currentVersion}
@@ -294,7 +291,6 @@ class WarningsViewDetailPagesFactory(
     else """
         <b>${data.plugin.displayName}: not compatible</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        
         The version of this plugin used in this build is not compatible with configuration cache and we don’t know the version when it becomes compatible.
         
         Plugin version: ${data.currentVersion}
