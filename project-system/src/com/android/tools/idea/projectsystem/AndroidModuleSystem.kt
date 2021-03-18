@@ -137,13 +137,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * `false` = search only own module dependencies
    * `true` = search module direct dependencies + exported transitive dependencies
    */
-  // FIXME-ank4: rename to getResolvedLibraryDependencies
-  fun getResolvedDependentLibraries(includeExportedTransitiveDeps : Boolean): Collection<Library>
+  fun getResolvedLibraryDependencies(includeExportedTransitiveDeps : Boolean): Collection<Library>
 
   /**
    * Same as `getResolvedDependentLibraries(includeExportedTransitiveDeps = true)`.
    */
-  fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedDependentLibraries(includeExportedTransitiveDeps = true)
+  fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
