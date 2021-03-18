@@ -253,4 +253,9 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
     yOff = 0.0
     refresh()
   }
+
+  /**
+   * Fire the modification listeners manually.
+   */
+  fun fireModified() = modificationListeners.forEach { it() }
 }
