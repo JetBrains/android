@@ -358,7 +358,7 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     return rootPane.preferredSize
   }
 
-  override fun isResizable() {}
+  override fun isResizable() = false
 
   override fun setResizable(resizable: Boolean) {}
 
