@@ -252,7 +252,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         javaModuleData.getData().setLanguageLevel(languageLevel);
         javaModuleData.getData().setTargetBytecodeVersion(androidProject.getJavaCompileOptions().getTargetCompatibility());
       }
-      CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
     }
     else {
       // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
@@ -274,6 +273,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     return moduleDataNode;
+  }
+
+  @Override
+  public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule) {
+    DataNode<AndroidModuleModel> androidModelNode = find(ideModule, ANDROID_MODEL);
+    if (androidModelNode == null) {
+      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    } else {
+      CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
+    }
   }
 
   @Override
