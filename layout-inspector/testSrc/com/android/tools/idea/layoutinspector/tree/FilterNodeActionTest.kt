@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolContent
@@ -22,6 +25,10 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.property.testing.ApplicationRule
@@ -101,6 +108,32 @@ class FilterNodeActionTest {
     assertThat(createEvent().presentation.isVisible).isTrue()
   }
 
+  @Test
+  fun testAddingFilterRemovesSystemSelectedAndHoveredNodes() {
+    TreeSettings.hideSystemNodes = false
+    val event = createEvent()
+    val model = LayoutInspector.get(event)?.layoutInspectorModel!!
+    model.setSelection(model[VIEW3]!!, SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW2]!!
+    FilterNodeAction.setSelected(event, true)
+
+    assertThat(model.selection).isSameAs(model[VIEW1]!!)
+    assertThat(model.hoveredNode).isNull()
+  }
+
+  @Test
+  fun testAddingFilterKeepsUserSelectedAndHoveredNode() {
+    TreeSettings.hideSystemNodes = false
+    val event = createEvent()
+    val model = LayoutInspector.get(event)?.layoutInspectorModel!!
+    model.setSelection(model[VIEW1]!!, SelectionOrigin.INTERNAL)
+    model.hoveredNode = model[VIEW1]!!
+    FilterNodeAction.setSelected(event, true)
+
+    assertThat(model.selection).isSameAs(model[VIEW1]!!)
+    assertThat(model.hoveredNode).isSameAs(model[VIEW1]!!)
+  }
+
   private fun createEvent(
     treePanel: LayoutInspectorTreePanel = mock(),
     connected: Boolean = true,
@@ -110,7 +143,19 @@ class FilterNodeActionTest {
     panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
     val inspector: LayoutInspector = mock()
     val client: InspectorClient = mock()
-    val model = model { view(ROOT) }
+    val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+    val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+
+    val model = model {
+      view(ROOT) {
+        view(VIEW1, layout = mainLayout) {
+          view(VIEW2, layout = screenSimple) {
+            view(VIEW3, layout = appcompatScreenSimple)
+          }
+        }
+      }
+    }
     val capabilities = if (canSeparateSystemViews) EnumSet.of(Capability.SUPPORTS_SYSTEM_NODES) else EnumSet.noneOf(Capability::class.java)
     `when`(inspector.layoutInspectorModel).thenReturn(model)
     `when`(inspector.currentClient).thenReturn(client)

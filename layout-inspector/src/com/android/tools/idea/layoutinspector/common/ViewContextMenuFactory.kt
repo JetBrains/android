@@ -34,6 +34,7 @@ import com.intellij.util.containers.toArray
 import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import javax.swing.event.PopupMenuEvent
@@ -124,7 +125,8 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
 private fun generateText(viewNode: ViewNode) =
   viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
 
-private class SelectViewAction(
+@VisibleForTesting
+class SelectViewAction(
   val view: ViewNode, val inspectorModel: InspectorModel
 ) : AnAction(generateText(view), null,
              AndroidDomElementDescriptorProvider.getIconForViewTag(view.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW) {
