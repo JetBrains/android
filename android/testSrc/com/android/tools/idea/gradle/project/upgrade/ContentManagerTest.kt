@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
@@ -26,6 +28,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
 import org.apache.commons.io.FileSystem
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,6 +41,12 @@ class ContentManagerTest {
   val projectRule = AndroidProjectRule.withSdk().onEdt()
 
   val project by lazy { projectRule.project }
+
+  @Before
+  fun replaceSyncInvoker() {
+    val ideComponents = IdeComponents(projectRule.fixture)
+    ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
+  }
 
   @Test
   fun testContentManagerConstructable() {
@@ -117,5 +126,22 @@ class ContentManagerTest {
     val stepPresentation = step.userObject as ToolWindowModel.DefaultStepPresentation
     assertThat(stepPresentation.processor).isInstanceOf(AgpClasspathDependencyRefactoringProcessor::class.java)
     assertThat(stepPresentation.treeText).contains("Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion")
+  }
+
+  @Test
+  fun testRunProcessor() {
+    val psiFile = projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:$currentAgpVersion'
+          }
+        }
+      """.trimIndent()
+    )
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    toolWindowModel.runUpgrade(false)
+    assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
   }
 }

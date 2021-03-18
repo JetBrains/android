@@ -205,10 +205,15 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
       .forEach { it.processor.isEnabled = true }
 
-    DumbService.getInstance(processor.project).smartInvokeLater {
-      processor.setPreviewUsages(showPreview)
+    if (ApplicationManager.getApplication().isUnitTestMode) {
       processor.run()
-      // TODO(xof): add callback to refresh tree and textField
+    }
+    else {
+      DumbService.getInstance(processor.project).smartInvokeLater {
+        processor.setPreviewUsages(showPreview)
+        processor.run()
+        // TODO(xof): add callback to refresh tree and textField
+      }
     }
   }
 
