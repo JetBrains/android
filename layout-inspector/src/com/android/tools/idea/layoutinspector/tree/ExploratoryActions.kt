@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.componenttree.ui.COMPACT_LINES
 import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
@@ -117,9 +115,6 @@ object SupportLines : ToggleAction("Show support lines", null, null) {
 
 private fun inspector(event: AnActionEvent): LayoutInspector? =
   event.getData(LAYOUT_INSPECTOR_DATA_KEY)
-
-private fun AnActionEvent.tree(): Tree? =
-  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT))?.tree()
 
 fun Tree.setDefaultPainter() {
   val painter = with(TreeSettings) {

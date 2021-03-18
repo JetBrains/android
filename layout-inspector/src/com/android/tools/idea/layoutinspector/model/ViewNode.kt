@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
@@ -68,6 +70,17 @@ open class ViewNode(
 
   @Suppress("LeakingThis")
   val treeNode = TreeViewNode(this)
+
+  /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
+  open val isSystemNode: Boolean
+    get() =
+      layout == null ||
+      layout?.namespace == ResourceNamespace.ANDROID ||
+      layout?.name?.startsWith("abc_") == true
+
+  /** Returns true if the node appears in the component tree. False if it currently filtered out */
+  val isInComponentTree: Boolean
+    get() = !(TreeSettings.hideSystemNodes && isSystemNode)
 
   private var _transformedBounds = bounds
 

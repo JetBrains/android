@@ -17,6 +17,9 @@ package com.android.tools.idea.layoutinspector.tree
 
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -27,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
@@ -129,6 +133,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testMultiWindowWithVisibleSystemNodes() {
     TreeSettings.hideSystemNodes = false
+    val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
@@ -139,26 +144,35 @@ class LayoutInspectorTreePanelTest {
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
     assertThat(model[ROOT]!!.qualifiedName).isEqualTo(DECOR_VIEW)
 
-    model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
+    model.update(window(ROOT, ROOT) { view(VIEW4) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(jtree.rowCount).isEqualTo(1)
+    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(jtree.rowCount).isEqualTo(3)
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
+    assertThat(jtree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(jtree.rowCount).isEqualTo(2)
+    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
+    assertThat(jtree.rowCount).isEqualTo(5)
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT]!!.treeNode)
-    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
+    assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW4]!!.treeNode)
+    assertThat(jtree.getPathForRow(2).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
+    assertThat(jtree.getPathForRow(3).lastPathComponent).isEqualTo(model[VIEW2]!!.treeNode)
+    assertThat(jtree.getPathForRow(4).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
     model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
-    // Still 2: the dimmer is drawn but isn't in the tree
-    assertThat(jtree.rowCount).isEqualTo(2)
+    // Still 5: the dimmer is drawn but isn't in the tree
+    assertThat(jtree.rowCount).isEqualTo(5)
   }
 
   @Test
   fun testMultiWindowWithHiddenSystemNodes() {
     TreeSettings.hideSystemNodes = true
+    val android = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "simple_screen")
+    val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
@@ -169,18 +183,21 @@ class LayoutInspectorTreePanelTest {
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
-    model.update(window(ROOT, ROOT) { view(VIEW1) }, listOf(ROOT), 0)
+    // ROOT & VIEW4 are system views (no layout, android layout)
+    model.update(window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
     assertThat(jtree.rowCount).isEqualTo(1)
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
 
-    model.update(window(VIEW2, VIEW2) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
+    model.update(window(VIEW2, VIEW2) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
     assertThat(jtree.rowCount).isEqualTo(2)
     assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[VIEW1]!!.treeNode)
     assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW3]!!.treeNode)
 
-    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, listOf(ROOT, VIEW2), 0)
+    model.update(window(VIEW2, VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3, layout = demo) }, listOf(ROOT, VIEW2), 0)
     UIUtil.dispatchAllInvocationEvents()
     // Still 2: the dimmer is drawn but isn't in the tree
     assertThat(jtree.rowCount).isEqualTo(2)
