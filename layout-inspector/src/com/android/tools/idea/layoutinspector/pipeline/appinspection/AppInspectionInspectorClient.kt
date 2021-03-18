@@ -78,7 +78,10 @@ class AppInspectionInspectorClient(
   private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
 
   override val capabilities =
-    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
+    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
+               Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
+               Capability.SUPPORTS_SYSTEM_NODES,
+               Capability.SUPPORTS_SKP)!!
 
   private val skiaParser = SkiaParserImpl(
     {

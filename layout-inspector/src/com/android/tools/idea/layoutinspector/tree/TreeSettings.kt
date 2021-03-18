@@ -38,9 +38,8 @@ private const val DEFAULT_SUPPORT_LINES = true
  */
 object TreeSettings {
 
-  /**
-   * The units to be used for all attributes with dimension values.
-   */
+  const val skipSystemNodesInAgent = false
+
   var hideSystemNodes: Boolean
     get() = get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
     set(value) = set(KEY_HIDE_SYSTEM_NODES, value, DEFAULT_HIDE_SYSTEM_NODES)

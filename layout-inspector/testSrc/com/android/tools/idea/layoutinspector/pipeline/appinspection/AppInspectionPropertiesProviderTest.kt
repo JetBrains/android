@@ -679,7 +679,6 @@ class AppInspectionPropertiesProviderTest {
             addCompositeIndex(11)
           }
           maxElements = 5
-          skipSystemComposables = true
         }.build()
       ] = GetParameterDetailsResponse.newBuilder().apply {
         rootViewId = 1L
@@ -697,7 +696,6 @@ class AppInspectionPropertiesProviderTest {
           }
           startIndex = 4
           maxElements = 2
-          skipSystemComposables = true
         }.build()
       ] = GetParameterDetailsResponse.newBuilder().apply {
         rootViewId = 1L
@@ -715,7 +713,6 @@ class AppInspectionPropertiesProviderTest {
           }
           startIndex = 7
           maxElements = 4
-          skipSystemComposables = true
         }.build()
       ] = GetParameterDetailsResponse.newBuilder().apply {
         rootViewId = 1L
