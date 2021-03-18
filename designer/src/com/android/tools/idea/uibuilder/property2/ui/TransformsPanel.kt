@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.SdkConstants
+import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.adtui.common.lines3d
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
@@ -260,19 +261,19 @@ class TransformsPanel(private val model: NelePropertiesModel, properties: Proper
   }
 
   private fun updateFromProperty() {
-    valueOf(propertyRotationX)?.toDouble()?.let {
+    valueOf(propertyRotationX)?.let {
       processingModelUpdate = true
       virtualButton.setRotateX(it)
       rotationX.value = it.toInt()
       processingModelUpdate = false
     }
-    valueOf(propertyRotationY)?.toDouble()?.let {
+    valueOf(propertyRotationY)?.let {
       processingModelUpdate = true
       virtualButton.setRotateY(it)
       rotationY.value = it.toInt()
       processingModelUpdate = false
     }
-    valueOf(propertyRotationZ)?.toDouble()?.let {
+    valueOf(propertyRotationZ)?.let {
       processingModelUpdate = true
       rotationZ.value = it.toInt()
       virtualButton.setRotate(it)
@@ -280,8 +281,17 @@ class TransformsPanel(private val model: NelePropertiesModel, properties: Proper
     }
   }
 
-  private fun valueOf(property: NelePropertyItem?): String? {
-    return property?.let { it.value ?: "0" }
-  }
+  companion object {
 
+    @VisibleForTesting
+    fun valueOf(property: NelePropertyItem?): Double? {
+      val stringValue = property?.value?.ifEmpty { "0" } ?: "0"
+      return try {
+        stringValue.toDouble()
+      }
+      catch (ex: NumberFormatException) {
+        0.0
+      }
+    }
+  }
 }
