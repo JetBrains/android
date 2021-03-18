@@ -62,7 +62,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
   }
 
   @Override
-  public void after(@NotNull List<? extends VFileEvent> events) {
+  public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
     Set<VirtualFile> filesToProcess = getFilesToProcess(events);
 
     if (!filesToProcess.isEmpty()) {
