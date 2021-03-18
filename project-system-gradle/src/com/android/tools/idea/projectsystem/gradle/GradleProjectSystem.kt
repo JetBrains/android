@@ -98,7 +98,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
-          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, OutputType.Apk, false))
+          sequenceOf(androidModel.selectedVariant.mainArtifact.buildInformation.getOutputFileOrFolderFromListingFile(OutputType.Apk))
         }
         else {
           androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.outputFile }

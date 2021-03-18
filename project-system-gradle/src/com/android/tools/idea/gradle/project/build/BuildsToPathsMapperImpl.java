@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.build.OutputFile;
@@ -31,6 +30,7 @@ import com.android.tools.idea.gradle.actions.BuildsToPathsMapper;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ImmutableList;
@@ -100,7 +100,8 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       // get from build output listing file.
       OutputType outputType = isAppBundle ? OutputType.Bundle : OutputType.Apk;
-      outputFolderOrFile = getOutputFileOrFolderFromListingFile(androidModel, buildVariant, outputType, false);
+      outputFolderOrFile = GradleBuildOutputUtil
+        .getOutputFileOrFolderFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(androidModel, buildVariant, outputType, false);
     }
     else if (postBuildModel != null) {
       if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP ||
