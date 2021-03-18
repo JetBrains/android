@@ -135,6 +135,7 @@ public final class FakeMouse {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before clicking.");
     }
+    moveTo(x, y);
     press(x, y, button, clickCount);
     Cursor cursor = myCursor;
     release();
