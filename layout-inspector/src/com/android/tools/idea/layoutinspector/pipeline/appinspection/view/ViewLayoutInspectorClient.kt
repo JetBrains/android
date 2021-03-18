@@ -158,7 +158,7 @@ class ViewLayoutInspectorClient(
     messenger.sendCommand {
       startFetchCommand = StartFetchCommand.newBuilder().apply {
         this.continuous = continuous
-        skipSystemViews = TreeSettings.hideSystemNodes
+        skipSystemViews = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
   }

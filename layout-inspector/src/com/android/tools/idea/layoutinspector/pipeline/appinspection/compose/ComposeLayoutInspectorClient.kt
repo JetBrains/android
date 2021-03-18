@@ -125,7 +125,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.hideSystemNodes
+        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
     return response.getComposablesResponse
@@ -136,7 +136,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
       getParametersCommand = GetParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         this.composableId = composableId
-        skipSystemComposables = TreeSettings.hideSystemNodes
+        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
     return response.getParametersResponse
@@ -146,7 +146,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     val response = messenger.sendCommand {
       getAllParametersCommand = GetAllParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.hideSystemNodes
+        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
       }.build()
     }
     return response.getAllParametersResponse
@@ -161,7 +161,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
     val response = messenger.sendCommand {
       getParameterDetailsCommand = GetParameterDetailsCommand.newBuilder().apply {
         this.rootViewId = rootViewId
-        skipSystemComposables = TreeSettings.hideSystemNodes
+        skipSystemComposables = TreeSettings.skipSystemNodesInAgent
         this.startIndex = startIndex
         this.maxElements = maxElements
         referenceBuilder.apply {

@@ -80,8 +80,10 @@ class TransportInspectorClient(
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
-                                         Capability.SUPPORTS_SKP)
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
+                                         Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
+                                         Capability.SUPPORTS_SYSTEM_NODES,
+                                         Capability.SUPPORTS_SKP)!!
 
   private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
 
@@ -294,7 +296,7 @@ class TransportInspectorClient(
     ApplicationManager.getApplication().executeOnPooledThread {
       execute(LayoutInspectorCommand.Type.REFRESH.toCommand().apply {
         composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-        hideSystemNodes = TreeSettings.hideSystemNodes
+        hideSystemNodes = TreeSettings.skipSystemNodesInAgent
       })
     }
   }
@@ -334,7 +336,7 @@ class TransportInspectorClient(
     stats.live.toggledToLive()
     execute(LayoutInspectorCommand.Type.START.toCommand().apply {
       composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-      hideSystemNodes = TreeSettings.hideSystemNodes
+      hideSystemNodes = TreeSettings.skipSystemNodesInAgent
     })
   }
 
