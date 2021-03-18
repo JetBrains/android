@@ -78,6 +78,17 @@ open class ViewNode(
       layout?.namespace == ResourceNamespace.ANDROID ||
       layout?.name?.startsWith("abc_") == true
 
+  /**
+   * Return the closest unfiltered node
+   *
+   * This will either be:
+   * - the node itself
+   * - the closest ancestor that is not filtered out of the component tree
+   * - null
+   */
+  fun findClosestUnfilteredNode(): ViewNode? =
+    if (TreeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
+
   /** Returns true if the node appears in the component tree. False if it currently filtered out */
   val isInComponentTree: Boolean
     get() = !(TreeSettings.hideSystemNodes && isSystemNode)

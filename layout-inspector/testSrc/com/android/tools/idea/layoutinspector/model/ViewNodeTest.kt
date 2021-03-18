@@ -90,4 +90,26 @@ class ViewNodeTest {
     assertThat(system3.isInComponentTree).isTrue()
     assertThat(user1.isInComponentTree).isTrue()
   }
+
+  @Test
+  fun testClosestUnfilteredNode() {
+    val model = model {
+      view(ROOT) {
+        view(VIEW1, layout = LAYOUT_MAIN) {
+          view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
+            view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
+            }
+          }
+        }
+      }
+    }
+    val root = model[ROOT]!!
+    val view1 = model[VIEW1]!!
+    val view2 = model[VIEW2]!!
+    val view3 = model[VIEW3]!!
+    assertThat(view3.findClosestUnfilteredNode()).isSameAs(view1)
+    assertThat(view2.findClosestUnfilteredNode()).isSameAs(view1)
+    assertThat(view1.findClosestUnfilteredNode()).isSameAs(view1)
+    assertThat(root.findClosestUnfilteredNode()).isNull()
+  }
 }

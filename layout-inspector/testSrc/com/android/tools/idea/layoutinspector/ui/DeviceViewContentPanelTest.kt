@@ -15,33 +15,47 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
+import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
@@ -50,7 +64,9 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.atLeastOnce
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.verify
 import java.awt.Color
@@ -67,17 +83,20 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.net.URI
 import javax.imageio.ImageIO
+import javax.swing.JComponent
+import javax.swing.JPopupMenu
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.02
 
 class DeviceViewContentPanelTest {
+  private val projectRule = ProjectRule()
 
   @get:Rule
   val disposable = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule()).around(EdtRule())!!
+  val chain = RuleChain.outerRule(projectRule).around(DeviceViewSettingsRule()).around(EdtRule())!!
 
   @Test
   fun testSize() {
@@ -283,6 +302,108 @@ class DeviceViewContentPanelTest {
     panel.model.resetRotation()
     assertEquals(0.0, panel.model.xOff)
     assertEquals(0.0, panel.model.yOff)
+  }
+
+  @Test
+  fun testClick() {
+    val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+          }
+        }
+      }
+    }
+    val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    panel.setSize(100, 200)
+    val fakeUi = FakeUi(panel)
+    assertThat(model.selection).isNull()
+
+    // Click on VIEW3 when system views are showing:
+    TreeSettings.hideSystemNodes = false
+    fakeUi.mouse.click(40, 50)
+    assertThat(model.selection).isSameAs(model[VIEW3]!!)
+
+    // Click on VIEW3 when system views are hidden:
+    TreeSettings.hideSystemNodes = true
+    fakeUi.mouse.click(40, 50)
+    assertThat(model.selection).isSameAs(model[VIEW1]!!)
+  }
+
+  @Test
+  fun testMouseMove() {
+    val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+          }
+        }
+      }
+    }
+    val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    panel.setSize(100, 200)
+    val fakeUi = FakeUi(panel)
+    assertThat(model.hoveredNode).isNull()
+
+    // Move to VIEW3 when system views are showing:
+    TreeSettings.hideSystemNodes = false
+    fakeUi.mouse.moveTo(40, 50)
+    assertThat(model.hoveredNode).isSameAs(model[VIEW3]!!)
+
+    // Move to VIEW3 when system views are hidden:
+    TreeSettings.hideSystemNodes = true
+    fakeUi.mouse.moveTo(40, 50)
+    assertThat(model.hoveredNode).isSameAs(model[VIEW1]!!)
+  }
+
+  @Test
+  fun testContextMenu() {
+    val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
+          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat) {
+              view(VIEW4, 36, 41, 25, 25, layout = layoutMain)
+            }
+          }
+        }
+      }
+    }
+    val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    panel.setSize(100, 200)
+    val fakeUi = FakeUi(panel)
+    assertThat(model.selection).isNull()
+
+    var latestPopup: FakeActionPopupMenu? = null
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposable.disposable)
+    doAnswer { invocation ->
+      latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
+      latestPopup
+    }.`when`(ActionManager.getInstance()).createActionPopupMenu(anyString(), any(ActionGroup::class.java))
+
+    // Right click on VIEW4 when system views are showing:
+    TreeSettings.hideSystemNodes = false
+    fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
+    latestPopup!!.assertSelectViewAction(5, 4, 3, 2, 1)
+
+    // Right click on VIEW4 when system views are hidden:
+    TreeSettings.hideSystemNodes = true
+    fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
+    latestPopup!!.assertSelectViewAction(5, 2)
   }
 
   @Test
@@ -700,5 +821,25 @@ class DeviceViewContentPanelTest {
     // Auto scrolling will be in effect when selecting from the component tree:
     model.setSelection(view1, SelectionOrigin.COMPONENT_TREE)
     assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(394, 194))
+  }
+
+  private class FakeActionPopupMenu(private val group: ActionGroup): ActionPopupMenu {
+    val popup: JPopupMenu = mock()
+
+    override fun getComponent(): JPopupMenu = popup
+    override fun getActionGroup(): ActionGroup = group
+    override fun getPlace(): String = error("Not implemented")
+    override fun setTargetComponent(component: JComponent) = error("Not implemented")
+
+    fun assertSelectViewAction(vararg expected: Long) {
+      val event: AnActionEvent = mock()
+      `when`(event.actionManager).thenReturn(ActionManager.getInstance())
+      val actions = group.getChildren(event)
+      assertThat(actions.size).isEqualTo(1)
+      assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
+      val selectActions = (actions[0] as DropDownAction).getChildren(event)
+      assertThat(selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId  })
+        .containsExactlyElementsIn(expected.toList())
+    }
   }
 }

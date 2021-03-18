@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -30,6 +31,18 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.hideSystemNodes = state
+
+    if (state) {
+      val model = LayoutInspector.get(event)?.layoutInspectorModel
+      val selectedNode = model?.selection
+      if (selectedNode?.isInComponentTree == false) {
+        model.setSelection(selectedNode.findClosestUnfilteredNode(), SelectionOrigin.COMPONENT_TREE)
+      }
+      val hoveredNode = model?.hoveredNode
+      if (hoveredNode?.isInComponentTree == false) {
+        model.hoveredNode = null
+      }
+    }
 
     // Update the component tree:
     event.treePanel()?.refresh()
