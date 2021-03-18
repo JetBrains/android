@@ -598,6 +598,8 @@ class SessionsViewTest {
     // Selecting the CpuCaptureSessionArtifact should open CPU profiler and select the capture
     ui.layout()
     ui.mouse.click(cpuCaptureItem.bounds.x + 1, cpuCaptureItem.bounds.y + 1)
+    // Move away again so we're not hovering
+    ui.mouse.moveTo(-10, -10)
     assertThat(myProfilers.stage).isInstanceOf(CpuProfilerStage::class.java) // Makes sure CPU profiler stage is now open
     val selectedCapture = (myProfilers.stage as CpuProfilerStage).capture
     // Makes sure that there is a capture selected and it's the one we clicked.
@@ -785,6 +787,8 @@ class SessionsViewTest {
     // Selecting on the HprofSessionArtifact should open Memory profiler and select the capture.
     ui.layout()
     ui.mouse.click(allocationItem.bounds.x + 1, allocationItem.bounds.y + 1)
+    // Move away again so we're not hovering
+    ui.mouse.moveTo(-10, -10)
     // Makes sure memory profiler stage is now open.
     assertThat(myProfilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
     // Makes sure a HeapDumpCaptureObject is loaded.

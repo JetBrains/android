@@ -123,10 +123,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   fun getPosition(component: Component): Point {
-    var comp = component
+    var comp: Component? = component
     var rx = 0
     var ry = 0
-    while (comp !== root) {
+    while (comp !== root && comp != null) {
       rx += comp.x
       ry += comp.y
       comp = comp.parent
