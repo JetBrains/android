@@ -155,7 +155,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     val orderEnumerator = ModuleRootManager.getInstance(module)

@@ -105,7 +105,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return Triple(found, missing, "")
       }
 
-      override fun getResolvedDependentLibraries(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+      override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
         return emptySet()
       }
 
