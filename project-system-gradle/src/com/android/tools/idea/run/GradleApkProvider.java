@@ -347,7 +347,8 @@ public class GradleApkProvider implements ApkProvider {
                                          @NotNull List<String> deviceAbis,
                                          boolean fromTestArtifact) throws ApkProvisionException {
     IdeVariant variant = androidModel.getSelectedVariant();
-    String outputFile = getOutputListingFile(androidModel, variant.getName(), OutputType.Apk, fromTestArtifact);
+    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
+    String outputFile = artifact != null ? getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk) : null;
     if (outputFile == null) {
       throw new ApkProvisionException("Cannot get output listing file name from the build model");
     }
@@ -546,8 +547,8 @@ public class GradleApkProvider implements ApkProvider {
     }
 
     File apkFolder = androidModel.getFeatures().isBuildOutputFileSupported()
-                     ? getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(),
-                                                            OutputType.ApkFromBundle, false)
+                     ? getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
+                                                            OutputType.ApkFromBundle)
                      : collectApkFolderFromPostBuildModel(module, outputModelProvider, androidModel);
 
     if (apkFolder == null) {
@@ -623,7 +624,7 @@ public class GradleApkProvider implements ApkProvider {
   @Nullable
   public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
+      return getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(), OutputType.Apk);
     }
     else {
       List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();

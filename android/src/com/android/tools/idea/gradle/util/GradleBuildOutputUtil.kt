@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.util
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.AndroidStartupActivity
@@ -56,20 +55,6 @@ enum class OutputType {
 }
 
 /**
- * Find the output listing file to use to locate the generated build output.
- *
- * This method finds the output file from [IdeVariantBuildInformation] for non-test variants, from [IdeAndroidArtifact] for test variants.
- * This is because [IdeVariantBuildInformation] only contains non-test variants.
- * The related fields in [IdeAndroidArtifact] are subject to removal, after test variants being added to [IdeVariantBuildInformation] in the future.
- */
-fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, outputType: OutputType, isTest: Boolean): String? {
-  val outputInformation =
-    if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
-    else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-  return outputInformation?.getOutputListingFile(outputType)
-}
-
-/**
  * Retrieve the location of generated APK or Bundle for the given run configuration.
  *
  * This method finds the location from build output listing file if it is supported, falls back to
@@ -80,23 +65,15 @@ fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, 
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
 fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigurationBase, isTest: Boolean): File? {
-  val androidModel = AndroidModuleModel.get(module)
-  androidModel ?: return null
-  if (androidModel.features.isBuildOutputFileSupported) {
-    // Get output from listing file.
-    return getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, getOutputType(module, configuration),
-                                                isTest)
-  }
-  else {
-    // Get output from deprecated ArtifactOutput model.
-    val artifact = if (isTest) {
-      androidModel.selectedVariant.androidTestArtifact
-    }
-    else {
-      androidModel.selectedVariant.mainArtifact
-    }
-    return artifact?.outputs?.firstOrNull()?.outputFile
-  }
+  val androidModel = AndroidModuleModel.get(module) ?: return null
+  val selectedVariant = androidModel.selectedVariant
+  val artifact =
+    if (isTest) selectedVariant.androidTestArtifact ?: return null
+    else selectedVariant.mainArtifact
+
+  return if (androidModel.features.isBuildOutputFileSupported)
+    artifact.buildInformation.getOutputFileOrFolderFromListingFile(getOutputType(module, configuration))
+  else artifact.outputs.firstOrNull()?.outputFile
 }
 
 /**
@@ -108,11 +85,22 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-fun getOutputFileOrFolderFromListingFile(androidModel: AndroidModuleModel,
-                                         variantName: String,
-                                         outputType: OutputType,
-                                         isTest: Boolean): File? {
-  val listingFile = getOutputListingFile(androidModel, variantName, outputType, isTest)
+fun getOutputFileOrFolderFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(
+  androidModel: AndroidModuleModel,
+  variantName: String,
+  outputType: OutputType,
+  isTest: Boolean
+): File? {
+  val outputInformation =
+    if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
+    else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
+  return outputInformation?.getOutputFileOrFolderFromListingFile(outputType)
+}
+
+fun IdeBuildTasksAndOutputInformation.getOutputFileOrFolderFromListingFile(
+  outputType: OutputType
+): File? {
+  val listingFile = getOutputListingFile(outputType)
   if (listingFile != null) {
     return getOutputFileOrFolderFromListingFile(listingFile)
   }
