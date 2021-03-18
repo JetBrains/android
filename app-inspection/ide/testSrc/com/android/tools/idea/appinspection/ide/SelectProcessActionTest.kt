@@ -151,6 +151,35 @@ class SelectProcessActionTest {
   }
 
   @Test
+  fun listsProcessesInSortedOrder() {
+    val testNotifier = TestProcessNotifier()
+    val model = ProcessesModel(testNotifier) { listOf("X", "Y", "Z") }
+    val selectProcessAction = SelectProcessAction(model)
+
+    val fakeStream = createFakeStream()
+    for (name in listOf("C", "B", "A", "Z", "Y", "X")) {
+      fakeStream.createFakeProcess(name, name.hashCode())
+        .also { testNotifier.fireConnected(it) }
+    }
+
+    selectProcessAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val children = selectProcessAction.getChildren(null)
+    val device = children[0]
+    val processes = (device as ActionGroup).getChildren(null)
+    processes.forEach { it.update(createFakeEvent()) }
+    assertThat(processes).hasLength(7)
+
+    // Preferred processes first, then non-preferred, but everything sorted
+    assertThat(processes[0].templateText).isEqualTo("X")
+    assertThat(processes[1].templateText).isEqualTo("Y")
+    assertThat(processes[2].templateText).isEqualTo("Z")
+    assertThat(processes[3]).isInstanceOf(Separator::class.java)
+    assertThat(processes[4].templateText).isEqualTo("A")
+    assertThat(processes[5].templateText).isEqualTo("B")
+    assertThat(processes[6].templateText).isEqualTo("C")
+  }
+
+  @Test
   fun deadProcessesShowUpInProcessList() {
     val testNotifier = TestProcessNotifier()
     val model = ProcessesModel(testNotifier) { listOf("A") }
