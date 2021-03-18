@@ -22,6 +22,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,9 +38,12 @@ public final class GradleProjectBuilder {
     return ServiceManager.getService(project, GradleProjectBuilder.class);
   }
 
-  // FIXME-ank4: annotate as non-injectable, and add project-only constructor
+  public GradleProjectBuilder(@NotNull Project project){
+    this(project, AndroidProjectInfo.getInstance(project), GradleBuildInvoker.getInstance(project));
+  }
 
-  public GradleProjectBuilder(@NotNull Project project,
+  @NonInjectable
+  private GradleProjectBuilder(@NotNull Project project,
                               @NotNull AndroidProjectInfo androidProjectInfo,
                               @NotNull GradleBuildInvoker buildInvoker) {
     myProject = project;
