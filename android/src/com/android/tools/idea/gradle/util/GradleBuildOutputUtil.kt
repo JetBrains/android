@@ -147,7 +147,7 @@ private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(vari
   return firstOrNull { it.variantName == variantName }?.buildInformation
 }
 
-private fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
+fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
   return when (outputType) {
     OutputType.Apk -> assembleTaskOutputListingFile
     OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
