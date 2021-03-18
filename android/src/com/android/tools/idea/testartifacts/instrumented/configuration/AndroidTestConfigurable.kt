@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.configuration
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
@@ -28,6 +29,12 @@ class AndroidTestConfigurable : BoundSearchableConfigurable("Testing", "testing.
                  configuration::ALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX)
           .comment("This option also enables a new UI optimized for displaying both single- and multi-device test results.")
         browserLink("Learn more", "https://d.android.com/r/studio-ui/test-matrix/help")
+      }
+      if (StudioFlags.UTP_INSTRUMENTATION_TESTING.get()) {
+        row {
+          checkBox("Run Android Instrumented Tests using Gradle.",
+                   configuration::RUN_ANDROID_TEST_USING_GRADLE)
+        }
       }
     }
   }
