@@ -81,7 +81,6 @@ import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Model for an XML file
@@ -1024,8 +1023,4 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myDataContext = dataContext;
   }
 
-  @TestOnly
-  public void flushUpdateQueue() {
-    myUpdateQueue.flush();
-  }
 }
