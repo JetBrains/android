@@ -40,6 +40,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -120,6 +121,31 @@ public final class SnapshotActionGroupTest {
     BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(presentation.getIcon(), ScaleContext.createIdentity()));
     // Assert
     ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);
-    assertEquals("Pixel_4_API_30 (Missing system image)", presentation.getText());
+    assertEquals("Pixel_4_API_30", presentation.getText());
+  }
+
+  @Test
+  public void tooltipProperty() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
+      .build();
+
+    AnAction action = new SnapshotActionGroup(device, myComboBoxAction);
+
+    Presentation presentation = new Presentation();
+
+    AnActionEvent event = Mockito.mock(AnActionEvent.class);
+    Mockito.when(event.getPresentation()).thenReturn(presentation);
+
+    // Act
+    action.update(event);
+
+    // Assert
+    assertEquals("Missing system image", presentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
   }
 }
