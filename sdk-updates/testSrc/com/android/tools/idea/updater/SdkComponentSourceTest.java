@@ -19,6 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.repository.Revision;
 import com.android.repository.api.Channel;
@@ -42,11 +44,15 @@ import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.mock.MockApplication;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
 import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
@@ -81,9 +87,15 @@ public class SdkComponentSourceTest {
 
   @Before
   public void setUp() throws Exception {
-    MockApplication instance = new MockApplication(myDisposableRule.getDisposable());
+    MockApplication instance = MockApplication.setUp(myDisposableRule.getDisposable());
     instance.registerService(ExternalComponentManager.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
+    ApplicationInfoEx appInfo = mock(ApplicationInfoEx.class);
+    when(appInfo.getBuild()).thenReturn(new BuildNumber("a", 1));
+    instance.registerService(ApplicationInfo.class, appInfo);
+    instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
+                                                       ExtensionPoint.Kind.INTERFACE, myDisposableRule.getDisposable());
+
     ApplicationManager.setApplication(instance, myDisposableRule.getDisposable());
 
     myFileOp = new MockFileOp();
@@ -339,8 +351,8 @@ public class SdkComponentSourceTest {
     }
     assertNotNull(id.get());
 
-    //ExtensionTestUtil // FIXME-ank4: either revert to useful test case, or provide a new disposable
-    //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
     UpdateSettings settings = new UpdateSettings() {
       @Override
       @NotNull
@@ -362,8 +374,8 @@ public class SdkComponentSourceTest {
 
   @Test
   public void testUpdates() {
-    //ExtensionTestUtil // FIXME-ank4: either revert to useful test case, or provide a new disposable
-    //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings();
@@ -386,8 +398,8 @@ public class SdkComponentSourceTest {
   @Test
   public void testBetaUpdates() {
     myChannelId = 1;
-    //ExtensionTestUtil // FIXME-ank4: either revert to useful test case, or provide a new disposable
-    //  .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposable);
+    ExtensionTestUtil
+      .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings();
