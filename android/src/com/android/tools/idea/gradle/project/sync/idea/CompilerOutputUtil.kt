@@ -38,10 +38,6 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: Variant? = null) {
     artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
   }?.classesFolder?.absolutePath
 
-  // Do we actually need to set these? Since useExternalCompilerOutput is true.
-  data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
-  data.setCompileOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
-
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
