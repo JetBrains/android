@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
@@ -37,18 +38,18 @@ abstract class AndroidWindow(
   var imageType: ImageType = imageType
     private set
 
-  enum class ImageType {
-    UNKNOWN,
+  enum class ImageType(val protoType: LayoutInspectorViewProtocol.Screenshot.Type) {
+    UNKNOWN(LayoutInspectorViewProtocol.Screenshot.Type.UNKNOWN),
 
     /**
      * The image associated with this window is a SKIA picture
      */
-    SKP,
+    SKP(LayoutInspectorViewProtocol.Screenshot.Type.SKP),
 
     /**
      * The image associated with this window is a PNG (which we requested)
      */
-    BITMAP_AS_REQUESTED,
+    BITMAP_AS_REQUESTED(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP),
   }
 
   val isDimBehind: Boolean

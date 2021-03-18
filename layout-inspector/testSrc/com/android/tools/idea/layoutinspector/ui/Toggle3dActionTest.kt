@@ -55,6 +55,7 @@ class Toggle3dActionTest {
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(capabilities)
     `when`(client.isConnected).thenReturn(true)
+    `when`(client.isCapturing).thenReturn(true)
     `when`(device.apiLevel).thenReturn(29)
     val process: ProcessDescriptor = mock()
     `when`(process.device).thenReturn(device)

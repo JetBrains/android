@@ -67,6 +67,22 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   val isEmpty
     get() = windows.isEmpty()
 
+  val pictureType
+    get() =
+      when {
+        windows.values.any { it.imageType == AndroidWindow.ImageType.BITMAP_AS_REQUESTED } -> {
+          // If we find that we've requested and received a png, that's what we'll use first
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+        }
+        windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
+          // If all windows are SKP, use that
+          AndroidWindow.ImageType.SKP
+        }
+        else -> {
+          AndroidWindow.ImageType.UNKNOWN
+        }
+      }
+
   private val hiddenNodes = mutableSetOf<ViewNode>()
 
   /**

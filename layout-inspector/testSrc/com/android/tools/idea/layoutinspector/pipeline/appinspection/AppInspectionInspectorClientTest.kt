@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
@@ -230,7 +231,7 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
-        (client as AppInspectionInspectorClient).updateScreenshotType(ViewProtocol.Screenshot.Type.BITMAP)
+        (client as AppInspectionInspectorClient).updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED)
       }
     }
 

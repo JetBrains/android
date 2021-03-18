@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.PanSurfaceAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
@@ -24,7 +23,6 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -67,17 +65,16 @@ class DeviceViewPanelActionsToolbarProvider(
 }
 
 object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
-
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
-    val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient
-    val zoomable = event.getData(ZOOMABLE_KEY) ?: return
+    val inspector = LayoutInspector.get(event)
+    val client = inspector?.currentClient
 
     if (model.isRotated) {
       model.resetRotation()
     }
     else {
-      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, zoomable.scale.toFloat())
+      client?.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
       var rotationStart = 0L
       val timerStart = System.currentTimeMillis()
       val timer = Timer(10, null)
@@ -88,7 +85,8 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
           timer.stop()
         }
         // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
-        if (model.pictureType != AndroidWindow.ImageType.SKP) {
+        val inspectorModel = inspector?.layoutInspectorModel
+        if (inspectorModel?.pictureType != AndroidWindow.ImageType.SKP) {
           return@addActionListener
         }
         if (rotationStart == 0L) {
@@ -109,10 +107,13 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
-    val client = LayoutInspector.get(event)?.currentClient
+    val inspector = LayoutInspector.get(event)
+    val client = inspector?.currentClient
+    val inspectorModel = inspector?.layoutInspectorModel
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
     if (model != null && model.overlay == null &&
-        client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
+        client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
+        (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)) {
       event.presentation.isEnabled = true
       if (model.isRotated) {
         event.presentation.text = "2D Mode"

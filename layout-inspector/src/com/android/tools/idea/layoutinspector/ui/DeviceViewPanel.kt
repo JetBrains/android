@@ -283,7 +283,9 @@ class DeviceViewPanel(
     var prevZoom = viewSettings.scalePercent
     viewSettings.modificationListeners.add {
       val client = LayoutInspector.get(this@DeviceViewPanel)?.currentClient
-      client?.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
+      if (client?.isCapturing == true) {
+        client.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
+      }
       if (prevZoom != viewSettings.scalePercent) {
         ApplicationManager.getApplication().executeOnPooledThread {
           deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
