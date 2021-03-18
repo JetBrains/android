@@ -27,7 +27,6 @@ import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -49,6 +48,7 @@ import javax.swing.Timer
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
 
 private const val ROTATION_DURATION = 300L
+private const val ROTATION_TIMEOUT = 10_000L
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbarProvider(
@@ -67,6 +67,7 @@ class DeviceViewPanelActionsToolbarProvider(
 }
 
 object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
     val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient
@@ -77,23 +78,31 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     }
     else {
       client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, zoomable.scale.toFloat())
-      var start = 0L
-      Timer(10) { timerEvent ->
+      var rotationStart = 0L
+      val timerStart = System.currentTimeMillis()
+      val timer = Timer(10, null)
+      timer.addActionListener {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - timerStart > ROTATION_TIMEOUT) {
+          // We weren't able to get the SKP in a reasonable amount of time, so stop waiting.
+          timer.stop()
+        }
         // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
         if (model.pictureType != AndroidWindow.ImageType.SKP) {
-          return@Timer
+          return@addActionListener
         }
-        if (start == 0L) {
-          start = System.currentTimeMillis()
+        if (rotationStart == 0L) {
+          rotationStart = currentTime
         }
-        val elapsed = System.currentTimeMillis() - start
+        val elapsed = currentTime - rotationStart
         if (elapsed > ROTATION_DURATION) {
-          (timerEvent.source as Timer).stop()
+          timer.stop()
         }
         model.xOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.45 / ROTATION_DURATION
         model.yOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.06 / ROTATION_DURATION
         model.refresh()
-      }.start()
+      }
+      timer.start()
     }
   }
 
