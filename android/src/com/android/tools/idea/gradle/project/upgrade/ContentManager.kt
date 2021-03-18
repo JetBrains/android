@@ -254,7 +254,7 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     else -> DefaultStepPresentation(processor)
   }
 
-  private open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
+  open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
     override val pageHeader: String
       get() = treeText
     override val treeText: String
