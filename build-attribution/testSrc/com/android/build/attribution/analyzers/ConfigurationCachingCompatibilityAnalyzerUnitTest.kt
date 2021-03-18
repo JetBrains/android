@@ -43,10 +43,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   val pluginContainer = PluginContainer()
 
+  private val appPluginData = binaryPlugin("com.android.build.gradle.AppPlugin")
+
   @Test
   fun `AGP compatible, no other plugins`() = test(TestCase(
     agpVersion = GradleVersion.parse("7.0.0"),
-    pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
+    pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = NoIncompatiblePlugins(emptyList())
@@ -55,10 +57,10 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `AGP incompatible, no other plugins`() = test(TestCase(
     agpVersion = GradleVersion.parse("4.1.0"),
-    pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
+    pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"))
+    expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"), listOf(appPluginData))
   ))
 
   @Test
@@ -226,9 +228,9 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCachingTurnedOn)
   }
 
-  private fun binaryPlugin(pluginClassName: String, projectPath: String = ":") = pluginContainer
+  private fun binaryPlugin(pluginClassName: String, projectPath: String = ":", displayName: String = pluginClassName) = pluginContainer
     .getPlugin(object : BinaryPluginIdentifier {
-      override fun getDisplayName(): String = pluginClassName
+      override fun getDisplayName(): String = displayName
       override fun getClassName(): String = pluginClassName
       override fun getPluginId(): String = pluginClassName
     }, projectPath)

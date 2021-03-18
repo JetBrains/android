@@ -74,7 +74,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     if (buildscriptClasspath.isEmpty()) {
       // Possible that we are using an old AGP. Need to check the known version from sync.
       currentAgpVersion?.let {
-        if (it < minAGPVersion) return AGPUpdateRequired(it)
+        if (it < minAGPVersion) return AGPUpdateRequired(it, appliedPlugins.filter { it.isAndroidPlugin() })
       }
     }
 
@@ -119,7 +119,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 sealed class ConfigurationCachingCompatibilityProjectResult : AnalyzerResult
 
 data class AGPUpdateRequired(
-  val currentVersion: GradleVersion
+  val currentVersion: GradleVersion,
+  val appliedPlugins: List<PluginData>
 ) : ConfigurationCachingCompatibilityProjectResult() {
   val recommendedVersion = GradleVersion.parse("7.0.0")
   val dependencyCoordinates = GradlePluginsData.DependencyCoordinates("com.android.tools.build", "gradle")
