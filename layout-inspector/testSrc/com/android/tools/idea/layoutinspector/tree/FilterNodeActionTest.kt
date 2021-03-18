@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability.SUPPORTS_FILTERING_SYSTEM_NODES
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -29,15 +32,15 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.PlatformDataKeys.CONTEXT_COMPONENT
 import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import java.util.EnumSet
+import javax.swing.JPanel
 
 class FilterNodeActionTest {
 
@@ -51,55 +54,41 @@ class FilterNodeActionTest {
 
   @Test
   fun testFilterSystemNodeActionDefaultValue() {
-    val inspector = mock(LayoutInspector::class.java)
-    val event = createEvent(inspector)
+    val event = createEvent(mock())
     FilterNodeAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(FilterNodeAction.isSelected(event)).isTrue()
   }
 
   @Test
-  fun testFilterSystemNodeActionWhenLive() {
-    val inspector = mock(LayoutInspector::class.java)
-    val client = mock(InspectorClient::class.java)
-    val event = createEvent(inspector)
-    `when`(inspector.currentClient).thenReturn(client)
-    `when`(client.capabilities).thenReturn(EnumSet.of(SUPPORTS_FILTERING_SYSTEM_NODES))
-    `when`(client.isConnected).thenReturn(true)
-    `when`(client.isCapturing).thenReturn(true)
+  fun testTurnOffFiltering() {
+    TreeSettings.hideSystemNodes = true
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
+    FilterNodeAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
     FilterNodeAction.setSelected(event, false)
 
     assertThat(TreeSettings.hideSystemNodes).isFalse()
-    verify(client).startFetching()
+    verify(treePanel).refresh()
   }
 
   @Test
-  fun testFilterSystemNodeActionWhenNotLive() {
-    val inspector = mock(LayoutInspector::class.java)
-    val client = mock(InspectorClient::class.java)
-    val event = createEvent(inspector)
-    `when`(inspector.currentClient).thenReturn(client)
-    `when`(client.capabilities).thenReturn(EnumSet.of(SUPPORTS_FILTERING_SYSTEM_NODES))
-    `when`(client.isConnected).thenReturn(true)
-    `when`(client.isCapturing).thenReturn(false)
+  fun testTurnOnFiltering() {
     TreeSettings.hideSystemNodes = false
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
     FilterNodeAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     FilterNodeAction.setSelected(event, true)
 
     assertThat(TreeSettings.hideSystemNodes).isTrue()
-    verify(client).refresh()
+    verify(treePanel).refresh()
   }
 
   @Test
   fun testFilterSystemNodeActionNotAvailableIfUnsupportedByClient() {
-    val inspector = mock(LayoutInspector::class.java)
-    val client = mock(InspectorClient::class.java)
-    val event = createEvent(inspector)
-    `when`(client.capabilities).thenReturn(EnumSet.noneOf(Capability::class.java))
-    `when`(inspector.currentClient).thenReturn(client)
-    `when`(client.isConnected).thenReturn(true)
-    `when`(client.isCapturing).thenReturn(false)
+    val event = createEvent(canSeparateSystemViews = false)
     TreeSettings.hideSystemNodes = false
     FilterNodeAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
@@ -107,18 +96,27 @@ class FilterNodeActionTest {
 
   @Test
   fun testFilterSystemNodeActionAlwaysAvailableIfNotConnected() {
-    val inspector = mock(LayoutInspector::class.java)
-    val client = mock(InspectorClient::class.java)
-    val event = createEvent(inspector)
-    `when`(client.capabilities).thenReturn(EnumSet.noneOf(Capability::class.java))
-    `when`(inspector.currentClient).thenReturn(client)
-    `when`(client.isConnected).thenReturn(false)
     TreeSettings.hideSystemNodes = false
-    FilterNodeAction.update(event)
-    assertThat(event.presentation.isVisible).isTrue()
+    FilterNodeAction.update(createEvent(connected = false, canSeparateSystemViews = false))
+    assertThat(createEvent().presentation.isVisible).isTrue()
   }
 
-  private fun createEvent(inspector: LayoutInspector): AnActionEvent {
+  private fun createEvent(
+    treePanel: LayoutInspectorTreePanel = mock(),
+    connected: Boolean = true,
+    canSeparateSystemViews: Boolean = true
+  ): AnActionEvent {
+    val panel = JPanel()
+    panel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, treePanel)
+    val inspector: LayoutInspector = mock()
+    val client: InspectorClient = mock()
+    val model = model { view(ROOT) }
+    val capabilities = if (canSeparateSystemViews) EnumSet.of(Capability.SUPPORTS_SYSTEM_NODES) else EnumSet.noneOf(Capability::class.java)
+    `when`(inspector.layoutInspectorModel).thenReturn(model)
+    `when`(inspector.currentClient).thenReturn(client)
+    `when`(client.capabilities).thenReturn(capabilities)
+    `when`(client.isConnected).thenReturn(connected)
+
     val dataContext = object : DataContext {
       override fun getData(dataId: String): Any? {
         return null
@@ -126,10 +124,14 @@ class FilterNodeActionTest {
 
       override fun <T> getData(key: DataKey<T>): T? {
         @Suppress("UNCHECKED_CAST")
-        return if (key == LAYOUT_INSPECTOR_DATA_KEY) inspector as T else null
+        return when (key) {
+          CONTEXT_COMPONENT -> panel as T
+          LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
+          else -> null
+        }
       }
     }
-    val actionManager = Mockito.mock(ActionManager::class.java)
+    val actionManager: ActionManager = mock()
     return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
   }
 }

@@ -33,15 +33,19 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.treeStructure.Tree
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 
-fun ToolContent<*>.tree(): Tree? =
-  (component as? JScrollPane)?.viewport?.view as? Tree
+fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
+  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
+
+fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
@@ -68,8 +72,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
 
-    val (tree, model, selectionModel) = builder.build()
-    componentTree = tree
+    val (scrollPane, model, selectionModel) = builder.build()
+    componentTree = scrollPane
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
@@ -82,8 +86,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
-    tree()?.setDefaultPainter()
+    tree?.setDefaultPainter()
   }
+
+  val tree: Tree?
+    get() = (component as? JScrollPane)?.viewport?.view as? Tree
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
@@ -154,8 +161,15 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     layoutInspector?.layoutInspectorModel?.windows?.keys?.flatMapTo(root.children) { id -> windowRoots[id] ?: emptyList() }
   }
 
+  fun refresh() {
+    windowRoots.clear()
+    layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { addToRoot(it) }
+    rebuildRoot()
+    componentTreeModel.hierarchyChanged(root)
+  }
+
   private fun updateHierarchy(node: ViewNode, parent: TreeViewNode) {
-    val nextParent = if (exclude(node)) parent else {
+    val nextParent = if (!node.isInComponentTree) parent else {
       val treeNode = node.treeNode
       parent.children.add(treeNode)
       treeNode.parent = parent
@@ -163,22 +177,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       treeNode
     }
     node.children.forEach { updateHierarchy(it, nextParent) }
-  }
-
-  private fun exclude(node: ViewNode): Boolean =
-    TreeSettings.hideSystemNodes && isTopSystemNode(node)
-
-  /**
-   * Return true if this is a system node that is a child of the generated root node in [InspectorModel].
-   *
-   * When the agent is filtering out system nodes, the top system node (typically a DecorView)
-   * will still be included. This method returns true if the [node] is such a system node and the
-   * grandParent is null indicating that [node] is a child of the generated root node in [InspectorModel].
-   */
-  private fun isTopSystemNode(node: ViewNode?): Boolean {
-    val parent = node?.parent
-    val grandParent = parent?.parent
-    return parent != null && grandParent == null && node.layout == null
   }
 
   @Suppress("UNUSED_PARAMETER")

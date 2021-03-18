@@ -31,22 +31,16 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.hideSystemNodes = state
 
-    // Update the current client if currently connected:
-    val client = LayoutInspector.get(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
-      }
-    }
+    // Update the component tree:
+    event.treePanel()?.refresh()
   }
 
   override fun update(event: AnActionEvent) {
+    super.update(event)
     event.presentation.isVisible =
       LayoutInspector.get(event)?.currentClient?.let { client ->
         !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
-        || client.capabilities.contains(Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+        || client.capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
       }
       ?: true
   }
