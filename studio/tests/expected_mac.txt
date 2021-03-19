@@ -544,7 +544,6 @@ Android Studio Preview.app/Contents/lib/jackson-databind-2.11.0.jar
 Android Studio Preview.app/Contents/lib/jackson-module-kotlin-2.11.0.jar
 Android Studio Preview.app/Contents/lib/java-compatibility-1.0.1.jar
 Android Studio Preview.app/Contents/lib/java-string-similarity-1.2.1.jar
-Android Studio Preview.app/Contents/lib/javac2.jar
 Android Studio Preview.app/Contents/lib/javax.activation-1.2.0.jar
 Android Studio Preview.app/Contents/lib/javax.annotation-api-1.3.2.jar
 Android Studio Preview.app/Contents/lib/jaxb-api-2.3.1.jar
