@@ -15,7 +15,7 @@ extern "C" {
  * Be sure to send the Shutdown message to it when you're done.
  */
 JNIEXPORT void JNICALL
-Java_com_android_tools_idea_layoutinspector_SkiaParserIntegrationTest_runServer(
+Java_com_android_tools_idea_layoutinspector_skia_SkiaParserIntegrationTest_runServer(
     JNIEnv *env, jclass c, jint port) {
 	SkiaParserServiceImpl::RunServer(std::to_string(port).c_str());
 }
@@ -24,7 +24,7 @@ Java_com_android_tools_idea_layoutinspector_SkiaParserIntegrationTest_runServer(
  * Tool to generate boxes.skp used in testing the layout inspector.
  */
 JNIEXPORT jbyteArray JNICALL
-Java_com_android_tools_idea_layoutinspector_SkiaParserIntegrationTest_generateBoxes(
+Java_com_android_tools_idea_layoutinspector_skia_SkiaParserIntegrationTest_generateBoxes(
         JNIEnv *env, jclass c) {
     SkPictureRecorder recorder;
     SkPaint paint;

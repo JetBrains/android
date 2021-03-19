@@ -36,3 +36,5 @@ internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
 
 internal val EMULATOR_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Android Emulator Messages")!!
+
+const val PRIMARY_DISPLAY_ID = 0

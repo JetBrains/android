@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -23,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
@@ -30,6 +32,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mockito.`when`
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -163,38 +166,28 @@ class DeviceViewPanelModelTest {
   @Test
   fun testSwitchDevices() {
     val model = model {
-      view(ROOT) {
-        image()
-        view(VIEW1) {
-          image()
-        }
-      }
+      view(ROOT)
     }
 
-    val panelModel = DeviceViewPanelModel(model)
+    val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(capabilities)
+
+    val panelModel = DeviceViewPanelModel(model) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
     // Switch to a new model
-    val model2 =
-      view(VIEW3) {
-        image()
-        view(VIEW1) {
-          image()
-        }
-      }
+    val model2 = view(VIEW3)
 
     model.update(FakeAndroidWindow(model2, VIEW3), listOf(VIEW3), 0)
     panelModel.refresh()
 
     assertThat(panelModel.isRotated).isTrue()
 
-    // Now switch to a legacy model with only an image on the root
-    val legacyModel =
-      view(VIEW2) {
-        image()
-        view(VIEW1)
-      }
+    capabilities.clear()
+    // Update the view so the listener is fired
+    val legacyModel = view(VIEW2)
 
     model.update(FakeAndroidWindow(legacyModel, VIEW2), listOf(VIEW2), 0)
     panelModel.refresh()

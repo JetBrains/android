@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class IssueNotificationAction extends ToggleAction {
   public static final String NO_ISSUE = "No Issue";
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
+  private static final String DEFAULT_TOOLTIP = "Toggle visibility of issue panel";
   private static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR);
 
   /**
@@ -62,7 +63,7 @@ public class IssueNotificationAction extends ToggleAction {
     Presentation presentation = event.getPresentation();
     if (surface == null) {
       event.getPresentation().setEnabled(false);
-      presentation.setDescription("Toggle visibility of issue panel");
+      presentation.setDescription(DEFAULT_TOOLTIP);
       presentation.setIcon(DISABLED_ICON);
     }
     else {
@@ -86,7 +87,7 @@ public class IssueNotificationAction extends ToggleAction {
       }
       else {
         presentation.setIcon(getIssueTypeIcon(issueModel));
-        presentation.setText("");
+        presentation.setText(DEFAULT_TOOLTIP);
       }
     }
   }

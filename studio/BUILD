@@ -55,6 +55,7 @@ studio_plugin(
         "//tools/adt/idea/nav/editor:eclipse-layout-kernel",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
         "//tools/base/deploy/deployer:libjava_version",
@@ -211,6 +212,9 @@ studio_plugin(
         ],
         "sdklib.jar": [
             "//tools/base/sdklib:studio.android.sdktools.sdklib",
+        ],
+        "utp.jar": [
+            "//tools/adt/idea/utp",
         ],
         "wizard-template.jar": [
             "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl",
@@ -527,9 +531,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 11,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(

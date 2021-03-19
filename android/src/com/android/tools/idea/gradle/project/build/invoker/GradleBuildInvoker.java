@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
@@ -34,6 +33,7 @@ import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
@@ -253,7 +253,7 @@ public class GradleBuildInvoker {
 
   @NotNull
   private static String createGenerateSourcesOnlyProperty() {
-    return createProjectProperty(PROPERTY_GENERATE_SOURCES_ONLY, true);
+    return createProjectProperty(AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY, true);
   }
 
   /**

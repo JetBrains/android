@@ -234,7 +234,7 @@ MODULE                        : My_First_App.app
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
@@ -822,7 +822,7 @@ MODULE                        : My_First_App.app
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -1416,7 +1416,7 @@ MODULE                        : My_First_App.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -2230,7 +2230,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -2785,7 +2785,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -3351,7 +3351,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]

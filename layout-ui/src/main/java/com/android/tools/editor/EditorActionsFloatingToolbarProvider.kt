@@ -21,13 +21,14 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.ActionListener
 import java.awt.event.AdjustmentEvent
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
@@ -42,7 +43,8 @@ import javax.swing.Timer
 private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 
 /**
- * Provides the floating action toolbar for editor. For now it is used for panning and zooming only.
+ * Provides the floating action toolbar for editor. It provides support for pan and zoom specifically, and arbitrary actions can be added
+ * in additional toolbar segments.
  * [component] is used for data-context retrieval. See [ActionToolbar.setTargetComponent].
  */
 abstract class EditorActionsFloatingToolbarProvider(
@@ -53,7 +55,7 @@ abstract class EditorActionsFloatingToolbarProvider(
   val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
 
   private val zoomToolbars: MutableList<ActionToolbar> = mutableListOf()
-  private val otherToolbars: MutableList<ActionToolbar> = mutableListOf()
+  private val otherToolbars: MutableMap<ActionGroup, ActionToolbar> = mutableMapOf()
 
   private val emptyBoxConstraints = GridBagConstraints().apply {
     gridx = 0
@@ -89,7 +91,7 @@ abstract class EditorActionsFloatingToolbarProvider(
   /** Timer used to automatically set the Zoom Label panel to not visible after a period of time. */
   private var hiddenZoomLabelTimer: Timer? =
     if (!ApplicationManager.getApplication().isUnitTestMode) { // Running a timer in a TestCase may cause it to fail.
-      Timer(2000, ActionListener { hiddenZoomLabelComponent?.isVisible = false }).apply {
+      Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply {
         isRepeats = false
       }
     }
@@ -99,6 +101,11 @@ abstract class EditorActionsFloatingToolbarProvider(
 
   init {
     Disposer.register(parentDisposable, this)
+  }
+
+  fun findActionButton(group: ActionGroup, action: AnAction): ActionButton? {
+    val toolbar = otherToolbars[group] ?: return null
+    return ActionToolbarUtil.findActionButton(toolbar, action)
   }
 
   protected fun updateToolbar() {
@@ -121,14 +128,14 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.mapTo(otherToolbars) { createToolbar(actionManager, it, component) }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(actionManager, it, component) }
 
     floatingToolbar.removeAll()
     if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
       // Empty space with weight to push components down.
       floatingToolbar.add(Box.createRigidArea(JBUI.size(10)), emptyBoxConstraints)
     }
-    for ((index, toolbar) in otherToolbars.withIndex()) {
+    for ((index, toolbar) in otherToolbars.values.withIndex()) {
       val controlsPanel = toolbar.component.wrapInDesignSurfaceUI()
       val otherControlsConstraints = GridBagConstraints().apply {
         gridx = 0
@@ -168,7 +175,7 @@ abstract class EditorActionsFloatingToolbarProvider(
   }
 
   override fun panningChanged(adjustmentEvent: AdjustmentEvent?) = UIUtil.invokeLaterIfNeeded {
-    otherToolbars.forEach { it.updateActionsImmediately() }
+    otherToolbars.values.forEach { it.updateActionsImmediately() }
   }
 
   abstract fun getActionGroups(): EditorActionsToolbarActionGroups

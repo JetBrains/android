@@ -47,10 +47,9 @@ sealed class LayoutNode(val size: Dimension)
  * Represents a content panel.
  *
  * @param rectangleIndex the index in the `rectangleSizes` array corresponding to the content of the panel
- * @param rectangleSizes dimensions of the rectangles representing contents of all content panels
- *     before scaling
+ * @param size dimensions of the panel contents before scaling
  */
-class LeafNode(val rectangleIndex: Int, rectangleSizes: List<Dimension>) : LayoutNode(rectangleSizes[rectangleIndex]) {
+class LeafNode(val rectangleIndex: Int, size: Dimension) : LayoutNode(size) {
   override fun toString(): String {
     return "#$rectangleIndex"
   }
@@ -151,7 +150,7 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
 
   private fun buildLayoutTree(optimizationNode: Node, optimizationNodes: Array<Node?>): LayoutNode {
     if (optimizationNode is Node.Leaf) {
-      return LeafNode(optimizationNode.rectangleIndex, rectangleSizes)
+      return LeafNode(optimizationNode.rectangleIndex, rectangleSizes[optimizationNode.rectangleIndex])
     }
 
     optimizationNode as Node.Split

@@ -20,6 +20,7 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
@@ -208,16 +209,16 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
         List<String> projectProperties = Lists.newArrayList();
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
-        projectProperties.add(
-          createProperty(IdeAndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
+        projectProperties
+          .add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
 
         // These were introduced in 2.3, but gradle doesn't care if it doesn't know the properties and so they don't affect older versions.
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
-        projectProperties.add(createProperty(IdeAndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
         assert myProject != null;
 
@@ -258,7 +259,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
                       ", destination: " +
-                      createProperty(IdeAndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+                      createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
       }
 
       private String createProperty(@NotNull String name, @NotNull String value) {

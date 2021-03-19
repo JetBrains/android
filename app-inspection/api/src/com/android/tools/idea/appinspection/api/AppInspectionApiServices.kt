@@ -98,7 +98,7 @@ suspend fun AppInspectionApiServices.findVersion(project: String,
                                                  process: ProcessDescriptor,
                                                  groupId: String,
                                                  artifactId: String): String? {
-  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0", ArtifactCoordinate.Type.AAR)
+  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
   return attachToProcess(process, project)
     .getLibraryVersions(listOf(coordinateAnyVersion))
     .singleOrNull()

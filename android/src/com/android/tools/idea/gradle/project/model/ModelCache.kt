@@ -69,6 +69,7 @@ import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer
 import com.android.ide.common.gradle.model.IdeDependencies
@@ -210,6 +211,8 @@ interface ModelCacheTesting : ModelCache {
   fun isLocalAarModule(androidLibrary: AndroidLibrary): Boolean
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl
 }
+
+private val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
 
 private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTesting {
 
@@ -729,7 +732,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
     agpVersion: GradleVersion?
   ): IdeAndroidArtifactImpl {
     return IdeAndroidArtifactImpl(
-      name = artifact.name,
+      name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
@@ -763,7 +766,7 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
 
   fun javaArtifactFrom(artifact: JavaArtifact): IdeJavaArtifactImpl {
     return IdeJavaArtifactImpl(
-      name = artifact.name,
+      name = convertArtifactName(artifact.name),
       compileTaskName = artifact.compileTaskName,
       assembleTaskName = artifact.assembleTaskName,
       assembleTaskOutputListingFile = copyNewProperty({ artifact.assembleTaskOutputListingFile }, ""),
@@ -1037,7 +1040,11 @@ private fun modelCacheImpl(buildFolderPaths: BuildFolderPaths): ModelCacheTestin
     val defaultConfigCopy: IdeProductFlavorContainer = copyModel(project.defaultConfig, ::productFlavorContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainer> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
     val productFlavorCopy: Collection<IdeProductFlavorContainer> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
-    val variantNamesCopy: Collection<String> = copy(project::getVariantNames, ::deduplicateString)
+    val variantNamesCopy: Collection<String> =
+            if (parsedModelVersion != null && parsedModelVersion < MODEL_VERSION_3_2_0)
+                copy(fun(): Collection<String> = project.variants.map { it.name }, ::deduplicateString)
+            else
+                copy(project::getVariantNames, ::deduplicateString)
     val flavorDimensionCopy: Collection<String> = copy(project::getFlavorDimensions, ::deduplicateString)
     val bootClasspathCopy: Collection<String> = ImmutableList.copyOf(project.bootClasspath)
     val signingConfigsCopy: Collection<IdeSigningConfig> = copy(project::getSigningConfigs, ::signingConfigFrom)
@@ -1343,3 +1350,9 @@ private fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGra
 
 private fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
 
+private fun convertArtifactName(name: String): IdeArtifactName = when(name) {
+  AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
+  AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
+  AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
+  else -> error("Invalid android artifact name: $name")
+}

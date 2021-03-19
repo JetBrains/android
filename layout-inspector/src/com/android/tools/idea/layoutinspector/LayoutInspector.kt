@@ -22,10 +22,13 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.annotations.TestOnly
+import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
 
@@ -102,5 +105,12 @@ class LayoutInspector(
         Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")
       }
     }
+  }
+
+  companion object {
+    fun get(component: Component): LayoutInspector? =
+      DataManager.getInstance().getDataContext(component).getData(LAYOUT_INSPECTOR_DATA_KEY)
+
+    fun get(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
 }

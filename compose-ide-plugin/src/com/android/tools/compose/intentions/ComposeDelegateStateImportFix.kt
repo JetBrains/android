@@ -16,6 +16,7 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
+import com.android.tools.compose.isClassOrExtendsClass
 import com.intellij.codeInsight.daemon.QuickFixBundle
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
@@ -36,8 +37,10 @@ import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Registers ComposeDelegateStateImportFixFactory for DELEGATE_SPECIAL_FUNCTION_MISSING error.
@@ -57,9 +60,11 @@ class ComposeDelegateStateImportFixContributor : QuickFixContributor {
  */
 private class ComposeDelegateStateImportFixFactory : KotlinSingleIntentionActionFactory() {
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
-    val callExpression: KtCallExpression = diagnostic.psiElement as? KtCallExpression ?: return null
-    val delegateFqName = callExpression.getResolvedCall(callExpression.analyze(BodyResolveMode.FULL))?.getReturnType()?.fqName
-    if (delegateFqName?.asString() == "androidx.compose.runtime.MutableState") {
+    val callExpression = diagnostic.psiElement.safeAs<KtCallExpression>()
+                         ?: diagnostic.psiElement.getChildOfType()
+                         ?: return null
+    val delegateType = callExpression.getResolvedCall(callExpression.analyze(BodyResolveMode.FULL))?.getReturnType() ?: return null
+    if (delegateType.isClassOrExtendsClass("androidx.compose.runtime.State")) {
       return ComposeDelegateStateImportFixAction()
     }
     return null

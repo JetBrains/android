@@ -253,14 +253,14 @@ public class RenderClassLoaderTest {
     TestableRenderClassLoader(@NotNull ClassLoader parent,
                               @NotNull ClassTransform transformations,
                               @NotNull List<URL> dependencies) {
-      super(parent, transformations);
+      super(parent, transformations, transformations, Function.identity(), ClassBinaryCache.NO_CACHE, false);
       mDependencies = dependencies;
     }
 
     TestableRenderClassLoader(@NotNull ClassLoader parent,
                               @NotNull List<URL> dependencies,
                               @NotNull ClassBinaryCache cache) {
-      super(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), cache);
+      super(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), cache, false);
       mDependencies = dependencies;
     }
 

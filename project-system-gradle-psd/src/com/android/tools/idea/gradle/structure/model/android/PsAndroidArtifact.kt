@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_ANDROID_TEST
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
@@ -31,14 +29,14 @@ import icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT
 import org.jetbrains.annotations.NonNls
 import javax.swing.Icon
 
-class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String)
+class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArtifactName)
   : PsChildModel() {
 
   override val name: String
   override val icon: Icon
   var resolvedModel: IdeBaseArtifact? = null
 
-  constructor(parent: PsVariant, resolvedName: String, resolvedModel: IdeBaseArtifact?): this(parent, resolvedName) {
+  constructor(parent: PsVariant, resolvedName: IdeArtifactName, resolvedModel: IdeBaseArtifact?): this(parent, resolvedName) {
     init(resolvedModel)
   }
 
@@ -51,12 +49,12 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: String
     var icon = Artifact
     var name = ""
     when (resolvedName) {
-      ARTIFACT_MAIN -> icon = AllIcons.Modules.SourceRoot
-      ARTIFACT_ANDROID_TEST -> {
+      IdeArtifactName.MAIN -> icon = AllIcons.Modules.SourceRoot
+      IdeArtifactName.ANDROID_TEST -> {
         name = "AndroidTest"
         icon = ANDROID_TEST_ROOT
       }
-      ARTIFACT_UNIT_TEST -> {
+      IdeArtifactName.UNIT_TEST -> {
         name = "UnitTest"
         icon = TestRoot
       }
@@ -102,22 +100,24 @@ private const val COMPILE_SUFFIX = "Compile"
 private const val IMPLEMENTATION_SUFFIX = "Implementation"
 
 @VisibleForTesting
-fun getPossibleConfigurationNames(resolvedName: String,
-                                  buildTypeName: String,
-                                  productFlavorNames: List<String>): List<String> {
+fun getPossibleConfigurationNames(
+  resolvedName: IdeArtifactName,
+  buildTypeName: String,
+  productFlavorNames: List<String>
+): List<String> {
   val configurationNames = mutableListOf<String>()
   when (resolvedName) {
-    ARTIFACT_MAIN -> {
+    IdeArtifactName.MAIN -> {
       configurationNames.add(COMPILE)
       configurationNames.add(API)
       configurationNames.add(IMPLEMENTATION)
     }
-    ARTIFACT_UNIT_TEST -> {
+    IdeArtifactName.UNIT_TEST -> {
       configurationNames.add(TEST_COMPILE)
       configurationNames.add(TEST_API)
       configurationNames.add(TEST_IMPLEMENTATION)
     }
-    ARTIFACT_ANDROID_TEST -> {
+    IdeArtifactName.ANDROID_TEST -> {
       configurationNames.add(ANDROID_TEST_COMPILE)
       configurationNames.add(ANDROID_TEST_API)
       configurationNames.add(ANDROID_TEST_IMPLEMENTATION)
@@ -125,12 +125,12 @@ fun getPossibleConfigurationNames(resolvedName: String,
   }
 
   when (resolvedName) {
-    ARTIFACT_MAIN -> {
+    IdeArtifactName.MAIN -> {
       configurationNames.add(buildTypeName + COMPILE_SUFFIX)
       configurationNames.add(buildTypeName + API_SUFFIX)
       configurationNames.add(buildTypeName + IMPLEMENTATION_SUFFIX)
     }
-    ARTIFACT_UNIT_TEST -> {
+    IdeArtifactName.UNIT_TEST -> {
       configurationNames.add("test" + capitalize(buildTypeName) + COMPILE_SUFFIX)
       configurationNames.add("test" + capitalize(buildTypeName) + API_SUFFIX)
       configurationNames.add("test" + capitalize(buildTypeName) + IMPLEMENTATION_SUFFIX)
@@ -139,17 +139,17 @@ fun getPossibleConfigurationNames(resolvedName: String,
 
   productFlavorNames.forEach { productFlavorName ->
     when (resolvedName) {
-      ARTIFACT_MAIN -> {
+      IdeArtifactName.MAIN -> {
         configurationNames.add(productFlavorName + COMPILE_SUFFIX)
         configurationNames.add(productFlavorName + API_SUFFIX)
         configurationNames.add(productFlavorName + IMPLEMENTATION_SUFFIX)
       }
-      ARTIFACT_UNIT_TEST -> {
+      IdeArtifactName.UNIT_TEST -> {
         configurationNames.add("test" + capitalize(productFlavorName) + COMPILE_SUFFIX)
         configurationNames.add("test" + capitalize(productFlavorName) + API_SUFFIX)
         configurationNames.add("test" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
       }
-      ARTIFACT_ANDROID_TEST -> {
+      IdeArtifactName.ANDROID_TEST -> {
         configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + API_SUFFIX)
         configurationNames.add("androidTest" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)

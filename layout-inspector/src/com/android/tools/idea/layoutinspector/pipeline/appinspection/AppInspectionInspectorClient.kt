@@ -22,7 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -39,7 +39,9 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.EnumSet
 
 /**
@@ -62,7 +64,9 @@ class AppInspectionInspectorClient(
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
-  private var composeInspector: ComposeLayoutInspectorClient? = null
+  @VisibleForTesting
+  var composeInspector: ComposeLayoutInspectorClient? = null
+    private set
 
   private val exceptionHandler = CoroutineExceptionHandler { _, t ->
     fireError(t.message!!)
@@ -71,6 +75,25 @@ class AppInspectionInspectorClient(
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
 
   private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
+
+  override val capabilities =
+    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
+
+  private val skiaParser = SkiaParserImpl(
+    {
+      viewInspector.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
+      capabilities.remove(Capability.SUPPORTS_SKP)
+    })
+
+  override val treeLoader: TreeLoader = AppInspectionTreeLoader(
+    model.project,
+    logEvent = metrics::logEvent,
+    skiaParser
+  )
+  override val provider: PropertiesProvider
+    get() = propertiesProvider
+  override val isCapturing: Boolean
+    get() = InspectorClientSettings.isCapturingModeOn
 
   override fun doConnect(): ListenableFuture<Nothing> {
     val future = SettableFuture.create<Nothing>()
@@ -108,9 +131,9 @@ class AppInspectionInspectorClient(
       debugViewAttributes.clear()
       viewInspector.disconnect()
       composeInspector?.disconnect()
+      skiaParser.shutdown()
       metrics.logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
 
-      SkiaParser.shutdownAll()
       future.set(null)
     }
     return future
@@ -134,13 +157,6 @@ class AppInspectionInspectorClient(
     }
   }
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)!!
-  override val treeLoader: TreeLoader = AppInspectionTreeLoader(
-    model.project,
-    logEvent = metrics::logEvent
-  )
-  override val provider: PropertiesProvider
-    get() = propertiesProvider
-  override val isCapturing: Boolean
-    get() = InspectorClientSettings.isCapturingModeOn
+  override fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float) =
+    viewInspector.updateScreenshotType(type, scale)
 }

@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -80,7 +80,8 @@ class TransportInspectorClient(
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
 
-  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+  override val capabilities = EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
+                                         Capability.SUPPORTS_SKP)
 
   private val eventCallbacks = mutableMapOf<EventGroupIds, MutableList<(Any) -> Unit>>()
 
@@ -125,7 +126,13 @@ class TransportInspectorClient(
 
   private var debugAttributesOverridden = false
 
-  override val treeLoader = TransportTreeLoader(project, this)
+  private val skiaParser = SkiaParserImpl(
+    {
+      capabilities.remove(Capability.SUPPORTS_SKP)
+      requestScreenshotMode()
+    })
+
+  override val treeLoader = TransportTreeLoader(project, this, skiaParser)
 
   private val composeDependencyChecker = ComposeDependencyChecker(model)
 
@@ -317,7 +324,7 @@ class TransportInspectorClient(
       stop()
 
       logEvent(SESSION_DATA)
-      SkiaParser.shutdownAll()
+      skiaParser.shutdown()
       future.set(null)
     }
     return future

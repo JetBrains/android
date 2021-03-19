@@ -68,7 +68,6 @@ class BenchmarkOutput private constructor(val lines: List<BenchmarkLine>) {
  */
 class BenchmarkLine(val rawText: String, val matches: MatchResult?) {
   fun print(console: ConsoleView, type: ConsoleViewContentType, hyperlinkListener: HyperlinkListener?) {
-    console.print("benchmark: ", type)
     if (matches == null) {
       console.print(rawText, type)
     } else {

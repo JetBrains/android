@@ -20,6 +20,7 @@ import static java.util.Collections.singletonList;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.Dependencies.ProjectIdentifier;
 import com.android.builder.model.JavaLibrary;
@@ -122,7 +123,7 @@ public class IdeDependenciesFactoryTest {
                         Collections.emptyList());
 
         BaseArtifactStub baseArtifactStub =
-                new BaseArtifactStub() {
+                new BaseArtifactStub(AndroidProject.ARTIFACT_MAIN) {
                     @Override
                     @NonNull
                     public Dependencies getDependencies() {
@@ -165,7 +166,7 @@ public class IdeDependenciesFactoryTest {
                         Collections.emptyList());
 
         BaseArtifactStub baseArtifactStub =
-                new BaseArtifactStub() {
+                new BaseArtifactStub(AndroidProject.ARTIFACT_MAIN) {
                     @Override
                     @NonNull
                     public Dependencies getDependencies() {

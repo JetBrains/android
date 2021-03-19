@@ -1420,7 +1420,7 @@ public class LayoutlibSceneManager extends SceneManager {
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
         synchronized (myRenderingTaskLock) {
-          if (myRenderTask == null) {
+          if (myRenderTask == null || (inflateResult != null && !inflateResult.getRenderResult().isSuccess())) {
             getDesignSurface().updateErrorDisplay();
             return CompletableFuture.completedFuture(null);
           }

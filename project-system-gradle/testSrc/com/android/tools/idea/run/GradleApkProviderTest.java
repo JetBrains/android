@@ -23,7 +23,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.containers.ContainerUtil.map;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
@@ -49,7 +48,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
     invokeGradleTasks(getProject(), taskName);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(apks).hasSize(1);
 
     ApkInfo apk = getFirstItem(apks);
@@ -68,7 +67,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     invokeGradleTasks(getProject(), taskName, taskNameForTest);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(apks).hasSize(2);
 
     // Sort the APKs to keep test consistent.
@@ -104,7 +103,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     invokeGradleTasks(getProject(), taskName);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.testmodule"))
       .findFirst().orElse(null);
     assertThat(testApk).isNotNull();
@@ -134,7 +133,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     invokeGradleTasks(getProject(), task);
 
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertSize(1, apks);
     ApkInfo apkInfo = apks.iterator().next();
     assertThat(apkInfo.getFiles().size()).isEqualTo(3);
@@ -155,7 +154,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     invokeGradleTasks(getProject(), taskName, taskNameForTest);
 
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
-    IDevice iDevice = mock(IDevice.class);
+    IDevice iDevice = mockDevice();
     when(iDevice.getVersion()).thenReturn(new AndroidVersion(27));
     Collection<ApkInfo> apks = provider.getApks(iDevice);
     assertSize(2, apks);
@@ -186,12 +185,12 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     String taskNameForTest = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getAndroidTestArtifact().getAssembleTaskName();
     invokeGradleTasks(getProject(), taskName, taskNameForTest);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
-    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    Collection<ApkInfo> apks = provider.getApks(mockDevice());
     assertThat(Iterables.transform(apks, ApkInfo::getApplicationId))
       .containsExactly("google.testapplication", "google.testapplication.test", "com.linkedin.android.testbutler");
 
     // Check that we don't leak the NIO filesystem, which would prevent us from doing this twice in a row:
-    provider.getApks(mock(IDevice.class));
+    provider.getApks(mockDevice());
   }
 
   public void testValidate() throws Exception {

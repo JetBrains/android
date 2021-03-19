@@ -21,6 +21,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -48,7 +49,7 @@ class ExportInProgressViewImpl(
     progressWindow.addStateDelegate(
       object : AbstractProgressIndicatorExBase() {
         override fun cancel() {
-          job.cancel()
+          job.cancel(UserCancellationException())
           super.cancel()
         }
       }
@@ -68,4 +69,6 @@ class ExportInProgressViewImpl(
       }
     }
   }
+
+  class UserCancellationException : CancellationException()
 }

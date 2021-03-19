@@ -22,8 +22,8 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
@@ -36,10 +36,13 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRec
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.skia.InvalidPictureException
+import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
+import com.android.tools.layoutinspector.toBytes
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.ProjectRule
@@ -75,9 +78,9 @@ class AppInspectionTreeLoaderTest {
       graphics.drawImage(origImage, 0, 0, null)
       val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
                                                       ShortArray(image.width * image.height)) as ShortArray
-      val imageBytes = ArrayList<Byte>(image.width * image.height * 2)
+      val imageBytes = ArrayList<Byte>(image.width * image.height * 2 + 8)
       dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-      bytes = imageBytes.toByteArray().compress()
+      bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + imageBytes).toByteArray().compress()
     }
   }
 
@@ -197,8 +200,7 @@ class AppInspectionTreeLoaderTest {
       11,
       listOf(123, 456),
       viewLayoutEvent,
-      composablesResponse,
-      updateScreenshotType = {}
+      composablesResponse
     )
   }
 
@@ -226,7 +228,7 @@ class AppInspectionTreeLoaderTest {
       ))
     ))
 
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(
       skiaParser.getViewTree(eq(sample.bytes), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) }, any(), any()))
       .thenReturn(skiaResponse)
@@ -300,10 +302,10 @@ class AppInspectionTreeLoaderTest {
     assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
   }
 
-  private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any?) {
+  private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
     val banner = InspectorBanner(projectRule.project)
 
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(eq(sample.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
     val treeLoader = AppInspectionTreeLoader(
@@ -325,9 +327,16 @@ class AppInspectionTreeLoaderTest {
   }
 
   @Test
+  fun testSkpParsingFailed() {
+    assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
+      throw ParsingFailedException()
+    }
+  }
+
+  @Test
   fun testInvalidSkp() {
     assertExpectedErrorIfSkiaRespondsWith("Invalid picture data received from device. Rotation disabled.") {
-      null
+      throw InvalidPictureException()
     }
   }
 
@@ -340,7 +349,7 @@ class AppInspectionTreeLoaderTest {
 
   @Test
   fun testCanProcessBitmapScreenshots() {
-    val skiaParser: SkiaParserService = mock()
+    val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     var loggedEvent: DynamicLayoutInspectorEventType? = null
     val treeLoader = AppInspectionTreeLoader(

@@ -95,5 +95,5 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
   }
 
   @Nls
-  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Layout Editor" else "Android Layout Editor"
+  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else "Android Design Tools"
 }

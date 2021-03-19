@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_ANDROID_TEST
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -28,17 +26,17 @@ class PsAndroidArtifactTest {
 
   @Test
   fun getPossibleConfigurationNamesWithMainArtifact() {
-    var configurationNames = getPossibleConfigurationNames(ARTIFACT_MAIN, "debug", listOf())
+    var configurationNames = getPossibleConfigurationNames(IdeArtifactName.MAIN, "debug", listOf())
     assertThat(configurationNames).containsExactly("compile", "debugCompile",
                                                    "api", "debugApi",
                                                    "implementation", "debugImplementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_MAIN, "debug", listOf("flavor1"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.MAIN, "debug", listOf("flavor1"))
     assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile",
                                                    "api", "debugApi", "flavor1Api",
                                                    "implementation", "debugImplementation", "flavor1Implementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_MAIN, "debug", listOf("flavor1", "flavor2"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.MAIN, "debug", listOf("flavor1", "flavor2"))
     assertThat(configurationNames).containsExactly("compile", "debugCompile", "flavor1Compile", "flavor2Compile",
                                                    "api", "debugApi", "flavor1Api", "flavor2Api",
                                                    "implementation", "debugImplementation", "flavor1Implementation",
@@ -47,17 +45,17 @@ class PsAndroidArtifactTest {
 
   @Test
   fun getPossibleConfigurationNamesWitTestArtifact() {
-    var configurationNames = getPossibleConfigurationNames(ARTIFACT_UNIT_TEST, "debug", listOf())
+    var configurationNames = getPossibleConfigurationNames(IdeArtifactName.UNIT_TEST, "debug", listOf())
     assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile",
                                                    "testApi", "testDebugApi",
                                                    "testImplementation", "testDebugImplementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_UNIT_TEST, "debug", listOf("flavor1"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.UNIT_TEST, "debug", listOf("flavor1"))
     assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile",
                                                    "testApi", "testDebugApi", "testFlavor1Api",
                                                    "testImplementation", "testDebugImplementation", "testFlavor1Implementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_UNIT_TEST, "debug", listOf("flavor1", "flavor2"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.UNIT_TEST, "debug", listOf("flavor1", "flavor2"))
     assertThat(configurationNames).containsExactly("testCompile", "testDebugCompile", "testFlavor1Compile", "testFlavor2Compile",
                                                    "testApi", "testDebugApi", "testFlavor1Api", "testFlavor2Api",
                                                    "testImplementation", "testDebugImplementation", "testFlavor1Implementation",
@@ -66,17 +64,17 @@ class PsAndroidArtifactTest {
 
   @Test
   fun getPossibleConfigurationNamesWitAndroidTestArtifact() {
-    var configurationNames = getPossibleConfigurationNames(ARTIFACT_ANDROID_TEST, "debug", listOf())
+    var configurationNames = getPossibleConfigurationNames(IdeArtifactName.ANDROID_TEST, "debug", listOf())
     assertThat(configurationNames).containsExactly("androidTestCompile",
                                                    "androidTestApi",
                                                    "androidTestImplementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_ANDROID_TEST, "debug", listOf("flavor1"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.ANDROID_TEST, "debug", listOf("flavor1"))
     assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile",
                                                    "androidTestApi", "androidTestFlavor1Api",
                                                    "androidTestImplementation", "androidTestFlavor1Implementation")
 
-    configurationNames = getPossibleConfigurationNames(ARTIFACT_ANDROID_TEST, "debug", listOf("flavor1", "flavor2"))
+    configurationNames = getPossibleConfigurationNames(IdeArtifactName.ANDROID_TEST, "debug", listOf("flavor1", "flavor2"))
     assertThat(configurationNames).containsExactly("androidTestCompile", "androidTestFlavor1Compile", "androidTestFlavor2Compile",
                                                    "androidTestApi", "androidTestFlavor1Api", "androidTestFlavor2Api",
                                                    "androidTestImplementation", "androidTestFlavor1Implementation",

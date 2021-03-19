@@ -18,17 +18,22 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.ui.GotItTooltip
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
@@ -53,7 +58,9 @@ import java.net.URI
 
 private const val MARGIN = 50
 
-class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
+class DeviceViewContentPanel(
+  val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, disposableParent: Disposable
+) : AdtPrimaryPanel() {
 
   @VisibleForTesting
   lateinit var selectProcessAction: SelectProcessAction
@@ -61,11 +68,11 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel)
+  val model = DeviceViewPanelModel(inspectorModel) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
 
-  val rootLocation: Point
+  val rootLocation: Point?
     get() {
-      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: Point(0,0)
+      val modelLocation = model.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null
       return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
                    (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
     }
@@ -115,18 +122,30 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
       override fun mouseDragged(e: MouseEvent) {
         if (e.isConsumed) return
-        if (!model.rotatable) {
+        val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
+        if (model.overlay != null || client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
           // can't rotate
           return
         }
-        val xRotation = (e.x - x) * 0.001
-        val yRotation = (e.y - y) * 0.001
-        x = e.x
-        y = e.y
-        if (xRotation != 0.0 || yRotation != 0.0) {
-          model.rotate(xRotation, yRotation)
+        if (model.isRotated) {
+          val xRotation = (e.x - x) * 0.001
+          val yRotation = (e.y - y) * 0.001
+          x = e.x
+          y = e.y
+          if (xRotation != 0.0 || yRotation != 0.0) {
+            model.rotate(xRotation, yRotation)
+          }
+          repaint()
         }
-        repaint()
+        else if ((e.x - x) + (e.y - y) > 50) {
+          // Drag when rotation is disabled. Show tooltip.
+          val dataContext = DataManager.getInstance().getDataContext(this@DeviceViewContentPanel)
+          val toggle3dButton = dataContext.getData(TOGGLE_3D_ACTION_BUTTON_KEY)!!
+          GotItTooltip("LayoutInspector.RotateViewTooltip", "Click to toggle 3D mode", disposableParent)
+            .withShowCount(3)
+            .withPosition(Balloon.Position.atLeft)
+            .show(toggle3dButton, GotItTooltip.LEFT_MIDDLE)
+        }
       }
 
       private fun nodeAtPoint(e: MouseEvent) = model.findTopViewAt((e.x - size.width / 2.0) / viewSettings.scaleFraction,

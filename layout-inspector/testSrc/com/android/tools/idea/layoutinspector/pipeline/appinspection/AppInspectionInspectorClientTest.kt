@@ -229,7 +229,7 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
-        (data as ViewLayoutInspectorClient.Data).updateScreenshotType(ViewProtocol.Screenshot.Type.BITMAP)
+        (client as AppInspectionInspectorClient).updateScreenshotType(ViewProtocol.Screenshot.Type.BITMAP)
       }
     }
 

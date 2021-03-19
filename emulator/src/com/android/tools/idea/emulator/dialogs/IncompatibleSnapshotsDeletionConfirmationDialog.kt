@@ -100,4 +100,3 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
     const val KEEP_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE
   }
 }
-

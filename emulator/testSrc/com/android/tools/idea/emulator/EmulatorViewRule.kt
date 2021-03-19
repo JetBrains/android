@@ -58,7 +58,7 @@ class EmulatorViewRule : TestRule {
     fakeEmulator.start()
     val emulators = catalog.updateNow().get()
     val emulatorController = emulators.find { it.emulatorId.grpcPort == grpcPort }!!
-    val view = EmulatorView(testRootDisposable, emulatorController, true)
+    val view = EmulatorView(testRootDisposable, emulatorController, PRIMARY_DISPLAY_ID, null, true)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return view
   }

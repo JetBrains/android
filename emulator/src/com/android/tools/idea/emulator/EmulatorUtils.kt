@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -26,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
 import java.awt.Dimension
 import java.awt.Point
+import javax.swing.JPanel
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -46,12 +49,6 @@ internal fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = K
     .setEventType(eventType)
     .build()
 }
-
-/**
- * True if the rotation is 90 degrees clockwise or counterclockwise.
- */
-internal inline val SkinRotation.is90Degrees
-  get() = ordinal % 2 != 0
 
 /**
  * Returns this integer scaled and rounded to the closest integer.
@@ -102,10 +99,7 @@ internal fun Point.scaled(scale: Double): Point {
  * Returns this [Dimension] rotated according to [rotation].
  */
 internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
-  return when (rotation) {
-    SkinRotation.LANDSCAPE, SkinRotation.REVERSE_LANDSCAPE -> Dimension(height, width)
-    else -> this
-  }
+  return if (rotation == SkinRotation.LANDSCAPE || rotation == SkinRotation.REVERSE_LANDSCAPE) Dimension(height, width) else this
 }
 
 /**
@@ -119,6 +113,9 @@ internal fun Point.rotated(rotation: SkinRotation): Point {
     else -> this
   }
 }
+
+internal val JPanel.sizeWithoutInsets: Dimension
+  get() = Dimension(width - insets.horizontal, height - insets.vertical)
 
 val Project.earlyDisposable: Disposable
   get() = (this as? ProjectEx)?.earlyDisposable ?: this

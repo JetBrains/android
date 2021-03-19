@@ -158,7 +158,7 @@ class DetailsViewContentViewTest {
     view.setLogcat("")
     view.setErrorStackTrace("error stack trace")
     view.myLogsView.waitAllRequests()
-    assertThat(view.myLogsView.text).isEqualTo("\nerror stack trace")
+    assertThat(view.myLogsView.text).isEqualTo("error stack trace")
   }
 
   @Test
@@ -202,7 +202,7 @@ class DetailsViewContentViewTest {
     view.setBenchmarkText(BenchmarkOutput("test benchmark message"))
     view.myBenchmarkView.waitAllRequests()
 
-    assertThat(view.myBenchmarkView.text).isEqualTo("benchmark: test benchmark message\n")
+    assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
   }
 

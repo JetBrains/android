@@ -669,7 +669,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }?.let { selectedPreviewElement ->
         surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
       }?.let {
-        surface.scrollToVisible(it)
+        surface.scrollToVisible(it, true)
       }
     }
   }
@@ -723,6 +723,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
       .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
+      .toolsAttribute("findDesignInfoProviders", StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get().toString())
       .apply {
         if (animationInspection.get()) {
           // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.

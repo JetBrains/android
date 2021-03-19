@@ -106,6 +106,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
+        "//tools/adt/idea/utp[module]",
     ],
 )
 
@@ -368,6 +369,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
+        "//tools/adt/idea/utp[module, test]",
     ],
 )
 
@@ -453,6 +455,7 @@ filegroup(
         "//tools/base/tracer:trace_agent",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",
+        "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:studio.android-test-plugin-result-listener-gradle-proto",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [

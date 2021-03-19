@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModelUtilKt.classFieldsToDynamicResourceValues;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
@@ -33,6 +31,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.gradle.model.IdeApiVersion;
+import com.android.ide.common.gradle.model.IdeArtifactName;
 import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
 import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
@@ -225,11 +224,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public List<IdeSourceProvider> getTestSourceProviders(@NotNull String artifactName) {
+  public List<IdeSourceProvider> getTestSourceProviders(@NotNull IdeArtifactName artifactName) {
     switch (artifactName) {
-      case ARTIFACT_ANDROID_TEST:
+      case ANDROID_TEST:
         return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
-      case ARTIFACT_UNIT_TEST:
+      case UNIT_TEST:
         return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
     }
     return ImmutableList.of();

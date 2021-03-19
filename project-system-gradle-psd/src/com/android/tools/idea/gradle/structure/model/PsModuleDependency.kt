@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsResolvedModuleAndroidDependency
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
@@ -40,7 +40,7 @@ val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCol
         targetModule
           .resolvedVariants
           .firstOrNull { it.name == (this as? PsResolvedModuleAndroidDependency)?.moduleVariant }
-          ?.findArtifact(ARTIFACT_MAIN)
+          ?.findArtifact(IdeArtifactName.MAIN)
           ?.dependencies
       is PsJavaModule -> targetModule.resolvedDependencies
       else -> throw AssertionError()

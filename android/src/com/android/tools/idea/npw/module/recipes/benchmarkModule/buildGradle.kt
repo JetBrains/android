@@ -19,6 +19,7 @@ package com.android.tools.idea.npw.module.recipes.benchmarkModule
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
+import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
@@ -59,7 +60,7 @@ fun buildGradle(
 ${emptyPluginsBlock()}
 
 android {
-    compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
+    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
     $buildToolsVersionBlock
 
     compileOptions {
@@ -70,8 +71,8 @@ android {
     $kotlinOptionsBlock
 
     defaultConfig {
-        minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
-        targetSdkVersion ${targetApiString.toIntOrNull() ?: "\"$targetApiString\""}
+        ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
+        ${toAndroidFieldVersion("targetSdk", targetApiString, gradlePluginVersion)}
         versionCode 1
         versionName "1.0"
 

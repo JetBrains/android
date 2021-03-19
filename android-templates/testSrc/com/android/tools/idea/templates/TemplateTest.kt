@@ -277,6 +277,16 @@ open class TemplateTest : AndroidGradleTestCase() {
   }
 
   @TemplateCheck
+  fun testResponsiveActivity() {
+    checkCreateTemplate("Responsive Activity")
+  }
+
+  @TemplateCheck
+  fun testResponsiveActivityWithKotlin() {
+    checkCreateTemplate("Responsive Activity", withKotlin)
+  }
+
+  @TemplateCheck
   fun testNewBlankWearActivity() {
     checkCreateTemplate("Blank Activity")
   }

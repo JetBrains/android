@@ -116,7 +116,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
         project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
-                                                        LayoutInspectorToolWindowManagerListener(project, layoutInspector))
+                                                        LayoutInspectorToolWindowManagerListener(project, toolWindow, launcher))
       }
     }
   }
@@ -125,11 +125,14 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 /**
  * Listen to state changes for the create layout inspector tool window.
  */
-@VisibleForTesting
-class LayoutInspectorToolWindowManagerListener(private val project: Project,
-                                               private val inspector: LayoutInspector)
+class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(private val project: Project,
+                                                                              private val clientLauncher: InspectorClientLauncher,
+                                                                              private var wasWindowVisible: Boolean = false)
   : ToolWindowManagerListener {
-  private var wasWindowVisible = false
+
+  internal constructor(project: Project, toolWindow: ToolWindow, clientLauncher: InspectorClientLauncher) : this(project, clientLauncher,
+                                                                                                                 toolWindow.isVisible)
+
   private var wasMinimizedMessageShown = false
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -141,7 +144,7 @@ class LayoutInspectorToolWindowManagerListener(private val project: Project,
       if (isWindowVisible) {
         LayoutInspectorMetrics.create(project).logEvent(DynamicLayoutInspectorEventType.OPEN)
       }
-      else if (inspector.currentClient.isConnected && !wasMinimizedMessageShown) {
+      else if (clientLauncher.activeClient.isConnected && !wasMinimizedMessageShown) {
         wasMinimizedMessageShown = true
         toolWindowManager.notifyByBalloon(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, MessageType.INFO,
                                           "<b>Layout Inspection</b> is running in the background.<br>" +
@@ -149,6 +152,7 @@ class LayoutInspectorToolWindowManagerListener(private val project: Project,
                                           "the process dropdown menu."
         )
       }
+      clientLauncher.enabled = isWindowVisible
     }
   }
 }

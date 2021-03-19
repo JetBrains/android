@@ -21,10 +21,12 @@ import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
+  gradlePluginVersion: GradlePluginVersion,
   isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
@@ -44,18 +46,18 @@ fun buildGradle(
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(parseRevision(buildToolsVersion))
-  val isApplicationProject = !isLibraryProject
 
   val androidConfigBlock = androidConfig(
-    buildApiString,
-    explicitBuildToolsVersion,
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    useAndroidX,
-    isLibraryProject,
-    isApplicationProject,
-    packageName,
+    gradlePluginVersion = gradlePluginVersion,
+    buildApiString = buildApiString,
+    explicitBuildToolsVersion = explicitBuildToolsVersion,
+    buildToolsVersion = buildToolsVersion,
+    minApi = minApi,
+    targetApi = targetApi,
+    useAndroidX = useAndroidX,
+    isLibraryProject = isLibraryProject,
+    explicitApplicationId = !isLibraryProject,
+    applicationId = packageName,
     hasTests = hasTests,
     canUseProguard = true,
     addLintOptions = addLintOptions,
@@ -111,10 +113,16 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
   split("\n").joinToString("\n") {
     it.replace("'", "\"")
       .toKtsFunction("compileSdkVersion")
+      .toKtsProperty("compileSdk")
+      .toKtsProperty("compileSdkPreview")
       .toKtsProperty("buildToolsVersion")
       .toKtsProperty("applicationId")
       .toKtsFunction("minSdkVersion")
+      .toKtsProperty("minSdk")
+      .toKtsProperty("minSdkPreview")
       .toKtsFunction("targetSdkVersion")
+      .toKtsProperty("targetSdk")
+      .toKtsProperty("targetSdkPreview")
       .toKtsProperty("versionCode")
       .toKtsProperty("versionName")
       .toKtsProperty("testInstrumentationRunner")
@@ -124,8 +132,6 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
       .toKtsFunction("wearApp")
       .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
       .replace("minifyEnabled", "isMinifyEnabled")
-      .replace("release {", "getByName(\"release\") {")
-      .replace("debug {", "getByName(\"debug\") {")
       // The followings are for externalNativeBuild
       .toKtsFunction("cppFlags")
       .toKtsFunction("path")

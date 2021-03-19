@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.validator.ValidatorData
@@ -24,21 +25,34 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 
 @RunWith(JUnit4::class)
 class NlLayoutScannerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
+  @Mock
+  lateinit var mockSurface: NlDesignSurface
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+  }
+
   private fun createScanner(): NlLayoutScanner {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
-    val metricTracker = NlLayoutScannerMetricTrackerTest.createMetricTracker()
-    return NlLayoutScanner(issueModel, projectRule.fixture.testRootDisposable!!, metricTracker)
+    val issuePanel: IssuePanel = Mockito.mock(IssuePanel::class.java)
+    Mockito.`when`(mockSurface.issueModel).thenReturn(issueModel)
+    Mockito.`when`(mockSurface.issuePanel).thenReturn(issuePanel)
+    return NlLayoutScanner(mockSurface, projectRule.fixture.testRootDisposable!!)
   }
 
   @Test

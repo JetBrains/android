@@ -17,9 +17,9 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.ide.common.gradle.model.ClassFieldStub
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.android.tools.idea.gradle.project.model.ModelCache
-import com.android.ide.common.gradle.model.stubs.AndroidLibraryStubBuilder
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.DynamicResourceValue
@@ -30,6 +30,7 @@ import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
 
 /**
  * Tests for [GradleModelConverterUtil].
@@ -56,20 +57,40 @@ class GradleModelConverterUtilTest {
         assertThat(output).isEqualTo(expectedOutput)
     }
 
-    @Test
-    fun testConvertAndroidLibrary() {
-        val original = AndroidLibraryStubBuilder().build()
-        val result = convertLibraryToExternalLibrary(original)
+  @Test
+  fun testConvertAndroidLibrary() {
+    val original = IdeAndroidLibraryImpl(
+      artifactAddress = "artifact:address:1.0",
+      folder = File("libraryFolder"),
+      manifest = "manifest.xml",
+      jarFile = "file.jar",
+      compileJarFile = "api.jar",
+      resFolder = "res",
+      resStaticLibrary = File("libraryFolder/res.apk"),
+      assetsFolder = "assets",
+      localJars = listOf(),
+      jniFolder = "jni",
+      aidlFolder = "aidl",
+      renderscriptFolder = "renderscriptFolder",
+      proguardRules = "proguardRules",
+      lintJar = "lint.jar",
+      externalAnnotations = "externalAnnotations",
+      publicResources = "publicResources",
+      artifact = File("artifactFile"),
+      symbolFile = "symbolFile",
+      isProvided = false
+    )
+    val result = convertLibraryToExternalLibrary(original)
 
-        with(original) {
-            expect.that(result?.address).isEqualTo(artifactAddress)
-            expect.that(result?.location).isEqualTo(artifact.toPathString())
-            expect.that(result?.manifestFile).isEqualTo(PathString(manifest))
-            expect.that(result?.classJars).isEqualTo(listOf(PathString(jarFile)))
-            expect.that(result?.dependencyJars).isEqualTo(localJars.map(::PathString))
-            expect.that(result?.resFolder).isEqualTo(RecursiveResourceFolder(PathString(resFolder)))
-            expect.that(result?.symbolFile).isEqualTo(PathString(symbolFile))
-            expect.that(result?.resApkFile).isEqualTo(resStaticLibrary?.let(::PathString))
-        }
+    with(original) {
+      expect.that(result.address).isEqualTo(artifactAddress)
+      expect.that(result.location).isEqualTo(artifact.toPathString())
+      expect.that(result.manifestFile).isEqualTo(PathString(manifest))
+      expect.that(result.classJars).isEqualTo(listOf(PathString(jarFile)))
+      expect.that(result.dependencyJars).isEqualTo(localJars.map(::PathString))
+      expect.that(result.resFolder).isEqualTo(RecursiveResourceFolder(PathString(resFolder)))
+      expect.that(result.symbolFile).isEqualTo(PathString(symbolFile))
+      expect.that(result.resApkFile).isEqualTo(resStaticLibrary?.let(::PathString))
     }
+  }
 }

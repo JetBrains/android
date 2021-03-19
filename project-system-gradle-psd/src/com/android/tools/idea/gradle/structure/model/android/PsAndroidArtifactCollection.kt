@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, String, PsVariant>(parent) {
+import com.android.ide.common.gradle.model.IdeArtifactName
+
+class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, IdeArtifactName, PsVariant>(parent) {
   init {
     refresh()
   }
 
-  override fun getKeys(from: PsVariant): Set<String> {
+  override fun getKeys(from: PsVariant): Set<IdeArtifactName> {
     val variant = from.resolvedModel
     return listOfNotNull(variant?.mainArtifact?.name, variant?.androidTestArtifact?.name, variant?.unitTestArtifact?.name).toSet()
   }
 
-  override fun create(key: String): PsAndroidArtifact = PsAndroidArtifact(parent, key)
+  override fun create(key: IdeArtifactName): PsAndroidArtifact = PsAndroidArtifact(parent, key)
 
-  override fun update(key: String, model: PsAndroidArtifact) {
+  override fun update(key: IdeArtifactName, model: PsAndroidArtifact) {
     val resolved = parent.resolvedModel?.let { variant ->
       variant.mainArtifact.takeIf { it.name == key }
       ?: variant.androidTestArtifact?.takeIf { it.name == key }

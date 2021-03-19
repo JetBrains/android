@@ -17,14 +17,17 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.SkiaParserService
-import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
+import com.android.tools.idea.layoutinspector.common.toInt
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.proto.SkiaParser
+import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
+import com.android.tools.idea.layoutinspector.skia.InvalidPictureException
+import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -32,7 +35,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import java.awt.Rectangle
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -46,11 +48,10 @@ import java.util.zip.Inflater
  */
 class ViewAndroidWindow(
   private val project: Project,
-  private val skiaParser: SkiaParserService,
+  private val skiaParser: SkiaParser,
   root: ViewNode,
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
   private val isInterrupted: () -> Boolean,
-  private val updateScreenshotType: (Screenshot.Type) -> Unit,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit)
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
@@ -94,7 +95,7 @@ class ViewAndroidWindow(
 
   private fun processSkp(
     bytes: ByteArray,
-    skiaParser: SkiaParserService,
+    skiaParser: SkiaParser,
     project: Project,
     rootView: ViewNode,
     scale: Double
@@ -116,12 +117,7 @@ class ViewAndroidWindow(
     if (errorMessage != null) {
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
     }
-    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id == 0L) {
-      // We were unable to parse the skia image. Turn on screenshot mode on the device.
-      updateScreenshotType(Screenshot.Type.BITMAP)
-      // metrics will be logged when we come back with a bitmap
-    }
-    else {
+    if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logInitialRender(ImageType.SKP)
       ViewNode.writeDrawChildren { drawChildren ->
         rootView.flatten().forEach { it.drawChildren().clear() }
@@ -142,7 +138,11 @@ class ViewAndroidWindow(
       baos.write(buffer, 0, count)
     }
 
-    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(baos.toByteArray()), rootView.width, rootView.height)
+
+    val inflatedBytes = baos.toByteArray()
+    val width = inflatedBytes.toInt()
+    val height = inflatedBytes.sliceArray(4..7).toInt()
+    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(inflatedBytes, 8, inflatedBytes.size - 8), width, height)
 
     ViewNode.writeDrawChildren { drawChildren ->
       rootView.flatten().forEach { it.drawChildren().clear() }
@@ -154,19 +154,23 @@ class ViewAndroidWindow(
 
   private fun getViewTree(
     bytes: ByteArray,
-    requestedNodes: Iterable<SkiaParser.RequestedNodeInfo>,
-    skiaParser: SkiaParserService,
+    requestedNodes: Iterable<RequestedNodeInfo>,
+    skiaParser: SkiaParser,
     scale: Double
   ): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
-
-      if (root == null) {
-        // We were unable to parse the skia image. Allow the user to interact with the component tree.
-        errorMessage = "Invalid picture data received from device. Rotation disabled."
-      }
-      root
+      skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
+    }
+    catch (ex: InvalidPictureException) {
+      // It looks like what we got wasn't an SKP at all.
+      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      null
+    }
+    catch (ex: ParsingFailedException) {
+      // It looked like a valid picture, but we were unable to parse it.
+      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      null
     }
     catch (ex: UnsupportedPictureVersionException) {
       errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."

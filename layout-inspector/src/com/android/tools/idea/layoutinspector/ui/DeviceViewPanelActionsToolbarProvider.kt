@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.PanSurfaceAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomLabelAction
@@ -23,20 +24,36 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import javax.swing.Timer
+
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
+
+private const val ROTATION_DURATION = 300L
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbarProvider(
   deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
+
+  val toggle3dActionButton: ActionButton
+    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)!!
 
   init {
     updateToolbar()
@@ -48,29 +65,54 @@ class DeviceViewPanelActionsToolbarProvider(
 object Toggle3dAction : AnAction(MODE_3D) {
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient as? AppInspectionInspectorClient
+    val zoomable = event.getData(ZOOMABLE_KEY) ?: return
+
     if (model.isRotated) {
+      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP, zoomable.scale.toFloat())
       model.resetRotation()
     }
     else {
-      model.rotate(0.45, 0.06)
+      client?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.SKP, zoomable.scale.toFloat())
+      var start = 0L
+      Timer(10) { timerEvent ->
+        // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
+        if (model.pictureType != AndroidWindow.ImageType.SKP) {
+          return@Timer
+        }
+        if (start == 0L) {
+          start = System.currentTimeMillis()
+        }
+        val elapsed = System.currentTimeMillis() - start
+        if (elapsed > ROTATION_DURATION) {
+          (timerEvent.source as Timer).stop()
+        }
+        model.xOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.45 / ROTATION_DURATION
+        model.yOff = elapsed.coerceAtMost(ROTATION_DURATION) * 0.06 / ROTATION_DURATION
+        model.refresh()
+      }.start()
     }
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
+    val client = LayoutInspector.get(event)?.currentClient
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
-    if (model?.rotatable == true) {
+    if (model != null && model.overlay == null &&
+        client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
       event.presentation.isEnabled = true
       event.presentation.text = if (model.isRotated) "Reset View" else "Rotate View"
     }
     else {
       event.presentation.isEnabled = false
+      val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel < 29
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
           model?.pictureType == BITMAP_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
-          else -> "Rotation not available for devices below API 29"
+          isLowerThenApi29 -> "Rotation not available for devices below API 29"
+          else -> "Error while rendering device image, rotation not available"
         }
     }
   }
@@ -82,8 +124,9 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
     add(ZoomResetAction())
   }
 
-  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
-                                                       DefaultActionGroup().apply { add(Toggle3dAction) })
+  val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
+
+  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
     add(ZoomInAction())

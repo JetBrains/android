@@ -15,7 +15,12 @@
  */
 package com.android.build.attribution.analytics
 
+import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
@@ -35,6 +40,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionAnalyzersData
 import com.google.wireless.android.sdk.stats.BuildAttributionPerformanceStats
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionStats
+import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
@@ -82,7 +88,8 @@ class BuildAttributionAnalyticsManager(
       transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData(), analysisResult.getTotalConfigurationData())
     analyzersDataBuilder.tasksConfigurationIssuesAnalyzerData =
       transformTasksConfigurationIssuesAnalyzerData(analysisResult.getTasksSharingOutput())
-    //TODO (b/177051800): log configuration cache data
+    analyzersDataBuilder.configurationCacheCompatibilityData =
+      transformConfiguratnionCacheCompatibilityDat(analysisResult.getConfigurationCachingCompatibility())
     attributionStatsBuilder.setBuildAttributionAnalyzersData(analyzersDataBuilder)
   }
 
@@ -216,5 +223,20 @@ class BuildAttributionAnalyticsManager(
   private fun transformTasksSharingOutputData(tasksSharingOutputData: TasksSharingOutputData) =
     TasksConfigurationIssuesAnalyzerData.TasksSharingOutputData.newBuilder()
       .addAllTasksSharingOutput(tasksSharingOutputData.taskList.map(::transformTaskData))
+      .build()
+
+  private fun transformConfiguratnionCacheCompatibilityDat(configurationCachingCompatibilityState: ConfigurationCachingCompatibilityProjectResult) =
+    ConfigurationCacheCompatibilityData.newBuilder().apply {
+      compatibilityState = when (configurationCachingCompatibilityState) {
+        is AGPUpdateRequired -> ConfigurationCacheCompatibilityData.CompatibilityState.AGP_NOT_COMPATIBLE
+        is NoIncompatiblePlugins -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_NOT_DETECTED
+        is IncompatiblePluginsDetected -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED
+        ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
+      }
+      if (configurationCachingCompatibilityState is IncompatiblePluginsDetected) {
+        addAllIncompatiblePlugins(configurationCachingCompatibilityState.incompatiblePluginWarnings.map { transformPluginData(it.plugin) })
+        addAllIncompatiblePlugins(configurationCachingCompatibilityState.upgradePluginWarnings.map { transformPluginData(it.plugin) })
+      }
+    }
       .build()
 }

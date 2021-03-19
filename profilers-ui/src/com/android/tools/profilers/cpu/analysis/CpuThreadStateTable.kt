@@ -85,8 +85,8 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
       .setContentBorder(contentBorder)
       .build()
       .apply {
-      background = primaryContentBackground
-    }
+        background = primaryContentBackground
+      }
   }
 
   /**
@@ -117,40 +117,38 @@ class CpuThreadStateTable(val profilers: StudioProfilers,
     }
 
     private fun computeDistribution() {
-      profilers.ideServices.poolExecutor.execute {
-        val threadStateToRow = EnumMap<ThreadState, ThreadStateRow>(ThreadState::class.java)
-        val totalDuration = range.length * threadStateSeriesList.size
-        // Iterate through each thread.
-        threadStateSeriesList.forEach { threadStateSeries ->
-          // Temp variable to save t+1 for duration calculation.
-          var nextTimestamp = range.max.toLong()
-          threadStateSeries.getDataForRange(range)
-            // To calculate duration we need to iterate from the end.
-            .asReversed()
-            .asSequence()
-            .filter { it.x < range.max.toLong() }
-            .forEach { threadStateDataPoint ->
-              threadStateToRow
-                // Retrieve the row for the thread state, instantiate one if absent.
-                .getOrPut(threadStateDataPoint.value, { ThreadStateRow(threadStateDataPoint.value, totalDuration) })
-                .apply {
-                  // duration = nextTimestamp - currentTimestamp
-                  // For the first element, currentTimestamp should be Range.min.
-                  val duration = nextTimestamp - max(range.min.toLong(), threadStateDataPoint.x)
-                  if (duration >= 0) {
-                    this.duration += duration
-                    this.occurrences += 1
-                    nextTimestamp = threadStateDataPoint.x
-                  } else {
-                    getLogger().warn("Negative duration in thread state table: $duration.")
-                  }
+      val threadStateToRow = EnumMap<ThreadState, ThreadStateRow>(ThreadState::class.java)
+      val totalDuration = range.length * threadStateSeriesList.size
+      // Iterate through each thread.
+      threadStateSeriesList.forEach { threadStateSeries ->
+        // Temp variable to save t+1 for duration calculation.
+        var nextTimestamp = range.max.toLong()
+        threadStateSeries.getDataForRange(range)
+          // To calculate duration we need to iterate from the end.
+          .asReversed()
+          .asSequence()
+          .filter { it.x < range.max.toLong() }
+          .forEach { threadStateDataPoint ->
+            threadStateToRow
+              // Retrieve the row for the thread state, instantiate one if absent.
+              .getOrPut(threadStateDataPoint.value, { ThreadStateRow(threadStateDataPoint.value, totalDuration) })
+              .apply {
+                // duration = nextTimestamp - currentTimestamp
+                // For the first element, currentTimestamp should be Range.min.
+                val duration = nextTimestamp - max(range.min.toLong(), threadStateDataPoint.x)
+                if (duration >= 0) {
+                  this.duration += duration
+                  this.occurrences += 1
+                  nextTimestamp = threadStateDataPoint.x
+                } else {
+                  getLogger().warn("Negative duration in thread state table: $duration.")
                 }
-            }
-        }
-        // Sort by duration and update table data.
-        dataRows = threadStateToRow.values.toList().sortedByDescending { it.duration }
-        profilers.ideServices.mainExecutor.execute { fireTableDataChanged() }
+              }
+          }
       }
+      // Sort by duration and update table data.
+      dataRows = threadStateToRow.values.toList().sortedByDescending { it.duration }
+      fireTableDataChanged()
     }
 
     init {

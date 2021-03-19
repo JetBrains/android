@@ -1,6 +1,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.adtui.HtmlLabel
+import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
@@ -52,6 +54,7 @@ import java.util.EventListener
 import javax.swing.JButton
 import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.border.EmptyBorder
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
@@ -209,6 +212,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
   }
 
   interface StepUiWithComboSelectorPresentation {
+    val label: String
     val elements: List<Any>
     var selectedValue: Any
   }
@@ -216,6 +220,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
   // TODO(mlazeba/xof): temporary here, need to be defined in processor itself probably
   private fun toStepPresentation(processor: AgpUpgradeComponentRefactoringProcessor) = when (processor) {
     is Java8DefaultRefactoringProcessor -> object : DefaultStepPresentation(processor), StepUiWithComboSelectorPresentation {
+      override val label: String = "Action on no explicit Java language level: "
       override val pageHeader: String
         get() = processor.commandName
       override val treeText: String
@@ -230,6 +235,9 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
         set(value) {
           if (value is Java8DefaultRefactoringProcessor.NoLanguageLevelAction) processor.noLanguageLevelAction = value
         }
+      init {
+        selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+      }
     }
     else -> DefaultStepPresentation(processor)
   }
@@ -322,7 +330,6 @@ class ContentManager(val project: Project) {
 
     val refreshButton = JButton("Refresh").apply {
       addActionListener { this@View.model.refresh() }
-      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
@@ -330,6 +337,7 @@ class ContentManager(val project: Project) {
     }
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
+      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
@@ -372,7 +380,7 @@ class ContentManager(val project: Project) {
 
     private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to"))
+      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to").also { it.border = JBUI.Borders.empty(0, 6) })
       add(versionTextField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
@@ -384,18 +392,34 @@ class ContentManager(val project: Project) {
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
-      if (selectedStep is ToolWindowModel.StepUiPresentation) {
-        detailsPanel.add(JBLabel(selectedStep.pageHeader))
-        selectedStep.helpLinkUrl?.let { url -> detailsPanel.add(HyperlinkLabel("Read more.").apply { setHyperlinkTarget(url) }) }
-        if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
-          ComboBox(selectedStep.elements.toTypedArray()).apply {
-            item = selectedStep.selectedValue
-            addActionListener {
-              selectedStep.selectedValue = this.item
-              tree.repaint()
-              refreshDetailsPanel()
+      val label = HtmlLabel()
+      setUpAsHtmlLabel(label)
+      when (selectedStep) {
+        is AgpUpgradeComponentNecessity -> {
+          label.text = "<h4><b>${selectedStep.treeText()}</b></h4><p>${selectedStep.description().replace("\n", "<br>")}</p>"
+          detailsPanel.add(label)
+        }
+        is ToolWindowModel.StepUiPresentation -> {
+          val text = StringBuilder("<h4><b>${selectedStep.pageHeader}</b></h4>")
+          selectedStep.helpLinkUrl?.let { url ->
+            text.append("<p><a href='$url'>Read more</a>.</p>")
+          }
+          label.text = text.toString()
+          detailsPanel.add(label)
+          if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
+            ComboBox(selectedStep.elements.toTypedArray()).apply {
+              item = selectedStep.selectedValue
+              addActionListener {
+                selectedStep.selectedValue = this.item
+                tree.repaint()
+                refreshDetailsPanel()
+              }
+              val comboPanel = JBPanel<JBPanel<*>>()
+              comboPanel.layout = HorizontalLayout(0)
+              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4) })
+              comboPanel.add(this)
+              detailsPanel.add(comboPanel)
             }
-            detailsPanel.add(this)
           }
         }
       }
@@ -414,7 +438,7 @@ class ContentManager(val project: Project) {
                                    hasFocus: Boolean) {
       if (value is DefaultMutableTreeNode) {
         when (val o = value.userObject) {
-          is AgpUpgradeComponentNecessity -> textRenderer.append(o.description())
+          is AgpUpgradeComponentNecessity -> textRenderer.append(o.treeText())
           is ToolWindowModel.StepUiPresentation -> {
             textRenderer.append(o.treeText)
             if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
@@ -435,10 +459,30 @@ private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
-private fun AgpUpgradeComponentNecessity.description() = when (this) {
+private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
   MANDATORY_CODEPENDENT -> "Upgrade steps"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
   OPTIONAL_INDEPENDENT -> "Optional steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
+}
+
+private fun AgpUpgradeComponentNecessity.description() = when (this) {
+  MANDATORY_INDEPENDENT ->
+    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "You can choose to do them in separate steps, in advance of the Android\n" +
+    "Gradle Plugin upgrade itself."
+  MANDATORY_CODEPENDENT ->
+    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "They must all happen together, at the same time as the Android Gradle Plugin\n" +
+    "upgrade itself."
+  OPTIONAL_CODEPENDENT ->
+    "These steps are not required to perform the upgrade of this project.  You\n" +
+    "can choose to do them, but only if the Android Gradle Plugin is upgraded\n" +
+    "to its new version."
+  OPTIONAL_INDEPENDENT ->
+    "These steps are not required to perform the upgrade of this project.  You\n" +
+    "can choose to do them, with or without upgrading the Android Gradle Plugin\n" +
+    "to its new version."
+  else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }

@@ -18,8 +18,9 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
+import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -97,6 +98,87 @@ class ArgsClassKtDescriptorsTest {
 
     assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
       "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args"
+    )
+
+    assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
+      "val argOne: kotlin.String",
+      "val argTwo: kotlin.IntArray",
+      "val argThree: test.safeargs.Fragment1"
+    )
+
+    assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
+      // generated functions of data class
+      "component1(): kotlin.String",
+      "component2(): kotlin.IntArray",
+      "component3(): test.safeargs.Fragment1",
+      "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
+      // normal functions
+      "toBundle(): android.os.Bundle"
+    )
+  }
+
+  @Test
+  fun checkContributorsOfArgsClass_AfterFromSavedStateHandleFeature() {
+    safeArgsRule.addFakeNavigationDependency(SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE)
+
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+            <argument
+                android:name="arg_one"
+                app:argType="string" />
+            <argument
+                android:name="arg_two"
+                app:argType="integer[]" />
+            <argument
+                android:name="arg_three"
+                app:argType=".Fragment1" />
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
+      it is SafeArgsKtPackageProviderExtension
+    }
+
+    val traceMock: BindingTrace = MockitoKt.mock()
+    val moduleSourceInfo = safeArgsRule.module.productionSourceInfo()
+    val moduleDescriptor = safeArgsRule.module.toDescriptor()
+
+    val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
+      project = safeArgsRule.project,
+      module = moduleDescriptor!!,
+      storageManager = LockBasedStorageManager.NO_LOCKS,
+      trace = traceMock,
+      moduleInfo = moduleSourceInfo,
+      lookupTracker = LookupTracker.DO_NOTHING
+    ) as SafeArgsSyntheticPackageProvider
+
+    val classMetadata = fragmentProvider
+      .getPackageFragments(FqName("test.safeargs"))
+      .flatMap { it.getMemberScope().classesInScope() }
+      .first()
+
+    assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
+      "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
+    )
+
+    assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+      "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args",
+      "fromSavedStateHandle(savedStateHandle: androidx.lifecycle.SavedStateHandle): test.safeargs.Fragment1Args",
     )
 
     assertThat(classMetadata.properties.map { it.toString() }).containsExactly(

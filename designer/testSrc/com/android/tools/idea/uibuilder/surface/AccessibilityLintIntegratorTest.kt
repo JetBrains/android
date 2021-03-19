@@ -18,29 +18,42 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
+import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.MockitoAnnotations
 
+@RunWith(JUnit4::class)
+class AccessibilityLintIntegratorTest {
 
-class AccessibilityLintIntegratorTest : LayoutTestCase() {
+  @Mock
+  lateinit var mockSurface: NlDesignSurface
+
+  @Before
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+  }
 
   @Test
-  fun testCreateIssue() {
+  fun createIssue() {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
     assertTrue(integrator.issues.isEmpty())
 
-    integrator.createIssue(createTestIssue(), null)
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent())
 
     assertEquals(1, integrator.issues.size)
   }
 
   @Test
-  fun testIssueProvider() {
+  fun issueProvider() {
     // Precondition : create issues.
     val numberOfIssues = 3
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
@@ -48,7 +61,7 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
     assertTrue(integrator.issues.isEmpty())
     for (i in 0 until numberOfIssues) {
       val issue = ScannerTestHelper.createTestIssueBuilder().setMsg(i.toString()).build()
-      integrator.createIssue(issue, null)
+      integrator.createIssue(issue, ScannerTestHelper().buildNlComponent())
     }
     assertEquals(numberOfIssues, integrator.issues.size)
 
@@ -59,10 +72,10 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
   }
 
   @Test
-  fun testDisableAccessibilityLint() {
+  fun disableAccessibilityLint() {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
-    integrator.createIssue(createTestIssue(), null)
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent())
     assertEquals(1, integrator.issues.size)
 
     integrator.clear()
@@ -70,15 +83,31 @@ class AccessibilityLintIntegratorTest : LayoutTestCase() {
   }
 
   @Test
-  fun testPopulateLints() {
+  fun populateLints() {
     val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
     val integrator = AccessibilityLintIntegrator(issueModel)
-    integrator.createIssue(createTestIssue(), null)
+    integrator.createIssue(createTestIssue(), ScannerTestHelper().buildNlComponent())
     assertEquals(1, integrator.issues.size)
 
     integrator.populateLints()
     Mockito.verify(issueModel, Mockito.times(1))
       .addIssueProvider(Mockito.any(IssueProvider::class.java))
+  }
+
+  @Test
+  fun handleInclude() {
+    val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
+    val integrator = AccessibilityLintIntegrator(issueModel)
+
+    assertTrue(integrator.issues.isEmpty())
+
+    val parser = NlScannerLayoutParser()
+    val root = NlScannerLayoutParserTest.createComponentWithInclude()
+    parser.buildViewToComponentMap(root)
+
+    integrator.handleInclude(parser, mockSurface)
+
+    assertEquals(1, integrator.issues.size)
   }
 
   private fun createTestIssue(): ValidatorData.Issue {

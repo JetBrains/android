@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl
+import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.UserCancellationException
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.LightPlatformTestCase
@@ -53,6 +54,8 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
   fun test_job_cancelled() {
     // Set up a job that never finishes
     val job: Job = project.coroutineScope.launch { while (true) delay(50) }
+    var cancellationException: Throwable? = null
+    job.invokeOnCompletion { t: Throwable? -> cancellationException = t }
     val dialog = ExportInProgressViewImpl(project, job, taskDispatcher)
 
     // Set up a callback called when the dialog is shown
@@ -78,5 +81,6 @@ class ExportInProgressViewTest : LightPlatformTestCase() {
     assertThat(dialogClosedLatch.await(5, SECONDS)).isTrue()
     assertThat(job.isCancelled).isTrue()
     assertThat(job.isActive).isFalse()
+    assertThat(cancellationException!!).isInstanceOf(UserCancellationException::class.java)
   }
 }

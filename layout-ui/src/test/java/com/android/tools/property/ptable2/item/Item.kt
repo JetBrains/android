@@ -42,8 +42,21 @@ open class Item(override val name: String, override val value: String? = null ) 
 }
 
 class Group(name: String, vararg childItems: PTableItem) : Item(name, null), PTableGroupItem {
+  var delayedExpansion = false
+  private var expandFct: (Boolean) -> Unit = {}
   override val value: String? = null
-  override val children: List<PTableItem> = listOf(*childItems)
+  override val children = mutableListOf(*childItems)
+  override fun expandWhenPossible(expandNow: (restructured: Boolean) -> Unit) {
+    expandFct = expandNow
+    if (!delayedExpansion) {
+      expandFct = {}
+      expandNow(false)
+    }
+  }
+  fun expandNow(restructured: Boolean) {
+    expandFct(restructured)
+    expandFct = {}
+  }
 }
 
 class PTableTestModel(vararg items: PTableItem) : PTableModel {

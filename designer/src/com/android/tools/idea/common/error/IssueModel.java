@@ -72,7 +72,7 @@ public class IssueModel {
   }
 
   @Nullable
-  public Issue getHighestSeverityIssue(NlComponent component) {
+  public Issue getHighestSeverityIssue(@NotNull NlComponent component) {
     IssueSource componentSource = IssueSource.fromNlComponent(component);
     Issue[] filtered = myIssues.stream()
       .filter((it) -> componentSource.equals(it.getSource()))
@@ -178,16 +178,6 @@ public class IssueModel {
 
   public boolean hasIssues() {
     return !myIssues.isEmpty();
-  }
-
-  @Nullable
-  public Issue findIssue(@NotNull NlComponent component) {
-    for (Issue issue : myIssues) {
-      if (IssueKt.isFromNlComponent(issue.getSource(), component)) {
-        return issue;
-      }
-    }
-    return null;
   }
 
   public interface IssueModelListener {

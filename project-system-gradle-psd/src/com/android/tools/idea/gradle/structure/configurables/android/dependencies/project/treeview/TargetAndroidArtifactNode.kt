@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_ANDROID_TEST
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
-import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
@@ -59,9 +57,9 @@ class TargetAndroidArtifactNode internal constructor(
   override fun nameOf(model: PsAndroidArtifact): String = buildString {
     append(model.parent.name)
     when (model.resolvedName) {
-      ARTIFACT_MAIN -> Unit
-      ARTIFACT_ANDROID_TEST -> append(" (androidTest)")
-      ARTIFACT_UNIT_TEST -> append(" (test)")
+      IdeArtifactName.MAIN -> Unit
+      IdeArtifactName.ANDROID_TEST -> append(" (androidTest)")
+      IdeArtifactName.UNIT_TEST -> append(" (test)")
     }
   }
 

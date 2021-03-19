@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -26,13 +26,13 @@ import icons.StudioIcons
  */
 object RefreshAction : AnAction(StudioIcons.LayoutEditor.Toolbar.REFRESH) {
   override fun actionPerformed(event: AnActionEvent) {
-    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
+    val inspector = LayoutInspector.get(event) ?: return
     ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }
     inspector.layoutInspectorModel.stats.live.refreshButtonClicked()
   }
 
   override fun update(event: AnActionEvent) {
-    val currentClient = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient
+    val currentClient = LayoutInspector.get(event)?.currentClient
     event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.isCapturing
   }
 }

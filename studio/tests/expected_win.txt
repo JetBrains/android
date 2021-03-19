@@ -1571,6 +1571,7 @@ android-studio/plugins/android/lib/libjava_sites.jar
 android-studio/plugins/android/lib/libjava_version.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-device-info-proto.jar
 android-studio/plugins/android/lib/libstudio.android-test-plugin-host-retention-proto.jar
+android-studio/plugins/android/lib/libstudio.android-test-plugin-result-listener-gradle-proto.jar
 android-studio/plugins/android/lib/libstudio.proto.jar
 android-studio/plugins/android/lib/lint-ide.jar
 android-studio/plugins/android/lib/manifest-merger.jar
@@ -1602,6 +1603,7 @@ android-studio/plugins/android/lib/traceprocessor_protos.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/util-2.2.4.jar
+android-studio/plugins/android/lib/utp.jar
 android-studio/plugins/android/lib/wizard-template.jar
 android-studio/plugins/android/lib/workmanager_inspector_proto.jar
 android-studio/plugins/android/resources/androidAnnotations.jar
@@ -1891,10 +1893,7 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBhaiksuki-
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBrahmi-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBuginese-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansBuhid-Regular.ttf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-0.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-1.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-2.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular-3.otf
+android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCJK-Regular.ttc
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCanadianAboriginal-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansCarian-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSansChakma-Regular.otf
@@ -2087,10 +2086,7 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifArmenian-
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifArmenian-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Bold.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifBengali-Regular.ttf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-0.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-1.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-2.otf
-android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular-3.otf
+android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifCJK-Regular.ttc
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Bold.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifDevanagari-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifEthiopic-Bold.otf

@@ -22,9 +22,8 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.util.EnumSet
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 
 /**
  * Client for communicating with the agent.
@@ -52,6 +51,12 @@ interface InspectorClient {
      * [startFetching] is called.
      */
     SUPPORTS_FILTERING_SYSTEM_NODES,
+
+    /**
+     * Indicates that this client is able to send [LayoutInspectorViewProtocol.Screenshot.Type.SKP] screenshots.
+     */
+    SUPPORTS_SKP,
+
   }
 
   /**
@@ -126,10 +131,15 @@ interface InspectorClient {
   fun refresh()
 
   /**
+   * Set the requested screenshot type and zoom to be provided by the device.
+   */
+  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float = 1.0f) {}
+
+  /**
    * Report this client's capabilities so that external systems can check what functionality is
    * available before interacting with some of this client's methods.
    */
-  val capabilities: EnumSet<Capability>
+  val capabilities: Set<Capability>
     get() = EnumSet.noneOf(Capability::class.java)
 
   val state: State

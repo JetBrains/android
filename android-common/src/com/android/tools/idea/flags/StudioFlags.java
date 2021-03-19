@@ -77,7 +77,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_GRADLE_KTS_OPTION = Flag.create(
     NPW, "show.gradle.kts.option", "Show gradle kts option",
     "Shows an option on new Project/Module to allow the use of Kotlin script",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
@@ -160,6 +160,12 @@ public final class StudioFlags {
     PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
     "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
     true);
+
+  public static final Flag<Boolean> PROFILEABLE = Flag.create(
+    PROFILER, "profileable", "Support profileable processes on S+",
+    "Show profileable processes on S and later",
+    false
+  );
   //endregion
 
   //region ML
@@ -564,7 +570,7 @@ public final class StudioFlags {
     "Enable the Upgrade Assistant for helping with AGP upgrades", true);
   public static final Flag<Boolean> AGP_UPGRADE_ASSISTANT_TOOL_WINDOW = Flag.create(
     GRADLE_IDE, "agp.upgrade.assistant.tool.window", "Enable the AGP Upgrade Assistant Tool Window",
-    "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", false);
+    "Enable Tool Window-oriented interaction with the AGP Upgrade Assistant", true);
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
@@ -1071,6 +1077,13 @@ public final class StudioFlags {
     "Enable pinning compose previews",
     "If enabled, a user can pin a preview",
     false
+  );
+
+  public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
+    COMPOSE, "constraint.visualization",
+    "Enable ConstraintLayout visualization in Compose previews",
+    "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(

@@ -27,13 +27,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 
 class InspectorClientLauncherTest {
   @get:Rule
@@ -268,5 +266,45 @@ class InspectorClientLauncherTest {
 
     processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+  }
+
+  @Test
+  fun inspectorLauncherCanBeDisabledAndRenabled() {
+    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val launcher = InspectorClientLauncher(
+      adbRule.bridge,
+      processes,
+      listOf { params -> FakeInspectorClient("Unused", params.process) },
+      disposableRule.disposable,
+      MoreExecutors.directExecutor())
+
+    launcher.enabled = false
+
+    val process1 = MODERN_DEVICE.createProcess()
+    val process2 = MODERN_DEVICE.createProcess()
+
+    processes.selectedProcess = process1
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+
+    launcher.enabled = true
+    assertThat(launcher.activeClient.process).isSameAs(process1)
+
+    launcher.enabled = false
+    assertThat(launcher.activeClient.process).isSameAs(process1)
+
+    launcher.activeClient.let { currClient ->
+      // As a client is already running, re-enabling the launcher should be a no-op
+      launcher.enabled = true
+      assertThat(launcher.activeClient).isSameAs(currClient)
+    }
+
+    // If disabled, changing processes will kill the current process but the new process won't be
+    // launched until the launcher re-enabled again.
+    launcher.enabled = false
+    processes.selectedProcess = process2
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+
+    launcher.enabled = true
+    assertThat(launcher.activeClient.process).isSameAs(process2)
   }
 }

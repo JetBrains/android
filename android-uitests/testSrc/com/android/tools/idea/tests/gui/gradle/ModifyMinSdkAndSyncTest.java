@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -73,7 +74,7 @@ public class ModifyMinSdkAndSyncTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120));
     ideFrame.actAndWaitForGradleProjectSyncToFinish(it -> {
       it.getEditor()
         .open("app/build.gradle")

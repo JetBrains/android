@@ -116,6 +116,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val lifeCycleLock = Object()
   private var startTime = 0L
   private val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                             "android.emulation.control.EmulatorController/getDisplayConfigurations",
                                              "android.emulation.control.EmulatorController/streamNotification")
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!

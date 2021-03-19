@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.common.editor.DesignSurfaceNotificationManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.DataKey
 
@@ -28,9 +27,3 @@ import com.intellij.openapi.actionSystem.DataKey
  */
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
-
-/**
- * Data key to retrieve [DesignSurfaceNotificationManager] which controls the notification status of [NlDesignSurface]
- */
-@JvmField
-val NOTIFICATION_KEY = DataKey.create<DesignSurfaceNotificationManager>(DesignSurfaceNotificationManager::class.java.name)

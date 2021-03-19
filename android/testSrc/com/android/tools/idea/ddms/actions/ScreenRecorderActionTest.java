@@ -173,18 +173,18 @@ public final class ScreenRecorderActionTest {
       .build();
 
     assertEquals("--size 600x400 --bit-rate 6000000 " + expectedPath,
-                 ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+                 ScreenRecorderTask.getEmulatorScreenRecorderOptions(path, options));
 
     options = new ScreenRecorderOptions.Builder()
       .setTimeLimit(100, TimeUnit.SECONDS)
       .build();
 
-    assertEquals("--time-limit 100 " + expectedPath, ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+    assertEquals("--time-limit 100 " + expectedPath, ScreenRecorderTask.getEmulatorScreenRecorderOptions(path, options));
 
     options = new ScreenRecorderOptions.Builder()
       .setTimeLimit(4, TimeUnit.MINUTES)
       .build();
 
-    assertEquals("--time-limit 180 " + expectedPath, ScreenRecorderAction.getEmulatorScreenRecorderOptions(path, options));
+    assertEquals("--time-limit 180 " + expectedPath, ScreenRecorderTask.getEmulatorScreenRecorderOptions(path, options));
   }
 }

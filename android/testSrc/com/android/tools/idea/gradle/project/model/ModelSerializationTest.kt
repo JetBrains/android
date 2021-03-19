@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model
 
+import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeArtifact
 import com.android.builder.model.NativeFile
@@ -138,6 +139,7 @@ class ModelSerializationTest {
     NdkModuleModel(
       "moduleName",
       File("some/path"),
+      "x86",
       modelCache.nativeAndroidProjectFrom(Mockito.mock(NativeAndroidProject::class.java, RETURNS_SMART_NULLS)),
       listOf()
     )
@@ -206,7 +208,7 @@ class ModelSerializationTest {
   @Test
   fun level2Dependencies() = assertSerializable {
     // We use a local one to avoid changing the global one that is used for other tests.
-    modelCache.dependenciesFrom(AndroidArtifactStub()) as IdeDependenciesImpl
+    modelCache.dependenciesFrom(AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN)) as IdeDependenciesImpl
   }
 
   /*
@@ -221,7 +223,7 @@ class ModelSerializationTest {
 
   @Test
   fun androidArtifact() = assertSerializable {
-    modelCache.androidArtifactFrom(AndroidArtifactStub(), gradleVersion)
+    modelCache.androidArtifactFrom(AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN), gradleVersion)
   }
 
   @Test

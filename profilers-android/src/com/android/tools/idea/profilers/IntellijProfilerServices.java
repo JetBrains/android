@@ -420,6 +420,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
+    public boolean isProfileableEnabled() {
+      return StudioFlags.PROFILEABLE.get();
+    }
+
+    @Override
     public boolean isStartupCpuProfilingEnabled() {
       return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
     }

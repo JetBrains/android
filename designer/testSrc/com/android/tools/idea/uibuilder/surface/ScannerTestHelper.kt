@@ -54,13 +54,19 @@ class ScannerTestHelper {
    * Create a default component useful for testing.
    * It contains mocked view information.
    */
-  fun buildNlComponent(model: NlModel? = null): NlComponent {
+  fun buildNlComponent(model: NlModel? = null, tagName: String = "tagname"): NlComponent {
     val nlComponent = Mockito.mock(NlComponent::class.java)
     val mixin = NlComponentMixin(nlComponent)
     Mockito.`when`(nlComponent.mixin).thenReturn(mixin)
     model?.let {
       Mockito.`when`(nlComponent.model).thenReturn(model!!)
     }
+
+    val model = Mockito.mock(NlModel::class.java)
+    Mockito.`when`(nlComponent.model).thenReturn(model)
+    Mockito.`when`(model.modelDisplayName).thenReturn("displayName")
+
+    Mockito.`when`(nlComponent.tagName).thenReturn(tagName)
 
     val viewInfos = buildViewInfo()
     nlComponent.viewInfo = viewInfos

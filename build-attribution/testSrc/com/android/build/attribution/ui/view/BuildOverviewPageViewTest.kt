@@ -60,7 +60,7 @@ class BuildOverviewPageViewTest {
       Total build duration was 20.0s.
       
       Includes:
-      Build configuration: 4.0s
+      Build configuration: 4.0s - <a href="configuration-cache">Optimize this</a>.
       Critical path tasks execution: 15.0s
       
       """.trimIndent())

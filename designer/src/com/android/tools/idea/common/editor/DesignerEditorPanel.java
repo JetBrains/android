@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.editor;
 
+import static com.android.tools.idea.ui.designer.DesignSurfaceNotificationManagerKt.NOTIFICATION_KEY;
+
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
@@ -29,6 +31,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
@@ -468,7 +471,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
           }
         }
       }
-      else if (DesignerDataKeys.NOTIFICATION_KEY.is(dataId)) {
+      else if (NOTIFICATION_KEY.is(dataId)) {
         return DesignerEditorPanel.this;
       }
       return null;

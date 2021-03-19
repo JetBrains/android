@@ -20,6 +20,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/apkparser/analyzer/android.sdktools.analyzer.iml" filepath="$PROJECT_DIR$/../../base/apkparser/analyzer/android.sdktools.analyzer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" filepath="$PROJECT_DIR$/../../base/annotations/android.sdktools.android-annotations.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/bazel/avd/android.sdktools.base.bazel.avd.iml" filepath="$PROJECT_DIR$/../../base/bazel/avd/android.sdktools.base.bazel.avd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/bazel/repolinker/android.sdktools.base.bazel.repolinker.iml" filepath="$PROJECT_DIR$/../../base/bazel/repolinker/android.sdktools.base.bazel.repolinker.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/apkparser/binary-resources/android.sdktools.binary-resources.iml" filepath="$PROJECT_DIR$/../../base/apkparser/binary-resources/android.sdktools.binary-resources.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.iml" filepath="$PROJECT_DIR$/../../base/build-system/builder-model/android.sdktools.builder-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/builder-test-api/android.sdktools.builder-test-api.iml" filepath="$PROJECT_DIR$/../../base/build-system/builder-test-api/android.sdktools.builder-test-api.iml" />
@@ -220,6 +221,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/testutils/testutils-tests.iml" filepath="$PROJECT_DIR$/../../base/testutils/testutils-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.iml" filepath="$PROJECT_DIR$/../../vendor/google/url-assistant/url-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" filepath="$PROJECT_DIR$/../../base/usb-devices/usb-devices.iml" />
+      <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
     </modules>

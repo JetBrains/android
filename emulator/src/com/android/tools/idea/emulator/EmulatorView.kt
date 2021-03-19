@@ -21,6 +21,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
 import com.android.emulator.control.Rotation.SkinRotation
@@ -31,6 +32,7 @@ import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.analytics.toProto
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
@@ -64,6 +66,7 @@ import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.util.Alarm
 import com.intellij.util.SofterReference
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
@@ -136,13 +139,17 @@ import com.android.emulator.control.Notification as EmulatorNotification
 /**
  * A view of the Emulator display optionally encased in the device frame.
  *
- * @param parentDisposable the disposable parent
+ * @param disposableParent the disposable parent
  * @param emulator the handle of the Emulator
+ * @param displayId the ID of the device display
+ * @param displaySize the size of the device display; a null value defaults to `emulator.emulatorConfig.displaySize`
  * @param deviceFrameVisible controls visibility of the device frame
  */
 class EmulatorView(
-  parentDisposable: Disposable,
+  disposableParent: Disposable,
   val emulator: EmulatorController,
+  val displayId: Int,
+  private val displaySize: Dimension?,
   deviceFrameVisible: Boolean
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
@@ -151,7 +158,11 @@ class EmulatorView(
   private var displayRectangle: Rectangle? = null
   private val displayTransform = AffineTransform()
   private val screenshotShape
-    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, emulator.emulatorConfig.initialOrientation)
+    get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
+  private val initialOrientation
+    get() = if (displayId == PRIMARY_DISPLAY_ID) emulator.emulatorConfig.initialOrientation else SkinRotation.PORTRAIT
+  private val deviceDisplaySize
+    get() = displaySize ?: emulator.emulatorConfig.displaySize
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -173,6 +184,8 @@ class EmulatorView(
   @Volatile
   private var notificationReceiver: NotificationReceiver? = null
 
+  private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+
   var displayRotation: SkinRotation
     get() = screenshotShape.rotation
     set(value) {
@@ -188,9 +201,6 @@ class EmulatorView(
         requestScreenshotFeed()
       }
     }
-
-  private val emulatorConfig
-    get() = emulator.emulatorConfig
 
   private val connected
     get() = emulator.connectionState == ConnectionState.CONNECTED
@@ -220,6 +230,12 @@ class EmulatorView(
 
   override val scale: Double
     get() = computeScaleToFit(realSize, screenshotShape.rotation)
+
+  /**
+   * The size of the device including frame in device pixels.
+   */
+  val displaySizeWithFrame: Dimension
+    get() = computeActualSize(screenshotShape.rotation)
 
   private var virtualSceneCameraActive = false
     set(value) {
@@ -255,7 +271,9 @@ class EmulatorView(
   private val stats = Stats()
 
   init {
-    Disposer.register(parentDisposable, this)
+    Disposer.register(disposableParent, this)
+
+    background = primaryPanelBackground
 
     disconnectedStateLabel = JLabel()
     disconnectedStateLabel.horizontalAlignment = SwingConstants.CENTER
@@ -366,21 +384,23 @@ class EmulatorView(
       }
     })
 
-    addFocusListener(object : FocusAdapter() {
-      override fun focusGained(event: FocusEvent) {
-        if (connected) {
-          setDeviceClipboardAndListenToChanges()
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      addFocusListener(object : FocusAdapter() {
+        override fun focusGained(event: FocusEvent) {
+          if (connected) {
+            setDeviceClipboardAndListenToChanges()
+          }
+          if (virtualSceneCameraActive) {
+            showVirtualSceneCameraPrompt()
+          }
         }
-        if (virtualSceneCameraActive) {
-          showVirtualSceneCameraPrompt()
-        }
-      }
 
-      override fun focusLost(event: FocusEvent) {
-        cancelClipboardFeed()
-        hideVirtualSceneCameraPrompt()
-      }
-    })
+        override fun focusLost(event: FocusEvent) {
+          cancelClipboardFeed()
+          hideVirtualSceneCameraPrompt()
+        }
+      })
+    }
 
     if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
       val connection = ApplicationManager.getApplication().messageBus.connect(this)
@@ -402,6 +422,14 @@ class EmulatorView(
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
     Disposer.dispose(stats) // stats have to be disposed last.
+  }
+
+  fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {
+    displayConfigurationListeners.add(listener)
+  }
+
+  fun removeDisplayConfigurationListener(listener: DisplayConfigurationListener) {
+    displayConfigurationListeners.remove(listener)
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -485,19 +513,10 @@ class EmulatorView(
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(rotation, emulator.emulatorConfig.displaySize)
+      skin.getRotatedFrameSize(rotation, deviceDisplaySize)
     }
     else {
-      computeRotatedDisplaySize(emulatorConfig, rotation)
-    }
-  }
-
-  private fun computeRotatedDisplaySize(config: EmulatorConfiguration, rotation: SkinRotation): Dimension {
-    return if (rotation.is90Degrees) {
-      Dimension(config.displayHeight, config.displayWidth)
-    }
-    else {
-      Dimension(config.displayWidth, config.displayHeight)
+      deviceDisplaySize.rotated(rotation)
     }
   }
 
@@ -525,8 +544,8 @@ class EmulatorView(
     }
     val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
     val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-    val deviceDisplayWidth = emulatorConfig.displayWidth
-    val deviceDisplayHeight = emulatorConfig.displayHeight
+    val deviceDisplayWidth = deviceDisplaySize.width
+    val deviceDisplayHeight = deviceDisplaySize.height
     val displayX: Int
     val displayY: Int
     when (screenshotShape.rotation) {
@@ -571,11 +590,13 @@ class EmulatorView(
         if (screenshotFeed == null) {
           requestScreenshotFeed()
         }
-        if (isFocusOwner) {
-          setDeviceClipboardAndListenToChanges()
-        }
-        if (notificationFeed == null) {
-          requestNotificationFeed()
+        if (displayId == PRIMARY_DISPLAY_ID) {
+          if (isFocusOwner) {
+            setDeviceClipboardAndListenToChanges()
+          }
+          if (notificationFeed == null) {
+            requestNotificationFeed()
+          }
         }
       }
     }
@@ -708,7 +729,7 @@ class EmulatorView(
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
+      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
       val actualSize = computeActualSize(rotation)
 
       // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
@@ -751,9 +772,6 @@ class EmulatorView(
   }
 
   private fun requestNotificationFeed() {
-    if (!StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.get()) {
-      return
-    }
     cancelNotificationFeed()
     if (connected) {
       val receiver = NotificationReceiver()
@@ -774,7 +792,9 @@ class EmulatorView(
 
   override fun componentShown(event: ComponentEvent) {
     requestScreenshotFeed()
-    requestNotificationFeed()
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      requestNotificationFeed()
+    }
   }
 
   override fun componentHidden(event: ComponentEvent) {
@@ -908,9 +928,16 @@ class EmulatorView(
         when (response.event) {
           VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
           VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
+          DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners()
           else -> {}
         }
       }
+    }
+  }
+
+  private fun notifyDisplayConfigurationListeners() {
+    for (listener in displayConfigurationListeners) {
+      listener.displayConfigurationChanged()
     }
   }
 

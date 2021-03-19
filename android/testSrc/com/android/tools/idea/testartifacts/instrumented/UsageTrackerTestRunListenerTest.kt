@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
+import com.android.builder.model.AndroidProject
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.ide.common.gradle.model.IdeTestOptions
@@ -45,7 +46,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     try {
       val listener = UsageTrackerTestRunListener(
         ModelCache.createForTesting().androidArtifactFrom(
-          AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+          AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, "stubFolder", "debug", FileStructure("rootFolder")),
           null
         ),
         mock(IDevice::class.java)!!.also {

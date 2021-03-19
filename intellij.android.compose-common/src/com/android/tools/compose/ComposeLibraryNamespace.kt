@@ -26,6 +26,13 @@ const val COMPOSE_PREVIEW_ANNOTATION_NAME = "Preview"
 
 const val COMPOSABLE_ANNOTATION_NAME = "Composable"
 
+const val COMPOSE_ALIGNMENT = "${COMPOSE_PACKAGE}.Alignment"
+const val COMPOSE_ALIGNMENT_HORIZONTAL = "${COMPOSE_ALIGNMENT}.Horizontal"
+const val COMPOSE_ALIGNMENT_VERTICAL = "${COMPOSE_ALIGNMENT}.Vertical"
+
+const val COMPOSE_ARRANGEMENT = "androidx.compose.foundation.layout.Arrangement"
+const val COMPOSE_ARRANGEMENT_HORIZONTAL = "${COMPOSE_ARRANGEMENT}.Horizontal"
+const val COMPOSE_ARRANGEMENT_VERTICAL = "${COMPOSE_ARRANGEMENT}.Vertical"
 
 val COMPOSABLE_FQ_NAMES = setOf(
   "androidx.compose.$COMPOSABLE_ANNOTATION_NAME",

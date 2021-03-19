@@ -27,8 +27,10 @@ class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
       //language=kotlin
       """
       package androidx.compose.runtime
+      
+      interface State<T>
 
-      class MutableState<T>
+      class MutableState<T> : State<T>
 
       fun <T> state(v:() -> T) = MutableState<T>()
 
@@ -91,6 +93,31 @@ class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
         import androidx.compose.runtime.mutableStateOf
 
         val myVal by mutableStateOf(3)
+      """.trimIndent()
+    )
+  }
+
+  fun testMutableStateFqName() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        val myVal by androidx.compose.runtime.mutableStateOf(3)
+      """.trimIndent()
+    )
+    val error = myFixture.doHighlighting().find { it.description?.contains("[DELEGATE_SPECIAL_FUNCTION_MISSING]") == true }
+    assertThat(error).isNotNull()
+
+    val fix = myFixture.getAllQuickFixes().find { it.text == "Import getValue" }
+    assertThat(fix).isNotNull()
+    fix!!.invoke(project, myFixture.editor, myFixture.file)
+
+    myFixture.checkResult(
+      //language=kotlin
+      """
+        import androidx.compose.runtime.getValue
+
+        val myVal by androidx.compose.runtime.mutableStateOf(3)
       """.trimIndent()
     )
   }

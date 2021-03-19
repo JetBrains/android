@@ -89,6 +89,9 @@ abstract class ViewNodeCache<D>(
     }
   }
 
+  fun getCachedDataFor(rootId: Long, composeId: Long): D? =
+    cache[rootId]?.get(composeId)
+
   protected abstract suspend fun fetchDataFor(root: ViewNode, node: ViewNode): D?
 
   protected fun setDataFor(rootId: Long, viewId: Long, data: D) {

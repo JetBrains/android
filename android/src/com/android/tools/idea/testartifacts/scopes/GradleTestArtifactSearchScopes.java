@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.testartifacts.scopes.ExcludedRoots.getAllSourceFolders;
 import static com.intellij.util.containers.ContainerUtil.map;
 
 import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.ide.common.gradle.model.IdeArtifactName;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -116,7 +115,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   public FileRootSearchScope getAndroidTestSourceScope() {
     if (myAndroidTestSourceScope == null) {
-      myAndroidTestSourceScope = getSourceScope(ARTIFACT_ANDROID_TEST);
+      myAndroidTestSourceScope = getSourceScope(IdeArtifactName.ANDROID_TEST);
     }
     return myAndroidTestSourceScope;
   }
@@ -125,16 +124,16 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   public FileRootSearchScope getUnitTestSourceScope() {
     if (myUnitTestSourceScope == null) {
-      myUnitTestSourceScope = getSourceScope(ARTIFACT_UNIT_TEST);
+      myUnitTestSourceScope = getSourceScope(IdeArtifactName.UNIT_TEST);
     }
     return myUnitTestSourceScope;
   }
 
   @NotNull
-  private FileRootSearchScope getSourceScope(@NotNull String artifactName) {
+  private FileRootSearchScope getSourceScope(IdeArtifactName artifactName) {
     Set<File> roots = new HashSet<>();
 
-    if (artifactName.equals(ARTIFACT_ANDROID_TEST) && myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+    if (artifactName.equals(IdeArtifactName.ANDROID_TEST) && myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       // Special case where android tests correspond actually to the _main_ artifact (i.e. com.android.test plugin).
       // There is only instrumentation test artifacts in this project type so the whole directory is in testing scope.
       roots.add(myAndroidModel.getRootDirPath());
@@ -150,10 +149,10 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
       // Workaround for (b/151029089) and Gradle not providing generated test sources (b/153655585)
       IdeBaseArtifact testArtifact;
       switch (artifactName) {
-        case ARTIFACT_UNIT_TEST:
+        case UNIT_TEST:
           testArtifact = myAndroidModel.getSelectedVariant().getUnitTestArtifact();
           break;
-        case ARTIFACT_ANDROID_TEST:
+        case ANDROID_TEST:
           testArtifact = myAndroidModel.getSelectedVariant().getAndroidTestArtifact();
           break;
         default:
@@ -215,7 +214,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   private FileRootSearchScope getAndroidTestExcludeClasspathScope() {
     if (myAndroidTestDependencyExcludeScope == null) {
-      myAndroidTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_ANDROID_TEST);
+      myAndroidTestDependencyExcludeScope = getExcludeClasspathScope(IdeArtifactName.ANDROID_TEST);
     }
     return myAndroidTestDependencyExcludeScope;
   }
@@ -223,14 +222,14 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @NotNull
   private FileRootSearchScope getUnitTestExcludeClasspathScope() {
     if (myUnitTestDependencyExcludeScope == null) {
-      myUnitTestDependencyExcludeScope = getExcludeClasspathScope(ARTIFACT_UNIT_TEST);
+      myUnitTestDependencyExcludeScope = getExcludeClasspathScope(IdeArtifactName.UNIT_TEST);
     }
     return myUnitTestDependencyExcludeScope;
   }
 
   @NotNull
-  private FileRootSearchScope getExcludeClasspathScope(@NotNull String artifactName) {
-    boolean isAndroidTest = ARTIFACT_ANDROID_TEST.equals(artifactName);
+  private FileRootSearchScope getExcludeClasspathScope(@NotNull IdeArtifactName artifactName) {
+    boolean isAndroidTest = IdeArtifactName.ANDROID_TEST.equals(artifactName);
     Collection<File> excluded;
     synchronized (ourLock) {
       DependencySet dependenciesToInclude = isAndroidTest ? getAndroidTestDependencies() : getUnitTestDependencies();

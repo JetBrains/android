@@ -17,21 +17,28 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argThat
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
+import com.google.testing.platform.proto.api.core.TestCaseProto
+import com.google.testing.platform.proto.api.core.TestResultProto
+import com.google.testing.platform.proto.api.core.TestStatusProto
+import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.times
 import org.mockito.MockitoAnnotations.openMocks
 
 
@@ -41,7 +48,6 @@ class GradleTestResultAdapterTest {
   @get:Rule val projectRule = ProjectRule()
 
   @Mock private lateinit var mockDevice1: IDevice
-  @Mock private lateinit var mockDevice2: IDevice
   @Mock private lateinit var mockListener: AndroidTestResultListener
 
   @Before
@@ -51,31 +57,119 @@ class GradleTestResultAdapterTest {
     `when`(mockDevice1.avdName).thenReturn("mockDevice1AvdName")
     `when`(mockDevice1.version).thenReturn(AndroidVersion(29))
     `when`(mockDevice1.isEmulator).thenReturn(true)
-    `when`(mockDevice2.serialNumber).thenReturn("mockDevice2SerialNumber")
-    `when`(mockDevice2.avdName).thenReturn("mockDevice2AvdName")
-    `when`(mockDevice2.version).thenReturn(AndroidVersion(29))
-    `when`(mockDevice2.isEmulator).thenReturn(true)
   }
 
   @Test
-  fun testScheduleTestSuite() {
-    val deviceList:ArrayList<IDevice> = ArrayList()
-    deviceList.add(mockDevice1)
-    deviceList.add(mockDevice2)
-    val gradleTestResultAdapter = GradleTestResultAdapter(deviceList, mockListener)
+  fun getDevice() {
+    val expectedDevice = AndroidDevice(
+      "mockDevice1SerialNumber",
+      "mockDevice1AvdName",
+      "mockDevice1AvdName",
+      AndroidDeviceType.LOCAL_EMULATOR,
+      AndroidVersion(29))
 
-    gradleTestResultAdapter.scheduleTestSuite()
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
 
-    val captor: ArgumentCaptor<AndroidDevice> = ArgumentCaptor.forClass(AndroidDevice::class.java)
-    verify(mockListener, times(2)).onTestSuiteScheduled(capture(captor))
-    assertThat(captor.allValues).containsAllOf(device(1), device(2))
+    assertThat(adapter.device).isEqualTo(expectedDevice)
   }
 
-  private fun device(deviceNum: Int,
-    id: String = "mockDevice${deviceNum}SerialNumber",
-                     name: String = "mockDevice${deviceNum}AvdName"): AndroidDevice {
-    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+  @Test
+  fun runTestSuiteWithOneTestCaseAndPassed() {
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+
+    verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
+
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+      scheduledTestCaseCount = 1
+    }.build())
+
+    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+    })
+
+    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+      testPackage = "com.example.test"
+      testClass = "ExampleTest"
+      testMethod = "testExample"
+    }.build())
+
+    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+    })
+
+    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+      testCaseBuilder.apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }
+      testStatus = TestStatusProto.TestStatus.PASSED
+    }.build())
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+    })
+
+    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+      testStatus = TestStatusProto.TestStatus.PASSED
+    }.build())
+
+    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.PASSED
+    })
   }
 
-  private fun <T> capture(argumentCaptor: ArgumentCaptor<T>): T = argumentCaptor.capture()
+  @Test
+  fun runTestSuiteWithOneTestCaseAndFailed() {
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+
+    verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
+
+    adapter.onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+      scheduledTestCaseCount = 1
+    }.build())
+
+    verify(mockListener).onTestSuiteStarted(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == null
+    })
+
+    adapter.onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+      testPackage = "com.example.test"
+      testClass = "ExampleTest"
+      testMethod = "testExample"
+    }.build())
+
+    verify(mockListener).onTestCaseStarted(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.IN_PROGRESS
+    })
+
+    adapter.onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+      testCaseBuilder.apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }
+      testStatus = TestStatusProto.TestStatus.FAILED
+      errorBuilder.apply {
+        errorMessage = "ErrorStackTrace"
+      }
+    }.build())
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.FAILED &&
+      it.errorStackTrace == "ErrorStackTrace"
+    })
+
+    adapter.onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+      testStatus = TestStatusProto.TestStatus.FAILED
+    }.build())
+
+    verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
+      it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
+    })
+  }
 }

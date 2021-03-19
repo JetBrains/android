@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.tools.idea.layoutinspector.SkiaParser
-import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -33,7 +32,7 @@ import com.intellij.openapi.project.Project
 class AppInspectionTreeLoader(
   private val project: Project,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-  private val skiaParser: SkiaParserService = SkiaParser) : TreeLoader {
+  private val skiaParser: SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
     if (data is ViewLayoutInspectorClient.Data) {
       val window = ViewInspectorTreeLoader(
@@ -42,7 +41,6 @@ class AppInspectionTreeLoader(
         data.viewEvent,
         resourceLookup,
         data.composeEvent,
-        data.updateScreenshotType,
         logEvent
       ).loadComponentTree()
       return window to data.generation

@@ -234,7 +234,7 @@ MODULE                        : TestCompositeLib1.app
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib1/app/build/outputs/apk/debug/output-metadata.json [-]
@@ -839,7 +839,7 @@ MODULE                        : TestCompositeLib1.app
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib1/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -1450,7 +1450,7 @@ MODULE                        : TestCompositeLib1.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -2273,7 +2273,7 @@ MODULE                        : TestCompositeLib1.lib
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -2846,7 +2846,7 @@ MODULE                        : TestCompositeLib1.lib
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib1/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -3429,7 +3429,7 @@ MODULE                        : TestCompositeLib1.lib
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -4235,7 +4235,7 @@ MODULE                        : TestCompositeLib3.app
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib3/app/build/outputs/apk/debug/output-metadata.json [-]
@@ -4828,7 +4828,7 @@ MODULE                        : TestCompositeLib3.app
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib3/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -5427,7 +5427,7 @@ MODULE                        : TestCompositeLib3.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -6238,7 +6238,7 @@ MODULE                        : TestCompositeLib3.lib
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -6778,7 +6778,7 @@ MODULE                        : TestCompositeLib3.lib
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/TestCompositeLib3/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -7328,7 +7328,7 @@ MODULE                        : TestCompositeLib3.lib
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -8103,7 +8103,7 @@ MODULE                        : project.app
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/debug/output-metadata.json [-]
@@ -8715,7 +8715,7 @@ MODULE                        : project.app
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -9333,7 +9333,7 @@ MODULE                        : project.app
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]
@@ -10163,7 +10163,7 @@ MODULE                        : project.lib
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             TestInstrumentationRunner     : android.support.test.runner.AndroidJUnitRunner
             MainArtifact
-                Name                          : _main_
+                Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile :  [-]
@@ -10718,7 +10718,7 @@ MODULE                        : project.lib
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
-                Name                          : _android_test_
+                Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
@@ -11284,7 +11284,7 @@ MODULE                        : project.lib
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
-                Name                          : _unit_test_
+                Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 AssembleTaskOutputListingFile :  [-]

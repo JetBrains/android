@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.ide.common.gradle.model.IdeArtifactName
 import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.structure.model.PsChildModel
@@ -62,7 +63,7 @@ open class PsVariant(
 
   override val icon: Icon? = AndroidIcons.Variant
 
-  fun findArtifact(name: String): PsAndroidArtifact? {
+  fun findArtifact(name: IdeArtifactName): PsAndroidArtifact? {
     return artifactCollection.findElement(name)
   }
 

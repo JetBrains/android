@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>10.2020.3 Canary 11</version>
+  <version>dev build</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
@@ -46,4 +46,5 @@
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/network-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/utp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

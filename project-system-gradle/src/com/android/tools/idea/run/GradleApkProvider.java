@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
@@ -348,7 +349,8 @@ public class GradleApkProvider implements ApkProvider {
     if (builtArtifacts == null) {
       throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
     }
-    return myBestOutputFinder.findBestOutput(variant, deviceAbis, builtArtifacts);
+    return myBestOutputFinder
+      .findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, builtArtifacts);
   }
 
   @NotNull
@@ -359,7 +361,7 @@ public class GradleApkProvider implements ApkProvider {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
     @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return myBestOutputFinder.findBestOutput(variant, deviceAbis, outputs);
+    return myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
   }
 
   @NotNull
@@ -378,7 +380,7 @@ public class GradleApkProvider implements ApkProvider {
 
     ModelCache modelCache = ModelCache.create();
     if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(facet);
+      InstantAppProjectBuildOutput outputModel = outputModels.findInstantAppProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
         throw new ApkProvisionException(
           "Couldn't get post build model for Instant Apps. Please, make sure to use plugin 3.0.0-alpha10 or later.");
@@ -391,7 +393,7 @@ public class GradleApkProvider implements ApkProvider {
       }
     }
     else {
-      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(facet);
+      ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
         return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
       }
@@ -427,7 +429,7 @@ public class GradleApkProvider implements ApkProvider {
     // In this case we try to get an APK known at sync time, if any.
     return outputs.isEmpty()
            ? getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact)
-           : myBestOutputFinder.findBestOutput(variant, deviceAbis, outputs);
+           : myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
   }
 
   /**

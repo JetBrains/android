@@ -26,6 +26,7 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -127,17 +128,26 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
 
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-      val adapter = GradleTestResultAdapter(myGradleConnectedAndroidTestInvoker.getDevices(), androidTestResultListener)
-      adapter.scheduleTestSuite()
+      val adapters = myGradleConnectedAndroidTestInvoker.getDevices().map {
+        val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
+        adapter.device.id to adapter
+      }.toMap()
 
       val path: File = getBaseDirPath(project)
       val taskNames: List<String> = listOf("connectedAndroidTest")
       val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
                                                                              ExternalSystemTaskType.EXECUTE_TASK, project)
+      val taskOutputProcessor = TaskOutputProcessor(adapters)
       val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
         override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
           super.onTaskOutput(id, text, stdOut)
-          consolePrinter.stdout(text)
+
+          val processedText = if (stdOut) {
+            taskOutputProcessor.process(text)
+          } else {
+            text
+          }
+          consolePrinter.stdout(processedText)
         }
 
         override fun onEnd(id: ExternalSystemTaskId,) {

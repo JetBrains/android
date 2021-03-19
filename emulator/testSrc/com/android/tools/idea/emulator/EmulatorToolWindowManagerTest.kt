@@ -215,14 +215,14 @@ class EmulatorToolWindowManagerTest {
     // Wait for the extended controls to show.
     waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
 
-    val uiState = (contentManager.contents[0].component as EmulatorToolWindowPanel).uiState
+    val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
 
     toolWindow.hide()
 
     // Wait for the extended controls to close.
     waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
-    waitForCondition(2, TimeUnit.SECONDS) { uiState.extendedControlsShown }
+    waitForCondition(2, TimeUnit.SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
 
     toolWindow.show()
 

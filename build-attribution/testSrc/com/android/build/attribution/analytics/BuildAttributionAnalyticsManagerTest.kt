@@ -16,10 +16,14 @@
 package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createScriptPluginIdentifierStub
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
@@ -28,6 +32,7 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
+import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -37,6 +42,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnnotationProcessorsAnalyzerData
 import com.google.wireless.android.sdk.stats.BuildAttribuitionTaskIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
+import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
@@ -126,6 +132,10 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getTasksSharingOutput() = listOf(TasksSharingOutputData("test", listOf(pluginATask, buildScriptTask)))
       override fun getJavaVersion(): Int? = null
       override fun isGCSettingSet(): Boolean? = null
+      override fun getConfigurationCachingCompatibility() = IncompatiblePluginsDetected(
+        listOf(IncompatiblePluginWarning(pluginA, GradleVersion.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
+        listOf(IncompatiblePluginWarning(applicationPlugin, GradleVersion.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
+      )
     }
   }
 
@@ -146,6 +156,7 @@ class BuildAttributionAnalyticsManagerTest {
     checkCriticalPathAnalyzerData(buildAttributionAnalyzersData.criticalPathAnalyzerData)
     checkProjectConfigurationAnalyzerData(buildAttributionAnalyzersData.projectConfigurationAnalyzerData)
     checkConfigurationIssuesAnalyzerData(buildAttributionAnalyzersData.tasksConfigurationIssuesAnalyzerData)
+    checkConfigurationCacheCompatibilityData(buildAttributionAnalyzersData.configurationCacheCompatibilityData)
 
     val buildAttributionReportSessionId = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionReportSessionId
     assertThat(buildAttributionReportSessionId).isEqualTo("46f89941-2cea-83d7-e613-0c5823be215a")
@@ -201,6 +212,13 @@ class BuildAttributionAnalyticsManagerTest {
     assertThat(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList).hasSize(2)
     assertThat(isTheSameTask(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList[0], pluginATask)).isTrue()
     assertThat(isTheSameTask(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList[1], buildScriptTask)).isTrue()
+  }
+
+  private fun checkConfigurationCacheCompatibilityData(analyzerData: ConfigurationCacheCompatibilityData) {
+    assertThat(analyzerData.compatibilityState).isEqualTo(ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED)
+    assertThat(analyzerData.incompatiblePluginsList).hasSize(2)
+    assertThat(isTheSamePlugin(analyzerData.incompatiblePluginsList[0], pluginA)).isTrue()
+    assertThat(isTheSamePlugin(analyzerData.incompatiblePluginsList[1], applicationPlugin)).isTrue()
   }
 
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {

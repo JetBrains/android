@@ -43,7 +43,8 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradlePluginVersion = "3.5.0")
+    // Use Gradle 6.5 as AGP 3.5 is not supported by Gradle 7.0+
+    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradleVersion = "6.5", gradlePluginVersion = "3.5.0")
     openPreparedProject("project") { project ->
       val selectedVariant = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))?.selectedVariantAbi
       Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
@@ -71,7 +72,8 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradlePluginVersion = "3.5.0")
+    // Use Gradle 6.5 as AGP 3.5 is not supported by Gradle 7.0+
+    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradleVersion = "6.5", gradlePluginVersion = "3.5.0")
     openPreparedProject("project") { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi

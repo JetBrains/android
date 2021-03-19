@@ -18,12 +18,8 @@ package com.android.tools.idea.gradle.run;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
-import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 /**
  * Model with all the information needed in post builds.
@@ -47,52 +43,17 @@ public class PostBuildModel {
   }
 
   @Nullable
-  private  <T> T findOutputModel(@NotNull Module module, @NotNull Class<T> modelType) {
-    return findOutputModel(getGradlePath(module), modelType);
-  }
-
-  @Nullable
-  private  <T> T findOutputModel(@NotNull AndroidFacet facet, @NotNull Class<T> modelType) {
-    return findOutputModel(facet.getModule(), modelType);
-  }
-
-  @Nullable
-  public ProjectBuildOutput findProjectBuildOutput(@NotNull String gradlePath) {
+  public ProjectBuildOutput findProjectBuildOutput(@Nullable String gradlePath) {
     return findOutputModel(gradlePath, ProjectBuildOutput.class);
   }
 
   @Nullable
-  public InstantAppProjectBuildOutput findInstantAppProjectBuildOutput(@NotNull String gradlePath) {
+  public InstantAppProjectBuildOutput findInstantAppProjectBuildOutput(@Nullable String gradlePath) {
     return findOutputModel(gradlePath, InstantAppProjectBuildOutput.class);
   }
 
   @Nullable
-  public ProjectBuildOutput findProjectBuildOutput(@NotNull Module module) {
-    return findOutputModel(module, ProjectBuildOutput.class);
-  }
-
-  @Nullable
-  public InstantAppProjectBuildOutput findInstantAppProjectBuildOutput(@NotNull Module module) {
-    return findOutputModel(module, InstantAppProjectBuildOutput.class);
-  }
-
-  @Nullable
-  public AppBundleProjectBuildOutput findAppBundleProjectBuildOutput(@NotNull Module module) {
-    return findOutputModel(module, AppBundleProjectBuildOutput.class);
-  }
-
-  @Nullable
-  public AppBundleProjectBuildOutput findAppBundleProjectBuildOutput(@NotNull AndroidFacet facet) {
-    return findOutputModel(facet, AppBundleProjectBuildOutput.class);
-  }
-
-  @Nullable
-  public ProjectBuildOutput findProjectBuildOutput(@NotNull AndroidFacet facet) {
-    return findOutputModel(facet, ProjectBuildOutput.class);
-  }
-
-  @Nullable
-  public InstantAppProjectBuildOutput findInstantAppProjectBuildOutput(@NotNull AndroidFacet facet) {
-    return findOutputModel(facet, InstantAppProjectBuildOutput.class);
+  public AppBundleProjectBuildOutput findAppBundleProjectBuildOutput(@Nullable String gradlePath) {
+    return findOutputModel(gradlePath, AppBundleProjectBuildOutput.class);
   }
 }

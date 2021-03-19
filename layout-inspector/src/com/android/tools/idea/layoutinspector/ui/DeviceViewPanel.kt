@@ -26,7 +26,6 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -98,7 +97,7 @@ class DeviceViewPanel(
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
+  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings, disposableParent)
 
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
     private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||
@@ -113,11 +112,11 @@ class DeviceViewPanel(
     }
 
     private fun showGrab() {
-      if (isPanning) {
-        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
+      cursor = if (isPanning) {
+        AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
       }
       else {
-        cursor = Cursor.getDefaultCursor()
+        Cursor.getDefaultCursor()
       }
     }
 
@@ -278,6 +277,8 @@ class DeviceViewPanel(
     }
     var prevZoom = viewSettings.scalePercent
     viewSettings.modificationListeners.add {
+      val client = LayoutInspector.get(this@DeviceViewPanel)?.currentClient
+      client?.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
       if (prevZoom != viewSettings.scalePercent) {
         ApplicationManager.getApplication().executeOnPooledThread {
           deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
@@ -355,6 +356,9 @@ class DeviceViewPanel(
     if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
       return viewSettings
     }
+    if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
+      return deviceViewPanelActionsToolbar.toggle3dActionButton
+    }
     return null
   }
 
@@ -423,7 +427,7 @@ class DeviceViewPanel(
     }
 
     private fun client(event: AnActionEvent): InspectorClient =
-      event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient ?: DisconnectedClient
+      LayoutInspector.get(event)?.currentClient ?: DisconnectedClient
   }
 }
 
@@ -431,7 +435,7 @@ class DeviceViewPanel(
 class MyViewportLayoutManager(
   private val viewport: JViewport,
   private val layerSpacing: () -> Int,
-  private val rootLocation: () -> Point
+  private val rootLocation: () -> Point?
 ) : LayoutManager by viewport.layout {
   private var lastLayerSpacing = INITIAL_LAYER_SPACING
   private var lastRootLocation: Point? = null
@@ -473,15 +477,16 @@ class MyViewportLayoutManager(
       else -> {
         origLayout.layoutContainer(parent)
         val lastRoot = lastRootLocation
-        if (viewport.view.size != lastViewSize && lastRoot != null) {
-          val newRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+        val currentRootLocation = rootLocation()
+        if (viewport.view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
+          val newRootLocation = SwingUtilities.convertPoint(viewport.view, currentRootLocation, viewport)
           viewport.viewPosition = Point(viewport.viewPosition).apply {
             translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
           }
         }
       }
     }
-    lastRootLocation = SwingUtilities.convertPoint(viewport.view, rootLocation(), viewport)
+    lastRootLocation = rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
     lastViewSize = viewport.view.size
   }
 }

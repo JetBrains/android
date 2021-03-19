@@ -50,6 +50,8 @@ import org.jetbrains.org.objectweb.asm.ClassWriter;
 public abstract class RenderClassLoader extends ClassLoader implements PseudoClassLocator {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
+  private static final UrlClassLoader.CachePool ourLoaderCachePool = UrlClassLoader.createCachePool();
+
   private final ClassTransform myProjectClassesTransformationProvider;
   private final ClassTransform myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
@@ -62,6 +64,7 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
   @GuardedBy("myCachedTransformationUniqueIdLock")
   @Nullable
   private String myCachedTransformationUniqueId = null;
+  private boolean myAllowExternalJarFileLocking;
 
   /**
    * Creates a new {@link RenderClassLoader}.
@@ -77,17 +80,21 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
    *                                  that do not exist on disk, this allows the {@link RenderClassLoader} to lookup the correct name and
    *                                  load it from disk.
    * @param cache a binary class representation cache to speed up jar file reads where possible.
+   * @param allowExternalJarFileLocking if true, jar files belonging to external libraries can be locked while in use by this class loader.
+   *                                    This speeds up the I/O but can cause problems on Windows systems.
    */
   public RenderClassLoader(@Nullable ClassLoader parent,
                            @NotNull ClassTransform projectClassesTransformationProvider,
                            @NotNull ClassTransform nonProjectClassesTransformationProvider,
                            @NotNull Function<String, String> nonProjectClassNameLookup,
-                           @NotNull ClassBinaryCache cache) {
+                           @NotNull ClassBinaryCache cache,
+                           boolean allowExternalJarFileLocking) {
     super(parent);
     myProjectClassesTransformationProvider = projectClassesTransformationProvider;
     myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
     myNonProjectClassNameLookup = nonProjectClassNameLookup;
     myTransformedClassCache = cache;
+    myAllowExternalJarFileLocking = allowExternalJarFileLocking;
   }
 
 
@@ -100,7 +107,7 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
    */
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent, @NotNull ClassTransform transformationProvider) {
-    this(parent, transformationProvider, transformationProvider, Function.identity(), ClassBinaryCache.NO_CACHE);
+    this(parent, transformationProvider, transformationProvider, Function.identity(), ClassBinaryCache.NO_CACHE, false);
   }
 
   /**
@@ -110,7 +117,7 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
    */
   @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), ClassBinaryCache.NO_CACHE);
+    this(parent, ClassTransform.getIdentity(), ClassTransform.getIdentity(), Function.identity(), ClassBinaryCache.NO_CACHE, false);
   }
 
   private static String calculateTransformationsUniqueId(@NotNull ClassTransform projectClassesTransformationProvider,
@@ -170,7 +177,12 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
 
   @NotNull
   private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return new UrlClassLoader(UrlClassLoader.build().parent(this).urls(urls).setLogErrorOnMissingJar(false)) {
+    return new UrlClassLoader(UrlClassLoader.build()
+                                .parent(this)
+                                .urls(urls)
+                                .useCache(ourLoaderCachePool, url -> true)
+                                .allowLock(myAllowExternalJarFileLocking)
+                                .setLogErrorOnMissingJar(false)) {
       // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
       @Override
       public Enumeration<URL> getResources(String name) throws IOException {

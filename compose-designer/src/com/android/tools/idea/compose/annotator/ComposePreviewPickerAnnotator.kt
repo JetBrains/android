@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
 import com.android.tools.idea.compose.preview.toPreviewElement
@@ -76,6 +77,8 @@ private class ComposePreviewPickerRenderer(private val project: Project,
   override fun getIcon(): Icon = AllIcons.Actions.InlayGear
 
   override fun getClickAction() = psiPickerAction
+
+  override fun getTooltipText() = message("picker.preview.tooltip")
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

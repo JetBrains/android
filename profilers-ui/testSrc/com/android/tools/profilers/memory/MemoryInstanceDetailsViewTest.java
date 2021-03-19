@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,6 +39,7 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeFieldObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
@@ -50,12 +52,17 @@ import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function3;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -433,5 +440,46 @@ public class MemoryInstanceDetailsViewTest {
         Truth.assertThat(gcRoot.myChildren).isEmpty();
       });
     }
+  }
+
+  @Test
+  public void testFieldSelection() {
+    final long TEST_CLASS_ID = 1, TEST_FIELD_ID = 2;
+    final String TEST_CLASS_NAME = "com.Foo";
+    final String TEST_FIELD_NAME = "com.Field";
+
+    FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    Function1<String, FakeInstanceObject> makeFieldInstance = name ->
+      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_ID, TEST_FIELD_NAME).setName(name).build();
+    FakeInstanceObject instanceFooField = makeFieldInstance.invoke("instanceFooField");
+    FakeInstanceObject instanceBarField = makeFieldInstance.invoke("instanceBarField");
+    FakeFieldObject fieldFoo = new FakeFieldObject("fieldFoo", OBJECT, instanceFooField);
+    FakeFieldObject fieldBar = new FakeFieldObject("fieldBar", OBJECT, instanceBarField);
+
+    Function3<String, FieldObject, FakeInstanceObject, FakeInstanceObject> makeInstance = (name, field, fieldInstance) -> {
+      FakeInstanceObject instance =
+        new FakeInstanceObject.Builder(captureObject, TEST_CLASS_ID, TEST_CLASS_NAME).setName(name)
+        .setFields(Collections.singletonList(field.getFieldName())).build();
+      instance.setFieldValue(field.getFieldName(), field.getValueType(), fieldInstance);
+      return instance;
+    };
+    FakeInstanceObject instanceFoo = makeInstance.invoke("instanceFoo", fieldFoo, instanceFooField);
+    FakeInstanceObject instanceBar = makeInstance.invoke("instanceBar", fieldBar, instanceBarField);
+
+    Set<InstanceObject> instanceObjects = new HashSet<>(Arrays.asList(instanceFoo, instanceBar, instanceFooField, instanceBarField));
+    captureObject.addInstanceObjects(instanceObjects);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+
+    myStage.getCaptureSelection().selectInstanceObject(instanceFoo);
+    myStage.getCaptureSelection().selectFieldObjectPath(Collections.singletonList(fieldFoo));
+
+    Truth.assertThat(myStage.getCaptureSelection().getSelectedInstanceObject()).isEqualTo(instanceFoo);
+    Truth.assertThat(myStage.getCaptureSelection().getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
+
+    JTree fieldTree = myDetailsView.getFieldTree();
+    Truth.assertThat(fieldTree).isNotNull();
+    findChildWithPredicate((MemoryObjectTreeNode<?>)fieldTree.getModel().getRoot(), field -> Objects.equals(field, fieldFoo));
   }
 }
