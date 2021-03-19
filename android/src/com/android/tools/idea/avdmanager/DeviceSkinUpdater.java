@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.MoreFiles;
@@ -293,6 +294,6 @@ final class DeviceSkinUpdater {
       return;
     }
 
-    Files.copy(source, target);
+    FileUtils.copyFile(source, target);
   }
 }
