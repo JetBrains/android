@@ -19,6 +19,7 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeSettingsController;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -26,6 +27,7 @@ import com.intellij.testFramework.LightPlatformTestCase;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
 import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -143,6 +145,7 @@ public class StudioDownloaderTest extends LightPlatformTestCase {
     assertEquals(EXPECTED_HEADERS_IF_CACHING_ALLOWED, headers);
   }
 
+  @Bombed(year = 2021, month = Calendar.DECEMBER, day=1, user = "Andrei.Kuznetsov", description = "Often fails with OOME:HeapSpace in IDEA")
   public void testResumableDownloads() throws Exception {
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
