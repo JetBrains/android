@@ -163,4 +163,21 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
       "-Pandroid.testInstrumentationRunnerArguments.debug=true")
   }
+
+  @Test
+  fun useUnifiedTestPlatformFlagShouldBeEnabledInGradleExecutionSettings() {
+    val mockProject = gradleProjectRule.project
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      mockProject,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      createMockDevice("serial"),
+      mock(GradleConnectedAndroidTestInvoker::class.java))
+
+    assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
+      "-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+  }
 }
