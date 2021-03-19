@@ -53,7 +53,8 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
     super.update(event)
     val emulatorController = getEmulatorController(event)
     if (emulatorController != null) {
-      event.presentation.isVisible = emulatorController.emulatorConfig.hasOrientationSensors
+      // Rotation is disabled if the device has no rotation sensors or more than one display.
+      event.presentation.isVisible = emulatorController.emulatorConfig.hasOrientationSensors && getNumberOfDisplays(event) <= 1
     }
   }
 

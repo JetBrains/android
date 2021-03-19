@@ -123,7 +123,7 @@ class EmulatorDisplayPanel(
 
     floatingToolbar = EmulatorZoomToolbarProvider.createToolbar(this, this)
     floatingToolbar.isVisible = zoomToolbarVisible
-    zoomControlsLayerPane.add(EmulatorZoomToolbarProvider.createToolbar(this, this), BorderLayout.EAST)
+    zoomControlsLayerPane.add(floatingToolbar, BorderLayout.EAST)
 
     scrollPane.setViewportView(emulatorView)
 

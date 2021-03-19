@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.emulator.control.DisplayConfiguration
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
@@ -31,6 +32,7 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -39,6 +41,8 @@ import com.android.tools.idea.testing.flags.override
 import com.android.utils.FlightRecorder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
+import com.intellij.configurationStore.deserialize
+import com.intellij.configurationStore.serialize
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
@@ -124,14 +128,14 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testEmulatorToolWindowPanel() {
+  fun testAppearanceAndToolbarActions() {
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
-    assertThat(panel.emulatorView).isNull()
+    assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.emulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     // Check appearance.
     panel.zoomToolbarVisible = true
@@ -141,8 +145,7 @@ class EmulatorToolWindowPanelTest {
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
-    ui.updateToolbars()
-    assertAppearance(ui, "image1")
+    assertAppearance(ui, "AppearanceAndToolbarActions1")
 
     // Check EmulatorPowerButtonAction.
     var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
@@ -180,7 +183,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 
     panel.destroyContent()
-    assertThat(panel.emulatorView).isNull()
+    assertThat(panel.primaryEmulatorView).isNull()
     waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
   }
 
@@ -189,10 +192,10 @@ class EmulatorToolWindowPanelTest {
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
-    assertThat(panel.emulatorView).isNull()
+    assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    var emulatorView = panel.emulatorView ?: throw AssertionError()
+    var emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
@@ -217,7 +220,7 @@ class EmulatorToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     panel.createContent(true, uiState)
-    emulatorView = panel.emulatorView ?: throw AssertionError()
+    emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
     ui.layoutAndDispatchEvents()
 
     // Check that zoom level and scroll position are restored.
@@ -229,15 +232,63 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
+  fun testMultipleDisplays() {
+    val panel = createWindowPanel()
+    val ui = FakeUi(panel)
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+
+    // Check appearance.
+    panel.zoomToolbarVisible = true
+    val frameNumbers = intArrayOf(emulatorView.frameNumber, 0, 0)
+    assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0)
+    panel.size = Dimension(400, 600)
+    ui.layoutAndDispatchEvents()
+    val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumbers[PRIMARY_DISPLAY_ID])
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
+
+    emulator.changeSecondaryDisplays(listOf(DisplayConfiguration.newBuilder().setDisplay(1).setWidth(1080).setHeight(2340).build(),
+                                            DisplayConfiguration.newBuilder().setDisplay(2).setWidth(2048).setHeight(1536).build()))
+
+    waitForCondition(2, TimeUnit.SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
+    ui.layoutAndDispatchEvents()
+    waitForNextFrameInAllDisplays(ui, frameNumbers)
+    assertAppearance(ui, "MultipleDisplays1")
+
+    // Resize emulator display panels.
+    ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
+    ui.layoutAndDispatchEvents()
+    val displayViewSizes = ui.findAllComponents<EmulatorView>().map { it.size }
+
+    val uiState = panel.destroyContent()
+    assertThat(panel.primaryEmulatorView).isNull()
+    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+
+    // Check serialization and deserialization of MultiDisplayStateStorage.
+    val state = MultiDisplayStateStorage.getInstance(projectRule.project)
+    val deserializedState = serialize(state)?.deserialize(MultiDisplayStateStorage::class.java)
+    assertThat(deserializedState?.displayStateByAvdFolder).isEqualTo(state.displayStateByAvdFolder)
+
+    // Check that the panel layout is recreated when the panel content is created again.
+    panel.createContent(true, uiState)
+    ui.layoutAndDispatchEvents()
+    waitForCondition(2, TimeUnit.SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
+    assertThat(ui.findAllComponents<EmulatorView>().map { it.size }).isEqualTo(displayViewSizes)
+  }
+
+  @Test
   fun testVirtualSceneCamera() {
     StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.override(true, testRootDisposable)
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
-    assertThat(panel.emulatorView).isNull()
+    assertThat(panel.primaryEmulatorView).isNull()
 
     panel.createContent(true)
-    val emulatorView = panel.emulatorView ?: throw AssertionError()
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
 
@@ -462,7 +513,9 @@ class EmulatorToolWindowPanelTest {
     val emulatorController = emulators.first()
     val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
     Disposer.register(testRootDisposable) {
-      panel.destroyContent()
+      if (panel.primaryEmulatorView != null) {
+        panel.destroyContent()
+      }
       emulator.stop()
     }
     waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
@@ -471,13 +524,32 @@ class EmulatorToolWindowPanelTest {
 
   @Throws(TimeoutException::class)
   private fun EmulatorToolWindowPanel.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
-    waitForCondition(timeout, unit) { emulatorView!!.frameNumber >= frame }
+    waitForCondition(timeout, unit) { primaryEmulatorView!!.frameNumber >= frame }
   }
 
-  private val EmulatorToolWindowPanel.emulatorView
+  @Throws(TimeoutException::class)
+  private fun waitForNextFrameInAllDisplays(ui: FakeUi, frameNumbers: IntArray) {
+    val displayViews = ui.findAllComponents<EmulatorView>()
+    assertThat(displayViews.size).isEqualTo(frameNumbers.size)
+    waitForCondition(2, TimeUnit.SECONDS) {
+      for (view in displayViews) {
+        if (view.frameNumber <= frameNumbers[view.displayId]) {
+          return@waitForCondition false
+        }
+      }
+      for (view in displayViews) {
+        frameNumbers[view.displayId] = view.frameNumber
+      }
+      return@waitForCondition true
+    }
+  }
+
+  private val EmulatorToolWindowPanel.primaryEmulatorView
     get() = getData(EMULATOR_VIEW_KEY.name) as EmulatorView?
 
   private fun assertAppearance(ui: FakeUi, @Suppress("SameParameterValue") goldenImageName: String) {
+    ui.layoutAndDispatchEvents()
+    ui.updateToolbars()
     val image = ui.render()
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.04)
   }

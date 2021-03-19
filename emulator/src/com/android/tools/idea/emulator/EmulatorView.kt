@@ -739,6 +739,7 @@ class EmulatorView(
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
       val imageFormat = ImageFormat.newBuilder()
+        .setDisplay(displayId)
         .setFormat(ImageFormat.ImgFormat.RGB888)
         .setWidth(w)
         .setHeight(h)
