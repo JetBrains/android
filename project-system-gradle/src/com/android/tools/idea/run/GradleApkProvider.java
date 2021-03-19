@@ -34,6 +34,7 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
+import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -60,6 +61,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -652,5 +654,51 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(GradleApkProvider.class);
+  }
+
+  /**
+   * Find the best output for the selected device and variant when multiple splits are available.
+   */
+  static class BestOutputFinder {
+
+    @NotNull
+    File findBestOutput(@NotNull String variantDisplayName,
+                        @NotNull Set<String> artifactAbiFilters,
+                        @NotNull List<String> abis,
+                        @NotNull List<IdeAndroidArtifactOutput> outputs) throws ApkProvisionException {
+      if (outputs.isEmpty()) {
+        throw new ApkProvisionException("No outputs for the main artifact of variant: " + variantDisplayName);
+      }
+      List<File> apkFiles =
+        ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, artifactAbiFilters, abis), IdeAndroidArtifactOutput::getOutputFile);
+      verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, outputs.size());
+      // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
+      return apkFiles.get(0);
+    }
+
+    @NotNull
+    File findBestOutput(@NotNull String variantDisplayName,
+                        @NotNull Set<String> artifactAbiFilters,
+                        @NotNull List<String> abis,
+                        @NotNull GenericBuiltArtifacts builtArtifact) throws ApkProvisionException {
+      List<File> apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, artifactAbiFilters, abis);
+      verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, builtArtifact.getElements().size());
+      // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
+      return apkFiles.get(0);
+    }
+
+    private static void verifyApkCollectionIsNotEmpty(@NotNull List<File> apkFiles,
+                                                      @NotNull String variantDisplayName,
+                                                      @NotNull List<String> abis,
+                                                      int outputCount)
+      throws ApkProvisionException {
+      if (apkFiles.isEmpty()) {
+        String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
+                                               variantDisplayName,
+                                               outputCount,
+                                               Joiner.on(", ").join(abis));
+        throw new ApkProvisionException(message);
+      }
+    }
   }
 }

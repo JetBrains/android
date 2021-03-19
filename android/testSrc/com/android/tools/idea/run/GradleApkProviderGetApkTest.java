@@ -100,7 +100,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     when(myVariant.getMainArtifact()).thenReturn(mainArtifact);
     when(myVariant.getAndroidTestArtifact()).thenReturn(testArtifact);
 
-    BestOutputFinder finder = new BestOutputFinder() {
+    GradleApkProvider.BestOutputFinder finder = new GradleApkProvider.BestOutputFinder() {
       @Override
       @NotNull File findBestOutput(@NotNull String variantDisplayName,
                                    @NotNull Set<String> artifactAbiFilters,
