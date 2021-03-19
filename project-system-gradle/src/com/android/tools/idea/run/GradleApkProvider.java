@@ -104,6 +104,8 @@ public class GradleApkProvider implements ApkProvider {
 
   public static final Key<PostBuildModel> POST_BUILD_MODEL = Key.create("com.android.tools.idea.post_build_model");
 
+  private static final String VARIANT_DISPLAY_NAME_STUB = "<VARIANT_DISPLAY_NAME>";
+
   /**
    * Specify where to look for build output APKs
    */
@@ -177,73 +179,82 @@ public class GradleApkProvider implements ApkProvider {
       return Collections.emptyList();
     }
     IdeVariant selectedVariant = androidModel.getSelectedVariant();
+    try {
+      List<ApkInfo> apkList = new ArrayList<>();
 
-    List<ApkInfo> apkList = new ArrayList<>();
+      IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+      if (projectType == IdeAndroidProjectType.PROJECT_TYPE_APP ||
+          projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
+          projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST ||
+          projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
+        String pkgName = projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST
+                         ? myApplicationIdProvider.getTestPackageName()
+                         : myApplicationIdProvider.getPackageName();
+        if (pkgName == null) {
+          getLogger().warn("Package name is null. Sync might have failed");
+          return Collections.emptyList();
+        }
 
-    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
-    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_APP ||
-        projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
-        projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST ||
-        projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
-      String pkgName = projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST
-                       ? myApplicationIdProvider.getTestPackageName()
-                       : myApplicationIdProvider.getPackageName();
-      if (pkgName == null) {
-        getLogger().warn("Package name is null. Sync might have failed");
-        return Collections.emptyList();
-      }
+        switch (myOutputKindProvider.apply(deviceVersion)) {
+          case Default:
+            // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
+            // apps (assuming the androidModel is the base split).
+            //
+            // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
+            //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
+            List<ApkFileUnit> apkFileList = new ArrayList<>();
+            apkFileList.add(new ApkFileUnit(androidModel.getModuleName(),
+                                            getApk(selectedVariant, deviceAbis, deviceVersion, myFacet, false)));
+            apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
+            apkList.add(new ApkInfo(apkFileList, pkgName));
+            break;
 
-      switch (myOutputKindProvider.apply(deviceVersion)) {
-        case Default:
-          // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
-          // apps (assuming the androidModel is the base split).
-          //
-          // Note: For instant apps, "getApk" currently returns a ZIP to be provisioned on the device instead of
-          //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
-          List<ApkFileUnit> apkFileList = new ArrayList<>();
-          apkFileList.add(new ApkFileUnit(androidModel.getModuleName(),
-                                          getApk(selectedVariant, deviceAbis, deviceVersion, myFacet, false)));
-          apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
-          apkList.add(new ApkInfo(apkFileList, pkgName));
-          break;
-
-        case AppBundleOutputModel:
-          Module baseAppModule = myFacet.getModule();
-          if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
-            // If it's instrumented test for dynamic feature module, the base-app module is retrieved,
-            // and then Apks from bundle are able to be extracted.
-            baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
-          }
-          if (baseAppModule != null) {
-            ApkInfo apkInfo = collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
-            if (apkInfo != null) {
-              apkList.add(apkInfo);
+          case AppBundleOutputModel:
+            Module baseAppModule = myFacet.getModule();
+            if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
+              // If it's instrumented test for dynamic feature module, the base-app module is retrieved,
+              // and then Apks from bundle are able to be extracted.
+              baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
             }
+            if (baseAppModule != null) {
+              ApkInfo apkInfo = collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
+              if (apkInfo != null) {
+                apkList.add(apkInfo);
+              }
+            }
+            break;
+        }
+      }
+
+      apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
+
+      if (myTest) {
+        if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
+          if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
+            apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
           }
-          break;
-      }
-    }
-
-    apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
-
-    if (myTest) {
-      if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-        if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
-          apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
+        }
+        else {
+          IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
+          if (testArtifactInfo != null) {
+            File testApk = getApk(androidModel.getSelectedVariant(), deviceAbis, deviceVersion, myFacet, true);
+            String testPackageName = myApplicationIdProvider.getTestPackageName();
+            assert testPackageName != null; // Cannot be null if initialized.
+            apkList.add(new ApkInfo(testApk, testPackageName));
+            apkList.addAll(getAdditionalApks(testArtifactInfo));
+          }
         }
       }
-      else {
-        IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
-        if (testArtifactInfo != null) {
-          File testApk = getApk(androidModel.getSelectedVariant(), deviceAbis, deviceVersion, myFacet, true);
-          String testPackageName = myApplicationIdProvider.getTestPackageName();
-          assert testPackageName != null; // Cannot be null if initialized.
-          apkList.add(new ApkInfo(testApk, testPackageName));
-          apkList.addAll(getAdditionalApks(testArtifactInfo));
-        }
-      }
+      return apkList;
     }
-    return apkList;
+    catch (ApkProvisionException apkProvisioningException) {
+      if (apkProvisioningException.getMessage() == null || !apkProvisioningException.getMessage().contains(VARIANT_DISPLAY_NAME_STUB)) {
+        throw apkProvisioningException;
+      }
+      throw new ApkProvisionException(
+        apkProvisioningException.getMessage().replace(VARIANT_DISPLAY_NAME_STUB, selectedVariant.getDisplayName()),
+        apkProvisioningException);
+    }
   }
 
   @NotNull
@@ -361,7 +372,7 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
     }
     return myBestOutputFinder
-      .findBestOutput(variant.getDisplayName(), artifact.getAbiFilters(), deviceAbis, builtArtifacts);
+      .findBestOutput(artifact.getAbiFilters(), deviceAbis, builtArtifacts);
   }
 
   @NotNull
@@ -372,7 +383,7 @@ public class GradleApkProvider implements ApkProvider {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
     @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return myBestOutputFinder.findBestOutput(variant.getDisplayName(), artifact.getAbiFilters(), deviceAbis, outputs);
+    return myBestOutputFinder.findBestOutput(artifact.getAbiFilters(), deviceAbis, outputs);
   }
 
   @NotNull
@@ -443,11 +454,7 @@ public class GradleApkProvider implements ApkProvider {
     }
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     Set<String> abiFilters = artifact != null ? artifact.getAbiFilters() : emptySet();
-    return myBestOutputFinder
-      .findBestOutput(variant.getDisplayName(),
-                      abiFilters,
-                      deviceAbis,
-                      outputs);
+    return myBestOutputFinder.findBestOutput(abiFilters, deviceAbis, outputs);
   }
 
   /**
@@ -487,7 +494,7 @@ public class GradleApkProvider implements ApkProvider {
         continue;
       }
 
-      IdeVariant targetVariant = (IdeVariant)targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
+      IdeVariant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
       if (targetVariant == null) {
         getLogger().warn("Tested variant not found. Sync might have failed.");
         continue;
@@ -662,39 +669,36 @@ public class GradleApkProvider implements ApkProvider {
   static class BestOutputFinder {
 
     @NotNull
-    File findBestOutput(@NotNull String variantDisplayName,
-                        @NotNull Set<String> artifactAbiFilters,
+    File findBestOutput(@NotNull Set<String> artifactAbiFilters,
                         @NotNull List<String> abis,
                         @NotNull List<IdeAndroidArtifactOutput> outputs) throws ApkProvisionException {
       if (outputs.isEmpty()) {
-        throw new ApkProvisionException("No outputs for the main artifact of variant: " + variantDisplayName);
+        throw new ApkProvisionException("No outputs for the main artifact of variant: " + VARIANT_DISPLAY_NAME_STUB);
       }
       List<File> apkFiles =
         ContainerUtil.map(SplitOutputMatcher.computeBestOutput(outputs, artifactAbiFilters, abis), IdeAndroidArtifactOutput::getOutputFile);
-      verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, outputs.size());
+      verifyApkCollectionIsNotEmpty(apkFiles, abis, outputs.size());
       // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
       return apkFiles.get(0);
     }
 
     @NotNull
-    File findBestOutput(@NotNull String variantDisplayName,
-                        @NotNull Set<String> artifactAbiFilters,
+    File findBestOutput(@NotNull Set<String> artifactAbiFilters,
                         @NotNull List<String> abis,
                         @NotNull GenericBuiltArtifacts builtArtifact) throws ApkProvisionException {
       List<File> apkFiles = GenericBuiltArtifactsSplitOutputMatcher.INSTANCE.computeBestOutput(builtArtifact, artifactAbiFilters, abis);
-      verifyApkCollectionIsNotEmpty(apkFiles, variantDisplayName, abis, builtArtifact.getElements().size());
+      verifyApkCollectionIsNotEmpty(apkFiles, abis, builtArtifact.getElements().size());
       // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
       return apkFiles.get(0);
     }
 
     private static void verifyApkCollectionIsNotEmpty(@NotNull List<File> apkFiles,
-                                                      @NotNull String variantDisplayName,
                                                       @NotNull List<String> abis,
                                                       int outputCount)
       throws ApkProvisionException {
       if (apkFiles.isEmpty()) {
         String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
-                                               variantDisplayName,
+                                               VARIANT_DISPLAY_NAME_STUB,
                                                outputCount,
                                                Joiner.on(", ").join(abis));
         throw new ApkProvisionException(message);

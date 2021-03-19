@@ -102,8 +102,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
 
     GradleApkProvider.BestOutputFinder finder = new GradleApkProvider.BestOutputFinder() {
       @Override
-      @NotNull File findBestOutput(@NotNull String variantDisplayName,
-                                   @NotNull Set<String> artifactAbiFilters,
+      @NotNull File findBestOutput(@NotNull Set<String> artifactAbiFilters,
                                    @NotNull List<String> abis,
                                    @NotNull List<IdeAndroidArtifactOutput> outputs) {
         if (mainOutputs.equals(outputs)) return myApkFile;
@@ -112,8 +111,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
       }
 
       @Override
-      @NotNull File findBestOutput(@NotNull String variantDisplayName,
-                                   @NotNull Set<String> artifactAbiFilters,
+      @NotNull File findBestOutput(@NotNull Set<String> artifactAbiFilters,
                                    @NotNull List<String> abis,
                                    @NotNull GenericBuiltArtifacts builtArtifact)  {
         throw new AssertionError();
