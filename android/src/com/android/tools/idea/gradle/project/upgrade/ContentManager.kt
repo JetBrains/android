@@ -22,6 +22,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.Disposable
@@ -159,19 +160,28 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
+    val classpathUsageFound = !newProcessor.classpathRefactoringProcessor.isAlwaysNoOpForProject
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean)
+      setEnabled(newProcessor, projectFilesClean, classpathUsageFound)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean) }
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, classpathUsageFound) }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
     if (!projectFilesClean) {
       runEnabled.set(false)
       runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
                              "you should commit or revert changes to the build files so that changes from the upgrade process " +
                              "can be handled separately.")
+    }
+    else if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
+      newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
+      runEnabled.set(false)
+      runDisabledTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
+                             "possibly because the project's build files use features not currently support by the " +
+                             "Upgrade Assistant (for example: using constants defined in buildSrc)."
+      )
     }
     else {
       refreshTree(newProcessor)
@@ -183,7 +193,6 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
     val root = treeModel.root as CheckedTreeNode
     root.removeAllChildren()
-    //TODO(mlazeba): do we need the check about 'classpathRefactoringProcessor.isAlwaysNoOpForProject' meaning upgrade can not run?
     fun <T : DefaultMutableTreeNode> populateNecessity(
       necessity: AgpUpgradeComponentNecessity,
       constructor: (Any) -> (T)

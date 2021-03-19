@@ -96,6 +96,7 @@ import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -748,7 +749,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
     get() {
       if (_isAlwaysNoOpForProject == null) {
-        _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
+        _isAlwaysNoOpForProject = runReadAction { computeIsAlwaysNoOpForProject() }
       }
       return _isAlwaysNoOpForProject!!
     }
