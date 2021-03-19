@@ -48,6 +48,19 @@ class ContentManagerTest {
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
   }
 
+  private fun addMinimalBuildGradleToProject() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:$currentAgpVersion'
+          }
+        }
+      """.trimIndent()
+    )
+  }
+
   @Test
   fun testContentManagerConstructable() {
     val contentManager = ContentManager(project)
@@ -72,10 +85,35 @@ class ContentManagerTest {
   }
 
   @Test
-  fun testToolWindowModelStartsEnabled() {
+  fun testToolWindowModelStartsEnabledWithBuildGradle() {
+    addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     assertThat(toolWindowModel.runEnabled.get()).isTrue()
     assertThat(toolWindowModel.runDisabledTooltip.get()).isEmpty()
+  }
+
+  @Test
+  fun testToolWindowModelStartsDisabledWithNoFiles() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    assertThat(toolWindowModel.runEnabled.get()).isFalse()
+    assertThat(toolWindowModel.runDisabledTooltip.get()).contains("buildSrc")
+  }
+
+  @Test
+  fun testToolWindowModelStartsDisabledWithUnsupportedDependency() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath deps.ANDROID_GRADLE_PLUGIN
+          }
+        }
+      """.trimIndent()
+    )
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    assertThat(toolWindowModel.runEnabled.get()).isFalse()
+    assertThat(toolWindowModel.runDisabledTooltip.get()).contains("buildSrc")
   }
 
   @Test
@@ -100,16 +138,7 @@ class ContentManagerTest {
 
   @Test
   fun testTreeModelInitialState() {
-    projectRule.fixture.addFileToProject(
-      "build.gradle",
-      """
-        buildscript {
-          dependencies {
-            classpath 'com.android.tools.build:gradle:$currentAgpVersion'
-          }
-        }
-      """.trimIndent()
-    )
+    addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     val treeModel = toolWindowModel.treeModel
     val root = treeModel.root as? CheckedTreeNode
