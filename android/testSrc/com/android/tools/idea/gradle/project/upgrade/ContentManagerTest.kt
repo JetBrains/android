@@ -173,4 +173,16 @@ class ContentManagerTest {
     toolWindowModel.runUpgrade(false)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
   }
+
+  @Test
+  fun testUpgradeLabelText() {
+    assertThat((null as GradleVersion?).upgradeLabelText()).contains("unknown version")
+    assertThat(GradleVersion.parse("4.1.0").upgradeLabelText()).contains("version 4.1.0")
+  }
+
+  @Test
+  fun testContentDisplayName() {
+    assertThat((null as GradleVersion?).contentDisplayName()).contains("unknown AGP")
+    assertThat(GradleVersion.parse("4.1.0").contentDisplayName()).contains("AGP 4.1.0")
+  }
 }

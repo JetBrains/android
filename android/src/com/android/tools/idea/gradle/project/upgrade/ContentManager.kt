@@ -59,7 +59,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
-class ToolWindowModel(val project: Project, val current: GradleVersion) {
+class ToolWindowModel(val project: Project, var current: GradleVersion?) {
 
   val selectedVersion = OptionalValueProperty<GradleVersion>(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
   var processor: AgpUpgradeRefactoringProcessor? = null
@@ -119,7 +119,7 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
         val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { it > current }
+          .filter { current?.let { current -> it > current } ?: false }
           .toList()
           .sortedDescending()
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
@@ -127,7 +127,7 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     })
   }
 
-  fun refresh() {
+  fun refresh(refindPlugin: Boolean = false) {
     showLoadingState.set(true)
     // First clear state
     runEnabled.set(false)
@@ -136,10 +136,14 @@ class ToolWindowModel(val project: Project, val current: GradleVersion) {
     root.removeAllChildren()
     treeModel.nodeStructureChanged(root)
 
+    if (refindPlugin) { current = AndroidPluginInfo.find(project)?.pluginVersion }
     val newVersion = selectedVersion.valueOrNull
-    // TODO(xof/mlazeba): check new version is greater than current here
     // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
-    val newProcessor = newVersion?.let { AgpUpgradeRefactoringProcessor(project, current, it) }
+    val newProcessor = newVersion?.let {
+      current?.let { current ->
+        if (newVersion >= current) AgpUpgradeRefactoringProcessor(project, current, it) else null
+      }
+    }
     processor = newProcessor
 
     if (newProcessor == null) {
@@ -286,7 +290,7 @@ class ContentManager(val project: Project) {
   }
 
   fun showContent() {
-    val current = AndroidPluginInfo.find(project)?.pluginVersion ?: return
+    val current = AndroidPluginInfo.find(project)?.pluginVersion
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(project, current)
@@ -333,9 +337,11 @@ class ContentManager(val project: Project) {
         override val editingSupport = object : EditingSupport {
           override val validation: EditingValidation = { value ->
             val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+            val current = model.current
             when {
+              current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version")
               parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
-              parsed <= model.current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
+              parsed < current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
               else -> EDITOR_NO_ERROR
             }
           }
@@ -358,7 +364,7 @@ class ContentManager(val project: Project) {
     }
 
     val refreshButton = JButton("Refresh").apply {
-      addActionListener { this@View.model.refresh() }
+      addActionListener { this@View.model.refresh(true) }
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
@@ -525,6 +531,12 @@ private fun AgpUpgradeComponentNecessity.description() = when (this) {
   else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }
 
-private fun GradleVersion.upgradeLabelText() = "Upgrading Android Gradle Plugin from version $this to"
+fun GradleVersion?.upgradeLabelText() = when (this) {
+  null -> "Upgrading Android Gradle Plugin from unknown version to"
+  else -> "Upgrading Android Gradle Plugin from version $this to"
+}
 
-private fun GradleVersion.contentDisplayName() = "Upgrading project from AGP $this"
+fun GradleVersion?.contentDisplayName() = when(this) {
+  null -> "Upgrading project from unknown AGP"
+  else -> "Upgrading project from AGP $this"
+}
