@@ -17,8 +17,8 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.DebugConnectorTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
@@ -73,50 +73,57 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
       launchStatus.terminateLaunch("Unable to determine test package name", true)
       return launchTasks
     }
-    val appLaunchTask: AppLaunchTask?
-    when (TESTINGTYPE) {
+    val appLaunchTask = when (TESTINGTYPE) {
       TEST_ALL_IN_MODULE -> {
-        appLaunchTask = allInModuleTest(myProject,
-                        testAppId,
-                        myLaunchOptions.isDebug,
-                        launchStatus.processHandler,
-                        consolePrinter,
-                        device,
-                        myGradleConnectedAndroidTestInvoker)
+        allInModuleTest(
+          myProject,
+          requireNotNull(AndroidModuleModel.get(myFacet)),
+          testAppId,
+          myLaunchOptions.isDebug,
+          launchStatus.processHandler,
+          consolePrinter,
+          device,
+          myGradleConnectedAndroidTestInvoker)
       }
       TEST_ALL_IN_PACKAGE -> {
-        appLaunchTask = allInPackageTest(myProject,
-                         testAppId,
-                         myLaunchOptions.isDebug,
-                         launchStatus.processHandler,
-                         consolePrinter,
-                         device,
-                         PACKAGENAME,
-                         myGradleConnectedAndroidTestInvoker)
+        allInPackageTest(
+          myProject,
+          requireNotNull(AndroidModuleModel.get(myFacet)),
+          testAppId,
+          myLaunchOptions.isDebug,
+          launchStatus.processHandler,
+          consolePrinter,
+          device,
+          PACKAGENAME,
+          myGradleConnectedAndroidTestInvoker)
       }
       TEST_CLASS -> {
-        appLaunchTask = classTest(myProject,
-                  testAppId,
-                  myLaunchOptions.isDebug,
-                  launchStatus.processHandler,
-                  consolePrinter,
-                  device,
-                  CLASSNAME,
-                  myGradleConnectedAndroidTestInvoker)
+        classTest(
+          myProject,
+          requireNotNull(AndroidModuleModel.get(myFacet)),
+          testAppId,
+          myLaunchOptions.isDebug,
+          launchStatus.processHandler,
+          consolePrinter,
+          device,
+          CLASSNAME,
+          myGradleConnectedAndroidTestInvoker)
       }
      TEST_METHOD -> {
-       appLaunchTask = methodTest(myProject,
-                  testAppId,
-                  myLaunchOptions.isDebug,
-                  launchStatus.processHandler,
-                  consolePrinter,
-                  device,
-                  CLASSNAME,
-                  METHODNAME,
-                  myGradleConnectedAndroidTestInvoker)
+       methodTest(
+         myProject,
+         requireNotNull(AndroidModuleModel.get(myFacet)),
+         testAppId,
+         myLaunchOptions.isDebug,
+         launchStatus.processHandler,
+         consolePrinter,
+         device,
+         CLASSNAME,
+         METHODNAME,
+         myGradleConnectedAndroidTestInvoker)
      } else -> {
       launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $TESTINGTYPE", true)
-      appLaunchTask = null
+      null
      }
     }
     if (appLaunchTask != null) {

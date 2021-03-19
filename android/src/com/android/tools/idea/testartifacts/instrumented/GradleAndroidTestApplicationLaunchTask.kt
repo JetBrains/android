@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings
 import com.android.tools.idea.run.ConsolePrinter
@@ -44,6 +45,7 @@ import java.io.File
  */
 class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
+  private val androidModuleModel: AndroidModuleModel,
   private val taskId: String,
   private val waitForDebugger: Boolean,
   private val processHandler: ProcessHandler,
@@ -62,13 +64,15 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInModuleTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-        return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
+        return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                      taskId, waitForDebugger, processHandler, consolePrinter, device, "",
                                                       "", "", gradleConnectedAndroidTestInvoker)
     }
 
@@ -78,6 +82,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInPackageTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -85,8 +90,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       device: IDevice,
       testPackageName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, testPackageName,
-                                                    "", "", gradleConnectedAndroidTestInvoker)
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                    taskId, waitForDebugger, processHandler, consolePrinter, device,
+                                                    testPackageName, "", "", gradleConnectedAndroidTestInvoker)
     }
 
     /**
@@ -95,6 +101,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun classTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -102,8 +109,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       device: IDevice,
       testClassName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger,
-                                                    processHandler, consolePrinter, device, "", testClassName, "", gradleConnectedAndroidTestInvoker)
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                    taskId, waitForDebugger,
+                                                    processHandler, consolePrinter, device, "", testClassName, "",
+                                                    gradleConnectedAndroidTestInvoker)
     }
 
     /**
@@ -112,6 +121,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun methodTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -120,12 +130,17 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       testClassName: String,
       testMethodName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel, taskId,
+                                                    waitForDebugger, processHandler, consolePrinter, device, "",
                                                     testClassName, testMethodName, gradleConnectedAndroidTestInvoker)
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult? {
+  override fun run(launchContext: LaunchContext): LaunchResult {
+    if (!checkAndroidGradlePluginVersion()) {
+      return LaunchResult.error("ANDROID_TEST_AGP_VERSION_TOO_OLD", "checking the Android Gradle plugin version")
+    }
+
     consolePrinter.stdout("Running tests\n")
 
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
@@ -158,7 +173,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
           }
         }
 
-        override fun onEnd(id: ExternalSystemTaskId,) {
+        override fun onEnd(id: ExternalSystemTaskId) {
           super.onEnd(id)
           outputLineProcessor.close()
           processHandler.detachProcess()
@@ -167,6 +182,16 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       AndroidGradleTaskManager().executeTasks(externalTaskId, taskNames, path.path, getGradleExecutionSettings(), null, listener)
     }
     return LaunchResult.success()
+  }
+
+  private fun checkAndroidGradlePluginVersion(): Boolean {
+    val version = androidModuleModel.modelVersion
+    return if (version != null && version.major >= 7) {
+      true
+    } else {
+      consolePrinter.stderr("The minimum required Android Gradle plugin version is 7.0.0 but it was ${version ?: "unknown"}.")
+      false
+    }
   }
 
   override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"
