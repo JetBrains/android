@@ -278,7 +278,7 @@ class WarningsViewDetailPagesFactory(
 
   private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
                                                     projectConfigurationTime: TimeWithPercentage) = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    layout = VerticalLayout(10, SwingConstants.LEFT)
 
     val contentHtml = if (data.requiredVersion != null) """
         <b>${data.plugin.displayName}: update required</b>
@@ -291,13 +291,17 @@ class WarningsViewDetailPagesFactory(
     else """
         <b>${data.plugin.displayName}: not compatible</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        The version of this plugin used in this build is not compatible with configuration cache and we don’t know the version when it becomes compatible.
+        The version of this plugin used in this build is not compatible with configuration cache
+        and we don’t know the version when it becomes compatible.
         
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
       """.trimIndent().insertBRTags()
 
-    add(htmlTextLabelWithLinesWrap(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    if (data.requiredVersion != null) {
+      add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) }})
+    }
   }
 
   private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =

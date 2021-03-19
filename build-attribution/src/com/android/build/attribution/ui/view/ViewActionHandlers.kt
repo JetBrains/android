@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
@@ -85,4 +86,5 @@ interface ViewActionHandlers {
   fun runAgpUpgrade()
   fun runTestConfigurationCachingBuild()
   fun turnConfigurationCachingOnInProperties()
+  fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
 }
