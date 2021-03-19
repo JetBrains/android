@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.Collections.emptySet;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
@@ -78,6 +79,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -357,7 +359,7 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
     }
     return myBestOutputFinder
-      .findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, builtArtifacts);
+      .findBestOutput(variant.getDisplayName(), artifact.getAbiFilters(), deviceAbis, builtArtifacts);
   }
 
   @NotNull
@@ -368,7 +370,7 @@ public class GradleApkProvider implements ApkProvider {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
     @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
+    return myBestOutputFinder.findBestOutput(variant.getDisplayName(), artifact.getAbiFilters(), deviceAbis, outputs);
   }
 
   @NotNull
@@ -434,9 +436,16 @@ public class GradleApkProvider implements ApkProvider {
 
     // If empty, it means that either ProjectBuildOut has not been filled correctly or the variant was not found.
     // In this case we try to get an APK known at sync time, if any.
-    return outputs.isEmpty()
-           ? getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact)
-           : myBestOutputFinder.findBestOutput(variant.getDisplayName(), variant.getMainArtifact().getAbiFilters(), deviceAbis, outputs);
+    if (outputs.isEmpty()) {
+      return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
+    }
+    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
+    Set<String> abiFilters = artifact != null ? artifact.getAbiFilters() : emptySet();
+    return myBestOutputFinder
+      .findBestOutput(variant.getDisplayName(),
+                      abiFilters,
+                      deviceAbis,
+                      outputs);
   }
 
   /**
