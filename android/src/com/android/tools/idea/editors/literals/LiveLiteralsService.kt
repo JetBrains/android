@@ -26,6 +26,7 @@ import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -135,8 +136,10 @@ class LiveLiteralsService private constructor(private val project: Project,
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
-        if (deploymentReportService.hasActiveDevices) {
-          activateTracking()
+        DumbService.getInstance(project).runWhenSmart {
+          if (deploymentReportService.hasActiveDevices) {
+            activateTracking()
+          }
         }
       }
 
