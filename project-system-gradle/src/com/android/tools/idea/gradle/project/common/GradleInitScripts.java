@@ -223,7 +223,7 @@ public class GradleInitScripts {
       classpath.append("classpath files([");
       int pathCount = paths.size();
       for (int i = 0; i < pathCount; i++) {
-        String jarPath = paths.get(i);
+        String jarPath = escapeGroovyStringLiteral(paths.get(i));
         classpath.append("mapPath('").append(jarPath).append("')");
         if (i < pathCount - 1) {
           classpath.append(", ");
