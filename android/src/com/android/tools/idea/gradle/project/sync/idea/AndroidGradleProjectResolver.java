@@ -140,7 +140,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
@@ -163,7 +162,6 @@ import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 
@@ -278,12 +276,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
                                                   @NotNull DataNode<ModuleData> ideModule) {
-    DataNode<AndroidModuleModel> androidModelNode = find(ideModule, ANDROID_MODEL);
-    if (androidModelNode == null) {
-      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
-    } else {
-      CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
-    }
+    super.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
   }
 
   @Override
