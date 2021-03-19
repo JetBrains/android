@@ -166,35 +166,34 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
 
   @VisibleForTesting
   fun getGradleExecutionSettings(): GradleExecutionSettings {
-    var gradleExecutionSettings: GradleExecutionSettings = getOrCreateGradleExecutionSettings(project)
-    var deviceSerials = ""
-    var devices = myGradleConnectedAndroidTestInvoker.getDevices()
-    for (i in devices.indices) {
-      deviceSerials += if (i == (devices.size - 1)) {
-        "${devices[i].serialNumber}"
-      } else {
-        "${devices[i].serialNumber},"
+    return getOrCreateGradleExecutionSettings(project).apply {
+      // Add an environmental variable to filter connected devices for selected devices.
+      val deviceSerials = myGradleConnectedAndroidTestInvoker.getDevices().joinToString(",") { device ->
+        device.serialNumber
       }
-    }
-    var map: HashMap<String, String> = hashMapOf("ANDROID_SERIAL" to deviceSerials)
-    gradleExecutionSettings = gradleExecutionSettings.withEnvironmentVariables(map) as GradleExecutionSettings
-    var arguments = ArrayList<String>()
-    if (testPackageName != "" || testClassName != "") {
-      var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
-      if (testPackageName != "") {
-        testTypeArgs += ".package=$testPackageName"
-      } else if (testClassName != "") {
-        testTypeArgs += ".class=$testClassName"
-        if (testMethodName != "") {
-          testTypeArgs += "#$testMethodName"
+      withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
+
+      // Enable UTP in Gradle. This is required for Android Studio integration.
+      withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+
+      // Add a test filter.
+      if (testPackageName != "" || testClassName != "") {
+        var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
+        if (testPackageName != "") {
+          testTypeArgs += ".package=$testPackageName"
+        } else if (testClassName != "") {
+          testTypeArgs += ".class=$testClassName"
+          if (testMethodName != "") {
+            testTypeArgs += "#$testMethodName"
+          }
         }
+        withArgument(testTypeArgs)
       }
-      arguments.add(testTypeArgs)
+
+      // Enable debug flag for run with debugger.
+      if (waitForDebugger) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
+      }
     }
-    if (waitForDebugger) {
-      arguments.add("-Pandroid.testInstrumentationRunnerArguments.debug=true")
-    }
-    gradleExecutionSettings = gradleExecutionSettings.withArguments(arguments) as GradleExecutionSettings
-    return gradleExecutionSettings
   }
 }
