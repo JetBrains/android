@@ -242,7 +242,7 @@ public class AndroidAutogenerator {
           if (module.isDisposed() || module.getProject().isDisposed()) {
             return null;
           }
-          return FilenameIndex.getVirtualFilesByName(module.getProject(), file.getName(), module.getModuleScope(false));
+          return FilenameIndex.getVirtualFilesByName(file.getName(), module.getModuleScope(false));
         }
       });
     if (files == null) {
