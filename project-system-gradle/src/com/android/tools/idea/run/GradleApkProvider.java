@@ -22,7 +22,6 @@ import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutput
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Collections.emptySet;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
@@ -100,7 +99,7 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
-  private Function<AndroidVersion, OutputKind> myOutputKindProvider;
+  private final Function<AndroidVersion, OutputKind> myOutputKindProvider;
 
   public static final Key<PostBuildModel> POST_BUILD_MODEL = Key.create("com.android.tools.idea.post_build_model");
 
@@ -362,8 +361,8 @@ public class GradleApkProvider implements ApkProvider {
                                          @NotNull List<String> deviceAbis,
                                          boolean fromTestArtifact) throws ApkProvisionException {
     IdeVariant variant = androidModel.getSelectedVariant();
-    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
-    String outputFile = artifact != null ? getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk) : null;
+    IdeAndroidArtifact artifact = selectArtifact(variant, fromTestArtifact);
+    String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
     if (outputFile == null) {
       throw new ApkProvisionException("Cannot get output listing file name from the build model");
     }
@@ -380,10 +379,20 @@ public class GradleApkProvider implements ApkProvider {
   File getApkFromPreBuildSync(@NotNull IdeVariant variant,
                               @NotNull List<String> deviceAbis,
                               boolean fromTestArtifact) throws ApkProvisionException {
-    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
-    assert artifact != null;
+    IdeAndroidArtifact artifact = selectArtifact(variant, fromTestArtifact);
     @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
     return myBestOutputFinder.findBestOutput(artifact.getAbiFilters(), deviceAbis, outputs);
+  }
+
+  @NotNull
+  private static IdeAndroidArtifact selectArtifact(@NotNull IdeVariant variant, boolean fromTestArtifact) throws ApkProvisionException {
+    if (fromTestArtifact) {
+      if (variant.getAndroidTestArtifact() == null) {
+        throw new ApkProvisionException(String.format("AndroidTest artifact is not configured in %s variant.", variant.getDisplayName()));
+      }
+      return variant.getAndroidTestArtifact();
+    }
+    return variant.getMainArtifact();
   }
 
   @NotNull
@@ -415,12 +424,14 @@ public class GradleApkProvider implements ApkProvider {
       }
     }
     else {
+      @SuppressWarnings("deprecation")
       ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
         return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
       }
 
       // Loop through the variants in the model and get the one that matches
+      //noinspection deprecation
       for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
         if (variantBuildOutput.getName().equals(variant.getName())) {
 
@@ -452,8 +463,8 @@ public class GradleApkProvider implements ApkProvider {
     if (outputs.isEmpty()) {
       return getApkFromPreBuildSync(variant, deviceAbis, fromTestArtifact);
     }
-    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
-    Set<String> abiFilters = artifact != null ? artifact.getAbiFilters() : emptySet();
+    IdeAndroidArtifact artifact = selectArtifact(variant, fromTestArtifact);
+    Set<String> abiFilters = artifact.getAbiFilters();
     return myBestOutputFinder.findBestOutput(abiFilters, deviceAbis, outputs);
   }
 
@@ -645,6 +656,7 @@ public class GradleApkProvider implements ApkProvider {
       return getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(), OutputType.Apk);
     }
     else {
+      //noinspection deprecation
       List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
       if (outputs.isEmpty()) return null;
       IdeAndroidArtifactOutput output = getFirstItem(outputs);
