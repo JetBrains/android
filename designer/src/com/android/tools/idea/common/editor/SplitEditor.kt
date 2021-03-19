@@ -140,8 +140,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(e, state, true)
 
     open fun setSelected(e: AnActionEvent, state: Boolean, userExplicitlySelected: Boolean) {
-      if (isSelected(e) == state) return // Return early if state is being redundantly set, otherwise we could request the focus too often.
+      val isRedundantStateChange = isSelected(e) == state
       delegate.setSelected(e, state)
+      if (isRedundantStateChange) return // Return early if state is being redundantly set, otherwise we could request the focus too often.
       if (userExplicitlySelected) {
         // We might want to run a callback when users explicitly select the action, i.e. when they click on the action to change the mode.
         // For example, we might want to track when they change modes. An example of indirectly changing the mode is triggering "Go to XML"
