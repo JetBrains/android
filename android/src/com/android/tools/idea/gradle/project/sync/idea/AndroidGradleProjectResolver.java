@@ -300,12 +300,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
                                                   @NotNull DataNode<ModuleData> ideModule) {
-    DataNode<AndroidModuleModel> androidModelNode = find(ideModule, ANDROID_MODEL);
-    if (androidModelNode == null) {
-      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
-    } else {
-      CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
-    }
+    super.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
   }
 
   @Override

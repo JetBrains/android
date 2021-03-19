@@ -35,6 +35,8 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: IdeVariant? = null) {
   val sourceCompilerOutput = selectedVariant.mainArtifact.classesFolder.absolutePath
   val testCompilerOutput = selectedVariant.unitTestArtifact?.classesFolder?.absolutePath
 
+  data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
+  data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
