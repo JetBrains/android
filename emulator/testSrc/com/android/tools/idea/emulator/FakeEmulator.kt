@@ -17,6 +17,8 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ClipData
+import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -70,6 +72,7 @@ import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.RenderingHints
 import java.awt.RenderingHints.KEY_ANTIALIASING
 import java.awt.RenderingHints.KEY_RENDERING
@@ -124,6 +127,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
+  private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
 
   private var clipboardInternal = AtomicReference("")
   var clipboard: String
@@ -236,6 +240,27 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   /**
+   * Adds, removes, updates secondary displays.
+   */
+  fun changeSecondaryDisplays(secondaryDisplays: List<DisplayConfiguration>) {
+    executor.execute {
+      val newDisplays = ArrayList<DisplayConfiguration>(secondaryDisplays.size + 1)
+      newDisplays.add(displays[0])
+      for (display in secondaryDisplays) {
+        if (display.display > 0) {
+          newDisplays.add(display)
+        }
+      }
+      if (newDisplays != displays) {
+        displays = newDisplays
+        val notificationObserver = notificationStreamObserver ?: return@execute
+        val response = Notification.newBuilder().setEvent(EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI).build()
+        sendStreamingResponse(notificationObserver, response)
+      }
+    }
+  }
+
+  /**
    * Waits for the next gRPC call while dispatching UI events. Returns the next gRPC call and removes
    * it from the queue of recorded calls. Throws TimeoutException if the call is not recorded within
    * the specified timeout.
@@ -281,19 +306,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       .build()
   }
 
-  private fun drawDisplayImage(width: Int, height: Int): BufferedImage {
-    val image = createDipImage(width, height, TYPE_INT_ARGB)
+  private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
+    val image = createDipImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
     val hints = RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON, KEY_RENDERING to VALUE_RENDER_QUALITY))
     g.setRenderingHints(hints)
     val n = 10
     val m = 10
-    val w = width.toDouble() / n
-    val h = height.toDouble() / m
-    val startColor1 = Color(236, 112, 99)
-    val endColor1 = Color(250, 219, 216)
-    val startColor2 = Color(212, 230, 241)
-    val endColor2 = Color(84, 153, 199)
+    val w = size.width.toDouble() / n
+    val h = size.height.toDouble() / m
+    val colorScheme = COLOR_SCHEMES[displayId]
+    val startColor1 = colorScheme.start1
+    val endColor1 = colorScheme.end1
+    val startColor2 = colorScheme.start2
+    val endColor2 = colorScheme.end2
     for (i in 0 until n) {
       for (j in 0 until m) {
         val x = w * i
@@ -324,7 +350,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     val snapshotFolder = avdFolder.resolve("snapshots").resolve(snapshotId)
     Files.createDirectories(snapshotFolder)
 
-    val image = drawDisplayImage(config.displayWidth, config.displayHeight)
+    val image = drawDisplayImage(config.displaySize, 0)
     val screenshotFile = snapshotFolder.resolve("screenshot.png")
     image.writeImage("PNG", screenshotFile)
 
@@ -417,6 +443,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
+    override fun getDisplayConfigurations(request: Empty, responseObserver: StreamObserver<DisplayConfigurations>) {
+      executor.execute {
+        val response = DisplayConfigurations.newBuilder().addAllDisplays(displays).build()
+        sendResponse(responseObserver, response)
+      }
+    }
+
     override fun sendKey(request: KeyboardEvent, responseObserver: StreamObserver<Empty>) {
       executor.execute {
         sendEmptyResponse(responseObserver)
@@ -461,7 +494,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun getScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
       executor.execute {
-        val image = drawDisplayImage(config.displayWidth, config.displayHeight)
+        val displayId = request.display
+        val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
+        val image = drawDisplayImage(size, displayId)
         val stream = ByteArrayOutputStream()
         ImageIO.write(image, "PNG", stream)
         val response = Image.newBuilder()
@@ -479,19 +514,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun streamScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
       executor.execute {
-        val aspectRatio = config.displayHeight.toDouble() / config.displayWidth
-        val w: Int
-        val h: Int
-        if (displayRotation.ordinal % 2 == 0) {
-          w = request.width.coerceAtMost((request.height / aspectRatio).toInt())
-          h = request.height.coerceAtMost((request.width * aspectRatio).toInt())
-        }
-        else {
-          w = request.height.coerceAtMost((request.width / aspectRatio).toInt())
-          h = request.width.coerceAtMost((request.height * aspectRatio).toInt())
-        }
-
-        val image = drawDisplayImage(w, h)
+        val displayId = request.display
+        val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
+        val image = drawDisplayImage(size, displayId)
         val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
         val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
         var i = 0
@@ -513,6 +538,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           )
 
         sendStreamingResponse(responseObserver, response.build())
+      }
+    }
+
+    private fun getScaledAndRotatedDisplaySize(width: Int, height: Int, displayId: Int): Dimension {
+      val display = displays.find { it.display == displayId } ?: throw IllegalArgumentException()
+      val aspectRatio = display.height.toDouble() / display.width
+      val w = if (width == 0) display.width else width
+      val h = if (height == 0) display.height else height
+      return if (displayRotation.ordinal % 2 == 0) {
+        Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
+      }
+      else {
+        Dimension(h.coerceAtMost((w / aspectRatio).toInt()), w.coerceAtMost((h * aspectRatio).toInt()))
       }
     }
   }
@@ -959,3 +997,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
   }
 }
+
+private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
+
+private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
+                                   ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
+                                   ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
+                                   ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))

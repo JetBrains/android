@@ -35,6 +35,8 @@
                        toolWindowId="Android Emulator"
                        bundle="messages.AndroidBundle"
                        key="android.emulator.notification.title"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
 
   <actions>

@@ -675,6 +675,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
     "Enables the virtual scene camera in the Embedded Emulator",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
+    EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
+    "Enables configurable multiple displays in the Embedded Emulator",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
