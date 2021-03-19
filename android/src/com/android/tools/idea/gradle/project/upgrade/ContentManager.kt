@@ -25,7 +25,6 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
@@ -292,13 +291,13 @@ class ContentManager(val project: Project) {
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Upgrading project from AGP $current", true)
+    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
   }
 
-  private class View(val model: ToolWindowModel, disposable: Disposable) {
+  private class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
     /*
     Experiment of usage of observable property bindings I have found in our code base.
     Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
@@ -313,6 +312,8 @@ class ContentManager(val project: Project) {
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
       addTreeSelectionListener { e -> refreshDetailsPanel() }
     }
+
+    val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       object : DefaultCommonComboBoxModel<GradleVersion>(
@@ -372,8 +373,8 @@ class ContentManager(val project: Project) {
       layout = VerticalLayout(0, SwingConstants.LEFT)
       border = JBUI.Borders.empty(10)
     }
-    val content = JBLoadingPanel(BorderLayout(), disposable).apply {
-      val controlsPanel = makeTopComponent(model)
+    val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
+      val controlsPanel = makeTopComponent()
       add(controlsPanel, BorderLayout.NORTH)
       add(tree, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
@@ -390,6 +391,8 @@ class ContentManager(val project: Project) {
           stopLoading()
           okButton.isEnabled = model.runEnabled.get()
           previewButton.isEnabled = model.runEnabled.get()
+          upgradeLabel.text = model.current.upgradeLabelText()
+          contentManager.getContent(this).displayName = model.current.contentDisplayName()
         }
       }
 
@@ -406,9 +409,9 @@ class ContentManager(val project: Project) {
       TreeUtil.expandAll(tree)
     }
 
-    private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
+    private fun makeTopComponent() = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to").also { it.border = JBUI.Borders.empty(0, 6) })
+      add(upgradeLabel)
       add(versionTextField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
@@ -521,3 +524,7 @@ private fun AgpUpgradeComponentNecessity.description() = when (this) {
     "to its new version."
   else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }
+
+private fun GradleVersion.upgradeLabelText() = "Upgrading Android Gradle Plugin from version $this to"
+
+private fun GradleVersion.contentDisplayName() = "Upgrading project from AGP $this"
