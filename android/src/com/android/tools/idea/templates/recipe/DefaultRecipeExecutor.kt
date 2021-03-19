@@ -455,6 +455,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (kotlinCompilerVersion != null) {
       composeOptionsModel.kotlinCompilerVersion().setValueIfNone(kotlinCompilerVersion)
     }
+
+    buildModel.android().defaultConfig().vectorDrawables().useSupportLibrary().setValue(true)
   }
 
   /**
