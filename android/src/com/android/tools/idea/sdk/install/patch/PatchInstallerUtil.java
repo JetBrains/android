@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
+import com.android.utils.FileUtils;
 import com.android.io.CancellableFileIo;
 import com.android.repository.api.Dependency;
 import com.android.repository.api.LocalPackage;
@@ -232,6 +233,7 @@ public class PatchInstallerUtil {
    * Create and populate the directory that we'll look in during startup for pending patches.
    * This includes copying the patch zip there, and then adding the patcher jar into the zip (so it can be run by the update runner).
    */
+  @SuppressWarnings("NoNioFilesCopy") // Use of ZipPath as source is okay since there is no read-only bit
   private static boolean setupPatchDir(@NotNull Path patchFile, @NotNull Path patcherFile, @NotNull RepoPackage toInstallOrDelete,
                                        @NotNull RepoManager mgr, @NotNull ProgressIndicator progress) {
     Path localPath = mgr.getLocalPath();
@@ -246,7 +248,7 @@ public class PatchInstallerUtil {
         }
       }
       Path completePatch = patchDir.resolve(PATCH_JAR_FN);
-      Files.copy(patcherFile, completePatch);
+      FileUtils.copyFile(patcherFile, completePatch);
       try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toUri()), new HashMap<>());
            FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toUri()), new HashMap<>())) {
         Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
