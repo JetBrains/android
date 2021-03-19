@@ -17,9 +17,12 @@ package org.jetbrains.android.dom.converters
 
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.RESOURCE_CLZ_ID
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.findIdsInFile
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
 import com.intellij.analysis.AnalysisBundle
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -30,34 +33,35 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.converters.DelimitedListConverter
-import org.jetbrains.android.dom.resources.ResourceValue
 
 /**
  * Converter that supports the id reference syntax that is unique to the {@link SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
  */
-class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(", ") {
-  override fun convertString(string: String?, context: ConvertContext?): ResourceValue? {
-    val value = ResourceValue.reference(string, false) ?: return null
-    value.setResourceType(ResourceType.ID.getName())
-    return value
+class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(", ") {
+  override fun convertString(string: String?, context: ConvertContext?): ResourceReference? {
+    if (string == null) {
+      return null
+    }
+    return ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, string)
   }
 
-  override fun toString(value: ResourceValue?): String? = value?.resourceName
+  override fun toString(value: ResourceReference?): String? = value?.name
 
-  override fun getReferenceVariants(context: ConvertContext?,
-                                    genericDomValue: GenericDomValue<out MutableList<ResourceValue>>?
+  override fun getReferenceVariants(
+    context: ConvertContext?,
+    genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?
   ): Array<Any> {
     val file = context?.file ?: return EMPTY_ARRAY
     return findIdsInFile(file).stream().map { LookupElementBuilder.create(it) }.toArray()
   }
 
-  override fun resolveReference(value: ResourceValue?, context: ConvertContext?): PsiElement? {
-    if (value == null || context == null || context.referenceXmlElement == null) {
+  override fun resolveReference(resourceReference: ResourceReference?, context: ConvertContext?): PsiElement? {
+    if (resourceReference == null || context == null || context.referenceXmlElement == null) {
       return null
     }
-    val module = context.module ?: return null
-    val facet = module.androidFacet ?: return null
-    val resolveResultList = AndroidResourceToPsiResolver.getInstance().resolveReference(value, context.referenceXmlElement!!, facet)
+    val facet = context.module?.androidFacet ?: return null
+    val resourceToPsiResolver = AndroidResourceToPsiResolver.getInstance() as? ResourceRepositoryToPsiResolver ?: return null
+    val resolveResultList = resourceToPsiResolver.resolveReference(resourceReference, context.referenceXmlElement!!, facet, false)
     return pickMostRelevantId(resolveResultList, context)?.element
   }
 
@@ -65,11 +69,11 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(", "
     return AnalysisBundle.message("error.cannot.resolve.default.message", value)
   }
 
-  private fun pickMostRelevantId(resolveResultList: Array<ResolveResult>, context: ConvertContext): ResolveResult? {
+  private fun pickMostRelevantId(resolveResultList: Array<out ResolveResult>, context: ConvertContext): ResolveResult? {
     return resolveResultList.asSequence().minWith(Comparator.comparing<ResolveResult, Boolean> {
       it.element?.containingFile != context.file
     }.thenComparing(
-      Comparator.comparing<ResolveResult, Boolean> {
-        ((it.element as? XmlAttributeValue)?.parent as? XmlAttribute)?.name != PREFIX_ANDROID + RESOURCE_CLZ_ID }))
+      Comparator.comparing { ((it.element as? XmlAttributeValue)?.parent as? XmlAttribute)?.name != PREFIX_ANDROID + RESOURCE_CLZ_ID })
+    )
   }
 }
