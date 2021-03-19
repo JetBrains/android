@@ -38,6 +38,8 @@ fun DataNode<ModuleData>.setupCompilerOutputPaths(variant: Variant? = null) {
     artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
   }?.classesFolder?.absolutePath
 
+  data.setCompileOutputPath(ExternalSystemSourceType.SOURCE, null)
+  data.setCompileOutputPath(ExternalSystemSourceType.TEST, null)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.SOURCE, sourceCompilerOutput)
   data.setExternalCompilerOutputPath(ExternalSystemSourceType.TEST, testCompilerOutput)
 }
