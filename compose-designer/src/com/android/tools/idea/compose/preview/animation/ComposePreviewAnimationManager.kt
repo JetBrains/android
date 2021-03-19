@@ -123,9 +123,18 @@ object ComposePreviewAnimationManager {
 
     if (synchronized(subscribedAnimationsLock) { subscribedAnimations.add(animation) }) {
       UIUtil.invokeLaterIfNeeded {
-        inspector.addTab(animation)
+        // Create the tab corresponding to the animation
+        inspector.createTab(animation)
         if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
-          inspector.updateTransitionStates(animation, handleKnownStateTypes(animation.states))
+          // For transition animations, make sure to populate the tab with the states and animated properties.
+          inspector.updateTransitionStates(animation, handleKnownStateTypes(animation.states)) {
+            // When the tab is populated, add it to the animation inspector
+            UIUtil.invokeLaterIfNeeded { inspector.addTab(animation) }
+          }
+        }
+        else {
+          // TODO(b/170428636): populate tab before adding it for ANIMATED_VALUE animations.
+          inspector.addTab(animation)
         }
       }
     }
