@@ -37,7 +37,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -257,7 +256,7 @@ public class AndroidAutogenerator {
           if (module.isDisposed() || module.getProject().isDisposed()) {
             return null;
           }
-          return FilenameIndex.getVirtualFilesByName(module.getProject(), file.getName(), module.getModuleScope(false));
+          return FilenameIndex.getVirtualFilesByName(file.getName(), module.getModuleScope(false));
         }
       });
     if (files == null) {
