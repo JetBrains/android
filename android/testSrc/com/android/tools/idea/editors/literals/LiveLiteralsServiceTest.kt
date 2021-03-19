@@ -5,6 +5,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -79,7 +80,10 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
     assertTrue(isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
@@ -89,7 +93,10 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -115,7 +122,10 @@ internal class LiveLiteralsServiceTest {
       latch.countDown()
     }
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
     assertFalse(liveLiteralsService.allConstants().isEmpty())
 
     // Run test
@@ -139,13 +149,19 @@ internal class LiveLiteralsServiceTest {
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(isAvailable)
     assertEquals(0, changeListenerCalls)
-    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
     assertFalse("Live Literals should not be available since there are no constants", isAvailable)
     assertEquals(0, changeListenerCalls)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
 
-    liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
+    }
     assertEquals(0, changeListenerCalls)
   }
 }
