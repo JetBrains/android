@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -96,6 +97,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     when(testArtifact.getOutputs()).thenReturn(testOutputs);
     when(mainArtifact.getAbiFilters()).thenReturn(emptySet());
     when(testArtifact.getAbiFilters()).thenReturn(emptySet());
+    when(testArtifact.isTestArtifact()).thenReturn(true);
 
     when(myVariant.getMainArtifact()).thenReturn(mainArtifact);
     when(myVariant.getAndroidTestArtifact()).thenReturn(testArtifact);
@@ -129,7 +131,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   public void testGetApkWithoutModelProvider() throws Exception {
     when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(false);
 
-    File apk = myApkProvider.getApk(myVariant.getName(), GradleApkProvider.selectArtifact(myVariant, false), emptyList(), new AndroidVersion(27), myAndroidFacet, false
+    File apk = myApkProvider.getApk(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
     );
     assertEquals(myApkFile, apk);
 
@@ -140,7 +142,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   public void testGetApkWithModelProvider() throws Exception {
     when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(true);
 
-    File apk = myApkProvider.getApk(myVariant.getName(), GradleApkProvider.selectArtifact(myVariant, false), emptyList(), new AndroidVersion(27), myAndroidFacet, false
+    File apk = myApkProvider.getApk(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
     );
     assertEquals(myApkFile, apk);
 
@@ -149,23 +151,23 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
   }
 
   public void testGetApkFromPreSyncBuild() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(GradleApkProvider.selectArtifact(myVariant, false), emptyList());
+    File apk = myApkProvider.getApkFromPreBuildSync(myVariant.getMainArtifact(), emptyList());
     assertEquals(myApkFile, apk);
   }
 
   public void testGetApkFromPreSyncBuildForTests() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(GradleApkProvider.selectArtifact(myVariant, true), emptyList());
+    File apk = myApkProvider.getApkFromPreBuildSync(Objects.requireNonNull(myVariant.getAndroidTestArtifact()), emptyList());
     assertEquals(myTestApkFile, apk);
   }
 
   public void testGetApkFromPostBuild() throws Exception {
-    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), GradleApkProvider.selectArtifact(myVariant, false), emptyList(), new AndroidVersion(27), myAndroidFacet, false
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
     );
     assertEquals(myApkFile, apk);
   }
 
   public void testGetApkFromPostBuildForTests() throws Exception {
-    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), GradleApkProvider.selectArtifact(myVariant, true), emptyList(), new AndroidVersion(27), myAndroidFacet, true
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant.getName(), Objects.requireNonNull(myVariant.getAndroidTestArtifact()), emptyList(), new AndroidVersion(27), myAndroidFacet
     );
     assertEquals(myTestApkFile, apk);
   }
