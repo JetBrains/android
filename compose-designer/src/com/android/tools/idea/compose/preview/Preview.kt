@@ -724,6 +724,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
       .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
+      // TODO(b/148788971): Consider making 'findDesignInfoProviders' depend on the existence of a supported ConstraintLayout library
+      .toolsAttribute("findDesignInfoProviders", StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get().toString())
       .apply {
         if (animationInspection.get()) {
           // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.

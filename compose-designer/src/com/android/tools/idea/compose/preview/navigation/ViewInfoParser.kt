@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.navigation
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+import com.android.tools.idea.compose.preview.util.findComposeViewAdapter
 import com.intellij.openapi.diagnostic.Logger
 
 interface SourceLocation {
@@ -77,19 +77,6 @@ fun parseViewInfo(rootViewInfo: ViewInfo,
     logger.debug(e)
     return listOf()
   }
-}
-
-private fun findComposeViewAdapter(viewObj: Any): Any? {
-  if (COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObj.javaClass.name)) {
-    return viewObj
-  }
-
-  val childrenCount = viewObj.javaClass.getMethod("getChildCount").invoke(viewObj) as Int
-  for (i in 0 until childrenCount) {
-    val child = viewObj.javaClass.getMethod("getChildAt", Int::class.javaPrimitiveType).invoke(viewObj, i)
-    return findComposeViewAdapter(child)
-  }
-  return null
 }
 
 private fun parseBounds(elements: List<Any?>,
