@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
+import com.android.tools.compose.DESIGN_INFO_LIST_KEY
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
 import com.android.tools.idea.compose.preview.navigation.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.PxBounds
 import com.android.tools.idea.compose.preview.navigation.isEmpty
 import com.android.tools.idea.compose.preview.navigation.parseViewInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
@@ -89,9 +92,15 @@ class ComposeSceneComponentProvider: SceneManager.SceneComponentHierarchyProvide
         LOG.debug(" ${it} component=${component} model=${component.model}")
       }
     }
-    return debugResult(parseViewInfo(viewInfo, logger = LOG).flatMap {
+
+    val sceneComponents = debugResult(parseViewInfo(viewInfo, logger = LOG).flatMap {
       it.mapToSceneComponent(manager, component, mutableSetOf())
     })
+
+    if (StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) {
+      sceneComponents.getOrNull(0)?.myCache?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
+    }
+    return sceneComponents
   }
 
   // We do not sync information from the NlComponents back to SceneComponents in Compose
