@@ -42,7 +42,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -72,7 +71,7 @@ public class PostProjectBuildTasksExecutor {
 
   @NotNull
   public static PostProjectBuildTasksExecutor getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, PostProjectBuildTasksExecutor.class);
+    return project.getService(PostProjectBuildTasksExecutor.class);
   }
 
   public PostProjectBuildTasksExecutor(@NotNull Project project) {
@@ -187,7 +186,7 @@ public class PostProjectBuildTasksExecutor {
   private void requestSyncAfterBuild(GradleSyncStats.Trigger trigger) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     runWhenEventsFinished(() -> {
-      if (!myProject.isDisposedOrDisposeInProgress()) {
+      if (!myProject.isDisposed()) {
         GradleSyncInvoker.getInstance().requestProjectSync(myProject, request);
       }
     });
