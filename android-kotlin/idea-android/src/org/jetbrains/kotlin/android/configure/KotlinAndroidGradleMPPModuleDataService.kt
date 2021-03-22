@@ -131,7 +131,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
     }
 
     private fun isRootOrIntermediateSourceSet(sourceSets: Iterable<KotlinSourceSet>, sourceSet: KotlinSourceSet): Boolean {
-        return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.dependsOnSourceSets } ||
+        return sourceSets.any { anySourceSet -> sourceSet.name in anySourceSet.allDependsOnSourceSets } ||
                /**
                 * TODO Sebastian Sellmair
                 *  Currently default `dependsOn` edges are not correct for android source sets:
@@ -185,9 +185,9 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             val dependencySourceSets = ExternalSystemApiUtil.getChildren(dependencyModule, GradleSourceSetData.KEY)
                 .filter { sourceSet -> sourceSet.kotlinSourceSet?.kotlinModule?.isTestModule == false }
                 .filter {
-                    it.kotlinSourceSet?.actualPlatforms?.supports(KotlinPlatform.COMMON) == true ||
-                    (it.kotlinSourceSet?.actualPlatforms?.supports(KotlinPlatform.ANDROID) == true) ||
-                    (it.kotlinSourceSet?.actualPlatforms?.supports(KotlinPlatform.JVM) == true && !isAndroidModule(dependencyModule))
+                    it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.COMMON) == true ||
+                    (it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.ANDROID) == true) ||
+                    (it.kotlinSourceSet?.actualPlatforms?.platforms?.contains(KotlinPlatform.JVM) == true && !isAndroidModule(dependencyModule))
                 }
 
             for (dependencySourceSet in dependencySourceSets) {
