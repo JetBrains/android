@@ -18,6 +18,7 @@ package com.android.tools.idea.common.scene.target
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.Placeholder
@@ -42,6 +43,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
 import org.intellij.lang.annotations.JdkConstants
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
@@ -376,7 +378,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
       newSelectedComponents = draggedComponents
     }
-    draggedComponents.forEach { it.authoritativeNlComponent.attributeTransaction?.commit() }
+    handleRemainingComponentsOnRelease()
     draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
@@ -413,6 +415,22 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    */
   private fun isPlaceholderLiveUpdatable(placeholder: Placeholder?) =
     placeholder != null && placeholder.isLiveUpdatable && placeholder.host == myComponent.parent && myComponent !is TemporarySceneComponent
+
+  /**
+   * Apply any pending transactions on mouse released.
+   */
+  private fun handleRemainingComponentsOnRelease() {
+    draggedComponents.mapNotNull { draggedComponent ->
+      draggedComponent.authoritativeNlComponent.attributeTransaction?.let { draggedComponent.authoritativeNlComponent }
+    }.ifNotEmpty {
+      NlWriteCommandActionUtil.run(
+        this,
+        "Drag component"
+      ) {
+        this.forEach { it.attributeTransaction?.commit() }
+      }
+    }
+  }
 
   /**
    * Reset the status when the dragging is canceled.
