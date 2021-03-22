@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.SdkConstants
+import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
@@ -42,7 +43,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class LightViewBindingClassTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!

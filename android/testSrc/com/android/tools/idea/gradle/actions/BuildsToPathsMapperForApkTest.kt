@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.AndroidProjectTypes
 import com.android.build.OutputFile
 import com.android.builder.model.AppBundleProjectBuildOutput
 import com.android.builder.model.AppBundleVariantBuildOutput
@@ -23,6 +22,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput
 import com.android.builder.model.InstantAppVariantBuildOutput
 import com.android.builder.model.ProjectBuildOutput
 import com.android.builder.model.VariantBuildOutput
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
@@ -31,11 +31,9 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.findAppModule
-import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
@@ -56,7 +54,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     myTask = BuildsToPathsMapper.getInstance(project)
   }
 
-  private fun initTestProject(agpVersion: String, type: Int) {
+  private fun initTestProject(agpVersion: String, type: IdeAndroidProjectType) {
     setupTestProjectFromAndroidModel(
       project,
       File(project.basePath!!),
@@ -74,7 +72,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromPostBuildModelForApk() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
     val androidModel = AndroidModuleModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
@@ -89,7 +87,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testMultipleOutputsFromPostBuildModel() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
     TestCase.assertEquals(output1.parentFile, output2.parentFile)
@@ -106,7 +104,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromPreBuildModel() {
-    initTestProject("2.3", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("2.3", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val buildsAndBundlePaths = myTask.getBuildsToPaths(null,
                                                        ImmutableList.of(),
                                                        setOf(myModule), false, null)
@@ -115,7 +113,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromPostBuildModelForSignedApk() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createPostBuildModel(setOf(output), buildVariant),
@@ -128,7 +126,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testMultipleOutputFromPostBuildModelForSignedApk() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output1 = File("path/to/apk1")
     val output2 = File("path/to/apk2")
     TestCase.assertEquals(output1.parentFile, output2.parentFile)
@@ -145,7 +143,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromInstantAppPostBuildModel() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP)
     val output = File("path/to/bundle")
     val androidModel = AndroidModuleModel.get(myModule)
     val buildVariant = androidModel!!.selectedVariant.name
@@ -160,7 +158,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromInstantAppPostBuildModelForSignedApk() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP)
     val output = File("path/to/bundle")
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createInstantAppPostBuildModel(output, buildVariant),
@@ -173,7 +171,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromPostBuildModelForBundle() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createAppBundleBuildModel(output, AndroidModuleModel.get(myModule)!!.selectedVariant.name),
@@ -187,7 +185,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
   }
 
   fun testSingleOutputFromPostBuildModelForSignedBundle() {
-    initTestProject("3.5", AndroidProjectTypes.PROJECT_TYPE_APP)
+    initTestProject("3.5", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
     val buildsAndBundlePaths = myTask.getBuildsToPaths(
       createAppBundleBuildModel(output, buildVariant),

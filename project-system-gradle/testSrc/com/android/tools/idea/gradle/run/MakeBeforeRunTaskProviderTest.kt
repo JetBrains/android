@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.run
 
-import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -148,8 +148,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     // Setup additional Dynamic Feature modules
     setUpTestProject(
       ":" to AndroidProjectBuilder(dynamicFeatures = { listOf(":feature1", ":feature2") }),
-      ":feature1" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE }),
-      ":feature2" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
+      ":feature1" to AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE }),
+      ":feature2" to AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE })
     )
 
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
@@ -170,7 +170,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   fun testDeviceArgumentsForPreLollipopDeviceWithDynamicFeature() { // Setup an additional Dynamic Feature module
     setUpTestProject(
       ":" to AndroidProjectBuilder(dynamicFeatures = { listOf(":feature1") }),
-      ":feature1" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
+      ":feature1" to AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE })
     )
     // Setup a pre-L device
     `when`(myDevice.version).thenReturn(AndroidVersion(20))

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
@@ -30,8 +28,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
+import com.android.ide.common.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
@@ -81,10 +80,10 @@ public class BuildBundleActionTest extends PlatformTestCase {
       new AndroidModuleModelBuilder(
         ":app1", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
       ),
-      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_DYNAMIC_FEATURE))
+      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE))
     );
     Module[] appModules = new Module[]{gradleModule(getProject(), ":app1")};
     assume().that(appModules).asList().doesNotContain(null);
@@ -104,13 +103,13 @@ public class BuildBundleActionTest extends PlatformTestCase {
       new AndroidModuleModelBuilder(
         ":app1", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withSupportsBundleTask(it -> false)
       ),
       new AndroidModuleModelBuilder(
         ":app2", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withSupportsBundleTask(it -> false)
       )
     );
@@ -140,13 +139,13 @@ public class BuildBundleActionTest extends PlatformTestCase {
       new AndroidModuleModelBuilder(
         ":app1", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withSupportsBundleTask(it -> false)
       ),
       new AndroidModuleModelBuilder(
         ":app2", "debug",
         new AndroidProjectBuilder()
-          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withProjectType(it -> IdeAndroidProjectType.PROJECT_TYPE_APP)
           .withSupportsBundleTask(it -> false)
       )
     );

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -40,7 +40,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingTrackerTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { ViewBindingOptionsStub(true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())

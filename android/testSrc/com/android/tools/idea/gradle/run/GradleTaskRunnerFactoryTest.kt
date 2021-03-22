@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.run
 
-import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.GradleTaskRunnerFactory
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
@@ -104,7 +104,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
       androidModule(":app", "3.5.0", dynamicFeatures = listOf(":feature1")),
       androidModule(
         ":feature1", "3.5.0",
-        projectType = AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE,
+        projectType = IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE,
         moduleDependencies = listOf(":app")
       )
     )
@@ -129,7 +129,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
       androidModule(":app", "3.5.0", dynamicFeatures = listOf(":feature1")),
       androidModule(
         ":feature1", "3.5.0",
-        projectType = AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE,
+        projectType = IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE,
         moduleDependencies = listOf(":app")
       )
     )
@@ -152,7 +152,7 @@ private fun rootModule(gradleVersion: String) = JavaModuleModelBuilder(":", grad
 private fun androidModule(
   gradlePath: String,
   agpVersion: String,
-  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP,
+  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
   moduleDependencies: List<String> = emptyList(),
   dynamicFeatures: List<String> = emptyList()
 ) = AndroidModuleModelBuilder(
