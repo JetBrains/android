@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.intellij.diagnostic.ActivityCategory;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.extensions.PluginId;
@@ -98,9 +99,20 @@ final class ProjectStub extends UserDataHolderBase implements Project {
 
 
   @Override
+  public <T> T[] getComponents(@NotNull Class<T> baseClass) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   @NotNull
   public PicoContainer getPicoContainer() {
     throw new UnsupportedOperationException("getPicoContainer is not implement in : " + getClass());
+  }
+
+
+  @Override
+  public boolean isInjectionForExtensionSupported() {
+    return false;
   }
 
   @Override
@@ -125,6 +137,13 @@ final class ProjectStub extends UserDataHolderBase implements Project {
     throw new UnsupportedOperationException("getExtensionArea is not implement in : " + getClass());
   }
 
+  @Override
+  public <T> T instantiateClassWithConstructorInjection(@NotNull Class<T> aClass,
+                                                        @NotNull Object key,
+                                                        @NotNull PluginId pluginId) {
+    return null;
+  }
+
   @NotNull
   @Override
   public RuntimeException createError(@NotNull Throwable error, @NotNull PluginId pluginId) {
@@ -147,6 +166,11 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @Override
   public <T> Class<T> loadClass(@NotNull String className, @NotNull PluginDescriptor pluginDescriptor) {
     return null;
+  }
+
+  @Override
+  public @NotNull ActivityCategory getActivityCategory(boolean isExtension) {
+    return isExtension ? ActivityCategory.PROJECT_EXTENSION : ActivityCategory.PROJECT_SERVICE;
   }
 
   @Override
