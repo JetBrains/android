@@ -78,7 +78,7 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildNetworkLatencyIsntNull() {
+  public void buildNetworkLatencyIsNotNull() {
     // Arrange
     Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_LATENCY)).thenReturn("none");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
@@ -91,7 +91,7 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildNetworkSpeedIsntNull() {
+  public void buildNetworkSpeedIsNotNull() {
     // Arrange
     Mockito.when(myAvd.getProperty(AvdWizardUtils.AVD_INI_NETWORK_SPEED)).thenReturn("full");
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
@@ -117,7 +117,7 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildStudioParamsIsntNull() {
+  public void buildStudioParamsIsNotNull() {
     // Arrange
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .setStudioParams(myFileSystem.getPath("/home/user/temp/emu.tmp"));
@@ -145,7 +145,7 @@ public final class EmulatorCommandBuilderTest {
   }
 
   @Test
-  public void buildStudioEmuParamsIsntEmpty() {
+  public void buildStudioEmuParamsIsNotEmpty() {
     // Arrange
     EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd)
       .addAllStudioEmuParams(Arrays.asList("-param-1", "-param-2", "-param-3"));
