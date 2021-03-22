@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.motion.adapters;
 
+import com.intellij.diagnostic.ActivityCategory;
 import com.intellij.openapi.components.ComponentManager;
 import com.intellij.openapi.extensions.AreaInstance;
 import com.intellij.openapi.extensions.PluginDescriptor;
@@ -97,10 +98,20 @@ public class MXProject  implements Project {
     return null;
   }
 
+  @Override
+  public <T> T @NotNull [] getComponents(@NotNull Class<T> baseClass) {
+    throw new UnsupportedOperationException();
+  }
+
   @NotNull
   @Override
   public PicoContainer getPicoContainer() {
     return null;
+  }
+
+  @Override
+  public boolean isInjectionForExtensionSupported() {
+    return false;
   }
 
   @NotNull
@@ -117,6 +128,17 @@ public class MXProject  implements Project {
   @NotNull
   @Override
   public Condition<?> getDisposed() {
+    return null;
+  }
+
+  @Override
+  public <T> T getService(@NotNull Class<T> serviceClass) {
+    return null;
+  }
+
+  @Override
+  public <T> T instantiateClassWithConstructorInjection(
+      @NotNull Class<T> aClass, @NotNull Object key, @NotNull PluginId pluginId) {
     return null;
   }
 
@@ -142,6 +164,11 @@ public class MXProject  implements Project {
   @Override
   public <T> Class<T> loadClass(@NotNull String className, @NotNull PluginDescriptor pluginDescriptor) {
     return null;
+  }
+
+  @Override
+  public @NotNull ActivityCategory getActivityCategory(boolean isExtension) {
+    return isExtension ? ActivityCategory.PROJECT_EXTENSION : ActivityCategory.PROJECT_SERVICE;
   }
 
   @Override
