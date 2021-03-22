@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
+import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -34,7 +35,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingShortNameCacheTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = {ViewBindingOptionsStub(true)}))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule

@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
-import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
-import com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
-import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -40,9 +37,9 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder(":"),
-      androidModule(":app", "3.0", PROJECT_TYPE_APP),
-      androidModule(":instantApp", "3.1", PROJECT_TYPE_INSTANTAPP),
-      androidModule(":androidLib", "2.3.1", PROJECT_TYPE_LIBRARY),
+      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP),
+      androidModule(":instantApp", "3.1", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "2.3.1", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":javaLib")
     )
     val projectStructure = ProjectStructure.getInstance(project)
@@ -64,10 +61,10 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.0", PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
-      androidModule(":instantApp", "3.0", PROJECT_TYPE_INSTANTAPP),
-      androidModule(":androidLib", "3.0", PROJECT_TYPE_LIBRARY),
-      androidModule(":leaf1", "3.0", PROJECT_TYPE_LIBRARY),
+      androidModule(":app", "3.0", IdeAndroidProjectType.PROJECT_TYPE_APP, moduleDependencies = listOf(":androidLib")),
+      androidModule(":instantApp", "3.0", IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP),
+      androidModule(":androidLib", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
+      androidModule(":leaf1", "3.0", IdeAndroidProjectType.PROJECT_TYPE_LIBRARY),
       javaModule(":leaf2"),
       javaModule(":leaf3", buildable = false)
     )
@@ -84,9 +81,9 @@ class ProjectStructureTest : PlatformTestCase() {
       project,
       File(project.basePath!!),
       JavaModuleModelBuilder.rootModuleBuilder,
-      androidModule(":app", "3.2", PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
-      androidModule(":feature1", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
-      androidModule(":feature2", "3.2", PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
+      androidModule(":app", "3.2", IdeAndroidProjectType.PROJECT_TYPE_APP, dynamicFeatures = listOf(":feature1", ":feature2")),
+      androidModule(":feature1", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app")),
+      androidModule(":feature2", "3.2", IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
 
     val projectStructure = ProjectStructure.getInstance(project)
@@ -103,7 +100,7 @@ class ProjectStructureTest : PlatformTestCase() {
   private fun androidModule(
     gradlePath: String,
     agpVersion: String,
-    projectType: Int,
+    projectType: IdeAndroidProjectType,
     dynamicFeatures: List<String> = emptyList(),
     moduleDependencies: List<String> = emptyList()
   ) =
