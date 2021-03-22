@@ -504,7 +504,7 @@ private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
-private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
+fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
   MANDATORY_CODEPENDENT -> "Upgrade steps"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
@@ -512,13 +512,13 @@ private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
 }
 
-private fun AgpUpgradeComponentNecessity.description() = when (this) {
+fun AgpUpgradeComponentNecessity.description() = when (this) {
   MANDATORY_INDEPENDENT ->
-    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "These steps are required to perform the upgrade of this project.\n" +
     "You can choose to do them in separate steps, in advance of the Android\n" +
     "Gradle Plugin upgrade itself."
   MANDATORY_CODEPENDENT ->
-    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "These steps are required to perform the upgrade of this project.\n" +
     "They must all happen together, at the same time as the Android Gradle Plugin\n" +
     "upgrade itself."
   OPTIONAL_CODEPENDENT ->

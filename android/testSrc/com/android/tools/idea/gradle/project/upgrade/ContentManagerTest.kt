@@ -19,6 +19,9 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
@@ -172,6 +175,26 @@ class ContentManagerTest {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     toolWindowModel.runUpgrade(false)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
+  }
+
+  @Test
+  fun testNecessityTreeText() {
+    assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Pre-upgrade steps")
+    assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade steps")
+    assertThat(OPTIONAL_CODEPENDENT.treeText()).isEqualTo("Post-upgrade steps")
+    assertThat(OPTIONAL_INDEPENDENT.treeText()).isEqualTo("Optional steps")
+  }
+
+  @Test
+  fun testNecessityDescription() {
+    assertThat(MANDATORY_INDEPENDENT.description()).contains("are required")
+    assertThat(MANDATORY_INDEPENDENT.description()).contains("separate steps")
+    assertThat(MANDATORY_CODEPENDENT.description()).contains("are required")
+    assertThat(MANDATORY_CODEPENDENT.description()).contains("must all happen together")
+    assertThat(OPTIONAL_CODEPENDENT.description()).contains("are not required")
+    assertThat(OPTIONAL_CODEPENDENT.description()).contains("only if")
+    assertThat(OPTIONAL_INDEPENDENT.description()).contains("are not required")
+    assertThat(OPTIONAL_INDEPENDENT.description()).contains("with or without")
   }
 
   @Test
