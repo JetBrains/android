@@ -361,7 +361,7 @@ public class SdkComponentSourceTest {
       }
     };
 
-    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -380,7 +380,7 @@ public class SdkComponentSourceTest {
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings();
 
-    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -404,7 +404,7 @@ public class SdkComponentSourceTest {
     ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
     UpdateSettings settings = new UpdateSettings();
 
-    Collection<ExternalUpdate> updates = UpdateChecker.INSTANCE.checkExternalUpdates(true, settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(true, settings, progress);
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
