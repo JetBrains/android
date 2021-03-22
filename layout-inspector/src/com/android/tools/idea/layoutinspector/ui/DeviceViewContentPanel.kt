@@ -270,7 +270,7 @@ class DeviceViewContentPanel(
     val view = drawView.owner
     val selection = inspectorModel.selection
 
-    if (!drawInfo.isCollapsed &&
+    if (!drawInfo.isCollapsed && view.isInComponentTree &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }

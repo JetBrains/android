@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
@@ -46,6 +47,8 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
 
     // Update the component tree:
     event.treePanel()?.refresh()
+
+    event.getData(DEVICE_VIEW_MODEL_KEY)?.refresh()
   }
 
   override fun update(event: AnActionEvent) {
