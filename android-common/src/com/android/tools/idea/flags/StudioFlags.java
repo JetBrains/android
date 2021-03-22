@@ -684,7 +684,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
     EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
     "Enables configurable multiple displays in the Embedded Emulator",
-    false);
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
