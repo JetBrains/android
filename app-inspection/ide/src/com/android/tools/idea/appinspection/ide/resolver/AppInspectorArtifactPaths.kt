@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.resolver
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.io.FileService
+import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.exists
@@ -91,7 +92,8 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
         artifactCoordinate.artifactId).resolve(artifactCoordinate.version)
       Files.createDirectories(destDir)
       val destFile = destDir.resolve(archive.fileName)
-      jars[artifactCoordinate] = Files.copy(archive, destFile, StandardCopyOption.REPLACE_EXISTING)
+      FileUtils.copyFile(archive, destFile, StandardCopyOption.REPLACE_EXISTING)
+      jars[artifactCoordinate] = destFile
     }
     catch (e: IOException) {
       Logger.getInstance(AppInspectorArtifactPaths::class.java).error(e)
