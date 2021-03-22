@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice {
-  private final @NotNull Object mySerialNumber;
+  private final @NotNull String mySerialNumber;
   private final boolean myConnected;
 
   private PhysicalDevice(@NotNull String serialNumber, boolean connected) {
@@ -35,7 +35,7 @@ final class PhysicalDevice {
     return new PhysicalDevice(serialNumber, false);
   }
 
-  @NotNull Object getSerialNumber() {
+  @NotNull String getSerialNumber() {
     return mySerialNumber;
   }
 
