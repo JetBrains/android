@@ -187,7 +187,17 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
-    SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
+    SceneComponent root;
+    if (hierarchy.isEmpty()) {
+      root = null;
+    }
+    else if (hierarchy.size() == 1) {
+      root = hierarchy.get(0);
+    }
+    else {
+      root = new SceneComponent(scene, rootComponent, scene.getSceneManager().getHitProvider(rootComponent));
+      hierarchy.forEach(root::addChild);
+    }
     scene.setRoot(root);
     if (root != null) {
       updateFromComponent(root, usedComponents);
