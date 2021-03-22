@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
@@ -24,6 +25,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LeakHunter
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -31,6 +33,7 @@ import java.awt.KeyboardFocusManager
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 class DesignToolsSplitEditorTest : AndroidTestCase() {
 
@@ -85,17 +88,13 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
     triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
-    // We don't track mode selection when it's redundant, i.e trying to select the mode that is already selected
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isNull()
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
 
     splitEditor.selectDesignMode(triggerExplicitly)
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
 
     splitEditor.selectSplitMode(triggerExplicitly)
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
-
-    splitEditor.selectTextMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   fun testModeChange() {

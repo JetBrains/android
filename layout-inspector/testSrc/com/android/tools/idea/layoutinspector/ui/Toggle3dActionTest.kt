@@ -64,9 +64,7 @@ class Toggle3dActionTest {
   fun testUnrotated() {
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = true
-    verify(presentation).text = "3D Mode"
-    verify(presentation).description = "Visually inspect the hierarchy by clinking and dragging to rotate the layout. Enabling this " +
-                                       "mode consumes more device resources and might impact runtime performance."
+    verify(presentation).text = "Rotate View"
     verify(presentation).icon = StudioIcons.LayoutInspector.MODE_3D
   }
 
@@ -75,9 +73,7 @@ class Toggle3dActionTest {
     viewModel.xOff = 1.0
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = true
-    verify(presentation).text = "2D Mode"
-    verify(presentation).description =
-      "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
+    verify(presentation).text = "Reset View"
     verify(presentation).icon = StudioIcons.LayoutInspector.RESET_VIEW
   }
 

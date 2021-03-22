@@ -36,15 +36,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
-import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import java.awt.Desktop
-import java.net.URI
-import javax.swing.JComponent
 import javax.swing.Timer
 
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
@@ -67,7 +62,7 @@ class DeviceViewPanelActionsToolbarProvider(
   override fun getActionGroups() = LayoutInspectorToolbarGroups
 }
 
-object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+object Toggle3dAction : AnAction(MODE_3D) {
   override fun actionPerformed(event: AnActionEvent) {
     val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
     val client = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient as? AppInspectionInspectorClient
@@ -107,17 +102,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     if (model != null && model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
       event.presentation.isEnabled = true
-      if (model.isRotated) {
-        event.presentation.text = "2D Mode"
-        event.presentation.description =
-          "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
-      }
-      else {
-        event.presentation.text = "3D Mode"
-        event.presentation.description =
-          "Visually inspect the hierarchy by clinking and dragging to rotate the layout. Enabling this mode consumes more device " +
-          "resources and might impact runtime performance."
-      }
+      event.presentation.text = if (model.isRotated) "Reset View" else "Rotate View"
     }
     else {
       event.presentation.isEnabled = false
@@ -130,11 +115,6 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
           else -> "Error while rendering device image, rotation not available"
         }
     }
-  }
-
-  override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
-    // TODO: link for performance issue
-    Desktop.getDesktop().browse(URI("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode"))
   }
 }
 
