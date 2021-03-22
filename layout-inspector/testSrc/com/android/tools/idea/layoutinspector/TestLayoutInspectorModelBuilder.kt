@@ -44,7 +44,7 @@ fun window(windowId: Any,
            width: Int = 0,
            height: Int = 0,
            rootViewQualifiedName: String = CLASS_VIEW,
-           imageType: ImageType = ImageType.SKP,
+           imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            layoutFlags: Int = 0,
            body: InspectorViewDescriptor.() -> Unit = {}) =
   FakeAndroidWindow(
@@ -105,7 +105,8 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val composeFilename: String = "",
                               private val composePackageHash: Int = 0,
                               private val composeOffset: Int = 0,
-                              private val composeLineNumber: Int = 0): InspectorNodeDescriptor {
+                              private val composeLineNumber: Int = 0,
+                              val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED): InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
   fun image(image: BufferedImage = mock()) {
@@ -188,9 +189,10 @@ class InspectorModelDescriptor(val project: Project) {
            textValue: String = "",
            layoutFlags: Int = 0,
            layout: ResourceReference? = null,
+           imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            body: InspectorViewDescriptor.() -> Unit = {}) {
     root = InspectorViewDescriptor(
-      drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout).apply(body)
+      drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout, imageType = imageType).apply(body)
   }
 
   fun view(drawId: Long,
@@ -198,13 +200,14 @@ class InspectorModelDescriptor(val project: Project) {
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
+           imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, rect, qualifiedName, viewId, textValue, 0, null, body)
+    view(drawId, rect.x, rect.y, rect.width, rect.height, rect, qualifiedName, viewId, textValue, 0, null, imageType, body)
 
   fun build(): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
-    val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId) { _, window ->
+    val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) { _, window ->
       ViewNode.writeDrawChildren { getDrawChildren ->
         window.root.flatten().forEach {
           val drawChildren = it.getDrawChildren()

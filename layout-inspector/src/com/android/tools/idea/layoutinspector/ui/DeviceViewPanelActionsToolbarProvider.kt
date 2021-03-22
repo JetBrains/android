@@ -125,7 +125,6 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
-          model?.pictureType == BITMAP_AS_REQUESTED -> "No compatible renderer found for device image, rotation not available"
           isLowerThenApi29 -> "Rotation not available for devices below API 29"
           else -> "Error while rendering device image, rotation not available"
         }
