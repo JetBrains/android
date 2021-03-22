@@ -115,7 +115,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     sync: Boolean
   ) {
     val step = object : BaseListPopupStep<AutoImportVariant>(
-      AndroidBundle.message("android.add.library.dependency.title"),
+      AndroidBundle.message("android.suggested.imports.title"),
       suggestions
     ) {
       override fun getTextFor(value: AutoImportVariant): String {
