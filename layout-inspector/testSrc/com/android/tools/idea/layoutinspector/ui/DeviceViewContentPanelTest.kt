@@ -26,6 +26,7 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -44,6 +45,7 @@ import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -59,6 +61,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -88,6 +91,7 @@ import javax.swing.JPopupMenu
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.02
+private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewContentPanelTest {
   private val projectRule = ProjectRule()
@@ -97,6 +101,12 @@ class DeviceViewContentPanelTest {
 
   @get:Rule
   val chain = RuleChain.outerRule(projectRule).around(DeviceViewSettingsRule()).around(EdtRule())!!
+
+  @Before
+  fun before() {
+    ApplicationManager.getApplication().replaceService(PropertiesComponent::class.java, PropertiesComponentMock(), disposable.disposable)
+    TreeSettings.hideSystemNodes = false
+  }
 
   @Test
   fun testSize() {
@@ -195,6 +205,46 @@ class DeviceViewContentPanelTest {
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
+  }
+
+  @Test
+  fun testPaintWithHiddenSystemViews() {
+    val model = model {
+      view(ROOT, 0, 0, 500, 1000) {
+        view(VIEW1, 125, 150, 250, 250, layout = activityMain) {
+          image()
+        }
+      }
+    }
+
+    TreeSettings.hideSystemNodes = true
+    @Suppress("UndesirableClassUsage")
+    val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
+    var graphics = generatedImage.createGraphics()
+
+    val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
+    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    panel.setSize(1000, 1500)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithHiddenSystemViews.png"),
+                                     generatedImage, DIFF_THRESHOLD)
+
+    settings.scalePercent = 100
+    panel.model.rotate(0.3, 0.2)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithHiddenSystemView_rotated.png"),
+                                     generatedImage, DIFF_THRESHOLD)
+
+    panel.model.layerSpacing = INITIAL_LAYER_SPACING
+    val windowRoot = model[ROOT]!!
+    model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/testPaintWithHiddenSystemView_selected.png"),
+                                     generatedImage, DIFF_THRESHOLD)
   }
 
   @Test

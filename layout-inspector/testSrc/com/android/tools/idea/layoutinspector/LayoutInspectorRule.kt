@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
@@ -259,7 +260,7 @@ class LayoutInspectorRule(
       inspectorClient = it
     }
 
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(dataProviderForLayoutInspector(inspector),
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(dataProviderForLayoutInspector(inspector, mock()),
                                                                            projectRule.fixture.testRootDisposable)
   }
 

@@ -148,7 +148,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    ViewNode.readDrawChildren { drawChildren ->
+    ViewNode.readFilteredDrawChildren { drawChildren ->
       root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
     }
     maxDepth = levelLists.size
@@ -185,7 +185,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
   private fun buildLevelLists(root: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int,
-                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
+                              drawChildren: ViewNode.() -> Sequence<DrawViewNode>) {
     var newLevelIndex = levelListCollector.size
     if (model.isVisible(root.owner)) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view

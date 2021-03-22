@@ -114,6 +114,17 @@ open class ViewNode(
   // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
   private val drawChildren = mutableListOf<DrawViewNode>()
 
+  private val filteredDrawChildren: Sequence<DrawViewNode>
+    get() = drawChildren.asSequence().flatMap {
+      if (it.owner.isInComponentTree) sequenceOf(it)
+      else {
+        if (it is DrawViewChild) {
+          it.owner.filteredDrawChildren
+        }
+        else sequenceOf(it)
+      }
+    }
+
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {
@@ -136,6 +147,11 @@ open class ViewNode(
     fun <T> readDrawChildren(fn: (ViewNode.() -> List<DrawViewNode>) -> T): T =
       lock.read {
         fn(ViewNode::drawChildren)
+      }
+
+    fun <T> readFilteredDrawChildren(fn: (ViewNode.() -> Sequence<DrawViewNode>) -> T): T =
+      lock.read {
+        fn(ViewNode::filteredDrawChildren)
       }
 
     fun writeDrawChildren(fn: (ViewNode.() -> MutableList<DrawViewNode>) -> Unit) =
