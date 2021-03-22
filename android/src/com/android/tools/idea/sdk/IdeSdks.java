@@ -936,10 +936,17 @@ public class IdeSdks {
   }
 
   /**
-   * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
+   * Looks for an IntelliJ SDK for the JDK at the given location, if it does not exist then tries to create it and returns it, or
+   * {@code null} if it could not be created successfully.
    */
   @Nullable
   private Sdk createJdk(@NotNull File homeDirectory) {
+    ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+    for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
+      if (pathsEqual(jdk.getHomePath(), homeDirectory.getPath())) {
+        return jdk;
+      }
+    }
     return myJdks.createJdk(homeDirectory.getPath());
   }
 
