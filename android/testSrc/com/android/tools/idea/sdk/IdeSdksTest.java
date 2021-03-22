@@ -27,10 +27,13 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.repository.api.LocalPackage;
@@ -59,6 +62,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -291,5 +295,23 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isFalse();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isFalse();
+  }
+
+  public void testExistingJdkIsNotDuplicated() {
+    Jdks spyJdks = spy(Jdks.getInstance());
+    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    Sdk currentJdk = ideSdks.getJdk();
+    assertThat(currentJdk).isNotNull();
+    String homePath = currentJdk.getHomePath();
+    assertThat(homePath).isNotNull();
+    assertThat(homePath).isNotEqualTo("");
+    AtomicReference<Sdk> newJdk = new AtomicReference<>(null);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      ideSdks.overrideJdkEnvVariable(homePath);
+      newJdk.set(ideSdks.getJdk());
+    });
+    verify(spyJdks, never()).createJdk(any());
+    assertThat(newJdk.get()).isSameAs(currentJdk);
   }
 }
