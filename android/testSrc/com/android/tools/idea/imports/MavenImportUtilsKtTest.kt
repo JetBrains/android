@@ -84,7 +84,7 @@ class MavenImportUtilsKtTest {
     val element = projectRule.fixture.moveCaret("PreviewView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-view (alpha)")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.camera:camera-view (alpha)")
 
     action.perform(projectRule.project, projectRule.fixture.editor, element, false)
     verify("androidx.camera:camera-view")
@@ -109,7 +109,7 @@ class MavenImportUtilsKtTest {
     projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     projectRule.fixture.checkHighlighting(true, false, false)
     projectRule.fixture.moveCaret("Preview|View")
-    val action = projectRule.fixture.getIntentionAction("Add dependency on androidx.camera:camera-view (alpha)")!!
+    val action = projectRule.fixture.getIntentionAction("Import and add dependency on androidx.camera:camera-view (alpha)")!!
 
     WriteCommandAction.runWriteCommandAction(projectRule.project, Runnable {
       action.invoke(projectRule.project, projectRule.fixture.editor, projectRule.fixture.file)
