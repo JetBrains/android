@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
+import static com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsProjectJdk;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.CANCELED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.FAILED;
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
@@ -460,7 +461,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {ideSdks.setJdkPath(new File(jdkHome));}));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> setJdkAsProjectJdk(myRequest.getProject(), jdkHome)));
         }
       }
     };

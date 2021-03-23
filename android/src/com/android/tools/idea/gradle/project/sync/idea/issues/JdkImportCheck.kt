@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -26,7 +29,6 @@ import com.android.tools.idea.sdk.Jdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
@@ -35,9 +37,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
-import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
@@ -70,11 +72,19 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
     return BuildIssueComposer(message).apply {
       if (IdeInfo.getInstance().isAndroidStudio) {
-        val ideSdks = IdeSdks.getInstance()
-        if (!ideSdks.isUsingJavaHomeJdk) {
-          val jdkFromHome = IdeSdks.getJdkFromJavaHome()
-          if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
-            addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
+        if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+          val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+          if (ideaProject != null) {
+            val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+            if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
+              addUseJavaHomeQuickFix(this)
+            }
+          }
+        }
+        else {
+          val ideSdks = IdeSdks.getInstance()
+          if (!ideSdks.isUsingJavaHomeJdk) {
+            addUseJavaHomeQuickFix(this)
           }
         }
 
@@ -93,6 +103,14 @@ class JdkImportIssueChecker : GradleIssueChecker {
       addQuickFix(DownloadJdk8QuickFix())
     }.composeBuildIssue()
   }
+
+  private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
+    val ideSdks = IdeSdks.getInstance()
+    val jdkFromHome = IdeSdks.getJdkFromJavaHome()
+    if (jdkFromHome != null && ideSdks.validateJdkPath(File(jdkFromHome)) != null) {
+      composer.addQuickFix(UseJavaHomeAsJdkQuickFix(jdkFromHome))
+    }
+  }
 }
 
 private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIssueQuickFix {
@@ -102,7 +120,7 @@ private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIss
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { IdeSdks.getInstance().setJdkPath(File(javaHome)) }
+      runWriteAction { setJdkAsJavaHome(project, javaHome) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT)
       future.complete(null)
     }
@@ -117,7 +135,7 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
     val future = CompletableFuture<Nothing>()
     invokeLater {
-      runWriteAction { IdeSdks.getInstance().setUseEmbeddedJdk() }
+      runWriteAction { setJdkAsEmbedded(project) }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED)
       future.complete(null)
     }

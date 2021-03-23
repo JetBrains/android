@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +46,7 @@ public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(new File(myJavaHome));});
+    ApplicationManager.getApplication().runWriteAction(() -> setJdkAsJavaHome(project, myJavaHome));
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }
