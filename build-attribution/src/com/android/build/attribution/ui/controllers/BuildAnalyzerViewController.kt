@@ -166,20 +166,17 @@ class BuildAnalyzerViewController(
 
   override fun runAgpUpgrade() {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
-    //TODO (b/177051800): add agp upgrade event to analytics
-    analytics.reportUnregisteredEvent()
+    analytics.runAgpUpgradeClicked()
   }
 
   override fun runTestConfigurationCachingBuild() {
     GradleBuildInvoker.getInstance(project).rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
-    //TODO (b/177051800): add event to analytics
-    analytics.reportUnregisteredEvent()
+    analytics.rerunBuildWithConfCacheClicked()
   }
 
   override fun turnConfigurationCachingOnInProperties() {
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
-    //TODO (b/177051800): add event to analytics
-    analytics.reportUnregisteredEvent()
+    analytics.turnConfigurationCacheOnInPropertiesClicked()
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
