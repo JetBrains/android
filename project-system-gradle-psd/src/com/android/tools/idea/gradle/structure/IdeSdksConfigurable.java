@@ -265,7 +265,14 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      Sdk chosenJdk = ideSdks.setJdkPath(getJdkLocation());
+      Sdk chosenJdk;
+      if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+        // Null causes to use the default JDK, as returned by IdeSdks.getJdk()
+        chosenJdk = null;
+      }
+      else {
+        chosenJdk = ideSdks.setJdkPath(getJdkLocation());
+      }
       ideSdks.setAndroidSdkPath(getSdkLocation(), chosenJdk, myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
