@@ -255,7 +255,7 @@ final class Updater {
     myPresentation.setIcon(device.getIcon());
     myPresentation.setText(getText(device, target), false);
     if (!device.getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK)) {
-      myPresentation.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, device.getLaunchCompatibility().getReason());
+      myPresentation.setDescription(Devices.getErrorFormattedText(device.getLaunchCompatibility()));
     }
   }
 

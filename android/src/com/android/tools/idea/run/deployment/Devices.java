@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.run.LaunchCompatibility.State;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.SimpleTextAttributes;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +64,19 @@ final class Devices {
 
   static @NotNull String getText(@NotNull Device device, @Nullable Key key) {
     return getText(device, key, null);
+  }
+
+  static @NotNull String getErrorFormattedText(@NotNull LaunchCompatibility launchCompatibility) {
+    State state = launchCompatibility.getState();
+    if (state.equals(State.OK)) {
+      return "";
+    }
+    String greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor());
+    String title = state.equals(State.ERROR) ?
+                   AndroidBundle.message("error.level.title") :
+                   AndroidBundle.message("warning.level.title");
+    return String
+      .format("<html><font size=+1>%s</font><br><font color=%s>%s</font></html>", title, greyColor, launchCompatibility.getReason());
   }
 
   static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {

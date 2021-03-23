@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.SimpleTextAttributes;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +48,9 @@ final class SelectMultipleDevicesDialogTableModelRow {
   }
 
   @NotNull String getDeviceCellText() {
+    String greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor());
     return Optional.ofNullable(myDevice.getLaunchCompatibility().getReason())
-      .map(reason -> "<html>" + myDevice + "<br>" + reason)
+      .map(reason -> String.format("<html>%s<br><font size=-2 color=%s>%s</font></html>", myDevice, greyColor, reason))
       .orElse(myDevice.getName());
   }
 
