@@ -6,6 +6,7 @@ import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
@@ -70,5 +71,21 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
     }
     // None of the environment variables is used (or is used but invalid), handle it in the same way IDEA does.
     return super.getGradleJvmPath(project, linkedProjectPath);
+  }
+
+  public boolean isUsingJavaHomeJdk(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) {
+      return false;
+    }
+    String projectJvmPath = getGradleJvmPath(project, basePath);
+    if (projectJvmPath == null) {
+      return false;
+    }
+    String javaHome = IdeSdks.getJdkFromJavaHome();
+    if (javaHome == null) {
+      return false;
+    }
+    return FileUtils.isSameFile(new File(projectJvmPath), new File(javaHome));
   }
 }
