@@ -302,7 +302,7 @@ class ContentManager(val project: Project) {
     toolWindow.show()
   }
 
-  private class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
+  class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
     /*
     Experiment of usage of observable property bindings I have found in our code base.
     Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
@@ -399,7 +399,7 @@ class ContentManager(val project: Project) {
           okButton.isEnabled = model.runEnabled.get()
           previewButton.isEnabled = model.runEnabled.get()
           upgradeLabel.text = model.current.upgradeLabelText()
-          contentManager.getContent(this).displayName = model.current.contentDisplayName()
+          contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
         }
       }
 
