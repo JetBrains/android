@@ -16,8 +16,8 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
@@ -42,7 +42,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   void handleConnectedDevice(@NotNull PhysicalDevice connectedDevice) {
     assert connectedDevice.isConnected();
-    int modelRowIndex = modelRowIndexOf(connectedDevice);
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, connectedDevice);
 
     if (modelRowIndex == -1) {
       myDevices.add(connectedDevice);
@@ -66,7 +66,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   void handleDisconnectedDevice(@NotNull PhysicalDevice disconnectedDevice) {
     assert !disconnectedDevice.isConnected();
-    int modelRowIndex = modelRowIndexOf(disconnectedDevice);
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, disconnectedDevice);
 
     if (modelRowIndex == -1) {
       Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting an unknown device" + System.lineSeparator()
@@ -86,20 +86,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     fireTableRowsUpdated(modelRowIndex, modelRowIndex);
   }
 
-  private int modelRowIndexOf(@NotNull PhysicalDevice device) {
-    Object serialNumber = device.getSerialNumber();
-
-    for (int modelRowIndex = 0, modelRowCount = myDevices.size(); modelRowIndex < modelRowCount; modelRowIndex++) {
-      if (myDevices.get(modelRowIndex).getSerialNumber().equals(serialNumber)) {
-        return modelRowIndex;
-      }
-    }
-
-    return -1;
-  }
-
-  @VisibleForTesting
-  @NotNull Object getDevices() {
+  @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
     return myDevices;
   }
 

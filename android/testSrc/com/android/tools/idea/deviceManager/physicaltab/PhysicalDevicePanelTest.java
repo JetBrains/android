@@ -24,9 +24,8 @@ import com.intellij.openapi.util.Disposer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Executor;
-import java.util.function.Function;
-import org.jetbrains.annotations.Nullable;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,30 +33,66 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
-  private @Nullable PhysicalDevicePanel myPanel;
+  private PhysicalDevicePanel myPanel;
+  private PhysicalTabPersistentStateComponent myComponent;
+  private Disposable myListener;
+
+  private PhysicalDevice myConnectedPixel3;
+  private PhysicalDeviceAsyncSupplier mySupplier;
+
+  private Executor myExecutor;
+
+  @Before
+  public void initComponent() {
+    myComponent = new PhysicalTabPersistentStateComponent();
+  }
+
+  @Before
+  public void mockListener() {
+    myListener = Mockito.mock(Disposable.class);
+  }
+
+  @Before
+  public void mockSupplier() {
+    myConnectedPixel3 = PhysicalDevice.newConnectedDevice("86UX00F4R");
+
+    mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
+    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myConnectedPixel3)));
+  }
+
+  @Before
+  public void initExecutor() {
+    myExecutor = MoreExecutors.directExecutor();
+  }
 
   @After
   public void disposeOfPanel() {
-    assert myPanel != null;
     Disposer.dispose(myPanel);
   }
 
   @Test
   public void newPhysicalDevicePanel() {
-    // Arrange
-    Function<PhysicalDeviceTableModel, Disposable> newPhysicalDeviceChangeListener = model -> Mockito.mock(Disposable.class);
-
-    PhysicalDevice device = PhysicalDevice.newConnectedDevice("86UX00F4R");
-
-    PhysicalDeviceAsyncSupplier supplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
-    Mockito.when(supplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(device)));
-
-    Executor executor = MoreExecutors.directExecutor();
-
     // Act
-    myPanel = new PhysicalDevicePanel(newPhysicalDeviceChangeListener, supplier, executor);
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
-    assertEquals(Collections.singletonList(Arrays.asList(device, "API", "Type", "Actions")), myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myConnectedPixel3, "API", "Type", "Actions")), myPanel.getData());
+  }
+
+  @Test
+  public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
+    // Arrange
+    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG");
+    myComponent.set(Collections.singletonList(disconnectedPixel5));
+
+    // Act
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+
+    // Assert
+    Object data = Arrays.asList(
+      Arrays.asList(myConnectedPixel3, "API", "Type", "Actions"),
+      Arrays.asList(disconnectedPixel5, "API", "Type", "Actions"));
+
+    assertEquals(data, myPanel.getData());
   }
 }

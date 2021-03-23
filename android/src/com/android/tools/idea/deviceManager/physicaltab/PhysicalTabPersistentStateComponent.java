@@ -47,7 +47,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     return ServiceManager.getService(PhysicalTabPersistentStateComponent.class);
   }
 
-  @NotNull Object get() {
+  @NotNull Collection<@NotNull PhysicalDevice> get() {
     return myState.physicalDevices.stream()
       .map(PhysicalDeviceState::asPhysicalDevice)
       .collect(Collectors.toList());
