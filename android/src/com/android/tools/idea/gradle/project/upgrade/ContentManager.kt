@@ -22,6 +22,8 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
@@ -112,9 +114,14 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
     }
   }
 
+  val connection = project.messageBus.connect()
+
   init {
     refresh()
     selectedVersion.addListener { refresh() }
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = refresh(true)
+    })
 
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
@@ -226,7 +233,6 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
       DumbService.getInstance(processor.project).smartInvokeLater {
         processor.setPreviewUsages(showPreview)
         processor.run()
-        // TODO(xof): add callback to refresh tree and textField
       }
     }
   }
@@ -298,6 +304,7 @@ class ContentManager(val project: Project) {
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
+    content.setDisposer(model.connection)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
