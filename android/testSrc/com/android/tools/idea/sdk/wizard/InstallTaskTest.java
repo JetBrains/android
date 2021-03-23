@@ -24,6 +24,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.repository.api.DelegatingProgressIndicator;
 import com.android.repository.api.Installer;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.LocalPackage;
@@ -40,6 +41,7 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.FakeSettingsController;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.concurrency.AsyncTestUtils;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -344,5 +346,71 @@ public class InstallTaskTest extends AndroidTestCase {
     verify(myInstaller2).complete(any());
     // This would normally be done by the wizard frame
     Disposer.dispose(wizard);
+  }
+
+  public void testProgressWithBackgrounding() throws Exception {
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    InstallerFactory factory = mock(InstallerFactory.class);
+    FakePackage.FakeRemotePackage p3 = spy(new FakePackage.FakeRemotePackage("p4"));
+    FakePackage.FakeRemotePackage p4 = spy(new FakePackage.FakeRemotePackage("p5"));
+    when(factory.createInstaller(eq(myAvailable1), any(), any())).thenReturn(myInstaller);
+    when(factory.createInstaller(eq(myAvailable2), any(), any())).thenReturn(myInstaller2);
+    Installer installer3 = mock(Installer.class);
+    when(factory.createInstaller(eq(p3), any(), any())).thenReturn(installer3);
+    Installer installer4 = mock(Installer.class);
+    when(factory.createInstaller(eq(p4), any(), any())).thenReturn(installer4);
+
+    InstallSelectedPackagesStep installStep =
+      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1),
+                                                                       new UpdatablePackage(myAvailable2),
+                                                                       new UpdatablePackage(p3),
+                                                                       new UpdatablePackage(p4))),
+                                      new ArrayList<>(), mySdkHandler, true, factory, false);
+    CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
+    ProgressIndicator[] progressIndicator = new ProgressIndicator[1];
+    when(myInstaller.prepare(any())).then(invocation -> {
+      progressIndicator[0] =
+        ((DelegatingProgressIndicator)invocation.getArgument(0, ProgressIndicator.class)).getDelegates().iterator().next();
+      assertEquals(0., progressIndicator[0].getFraction());
+      // wait until the wizard completion listener is added, or maybe we'll be done too early and not see that the wizard is finished.
+      listenerAdded.get();
+      return true;
+    });
+    when(myInstaller2.prepare(any())).then(invocation -> {
+      // At this point we're 1/8 done = one preparation out of four preparations + four completions.
+      assertEquals(0.125, progressIndicator[0].getFraction());
+      return true;
+    });
+    when(installer3.prepare(any())).then(invocation -> {
+      assertEquals(0.25, progressIndicator[0].getFraction());
+      // This is the background action
+      installStep.getExtraAction().actionPerformed(null);
+      return true;
+    });
+    when(installer4.prepare(any())).then(invocation -> {
+      // When we background the max progress for preparing will go from 0.5 to 1.0, and we're 3/4 done so far.
+      assertEquals(0.75, progressIndicator[0].getFraction());
+      return true;
+    });
+    ModelWizard wizard = null;
+    try {
+      wizard = wizardBuilder.addStep(installStep).build();
+      CompletableFuture<Boolean> completed = new CompletableFuture<>();
+      wizard.addResultListener(new ModelWizard.WizardListener() {
+        @Override
+        public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
+          completed.complete(true);
+        }
+      });
+      listenerAdded.complete(true);
+      FutureUtils.pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS);
+      // The above only waits for the wizard to be completed, but the backgrounded step may not be done yet.
+      AsyncTestUtils.waitForCondition(5, TimeUnit.SECONDS, () -> progressIndicator[0].getFraction() == 1.0);
+    }
+    finally {
+      if (wizard != null) {
+        Disposer.dispose(wizard);
+      }
+    }
   }
 }
