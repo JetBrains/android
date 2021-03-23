@@ -100,8 +100,8 @@ class ProjectDumper(
   private val gradleHashStub = "x".repeat(32)
   private val gradleLongHashStub = "x".repeat(40)
   private val gradleDistPattern = Regex("/[0-9a-z]{${gradleDistStub.length - 3},${gradleDistStub.length}}/")
-  private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length}}")
-  private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length}}")
+  private val gradleHashPattern = Regex("[0-9a-f]{${gradleHashStub.length - 3},${gradleHashStub.length}}")
+  private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-.*${SdkConstants.GRADLE_LATEST_VERSION}")
   private val kotlinVersionPattern =
     // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
