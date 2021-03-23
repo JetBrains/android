@@ -21,6 +21,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.requestBuild
+import com.android.tools.idea.editors.shortcuts.asString
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -61,6 +63,7 @@ internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) 
     val presentation = e.presentation
     val isRefreshing = findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
     presentation.isEnabled = !isRefreshing
+    templateText?.let { presentation.text = "$it${getBuildAndRefreshShortcut().asString()}" }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
