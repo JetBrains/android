@@ -32,6 +32,7 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
@@ -71,8 +72,6 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     private val progressIndicator = StudioLoggerProgressIndicator(ServerInfo::class.java)
     private val packagePath = "$PARSER_PACKAGE_NAME${RepoPackage.PATH_SEPARATOR}$serverVersion"
 
-    private val serverPath: Path? = findPath()
-
     private fun findPath(): Path? {
       return if (serverVersion == null) {
         // devbuild
@@ -103,10 +102,11 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
 
     @Slow
     fun createServer(): SkiaParserServerConnection {
-      if (serverPath?.let { CancellableFileIo.exists(it) } != true && !tryDownload()) {
+      val path = findPath()
+      if (path?.let { CancellableFileIo.exists(it) } != true && !tryDownload()) {
         throw Exception("Unable to find server version $serverVersion")
       }
-      val realPath = serverPath ?: throw Exception("Unable to find server version $serverVersion")
+      val realPath = findPath() ?: throw Exception("Unable to find server version $serverVersion")
       return SkiaParserServerConnection(realPath).apply { runServer() }
     }
 
@@ -132,11 +132,14 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
         return false
       }
 
-      SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show() ?: return false
-      // TODO: needed?
-      sdkManager.reloadLocalIfNeeded(progressIndicator)
-      val newPackage = sdkManager.packages.consolidatedPkgs[packagePath] ?: return false
-      return newPackage.hasLocal() && !newPackage.isUpdate
+      var result = false
+      invokeAndWaitIfNeeded {
+        SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)?.show() ?: return@invokeAndWaitIfNeeded
+        sdkManager.reloadLocalIfNeeded(progressIndicator)
+        val newPackage = sdkManager.packages.consolidatedPkgs[packagePath] ?: return@invokeAndWaitIfNeeded
+        result = newPackage.hasLocal() && !newPackage.isUpdate
+      }
+      return result
     }
   }
 
