@@ -26,6 +26,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
@@ -34,6 +36,7 @@ import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.tree.TreePath
 
 @RunsInEdt
 class ContentManagerTest {
@@ -51,8 +54,8 @@ class ContentManagerTest {
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
   }
 
-  private fun addMinimalBuildGradleToProject() {
-    projectRule.fixture.addFileToProject(
+  private fun addMinimalBuildGradleToProject() : PsiFile {
+    return projectRule.fixture.addFileToProject(
       "build.gradle",
       """
         buildscript {
@@ -67,6 +70,12 @@ class ContentManagerTest {
   @Test
   fun testContentManagerConstructable() {
     val contentManager = ContentManager(project)
+  }
+
+  @Test
+  fun testContentManagerShowContent() {
+    val contentManager = ContentManager(project)
+    contentManager.showContent()
   }
 
   @Test
@@ -161,17 +170,77 @@ class ContentManagerTest {
   }
 
   @Test
+  fun testToolWindowView() {
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+  }
+
+  @Test
+  fun testToolWindowViewHasExpandedTree() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    // TODO(b/183107211): write a stringifier for the tree to better be able to test its state by comparison
+    //  with an expected string
+    assertThat(view.tree.isRootVisible).isFalse()
+    val expandedDescendants = view.tree.getExpandedDescendants(view.tree.getPathForRow(0)).toList()
+    assertThat(expandedDescendants).hasSize(1)
+    val lastPathComponent = expandedDescendants[0].lastPathComponent as CheckedTreeNode
+    assertThat(lastPathComponent.userObject).isEqualTo(MANDATORY_CODEPENDENT)
+  }
+
+  @Test
+  fun testToolWindowViewDisablingNodeDisablesChild() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    val mandatoryCodependentNode = view.tree.getPathForRow(0).lastPathComponent as CheckedTreeNode
+    assertThat(mandatoryCodependentNode.isChecked).isTrue()
+    view.tree.setNodeState(mandatoryCodependentNode, false)
+    assertThat(mandatoryCodependentNode.isChecked).isFalse()
+    val classpathRefactoringProcessorNode = mandatoryCodependentNode.firstChild as CheckedTreeNode
+    assertThat(classpathRefactoringProcessorNode.isChecked).isFalse()
+    assertThat(classpathRefactoringProcessorNode.isEnabled).isFalse()
+  }
+
+  @Test
+  fun testToolWindowViewHasEnabledButtons() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    assertThat(view.okButton.isEnabled).isTrue()
+    assertThat(view.okButton.text).isEqualTo("Run selected steps")
+    assertThat(view.previewButton.isEnabled).isTrue()
+    assertThat(view.previewButton.text).isEqualTo("Run with preview")
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.refreshButton.text).isEqualTo("Refresh")
+  }
+
+  @Test
+  fun testToolWindowOKButtonsAreDisabledWithNoFiles() {
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    assertThat(view.okButton.isEnabled).isFalse()
+    assertThat(view.okButton.text).isEqualTo("Run selected steps")
+    assertThat(view.previewButton.isEnabled).isFalse()
+    assertThat(view.previewButton.text).isEqualTo("Run with preview")
+    assertThat(view.refreshButton.isEnabled).isTrue()
+    assertThat(view.refreshButton.text).isEqualTo("Refresh")
+  }
+
+  @Test
   fun testRunProcessor() {
-    val psiFile = projectRule.fixture.addFileToProject(
-      "build.gradle",
-      """
-        buildscript {
-          dependencies {
-            classpath 'com.android.tools.build:gradle:$currentAgpVersion'
-          }
-        }
-      """.trimIndent()
-    )
+    val psiFile = addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     toolWindowModel.runUpgrade(false)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
