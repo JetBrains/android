@@ -136,7 +136,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return Triple(found, missing, compatibilityWarningMessage)
       }
 
-      override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
+      override fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary> {
         return emptySet()
       }
 
@@ -162,7 +162,7 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
         dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
-      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+      override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
         dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {

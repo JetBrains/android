@@ -115,7 +115,11 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * **Note**: This function will not acquire any locks during it's operation.
    */
   @Throws(DependencyManagementException::class)
-  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
+  @JvmDefault
+  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)
+
+  @Throws(DependencyManagementException::class)
+  fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
 
   /**
    * Returns the absolute path of the provided coordinate, if it is resolvable within the module.
@@ -150,7 +154,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
-  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary>
+  @JvmDefault
+  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> = getResolvedLibraryDependencies(DependencyScopeType.MAIN)
+  fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary>
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
@@ -316,6 +322,12 @@ enum class DependencyType {
   IMPLEMENTATION,
   // TODO: Add "API," & support in build systems
   ANNOTATION_PROCESSOR
+}
+
+enum class DependencyScopeType {
+  MAIN,
+  UNIT_TEST,
+  ANDROID_TEST
 }
 
 /**

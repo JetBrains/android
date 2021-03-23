@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.manifmerger.ManifestSystemProperty
+import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
+import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
+import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -96,6 +101,48 @@ class GradleModuleSystemIntegrationTest : GradleIntegrationTest {
         val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
         expect.that(packageName).isEqualTo("com.example.multiflavor")
       }
+    }
+  }
+
+  private val String.gradleCoordinate get() =
+    GradleCoordinate.parseCoordinateString(this) ?: error("Invalid gradle coordinate: $this")
+
+  private val String.gradleVersion get() = GradleVersion.parse(this)
+
+  @Test
+  fun getResolvedDependency() {
+    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") { project ->
+      val module = project.gradleModule(":app")?.getModuleSystem() ?: error(":app module not found")
+      expect
+        .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, MAIN)?.version)
+        .isEqualTo("19.0".gradleVersion)
+      expect
+        .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, MAIN)?.version)
+        .isNull()
+      expect
+        .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, MAIN)?.version)
+        .isNull()
+
+      expect
+        .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, UNIT_TEST)?.version)
+        .isEqualTo("19.0".gradleVersion)
+      expect
+        .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, UNIT_TEST)?.version)
+        .isEqualTo("4.12".gradleVersion)
+      expect
+        .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, UNIT_TEST)?.version)
+        .isNull()
+
+      expect
+        .that(module.getResolvedDependency("com.google.guava:guava:+".gradleCoordinate, ANDROID_TEST)?.version)
+        .isEqualTo("19.0".gradleVersion)
+      expect
+        .that(module.getResolvedDependency("junit:junit:+".gradleCoordinate, ANDROID_TEST)?.version)
+        .isEqualTo("4.12".gradleVersion)
+      expect
+        .that(module.getResolvedDependency("com.android.support.test.espresso:espresso-core:+".gradleCoordinate, ANDROID_TEST)?.version)
+        .isEqualTo("3.0.2".gradleVersion)
     }
   }
 
