@@ -22,7 +22,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-interface AppInspectorTabProvider {
+interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
   companion object {
     @JvmField
     val EP_NAME = ExtensionPointName<AppInspectorTabProvider>(
@@ -64,4 +64,6 @@ interface AppInspectorTabProvider {
     processDescriptor: ProcessDescriptor,
     messenger: AppInspectorMessenger
   ): AppInspectorTab
+
+  override fun compareTo(other: AppInspectorTabProvider): Int = this.displayName.compareTo(other.displayName)
 }

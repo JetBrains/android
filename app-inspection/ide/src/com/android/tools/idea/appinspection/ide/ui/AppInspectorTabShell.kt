@@ -76,5 +76,5 @@ class AppInspectorTabShell(
   @VisibleForTesting
   suspend fun waitForContent() = contentChangedDeferred.await()
 
-  override fun compareTo(other: AppInspectorTabShell) = this.provider.displayName.compareTo(other.provider.displayName)
+  override fun compareTo(other: AppInspectorTabShell): Int = provider.compareTo(other.provider)
 }
