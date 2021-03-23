@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -56,35 +56,28 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     add(new JBTable(new PhysicalDeviceTableModel()).getTableHeader(), BorderLayout.NORTH);
     add(new JBLabel("No physical devices added. Connect a device via USB cable.", SwingConstants.CENTER), BorderLayout.CENTER);
 
-    Futures.addCallback(supplier.get(), new AddNewTable(this), executor);
+    FutureUtils.addCallback(supplier.get(), executor, new FutureCallback<@Nullable List<@NotNull PhysicalDevice>>() {
+      @Override
+      public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
+        assert devices != null;
+        addNewTable(devices);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable throwable) {
+        Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
+      }
+    });
   }
 
-  private static final class AddNewTable implements FutureCallback<@Nullable List<@NotNull PhysicalDevice>> {
-    private final @NotNull PhysicalDevicePanel myPanel;
+  private void addNewTable(@NotNull List<@NotNull PhysicalDevice> devices) {
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+    Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
 
-    private AddNewTable(@NotNull PhysicalDevicePanel panel) {
-      myPanel = panel;
-    }
+    myTable = new JBTable(model);
 
-    @Override
-    public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
-      assert devices != null;
-      PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
-
-      Disposer.register(myPanel, myPanel.myNewPhysicalDeviceChangeListener.apply(model));
-
-      JTable table = new JBTable(model);
-
-      myPanel.myTable = table;
-
-      myPanel.removeAll();
-      myPanel.add(new JBScrollPane(table));
-    }
-
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
-    }
+    removeAll();
+    add(new JBScrollPane(myTable));
   }
 
   @Override
