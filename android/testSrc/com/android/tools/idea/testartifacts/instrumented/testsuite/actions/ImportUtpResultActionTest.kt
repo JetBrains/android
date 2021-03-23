@@ -63,7 +63,6 @@ class ImportUtpResultActionTest {
 
   @Test
   fun importUtpResults() {
-
     importUtpResultAction.parseResultsAndDisplay(utpProtoFile, disposableRule.disposable, projectRule.project)
     val toolWindow = importUtpResultAction.getToolWindow(projectRule.project)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()

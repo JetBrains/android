@@ -44,12 +44,11 @@ class ImportTestGroup : com.intellij.execution.testframework.sm.runner.history.a
   }
 
   private fun getUtpTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {
-    val connectedDeviceAction = createImportUtpResultActionFromAndroidGradlePluginOutput(project)
-    val managedDeviceActions = createImportGradleManagedDeviceUtpResults(project)
     return sequence {
-      connectedDeviceAction?.let {
-        yield(Pair(it.timestamp, it.action))
-      }
+      val connectedDeviceAction = createImportUtpResultActionFromAndroidGradlePluginOutput(project)
+      yieldAll(connectedDeviceAction.map { Pair(it.timestamp, it.action) })
+
+      val managedDeviceActions = createImportGradleManagedDeviceUtpResults(project)
       yieldAll(managedDeviceActions.map { Pair(it.timestamp, it.action) })
     }
   }
