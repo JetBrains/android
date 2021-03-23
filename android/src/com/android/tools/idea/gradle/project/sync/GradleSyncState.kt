@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -62,6 +64,7 @@ import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.locks.ReentrantLock
@@ -286,8 +289,24 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     // Using the IdeSdks requires us to be on the dispatch thread
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    val ideSdks = IdeSdks.getInstance()
-    if (ideSdks.isUsingJavaHomeJdk) return
+    val namePrefix: String
+    val jdkPath: String?
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+      if (gradleInstallation.isUsingJavaHomeJdk(project)) {
+        return
+      }
+      namePrefix = "Project ${project.name}"
+      jdkPath = gradleInstallation.getGradleJvmPath(project, project.basePath!!)
+    }
+    else {
+      val ideSdks = IdeSdks.getInstance()
+      if (ideSdks.isUsingJavaHomeJdk) {
+        return
+      }
+      namePrefix = "Android Studio"
+      jdkPath = ideSdks.jdkPath?.absolutePath
+    }
 
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
@@ -295,8 +314,8 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = """
-      Android Studio is using the following JDK location when running Gradle:
-      ${ideSdks.jdkPath}
+      $namePrefix is using the following JDK location when running Gradle:
+      $jdkPath
       Using different JDK locations on different processes might cause Gradle to
       spawn multiple daemons, for example, by executing Gradle tasks from a terminal
       while using Android Studio.
