@@ -19,7 +19,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
-import com.android.utils.FileUtils
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -28,7 +27,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
@@ -260,24 +258,7 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
       return
     }
 
-    val jdkTable = ProjectJdkTable.getInstance()
-    val existingJdk = jdkTable.findJdk(name)
-    if (existingJdk != null) {
-      if ((existingJdk.homePath != null) && FileUtils.isSameFile(jdkPath, File(existingJdk.homePath!!))) {
-        // Already exists in ProjectJdkTable and points to the same path, reuse.
-        sdksModel.addSdk(existingJdk)
-        return
-      }
-    }
-    // Path is different, generate a new one to replace the existing JDK
-    val javaSdkType = JavaSdk.getInstance()
-    val newJdk = javaSdkType.createJdk(name, jdkPath.absolutePath)
-    ApplicationManager.getApplication().runWriteAction {
-      if (existingJdk != null) {
-        jdkTable.removeJdk(existingJdk)
-      }
-      jdkTable.addJdk(newJdk)
-    }
+    val newJdk = IdeSdks.findOrCreateJdk(name, jdkPath)
     sdksModel.addSdk(newJdk)
   }
 
