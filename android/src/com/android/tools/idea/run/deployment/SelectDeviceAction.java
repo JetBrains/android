@@ -59,7 +59,7 @@ public final class SelectDeviceAction extends AnAction {
     presentation.setText(Devices.getText(myDevice, key), false);
 
     if (!myDevice.getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK)) {
-      presentation.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, myDevice.getLaunchCompatibility().getReason());
+      presentation.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, Devices.getErrorFormattedText(myDevice.getLaunchCompatibility()));
     }
   }
 
