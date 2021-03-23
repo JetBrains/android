@@ -61,7 +61,8 @@ import javax.swing.tree.TreeSelectionModel
 // "Model" here loosely in the sense of Model-View-Controller
 class ToolWindowModel(val project: Project, var current: GradleVersion?) {
 
-  val selectedVersion = OptionalValueProperty<GradleVersion>(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
+  val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val selectedVersion = OptionalValueProperty<GradleVersion>(latestKnownVersion)
   var processor: AgpUpgradeRefactoringProcessor? = null
 
   //TODO introduce single state object describing controls and error instead.
@@ -119,7 +120,7 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
         val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { current?.let { current -> it > current } ?: false }
+          .filter { current?.let { current -> it > current && it < latestKnownVersion } ?: false }
           .toList()
           .sortedDescending()
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
