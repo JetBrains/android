@@ -162,7 +162,7 @@ PROJECT             : testWithBuildSrc
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.core:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/core/common/<VERSION>/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -178,7 +178,7 @@ PROJECT             : testWithBuildSrc
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/<VERSION>/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
