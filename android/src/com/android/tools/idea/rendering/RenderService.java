@@ -27,6 +27,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -43,6 +44,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Disposer;
@@ -342,6 +344,10 @@ public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
+  private static Logger getLogger() {
+    return Logger.getInstance(RenderService.class);
+  }
+
   public static class RenderTaskBuilder {
     private final RenderService myService;
     private final AndroidFacet myFacet;
@@ -368,11 +374,23 @@ public class RenderService implements Disposable {
         try {
           return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
         }
-        catch (InterruptedException | TimeoutException e) {
-          Logger.getInstance(RenderService.class).warn(e);
+        catch (InterruptedException e) {
+          throw new ProcessCanceledException(e);
+        }
+        catch (TimeoutException e) {
+          getLogger().warn(e);
         }
         catch (ExecutionException e) {
-          Logger.getInstance(RenderService.class).error(e);
+          Throwable cause = e.getCause();
+          if (cause instanceof ProcessCanceledException) {
+            throw (ProcessCanceledException)cause;
+          }
+          else if (cause instanceof MergedManifestException) {
+            getLogger().warn(e);
+          }
+          else {
+            getLogger().error(e);
+          }
         }
 
         return null;
@@ -619,7 +637,7 @@ public class RenderService implements Disposable {
 
         Module module = myFacet.getModule();
         if (module.isDisposed()) {
-          Logger.getInstance(RenderService.class).warn("Module was already disposed");
+          getLogger().warn("Module was already disposed");
           return null;
         }
         LayoutLibrary layoutLib;
