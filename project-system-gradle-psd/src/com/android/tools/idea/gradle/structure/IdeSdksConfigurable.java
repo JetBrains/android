@@ -39,6 +39,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
 import com.android.tools.idea.gradle.ui.SdkUiStrings;
 import com.android.tools.idea.gradle.ui.SdkUiUtils;
@@ -101,6 +102,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -120,6 +122,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
+  private static final String JDK_TITLE_TEXT = "<html><b>JDK location</b><br>The Java Development Kit (JDK) you want Gradle to use when building your project.</html>";
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
@@ -141,6 +144,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private ComboboxWithBrowseButton myJdkLocationComboBox;
   private ComboboxWithBrowseButton myNdkLocationComboBox;
   private JBLabel myJdkLocationHelp;
+  private JLabel myJdkTitleLabel;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
@@ -239,6 +243,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationComboBox.getComboBox().setSelectedItem(myOriginalNdkHomePath);
     myJdkLocationComboBox.getComboBox().setSelectedItem(myOriginalJdkHomePath);
+    myJdkLocationComboBox.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
     myUserSelectedJdkHomePath = myOriginalJdkHomePath;
   }
 
@@ -247,7 +252,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!isModified()) {
       return;
     }
-    if (validateJdkPath(getJdkLocation()) == null) {
+    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
       throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
     }
     List<ProjectConfigurationError> errors = validateState();
@@ -300,13 +305,20 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     createSdkLocationTextField();
     createNdkLocationComboBox();
     createNdkDownloadLink();
+    createJdkTitle();
     createJdkLocationHelp();
     createJdkLocationComboBox();
+  }
+
+  private void createJdkTitle() {
+    myJdkTitleLabel = new JBLabel(JDK_TITLE_TEXT);
+    myJdkTitleLabel.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
   }
 
   private void createJdkLocationHelp() {
     myJdkLocationHelp = ContextHelpLabel.createWithLink(null, SdkUiStrings.JDK_LOCATION_TOOLTIP, "Learn more",
                                                         () -> BrowserUtil.browse(SdkUiStrings.JDK_LOCATION_WARNING_URL));
+    myJdkLocationHelp.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
   }
 
   private void createNdkLocationComboBox() {
@@ -417,6 +429,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       }
     });
     addTootlTipListener(comboBox);
+    myJdkLocationComboBox.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
   }
 
   private static void addTootlTipListener(@NotNull JComboBox comboBox) {
@@ -681,7 +694,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       throw new ConfigurationException(msg);
     }
 
-    if (validateJdkPath(getJdkLocation()) == null) {
+    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
       throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
     }
 
@@ -703,7 +716,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       errors.add(error);
     }
 
-    if (validateJdkPath(getJdkLocation()) == null) {
+    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
       ProjectConfigurationError error =
         new ProjectConfigurationError(SdkUiStrings.generateChooseValidJdkDirectoryError(), myJdkLocationComboBox.getComboBox());
       errors.add(error);

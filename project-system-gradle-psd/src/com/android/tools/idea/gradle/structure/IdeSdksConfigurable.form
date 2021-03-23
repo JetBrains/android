@@ -153,7 +153,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="71f88" class="javax.swing.JLabel">
+              <component id="71f88" class="javax.swing.JLabel" binding="myJdkTitleLabel" custom-create="true">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
