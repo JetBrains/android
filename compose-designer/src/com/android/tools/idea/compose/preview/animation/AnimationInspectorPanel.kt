@@ -203,8 +203,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       DefaultActionGroup(listOf(
         CloseAnimationInspectorAction { surface.sceneManagers.single().model.dataContext }
       )),
-      true).component
-    add(rightSideActions, BorderLayout.LINE_END)
+      true)
+    rightSideActions.setMiniMode(true)
+    add(rightSideActions.component, BorderLayout.LINE_END)
   }
 
   /**

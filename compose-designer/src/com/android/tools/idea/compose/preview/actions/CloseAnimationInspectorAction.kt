@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.message
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.AnActionButton
+import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 
 internal class CloseAnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
-  AnActionButton(message("action.stop.animation.inspector.title"), "", AllIcons.General.HideToolWindow) {
+  AnActionButton(message("action.stop.animation.inspector.title"), "", StudioIcons.Common.CLOSE), CustomComponentAction {
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
@@ -36,4 +40,7 @@ internal class CloseAnimationInspectorAction(private val dataContextProvider: ()
 
     manager.interactivePreviewElementInstance = manager.animationInspectionPreviewElementInstance
   }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
 }
