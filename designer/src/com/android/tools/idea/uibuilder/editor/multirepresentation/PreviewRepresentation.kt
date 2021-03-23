@@ -96,7 +96,11 @@ interface PreviewRepresentation : Disposable {
   // region Text editor caret handling
   /**
    * Called when the caret position changes. This method must return ASAP and not block.
+   *
+   * @param event the [CaretEvent] being handled.
+   * @param isModificationTriggered true if the caret moved because the user modified the file, as opposed to just navigating with arrows
+   * or the mouse.
    */
-  fun onCaretPositionChanged(event: CaretEvent) {}
+  fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {}
   // endregion
 }

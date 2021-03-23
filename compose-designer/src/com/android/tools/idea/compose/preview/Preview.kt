@@ -652,7 +652,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
   // endregion
 
-  override fun onCaretPositionChanged(event: CaretEvent) {
+  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+    if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (!isActive.get()) return
     // If we have not changed line, ignore

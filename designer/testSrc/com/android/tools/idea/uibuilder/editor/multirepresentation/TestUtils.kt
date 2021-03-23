@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -53,7 +52,8 @@ open class TestPreviewRepresentation : PreviewRepresentation {
 
   override fun getState(): PreviewRepresentationState? = mapOf()
 
-  override fun onCaretPositionChanged(event: CaretEvent) {
+  override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
+    if (isModificationTriggered) return
     nCaretNotifications++
     lastCaretEvent = event
   }
