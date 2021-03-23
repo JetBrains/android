@@ -168,8 +168,22 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private var onRepresentationsLoaded: (() -> Unit)? = null
 
   private val caretListener = object : CaretListener {
+    /**
+     * This tracks the last time the file was modified. This allows us to infer if the caret moved because the user
+     * was typing or just moving around.
+     */
+    var lastEditorModificationStamp = -1L
+
     override fun caretPositionChanged(event: CaretEvent) {
-      currentRepresentation?.onCaretPositionChanged(event)
+      val newStamp = event.editor.document.modificationStamp
+
+      val isModificationTriggered = if (newStamp != -1L && lastEditorModificationStamp != newStamp) {
+        lastEditorModificationStamp = newStamp
+        true
+      }
+      else false
+
+      currentRepresentation?.onCaretPositionChanged(event, isModificationTriggered)
     }
   }
 
@@ -367,6 +381,7 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
       currentRepresentation?.onActivate()
     }
 
+    caretListener.lastEditorModificationStamp = editor.document.modificationStamp
     editor.caretModel.addCaretListener(caretListener, this)
   }
 

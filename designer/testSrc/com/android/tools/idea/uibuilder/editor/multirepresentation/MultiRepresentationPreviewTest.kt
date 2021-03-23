@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
+import com.android.tools.idea.testing.insertText
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -452,9 +452,22 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals(1, representation1.nCaretNotifications)
     myFixture.editor.caretModel.moveCaretRelatively(0, -1, false, false, false)
     assertEquals(2, representation1.nCaretNotifications)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      myFixture.editor.insertText("Hello world")
+    }
+    // insertText does not move the caret so we need to manually do it
+    myFixture.editor.caretModel.moveCaretRelatively(11, 0, false, false, false)
+    // No notification expected from a file modification
+    assertEquals(2, representation1.nCaretNotifications)
+
+    // This change will be picked up again
+    myFixture.editor.caretModel.moveCaretRelatively(-11, 0, false, false, false)
+    assertEquals(3, representation1.nCaretNotifications)
+
     multiPreview.onDeactivate()
     myFixture.editor.caretModel.moveCaretRelatively(0, 1, false, false, false)
-    assertEquals(2, representation1.nCaretNotifications)
+    assertEquals(3, representation1.nCaretNotifications)
   }
 
   fun testRepresentationsUpdatedWhenDeactivated() {
