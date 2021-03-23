@@ -16,21 +16,28 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.adtui.HtmlLabel
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
 import org.apache.commons.io.FileSystem
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Before
@@ -207,6 +214,69 @@ class ContentManagerTest {
     val classpathRefactoringProcessorNode = mandatoryCodependentNode.firstChild as CheckedTreeNode
     assertThat(classpathRefactoringProcessorNode.isChecked).isFalse()
     assertThat(classpathRefactoringProcessorNode.isEnabled).isFalse()
+  }
+
+  @Test
+  fun testToolWindowViewMandatoryCodependentDetailsPanel() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    view.tree.selectionPath = view.tree.getPathForRow(0)
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade steps</b>")
+    assertThat(detailsPanelContent.text).contains("at the same time")
+  }
+
+  @Test
+  fun testToolWindowViewClasspathProcessorDetailsPanel() {
+    addMinimalBuildGradleToProject()
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    view.tree.selectionPath = view.tree.getPathForRow(1)
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
+  }
+
+  @Test
+  fun testToolWindowViewDetailsPanelWithJava8() {
+    // Note that this isn't actually a well-formed build.gradle file, but is constructed to activate both the classpath
+    // and the Java8 refactoring processors without needing a full project.
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        plugins {
+          id 'com.android.application'
+        }
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:4.1.0'
+          }
+        }
+        android {
+        }
+      """.trimIndent()
+    )
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    val java8ProcessorPath = view.tree.getPathForRow(1)
+    view.tree.selectionPath = java8ProcessorPath
+    val stepPresentation = (java8ProcessorPath.lastPathComponent as CheckedTreeNode).userObject as ToolWindowModel.StepUiPresentation
+    assertThat(stepPresentation.treeText).isEqualTo("Accept the new default of Java 8")
+    val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
+    assertThat(detailsPanelContent.text).contains("<b>Update default Java language level</b>")
+    assertThat(detailsPanelContent.text).contains("explicit Language Level directives")
+    val label = TreeWalker(view.detailsPanel).descendants().first { it.name == "label" } as JBLabel
+    val comboBox = TreeWalker(view.detailsPanel).descendants().first { it.name == "selection" } as ComboBox<*>
+    assertThat(label.text).contains("Action on no explicit Java language level")
+    assertThat(comboBox.selectedItem).isEqualTo(ACCEPT_NEW_DEFAULT)
+    comboBox.selectedItem = INSERT_OLD_DEFAULT
+    assertThat(stepPresentation.treeText).isEqualTo("Insert directives to continue using Java 7")
   }
 
   @Test
