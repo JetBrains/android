@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
+import javax.swing.SwingUtilities
 
 typealias WorkSelectionListener = (work: WorkInfo?, context: WorkSelectionModel.Context) -> Unit
 
@@ -47,11 +48,16 @@ class WorkSelectionModel {
    * from RUNNING to FAILED and update the details panel for [selectedWork].
    */
   fun setSelectedWork(work: WorkInfo?, context: Context) {
+    check(SwingUtilities.isEventDispatchThread())
     check(!valueIsAdjusting) { "Don't call setSelectedWork from a listener callback" }
-    valueIsAdjusting = true
-    selectedWork = work
-    listeners.forEach { it(work, context) }
-    valueIsAdjusting = false
+    try {
+      valueIsAdjusting = true // Prevent listeners from calling us recursively
+      selectedWork = work
+      listeners.forEach { it(work, context) }
+    }
+    finally {
+      valueIsAdjusting = false
+    }
   }
 
   /**
