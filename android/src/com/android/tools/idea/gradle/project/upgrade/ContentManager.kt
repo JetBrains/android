@@ -430,7 +430,7 @@ class ContentManager(val project: Project) {
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
-      val label = HtmlLabel()
+      val label = HtmlLabel().apply { name = "content" }
       setUpAsHtmlLabel(label)
       when (selectedStep) {
         is AgpUpgradeComponentNecessity -> {
@@ -453,6 +453,7 @@ class ContentManager(val project: Project) {
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
             ComboBox(selectedStep.elements.toTypedArray()).apply {
+              name = "selection"
               item = selectedStep.selectedValue
               addActionListener {
                 selectedStep.selectedValue = this.item
@@ -461,7 +462,7 @@ class ContentManager(val project: Project) {
               }
               val comboPanel = JBPanel<JBPanel<*>>()
               comboPanel.layout = HorizontalLayout(0)
-              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4) })
+              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4); it.name = "label" })
               comboPanel.add(this)
               detailsPanel.add(comboPanel)
             }
