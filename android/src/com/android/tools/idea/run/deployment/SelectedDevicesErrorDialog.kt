@@ -22,7 +22,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.panel
 import com.intellij.util.IconUtil
-import com.intellij.util.ui.UIUtil.FontColor
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Action
@@ -46,7 +45,7 @@ class SelectedDevicesErrorDialog(private val project: Project, private val devic
     if (!anyDeviceHasError) {
       setDoNotAskOption(object : DoNotAskOption.Adapter() {
         override fun rememberChoice(isSelected: Boolean, exitCode: Int) = project.putUserData(DO_NOT_SHOW_WARNING_ON_DEPLOYMENT, isSelected)
-        override fun getDoNotShowMessage() = message("do.not.bother.for.this.session")
+        override fun getDoNotShowMessage() = message("do.not.ask.for.this.session")
         override fun isSelectedByDefault() = project.getUserData(DO_NOT_SHOW_WARNING_ON_DEPLOYMENT) == true
       })
     }
@@ -79,7 +78,7 @@ class SelectedDevicesErrorDialog(private val project: Project, private val devic
       devices.map {
         row {
           label("$it: ")
-          label(it.launchCompatibility.reason!!, fontColor = FontColor.BRIGHTER)
+          label(it.launchCompatibility.reason!!)
         }
       }
     }

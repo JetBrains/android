@@ -31,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JLabel
 
 /**
@@ -133,5 +134,36 @@ internal class SelectedDevicesErrorDialogTest {
     }
 
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.CANCEL_EXIT_CODE)
+  }
+
+  @RunsInEdt
+  @Test
+  fun rememberCheckboxState() {
+    val deviceWithWarning = VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(VirtualDeviceName("Pixel_3_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice::class.java))
+      .setLaunchCompatibility(LaunchCompatibility(State.WARNING, "warning message"))
+      .build()
+
+    var dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))
+
+    // Select checkbox.
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
+      val treeWalker = TreeWalker(dialogWrapper.rootPane)
+      val checkbox = treeWalker.descendants().filterIsInstance<JCheckBox>().find { it.text == "Do not ask again for this session" }!!
+      assertThat(checkbox.isSelected).isFalse()
+      checkbox.isSelected = true
+      treeWalker.descendants().filterIsInstance<JButton>().find { it.text == "Continue" }!!.doClick()
+    }
+
+    dialog = SelectedDevicesErrorDialog(projectRule.project, listOf(deviceWithWarning))
+
+    // Check that we remember checkbox state.
+    createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
+      val treeWalker = TreeWalker(dialogWrapper.rootPane)
+      val checkbox = treeWalker.descendants().filterIsInstance<JCheckBox>().find { it.text == "Do not ask again for this session" }!!
+      assertThat(checkbox.isSelected).isTrue()
+    }
   }
 }
