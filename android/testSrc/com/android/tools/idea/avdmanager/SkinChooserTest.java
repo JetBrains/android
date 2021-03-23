@@ -25,12 +25,14 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Executor;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class SkinChooserTest {
+  @Ignore("b/176905390")
   @Test
   public void skinChooser() {
     // Arrange
