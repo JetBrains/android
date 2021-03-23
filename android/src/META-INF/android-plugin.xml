@@ -510,6 +510,10 @@
                             order="last, before javaLegacy"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.refactoring.renaming.ResourceReferenceRenameProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
+    <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"
+                    serviceImplementation="com.android.tools.idea.lang.AndroidNullableNotNullManagerImpl"
+                    overrides="true"
+    />
 
     <java.languageFeatureProvider implementation="org.jetbrains.android.inspections.AndroidLanguageFeatureProvider"/>
 
