@@ -18,8 +18,12 @@ package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
+import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkToCurrentJdk
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -28,8 +32,11 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.dumpAndroidProjectView
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.google.common.truth.Truth
 import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil
@@ -159,12 +166,18 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testMissingImlIsIgnored() {
-    prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
-    val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
-      project.dumpAndroidProjectView()
-    }
+    addJdk8ToTableButUseCurrent()
+    try {
+      prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
+      val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
+        project.dumpAndroidProjectView()
+      }
 
-    assertIsEqualToSnapshot(text)
+      assertIsEqualToSnapshot(text)
+    }
+    finally {
+      restoreJdk()
+    }
   }
 
   private fun importSyncAndDumpProject(
