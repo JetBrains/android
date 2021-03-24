@@ -35,6 +35,8 @@ import kotlinx.coroutines.Job
 import javax.swing.Icon
 import javax.swing.JComponent
 
+const val MINIMUM_WORKMANAGER_VERSION = "2.5.0"
+
 class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.work.inspection"
   override val displayName = "Background Task Inspector"
@@ -42,8 +44,8 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorLaunchParams = LibraryInspectorLaunchParams(
     AppInspectorJar("workmanager-inspection.jar",
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
-    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0", ArtifactCoordinate.Type.AAR)
- )
+    ArtifactCoordinate("androidx.work", "work-runtime", MINIMUM_WORKMANAGER_VERSION, ArtifactCoordinate.Type.AAR)
+  )
 
   override fun isApplicable(): Boolean {
     return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()
