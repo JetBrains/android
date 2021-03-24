@@ -40,9 +40,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class InstantAppSupportTest extends AndroidGradleTestCase {
 
+  @NotNull private static final String ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0";
+  @NotNull private static final String GRADLE_VERSION = "6.5";
+
   public void testLoadInstantAppProject() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, null, null, "3.5.0");
+    loadProject(INSTANT_APP, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
     generateSources();
 
     assertModuleIsValidAIAInstantApp(getModule("instant-app"), ImmutableList.of(":feature"));
@@ -56,7 +59,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
   public void testCorrectRunConfigurationsCreated() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
 
     // Create one run configuration
     List<RunConfiguration> configurations =
@@ -76,7 +79,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
   public void testAndroidRunConfigurationWithoutError() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, "feature", null, "3.5.0");
+    loadProject(INSTANT_APP, "feature", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
     AndroidTestRunConfiguration
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     runConfiguration.checkConfiguration();

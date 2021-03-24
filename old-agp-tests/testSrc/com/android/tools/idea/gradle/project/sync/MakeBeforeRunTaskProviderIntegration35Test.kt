@@ -43,8 +43,7 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreNotFetchedForSyncedAbi() {
-    // Use Gradle 6.5 as AGP 3.5 is not supported by Gradle 7.0+
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradleVersion = "6.5", gradlePluginVersion = "3.5.0")
+    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION)
     openPreparedProject("project") { project ->
       val selectedVariant = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))?.selectedVariantAbi
       Truth.assertThat(selectedVariant?.abi).isEqualTo(Abi.X86.toString())
@@ -72,8 +71,7 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
 
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
-    // Use Gradle 6.5 as AGP 3.5 is not supported by Gradle 7.0+
-    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project", gradleVersion = "6.5", gradlePluginVersion = "3.5.0")
+    prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES,"project", GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION)
     openPreparedProject("project") { project ->
       val ndkFacet = NdkFacet.getInstance(project.gradleModule(":app") ?: error(":app module not found"))
       val selectedVariant = ndkFacet?.selectedVariantAbi
@@ -97,5 +95,8 @@ class MakeBeforeRunTaskProviderIntegration35Test : GradleIntegrationTest {
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
+
+private const val ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0"
+private const val GRADLE_VERSION = "6.5"
 
 private const val errorMessage: String = "Unexpected attempt to resolve a project."

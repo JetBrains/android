@@ -27,12 +27,16 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
+  @NotNull private static final String ANDROID_GRADLE_PLUGIN_VERSION = "3.5.0";
+  @NotNull private static final String GRADLE_VERSION = "6.5";
+
   public void testLoadMultiAtomProject() throws Exception {
     // Use a plugin with feature support
-    loadProject(MULTI_FEATURE, null, null, "3.5.0");
+    loadProject(MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature1", ":feature2", ":base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":base"));
@@ -50,7 +54,7 @@ public class MultiFeatureSupportTest extends AndroidGradleTestCase {
 
   public void testLoadNestedMultiAtomProject() throws Exception {
     // Use a plugin with instant app support
-    loadProject(NESTED_MULTI_FEATURE, null, null, "3.5.0");
+    loadProject(NESTED_MULTI_FEATURE, null, GRADLE_VERSION, ANDROID_GRADLE_PLUGIN_VERSION);
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature:feature1", ":feature:feature2", ":feature:base"));
     assertModuleIsValidAIAFeature(getModule("feature1"), ImmutableList.of(":feature:base"));
