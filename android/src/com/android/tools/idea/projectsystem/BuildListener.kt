@@ -80,7 +80,7 @@ fun setupBuildListener(
   }
   // If we are not yet subscribed to this project, we should subscribe
   if (projectSubscriptionsLock.withLock {
-      val notSubscribed = projectSubscriptions[project] == null
+      val notSubscribed = projectSubscriptions[project]?.isEmpty() != false
       projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
       notSubscribed
     }) {
@@ -119,14 +119,12 @@ fun setupBuildListener(
     projectSubscriptionsLock.withLock {
       projectSubscriptions[project]!!.let {
         it[parentDisposable] = buildable
-        Disposer.register(parentDisposable, {
+        Disposer.register(parentDisposable) {
           projectSubscriptionsLock.withLock disposable@{
             val subscriptions = projectSubscriptions[project] ?: return@disposable
             subscriptions.remove(parentDisposable)
-            // If there are no pending subscriptions, remove the project from the list
-            if (subscriptions.isEmpty()) projectSubscriptions.remove(project)
           }
-        })
+        }
       }
     }
 
