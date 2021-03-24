@@ -102,6 +102,10 @@ public class ErrorPanel extends JPanel {
     put(MotionSceneAttrs.Tags.ON_SWIPE, MotionSceneAttrs.Tags.TRANSITION);
     put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT);
     put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.CONSTRAINT_OVERRIDE);
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_TRIGGER );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_ATTRIBUTE );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_TIME_CYCLE );
+    put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, MotionSceneAttrs.Tags.KEY_CYCLE );
     put(MotionSceneAttrs.Tags.MOTION, MotionSceneAttrs.Tags.CONSTRAINT);
     put(MotionSceneAttrs.Tags.LAYOUT, MotionSceneAttrs.Tags.CONSTRAINT);
     put(MotionSceneAttrs.Tags.PROPERTY_SET, MotionSceneAttrs.Tags.CONSTRAINT);
@@ -148,11 +152,12 @@ public class ErrorPanel extends JPanel {
       // Special case custom attribute which can be in CONSTRAINT,KEY_CYCLE, KEY_ATTRIBUTE, or KEY_TIME_CYCLE
       if (MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE.equals(childName) &&
           (parent.equals(MotionSceneAttrs.Tags.CONSTRAINT)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_CYCLE)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
-            || parent.equals(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
-        )) {
-          continue;
+           || parent.equals(MotionSceneAttrs.Tags.KEY_CYCLE)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_TRIGGER)
+           || parent.equals(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
+          )) {
+        continue;
         }
 
       HashSet<String> shouldBeIn = containedIn.get(childName);
