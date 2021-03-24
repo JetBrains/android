@@ -24,6 +24,9 @@ import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -46,15 +49,20 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Mockito.when(bridge.isConnected()).thenReturn(true);
     Mockito.when(bridge.getDevices()).thenReturn(new IDevice[]{device});
 
+    Instant connectionTime = Instant.parse("2021-03-24T22:38:05.890570Z");
+
+    ConnectionTimeService service = new ConnectionTimeService(Clock.fixed(connectionTime, ZoneId.of("America/Los_Angeles")));
+
     PhysicalDeviceAsyncSupplier supplier = new PhysicalDeviceAsyncSupplier(null,
                                                                            MoreExecutors.newDirectExecutorService(),
                                                                            project -> adb,
-                                                                           path -> Futures.immediateFuture(bridge));
+                                                                           path -> Futures.immediateFuture(bridge),
+                                                                           () -> service);
 
     // Act
     Future<List<PhysicalDevice>> future = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(PhysicalDevice.newConnectedDevice("86UX00F4R")), future.get());
+    assertEquals(Collections.singletonList(new PhysicalDevice("86UX00F4R", connectionTime)), future.get());
   }
 }

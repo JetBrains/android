@@ -18,6 +18,7 @@ package com.android.tools.idea.deviceManager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,17 +35,18 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableModelTest {
-  private static final @NotNull PhysicalDevice CONNECTED_PIXEL_3 = PhysicalDevice.newConnectedDevice("86UX00F4R");
+  private static final @NotNull PhysicalDevice CONNECTED_PIXEL_3 = new PhysicalDevice("86UX00F4R",
+                                                                                      Instant.parse("2021-03-24T22:38:05.890570Z"));
 
   @Test
   public void handleConnectedDeviceDevicesContainsDisconnectedPixel3() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG");
+    PhysicalDevice disconnectedPixel5 = new PhysicalDevice("0A071FDD4003ZG");
 
     List<PhysicalDevice> devices = new ArrayList<>(2);
 
     devices.add(disconnectedPixel5);
-    devices.add(PhysicalDevice.newDisconnectedDevice("86UX00F4R"));
+    devices.add(new PhysicalDevice("86UX00F4R"));
 
     TableModelListener listener = Mockito.mock(TableModelListener.class);
 
@@ -80,7 +82,7 @@ public final class PhysicalDeviceTableModelTest {
   @Test
   public void handleDisconnectedDevice() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG");
+    PhysicalDevice disconnectedPixel5 = new PhysicalDevice("0A071FDD4003ZG");
 
     List<PhysicalDevice> devices = new ArrayList<>(2);
 
@@ -92,7 +94,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
     model.addTableModelListener(listener);
 
-    PhysicalDevice disconnectedPixel3 = PhysicalDevice.newDisconnectedDevice("86UX00F4R");
+    PhysicalDevice disconnectedPixel3 = new PhysicalDevice("86UX00F4R");
 
     // Act
     model.handleDisconnectedDevice(disconnectedPixel3);

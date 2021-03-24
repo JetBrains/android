@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.Executor;
@@ -54,7 +55,7 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    myConnectedPixel3 = PhysicalDevice.newConnectedDevice("86UX00F4R");
+    myConnectedPixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
     Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myConnectedPixel3)));
@@ -82,7 +83,7 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG");
+    PhysicalDevice disconnectedPixel5 = new PhysicalDevice("0A071FDD4003ZG");
     myComponent.set(Collections.singletonList(disconnectedPixel5));
 
     // Act

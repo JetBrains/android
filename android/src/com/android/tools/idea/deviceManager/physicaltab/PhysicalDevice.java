@@ -15,24 +15,22 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import java.time.Instant;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice {
   private final @NotNull String mySerialNumber;
-  private final boolean myConnected;
+  private final @Nullable Object myConnectionTime;
 
-  private PhysicalDevice(@NotNull String serialNumber, boolean connected) {
+  PhysicalDevice(@NotNull String serialNumber) {
+    this(serialNumber, null);
+  }
+
+  PhysicalDevice(@NotNull String serialNumber, @Nullable Instant connectionTime) {
     mySerialNumber = serialNumber;
-    myConnected = connected;
-  }
-
-  static @NotNull PhysicalDevice newConnectedDevice(@NotNull String serialNumber) {
-    return new PhysicalDevice(serialNumber, true);
-  }
-
-  static @NotNull PhysicalDevice newDisconnectedDevice(@NotNull String serialNumber) {
-    return new PhysicalDevice(serialNumber, false);
+    myConnectionTime = connectionTime;
   }
 
   @NotNull String getSerialNumber() {
@@ -40,19 +38,19 @@ final class PhysicalDevice {
   }
 
   boolean isConnected() {
-    return myConnected;
+    return myConnectionTime != null;
   }
 
   @NotNull String toDebugString() {
     String separator = System.lineSeparator();
 
     return "serialNumber = " + mySerialNumber + separator
-           + "connected = " + myConnected + separator;
+           + "connectionTime = " + myConnectionTime + separator;
   }
 
   @Override
   public int hashCode() {
-    return 31 * mySerialNumber.hashCode() + Boolean.hashCode(myConnected);
+    return 31 * mySerialNumber.hashCode() + Objects.hashCode(myConnectionTime);
   }
 
   @Override
@@ -62,6 +60,6 @@ final class PhysicalDevice {
     }
 
     PhysicalDevice device = (PhysicalDevice)object;
-    return mySerialNumber.equals(device.mySerialNumber) && myConnected == device.myConnected;
+    return mySerialNumber.equals(device.mySerialNumber) && Objects.equals(myConnectionTime, device.myConnectionTime);
   }
 }
