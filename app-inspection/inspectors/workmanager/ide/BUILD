@@ -19,5 +19,8 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
