@@ -121,6 +121,7 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
       override fun run(indicator: ProgressIndicator) {
         val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
           .filter { current?.let { current -> it > current && it < latestKnownVersion } ?: false }
+          .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
           .toList()
           .sortedDescending()
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
