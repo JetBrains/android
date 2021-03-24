@@ -20,7 +20,6 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.AGP_UPGRADE_ASSISTANT
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -53,7 +52,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
@@ -291,14 +289,15 @@ fun shouldForcePluginUpgrade(
   }
   
   // Now we can check the actual version information.
-  return shouldForcePluginUpgrade(current, recommended)
+  return versionsShouldForcePluginUpgrade(current, recommended)
 }
 
 /**
- * This method should ONLY be used in tests.
+ * Returns whether, given the [current] version of AGP and the [recommended] version to upgrade to (which should be the
+ * version returned by [LatestKnownPluginVersionProvider] except for tests), we should force a plugin upgrade to that
+ * recommended version.
  */
-@VisibleForTesting
-fun shouldForcePluginUpgrade(
+fun versionsShouldForcePluginUpgrade(
   current: GradleVersion?,
   recommended: GradleVersion
 ) : Boolean {
