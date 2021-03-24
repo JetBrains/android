@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
@@ -42,11 +41,7 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
     return nodes[id]?.map { node -> node.convert(shouldInterrupt) }
   }
 
-  private fun ComposableNode.convert(
-    shouldInterrupt: () -> Boolean,
-    parent: ComposeViewNode? = null,
-    asCallstack: Boolean = false
-  ): ComposeViewNode {
+  private fun ComposableNode.convert(shouldInterrupt: () -> Boolean): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
@@ -69,16 +64,7 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
       lineNumber
     )
 
-    // TODO: b/182161865 switch logic back after creating separate nodes for component tree
-    parent?.children?.add(node)
-    node.parent = parent
-    val canAddToCallstack = childrenCount == 1 &&
-                            TreeSettings.composeAsCallstack &&
-                            (TreeSettings.composeDrawablesInCallstack || childrenList.first().id < 0L)
-    val addToNode = if (canAddToCallstack && asCallstack) parent else node
-    childrenList.forEach {
-      child -> child.convert(shouldInterrupt, addToNode, canAddToCallstack)
-    }
+    childrenList.mapTo(node.children) { it.convert(shouldInterrupt).apply { parent = node } }
     return node
   }
 }

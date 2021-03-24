@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -48,6 +49,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
@@ -57,6 +59,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -67,6 +70,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
@@ -345,9 +349,11 @@ class DeviceViewPanelTest {
 
   @Before
   fun setup() {
+    ApplicationManager.getApplication().registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
+    TreeSettings.hideSystemNodes = false
   }
 
   @Test

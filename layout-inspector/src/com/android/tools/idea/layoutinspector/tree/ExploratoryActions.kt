@@ -36,15 +36,8 @@ object CallstackAction : ToggleAction("Show compose as Callstack", null, null) {
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.composeAsCallstack = state
 
-    // Update the current client if currently connected:
-    val client = inspector(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
-      }
-    }
+    // Update the component tree:
+    event.treePanel()?.refresh()
   }
 }
 
@@ -56,15 +49,8 @@ object DrawablesInCallstackAction : ToggleAction("Show compose Drawables in Call
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.composeDrawablesInCallstack = state
 
-    // Update the current client if currently connected:
-    val client = inspector(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
-      }
-    }
+    // Update the component tree:
+    event.treePanel()?.refresh()
   }
 
   override fun update(event: AnActionEvent) {

@@ -93,6 +93,10 @@ open class ViewNode(
   val isInComponentTree: Boolean
     get() = !(TreeSettings.hideSystemNodes && isSystemNode)
 
+  /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
+  open val isSingleCall: Boolean
+    get() = false
+
   private var _transformedBounds = bounds
 
   val transformedBounds: Shape
