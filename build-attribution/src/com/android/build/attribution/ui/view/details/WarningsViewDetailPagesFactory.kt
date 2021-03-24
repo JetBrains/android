@@ -30,7 +30,6 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
@@ -56,7 +55,6 @@ import com.intellij.util.ui.JBUI
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JEditorPane
@@ -203,9 +201,9 @@ class WarningsViewDetailPagesFactory(
 
   private fun JPanel.createAGPUpdateRequiredPanel(uiData: AGPUpdateRequired, projectConfigurationTime: TimeWithPercentage) {
     val appliedAGPPluginsList = uiData.appliedPlugins.joinToString(
-    prefix = "<h4>Android Gradle plugins applied in this build:</h4><ul>",
-    postfix = "</ul>",
-    separator = ""
+      prefix = "<h4>Android Gradle plugins applied in this build:</h4><ul>",
+      postfix = "</ul>",
+      separator = ""
     ) { "<li>${it.displayName}</li>" }
     val contentHtml = """
         <b>Android Gradle plugin update required to make configuration cache available</b>
@@ -269,9 +267,9 @@ class WarningsViewDetailPagesFactory(
       separator = ""
     ) { "<li>${it.displayName}</li>" }
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
     add(runTestBuildActionButton)
     add(addToPropertiesActionLink)
-    add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
     if (uiData.unrecognizedPlugins.isNotEmpty())
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
   }
@@ -300,7 +298,7 @@ class WarningsViewDetailPagesFactory(
 
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     if (data.requiredVersion != null) {
-      add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) }})
+      add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
     }
   }
 
