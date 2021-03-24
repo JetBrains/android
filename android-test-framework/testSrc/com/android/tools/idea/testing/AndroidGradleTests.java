@@ -29,6 +29,8 @@ import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
@@ -37,6 +39,7 @@ import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.builder.model.SyncIssue;
@@ -52,6 +55,7 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -66,6 +70,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderMa
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -623,6 +628,26 @@ public class AndroidGradleTests {
     LOG.info("Using JDK from " + jdk8Path);
     ideSdks.overrideJdkEnvVariable(jdk8Path);
     assertTrue("Could not use JDK from " + jdk8Path, ideSdks.isJdkEnvVariableValid());
+  }
+
+  public static void overrideJdkToCurrentJdk() throws IOException {
+    @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
+    File jdkPath = ideSdks.getJdkPath();
+    assertNotNull("Could not find path of current JDK", jdkPath);
+    LOG.info("Using JDK from " + jdkPath);
+    ideSdks.overrideJdkEnvVariable(jdkPath.getAbsolutePath());
+    assertTrue("Could not use JDK from " + jdkPath, ideSdks.isJdkEnvVariableValid());
+  }
+
+  public static void addJdk8ToTableButUseCurrent() throws IOException {
+    String jdk8Path = getEmbeddedJdk8Path();
+    Sdk jdk = Jdks.getInstance().createJdk(jdk8Path);
+    assertThat(jdk).isNotNull();
+    runWriteAction(() -> {
+      ProjectJdkTable.getInstance().addJdk(jdk);
+      return null;
+    });
+    overrideJdkToCurrentJdk();
   }
 
   public static void restoreJdk() {
