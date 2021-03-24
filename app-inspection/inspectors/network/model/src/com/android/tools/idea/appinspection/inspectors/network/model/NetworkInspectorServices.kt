@@ -16,26 +16,27 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.AspectModel
-import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.updater.Updater
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Executor
 
-/**
- * The number of updates per second our simulated object models receive.
- */
-private const val UPDATE_RATE = 60
 
 /**
  * Contains the suite of services on which the network inspector relies. Ex: Timeline and updater.
+ *
+ * It also contains a [backgroundExecutor] that is used by the LineChartModel to perform computation on.
+ * Tests can choose to swap it out with a direct executor to make life easier.
  */
 class NetworkInspectorServices(
   val navigationProvider: CodeNavigationProvider,
   startTimeStampNs: Long,
-  timer: StopwatchTimer = FpsTimer(UPDATE_RATE)
+  timer: StopwatchTimer,
+  val backgroundExecutor: Executor = AppExecutorUtil.getAppExecutorService()
 ) : AspectModel<NetworkInspectorAspect>() {
   val updater: Updater = Updater(timer)
   val timeline = StreamingTimeline(updater)

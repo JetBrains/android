@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.stdui.CommonButton
@@ -35,6 +36,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.TO
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ThreeComponentsSplitter
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBEmptyBorder
@@ -61,6 +63,11 @@ private const val ATTACH_LIVE = "Attach to live"
 private const val DETACH_LIVE = "Detach live"
 private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) META_DOWN_MASK else CTRL_DOWN_MASK
 
+/**
+ * The number of updates per second our simulated object models receive.
+ */
+private const val UPDATE_RATE = 60
+
 class NetworkInspectorTab(
   private val client: NetworkInspectorClient,
   scope: CoroutineScope,
@@ -69,13 +76,15 @@ class NetworkInspectorTab(
   private val dataSource: NetworkInspectorDataSource,
   private val uiDispatcher: CoroutineDispatcher,
   parentDisposable: Disposable
-) : AspectObserver() {
+) : AspectObserver(), Disposable {
   private lateinit var inspectorServices: NetworkInspectorServices
   private lateinit var model: NetworkInspectorModel
   private lateinit var view: NetworkInspectorView
   val component: TooltipLayeredPane
+  private val timer = FpsTimer(UPDATE_RATE)
 
   init {
+    Disposer.register(parentDisposable, this)
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
     val splitter = ThreeComponentsSplitter(parentDisposable)
@@ -84,7 +93,6 @@ class NetworkInspectorTab(
     splitter.setDividerMouseZoneSize(-1)
     splitter.setHonorComponentsMinimumSize(true)
     splitter.lastComponent = parentPanel
-
 
     component = TooltipLayeredPane(splitter)
     scope.launch {
@@ -98,7 +106,7 @@ class NetworkInspectorTab(
         parentPanel.add(toolbar, BorderLayout.NORTH)
         parentPanel.add(stagePanel, BorderLayout.CENTER)
 
-        inspectorServices = NetworkInspectorServices(codeNavigationProvider, deviceTime)
+        inspectorServices = NetworkInspectorServices(codeNavigationProvider, deviceTime, timer)
         model = NetworkInspectorModel(inspectorServices, dataSource)
         view = NetworkInspectorView(model, componentsProvider, component)
         stagePanel.add(view.component)
@@ -215,5 +223,9 @@ class NetworkInspectorTab(
         goLive.isSelected = true
       }
     }
+  }
+
+  override fun dispose() {
+    timer.stop()
   }
 }
