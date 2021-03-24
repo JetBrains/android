@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import java.awt.Shape
 import kotlin.math.absoluteValue
 
@@ -68,4 +69,8 @@ class ComposeViewNode(
   override val isSystemNode: Boolean
     get() = systemPackageHashes.contains(composePackageHash)
             && parent is ComposeViewNode // The top node is usually create by the user, but it has no location i.e. packageHash is -1
+
+  override val isSingleCall: Boolean
+    get() = TreeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 &&
+            (TreeSettings.composeDrawablesInCallstack || drawId < 0)
 }

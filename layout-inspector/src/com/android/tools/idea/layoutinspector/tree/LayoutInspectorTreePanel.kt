@@ -174,7 +174,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       parent.children.add(treeNode)
       treeNode.parent = parent
       treeNode.children.clear()
-      treeNode
+      if (node.isSingleCall) parent else treeNode
     }
     node.children.forEach { updateHierarchy(it, nextParent) }
   }
