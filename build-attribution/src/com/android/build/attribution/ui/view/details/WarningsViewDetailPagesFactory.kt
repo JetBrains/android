@@ -304,7 +304,7 @@ class WarningsViewDetailPagesFactory(
 
   private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
     "<p>" +
-    "You could save ${configurationTime.durationStringHtml()} (${configurationTime.percentageStringHtml()} total build time) by turning " +
+    "You could save about ${configurationTime.durationStringHtml()} by turning " +
     "<a href='${BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING.name}'>configuration cache</a> on.<br/>" +
     "With configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
     "</p>"
