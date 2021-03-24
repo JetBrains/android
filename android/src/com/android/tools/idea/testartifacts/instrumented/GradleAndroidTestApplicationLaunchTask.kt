@@ -142,10 +142,8 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     if (!checkAndroidGradlePluginVersion()) {
       return LaunchResult.error("ANDROID_TEST_AGP_VERSION_TOO_OLD", "checking the Android Gradle plugin version")
     }
-
-    consolePrinter.stdout("Running tests\n")
-
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
+      consolePrinter.stdout("Running tests\n")
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
       val adapters = myGradleConnectedAndroidTestInvoker.getDevices().map {
         val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
