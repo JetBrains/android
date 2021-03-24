@@ -52,8 +52,8 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @Override
   public void deviceConnected(@NotNull IDevice device) {
     EdtExecutorService.getInstance().execute(() -> {
-      PhysicalDevice connectedDevice = PhysicalDevice.newConnectedDevice(device.getSerialNumber());
-      myModel.handleConnectedDevice(connectedDevice);
+      String serialNumber = device.getSerialNumber();
+      myModel.handleConnectedDevice(new PhysicalDevice(serialNumber, ConnectionTimeService.getInstance().get(serialNumber)));
     });
   }
 
@@ -64,8 +64,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
     EdtExecutorService.getInstance().execute(() -> {
-      PhysicalDevice disconnectedDevice = PhysicalDevice.newDisconnectedDevice(device.getSerialNumber());
-      myModel.handleDisconnectedDevice(disconnectedDevice);
+      String serialNumber = device.getSerialNumber();
+
+      ConnectionTimeService.getInstance().remove(serialNumber);
+      myModel.handleDisconnectedDevice(new PhysicalDevice(serialNumber));
     });
   }
 
