@@ -38,6 +38,7 @@ iml_module(
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
     test_srcs = ["testSrc"],
+    test_tags = ["no_test_windows"],  # b/182573662
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/.idea/libraries:sqlite"],
     # do not sort: must match IML order
