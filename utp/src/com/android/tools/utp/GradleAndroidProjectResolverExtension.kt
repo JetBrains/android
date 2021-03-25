@@ -26,6 +26,14 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
  * DeviceProviderInstrumentedTestTask to Android Studio with Unified Test Platform.
  */
 class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension() {
+
+  companion object {
+    /**
+     * A Gradle project property to enable UTP test results reporting.
+     */
+    const val ENABLE_UTP_TEST_REPORT_PROPERTY: String = "com.android.tools.utp.GradleAndroidProjectResolverExtension.enable"
+  }
+
   private val LOG by lazy { Logger.getInstance(GradleAndroidProjectResolverExtension::class.java) }
 
   override fun enhanceTaskProcessing(

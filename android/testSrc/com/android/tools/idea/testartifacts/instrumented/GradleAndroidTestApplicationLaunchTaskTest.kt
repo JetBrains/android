@@ -192,6 +192,24 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   }
 
   @Test
+  fun utpTestResultsReportShouldBeEnabled() {
+    val project = gradleProjectRule.project
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      project,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      createMockDevice("serial"),
+      mock(GradleConnectedAndroidTestInvoker::class.java))
+
+    assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
+      "-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
+  }
+
+  @Test
   fun testTaskReturnsFailedIfAGPVersionIsTooOld() {
     val project = gradleProjectRule.project
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
