@@ -438,6 +438,11 @@ public class AndroidGradleTests {
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
+    if (shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio(): "Android Studio should use local gradle distribution.";
+      return; // download gradle distribution if needed in IDEA tests
+    }
+
     File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     TestCase.assertNotNull("Gradle version not found in EmbeddedDistributionPaths. Version = " + gradleVersion, path);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
