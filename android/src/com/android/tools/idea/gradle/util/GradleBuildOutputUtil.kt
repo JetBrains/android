@@ -20,7 +20,7 @@ package com.android.tools.idea.gradle.util
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
@@ -55,22 +55,6 @@ enum class OutputType {
 }
 
 /**
- * Find the output listing file to use to locate the generated build output.
- *
- * This method finds the output file from [IdeVariantBuildInformation] for non-test variants, from [IdeAndroidArtifact] for test variants.
- * This is because [IdeVariantBuildInformation] only contains non-test variants.
- * The related fields in [IdeAndroidArtifact] are subject to removal, after test variants being added to [IdeVariantBuildInformation] in the future.
- */
-fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, outputType: OutputType, isTest: Boolean): String? {
-  return if (isTest) {
-    androidModel.selectedVariant.androidTestArtifact?.let { getOutputListingFileFromAndroidArtifact(it, outputType) }
-  }
-  else {
-    getOutputListingFileFromVariantBuildInformation(androidModel, variantName, outputType)
-  }
-}
-
-/**
  * Retrieve the location of generated APK or Bundle for the given run configuration.
  *
  * This method finds the location from build output listing file if it is supported, falls back to
@@ -81,23 +65,15 @@ fun getOutputListingFile(androidModel: AndroidModuleModel, variantName: String, 
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
 fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigurationBase, isTest: Boolean): File? {
-  val androidModel = AndroidModuleModel.get(module)
-  androidModel ?: return null
-  if (androidModel.features.isBuildOutputFileSupported) {
-    // Get output from listing file.
-    return getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, getOutputType(module, configuration),
-                                                isTest)
-  }
-  else {
-    // Get output from deprecated ArtifactOutput model.
-    val artifact = if (isTest) {
-      androidModel.selectedVariant.androidTestArtifact
-    }
-    else {
-      androidModel.selectedVariant.mainArtifact
-    }
-    return artifact?.outputs?.firstOrNull()?.outputFile
-  }
+  val androidModel = AndroidModuleModel.get(module) ?: return null
+  val selectedVariant = androidModel.selectedVariant
+  val artifact =
+    if (isTest) selectedVariant.androidTestArtifact ?: return null
+    else selectedVariant.mainArtifact
+
+  return if (androidModel.features.isBuildOutputFileSupported)
+    artifact.buildInformation.getOutputFileOrFolderFromListingFile(getOutputType(module, configuration))
+  else artifact.outputs.firstOrNull()?.outputFile
 }
 
 /**
@@ -109,11 +85,22 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-fun getOutputFileOrFolderFromListingFile(androidModel: AndroidModuleModel,
-                                         variantName: String,
-                                         outputType: OutputType,
-                                         isTest: Boolean): File? {
-  val listingFile = getOutputListingFile(androidModel, variantName, outputType, isTest)
+fun getOutputFileOrFolderFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(
+  androidModel: AndroidModuleModel,
+  variantName: String,
+  outputType: OutputType,
+  isTest: Boolean
+): File? {
+  val outputInformation =
+    if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
+    else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
+  return outputInformation?.getOutputFileOrFolderFromListingFile(outputType)
+}
+
+fun IdeBuildTasksAndOutputInformation.getOutputFileOrFolderFromListingFile(
+  outputType: OutputType
+): File? {
+  val listingFile = getOutputListingFile(outputType)
   if (listingFile != null) {
     return getOutputFileOrFolderFromListingFile(listingFile)
   }
@@ -144,42 +131,21 @@ private fun getOutputType(module: Module, configuration: AndroidRunConfiguration
   }
 }
 
-/**
- * Find the output listing file to use from [IdeVariantBuildInformation].
- */
-private fun getOutputListingFileFromVariantBuildInformation(androidModel: AndroidModuleModel,
-                                                            variantName: String,
-                                                            outputType: OutputType): String? {
-  val buildInformation = androidModel.androidProject.variantsBuildInformation.firstOrNull {
-    it.variantName == variantName
-  }
-  buildInformation ?: return null
+private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(variantName: String): IdeBuildTasksAndOutputInformation? {
+  return firstOrNull { it.variantName == variantName }?.buildInformation
+}
+
+fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
   return when (outputType) {
-    OutputType.Apk -> buildInformation.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> buildInformation.apkFromBundleTaskOutputListingFile
-    else -> { // OutputType.Bundle
-      buildInformation.bundleTaskOutputListingFile
-    }
+    OutputType.Apk -> assembleTaskOutputListingFile
+    OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
+    else -> bundleTaskOutputListingFile
   }
 }
 
-/**
- * Find the output listing file to use from [IdeAndroidArtifact].
- *
- * TODO: replace this method with [getOutputListingFileFromVariantBuildInformation] when [IdeVariantBuildInformation] contains test variants.
- */
-private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArtifact, outputType: OutputType): String? {
-  return when (outputType) {
-    OutputType.Apk -> testArtifact.assembleTaskOutputListingFile
-    OutputType.ApkFromBundle -> testArtifact.apkFromBundleTaskOutputListingFile
-    else -> { // OutputType.Bundle
-      testArtifact.bundleTaskOutputListingFile
-    }
-  }
-}
-
-fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String) : GenericBuiltArtifacts? {
-  val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
+fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String): GenericBuiltArtifacts? {
+  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName) ?: return null
+  val listingFile = variantBuildInformation.getOutputListingFile(OutputType.Apk) ?: return null
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
     return builtArtifacts
@@ -191,11 +157,12 @@ fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: Strin
 
 class LastBuildOrSyncService {
   // Do not set outside of tests or this class!!
-  @Volatile var lastBuildOrSyncTimeStamp = -1L
+  @Volatile
+  var lastBuildOrSyncTimeStamp = -1L
     @VisibleForTesting set
 }
 
-internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAdapter() {
+internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListenerAdapter() {
   override fun onEnd(id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
       ServiceManager.getService(project, LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
@@ -228,4 +195,4 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
 fun emulateStartupActivityForTest(project: Project) = AndroidStartupActivity.STARTUP_ACTIVITY.findExtension(
   LastBuildOrSyncStartupActivity::class.java)?.runActivity(project, project)
 
-data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp : Long)
+data class GenericBuiltArtifactsWithTimestamp(val genericBuiltArtifacts: GenericBuiltArtifacts?, val timeStamp: Long)

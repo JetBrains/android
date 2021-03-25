@@ -15,5 +15,11 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="native-symbolizer" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
   </component>
 </module>

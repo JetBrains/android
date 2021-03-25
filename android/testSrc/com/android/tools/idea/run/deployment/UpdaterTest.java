@@ -185,6 +185,7 @@ public final class UpdaterTest {
       .setName("Pixel 3 API 29")
       .setKey(key2)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     List<Device> devices = Collections.singletonList(device);
@@ -223,6 +224,7 @@ public final class UpdaterTest {
       .setName("Pixel 2 API 29")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     List<Device> devices = Collections.singletonList(device);
@@ -263,6 +265,7 @@ public final class UpdaterTest {
       .setKey(deviceKey)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(snapshotKey))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
@@ -320,6 +323,7 @@ public final class UpdaterTest {
       .setName("Pixel 3 API 29")
       .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -349,6 +353,7 @@ public final class UpdaterTest {
       .setName("apiQ_64_Google")
       .setKey(new VirtualDeviceName("apiQ_64_Google"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -382,6 +387,7 @@ public final class UpdaterTest {
       .setName("Pixel 3 API 29")
       .setKey(deviceKey)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(snapshotKey))
       .build();
 
@@ -416,6 +422,7 @@ public final class UpdaterTest {
       .setName("Pixel 3 API 29")
       .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
 
@@ -445,12 +452,14 @@ public final class UpdaterTest {
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
@@ -482,6 +491,7 @@ public final class UpdaterTest {
       .setKey(key)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     List<Device> devices = Collections.singletonList(device);
@@ -513,6 +523,7 @@ public final class UpdaterTest {
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     List<Device> devices = Collections.singletonList(device);

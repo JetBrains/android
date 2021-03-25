@@ -156,8 +156,20 @@ class BuildAttributionUiAnalytics(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
   )
 
-  fun noGCSettingWarningSuppressed() =doLog(
+  fun noGCSettingWarningSuppressed() = doLog(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.CONFIGURE_GC_WARNING_SUSPEND_CLICKED)
+  )
+
+  fun runAgpUpgradeClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.UPGRADE_AGP_BUTTON_CLICKED)
+  )
+
+  fun rerunBuildWithConfCacheClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.RERUN_BUILD_WITH_CONFIGURATION_CACHE_CLICKED)
+  )
+
+  fun turnConfigurationCacheOnInPropertiesClicked() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.TURN_ON_CONFIGURATION_CACHE_IN_PROPERTIES_LINK_CLICKED)
   )
 
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(

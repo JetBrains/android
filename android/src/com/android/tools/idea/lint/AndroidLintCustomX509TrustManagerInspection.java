@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.view
+package com.android.tools.idea.lint;
 
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
-import javax.swing.JButton
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.lint.checks.X509TrustManagerDetector;
+import org.jetbrains.android.util.AndroidBundle;
 
-class NetworkInspectorTab(private val client: NetworkInspectorClient) {
-  val component = JButton("Click here")
-
-  init {
-    //component.addActionListener {
-    //  runBlocking {
-    //    component.text = client.send("Hello World!")
-    //  }
-    //}
+public class AndroidLintCustomX509TrustManagerInspection extends AndroidLintInspectionBase {
+  public AndroidLintCustomX509TrustManagerInspection() {
+    super(AndroidBundle.message("android.lint.inspections.custom.x509.trust.manager"), X509TrustManagerDetector.IMPLEMENTS_CUSTOM);
   }
 }

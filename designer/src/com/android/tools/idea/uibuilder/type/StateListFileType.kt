@@ -19,6 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
 
-object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_SELECTOR)) {
+object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_SELECTOR)) {
   override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
 }

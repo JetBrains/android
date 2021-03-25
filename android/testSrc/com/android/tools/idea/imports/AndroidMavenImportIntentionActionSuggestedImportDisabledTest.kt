@@ -34,10 +34,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], for disabling [StudioFlags.AUTO_IMPORT] specific tests.
+ * Tests for [AndroidMavenImportIntentionAction], for disabling [StudioFlags.SUGGESTED_IMPORT] specific tests.
  */
 @RunsInEdt
-class AndroidMavenImportIntentionActionAutoImportDisabledTest {
+class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -83,7 +83,7 @@ class AndroidMavenImportIntentionActionAutoImportDisabledTest {
     val element = projectRule.fixture.moveCaret("R|ecyclerView")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on com.android.support:recyclerview-v7")
+    assertThat(action.text).isEqualTo("Import and add dependency on com.android.support:recyclerview-v7")
 
     // Check corner case: if the caret is at the very end of the word, the element is the element on
     // the right. Make sure we support that one as well:
@@ -136,7 +136,7 @@ class AndroidMavenImportIntentionActionAutoImportDisabledTest {
     val element = projectRule.fixture.moveCaret("RecyclerView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on com.android.support:recyclerview-v7")
+    assertThat(action.text).isEqualTo("Import and add dependency on com.android.support:recyclerview-v7")
 
     performAndWaitForSyncEnd(projectRule) {
       action.perform(projectRule.project, projectRule.fixture.editor, element, true)

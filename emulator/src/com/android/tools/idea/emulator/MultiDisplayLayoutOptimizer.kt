@@ -84,13 +84,6 @@ class SplitNode(
   }
 }
 
-enum class SplitType {
-  /** Panels are side by side. */
-  HORIZONTAL,
-  /** One panel is above the other. */
-  VERTICAL
-}
-
 private fun computeSize(splitType: SplitType, firstChild: LayoutNode, secondChild: LayoutNode): Dimension {
   return when (splitType) {
     SplitType.HORIZONTAL -> {

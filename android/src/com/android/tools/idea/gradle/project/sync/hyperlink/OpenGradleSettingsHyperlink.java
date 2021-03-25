@@ -33,6 +33,10 @@ public class OpenGradleSettingsHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
+    showGradleSettings(project);
+  }
+
+  public static void showGradleSettings(@NotNull Project project) {
     ExternalSystemManager<?,?,?,?,?> manager = getManager(GRADLE_SYSTEM_ID);
     assert manager instanceof GradleManager;
     GradleManager gradleManager = (GradleManager)manager;

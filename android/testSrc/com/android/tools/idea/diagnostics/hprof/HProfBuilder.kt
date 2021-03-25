@@ -35,11 +35,13 @@ import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.lang.reflect.Array
 
-class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> String?)? = null) {
+class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> String?)) {
 
   private val objectToIdMap = TObjectLongHashMap<Any>(TObjectHashingStrategy.IDENTITY)
   private val stringToIdMap = TObjectLongHashMap<String>()
   private val classObjectIdToClassSerialNumber = TLongIntHashMap()
+
+  private val classToObjectWithStatics = HashMap<Class<*>, Any>()
 
   private var nextStringId = 1L
   private var nextObjectId = 1L
@@ -55,6 +57,20 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     addObject(Class::class.java)
     addObject(SoftReference::class.java)
     addObject(WeakReference::class.java)
+  }
+
+  /**
+   * Static fields are ignored when the class is added to the builder. This method allows to use instance fields of an object to
+   * act as static fields of another class.
+   *
+   * @param clazz Class for which static fields will be added
+   * @param o Object which instance fields will serve as static fields
+   */
+  fun registerStaticsForClass(clazz: Class<*>, o: Any) {
+    if (objectToIdMap.containsKey(clazz)) {
+      throw IllegalStateException("Static fields for class can only been registered before the class object is added to the builder.")
+    }
+    classToObjectWithStatics[clazz] = o
   }
 
   public val internalWriter: HprofWriter
@@ -184,6 +200,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       do {
         oClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) }.forEach { field ->
           field.isAccessible = true
+
           when (field.type) {
             java.lang.Long.TYPE -> dos.writeLong(field.getLong(o))
             Integer.TYPE -> dos.writeInt(field.getInt(o))
@@ -215,7 +232,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
   private fun addClass(id: Long, oClass: Class<*>) {
     val superClassObjectId = addObject(oClass.superclass)
 
-    val mappedClassName = classNameMapping?.let { it(oClass) } ?: oClass.name
+    val mappedClassName = classNameMapping(oClass) ?: oClass.name
     val className = mappedClassName.replace('.', '/')
     val classNameStringId = addString(className)
 
@@ -228,17 +245,16 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
     var instanceSize = 0
     val instanceFields = mutableListOf<InstanceFieldEntry>()
     oClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) }.forEach { field ->
-      field.isAccessible = true
-      when (field.type) {
-        java.lang.Long.TYPE -> instanceSize += 8
-        Integer.TYPE -> instanceSize += 4
-        Short.TYPE -> instanceSize += 2
-        Character.TYPE -> instanceSize += 2
-        Byte.TYPE -> instanceSize += 1
-        Boolean.TYPE -> instanceSize += 1
-        Double.TYPE -> instanceSize += 8
-        Float.TYPE -> instanceSize += 4
-        else -> instanceSize += idSize
+      instanceSize += when (field.type) {
+        java.lang.Long.TYPE -> 8
+        Integer.TYPE -> 4
+        Short.TYPE -> 2
+        Character.TYPE -> 2
+        Byte.TYPE -> 1
+        Boolean.TYPE -> 1
+        Double.TYPE -> 8
+        Float.TYPE -> 4
+        else -> idSize
       }
       when (field.type) {
         java.lang.Long.TYPE -> instanceFields.add(InstanceFieldEntry(addString(field.name), Type.LONG))
@@ -255,11 +271,29 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
 
     // Constants and static fields not supported yet.
     val constantPool = arrayOf<ConstantPoolEntry>()
-    val staticFields = arrayOf<StaticFieldEntry>()
+    val staticFields = mutableListOf<StaticFieldEntry>()
+
+    if (classToObjectWithStatics.contains(oClass)) {
+      val statics = classToObjectWithStatics[oClass]!!
+      statics.javaClass.declaredFields.filter { !Modifier.isStatic(it.modifiers) && Modifier.isPublic(it.modifiers) }.forEach { field ->
+        when (field.type) {
+          java.lang.Long.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.LONG, field.getLong(statics)))
+          Integer.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.INT, field.getInt(statics).toLong()))
+          Short.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.SHORT, field.getShort(statics).toLong()))
+          Character.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.CHAR, field.getChar(statics).toLong()))
+          Byte.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BYTE, field.getByte(statics).toLong()))
+          Boolean.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.BOOLEAN, if (field.getBoolean(statics)) 1 else 0))
+          Double.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.DOUBLE, field.getDouble(statics).toRawBits()))
+          Float.TYPE -> staticFields.add(StaticFieldEntry(addString(field.name), Type.FLOAT, field.getFloat(statics).toRawBits().toLong()))
+          else -> staticFields.add(StaticFieldEntry(addString(field.name), Type.OBJECT, addObject(field.get(statics))))
+        }
+      }
+    }
+
     writer.writeClassDump(id, 0, superClassObjectId, 0, 0, 0,
                           instanceSize,
                           constantPool,
-                          staticFields,
+                          staticFields.toTypedArray(),
                           instanceFields.toTypedArray())
   }
 

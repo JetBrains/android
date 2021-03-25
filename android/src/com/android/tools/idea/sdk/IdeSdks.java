@@ -46,6 +46,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
@@ -936,12 +937,44 @@ public class IdeSdks {
   }
 
   /**
-   * Creates an IntelliJ SDK for the JDK at the given location and returns it, or {@code null} if it could not be created successfully.
+   * Looks for an IntelliJ SDK for the JDK at the given location, if it does not exist then tries to create it and returns it, or
+   * {@code null} if it could not be created successfully.
    */
   @Nullable
   private Sdk createJdk(@NotNull File homeDirectory) {
+    ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+    for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
+      if (pathsEqual(jdk.getHomePath(), homeDirectory.getPath())) {
+        return jdk;
+      }
+    }
     return myJdks.createJdk(homeDirectory.getPath());
   }
+
+  @NotNull
+  public static Sdk findOrCreateJdk(@NotNull String name, @NotNull File jdkPath) {
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    Sdk existingJdk = jdkTable.findJdk(name);
+    if (existingJdk != null) {
+      String homePath = existingJdk.getHomePath();
+      if ((homePath != null) && FileUtils.isSameFile(jdkPath, new File(homePath))) {
+        // Already exists in ProjectJdkTable and points to the same path, reuse.
+        return existingJdk;
+      }
+    }
+    // Path is different, generate a new one to replace the existing JDK
+    JavaSdk javaSdkType = JavaSdk.getInstance();
+    Sdk newJdk = javaSdkType.createJdk(name, jdkPath.getAbsolutePath());
+    ApplicationManager.getApplication().runWriteAction( () -> {
+      if (existingJdk != null) {
+        jdkTable.removeJdk(existingJdk);
+      }
+      jdkTable.addJdk(newJdk);
+    });
+    return newJdk;
+  }
+
+
 
   public interface AndroidSdkEventListener {
     ExtensionPointName<AndroidSdkEventListener> EP_NAME = ExtensionPointName.create("com.android.ide.sdkEventListener");

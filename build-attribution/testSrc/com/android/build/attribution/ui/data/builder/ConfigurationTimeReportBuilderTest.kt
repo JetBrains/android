@@ -26,6 +26,8 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
   fun testConfigurationTimesReport() {
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getConfigurationPhaseTimeMs(): Long = 2000
+
       override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
         project(":app", 1000, listOf(
           plugin(pluginA, 200),
@@ -41,25 +43,25 @@ class ConfigurationTimeReportBuilderTest : AbstractBuildAttributionReportBuilder
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
-    assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(1500)
+    assertThat(report.configurationTime.totalConfigurationTime.timeMs).isEqualTo(2000)
     assertThat(report.configurationTime.projects.size).isEqualTo(2)
-    assertThat(report.configurationTime.projects[0].configurationTime).isEqualTo(TimeWithPercentage(1000, 1500))
+    assertThat(report.configurationTime.projects[0].configurationTime).isEqualTo(TimeWithPercentage(1000, 2000))
     assertThat(report.configurationTime.projects[0].project).isEqualTo(":app")
-    assertThat(report.configurationTime.projects[1].configurationTime).isEqualTo(TimeWithPercentage(500, 1500))
+    assertThat(report.configurationTime.projects[1].configurationTime).isEqualTo(TimeWithPercentage(500, 2000))
     assertThat(report.configurationTime.projects[1].project).isEqualTo(":lib")
 
     assertThat(report.configurationTime.projects[0].plugins.size).isEqualTo(3)
     assertThat(report.configurationTime.projects[0].plugins[0].pluginName).isEqualTo("pluginC")
-    assertThat(report.configurationTime.projects[0].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(700, 1500))
+    assertThat(report.configurationTime.projects[0].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(700, 2000))
     assertThat(report.configurationTime.projects[0].plugins[1].pluginName).isEqualTo("pluginA")
-    assertThat(report.configurationTime.projects[0].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 1500))
+    assertThat(report.configurationTime.projects[0].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 2000))
     assertThat(report.configurationTime.projects[0].plugins[2].pluginName).isEqualTo("pluginB")
-    assertThat(report.configurationTime.projects[0].plugins[2].configurationTime).isEqualTo(TimeWithPercentage(100, 1500))
+    assertThat(report.configurationTime.projects[0].plugins[2].configurationTime).isEqualTo(TimeWithPercentage(100, 2000))
 
     assertThat(report.configurationTime.projects[1].plugins.size).isEqualTo(2)
     assertThat(report.configurationTime.projects[1].plugins[0].pluginName).isEqualTo("com.android.library")
-    assertThat(report.configurationTime.projects[1].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(300, 1500))
+    assertThat(report.configurationTime.projects[1].plugins[0].configurationTime).isEqualTo(TimeWithPercentage(300, 2000))
     assertThat(report.configurationTime.projects[1].plugins[1].pluginName).isEqualTo("pluginA")
-    assertThat(report.configurationTime.projects[1].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 1500))
+    assertThat(report.configurationTime.projects[1].plugins[1].configurationTime).isEqualTo(TimeWithPercentage(200, 2000))
   }
 }

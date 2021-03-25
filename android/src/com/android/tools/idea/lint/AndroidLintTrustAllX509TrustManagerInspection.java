@@ -16,11 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.lint.checks.TrustAllX509TrustManagerDetector;
+import com.android.tools.lint.checks.X509TrustManagerDetector;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintTrustAllX509TrustManagerInspection extends AndroidLintInspectionBase {
   public AndroidLintTrustAllX509TrustManagerInspection() {
-    super(AndroidBundle.message("android.lint.inspections.trust.all.x509.trust.manager"), TrustAllX509TrustManagerDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.trust.all.x509.trust.manager"), X509TrustManagerDetector.TRUSTS_ALL);
   }
 }

@@ -71,7 +71,6 @@ final class ScreenRecorderTask implements Runnable {
   @Slow
   @Override
   public void run() {
-    CountDownLatch completionLatch = null;
     CollectingOutputReceiver receiver = null;
 
     EmulatorConsole console = null;
@@ -89,9 +88,8 @@ final class ScreenRecorderTask implements Runnable {
       }
     }
     else {
-      completionLatch = new CountDownLatch(1);
-      receiver = new CollectingOutputReceiver(completionLatch);
-      startDeviceRecording(receiver, completionLatch);
+      receiver = new CollectingOutputReceiver();
+      startDeviceRecording(receiver);
     }
 
     long start = System.currentTimeMillis();
@@ -107,7 +105,7 @@ final class ScreenRecorderTask implements Runnable {
     try {
       while (!stoppingLatch.await(millisUntilNextSecondTick(start), TimeUnit.MILLISECONDS) &&
              System.currentTimeMillis() - start < MAX_RECORDING_TIME_MILLIS &&
-             (completionLatch == null || completionLatch.getCount() > 0)) {
+             (receiver == null || !receiver.isComplete())) {
         EventQueue.invokeLater(() -> dialog.setRecordingTimeMillis(System.currentTimeMillis() - start));
 
         // If using emulator screen recording feature, stop the recording if the emulator dies.
@@ -122,10 +120,10 @@ final class ScreenRecorderTask implements Runnable {
 
       EventQueue.invokeLater(() -> dialog.setRecordingLabelText("Stopping..."));
 
-      stopRecording(receiver, completionLatch, console);
+      stopRecording(receiver, console);
     }
     catch (InterruptedException e) {
-      stopRecording(receiver, null, console);
+      stopRecording(receiver, console);
       throw new ProcessCanceledException();
     }
     finally {
@@ -144,7 +142,7 @@ final class ScreenRecorderTask implements Runnable {
     return 1000 - (System.currentTimeMillis() - start) % 1000;
   }
 
-  private void startDeviceRecording(@NotNull CollectingOutputReceiver receiver, @NotNull CountDownLatch completionLatch) {
+  private void startDeviceRecording(@NotNull CollectingOutputReceiver receiver) {
     // The IDevice.startScreenRecorder method is blocking, so execute it asynchronously.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       // Store the temp media file in the respective AVD folder.
@@ -152,25 +150,22 @@ final class ScreenRecorderTask implements Runnable {
         myDevice.startScreenRecorder(ScreenRecorderAction.REMOTE_PATH, myOptions, receiver);
       }
       catch (Exception e) {
-        completionLatch.countDown();
+        receiver.flush();
         EventQueue.invokeLater(() -> showError("Unexpected error while launching screen recording", e));
       }
     });
   }
 
-  private void stopRecording(@Nullable CollectingOutputReceiver receiver, @Nullable CountDownLatch completionLatch,
-                             @Nullable EmulatorConsole console) {
+  private void stopRecording(@Nullable CollectingOutputReceiver receiver, @Nullable EmulatorConsole console) {
     if (receiver != null) {
       receiver.cancel();
-      if (completionLatch != null) {
-        try {
-          // Wait for an additional second to make sure that the command
-          // completed and screen recorder finishes writing the output.
-          completionLatch.await(1, TimeUnit.SECONDS);
-        }
-        catch (InterruptedException e) {
-          throw new ProcessCanceledException();
-        }
+      try {
+        // Wait for an additional second to make sure that the command
+        // completed and screen recorder finishes writing the output.
+        receiver.awaitCompletion(1, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException e) {
+        throw new ProcessCanceledException();
       }
     }
     else if (console != null) {

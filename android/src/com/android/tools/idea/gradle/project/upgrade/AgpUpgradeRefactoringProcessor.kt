@@ -96,6 +96,7 @@ import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -748,7 +749,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
     get() {
       if (_isAlwaysNoOpForProject == null) {
-        _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
+        _isAlwaysNoOpForProject = runReadAction { computeIsAlwaysNoOpForProject() }
       }
       return _isAlwaysNoOpForProject!!
     }
@@ -799,6 +800,8 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     get() = commandName
 
   open fun getReadMoreUrl(): String? = null
+
+  open fun getShortDescription(): String? = null
 
   /**
    * Return whether this refactoring processor is known to perform no changes to the project, no matter what the settings
@@ -1311,6 +1314,13 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
 
   override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
 
+  override fun getShortDescription(): String? =
+    """
+      The default Java Language Level is now Java 8, rather than the previous
+      Java 7.  If your project requires building with Java 7, the project's
+      build files need explicit Language Level directives.
+    """.trimIndent()
+
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
 
@@ -1479,6 +1489,25 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     }
     return usages.toTypedArray()
   }
+
+  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration"
+
+  override fun getShortDescription(): String? = let {
+    val mandatory = necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
+    if (mandatory)
+      """
+        Some dependencies have been added to configurations which have been
+        removed.  Those configurations must be replaced with their updated
+        equivalents.
+      """.trimIndent()
+    else
+      """
+        Some dependencies have been added to configurations which have been
+        deprecated.  Those configurations should be replaced with their
+        updated equivalents.
+      """.trimIndent()
+  }
+
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(COMPILE_RUNTIME_CONFIGURATION)

@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ViewNodeCache
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.property.ptable2.PTableGroupModification
 import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,26 +76,55 @@ class ComposeParametersCache(
     }
   }
 
-  override fun resolve(rootId: Long, reference: ParameterReference, callback: (ParameterGroupItem?) -> Unit) {
-    val cachedParameter = lookupInCache(rootId, reference, null)
-    if (cachedParameter == null || cachedParameter.children.isNotEmpty() || !allowFetching) {
-      return callback(cachedParameter)
+  /**
+   * Resolve a [reference] found in a [ParameterGroupItem].
+   *
+   * This method is supposed to find/load child parameter information.
+   *
+   * The [reference] could be a reference to:
+   * - another [ParameterGroupItem] already in the parameter cache, if so return that parameter
+   * - reference to a parameter not retrieved from the device yet, if so load it from the device
+   *
+   * For references to List/Array we need to pay attention to [startIndex]:
+   * - if another parameter in the cache already has the requested element, return that parameter
+   * - otherwise load more child elements from the device and update the cached parameter to avoid
+   *   a later download of the same information.
+   */
+  override fun resolve(
+    rootId: Long,
+    reference: ParameterReference,
+    startIndex: Int,
+    maxElements: Int,
+    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit
+  ) {
+    val cachedParameter = lookupInCache(rootId, reference)
+    if ((cachedParameter != null && cachedParameter.lastRealChildReferenceIndex >= startIndex) || !allowFetching) {
+      return callback(cachedParameter, null)
     }
 
     CoroutineScope(Dispatchers.Unconfined).launch {
-      val parameter = withContext(AndroidDispatchers.workerThread) {
-        fetchMoreDataFor(rootId, reference, 0, MAX_INITIAL_ITERABLE_SIZE)
+      val expansion = withContext(AndroidDispatchers.workerThread) {
+        fetchMoreDataFor(rootId, reference, startIndex, maxElements)
       }
       ApplicationManager.getApplication().invokeLater {
-        if (parameter != null) {
-          lookupInCache(rootId, reference, parameter)
+        if (cachedParameter != null) {
+          val modification = expansion?.let { cachedParameter.applyReplacement(it) }
+          callback(cachedParameter, modification)
         }
-        callback(parameter)
+        else {
+          callback(expansion, null)
+        }
       }
     }
   }
 
-  private fun lookupInCache(rootId: Long, reference: ParameterReference, replacement: ParameterGroupItem?): ParameterGroupItem? {
+  /**
+   * Find a parameter from the parameter cache from a [reference].
+   *
+   * First identify the composite parameter from rootId, nodeId & parameterIndex.
+   * Then use [ParameterReference.indices] to navigate in a nested composite parameter value.
+   */
+  private fun lookupInCache(rootId: Long, reference: ParameterReference): ParameterGroupItem? {
     ApplicationManager.getApplication().assertIsDispatchThread()
     val data = getCachedDataFor(rootId, reference.nodeId) ?: return null
     if (reference.parameterIndex !in data.parameterList.indices) {
@@ -102,17 +132,12 @@ class ComposeParametersCache(
     }
     var parameter = data.parameterList[reference.parameterIndex] as? ParameterGroupItem ?: return null
     for (referenceIndex in reference.indices) {
-      var next = if (referenceIndex in parameter.children.indices) parameter.children[referenceIndex] else null
-      if (next == null || next.index != -1) {
-        val elementIndex = parameter.children.binarySearch { it.index - referenceIndex }
-        if (elementIndex < 0) {
-          return null
-        }
-        next = parameter.children[elementIndex]
+      val elementIndex = parameter.elementIndexOf(referenceIndex)
+      if (elementIndex < 0) {
+        return null
       }
-      parameter = next as? ParameterGroupItem ?: return null
+      parameter = parameter.children[elementIndex] as? ParameterGroupItem ?: return null
     }
-    replacement?.let { parameter.cloneChildrenFrom(replacement) }
     return parameter
   }
 }

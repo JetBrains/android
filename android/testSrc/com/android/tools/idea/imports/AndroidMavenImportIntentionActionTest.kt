@@ -36,7 +36,7 @@ import org.junit.runners.Parameterized
 
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], regardless of enabling or disabling [StudioFlags.AUTO_IMPORT].
+ * Tests for [AndroidMavenImportIntentionAction], regardless of enabling or disabling [StudioFlags.SUGGESTED_IMPORT].
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
@@ -83,7 +83,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("RecyclerView|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.recyclerview:recyclerview")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -125,7 +125,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("RecyclerView|()")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.recyclerview:recyclerview")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -157,7 +157,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("recyc|lerview")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.recyclerview:recyclerview")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -187,7 +187,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("recyc|lerview")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.recyclerview:recyclerview")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -214,7 +214,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("Palette|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.palette:palette-ktx")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.palette:palette-ktx")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -252,7 +252,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("Palette|")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available)
-    assertThat(action.text).isEqualTo("Add dependency on androidx.palette:palette")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.palette:palette")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
@@ -276,7 +276,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     val element = projectRule.fixture.moveCaret("Room|Database")
     val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
-    assertThat(action.text).isEqualTo("Add dependency on androidx.room:room-runtime")
+    assertThat(action.text).isEqualTo("Import and add dependency on androidx.room:room-runtime")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)

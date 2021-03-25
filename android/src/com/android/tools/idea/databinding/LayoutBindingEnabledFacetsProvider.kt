@@ -46,12 +46,13 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   private val dataBindingEnabledModules: CachedValue<List<AndroidFacet>>
   private val viewBindingEnabledModules: CachedValue<List<AndroidFacet>>
 
+  private val moduleManager get() = ModuleManager.getInstance(project)
+  private val facetManager get() = ProjectFacetManager.getInstance(project)
+  private val dataBindingTracker get() = DataBindingUtil.getDataBindingEnabledTracker()
+  private val viewBindingTracker get() = project.getViewBindingEnabledTracker()
+
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
-    val moduleManager = ModuleManager.getInstance(project)
-    val facetManager = ProjectFacetManager.getInstance(project)
-    val dataBindingTracker = DataBindingUtil.getDataBindingEnabledTracker()
-    val viewBindingTracker = project.getViewBindingEnabledTracker()
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
@@ -80,5 +81,6 @@ class LayoutBindingEnabledFacetsProvider(val project: Project) : ModificationTra
   fun getDataBindingEnabledFacets(): List<AndroidFacet> = dataBindingEnabledModules.value
   fun getViewBindingEnabledFacets(): List<AndroidFacet> = viewBindingEnabledModules.value
 
-  override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
+  override fun getModificationCount() =
+    dataBindingTracker.modificationCount + viewBindingTracker.modificationCount + moduleManager.modificationCount
 }

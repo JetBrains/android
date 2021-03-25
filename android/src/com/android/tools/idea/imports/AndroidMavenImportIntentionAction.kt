@@ -115,7 +115,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     sync: Boolean
   ) {
     val step = object : BaseListPopupStep<AutoImportVariant>(
-      AndroidBundle.message("android.add.library.dependency.title"),
+      AndroidBundle.message("android.suggested.imports.title"),
       suggestions
     ) {
       override fun getTextFor(value: AutoImportVariant): String {
@@ -193,7 +193,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     }
   }
 
-  override fun getFamilyName(): String = "Add library dependency"
+  override fun getFamilyName(): String = AndroidBundle.message("android.suggested.import.action.family.name")
 
   override fun getText(): String = intentionActionText
 
@@ -211,7 +211,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighP
     intentionActionText = if (foundLibraries.size == 1) {
       val library = foundLibraries.single()
       val artifact = resolveArtifact(project, element, library.artifact)
-      "Add dependency on ${flagPreview(artifact, library.version)}"
+      AndroidBundle.message("android.suggested.import.action.name.prefix", flagPreview(artifact, library.version))
     }
     else {
       familyName

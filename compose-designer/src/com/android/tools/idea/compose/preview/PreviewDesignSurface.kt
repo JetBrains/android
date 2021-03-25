@@ -59,6 +59,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.future.await
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction
 
@@ -111,6 +112,7 @@ internal fun createPreviewDesignSurface(
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
     .setZoomControlsPolicy(zoomControlsPolicy)
+    .disableZoomOnConfigurationChange() // Do not zoom to fit when the configurations change
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)
@@ -181,6 +183,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
   previewElementToXml: (PreviewElementInstance) -> String,
   dataContextProvider: (PreviewElementInstance) -> DataContext,
   configureLayoutlibSceneManager: (PreviewElement, LayoutlibSceneManager) -> LayoutlibSceneManager): List<PreviewElementInstance> {
+  val refreshId = if (log.isDebugEnabled) UUID.randomUUID().toString() else ""
   val stopwatch = if (log.isDebugEnabled) StopWatch() else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
   val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
@@ -195,7 +198,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
       val (previewElement, fileContents) = it
 
       if (log.isDebugEnabled) {
-        log.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
+        log.debug("""[$refreshId] Preview found at ${stopwatch?.duration?.toMillis()}ms
               displayName=${previewElement.displaySettings.name}
               methodName=${previewElement.composableMethodFqn}
 
@@ -212,7 +215,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
         // we can skip reinflate and therefore refresh much quicker
         val forceReinflate = !(affinity == 0 && quickRefresh)
 
-        log.debug("Re-using model ${reusedModel.virtualFile.name}")
+        log.debug("[$refreshId] Re-using model ${reusedModel.virtualFile.name}")
         reusedModel.updateFileContentBlocking(fileContents)
         // Reconfigure the model by setting the new display name and applying the configuration values
         reusedModel.modelDisplayName = previewElement.displaySettings.name
@@ -230,7 +233,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
       }
       else {
         val now = System.currentTimeMillis()
-        log.debug("No models to reuse were found. New model $now.")
+        log.debug("[$refreshId] No models to reuse were found. New model $now.")
         val file = ComposeAdapterLightVirtualFile("compose-model-$now.xml", fileContents) { psiFile.virtualFile }
         val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
         val newModel = NlModel.builder(facet, file, configuration)
@@ -270,7 +273,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
 
   // Remove and dispose pre-existing models that were not used.
   // This will happen if the user removes one or more previews.
-  if (log.isDebugEnabled) log.debug("Removing ${existingModels.size} model(s)")
+  if (log.isDebugEnabled) log.debug("[$refreshId] Removing ${existingModels.size} model(s)")
   existingModels.forEach {
     removeModel(it)
     Disposer.dispose(it)
@@ -292,7 +295,7 @@ internal fun NlDesignSurface.updatePreviewsAndRefresh(
   onRenderCompleted()
 
   if (log.isDebugEnabled) {
-    log.debug("Render completed in ${stopwatch?.duration?.toMillis()}ms")
+    log.debug("[$refreshId] Render completed in ${stopwatch?.duration?.toMillis()}ms")
     logSurfaceStatus(log)
   }
 

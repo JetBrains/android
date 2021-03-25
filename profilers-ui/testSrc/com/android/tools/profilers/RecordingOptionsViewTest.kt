@@ -156,6 +156,22 @@ class RecordingOptionsViewTest(configs: Array<RecordingOption>, editAction: ((Mu
       startStopButton.doClick()
       checkEnabledSameBeforeAfter()
     }
+    model.apply{
+      setOptionNotReady(model.builtInOptions[0], "not ready yet")
+      checkEnabledSameBeforeAfter()
+      setOptionReady(model.builtInOptions[0])
+      checkEnabledSameBeforeAfter()
+    }
+  }
+
+  @Test
+  fun `unready option disabled`() {
+    model.setOptionNotReady(model.builtInOptions[0], "not ready")
+    assertThat(view.allRadios[0].isEnabled).isFalse()
+    assertThat(view.allRadios[0].toolTipText).isNotEmpty()
+    model.setOptionReady(model.builtInOptions[0])
+    assertThat(view.allRadios[0].isEnabled).isTrue()
+    assertThat(view.allRadios[0].toolTipText).isNull()
   }
 
   private fun checkEnabledSameBeforeAfter() {

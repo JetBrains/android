@@ -20,6 +20,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
@@ -28,6 +29,7 @@ import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
@@ -41,6 +43,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
@@ -112,7 +116,7 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void referenceToTraceFilesAreSavedPerSession() {
+  public void referenceToTraceFilesAreSavedPerSession() throws IOException {
     myCpuProfiler = new CpuProfiler(myProfilers);
     File trace1 = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -125,8 +129,25 @@ public final class CpuProfilerTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session2 = sessionsManager.getSelectedSession();
 
-    assertThat(myCpuProfiler.getTraceFile(session1)).isEqualTo(trace1);
-    assertThat(myCpuProfiler.getTraceFile(session2)).isEqualTo(trace2);
+    // Session 1 references trace 1.
+    ByteString session1Bytes = myProfilers.getClient().getTransportClient().getBytes(
+      Transport.BytesRequest.newBuilder()
+        .setStreamId(session1.getStreamId())
+        .setId(String.valueOf(session1.getStartTimestamp()))
+        .build()
+    ).getContents();
+    ByteString trace1Bytes = ByteString.copyFrom(Files.readAllBytes(trace1.toPath()));
+    assertThat(session1Bytes).isEqualTo(trace1Bytes);
+
+    // Session 2 references trace 2.
+    ByteString session2Bytes = myProfilers.getClient().getTransportClient().getBytes(
+      Transport.BytesRequest.newBuilder()
+        .setStreamId(session2.getStreamId())
+        .setId(String.valueOf(session2.getStartTimestamp()))
+        .build()
+    ).getContents();
+    ByteString trace2Bytes = ByteString.copyFrom(Files.readAllBytes(trace2.toPath()));
+    assertThat(session2Bytes).isEqualTo(trace2Bytes);
   }
 
   @Test

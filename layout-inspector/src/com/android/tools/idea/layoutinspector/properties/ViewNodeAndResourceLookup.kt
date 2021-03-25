@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterReference
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.property.ptable2.PTableGroupModification
 
 /**
  * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].
@@ -48,7 +49,11 @@ interface ViewNodeAndResourceLookup {
   /**
    * Perform a lookup of a compose parameter item given a parameter reference
    *
+   * @param callback containing a [ParameterGroupItem] with the wanted child elements
+   * and the [PTableGroupModification] performed on that [ParameterGroupItem] to retrieve those child elements.
+   *
    * TODO: b/182196505 we should split out view PropertyItems and Compose ParameterItems.
    */
-  fun resolve(rootId: Long, reference: ParameterReference, callback: (ParameterGroupItem?) -> Unit) {}
+  fun resolve(rootId: Long, reference: ParameterReference, startIndex: Int, maxElements: Int,
+              callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit) {}
 }

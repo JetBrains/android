@@ -15,49 +15,36 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.AndroidProjectTypes
-import com.android.builder.model.AndroidArtifact
-import com.android.builder.model.AndroidArtifactOutput
-import com.android.builder.model.AndroidGradlePluginProjectFlags
-import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
-import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
-import com.android.builder.model.BuildTypeContainer
-import com.android.builder.model.Dependencies
-import com.android.builder.model.DependenciesInfo
-import com.android.builder.model.JavaArtifact
-import com.android.builder.model.JavaLibrary
-import com.android.builder.model.ProductFlavorContainer
-import com.android.builder.model.SourceProvider
-import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.ViewBindingOptions
-import com.android.tools.idea.gradle.project.model.ModelCache
-import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
-import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
-import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
-import com.android.ide.common.gradle.model.stubs.AndroidLibraryStub
-import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
-import com.android.ide.common.gradle.model.stubs.ApiVersionStub
-import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
-import com.android.ide.common.gradle.model.stubs.BuildTypeStub
-import com.android.ide.common.gradle.model.stubs.DependenciesInfoStub
-import com.android.ide.common.gradle.model.stubs.DependenciesStub
-import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
-import com.android.ide.common.gradle.model.stubs.InstantRunStub
-import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
-import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
-import com.android.ide.common.gradle.model.stubs.LintOptionsStub
-import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
-import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
-import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
-import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub
-import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
-import com.android.ide.common.gradle.model.stubs.VariantStub
-import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.model.IdeAaptOptions
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.ide.common.gradle.model.IdeArtifactName
+import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
+import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
+import com.android.ide.common.gradle.model.impl.IdeDependenciesInfoImpl
+import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
+import com.android.ide.common.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
+import com.android.ide.common.gradle.model.impl.IdeVariantBuildInformationImpl
+import com.android.ide.common.gradle.model.impl.IdeVariantImpl
+import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
+import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
@@ -135,7 +122,7 @@ import java.io.File
 import java.io.IOException
 import java.util.function.Consumer
 
-typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
+typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> Pair<IdeAndroidProjectImpl, Collection<IdeVariantImpl>>
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
@@ -147,8 +134,8 @@ data class AndroidModuleModelBuilder(
   override val gradlePath: String,
   override val gradleVersion: String? = null,
   override val agpVersion: String? = null,
-  val selectedBuildVariant: String,
-  val projectBuilder: AndroidProjectBuilderCore
+  val projectBuilder: AndroidProjectBuilderCore,
+  val selectedBuildVariant: String
 ) : ModuleModelBuilder() {
   constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
     : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
@@ -160,7 +147,7 @@ data class AndroidModuleModelBuilder(
     selectedBuildVariant: String,
     projectBuilder: AndroidProjectBuilder
   )
-    : this(gradlePath, gradleVersion, agpVersion, selectedBuildVariant, projectBuilder.build())
+    : this(gradlePath, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant)
 }
 
 data class JavaModuleModelBuilder(
@@ -190,28 +177,29 @@ interface AndroidProjectStubBuilder {
   val projectName: String
   val basePath: File
   val buildPath: File
-  val projectType: Int
+  val projectType: IdeAndroidProjectType
   val minSdk: Int
   val targetSdk: Int
   val mlModelBindingEnabled: Boolean
-  val agpProjectFlags: AndroidGradlePluginProjectFlags
-  val mainSourceProvider: SourceProvider
-  val androidTestSourceProviderContainer: SourceProviderContainer?
-  val unitTestSourceProviderContainer: SourceProviderContainer?
-  val debugSourceProvider: SourceProvider?
-  val releaseSourceProvider: SourceProvider?
-  val defaultConfig: ProductFlavorContainer
-  val debugBuildType: BuildTypeContainer?
-  val releaseBuildType: BuildTypeContainer?
+  val agpProjectFlags: IdeAndroidGradlePluginProjectFlagsImpl
+  val mainSourceProvider: IdeSourceProviderImpl
+  val androidTestSourceProviderContainer: IdeSourceProviderContainerImpl?
+  val unitTestSourceProviderContainer: IdeSourceProviderContainerImpl?
+  val debugSourceProvider: IdeSourceProviderImpl?
+  val releaseSourceProvider: IdeSourceProviderImpl?
+  val defaultConfig: IdeProductFlavorContainerImpl
+  val debugBuildType: IdeBuildTypeContainerImpl?
+  val releaseBuildType: IdeBuildTypeContainerImpl?
   val dynamicFeatures: List<String>
-  val viewBindingOptions: ViewBindingOptions
-  val dependenciesInfo: DependenciesInfo
+  val viewBindingOptions: IdeViewBindingOptionsImpl
+  val dependenciesInfo: IdeDependenciesInfoImpl
   val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
-  fun mainArtifact(variant: String): AndroidArtifact
-  fun androidTestArtifact(variant: String): AndroidArtifact
-  fun unitTestArtifact(variant: String): JavaArtifact
-  val androidProject: AndroidProject
+  fun mainArtifact(variant: String): IdeAndroidArtifactImpl
+  fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl
+  fun unitTestArtifact(variant: String): IdeJavaArtifactImpl
+  val androidProject: IdeAndroidProjectImpl
+  val variants: List<IdeVariantImpl>
 }
 
 /**
@@ -224,36 +212,37 @@ interface AndroidProjectStubBuilder {
  */
 data class AndroidProjectBuilder(
   val buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
-  val projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
+  val projectType: AndroidProjectStubBuilder.() -> IdeAndroidProjectType = { IdeAndroidProjectType.PROJECT_TYPE_APP },
   val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
   val mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean = { false },
-  val agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags = { buildAgpProjectFlagsStub() },
-  val defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
-  val mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
-  val androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
-  val unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
-  val debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
-  val releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
-  val debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
-  val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
+  val agpProjectFlags: AndroidProjectStubBuilder.() -> IdeAndroidGradlePluginProjectFlagsImpl = { buildAgpProjectFlagsStub() },
+  val defaultConfig: AndroidProjectStubBuilder.() -> IdeProductFlavorContainerImpl = { buildDefaultConfigStub() },
+  val mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl = { buildMainSourceProviderStub() },
+  val androidTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl? = { buildAndroidTestSourceProviderContainerStub() },
+  val unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl? = { buildUnitTestSourceProviderContainerStub() },
+  val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildDebugSourceProviderStub() },
+  val releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildReleaseSourceProviderStub() },
+  val debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildDebugBuildTypeStub() },
+  val releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl? = { buildReleaseBuildTypeStub() },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
-  val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
-  val dependenciesInfo: AndroidProjectStubBuilder.() -> DependenciesInfoStub = { buildDependenciesInfo() },
+  val viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl = { buildViewBindingOptions() },
+  val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
-  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
-  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
+  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl = { variant -> buildMainArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl =
     { variant -> buildAndroidTestArtifactStub(variant) },
-  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub =
+  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl =
     { variant -> buildUnitTestArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
-  val androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
+  val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
+  val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
 ) {
 
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
 
-  fun withProjectType(projectType: AndroidProjectStubBuilder.() -> Int) =
+  fun withProjectType(projectType: AndroidProjectStubBuilder.() -> IdeAndroidProjectType) =
     copy(projectType = projectType)
 
   fun withMinSdk(minSdk: AndroidProjectStubBuilder.() -> Int) =
@@ -265,95 +254,96 @@ data class AndroidProjectBuilder(
   fun withMlModelBindingEnabled(mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean) =
     copy(mlModelBindingEnabled = mlModelBindingEnabled)
 
-  fun withAgpProjectFlags(agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags) =
+  fun withAgpProjectFlags(agpProjectFlags: AndroidProjectStubBuilder.() -> IdeAndroidGradlePluginProjectFlagsImpl) =
     copy(agpProjectFlags = agpProjectFlags)
 
-  fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
+  fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> IdeProductFlavorContainerImpl) =
     copy(defaultConfig = defaultConfig)
 
-  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub) =
+  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl) =
     copy(mainSourceProvider = mainSourceProvider)
 
-  fun withAndroidTestSourceProvider(androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+  fun withAndroidTestSourceProvider(androidTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl?) =
     copy(androidTestSourceProvider = androidTestSourceProvider)
 
-  fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+  fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderContainerImpl?) =
     copy(unitTestSourceProvider = unitTestSourceProvider)
 
-  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
     copy(debugSourceProvider = debugSourceProvider)
 
-  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
     copy(releaseSourceProvider = releaseSourceProvider)
 
-  fun withDebugBuildType(debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+  fun withDebugBuildType(debugBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl?) =
     copy(debugBuildType = debugBuildType)
 
-  fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+  fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> IdeBuildTypeContainerImpl?) =
     copy(releaseBuildType = releaseBuildType)
 
   fun withDynamicFeatures(dynamicFeatures: AndroidProjectStubBuilder.() -> List<String>) =
     copy(dynamicFeatures = dynamicFeatures)
 
-  fun withViewBindingOptions(viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub) =
+  fun withViewBindingOptions(viewBindingOptions: AndroidProjectStubBuilder.() -> IdeViewBindingOptionsImpl) =
     copy(viewBindingOptions = viewBindingOptions)
 
   fun withSupportsBundleTask(supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean) =
     copy(supportsBundleTask = supportsBundleTask)
 
-  fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+  fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl) =
     copy(mainArtifactStub = mainArtifactStub)
 
-  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactImpl) =
     copy(androidTestArtifactStub = androidTestArtifactStub)
 
-  fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub) =
+  fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl) =
     copy(unitTestArtifactStub = unitTestArtifactStub)
 
   fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
     copy(androidModuleDependencyList = androidModuleDependencyList)
 
-  fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> AndroidProject) =
+  fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
     copy(androidProject = androidProject)
 
 
-  fun build(): AndroidProjectBuilderCore = { projectName, basePath, agpVersion ->
+  fun build(): AndroidProjectBuilderCore = fun(projectName: String, basePath: File, agpVersion: String) : Pair<IdeAndroidProjectImpl, Collection<IdeVariantImpl>> {
     val builder = object : AndroidProjectStubBuilder {
       override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
       override val projectName: String = projectName
       override val basePath: File = basePath
       override val buildPath: File get() = basePath.resolve("build")
-      override val projectType: Int get() = projectType()
+      override val projectType: IdeAndroidProjectType get() = projectType()
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
       override val mlModelBindingEnabled: Boolean get() = mlModelBindingEnabled()
-      override val agpProjectFlags: AndroidGradlePluginProjectFlags get() = agpProjectFlags()
-      override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
-      override val androidTestSourceProviderContainer: SourceProviderContainer? get() = androidTestSourceProvider()
-      override val unitTestSourceProviderContainer: SourceProviderContainer? get() = unitTestSourceProvider()
-      override val debugSourceProvider: SourceProvider? get() = debugSourceProvider()
-      override val releaseSourceProvider: SourceProvider? get() = releaseSourceProvider()
-      override val defaultConfig: ProductFlavorContainer = defaultConfig()
-      override val debugBuildType: BuildTypeContainer? = debugBuildType()
-      override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
+      override val agpProjectFlags: IdeAndroidGradlePluginProjectFlagsImpl get() = agpProjectFlags()
+      override val mainSourceProvider: IdeSourceProviderImpl get() = mainSourceProvider()
+      override val androidTestSourceProviderContainer: IdeSourceProviderContainerImpl? get() = androidTestSourceProvider()
+      override val unitTestSourceProviderContainer: IdeSourceProviderContainerImpl? get() = unitTestSourceProvider()
+      override val debugSourceProvider: IdeSourceProviderImpl? get() = debugSourceProvider()
+      override val releaseSourceProvider: IdeSourceProviderImpl? get() = releaseSourceProvider()
+      override val defaultConfig: IdeProductFlavorContainerImpl = defaultConfig()
+      override val debugBuildType: IdeBuildTypeContainerImpl? = debugBuildType()
+      override val releaseBuildType: IdeBuildTypeContainerImpl? = releaseBuildType()
       override val dynamicFeatures: List<String> = dynamicFeatures()
-      override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
-      override val dependenciesInfo: DependenciesInfo = dependenciesInfo()
+      override val viewBindingOptions: IdeViewBindingOptionsImpl = viewBindingOptions()
+      override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
       override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
-      override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
-      override fun androidTestArtifact(variant: String): AndroidArtifact = androidTestArtifactStub(variant)
-      override fun unitTestArtifact(variant: String): JavaArtifact = unitTestArtifactStub(variant)
-      override val androidProject: AndroidProject = androidProject()
+      override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
+      override fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl = androidTestArtifactStub(variant)
+      override fun unitTestArtifact(variant: String): IdeJavaArtifactImpl = unitTestArtifactStub(variant)
+      override val variants: List<IdeVariantImpl> = variants()
+      override val androidProject: IdeAndroidProjectImpl = androidProject()
     }
-    builder.androidProject
+    return builder.androidProject to builder.variants
   }
 }
 
 @JvmOverloads
 fun createAndroidProjectBuilderForDefaultTestProjectStructure(
-  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP
+  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP
 ): AndroidProjectBuilder =
   AndroidProjectBuilder(
     projectType = { projectType },
@@ -364,301 +354,344 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     unitTestSourceProvider = { null },
     releaseSourceProvider = { null }
   )
-fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): SourceProviderStub {
-  return SourceProviderStub(
-    ARTIFACT_NAME_MAIN,
-    File(basePath, "AndroidManifest.xml"),
-    listOf(File(basePath, "src")),
-    listOf(File(basePath, "srcKotlin")),
-    emptyList(),
-    emptyList(),
-    emptyList(),
-    listOf(File(basePath, "res")),
-    emptyList(),
-    emptyList(),
-    emptyList(),
-    emptyList())
+
+fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): IdeSourceProviderImpl {
+  return IdeSourceProviderImpl(
+    myName = ARTIFACT_NAME_MAIN,
+    myFolder = basePath,
+    myManifestFile = "AndroidManifest.xml",
+    myJavaDirectories = listOf("src"),
+    myKotlinDirectories = listOf("srcKotlin"),
+    myResourcesDirectories = emptyList(),
+    myAidlDirectories = emptyList(),
+    myRenderscriptDirectories = emptyList(),
+    myResDirectories = listOf("res"),
+    myAssetsDirectories = emptyList(),
+    myJniLibsDirectories = emptyList(),
+    myMlModelsDirectories = emptyList(),
+    myShadersDirectories = emptyList()
+  )
 }
 
-fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
-  SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
+fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
+  sourceProvider(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"))
 
-fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub() =
-  SourceProviderContainerStub(
-    ARTIFACT_NAME_ANDROID_TEST,
-    SourceProviderStub(ARTIFACT_NAME_ANDROID_TEST, basePath.resolve("src/androidTest"), "AndroidManifest.xml"))
+fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
+  IdeSourceProviderContainerImpl(
+    artifactName = ARTIFACT_NAME_ANDROID_TEST,
+    sourceProvider = sourceProvider(ARTIFACT_NAME_ANDROID_TEST, basePath.resolve("src/androidTest")))
 
-fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub() =
-  SourceProviderContainerStub(
-    ARTIFACT_NAME_UNIT_TEST,
-    SourceProviderStub(ARTIFACT_NAME_UNIT_TEST, basePath.resolve("src/test"), "AndroidManifest.xml"))
+fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeSourceProviderContainerImpl =
+  IdeSourceProviderContainerImpl(
+    artifactName = ARTIFACT_NAME_UNIT_TEST,
+    sourceProvider = sourceProvider(ARTIFACT_NAME_UNIT_TEST, basePath.resolve("src/test")))
 
-fun AndroidProjectStubBuilder.buildDebugSourceProviderStub() =
-  SourceProviderStub("debug", basePath.resolve("src/debug"), "AndroidManifest.xml")
+fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
+  sourceProvider("debug", basePath.resolve("src/debug"))
 
-fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub() =
-  SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml")
+fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub(): IdeSourceProviderImpl =
+  sourceProvider("release", basePath.resolve("src/release"))
 
-fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub() =
-  AndroidGradlePluginProjectFlagsStub(mapOf(ML_MODEL_BINDING to mlModelBindingEnabled))
-
-fun AndroidProjectStubBuilder.buildDefaultConfigStub() = ProductFlavorContainerStub(
-  ProductFlavorStub(
-    mapOf(),
-    listOf(),
-    VectorDrawablesOptionsStub(),
-    null,
-    null,
-    12,
-    "2.0",
-    ApiVersionStub("$minSdk", null, minSdk),
-    ApiVersionStub("$targetSdk", null, targetSdk),
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    "android.test.InstrumentationTestRunner",
-    null,
-    null,
-    null,
-    null
-  ),
-  mainSourceProvider,
-  listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
+private fun sourceProvider(name: String, rootDir: File): IdeSourceProviderImpl = IdeSourceProviderImpl(
+  myName = name,
+  myFolder = rootDir,
+  myManifestFile = "AndroidManifest.xml",
+  myJavaDirectories = listOf("java"),
+  myKotlinDirectories = listOf("kotlin"),
+  myResourcesDirectories = listOf("resources"),
+  myAidlDirectories = listOf("aidl"),
+  myRenderscriptDirectories = listOf("renderscript"),
+  myResDirectories = listOf("res"),
+  myAssetsDirectories = listOf("assets"),
+  myJniLibsDirectories = listOf("jniLibs"),
+  myMlModelsDirectories = listOf("ml"),
+  myShadersDirectories = listOf("shaders")
 )
 
-fun AndroidProjectStubBuilder.buildDebugBuildTypeStub() = debugSourceProvider?.let { debugSourceProvider ->
-  BuildTypeContainerStub(
-    BuildTypeStub(
-      debugSourceProvider.name, mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null, null,
-      true, true, true, 1, false, true),
-    debugSourceProvider,
-    listOf())
-}
+fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePluginProjectFlagsImpl =
+  IdeAndroidGradlePluginProjectFlagsImpl(
+    applicationRClassConstantIds = true,
+    testRClassConstantIds = true,
+    transitiveRClasses = true,
+    usesCompose = false,
+    mlModelBindingEnabled = mlModelBindingEnabled
+  )
 
-fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvider?.let { releaseSourceProvider ->
-  BuildTypeContainerStub(
-    BuildTypeStub(
-      releaseSourceProvider.name, mapOf(), mapOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), null, null, null, null,
-      null, false, false, false, 1, true, true),
-    releaseSourceProvider,
-    listOf())
-}
+fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
+  productFlavor = IdeProductFlavorImpl(
+    testInstrumentationRunnerArguments = mapOf(),
+    resourceConfigurations = listOf(),
+    vectorDrawables = IdeVectorDrawablesOptionsImpl(useSupportLibrary = true),
+    dimension = null,
+    applicationId = null,
+    versionCode = 12,
+    versionName = "2.0",
+    minSdkVersion = IdeApiVersionImpl(minSdk, null, "$minSdk"),
+    targetSdkVersion = IdeApiVersionImpl(targetSdk, null, "$targetSdk"),
+    maxSdkVersion = null,
+    testApplicationId = null,
+    testInstrumentationRunner = "android.test.InstrumentationTestRunner",
+    testHandleProfiling = null,
+    testFunctionalTest = null,
+    applicationIdSuffix = null,
+    consumerProguardFiles = emptyList(),
+    manifestPlaceholders = emptyMap(),
+    multiDexEnabled = null,
+    name = "default",
+    proguardFiles = emptyList(),
+    resValues = emptyMap(),
+    versionNameSuffix = null
+  ),
+  sourceProvider = mainSourceProvider,
+  extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
+)
 
-fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
-fun AndroidProjectStubBuilder.buildDependenciesInfo() = DependenciesInfoStub()
+fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerImpl? =
+  debugSourceProvider?.let { debugSourceProvider ->
+    IdeBuildTypeContainerImpl(
+      IdeBuildTypeImpl(
+        name = debugSourceProvider.name,
+        resValues = mapOf(),
+        proguardFiles = listOf(),
+        consumerProguardFiles = listOf(),
+        manifestPlaceholders = mapOf(),
+        applicationIdSuffix = null,
+        versionNameSuffix = null,
+        multiDexEnabled = null,
+        isDebuggable = true,
+        isJniDebuggable = true,
+        isRenderscriptDebuggable = true,
+        renderscriptOptimLevel = 1,
+        isMinifyEnabled = false,
+        isZipAlignEnabled = true
+      ),
+      debugSourceProvider,
+      listOf()
+    )
+  }
+
+fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub(): IdeBuildTypeContainerImpl? =
+  releaseSourceProvider?.let { releaseSourceProvider ->
+    IdeBuildTypeContainerImpl(
+      buildType = IdeBuildTypeImpl(
+        name = releaseSourceProvider.name,
+        resValues = mapOf(),
+        proguardFiles = listOf(),
+        consumerProguardFiles = listOf(),
+        manifestPlaceholders = mapOf(),
+        applicationIdSuffix = null,
+        versionNameSuffix = null,
+        multiDexEnabled = null,
+        isDebuggable = false,
+        isJniDebuggable = false,
+        isRenderscriptDebuggable = false,
+        renderscriptOptimLevel = 1,
+        isMinifyEnabled = true,
+        isZipAlignEnabled = true
+      ),
+      sourceProvider = releaseSourceProvider,
+      extraSourceProviders = listOf())
+  }
+
+fun AndroidProjectStubBuilder.buildViewBindingOptions(): IdeViewBindingOptionsImpl = IdeViewBindingOptionsImpl(enabled = false)
+fun AndroidProjectStubBuilder.buildDependenciesInfo(): IdeDependenciesInfoImpl =
+  IdeDependenciesInfoImpl(includeInApk = true, includeInBundle = true)
 
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
   classFolders: Set<File> = setOf()
-): AndroidArtifactStub {
+): IdeAndroidArtifactImpl {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
   val dependenciesStub = buildDependenciesStub(
-    libraries = androidModuleDependencies.map {
-      AndroidLibraryStub(
-        MavenCoordinatesStub("artifacts", it.moduleGradlePath, "unspecificed", "jar"),
-        this.buildId,
-        it.moduleGradlePath,
-        "artifacts:${it.moduleGradlePath}:unspecified@jar",
-        false,
-        false,
-        File("stub_bundle.jar"),
-        File("stub_folder"),
-        emptyList(),
-        emptyList(),
-        File("stub_AndroidManifest.xml"),
-        File("stub_jarFile.jar"),
-        File("stub_compileJarFile.jar"),
-        File("stub_resFolder"),
-        File("stub_resStaticLibrary"),
-        File("stub_assetsFolder"),
-        it.variant,
-        emptyList(),
-        File("stub_proguard.txt"),
-        File("stub_lintJar.jar"),
-        File("stub_publicResources"),
-        File("stub_symbolFile.txt"),
-        File("stub_annotations.zip")
+    projects = androidModuleDependencies.map {
+      IdeModuleLibraryImpl(
+        projectPath = it.moduleGradlePath,
+        artifactAddress = "artifacts:${it.moduleGradlePath}:unspecified@jar",
+        buildId = this.buildId,
+        variant = it.variant
       )
     }
   )
-  return AndroidArtifactStub(
-    ARTIFACT_NAME_MAIN,
-    "compile".appendCapitalized(variant).appendCapitalized("sources"),
-    "assemble".appendCapitalized(variant),
-    buildPath.resolve("output/apk/$variant/output.json"),
-    buildPath.resolve("intermediates/javac/$variant/classes"),
-    classFolders,
-    buildPath.resolve("intermediates/java_res/$variant/out"),
-    dependenciesStub,
-    dependenciesStub,
-    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf("ideSetupTask1", "ideSetupTask2"),
-    setOf(),
-    null,
-    null,
-    listOf<AndroidArtifactOutput>(),
-    "applicationId",
-    "generate".appendCapitalized(variant).appendCapitalized("sources"),
-    mapOf(),
-    mapOf(),
-    InstantRunStub(),
-    "defaultConfig",
-    null,
-    listOf(),
-    null,
-    null,
-    "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
-    buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
-    "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
-    buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
-    null,
-    false
+  val assembleTaskName = "assemble".appendCapitalized(variant)
+  return IdeAndroidArtifactImpl(
+    name = IdeArtifactName.MAIN,
+    compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("sources"),
+    assembleTaskName = assembleTaskName,
+    classesFolder = buildPath.resolve("intermediates/javac/$variant/classes"),
+    additionalClassesFolders = classFolders,
+    javaResourcesFolder = buildPath.resolve("intermediates/java_res/$variant/out"),
+    variantSourceProvider = null,
+    multiFlavorSourceProvider = null,
+    ideSetupTaskNames = setOf("ideSetupTask1", "ideSetupTask2"),
+    mutableGeneratedSourceFolders = mutableListOf(),
+    isTestArtifact = false,
+    level2Dependencies = dependenciesStub,
+    applicationId = "applicationId",
+    signingConfigName = "defaultConfig",
+    outputs = listOf<IdeAndroidArtifactOutputImpl>(),
+    isSigned = false,
+    generatedResourceFolders = listOf(),
+    additionalRuntimeApks = listOf(),
+    testOptions = null,
+    abiFilters = setOf(),
+    buildInformation = IdeBuildTasksAndOutputInformationImpl(
+      assembleTaskName = assembleTaskName,
+      assembleTaskOutputListingFile = buildPath.resolve("output/apk/$variant/output.json").path,
+      bundleTaskName = "bundle".takeIf { supportsBundleTask && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+      bundleTaskOutputListingFile = buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json").path,
+      apkFromBundleTaskName = "extractApksFor".takeIf { projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+      apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
+    ),
+    codeShrinker = null,
   )
 }
 
 fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
   variant: String,
   classFolders: Set<File> = setOf()
-): AndroidArtifactStub {
+): IdeAndroidArtifactImpl {
   val dependenciesStub = buildDependenciesStub()
-  return AndroidArtifactStub(
-    ARTIFACT_NAME_ANDROID_TEST,
-    "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
-    "assemble".appendCapitalized(variant).appendCapitalized("androidTest"),
-    buildPath.resolve("output/apk/$variant/output.json"),
-    buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
-    classFolders,
-    buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
-    dependenciesStub,
-    dependenciesStub,
-    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
-    setOf(),
-    null,
-    null,
-    listOf(),
-    "applicationId",
-    "generate".appendCapitalized(variant).appendCapitalized("androidTestSources"),
-    mapOf(),
-    mapOf(),
-    InstantRunStub(),
-    "defaultConfig",
-    null,
-    listOf(),
-    null,
-    null,
-    "bundle"
-      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
-    buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
-    "extractApksFor"
-      .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
-    buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
-    null,
-    false
+  val assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("androidTest")
+  return IdeAndroidArtifactImpl(
+    name = IdeArtifactName.ANDROID_TEST,
+    compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("androidTestSources"),
+    assembleTaskName = assembleTaskName,
+    classesFolder = buildPath.resolve("intermediates/javac/${variant}AndroidTest/classes"),
+    additionalClassesFolders = classFolders,
+    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}AndroidTest/out"),
+    variantSourceProvider = null,
+    multiFlavorSourceProvider = null,
+    ideSetupTaskNames = setOf("ideAndroidTestSetupTask1", "ideAndroidTestSetupTask2"),
+    mutableGeneratedSourceFolders = mutableListOf(),
+    isTestArtifact = false,
+    level2Dependencies = dependenciesStub,
+    applicationId = "applicationId",
+    signingConfigName = "defaultConfig",
+    outputs = listOf<IdeAndroidArtifactOutputImpl>(),
+    isSigned = false,
+    generatedResourceFolders = listOf(),
+    additionalRuntimeApks = listOf(),
+    testOptions = null,
+    abiFilters = setOf(),
+    buildInformation = IdeBuildTasksAndOutputInformationImpl(
+      assembleTaskName = assembleTaskName,
+      assembleTaskOutputListingFile = buildPath.resolve("output/apk/$variant/output.json").path,
+      bundleTaskName = "bundle".takeIf { supportsBundleTask && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+      bundleTaskOutputListingFile = buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json").path,
+      apkFromBundleTaskName = "extractApksFor".takeIf { projectType == IdeAndroidProjectType.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+      apkFromBundleTaskOutputListingFile = buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json").path
+    ),
+    codeShrinker = null,
   )
 }
 
 fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
   variant: String,
   classFolders: Set<File> = setOf(),
-  dependencies: Dependencies = buildDependenciesStub(),
+  dependencies: IdeDependenciesImpl = buildDependenciesStub(),
   mockablePlatformJar: File? = null
-): JavaArtifactStub {
-  return JavaArtifactStub(
-    ARTIFACT_NAME_UNIT_TEST,
-    "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
-    "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
-    buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
-    classFolders,
-    buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
-    dependencies,
-    dependencies,
-    DependencyGraphsStub(listOf(), listOf(), listOf(), listOf()),
-    setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
-    setOf(),
-    null,
-    null,
-    mockablePlatformJar
+): IdeJavaArtifactImpl {
+  return IdeJavaArtifactImpl(
+    name = IdeArtifactName.UNIT_TEST,
+    compileTaskName = "compile".appendCapitalized(variant).appendCapitalized("unitTestSources"),
+    assembleTaskName = "assemble".appendCapitalized(variant).appendCapitalized("unitTest"),
+    classesFolder = buildPath.resolve("intermediates/javac/${variant}UnitTest/classes"),
+    additionalClassesFolders = classFolders,
+    javaResourcesFolder = buildPath.resolve("intermediates/java_res/${variant}UnitTest/out"),
+    variantSourceProvider = null,
+    multiFlavorSourceProvider = null,
+    ideSetupTaskNames = setOf("ideUnitTestSetupTask1", "ideUnitTestSetupTask2"),
+    mutableGeneratedSourceFolders = mutableListOf(),
+    isTestArtifact = true,
+    level2Dependencies = dependencies,
+    mockablePlatformJar = mockablePlatformJar
   )
 }
 
-fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
+fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantImpl> {
+  return listOfNotNull(debugBuildType, releaseBuildType)
+    .map {
+      val buildType = it.buildType
+      val variant = buildType.name
+      IdeVariantImpl(
+        variant,
+        variant,
+        mainArtifact(variant),
+        unitTestArtifact(variant),
+        androidTestArtifact(variant),
+        variant,
+        listOf(),
+        minSdkVersion = defaultConfig.productFlavor.minSdkVersion,
+        targetSdkVersion = defaultConfig.productFlavor.targetSdkVersion,
+        maxSdkVersion = defaultConfig.productFlavor.maxSdkVersion,
+        versionCode = defaultConfig.productFlavor.versionCode,
+        instantAppCompatible = false,
+        versionNameSuffix = buildType.versionNameSuffix,
+        versionNameWithSuffix = defaultConfig.productFlavor.versionName + defaultConfig.productFlavor.versionNameSuffix.orEmpty() + buildType.versionNameSuffix.orEmpty(),
+        vectorDrawablesUseSupportLibrary = defaultConfig.productFlavor.vectorDrawables?.useSupportLibrary ?: false,
+        resourceConfigurations = defaultConfig.productFlavor.resourceConfigurations,
+        resValues = defaultConfig.productFlavor.resValues,
+        proguardFiles = defaultConfig.productFlavor.proguardFiles + buildType.proguardFiles,
+        consumerProguardFiles = defaultConfig.productFlavor.consumerProguardFiles + buildType.consumerProguardFiles,
+        manifestPlaceholders = defaultConfig.productFlavor.manifestPlaceholders + buildType.manifestPlaceholders,
+        testApplicationId = defaultConfig.productFlavor.testApplicationId,
+        testInstrumentationRunner = defaultConfig.productFlavor.testInstrumentationRunner,
+        testInstrumentationRunnerArguments = defaultConfig.productFlavor.testInstrumentationRunnerArguments,
+        testedTargetVariants = listOf(),
+        deprecatedPreMergedApplicationId = defaultConfig.productFlavor.applicationId + defaultConfig.productFlavor.applicationIdSuffix.orEmpty() + buildType.applicationIdSuffix.orEmpty(),
+      )
+    }
+}
+
+fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val debugBuildType = this.debugBuildType
   val releaseBuildType = this.releaseBuildType
   val defaultVariant = debugBuildType ?: releaseBuildType
   val defaultVariantName = defaultVariant?.sourceProvider?.name ?: "main"
-  return AndroidProjectStub(
-    agpVersion,
-    projectName,
-    null,
-    defaultConfig,
-    listOfNotNull(debugBuildType, releaseBuildType),
-    listOf(),
-    "buildToolsVersion",
-    "ndkVersion",
-    listOf(),
-    listOf("debug", "release")
-      .map { variant ->
-        VariantStub(
-          variant,
-          variant,
-          mainArtifact(variant),
-          listOf(androidTestArtifact(variant)),
-          listOf(unitTestArtifact(variant)),
-          variant,
-          listOf(),
-          defaultConfig.productFlavor,
-          listOf(),
-          false,
-          listOf()
-        )
-      },
-    listOfNotNull(debugBuildType?.sourceProvider?.name, releaseBuildType?.sourceProvider?.name),
-    defaultVariantName,
-    listOf(),
-    getLatestAndroidPlatform(),
-    listOf(),
-    listOf(),
-    LintOptionsStub(),
-    listOf(),
-    setOf(),
-    JavaCompileOptionsStub(),
-    AaptOptionsStub(),
-    dynamicFeatures,
-    viewBindingOptions,
-    dependenciesInfo,
-    buildPath,
-    null,
-    1,
-    true,
-    projectType,
-    true,
-    agpProjectFlags,
-    listOf("debug", "release")
-      .map { variantName ->
-        VariantBuildInformationStub(
-          variantName,
-          "assemble".appendCapitalized(variantName),
-          buildPath.resolve("output/apk/$variantName/output.json").absolutePath,
-          "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
-          buildPath.resolve("intermediates/bundle_ide_model/$variantName/output.json").absolutePath,
-          "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
-          buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variantName/output.json").absolutePath
-        )
-      }
+  val buildTypes = listOfNotNull(debugBuildType, releaseBuildType)
+  return IdeAndroidProjectImpl(
+    modelVersion = agpVersion,
+    name = projectName,
+    projectType = projectType,
+    defaultConfig = defaultConfig,
+    buildTypes = buildTypes,
+    productFlavors = listOf(),
+    variantNames = this.variants.map { it.name },
+    flavorDimensions = listOf(),
+    compileTarget = getLatestAndroidPlatform(),
+    bootClasspath = listOf(),
+    signingConfigs = listOf(),
+    aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.DISABLED),
+    lintOptions = IdeLintOptionsImpl(),
+    javaCompileOptions = IdeJavaCompileOptionsImpl(
+      encoding = "encoding",
+      sourceCompatibility = "sourceCompatibility",
+      targetCompatibility = "targetCompatibility",
+      isCoreLibraryDesugaringEnabled = false
+    ),
+    buildFolder = buildPath,
+    resourcePrefix = null,
+    buildToolsVersion = "buildToolsVersion",
+    ndkVersion = "ndkVersion",
+    isBaseSplit = true,
+    dynamicFeatures = dynamicFeatures,
+    viewBindingOptions = viewBindingOptions,
+    dependenciesInfo = dependenciesInfo,
+    groupId = null,
+    agpFlags = agpProjectFlags,
+    variantsBuildInformation = variants.map {
+      IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)
+    },
+    lintRuleJars = listOf()
   )
 }
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
-  libraries: List<AndroidLibrary> = listOf(),
-  javaLibraries: List<JavaLibrary> = listOf(),
-  projects: List<String> = listOf(),
-  javaModules: List<Dependencies.ProjectIdentifier> = listOf(),
+  libraries: List<IdeAndroidLibraryImpl> = listOf(),
+  javaLibraries: List<IdeJavaLibraryImpl> = listOf(),
+  projects: List<IdeModuleLibraryImpl> = listOf(),
   runtimeOnlyClasses: List<File> = listOf()
-): DependenciesStub = DependenciesStub(libraries, javaLibraries, projects, javaModules, runtimeOnlyClasses)
+): IdeDependenciesImpl = IdeDependenciesImpl(libraries, javaLibraries, projects, runtimeOnlyClasses)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
@@ -667,8 +700,17 @@ fun setupTestProjectFromAndroidModel(
   project: Project,
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
+) = setupTestProjectFromAndroidModel(project, basePath, setupAllVariants = false, moduleBuilders = moduleBuilders)
+
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun setupTestProjectFromAndroidModel(
+  project: Project,
+  basePath: File,
+  setupAllVariants: Boolean = false,
+  vararg moduleBuilders: ModuleModelBuilder
 ) {
-  val modelCache = ModelCache.create()
   if (IdeSdks.getInstance().androidSdkPath === null) {
     AndroidGradleTests.setUpSdks(project, project, getSdk().toFile())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -768,19 +810,20 @@ fun setupTestProjectFromAndroidModel(
     FileUtils.mkdirs(moduleBasePath)
     val moduleDataNode = when (moduleBuilder) {
       is AndroidModuleModelBuilder -> {
+        val (androidProject, variants) = moduleBuilder.projectBuilder(
+          moduleName,
+          moduleBasePath,
+          moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
+        )
         createAndroidModuleDataNode(
-          modelCache,
           moduleName,
           gradlePath,
           moduleBasePath,
           moduleBuilder.gradleVersion,
           moduleBuilder.agpVersion,
           gradlePlugins,
-          moduleBuilder.projectBuilder(
-            moduleName,
-            moduleBasePath,
-            moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
-          ),
+          androidProject,
+          variants.let { if (!setupAllVariants) it.take(1) else it },
           moduleBuilder.selectedBuildVariant
         ).also { androidModelDataNode ->
           val model = ExternalSystemApiUtil.find(androidModelDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
@@ -791,7 +834,6 @@ fun setupTestProjectFromAndroidModel(
       }
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
-          modelCache,
           moduleName,
           gradlePath,
           moduleBasePath,
@@ -823,15 +865,15 @@ fun setupTestProjectFromAndroidModel(
 }
 
 private fun createAndroidModuleDataNode(
-  modelCache: ModelCache,
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,
   gradleVersion: String?,
   agpVersion: String?,
   gradlePlugins: List<String>,
-  androidProjectStub: AndroidProject,
-  selectedVariantName: String
+  androidProject: IdeAndroidProjectImpl,
+  variants: Collection<IdeVariantImpl>,
+  selectedVariantName: String,
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
@@ -854,8 +896,6 @@ private fun createAndroidModuleDataNode(
     )
   )
 
-  val modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectStub.modelVersion)
-  val androidProject = modelCache.androidProjectFrom(androidProjectStub)
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
@@ -863,7 +903,7 @@ private fun createAndroidModuleDataNode(
         moduleName,
         moduleBasePath,
         androidProject,
-        androidProjectStub.variants.map { modelCache.variantFrom(androidProject, it, modelVersion) },
+        variants,
         selectedVariantName
       ),
       null
@@ -874,7 +914,6 @@ private fun createAndroidModuleDataNode(
 }
 
 private fun createJavaModuleDataNode(
-  modelCache: ModelCache,
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,

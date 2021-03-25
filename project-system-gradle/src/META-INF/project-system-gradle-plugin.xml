@@ -31,6 +31,8 @@
     <projectTaskRunner implementation="com.android.tools.idea.gradle.project.build.AndroidProjectTaskRunner"
                        id="android"
                        order="first, before gradle"/>
+    <projectService serviceInterface="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"
+                    serviceImplementation="com.android.tools.idea.gradle.project.build.BuildsToPathsMapperImpl"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerControl
@@ -57,23 +58,24 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
   /** Listener for issue panel open/close */
-  private val issuePanelListener = IssuePanel.MinimizeListener {
-    if (!it) {
-      metricTracker.trackIssues(issues, renderMetric)
+  private val issuePanelListener = object : IssuePanel.EventListener {
+    override fun onPanelExpanded(isExpanded: Boolean) {
+      if (isExpanded) {
+        metricTracker.trackIssues(issues, renderMetric)
+      }
     }
-  }
 
-  /** Listener when individual issues are expanded */
-  private val issueExpandListener = IssuePanel.ExpandListener { issue, expanded ->
-    if (expanded) {
-      metricTracker.trackFirstExpanded(issue)
+    override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
+      if (isExpanded && issue != null) {
+        metricTracker.trackFirstExpanded(issue)
+      }
     }
+
   }
 
   init {
     Disposer.register(parent, this)
-    surface.issuePanel.addMinimizeListener(issuePanelListener)
-    surface.issuePanel.expandListener = issueExpandListener
+    surface.issuePanel.addEventListener(issuePanelListener)
   }
 
   override fun pause() {

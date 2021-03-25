@@ -18,14 +18,15 @@ package com.android.tools.idea.imports
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.util.AndroidBundle
 
 class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) : LocalQuickFix {
   override fun getName(): String {
-    return "Add dependency on ${flagPreview(artifact, version)}"
+    return AndroidBundle.message("android.suggested.import.action.name.prefix", flagPreview(artifact, version))
   }
 
   override fun getFamilyName(): String {
-    return "Add library dependencies"
+    return AndroidBundle.message("android.suggested.import.action.family.name")
   }
 
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {

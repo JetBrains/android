@@ -123,10 +123,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 
   fun getPosition(component: Component): Point {
-    var comp = component
+    var comp: Component? = component
     var rx = 0
     var ry = 0
-    while (comp !== root) {
+    while (comp !== root && comp != null) {
       rx += comp.x
       ry += comp.y
       comp = comp.parent
@@ -177,7 +177,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return null
   }
 
-  inline fun <reified T: Component?> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
+  inline fun <reified T: Component> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
     return findComponent(T::class.java) { predicate(it) }
   }
 
@@ -185,12 +185,44 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return findComponent(type) { predicate.test(it) }
   }
 
-  inline fun <reified T: Component?> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
+  inline fun <reified T: Component> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
     return findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
   }
 
   fun <T> getComponent(type: Class<T>, predicate: Predicate<T>): T {
     return findComponent(type) { predicate.test(it) } ?: throw AssertionError()
+  }
+
+  /**
+   * Returns all components of the given type satisfying the given predicate in the breadth-first
+   * order.
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun <T> findAllComponents(type: Class<T>, predicate: (T) -> Boolean = { true }): List<T> {
+    val result = mutableListOf<T>()
+    if (type.isInstance(root) && predicate(root as T)) {
+      result.add(root)
+    }
+    if (root is Container) {
+      val queue = ArrayDeque<Container>()
+      queue.add(root)
+      while (queue.isNotEmpty()) {
+        val container = queue.remove()
+        for (child in container.components) {
+          if (type.isInstance(child) && predicate(child as T)) {
+            result.add(child)
+          }
+          if (child is Container) {
+            queue.add(child)
+          }
+        }
+      }
+    }
+    return result
+  }
+
+  inline fun <reified T: Component> findAllComponents(crossinline predicate: (T) -> Boolean = { true }) : List<T> {
+    return findAllComponents(T::class.java) { predicate(it) }
   }
 
   fun targetMouseEvent(x: Int, y: Int): RelativePoint? {

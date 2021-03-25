@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import com.android.ddmlib.IDevice;
+import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -27,14 +29,21 @@ import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import icons.StudioIcons;
+import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.ImageUtil;
 import java.awt.Component;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -44,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,6 +100,18 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_TOOLBAR);
+  }
+
+  @Before
+  public void activateIconLoader()  {
+    IconManager.activate();
+    IconLoader.activate();
+  }
+
+  @After
+  public void deactivateIconLoader()  {
+    IconManager.deactivate();
+    IconLoader.deactivate();
   }
 
   @Test
@@ -206,7 +228,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .build();
 
-    myPresentation.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+    myPresentation.setIcon(VIRTUAL_DEVICE_PHONE);
 
     // noinspection DialogTitleCapitalization
     myPresentation.setText(
@@ -259,12 +281,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setName("Pixel 2 XL API Q")
       .setKey(new VirtualDeviceName("Pixel_2_XL_API_Q"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Device pixel3XlApiQ = new VirtualDevice.Builder()
       .setName("Pixel 3 XL API Q")
       .setKey(new VirtualDeviceName("Pixel_3_XL_API_Q"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     // Act
@@ -279,12 +303,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
-  public void updateDeviceRunsAfterExecutionTargetIsCreated() {
+  public void updateDeviceRunsAfterExecutionTargetIsCreated() throws IOException {
     // Arrange
     Device availableDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(availableDevice)));
@@ -322,6 +347,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(androidDevice)
+      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(runningDevice)));
@@ -331,6 +357,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     assertEquals(Collections.singletonList(device), target.getRunningDevices());
     assertEquals("Pixel 4 API 30", target.getDisplayName());
-    assertEquals(VirtualDevice.ourConnectedIcon, target.getIcon());
+
+    BufferedImage expectedIcon =
+      ImageUtil.toBufferedImage(IconUtil.toImage(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_PHONE), ScaleContext.createIdentity()));
+    BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(target.getIcon(), ScaleContext.createIdentity()));
+    ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);
   }
 }

@@ -73,7 +73,7 @@ public class AndroidTargetData {
   @GuardedBy("myAttrDefsLock")
   private AttributeDefinitions myAttrDefs;
 
-  private volatile LayoutLibrary myLayoutLibrary;
+  private LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
   @GuardedBy("myPublicResourceCacheLock")
@@ -165,7 +165,7 @@ public class AndroidTargetData {
 
   @Slow
   @NotNull
-  public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
+  public LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();

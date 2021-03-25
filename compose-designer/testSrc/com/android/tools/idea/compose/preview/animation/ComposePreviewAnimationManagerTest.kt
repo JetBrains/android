@@ -297,6 +297,7 @@ class ComposePreviewAnimationManagerTest {
       override val animationObject = Any()
       override val type = type
       override val label = label
+      override val states = setOf(Any())
     }
 
   private fun AnimationInspectorPanel.tabCount() = invokeAndWaitIfNeeded { tabbedPane.tabCount }

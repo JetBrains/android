@@ -55,6 +55,6 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Future<List<PhysicalDevice>> future = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(new PhysicalDevice("86UX00F4R")), future.get());
+    assertEquals(Collections.singletonList(PhysicalDevice.newConnectedDevice("86UX00F4R")), future.get());
   }
 }

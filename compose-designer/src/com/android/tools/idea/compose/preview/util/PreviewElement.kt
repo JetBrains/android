@@ -194,6 +194,7 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
     }
   }
 
+  renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
@@ -220,6 +221,7 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
   if (device != null) {
     renderConfiguration.setDevice(device, false)
   }
+  renderConfiguration.finishBulkEditing()
 }
 
 @TestOnly

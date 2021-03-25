@@ -83,23 +83,13 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     List<String> args = myArgs.get(getProject());
     check(args);
-    // In tests the version of the plugin is reported as the build number.
-    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asStringWithoutProductCode());
     assertThat(args).contains("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks");
-  }
-
-  public void testGetWithAndroidStudioDevBuild() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    List<String> args = myArgs.get(getProject());
-    check(args);
-    assertThat(args).doesNotContain("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=dev build");
   }
 
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asStringWithoutProductCode());
   }
 
   public void testGetWithExtraCommandLineOptions() {

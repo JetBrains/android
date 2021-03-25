@@ -91,9 +91,11 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
       .onChange(RecordingOptionsModel.Aspect.SELECTION_CHANGED, ::onSelectionChanged)
       .onChange(RecordingOptionsModel.Aspect.BUILT_IN_OPTIONS_CHANGED, ::onBuiltInOptionsChanged)
       .onChange(RecordingOptionsModel.Aspect.CONFIGURATIONS_EMPTINESS_CHANGED, ::resetConfigMenu)
+      .onChange(RecordingOptionsModel.Aspect.READY_OPTIONS_CHANGED, ::onOptionReadinessChanged)
 
     onRecordingChanged()
     onSelectionChanged()
+    onOptionReadinessChanged()
   }
 
   override fun setEnabled(enabled: Boolean) {
@@ -102,6 +104,7 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     if (enabled) {
       onRecordingChanged()
       onSelectionChanged()
+      onOptionReadinessChanged()
       configComponents?.apply {
         button.isEnabled = true
       }
@@ -130,7 +133,7 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
   }
 
   private fun makeBuiltInRadios() = recordingModel.builtInOptions.map { opt ->
-    radioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) }}
+    radioButton(opt.title).apply { addActionListener { recordingModel.selectBuiltInOption(opt) } }
   }
 
   private fun onSelectionChanged() = when {
@@ -155,6 +158,13 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     else                        -> { text = RECORDING; isEnabled = false; setOptionsEnabled(false) }
   }}
 
+  private fun onOptionReadinessChanged() =
+    (builtInRadios zip recordingModel.builtInOptions).forEach { (radio, opt) ->
+      radio.set(isEnabled &&
+                !recordingModel.isRecording &&
+                recordingModel.isOptionReady(opt), recordingModel.getOptionNotReadyMessage(opt))
+    }
+
   private fun onStartStopButtonPressed() = when {
     !recordingModel.isRecording && recordingModel.canStart() -> recordingModel.start()
     recordingModel.isRecording && recordingModel.canStop() -> recordingModel.stop()
@@ -162,8 +172,14 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
   }
 
   private fun setOptionsEnabled(enabled: Boolean) {
+    (builtInRadios zip recordingModel.builtInOptions).forEach { (radio, opt) ->
+      radio.set(enabled && recordingModel.isOptionReady(opt), recordingModel.getOptionNotReadyMessage(opt))
+    }
     allRadios.forEach { it.isEnabled = enabled }
-    configComponents?.menu?.isEnabled = enabled
+    configComponents?.apply {
+      menu.isEnabled = enabled
+      radio.isEnabled = enabled
+    }
     resetConfigMenu()
   }
 
@@ -273,4 +289,9 @@ class FlexibleGrid : JBPanel<FlexibleGrid>() {
     const val DESC_HEIGHT = 50
     const val CTRL_HEIGHT = 25
   }
+}
+
+private fun JRadioButton.set(enabled: Boolean, tooltip: String?) {
+  isEnabled = enabled
+  toolTipText = tooltip
 }

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModulePath;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
@@ -137,10 +139,15 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void chooseJdkLocation() {
-    showNewPsd(
-      new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
-    );
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get() && myProject != null) {
+      showGradleSettings(myProject);
+    }
+    else {
+      showNewPsd(
+        new Place()
+          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
+      );
+    }
   }
 
   @Override

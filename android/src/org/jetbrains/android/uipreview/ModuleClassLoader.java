@@ -6,6 +6,7 @@ import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
+import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
 import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -51,12 +52,14 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -65,6 +68,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -133,6 +137,9 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
+
+  private static final ExecutorService ourDisposeService =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("ModuleClassLoader Dispose Thread", 1);
 
   /**
    * The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
@@ -653,25 +660,64 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     return module == null ? null : ModuleRenderContext.forFile(module, myPsiFileProvider);
   }
 
+  /**
+   * If coroutine DefaultExecutor exists, waits for the its thread to stop or 1.1s whichever is faster, otherwise returns instantly.
+   */
+  private void waitForCoroutineThreadToStop() {
+    try {
+      Class<?> defaultExecutorClass = findLoadedClass(INTERNAL_PACKAGE + "kotlinx.coroutines.DefaultExecutor");
+      if (defaultExecutorClass == null) {
+        return;
+      }
+      // Kotlin bytecode generation converts isThreadPresent property into isThreadPresent$kotlinx_coroutines_core() method
+      Method isThreadPresentMethod = findMethodLike(defaultExecutorClass, "isThreadPresent");
+      if (isThreadPresentMethod == null) {
+        LOG.warn("Method to check coroutine thread existence is not found.");
+        return;
+      }
+      Field instanceField = defaultExecutorClass.getDeclaredField("INSTANCE");
+      Object defaultExecutorObj = instanceField.get(null);
+
+      isThreadPresentMethod.setAccessible(true);
+      // DefaultExecutor thread has DEFAULT_KEEP_ALIVE of 1000ms. We expect it to disappear after at most of 1100ms waiting.
+      final int ITERATIONS = 11;
+      for (int i = 0; i <= ITERATIONS; ++i) {
+        if (!(Boolean)isThreadPresentMethod.invoke(defaultExecutorObj)) {
+          return;
+        }
+        if (i != ITERATIONS) {
+          Thread.sleep(100);
+        }
+      }
+      LOG.warn("DefaultExecutor thread is still running");
+    } catch (Throwable t) {
+      LOG.warn(t);
+    }
+  }
+
   @Override
   public void dispose() {
     myClassFiles.clear();
     myClassFilesLastModified.clear();
 
-    Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
-    if (threadLocals == null || threadLocals.isEmpty()) {
-      return;
-    }
+    ourDisposeService.submit(() -> {
+      waitForCoroutineThreadToStop();
 
-    // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-      for (ThreadLocal<?> threadLocal: threadLocals) {
-        try {
-          threadLocal.remove();
-        } catch (Exception e) {
-          LOG.warn(e); // Failure detected here will most probably cause a memory leak
-        }
+      Set<ThreadLocal<?>> threadLocals = TrackingThreadLocal.clearThreadLocals(this);
+      if (threadLocals == null || threadLocals.isEmpty()) {
+        return;
       }
+
+      // Because we are clearing-up ThreadLocals, the code must run on the Layoutlib Thread
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        for (ThreadLocal<?> threadLocal: threadLocals) {
+          try {
+            threadLocal.remove();
+          } catch (Exception e) {
+            LOG.warn(e); // Failure detected here will most probably cause a memory leak
+          }
+        }
+      });
     });
   }
 }

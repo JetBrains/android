@@ -12,5 +12,8 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="network_inspector_java_proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
   </component>
 </module>

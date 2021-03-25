@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.DOT_KTS;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -39,12 +40,12 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
 
   public void testHasKtsBuildFilesKtsBasedProject() throws Exception {
     loadProject(KOTLIN_GRADLE_DSL);
-    assertTrue(GradleUtil.hasKtsBuildFiles(getProject()));
+    assertTrue(GradleUtil.projectBuildFilesTypes(getProject()).contains(DOT_KTS));
   }
 
   public void testHasKtsBuildFilesGroovyBasedProject() throws Exception {
     loadSimpleApplication();
-    assertFalse(GradleUtil.hasKtsBuildFiles(getProject()));
+    assertFalse(GradleUtil.projectBuildFilesTypes(getProject()).contains(DOT_KTS));
   }
 
   private void verifyBuildFile(@NotNull Module module, @NotNull String... expectedPath) {

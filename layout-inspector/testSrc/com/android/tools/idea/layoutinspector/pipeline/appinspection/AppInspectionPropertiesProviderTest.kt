@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.resources.Density
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -27,6 +30,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
@@ -49,20 +53,33 @@ import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.ptable2.PTable
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableGroupModification
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsResponse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.spy
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
+/** Timeout used in this test. While debugging, you may want extend the timeout */
+private const val TIMEOUT = 1L
+private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionPropertiesProviderTest {
@@ -285,7 +302,7 @@ class AppInspectionPropertiesProviderTest {
       // placeholder for RESOURCE parameter
       ComposableString(109, "elevation"), // DIMENSION_DP
       ComposableString(110, "fontSize"), // DIMENSION_SP
-      // placeholder for DIMENSION_EM parameter
+      ComposableString(111, "textSize"), // DIMENSION_EM
       ComposableString(112, "onTextLayout"), // LAMBDA
       // placeholder for FUNCTION_REFERENCE parameter
       ComposableString(114, "dataObject"),
@@ -373,6 +390,14 @@ class AppInspectionPropertiesProviderTest {
           floatValue = 16f
         }
         Parameter {
+          type = ComposeProtocol.Parameter.Type.DIMENSION_EM
+          name = 111
+          floatValue = 2f
+        }
+      },
+      ParameterGroup {
+        composableId = -5
+        Parameter {
           type = ComposeProtocol.Parameter.Type.LAMBDA
           name = 112
           lambdaValueBuilder.apply {
@@ -383,9 +408,6 @@ class AppInspectionPropertiesProviderTest {
             endLineNumber = 21
           }
         }
-      },
-      ParameterGroup {
-        composableId = -5
         Parameter {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 114
@@ -394,15 +416,17 @@ class AppInspectionPropertiesProviderTest {
             type = ComposeProtocol.Parameter.Type.STRING
             name = 116
             int32Value = 204
+            index = 0
             Reference {
               composableId = -5
-              parameterIndex = 0
+              parameterIndex = 1
             }
           }
           Element {
             type = ComposeProtocol.Parameter.Type.INT32
             name = 115
             int32Value = 812
+            index = 1
           }
           Element {
             type = ComposeProtocol.Parameter.Type.STRING
@@ -411,7 +435,7 @@ class AppInspectionPropertiesProviderTest {
             index = 11
             Reference {
               composableId = -5
-              parameterIndex = 0
+              parameterIndex = 1
               addCompositeIndex(11)
             }
           }
@@ -424,11 +448,17 @@ class AppInspectionPropertiesProviderTest {
       ComposableString(1, "lines"),
       ComposableString(2, "firstLine"),
       ComposableString(3, "lastLine"),
+      ComposableString(4, "list"),
+      ComposableString(5, "[0]"),
+      ComposableString(6, "[3]"),
 
       // String values
       ComposableString(21, "MyLineClass"),
       ComposableString(22, "Hello World"),
       ComposableString(23, "End of Text"),
+      ComposableString(24, "List[12]"),
+      ComposableString(25, "a"),
+      ComposableString(26, "b"),
     )
 
     private val expandedParameter =
@@ -441,11 +471,113 @@ class AppInspectionPropertiesProviderTest {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 2
           int32Value = 22
+          index = 0
         }
         Element {
           type = ComposeProtocol.Parameter.Type.STRING
           name = 3
           int32Value = 23
+          index = 1
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.ITERABLE
+          name = 4
+          int32Value = 24
+          index = 3
+          Reference {
+            composableId = -5
+            parameterIndex = 1
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 5
+            int32Value = 25
+            index = 0
+          }
+          Element {
+            type = ComposeProtocol.Parameter.Type.STRING
+            name = 6
+            int32Value = 26
+            index = 3
+          }
+        }
+      }
+
+    private val firstExpandedListStrings = listOf(
+      // parameter names
+      ComposableString(1, "list"),
+      ComposableString(2, "[4]"),
+      ComposableString(3, "[6]"),
+
+      // String values
+      ComposableString(21, "List[12]"),
+      ComposableString(22, "c"),
+      ComposableString(23, "d"),
+    )
+
+    private val firstExpandedListParameter =
+      ExpandedParameter {
+        type = ComposeProtocol.Parameter.Type.ITERABLE
+        name = 1
+        int32Value = 21
+        index = 3
+        Reference {
+          composableId = -5
+          parameterIndex = 1
+          addAllCompositeIndex(listOf(11, 3))
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 2
+          int32Value = 22
+          index = 4
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 3
+          int32Value = 23
+          index = 6
+        }
+      }
+
+    private val secondExpandedListStrings = listOf(
+      // parameter names
+      ComposableString(1, "list"),
+      ComposableString(2, "[7]"),
+      ComposableString(3, "[10]"),
+      ComposableString(4, "[11]"),
+
+      // String values
+      ComposableString(21, "List[12]"),
+      ComposableString(22, "e"),
+      ComposableString(23, "f"),
+      ComposableString(24, "g"),
+    )
+
+    private val secondExpandedListParameter =
+      ExpandedParameter {
+        type = ComposeProtocol.Parameter.Type.ITERABLE
+        name = 1
+        int32Value = 21
+        index = 3
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 2
+          int32Value = 22
+          index = 7
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 3
+          int32Value = 23
+          index = 10
+        }
+        Element {
+          type = ComposeProtocol.Parameter.Type.STRING
+          name = 4
+          int32Value = 24
+          index = 11
         }
       }
 
@@ -460,6 +592,11 @@ class AppInspectionPropertiesProviderTest {
      * Map of "composable ID" to number of times parameters were requested for it.
      */
     private val getParametersRequestCount = mutableMapOf<Long, Int>()
+
+    /**
+     * Map of responses to expected [GetParameterDetailsCommand]s.
+     */
+    private val parameterDetailsCommands = mutableMapOf<GetParameterDetailsCommand, GetParameterDetailsResponse>()
 
     init {
       viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
@@ -529,18 +666,62 @@ class AppInspectionPropertiesProviderTest {
 
       composeInspector.interceptWhen({ it.hasGetParameterDetailsCommand() }) { command ->
         ComposeProtocol.Response.newBuilder().apply {
-          getParameterDetailsResponseBuilder.apply {
-            rootViewId = command.getParameterDetailsCommand.rootViewId
-            if (command.getParameterDetailsCommand.reference.composableId == -5L &&
-                command.getParameterDetailsCommand.reference.parameterIndex == 0 &&
-                command.getParameterDetailsCommand.reference.compositeIndexCount == 1 &&
-                command.getParameterDetailsCommand.reference.compositeIndexList[0] == 11) {
-              addAllStrings(expandedStrings)
-              parameter = expandedParameter
-            }
-          }
+          getParameterDetailsResponse = parameterDetailsCommands[command.getParameterDetailsCommand] ?: error("Unexpected command")
         }.build()
       }
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 1
+            addCompositeIndex(11)
+          }
+          maxElements = 5
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(expandedStrings)
+        parameter = expandedParameter
+      }.build()
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 1
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          startIndex = 4
+          maxElements = 2
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(firstExpandedListStrings)
+        parameter = firstExpandedListParameter
+      }.build()
+
+      parameterDetailsCommands[
+        GetParameterDetailsCommand.newBuilder().apply {
+          rootViewId = 1L
+          referenceBuilder.apply {
+            composableId = -5L
+            parameterIndex = 1
+            addAllCompositeIndex(listOf(11, 3))
+          }
+          startIndex = 7
+          maxElements = 4
+          skipSystemComposables = true
+        }.build()
+      ] = GetParameterDetailsResponse.newBuilder().apply {
+        rootViewId = 1L
+        addAllStrings(secondExpandedListStrings)
+        parameter = secondExpandedListParameter
+      }.build()
     }
 
     fun getPropertiesRequestCountFor(viewId: Long): Int {
@@ -561,6 +742,12 @@ class AppInspectionPropertiesProviderTest {
         layoutEventBuilder.apply {
           addAllStrings(viewStrings)
           this.rootView = rootView
+          appContextBuilder.apply {
+            configurationBuilder.apply {
+              density = Density.HIGH.dpiValue
+              fontScale = 1.5f
+            }
+          }
         }
       }
       if (isLastCapture) {
@@ -599,13 +786,13 @@ class AppInspectionPropertiesProviderTest {
   fun canQueryPropertiesForViews() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -615,7 +802,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[3]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("text", PropertyType.STRING, "Next")
@@ -626,7 +813,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[4]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("minWidth", PropertyType.INT32, "200")
@@ -638,7 +825,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("imeOptions", PropertyType.INT_FLAG, "normal|actionUnspecified")
@@ -653,13 +840,13 @@ class AppInspectionPropertiesProviderTest {
   fun syntheticPropertiesAlwaysAdded() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -669,7 +856,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[1]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
       // Technically the view with ID #1 has no properties, but synthetic properties are always added
       result.table.run {
@@ -693,8 +880,8 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedSignal.take() // Event triggered by tree #1
-    modelUpdatedSignal.take() // Event triggered by tree #2
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #2
 
     val provider = inspectorRule.inspectorClient.provider
 
@@ -727,7 +914,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(nodeInTree1).get() // First fetch after layout event, not cached
     assertThat(inspectorState.getPropertiesRequestCountFor(nodeInTree1.drawId)).isEqualTo(2)
@@ -743,13 +930,13 @@ class AppInspectionPropertiesProviderTest {
   fun snapshotModeSendsAllPropertiesAtOnce() {
     InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because everything should
     // be cached now.
@@ -764,7 +951,7 @@ class AppInspectionPropertiesProviderTest {
       assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       inspectorRule.inspectorModel[id]!!.let { targetNode ->
         provider.requestProperties(targetNode).get()
-        val result = resultQueue.take()
+        val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
         assertThat(result.view).isSameAs(targetNode)
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }
@@ -775,13 +962,13 @@ class AppInspectionPropertiesProviderTest {
   fun canQueryParametersForComposables() {
     InspectorClientSettings.isCapturingModeOn = true // Enable live mode, so we only fetch properties on demand
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
@@ -791,7 +978,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-2]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("text", PropertyType.STRING, "placeholder")
@@ -801,7 +988,7 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-3]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         assertProperty("maxLines", PropertyType.INT32, "16")
@@ -811,24 +998,31 @@ class AppInspectionPropertiesProviderTest {
 
     inspectorRule.inspectorModel[-4]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
-        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0px")
-        // TODO(b/179324422): Investigate DIMENSION_SP formatting
-        assertProperty("fontSize", PropertyType.DIMENSION_SP, "0px")
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
+        PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.5px")
+        assertProperty("fontSize", PropertyType.DIMENSION_SP, "36.0px")
+        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
+      }
+      result.table.run {
+        PropertiesSettings.dimensionUnits = DimensionUnits.DP
+        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0dp")
+        assertProperty("fontSize", PropertyType.DIMENSION_SP, "16.0sp")
+        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
       }
     }
 
     val parameter = inspectorRule.inspectorModel[-5]!!.let { targetNode ->
       provider.requestProperties(targetNode).get()
-      val result = resultQueue.take()
+      val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
 
       result.table.run {
+        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
         assertProperty("dataObject", PropertyType.STRING, "PojoClass")
-        val groupItem = this.first as ParameterGroupItem
+        val groupItem = this[ANDROID_URI, "dataObject"] as ParameterGroupItem
         assertProperty(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
         assertProperty(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
         assertProperty(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
@@ -840,8 +1034,8 @@ class AppInspectionPropertiesProviderTest {
 
     // The 1st element of parameter is a reference to parameter itself.
     // When the 1st sub element is expanded in the UI the child elements should be copied from parameter.
-    val propertyExpandedLatch = CountDownLatch(1)
-    runInEdt {
+    val propertyExpandedLatch = ReportingCountDownLatch(1)
+    propertyExpandedLatch.runInEdt {
       val first = parameter.children.first() as ParameterGroupItem
       assertThat(first.children).isEmpty()
       first.expandWhenPossible { restructured ->
@@ -853,22 +1047,91 @@ class AppInspectionPropertiesProviderTest {
         propertyExpandedLatch.countDown()
       }
     }
-    propertyExpandedLatch.await()
+    propertyExpandedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // The last element of parameter is a reference to a value that has not been loaded from the agent yet.
     // When the last element is expanded in the UI the child elements will be loaded from the agent.
-    val propertyDownloadedLatch = CountDownLatch(1)
-    runInEdt {
-      val last = parameter.children.last() as ParameterGroupItem
+    val propertyDownloadedLatch = ReportingCountDownLatch(1)
+    val last = parameter.children.last() as ParameterGroupItem
+    propertyDownloadedLatch.runInEdt {
       assertThat(last.children).isEmpty()
       last.expandWhenPossible { restructured ->
         assertThat(restructured).isTrue()
         assertProperty(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
         assertProperty(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
+        assertProperty(last.children[2], "list", PropertyType.ITERABLE, "List[12]")
+        assertThat(last.children.size).isEqualTo(3)
+        val list = last.children.last() as ParameterGroupItem
+        assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+        assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+        assertThat(list.children[2]).isInstanceOf(ShowMoreElementsItem::class.java)
+        assertThat(list.children[2].index).isEqualTo(4)
+        assertThat(list.children.size).isEqualTo(3)
         propertyDownloadedLatch.countDown()
       }
     }
-    propertyDownloadedLatch.await()
+    propertyDownloadedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // The list parameter from the expanded parameter is a List of String where only a part of the elements
+    // have been downloaded. Download some more elements (first time).
+    val moreListElements1 = ReportingCountDownLatch(1)
+    val table1 = spy(PTable.create(mock()))
+    val event1: AnActionEvent = mock()
+    doAnswer {
+      val modification = it.getArgument<PTableGroupModification>(1)
+      assertThat(modification.added).hasSize(2)
+      assertThat(modification.removed).isEmpty()
+      moreListElements1.countDown()
+    }.`when`(table1).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    doAnswer {
+      table1.component
+    }.`when`(event1).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    val list = last.children.last() as ParameterGroupItem
+    moreListElements1.runInEdt {
+      val showMoreItem = list.children[2] as ShowMoreElementsItem
+      // Click the "Show more" link:
+      showMoreItem.link.actionPerformed(event1)
+    }
+    moreListElements1.await(TIMEOUT, TIMEOUT_UNIT)
+    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
+    assertThat(list.reference).isNotNull()
+    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertThat(list.children[4]).isInstanceOf(ShowMoreElementsItem::class.java)
+    assertThat(list.children[4].index).isEqualTo(7)
+    assertThat(list.children.size).isEqualTo(5)
+
+    // Expand the list a second time:
+    val moreListElements2 = ReportingCountDownLatch(1)
+    val table2 = spy(PTable.create(mock()))
+    val event2: AnActionEvent = mock()
+    doAnswer {
+      val modification = it.getArgument<PTableGroupModification>(1)
+      assertThat(modification.added).hasSize(3)
+      assertThat(modification.removed).hasSize(1)
+      moreListElements2.countDown()
+    }.`when`(table2).updateGroupItems(any(PTableGroupItem::class.java), any(PTableGroupModification::class.java))
+    doAnswer {
+      table2.component
+    }.`when`(event2).getData(Mockito.eq(PlatformDataKeys.CONTEXT_COMPONENT))
+    moreListElements2.runInEdt {
+      val showMoreItem = list.children[4] as ShowMoreElementsItem
+      // Click the "Show more" link:
+      showMoreItem.link.actionPerformed(event2)
+    }
+    moreListElements2.await(TIMEOUT, TIMEOUT_UNIT)
+    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
+    assertThat(list.reference).isNull()
+    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertProperty(list.children[4], "[7]", PropertyType.STRING, "e")
+    assertProperty(list.children[5], "[10]", PropertyType.STRING, "f")
+    assertProperty(list.children[6], "[11]", PropertyType.STRING, "g")
+    assertThat(list.children.size).isEqualTo(7)
   }
 
   @Test
@@ -881,8 +1144,8 @@ class AppInspectionPropertiesProviderTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedSignal.take() // Event triggered by tree #1
-    modelUpdatedSignal.take() // Event triggered by tree #2
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #1
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!! // Event triggered by tree #2
 
     val provider = inspectorRule.inspectorClient.provider
 
@@ -901,7 +1164,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the first tree, which should reset just its cache and
     // not that for the second tree
     inspectorState.triggerLayoutCapture(rootId = 1)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(composableNode).get() // First fetch after layout event, not cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
@@ -912,7 +1175,7 @@ class AppInspectionPropertiesProviderTest {
     // Trigger a fake layout update in *just* the second tree, which should not affect the cache of the
     // first
     inspectorState.triggerLayoutCapture(rootId = 101)
-    modelUpdatedSignal.take()
+    modelUpdatedSignal.poll(TIMEOUT, TIMEOUT_UNIT)!!
 
     provider.requestProperties(composableNode).get()  // Should still be cached
     assertThat(inspectorState.getParametersRequestCountFor(composableNode.drawId)).isEqualTo(2)
@@ -922,13 +1185,13 @@ class AppInspectionPropertiesProviderTest {
   fun snapshotModeSendsAllParametersAtOnce() {
     InspectorClientSettings.isCapturingModeOn = false // i.e. snapshot mode
 
-    val modelUpdatedLatch = CountDownLatch(2) // We'll get two tree layout events on start fetch
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
     inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    modelUpdatedLatch.await()
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     // Calling "get properties" at this point should work without talking to the device because everything should
     // be cached now.
@@ -943,7 +1206,7 @@ class AppInspectionPropertiesProviderTest {
       assertThat(inspectorState.getParametersRequestCountFor(id)).isEqualTo(0)
       inspectorRule.inspectorModel[id]!!.let { targetNode ->
         provider.requestProperties(targetNode).get()
-        val result = resultQueue.take()
+        val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
         assertThat(result.view).isSameAs(targetNode)
         assertThat(inspectorState.getPropertiesRequestCountFor(id)).isEqualTo(0)
       }

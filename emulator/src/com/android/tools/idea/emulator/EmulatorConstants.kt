@@ -32,6 +32,8 @@ val EMULATOR_TOOL_WINDOW_TITLE
 
 @JvmField val EMULATOR_VIEW_KEY = DataKey.create<EmulatorView>("EmulatorView")
 
+@JvmField val NUMBER_OF_DISPLAYS = DataKey.create<Int>("NumberOfDisplays")
+
 internal const val EMULATOR_MAIN_TOOLBAR_ID = "EmulatorToolbar"
 
 internal val EMULATOR_NOTIFICATION_GROUP: NotificationGroup

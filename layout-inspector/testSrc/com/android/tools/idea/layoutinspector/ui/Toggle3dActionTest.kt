@@ -16,13 +16,13 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
-import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -47,12 +47,18 @@ class Toggle3dActionTest {
   private val event: AnActionEvent = mock()
   private val presentation: Presentation = mock()
 
-  private val capabilities = mutableSetOf<InspectorClient.Capability>(InspectorClient.Capability.SUPPORTS_SKP)
+  private val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
+  private val device: DeviceDescriptor = mock()
 
   @Before
   fun setUp() {
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(capabilities)
+    `when`(client.isConnected).thenReturn(true)
+    `when`(device.apiLevel).thenReturn(29)
+    val process: ProcessDescriptor = mock()
+    `when`(process.device).thenReturn(device)
+    `when`(client.process).thenReturn(process)
     val layoutInspector: LayoutInspector = mock()
     `when`(layoutInspector.currentClient).thenReturn(client)
     `when`(event.getData(DEVICE_VIEW_MODEL_KEY)).thenReturn(viewModel)
@@ -98,6 +104,15 @@ class Toggle3dActionTest {
   }
 
   @Test
+  fun testOldDevice() {
+    `when`(device.apiLevel).thenReturn(28)
+    capabilities.clear()
+    Toggle3dAction.update(event)
+    verify(presentation).isEnabled = false
+    verify(presentation).text = "Rotation not available for devices below API 29"
+  }
+
+  @Test
   fun testNoRendererFallback() {
     val window = window(3, 1, imageType = BITMAP_AS_REQUESTED) {
       image()
@@ -107,6 +122,6 @@ class Toggle3dActionTest {
     inspectorModel.update(window, listOf(3), 0)
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
-    verify(presentation).text = "No compatible renderer found for device image, rotation not available"
+    verify(presentation).text = "Error while rendering device image, rotation not available"
   }
 }

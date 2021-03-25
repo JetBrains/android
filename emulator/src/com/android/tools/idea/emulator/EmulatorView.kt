@@ -286,103 +286,11 @@ class EmulatorView(
     addComponentListener(this)
 
     // Forward mouse & keyboard events.
-    val mouseListener = object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 1)
-      }
-
-      override fun mouseReleased(event: MouseEvent) {
-        sendMouseEvent(event.x, event.y, 0)
-      }
-
-      override fun mouseClicked(event: MouseEvent) {
-        requestFocusInWindow()
-      }
-
-      override fun mouseDragged(event: MouseEvent) {
-        if (!virtualSceneCameraActive) {
-          sendMouseEvent(event.x, event.y, 1)
-        }
-      }
-    }
+    val mouseListener = MyMouseListener()
     addMouseListener(mouseListener)
     addMouseMotionListener(mouseListener)
 
-    addKeyListener(object : KeyAdapter() {
-      override fun keyTyped(event: KeyEvent) {
-        if (virtualSceneCameraOperating) {
-          return
-        }
-
-        val c = event.keyChar
-        if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
-          return
-        }
-
-        val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
-        emulator.sendKey(keyboardEvent)
-      }
-
-      override fun keyPressed(event: KeyEvent) {
-        if (event.keyCode == VK_SHIFT && event.modifiersEx == SHIFT_DOWN_MASK && virtualSceneCameraActive) {
-          virtualSceneCameraOperating = true
-          return
-        }
-
-        if (virtualSceneCameraOperating) {
-          when (event.keyCode) {
-            VK_LEFT, VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            VK_RIGHT, VK_KP_RIGHT -> rotateVirtualSceneCamera(0.0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            VK_UP, VK_KP_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
-            VK_DOWN, VK_KP_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
-            VK_HOME -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
-            else -> virtualSceneCameraVelocityController.keyPressed(event.keyCode)
-          }
-          return
-        }
-
-        // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
-        if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
-          val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
-          traverseFocusLocally(tabEvent)
-          return
-        }
-
-        if (event.modifiersEx != 0) {
-          return
-        }
-        val keyName =
-          when (event.keyCode) {
-            VK_BACK_SPACE -> "Backspace"
-            VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
-            VK_ENTER -> "Enter"
-            VK_ESCAPE -> "Escape"
-            VK_TAB -> "Tab"
-            VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
-            VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
-            VK_UP, VK_KP_UP -> "ArrowUp"
-            VK_DOWN, VK_KP_DOWN -> "ArrowDown"
-            VK_HOME -> "Home"
-            VK_END -> "End"
-            VK_PAGE_UP -> "PageUp"
-            VK_PAGE_DOWN -> "PageDown"
-            else -> return
-          }
-        emulator.sendKey(createHardwareKeyEvent(keyName))
-      }
-
-      override fun keyReleased(event: KeyEvent) {
-        if (event.keyCode == VK_SHIFT) {
-          virtualSceneCameraOperating = false
-        }
-        else if (virtualSceneCameraOperating) {
-          virtualSceneCameraVelocityController.keyReleased(event.keyCode)
-        }
-      }
-    })
+    addKeyListener(MyKeyListener())
 
     if (displayId == PRIMARY_DISPLAY_ID) {
       addFocusListener(object : FocusAdapter() {
@@ -739,6 +647,7 @@ class EmulatorView(
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
       val imageFormat = ImageFormat.newBuilder()
+        .setDisplay(displayId)
         .setFormat(ImageFormat.ImgFormat.RGB888)
         .setWidth(w)
         .setHeight(h)
@@ -938,6 +847,104 @@ class EmulatorView(
   private fun notifyDisplayConfigurationListeners() {
     for (listener in displayConfigurationListeners) {
       listener.displayConfigurationChanged()
+    }
+  }
+
+  private inner class MyKeyListener  : KeyAdapter() {
+
+    override fun keyTyped(event: KeyEvent) {
+      if (virtualSceneCameraOperating) {
+        return
+      }
+
+      val c = event.keyChar
+      if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
+        return
+      }
+
+      val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
+      emulator.sendKey(keyboardEvent)
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+      if (event.keyCode == VK_SHIFT && event.modifiersEx == SHIFT_DOWN_MASK && virtualSceneCameraActive) {
+        virtualSceneCameraOperating = true
+        return
+      }
+
+      if (virtualSceneCameraOperating) {
+        when (event.keyCode) {
+          VK_LEFT, VK_KP_LEFT -> rotateVirtualSceneCamera(0.0, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_RIGHT, VK_KP_RIGHT -> rotateVirtualSceneCamera(0.0, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_UP, VK_KP_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+          VK_DOWN, VK_KP_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, 0.0)
+          VK_HOME -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_END -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_PAGE_UP -> rotateVirtualSceneCamera(VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          VK_PAGE_DOWN -> rotateVirtualSceneCamera(-VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN, -VIRTUAL_SCENE_CAMERA_ROTATION_STEP_RADIAN)
+          else -> virtualSceneCameraVelocityController.keyPressed(event.keyCode)
+        }
+        return
+      }
+
+      // The Tab character is passed to the emulator, but Shift+Tab is converted to Tab and processed locally.
+      if (event.keyCode == VK_TAB && event.modifiersEx == SHIFT_DOWN_MASK) {
+        val tabEvent = KeyEvent(event.source as Component, event.id, event.getWhen(), 0, event.keyCode, event.keyChar, event.keyLocation)
+        traverseFocusLocally(tabEvent)
+        return
+      }
+
+      if (event.modifiersEx != 0) {
+        return
+      }
+      val keyName =
+        when (event.keyCode) {
+          VK_BACK_SPACE -> "Backspace"
+          VK_DELETE -> if (SystemInfo.isMac) "Backspace" else "Delete"
+          VK_ENTER -> "Enter"
+          VK_ESCAPE -> "Escape"
+          VK_TAB -> "Tab"
+          VK_LEFT, VK_KP_LEFT -> "ArrowLeft"
+          VK_RIGHT, VK_KP_RIGHT -> "ArrowRight"
+          VK_UP, VK_KP_UP -> "ArrowUp"
+          VK_DOWN, VK_KP_DOWN -> "ArrowDown"
+          VK_HOME -> "Home"
+          VK_END -> "End"
+          VK_PAGE_UP -> "PageUp"
+          VK_PAGE_DOWN -> "PageDown"
+          else -> return
+        }
+      emulator.sendKey(createHardwareKeyEvent(keyName))
+    }
+
+    override fun keyReleased(event: KeyEvent) {
+      if (event.keyCode == VK_SHIFT) {
+        virtualSceneCameraOperating = false
+      }
+      else if (virtualSceneCameraOperating) {
+        virtualSceneCameraVelocityController.keyReleased(event.keyCode)
+      }
+    }
+  }
+
+  private inner class MyMouseListener : MouseAdapter() {
+
+    override fun mousePressed(event: MouseEvent) {
+      sendMouseEvent(event.x, event.y, 1)
+    }
+
+    override fun mouseReleased(event: MouseEvent) {
+      sendMouseEvent(event.x, event.y, 0)
+    }
+
+    override fun mouseClicked(event: MouseEvent) {
+      requestFocusInWindow()
+    }
+
+    override fun mouseDragged(event: MouseEvent) {
+      if (!virtualSceneCameraActive) {
+        sendMouseEvent(event.x, event.y, 1)
+      }
     }
   }
 

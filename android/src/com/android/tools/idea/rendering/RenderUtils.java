@@ -20,15 +20,19 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.ui.designer.DesignSurfaceNotificationManager;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RenderUtils {
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
@@ -53,6 +57,21 @@ public class RenderUtils {
           Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
             .filter(Objects::nonNull)
             .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
+        }
+      });
+  }
+
+  /** Refresh the design surface, and send notification if it's supported. */
+  public static void refreshRenderAndNotify(
+    @NotNull EditorDesignSurface surface, @Nullable DesignSurfaceNotificationManager notification) {
+      if (notification != null) {
+        notification.showNotification("Start refreshing the layout.");
+      }
+      clearCache(surface.getConfigurations());
+
+      surface.forceUserRequestedRefresh().thenAccept(unused -> {
+        if (notification != null) {
+          notification.showThenHideNotification("Finished refreshing the layout.", 2000);
         }
       });
   }

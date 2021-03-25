@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.sdk.Jdks
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
-import com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path
+import com.android.tools.idea.testing.AndroidGradleTests.addJdk8ToTableButUseCurrent
+import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
@@ -30,10 +30,14 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.vfs.VfsUtil
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
+  override fun tearDown() {
+    restoreJdk()
+    super.tearDown()
+  }
+
   fun testReopenProject() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { }
@@ -83,7 +87,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36Project() {
-    addJdk8ToTable()
+    addJdk8ToTableButUseCurrent()
     prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     openPreparedProject("project") { project ->
       val androidTestRunConfiguration =
@@ -100,7 +104,7 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
   }
 
   fun testOpen36ProjectWithoutModules() {
-    addJdk8ToTable()
+    addJdk8ToTableButUseCurrent()
     val projectRoot = prepareGradleProject(TestProjectPaths.RUN_APP_36, "project")
     runWriteAction {
       val projectRootVirtualFile = VfsUtil.findFileByIoFile(projectRoot, false)!!
@@ -117,15 +121,6 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
         "sub36" to "My36.app.sub36",
         "All Tests Sub 36" to "My36.app.sub36"
       ))
-    }
-  }
-
-  private fun addJdk8ToTable() {
-    val jdkTable = ProjectJdkTable.getInstance()
-    val jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path())
-    assertThat(jdk).isNotNull()
-    runWriteAction {
-      jdkTable.addJdk(jdk!!)
     }
   }
 }

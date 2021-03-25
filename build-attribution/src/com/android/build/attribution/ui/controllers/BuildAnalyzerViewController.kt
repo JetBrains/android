@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
+import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.TaskUiData
@@ -28,13 +30,21 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import java.time.Duration
 
 class BuildAnalyzerViewController(
@@ -158,8 +168,56 @@ class BuildAnalyzerViewController(
 
   override fun runAgpUpgrade() {
     ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
-    //TODO (b/177051800): add agp upgrade event to analytics
+    analytics.runAgpUpgradeClicked()
+  }
+
+  override fun runTestConfigurationCachingBuild() {
+    GradleBuildInvoker.getInstance(project).rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+    analytics.rerunBuildWithConfCacheClicked()
+  }
+
+  override fun turnConfigurationCachingOnInProperties() {
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+    analytics.turnConfigurationCacheOnInPropertiesClicked()
+  }
+
+  override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {
+    val buildModel = ProjectBuildModel.get(project)
+    val rootBuildModel = buildModel.projectBuildModel
+    val psiToOpen = findPluginDeclarationPsi(rootBuildModel, pluginWarningData)
+    val openFile = if (psiToOpen != null) {
+      OpenFileDescriptor(project, psiToOpen.containingFile.virtualFile, psiToOpen.textOffset)
+    }
+    else {
+      rootBuildModel?.virtualFile?.let { OpenFileDescriptor(project, it, -1)}
+    }
+    if (openFile?.canNavigate() == true) {
+      openFile.navigate(true)
+    }
+    //TODO (b/177051800): add event to analytics
     analytics.reportUnregisteredEvent()
+  }
+
+  private fun findPluginDeclarationPsi(projectBuildModel: GradleBuildModel?, pluginWarningData: IncompatiblePluginWarning): PsiElement?{
+    if (projectBuildModel == null) return null
+    // Examine dependencies block
+    val buildScriptDependenciesBlock = projectBuildModel.buildscript().dependencies()
+    pluginWarningData.pluginInfo.pluginArtifact?.run {
+      buildScriptDependenciesBlock.artifacts(CommonConfigurationNames.CLASSPATH)
+        .firstOrNull { name == it.name().forceString() && group == it.group().toString() }
+        ?.psiElement?.let { return it }
+    }
+
+    // Examine plugins for plugin Dsl declarations.
+    projectBuildModel.plugins().firstOrNull { plugin ->
+      plugin.version().valueType == GradlePropertyModel.ValueType.STRING
+      && pluginWarningData.plugin.displayNames().contains(plugin.name().toString())
+    }
+      ?.psiElement?.let { return it }
+
+    // TODO Support Plugin management case
+
+    return buildScriptDependenciesBlock.psiElement
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {

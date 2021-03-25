@@ -19,19 +19,49 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice {
-  private final @NotNull Object mySerialNumber;
+  private final @NotNull String mySerialNumber;
+  private final boolean myConnected;
 
-  PhysicalDevice(@NotNull String serialNumber) {
+  private PhysicalDevice(@NotNull String serialNumber, boolean connected) {
     mySerialNumber = serialNumber;
+    myConnected = connected;
+  }
+
+  static @NotNull PhysicalDevice newConnectedDevice(@NotNull String serialNumber) {
+    return new PhysicalDevice(serialNumber, true);
+  }
+
+  static @NotNull PhysicalDevice newDisconnectedDevice(@NotNull String serialNumber) {
+    return new PhysicalDevice(serialNumber, false);
+  }
+
+  @NotNull String getSerialNumber() {
+    return mySerialNumber;
+  }
+
+  boolean isConnected() {
+    return myConnected;
+  }
+
+  @NotNull String toDebugString() {
+    String separator = System.lineSeparator();
+
+    return "serialNumber = " + mySerialNumber + separator
+           + "connected = " + myConnected + separator;
   }
 
   @Override
   public int hashCode() {
-    return mySerialNumber.hashCode();
+    return 31 * mySerialNumber.hashCode() + Boolean.hashCode(myConnected);
   }
 
   @Override
   public boolean equals(@Nullable Object object) {
-    return object instanceof PhysicalDevice && mySerialNumber.equals(((PhysicalDevice)object).mySerialNumber);
+    if (!(object instanceof PhysicalDevice)) {
+      return false;
+    }
+
+    PhysicalDevice device = (PhysicalDevice)object;
+    return mySerialNumber.equals(device.mySerialNumber) && myConnected == device.myConnected;
   }
 }

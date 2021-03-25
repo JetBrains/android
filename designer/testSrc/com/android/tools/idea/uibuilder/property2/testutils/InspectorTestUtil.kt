@@ -145,7 +145,7 @@ class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePro
   override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
-    return when (controlTypeProvider(property)) {
+    return when (val type = controlTypeProvider(property)) {
       ControlType.COMBO_BOX -> ComboBoxPropertyEditorModel(property, enumSupport!!, true)
       ControlType.DROPDOWN -> ComboBoxPropertyEditorModel(property, enumSupport!!, false)
       ControlType.TEXT_EDITOR -> TextFieldPropertyEditorModel(property, true)
@@ -154,6 +154,7 @@ class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePro
       ControlType.BOOLEAN -> BooleanPropertyEditorModel(property)
       ControlType.COLOR_EDITOR -> ColorFieldPropertyEditorModel(property)
       ControlType.LINK_EDITOR -> LinkPropertyEditorModel(property as LinkPropertyItem)
+      else -> error("Unknown control type: $type")
     } to JPanel()
   }
 }

@@ -31,6 +31,7 @@ import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
+import static com.android.tools.idea.ui.designer.DesignSurfaceNotificationManagerKt.NOTIFICATION_KEY;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -256,13 +257,13 @@ public class HtmlLinkManager {
       }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
-      handleRefreshRenderUrl(surface);
+      handleRefreshRenderUrl(dataContext, surface);
     }
     else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
       // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
       // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
       // of clicking that link that has something to do with the cache being cleared.
-      handleRefreshRenderUrl(surface);
+      handleRefreshRenderUrl(dataContext, surface);
       showNotification("Cache cleared");
     }
     else if (url.startsWith(URL_ENABLE_LAYOUTLIB_NATIVE)) {
@@ -975,10 +976,15 @@ public class HtmlLinkManager {
     return URL_CLEAR_CACHE_AND_NOTIFY;
   }
 
-  private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
-      if (surface != null) {
+  private static void handleRefreshRenderUrl(@Nullable DataContext dataContext,
+                                             @Nullable EditorDesignSurface surface) {
+    if (surface != null) {
+      if (dataContext == null) {
         RenderUtils.clearCache(surface.getConfigurations());
+        return;
       }
+      RenderUtils.refreshRenderAndNotify(surface, dataContext.getData(NOTIFICATION_KEY));
+    }
   }
 
   private static void requestRender(@Nullable EditorDesignSurface surface) {

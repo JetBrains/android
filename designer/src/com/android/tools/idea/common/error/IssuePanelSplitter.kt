@@ -28,27 +28,33 @@ class IssuePanelSplitter(
 
   init {
     val issuePanel = surface.issuePanel
-    issuePanel.addMinimizeListener(createIssuePanelMinimizeListener(issuePanel))
+    issuePanel.addEventListener(createIssueEventListener(issuePanel))
     setHonorComponentsMinimumSize(true)
     firstComponent = content
     secondComponent = issuePanel
   }
 
-  private fun updateSplitter(isMinimized: Boolean, height: Int) {
-    val showDivider = !isMinimized
+  private fun updateSplitter(isExpanded: Boolean, height: Int) {
+    val showDivider = isExpanded
     isShowDividerIcon = showDivider
     isShowDividerControls = showDivider
     setResizeEnabled(showDivider)
 
-    proportion = if (isMinimized) 1f
+    proportion = if (!isExpanded) 1f
     else {
       val newProportion = 1 - height / parent.height.toFloat()
       Math.max(0.5f, newProportion)
     }
   }
 
-  private fun createIssuePanelMinimizeListener(issuePanel: IssuePanel) = IssuePanel.MinimizeListener { isMinimized ->
-    surface.analyticsManager.trackIssuePanel(isMinimized)
-    updateSplitter(isMinimized, issuePanel.suggestedHeight)
+  private fun createIssueEventListener(issuePanel: IssuePanel): IssuePanel.EventListener {
+    return object : IssuePanel.EventListener {
+      override fun onPanelExpanded(isExpanded: Boolean) {
+        surface.analyticsManager.trackIssuePanel(!isExpanded)
+        updateSplitter(!isExpanded, issuePanel.suggestedHeight)
+      }
+
+      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) { }
+    }
   }
 }

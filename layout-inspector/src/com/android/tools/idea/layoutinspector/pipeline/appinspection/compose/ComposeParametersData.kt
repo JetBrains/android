@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
@@ -76,6 +77,7 @@ class ComposeParametersDataGenerator(
     }
 
     val value: Any = when (type) {
+      Parameter.Type.ITERABLE,
       Parameter.Type.STRING -> stringTable[int32Value]
       Parameter.Type.BOOLEAN -> (int32Value == 1)
       Parameter.Type.INT32 -> int32Value
@@ -104,7 +106,7 @@ class ComposeParametersDataGenerator(
       )
     }
     else {
-      return ParameterGroupItem(
+      val group = ParameterGroupItem(
         name,
         type,
         value.toString(),
@@ -114,6 +116,10 @@ class ComposeParametersDataGenerator(
         index,
         reference,
         elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId) })
+      if (type == PropertyType.ITERABLE && reference != null && group.children.isNotEmpty()) {
+        group.children.add(ShowMoreElementsItem(group))
+      }
+      return group
     }
   }
 }

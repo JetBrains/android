@@ -87,6 +87,9 @@ interface PTable {
   /** Stops editing the current row and starts editing in the next row. */
   fun startNextEditor(): Boolean
 
+  /** A group was updated. */
+  fun updateGroupItems(group: PTableGroupItem, modification: PTableGroupModification)
+
   companion object {
     fun create(tableModel: PTableModel,
                context: Any? = null,

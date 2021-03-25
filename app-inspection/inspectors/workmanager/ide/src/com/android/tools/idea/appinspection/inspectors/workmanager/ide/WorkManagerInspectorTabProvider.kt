@@ -35,15 +35,17 @@ import kotlinx.coroutines.Job
 import javax.swing.Icon
 import javax.swing.JComponent
 
+const val MINIMUM_WORKMANAGER_VERSION = "2.5.0"
+
 class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "androidx.work.inspection"
-  override val displayName = "WorkManager Inspector"
+  override val displayName = "Background Task Inspector"
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
   override val inspectorLaunchParams = LibraryInspectorLaunchParams(
     AppInspectorJar("workmanager-inspection.jar",
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
-    ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0", ArtifactCoordinate.Type.AAR)
- )
+    ArtifactCoordinate("androidx.work", "work-runtime", MINIMUM_WORKMANAGER_VERSION, ArtifactCoordinate.Type.AAR)
+  )
 
   override fun isApplicable(): Boolean {
     return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()
@@ -61,5 +63,11 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
 
       override val component: JComponent = WorkManagerInspectorTab(client, ideServices, moduleScope).component
     }
+  }
+
+  override fun compareTo(other: AppInspectorTabProvider): Int {
+    // TODO(b/183624170): This is a temporary patch to make sure WMI doesn't show up before DBI for now, while
+    //  the UI is still mostly barren (this should not be true in a later version of Studio)
+    return 1
   }
 }

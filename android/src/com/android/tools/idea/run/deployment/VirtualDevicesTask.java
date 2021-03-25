@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.android.tools.idea.run.deployment.Tasks.getTypeFromAndroidDevice;
+
 import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.AndroidDevice;
@@ -184,7 +186,8 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       .setKey(new VirtualDevicePath(avd.getDataFolderPath()))
       .setAndroidDevice(device)
       .setNameKey(new VirtualDeviceName(avd.getName()))
-      .addAllSnapshots(snapshots);
+      .addAllSnapshots(snapshots)
+      .setType(getTypeFromAndroidDevice(device));
 
     if (myChecker == null) {
       return builder.build();

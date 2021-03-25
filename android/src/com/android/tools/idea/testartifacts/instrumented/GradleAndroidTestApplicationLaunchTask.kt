@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings
 import com.android.tools.idea.run.ConsolePrinter
@@ -26,9 +27,13 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -42,6 +47,7 @@ import java.io.File
  */
 class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
+  private val androidModuleModel: AndroidModuleModel,
   private val taskId: String,
   private val waitForDebugger: Boolean,
   private val processHandler: ProcessHandler,
@@ -60,13 +66,15 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInModuleTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-        return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
+        return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                      taskId, waitForDebugger, processHandler, consolePrinter, device, "",
                                                       "", "", gradleConnectedAndroidTestInvoker)
     }
 
@@ -76,6 +84,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun allInPackageTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -83,8 +92,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       device: IDevice,
       testPackageName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, testPackageName,
-                                                    "", "", gradleConnectedAndroidTestInvoker)
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                    taskId, waitForDebugger, processHandler, consolePrinter, device,
+                                                    testPackageName, "", "", gradleConnectedAndroidTestInvoker)
     }
 
     /**
@@ -93,6 +103,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun classTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -100,8 +111,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       device: IDevice,
       testClassName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger,
-                                                    processHandler, consolePrinter, device, "", testClassName, "", gradleConnectedAndroidTestInvoker)
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
+                                                    taskId, waitForDebugger,
+                                                    processHandler, consolePrinter, device, "", testClassName, "",
+                                                    gradleConnectedAndroidTestInvoker)
     }
 
     /**
@@ -110,6 +123,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     @JvmStatic
     fun methodTest(
       project: Project,
+      androidModuleModel: AndroidModuleModel,
       taskId: String,
       waitForDebugger: Boolean,
       processHandler: ProcessHandler,
@@ -118,15 +132,18 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       testClassName: String,
       testMethodName: String,
       gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
-      return GradleAndroidTestApplicationLaunchTask(project, taskId, waitForDebugger, processHandler, consolePrinter, device, "",
+      return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel, taskId,
+                                                    waitForDebugger, processHandler, consolePrinter, device, "",
                                                     testClassName, testMethodName, gradleConnectedAndroidTestInvoker)
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult? {
-    consolePrinter.stdout("Running tests\n")
-
+  override fun run(launchContext: LaunchContext): LaunchResult {
+    if (!checkAndroidGradlePluginVersion()) {
+      return LaunchResult.error("ANDROID_TEST_AGP_VERSION_TOO_OLD", "checking the Android Gradle plugin version")
+    }
     if (myGradleConnectedAndroidTestInvoker.run(device)) {
+      consolePrinter.stdout("Running tests\n")
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
       val adapters = myGradleConnectedAndroidTestInvoker.getDevices().map {
         val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
@@ -139,25 +156,50 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
                                                                              ExternalSystemTaskType.EXECUTE_TASK, project)
       val taskOutputProcessor = TaskOutputProcessor(adapters)
       val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
+        val outputLineProcessor = TaskOutputLineProcessor(object:TaskOutputLineProcessor.LineProcessor {
+          override fun processLine(line: String) {
+            val processedText = taskOutputProcessor.process(line)
+            if (!(processedText.isBlank() && line != processedText)) {
+              consolePrinter.stdout(processedText)
+            }
+          }
+        })
         override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
           super.onTaskOutput(id, text, stdOut)
-
-          val processedText = if (stdOut) {
-            taskOutputProcessor.process(text)
+          if (stdOut) {
+            outputLineProcessor.append(text)
           } else {
-            text
+            processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
           }
-          consolePrinter.stdout(processedText)
         }
 
-        override fun onEnd(id: ExternalSystemTaskId,) {
+        override fun onEnd(id: ExternalSystemTaskId) {
           super.onEnd(id)
+          outputLineProcessor.close()
           processHandler.detachProcess()
         }
       }
+
+      processHandler.addProcessListener(object: ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          if (willBeDestroyed) {
+            AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+          }
+        }
+      })
       AndroidGradleTaskManager().executeTasks(externalTaskId, taskNames, path.path, getGradleExecutionSettings(), null, listener)
     }
     return LaunchResult.success()
+  }
+
+  private fun checkAndroidGradlePluginVersion(): Boolean {
+    val version = androidModuleModel.modelVersion
+    return if (version != null && version.major >= 7) {
+      true
+    } else {
+      consolePrinter.stderr("The minimum required Android Gradle plugin version is 7.0.0 but it was ${version ?: "unknown"}.")
+      false
+    }
   }
 
   override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"
@@ -166,35 +208,34 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
 
   @VisibleForTesting
   fun getGradleExecutionSettings(): GradleExecutionSettings {
-    var gradleExecutionSettings: GradleExecutionSettings = getOrCreateGradleExecutionSettings(project)
-    var deviceSerials = ""
-    var devices = myGradleConnectedAndroidTestInvoker.getDevices()
-    for (i in devices.indices) {
-      deviceSerials += if (i == (devices.size - 1)) {
-        "${devices[i].serialNumber}"
-      } else {
-        "${devices[i].serialNumber},"
+    return getOrCreateGradleExecutionSettings(project).apply {
+      // Add an environmental variable to filter connected devices for selected devices.
+      val deviceSerials = myGradleConnectedAndroidTestInvoker.getDevices().joinToString(",") { device ->
+        device.serialNumber
       }
-    }
-    var map: HashMap<String, String> = hashMapOf("ANDROID_SERIAL" to deviceSerials)
-    gradleExecutionSettings = gradleExecutionSettings.withEnvironmentVariables(map) as GradleExecutionSettings
-    var arguments = ArrayList<String>()
-    if (testPackageName != "" || testClassName != "") {
-      var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
-      if (testPackageName != "") {
-        testTypeArgs += ".package=$testPackageName"
-      } else if (testClassName != "") {
-        testTypeArgs += ".class=$testClassName"
-        if (testMethodName != "") {
-          testTypeArgs += "#$testMethodName"
+      withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
+
+      // Enable UTP in Gradle. This is required for Android Studio integration.
+      withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+
+      // Add a test filter.
+      if (testPackageName != "" || testClassName != "") {
+        var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
+        if (testPackageName != "") {
+          testTypeArgs += ".package=$testPackageName"
+        } else if (testClassName != "") {
+          testTypeArgs += ".class=$testClassName"
+          if (testMethodName != "") {
+            testTypeArgs += "#$testMethodName"
+          }
         }
+        withArgument(testTypeArgs)
       }
-      arguments.add(testTypeArgs)
+
+      // Enable debug flag for run with debugger.
+      if (waitForDebugger) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
+      }
     }
-    if (waitForDebugger) {
-      arguments.add("-Pandroid.testInstrumentationRunnerArguments.debug=true")
-    }
-    gradleExecutionSettings = gradleExecutionSettings.withArguments(arguments) as GradleExecutionSettings
-    return gradleExecutionSettings
   }
 }

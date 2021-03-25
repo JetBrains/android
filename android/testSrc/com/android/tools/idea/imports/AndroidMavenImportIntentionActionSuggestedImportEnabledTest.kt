@@ -33,10 +33,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 /**
- * Tests for [AndroidMavenImportIntentionAction], for enabling [StudioFlags.AUTO_IMPORT] specific tests.
+ * Tests for [AndroidMavenImportIntentionAction], for enabling [StudioFlags.SUGGESTED_IMPORT] specific tests.
  */
 @RunsInEdt
-class AndroidMavenImportIntentionActionAutoImportEnabledTest {
+class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   private val projectRule = AndroidGradleProjectRule()
 
   @get:Rule
@@ -96,7 +96,7 @@ class AndroidMavenImportIntentionActionAutoImportEnabledTest {
     var available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
     // Since we have more than one suggestion, we just show general text `Add library dependency` here.
-    assertThat(action.text).isEqualTo("Add library dependency")
+    assertThat(action.text).isEqualTo("Import and add library dependency")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)

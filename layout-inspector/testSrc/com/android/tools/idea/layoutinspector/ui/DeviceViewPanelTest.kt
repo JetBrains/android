@@ -176,7 +176,6 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.moveTo(10, 10)
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
@@ -202,7 +201,6 @@ class DeviceViewPanelWithFullInspectorTest {
     toolbar.size = Dimension(800, 200)
     toolbar.doLayout()
     val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.moveTo(10, 10)
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
@@ -228,7 +226,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
 
     val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.moveTo(10, 10)
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
@@ -259,7 +256,6 @@ class DeviceViewPanelWithFullInspectorTest {
     toolbar.doLayout()
 
     val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.moveTo(10, 10)
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()

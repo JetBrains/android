@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.service.settings.*;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -18,12 +19,15 @@ public class AndroidStudioGradleSettingsControlProvider extends GradleSettingsCo
 
   @Override
   public GradleProjectSettingsControlBuilder getProjectSettingsControlBuilder(@NotNull GradleProjectSettings initialSettings) {
-    return new JavaGradleProjectSettingsControlBuilder(initialSettings)
+    IdeaGradleProjectSettingsControlBuilder builder = new AndroidGradleProjectSettingsControlBuilder(initialSettings)
       .dropCustomizableWrapperButton()
       .dropUseBundledDistributionButton()
-      .dropGradleJdkComponents()
       .dropResolveModulePerSourceSetCheckBox()
       .dropDelegateBuildCombobox()
       .dropTestRunnerCombobox();
+    if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      builder.dropGradleJdkComponents();
+    }
+    return builder;
   }
 }

@@ -22,9 +22,8 @@ import com.android.tools.idea.avdmanager.AvdUiAction;
 import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import java.awt.event.ActionEvent;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExploreAvdAction extends AvdUiAction {
@@ -42,11 +41,8 @@ public final class ExploreAvdAction extends AvdUiAction {
     if (project == null) {
       return;
     }
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
-    if (toolWindow == null) {
-      return;
-    }
-    toolWindow.show();
+
+    DeviceExplorerToolWindowFactory.openAndShowDevice(project, Objects.requireNonNull(myAvdInfoProvider.getAvdInfo()));
   }
 
   @Override

@@ -22,9 +22,11 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
@@ -40,7 +42,6 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
@@ -54,17 +55,17 @@ import java.util.EventListener
 import javax.swing.JButton
 import javax.swing.JTree
 import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
-internal class ToolWindowModel(val project: Project, val current: GradleVersion) {
+class ToolWindowModel(val project: Project, var current: GradleVersion?) {
 
-  val selectedVersion = OptionalValueProperty<GradleVersion>(GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
-  private var processor: AgpUpgradeRefactoringProcessor? = null
+  val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val selectedVersion = OptionalValueProperty<GradleVersion>(latestKnownVersion)
+  var processor: AgpUpgradeRefactoringProcessor? = null
 
   //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
@@ -113,15 +114,21 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     }
   }
 
+  val connection = project.messageBus.connect()
+
   init {
     refresh()
     selectedVersion.addListener { refresh() }
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = refresh(true)
+    })
 
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
         val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { it > current }
+          .filter { current?.let { current -> it > current && it < latestKnownVersion } ?: false }
+          .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
           .toList()
           .sortedDescending()
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
@@ -129,7 +136,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     })
   }
 
-  fun refresh() {
+  fun refresh(refindPlugin: Boolean = false) {
     showLoadingState.set(true)
     // First clear state
     runEnabled.set(false)
@@ -138,41 +145,66 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     root.removeAllChildren()
     treeModel.nodeStructureChanged(root)
 
+    if (refindPlugin) { current = AndroidPluginInfo.find(project)?.pluginVersion }
     val newVersion = selectedVersion.valueOrNull
-    // TODO(xof/mlazeba): check new version is greater than current here
     // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
-    val newProcessor = newVersion?.let { AgpUpgradeRefactoringProcessor(project, current, it) }
+    val newProcessor = newVersion?.let {
+      current?.let { current ->
+        if (newVersion >= current) AgpUpgradeRefactoringProcessor(project, current, it) else null
+      }
+    }
     processor = newProcessor
 
     if (newProcessor == null) {
       showLoadingState.set(false)
     }
     else {
-      ApplicationManager.getApplication().executeOnPooledThread {
-        newProcessor.ensureParsedModels()
-
-        val projectFilesClean = isCleanEnoughProject(project)
-        invokeLater(ModalityState.NON_MODAL) {
-          if (!projectFilesClean) {
-            runEnabled.set(false)
-            runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                                   "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                                   "can be handled separately.")
-          }
-          else {
-            refreshTree(newProcessor)
-            runEnabled.set(true)
-          }
-          showLoadingState.set(false)
-        }
+      val application = ApplicationManager.getApplication()
+      if (application.isUnitTestMode) {
+        parseAndSetEnabled(newProcessor)
+      } else {
+        application.executeOnPooledThread { parseAndSetEnabled(newProcessor) }
       }
     }
+  }
+
+  private fun parseAndSetEnabled(newProcessor: AgpUpgradeRefactoringProcessor) {
+    val application = ApplicationManager.getApplication()
+    newProcessor.ensureParsedModels()
+    val projectFilesClean = isCleanEnoughProject(project)
+    val classpathUsageFound = !newProcessor.classpathRefactoringProcessor.isAlwaysNoOpForProject
+    if (application.isUnitTestMode) {
+      setEnabled(newProcessor, projectFilesClean, classpathUsageFound)
+    } else {
+      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean, classpathUsageFound) }
+    }
+  }
+
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
+    if (!projectFilesClean) {
+      runEnabled.set(false)
+      runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                             "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                             "can be handled separately.")
+    }
+    else if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
+      newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
+      runEnabled.set(false)
+      runDisabledTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
+                             "possibly because the project's build files use features not currently support by the " +
+                             "Upgrade Assistant (for example: using constants defined in buildSrc)."
+      )
+    }
+    else {
+      refreshTree(newProcessor)
+      runEnabled.set(true)
+    }
+    showLoadingState.set(false)
   }
 
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
     val root = treeModel.root as CheckedTreeNode
     root.removeAllChildren()
-    //TODO(mlazeba): do we need the check about 'classpathRefactoringProcessor.isAlwaysNoOpForProject' meaning upgrade can not run?
     fun <T : DefaultMutableTreeNode> populateNecessity(
       necessity: AgpUpgradeComponentNecessity,
       constructor: (Any) -> (T)
@@ -194,10 +226,14 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
       .forEach { it.processor.isEnabled = true }
 
-    DumbService.getInstance(processor.project).smartInvokeLater {
-      processor.setPreviewUsages(showPreview)
+    if (ApplicationManager.getApplication().isUnitTestMode) {
       processor.run()
-      // TODO(xof): add callback to refresh tree and textField
+    }
+    else {
+      DumbService.getInstance(processor.project).smartInvokeLater {
+        processor.setPreviewUsages(showPreview)
+        processor.run()
+      }
     }
   }
 
@@ -209,6 +245,7 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     val pageHeader: String
     val treeText: String
     val helpLinkUrl: String?
+    val shortDescription: String?
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -242,13 +279,15 @@ internal class ToolWindowModel(val project: Project, val current: GradleVersion)
     else -> DefaultStepPresentation(processor)
   }
 
-  private open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
+  open class DefaultStepPresentation(val processor: AgpUpgradeComponentRefactoringProcessor) : StepUiPresentation {
     override val pageHeader: String
       get() = treeText
     override val treeText: String
       get() = processor.commandName
     override val helpLinkUrl: String?
       get() = processor.getReadMoreUrl()
+    override val shortDescription: String?
+      get() = processor.getShortDescription()
   }
 }
 
@@ -259,18 +298,19 @@ class ContentManager(val project: Project) {
   }
 
   fun showContent() {
-    val current = AndroidPluginInfo.find(project)?.pluginVersion ?: return
+    val current = AndroidPluginInfo.find(project)?.pluginVersion
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     toolWindow.contentManager.removeAllContents(true)
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
-    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, "Upgrading project from AGP $current", true)
+    val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
+    content.setDisposer(model.connection)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
   }
 
-  private class View(val model: ToolWindowModel, disposable: Disposable) {
+  class View(val model: ToolWindowModel, contentManager: com.intellij.ui.content.ContentManager) {
     /*
     Experiment of usage of observable property bindings I have found in our code base.
     Taking inspiration from com/android/tools/idea/avdmanager/ConfigureDeviceOptionsStep.java:85 at the moment (Jan 2021).
@@ -285,6 +325,8 @@ class ContentManager(val project: Project) {
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
       addTreeSelectionListener { e -> refreshDetailsPanel() }
     }
+
+    val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       object : DefaultCommonComboBoxModel<GradleVersion>(
@@ -304,9 +346,11 @@ class ContentManager(val project: Project) {
         override val editingSupport = object : EditingSupport {
           override val validation: EditingValidation = { value ->
             val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+            val current = model.current
             when {
+              current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version")
               parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
-              parsed <= model.current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
+              parsed < current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
               else -> EDITOR_NO_ERROR
             }
           }
@@ -329,7 +373,7 @@ class ContentManager(val project: Project) {
     }
 
     val refreshButton = JButton("Refresh").apply {
-      addActionListener { this@View.model.refresh() }
+      addActionListener { this@View.model.refresh(true) }
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
@@ -344,8 +388,8 @@ class ContentManager(val project: Project) {
       layout = VerticalLayout(0, SwingConstants.LEFT)
       border = JBUI.Borders.empty(10)
     }
-    val content = JBLoadingPanel(BorderLayout(), disposable).apply {
-      val controlsPanel = makeTopComponent(model)
+    val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
+      val controlsPanel = makeTopComponent()
       add(controlsPanel, BorderLayout.NORTH)
       add(tree, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
@@ -362,6 +406,8 @@ class ContentManager(val project: Project) {
           stopLoading()
           okButton.isEnabled = model.runEnabled.get()
           previewButton.isEnabled = model.runEnabled.get()
+          upgradeLabel.text = model.current.upgradeLabelText()
+          contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
         }
       }
 
@@ -378,9 +424,9 @@ class ContentManager(val project: Project) {
       TreeUtil.expandAll(tree)
     }
 
-    private fun makeTopComponent(model: ToolWindowModel) = JBPanel<JBPanel<*>>().apply {
+    private fun makeTopComponent() = JBPanel<JBPanel<*>>().apply {
       layout = HorizontalLayout(5)
-      add(JBLabel("Upgrading Android Gradle Plugin from version ${model.current} to").also { it.border = JBUI.Borders.empty(0, 6) })
+      add(upgradeLabel)
       add(versionTextField)
       // TODO(xof): make these buttons come in a platform-dependent order
       add(refreshButton)
@@ -392,7 +438,7 @@ class ContentManager(val project: Project) {
     private fun refreshDetailsPanel() {
       detailsPanel.removeAll()
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
-      val label = HtmlLabel()
+      val label = HtmlLabel().apply { name = "content" }
       setUpAsHtmlLabel(label)
       when (selectedStep) {
         is AgpUpgradeComponentNecessity -> {
@@ -401,13 +447,21 @@ class ContentManager(val project: Project) {
         }
         is ToolWindowModel.StepUiPresentation -> {
           val text = StringBuilder("<h4><b>${selectedStep.pageHeader}</b></h4>")
+          val paragraph = selectedStep.helpLinkUrl != null || selectedStep.shortDescription != null
+          if (paragraph) text.append("<p>")
+          selectedStep.shortDescription?.let { description ->
+            text.append(description.replace("\n", "<br>"))
+            selectedStep.helpLinkUrl?.let { text.append("  ") }
+          }
           selectedStep.helpLinkUrl?.let { url ->
-            text.append("<p><a href='$url'>Read more</a>.</p>")
+            // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
+            text.append("<a href='$url'>Read more</a>.")
           }
           label.text = text.toString()
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
             ComboBox(selectedStep.elements.toTypedArray()).apply {
+              name = "selection"
               item = selectedStep.selectedValue
               addActionListener {
                 selectedStep.selectedValue = this.item
@@ -416,7 +470,7 @@ class ContentManager(val project: Project) {
               }
               val comboPanel = JBPanel<JBPanel<*>>()
               comboPanel.layout = HorizontalLayout(0)
-              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4) })
+              comboPanel.add(JBLabel(selectedStep.label).also { it.border = JBUI.Borders.empty(0, 4); it.name = "label" })
               comboPanel.add(this)
               detailsPanel.add(comboPanel)
             }
@@ -459,7 +513,7 @@ private fun AgpUpgradeRefactoringProcessor.components() = this.componentRefactor
 private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessity: AgpUpgradeComponentNecessity) =
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
-private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
+fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
   MANDATORY_CODEPENDENT -> "Upgrade steps"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
@@ -467,13 +521,13 @@ private fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
 }
 
-private fun AgpUpgradeComponentNecessity.description() = when (this) {
+fun AgpUpgradeComponentNecessity.description() = when (this) {
   MANDATORY_INDEPENDENT ->
-    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "These steps are required to perform the upgrade of this project.\n" +
     "You can choose to do them in separate steps, in advance of the Android\n" +
     "Gradle Plugin upgrade itself."
   MANDATORY_CODEPENDENT ->
-    "These steps must be done in order to perform the upgrade of this project.\n" +
+    "These steps are required to perform the upgrade of this project.\n" +
     "They must all happen together, at the same time as the Android Gradle Plugin\n" +
     "upgrade itself."
   OPTIONAL_CODEPENDENT ->
@@ -485,4 +539,14 @@ private fun AgpUpgradeComponentNecessity.description() = when (this) {
     "can choose to do them, with or without upgrading the Android Gradle Plugin\n" +
     "to its new version."
   else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
+}
+
+fun GradleVersion?.upgradeLabelText() = when (this) {
+  null -> "Upgrading Android Gradle Plugin from unknown version to"
+  else -> "Upgrading Android Gradle Plugin from version $this to"
+}
+
+fun GradleVersion?.contentDisplayName() = when(this) {
+  null -> "Upgrading project from unknown AGP"
+  else -> "Upgrading project from AGP $this"
 }

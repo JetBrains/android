@@ -214,14 +214,14 @@ public class GradleTaskFinder {
         case BUNDLE:
           // The "Bundle" task is only valid for base (app) module, not for features, libraries, etc.
           if (androidModel != null && androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
-            String taskName = androidModel.getSelectedVariant().getMainArtifact().getBundleTaskName();
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName();
             addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           break;
         case APK_FROM_BUNDLE:
           // The "ApkFromBundle" task is only valid for base (app) module, and for features if it's for instrumented tests
           if (androidModel != null && androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP) {
-            String taskName = androidModel.getSelectedVariant().getMainArtifact().getApkFromBundleTaskName();
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getBuildInformation().getApkFromBundleTaskName();
             addTaskIfSpecified(tasks, gradlePath, taskName);
           }
           else if (androidModel != null &&

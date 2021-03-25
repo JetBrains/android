@@ -22,6 +22,7 @@ import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableCellRendererProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableGroupModification
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.intellij.openapi.application.ApplicationManager
@@ -212,6 +213,10 @@ class PTableImpl(
     }
     startEditing(pos.row, pos.column)
     return true
+  }
+
+  override fun updateGroupItems(group: PTableGroupItem, modification: PTableGroupModification) {
+    model.updateGroupItems(group, modification)
   }
 
   private fun startEditing(row: Int, column: Int) {

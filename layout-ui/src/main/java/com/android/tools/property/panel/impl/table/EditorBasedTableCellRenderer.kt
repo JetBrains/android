@@ -61,6 +61,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val controlType = controlTypeProvider(property)
     val hasBrowseButton = property.browseButton != null
     val key = ControlKey(controlType, hasBrowseButton)
+
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.isUsedInRendererWithSelection = isSelected && hasFocus
     model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
@@ -87,9 +88,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val panel = VariableHeightPanel(editor)
     panel.border = createBorder(column, depth, editor, gridLineColor)
     val result = Pair(model, panel)
-    if (!model.isCustomHeight) {
-      componentCache[key] = result
-    }
+    componentCache[key] = result
     return result
   }
 

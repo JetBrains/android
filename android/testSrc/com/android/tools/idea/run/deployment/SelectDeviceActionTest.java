@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import javax.swing.JComponent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,12 +70,14 @@ public final class SelectDeviceActionTest {
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Arrays.asList(device1, device2)));
@@ -96,6 +99,7 @@ public final class SelectDeviceActionTest {
       .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
       .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
@@ -106,7 +110,7 @@ public final class SelectDeviceActionTest {
     action.update(myEvent);
 
     // Assert
-    assertEquals("Pixel 3 API 29 (Missing system image)", myPresentation.getText());
+    assertEquals("Pixel 3 API 29", myPresentation.getText());
   }
 
   @Test
@@ -116,6 +120,7 @@ public final class SelectDeviceActionTest {
       .setName("apiQ_64_Google")
       .setKey(new VirtualDeviceName("apiQ_64_Google"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
@@ -138,6 +143,7 @@ public final class SelectDeviceActionTest {
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
       .build();
 
     AnAction action = new SelectDeviceAction(device, myComboBoxAction);
@@ -147,5 +153,27 @@ public final class SelectDeviceActionTest {
 
     // Assert
     Mockito.verify(myComboBoxAction).setTargetSelectedWithComboBox(myProject, new QuickBootTarget(key));
+  }
+
+  @Test
+  public void tooltipProperty() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
+      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .setType(Device.Type.PHONE)
+      .build();
+
+    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
+
+    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertEquals("Missing system image", myPresentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
   }
 }

@@ -195,6 +195,10 @@ public final class StudioFlags {
     NELE, "animated.preview", "Show preview animations toolbar",
     "Show an animations bar that allows playback of vector drawable animations.",
     true);
+  public static final Flag<Boolean> NELE_ANIMATED_SELECTOR_PREVIEW = Flag.create(
+    NELE, "animated.selector.preview", "Show preview animations toolbar for animated selector",
+    "Show an animations bar that allows playback of transitions in animated selector.",
+    true);
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ANIMATIONS = Flag.create(
     NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
     "Show an animations bar that allows playback of MotionLayout animations.",
@@ -589,6 +593,12 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
+
+  public static final Flag<Boolean> ALLOW_JDK_PER_PROJECT = Flag.create(
+    GRADLE_IDE, "jdk.allow.jdk.per.project", "Allow Gradle JDK per project", "Allows setting JDK per project.", true);
+
+  public static final Flag<Boolean> SHOW_JDK_PATH = Flag.create(
+    GRADLE_IDE, "jdk.show.path", "Show JDK path in settings", "Shows JDK path for each item in Gradle settings.", true);
   //endregion
 
   //region Database Inspector
@@ -671,6 +681,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
     "Enables the virtual scene camera in the Embedded Emulator",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
+    EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
+    "Enables configurable multiple displays in the Embedded Emulator",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -1171,7 +1185,7 @@ public final class StudioFlags {
     "Enables the code path where we get indices from dl.google.com/android/studio/gmaven/index/... and generate corresponding " +
     "lookup table from class names to GMaven coordinates. It will be a replacement for the hardcoded mapping data in " +
     "MavenClassRegistryFromHardcodedMap.",
-    false
+    true
   );
   // endregion
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.AndroidProjectTypes
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidModuleDependency
@@ -182,7 +182,7 @@ class GradleTaskFinderTest : PlatformTestCase() {
       projectDir,
       rootModule(),
       androidModule(":app", dynamicFeatures = listOf(":feature1")),
-      androidModule(":feature1", projectType = PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
+      androidModule(":feature1", projectType = IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE, moduleDependencies = listOf(":app"))
     )
     val tasksPerProject = taskFinder
       .findTasksToExecute(
@@ -290,7 +290,7 @@ private fun rootModule() = JavaModuleModelBuilder.rootModuleBuilder
 
 private fun androidModule(
   gradlePath: String,
-  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP,
+  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
   moduleDependencies: List<String> = emptyList(),
   dynamicFeatures: List<String> = emptyList()
 ) = AndroidModuleModelBuilder(

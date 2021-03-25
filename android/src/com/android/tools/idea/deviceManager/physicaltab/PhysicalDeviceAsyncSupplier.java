@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
@@ -64,6 +65,7 @@ final class PhysicalDeviceAsyncSupplier {
   /**
    * Called by a pooled application thread
    */
+  @WorkerThread
   private static @NotNull Path getAdb(@Nullable Project project) {
     return Objects.requireNonNull(AndroidSdkUtils.getAdb(project)).toPath();
   }
@@ -71,6 +73,7 @@ final class PhysicalDeviceAsyncSupplier {
   /**
    * Called by a pooled application thread
    */
+  @WorkerThread
   private static @NotNull ListenableFuture<@Nullable AndroidDebugBridge> getDebugBridge(@NotNull Path adb) {
     return AdbService.getInstance().getDebugBridge(adb.toFile());
   }
@@ -86,6 +89,7 @@ final class PhysicalDeviceAsyncSupplier {
   /**
    * Called by a pooled application thread
    */
+  @WorkerThread
   private static @NotNull Collection<@NotNull IDevice> getDevices(@Nullable AndroidDebugBridge bridge) {
     if (bridge == null) {
       throw new NullPointerException();
@@ -101,11 +105,12 @@ final class PhysicalDeviceAsyncSupplier {
   /**
    * Called by a pooled application thread
    */
+  @WorkerThread
   private static @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
     return devices.stream()
       .filter(device -> !device.isEmulator())
       .map(IDevice::getSerialNumber)
-      .map(PhysicalDevice::new)
+      .map(PhysicalDevice::newConnectedDevice)
       .collect(Collectors.toList());
   }
 }

@@ -54,7 +54,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -609,10 +608,6 @@ public class AppBarConfigurationDialog extends JDialog {
       if (image == null) {
         return null;
       }
-    }
-    catch (@SuppressWarnings("deprecation") RuntimeInterruptedException ex) {
-      // Will happen if several rendering calls are stacked.
-      return null;
     }
     catch (RuntimeException ex) {
       getLogger().error(ex);

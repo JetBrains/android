@@ -281,6 +281,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   private final ZoomControlsPolicy myZoomControlsPolicy;
 
+  /**
+   * If true, when any of the {@link NlModel} configurations change, we will zoom to fit to accomodate any size changes.
+   */
+  private final boolean myZoomOnConfigurationChange;
+
   @NotNull
   private final AWTEventListener myOnHoverListener;
 
@@ -316,7 +321,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, false);
   }
 
   public DesignSurface(
@@ -329,7 +334,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
-    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
+    @NotNull ZoomControlsPolicy zoomControlsPolicy,
+    boolean zoomOnConfigurationChange) {
     super(new BorderLayout());
 
     myConfigurationListener = flags -> {
@@ -344,6 +350,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myIsEditable = isEditable;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
+    myZoomOnConfigurationChange = zoomOnConfigurationChange;
 
     boolean hasZoomControls = myZoomControlsPolicy != ZoomControlsPolicy.HIDDEN;
 
@@ -614,7 +621,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     model.addListener(myModelListener);
-    model.getConfiguration().addListener(myConfigurationListener);
+    if (myZoomOnConfigurationChange) model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
     myModelToSceneManagersLock.writeLock().lock();
     try {

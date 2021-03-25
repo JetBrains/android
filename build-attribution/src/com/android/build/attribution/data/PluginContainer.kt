@@ -39,7 +39,7 @@ class PluginContainer {
   }
 
   fun findPluginByName(pluginName: String, projectPath: String): PluginData? {
-    return pluginDisplayNamesToPlugin[PluginData.DisplayName(pluginName, projectPath)]
+    return pluginDisplayNamesToPlugin[PluginData.DisplayName(pluginName.cleanUpInternalPluginName(), projectPath)]
            ?: pluginCache[pluginName.cleanUpInternalPluginName()]
   }
 
@@ -73,7 +73,7 @@ class PluginContainer {
 
   private fun getPluginDisplayName(pluginIdentifier: PluginIdentifier, projectPath: String): PluginData.DisplayName = when (pluginIdentifier) {
     is ScriptPluginIdentifier -> PluginData.DisplayName("$projectPath:${pluginIdentifier.displayName}", projectPath)
-    else -> PluginData.DisplayName(pluginIdentifier.displayName, projectPath)
+    else -> PluginData.DisplayName(pluginIdentifier.displayName.cleanUpInternalPluginName(), projectPath)
   }
 
   private fun String.cleanUpInternalPluginName() = if (startsWith("com.android.internal.")) {

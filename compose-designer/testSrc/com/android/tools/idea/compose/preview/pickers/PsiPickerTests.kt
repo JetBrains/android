@@ -181,7 +181,8 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("1.0f", runReadAction { model.properties["", "fontScale"].defaultValue })
     assertEquals("false", runReadAction { model.properties["", "showBackground"].defaultValue })
     assertEquals("false", runReadAction { model.properties["", "showDecoration"].defaultValue })
-    assertEquals("0x0", runReadAction { model.properties["", "backgroundColor"].defaultValue })
+    // We don't take the library's default value for color
+    assertEquals(null, runReadAction { model.properties["", "backgroundColor"].defaultValue })
   }
 
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {

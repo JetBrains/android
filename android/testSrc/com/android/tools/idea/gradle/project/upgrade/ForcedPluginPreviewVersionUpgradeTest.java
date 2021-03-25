@@ -81,7 +81,7 @@ public class ForcedPluginPreviewVersionUpgradeTest {
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    boolean forced = GradlePluginUpgrade.shouldForcePluginUpgrade(myCurrent, myRecommended);
+    boolean forced = GradlePluginUpgrade.versionsShouldForcePluginUpgrade(myCurrent, myRecommended);
     assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
   }
 }

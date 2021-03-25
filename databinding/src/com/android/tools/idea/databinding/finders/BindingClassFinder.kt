@@ -53,23 +53,25 @@ class BindingClassFinder(project: Project) : PsiElementFinder() {
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
+    val commonDependencies = arrayOf(enabledFacetsProvider, resourcesModifiedTracker)
+
     lightBindingsCache = cachedValuesManager.createCachedValue {
       val lightBindings = enabledFacetsProvider.getAllBindingEnabledFacets()
         .flatMap { facet ->
           val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
           bindingModuleCache.bindingLayoutGroups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
         }
-      CachedValueProvider.Result.create(lightBindings, enabledFacetsProvider, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(lightBindings, *commonDependencies)
     }
 
     fqcnBindingsCache = cachedValuesManager.createCachedValue {
       val fqcnBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName }
-      CachedValueProvider.Result.create(fqcnBindings, enabledFacetsProvider, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(fqcnBindings, *commonDependencies)
     }
 
     packageBindingsCache = cachedValuesManager.createCachedValue {
       val packageBindings = lightBindingsCache.value.groupBy { bindingClass -> bindingClass.qualifiedName.substringBeforeLast('.') }
-      CachedValueProvider.Result.create(packageBindings, enabledFacetsProvider, resourcesModifiedTracker)
+      CachedValueProvider.Result.create(packageBindings, *commonDependencies)
     }
   }
 

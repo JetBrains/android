@@ -29,6 +29,9 @@ private const val VIEW_NAME = "LayoutInspectorPropertyEditor"
 private const val WATERMARK_MESSAGE = "No view selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a view in the Component Tree."
 
+val TEXT_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_1
+val COLOR_RESOURCE_EDITOR = ControlType.CUSTOM_EDITOR_2
+
 /**
  * Comparator that is sorting [PTableItem] in Android sorting order.
  * This implies layout attributes first and layout_width before layout_height.
@@ -43,13 +46,16 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   }
 
   private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
-    override fun invoke(property: InspectorPropertyItem): ControlType =
-      when (property.type) {
+    override fun invoke(property: InspectorPropertyItem): ControlType {
+      return when (property.type) {
         Type.DRAWABLE,
-        Type.COLOR -> ControlType.COLOR_EDITOR
-        Type.LAMBDA -> ControlType.LINK_EDITOR
-        else -> ControlType.TEXT_EDITOR
+        Type.COLOR -> if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
+        Type.LAMBDA,
+        Type.FUNCTION_REFERENCE,
+        Type.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
+        else -> if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
       }
+    }
   }
 
   init {

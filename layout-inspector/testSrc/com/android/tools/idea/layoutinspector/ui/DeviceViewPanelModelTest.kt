@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -232,7 +233,7 @@ class DeviceViewPanelModelTest {
       Rectangle(10, 20, 30, 40))
 
     val model = model {
-      view(ROOT, rects[0]) {
+      view(ROOT, rects[0], imageType = AndroidWindow.ImageType.SKP) {
         view(VIEW1, rects[1]) {
           view(VIEW3, rects[3]) {
             image()

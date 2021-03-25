@@ -525,100 +525,112 @@ MODULE                        : project.app
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicBarDebug
-            AssembleTaskName              : assembleBasicBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
-            BundleTaskName                : bundleBasicBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarDebug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarDebug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicBarDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
+                BundleTaskName                : bundleBasicBarDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicBarDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarDebug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarDebug
-            AssembleTaskName              : assembleBasicOtherBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/debug/output-metadata.json [-]
-            BundleTaskName                : bundleBasicOtherBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarDebug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarDebug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicOtherBarDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/debug/output-metadata.json [-]
+                BundleTaskName                : bundleBasicOtherBarDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarDebug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidBarDebug
-            AssembleTaskName              : assemblePaidBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/debug/output-metadata.json [-]
-            BundleTaskName                : bundlePaidBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarDebug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarDebug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidBarDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/debug/output-metadata.json [-]
+                BundleTaskName                : bundlePaidBarDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidBarDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarDebug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarDebug
-            AssembleTaskName              : assemblePaidOtherBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/debug/output-metadata.json [-]
-            BundleTaskName                : bundlePaidOtherBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarDebug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarDebug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidOtherBarDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/debug/output-metadata.json [-]
+                BundleTaskName                : bundlePaidOtherBarDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarDebug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarDebug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : basicBarRelease
-            AssembleTaskName              : assembleBasicBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/release/output-metadata.json [-]
-            BundleTaskName                : bundleBasicBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicBarRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/release/output-metadata.json [-]
+                BundleTaskName                : bundleBasicBarRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicBarRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarRelease
-            AssembleTaskName              : assembleBasicOtherBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/release/output-metadata.json [-]
-            BundleTaskName                : bundleBasicOtherBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicOtherBarRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/release/output-metadata.json [-]
+                BundleTaskName                : bundleBasicOtherBarRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidBarRelease
-            AssembleTaskName              : assemblePaidBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/release/output-metadata.json [-]
-            BundleTaskName                : bundlePaidBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidBarRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/release/output-metadata.json [-]
+                BundleTaskName                : bundlePaidBarRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidBarRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarRelease
-            AssembleTaskName              : assemblePaidOtherBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/release/output-metadata.json [-]
-            BundleTaskName                : bundlePaidOtherBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidOtherBarRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/release/output-metadata.json [-]
+                BundleTaskName                : bundlePaidOtherBarRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : basicBarSpecialRelease
-            AssembleTaskName              : assembleBasicBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/specialRelease/output-metadata.json [-]
-            BundleTaskName                : bundleBasicBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarSpecialRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarSpecialRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicBarSpecialRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/specialRelease/output-metadata.json [-]
+                BundleTaskName                : bundleBasicBarSpecialRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarSpecialRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarSpecialRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarSpecialRelease
-            AssembleTaskName              : assembleBasicOtherBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/specialRelease/output-metadata.json [-]
-            BundleTaskName                : bundleBasicOtherBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarSpecialRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarSpecialRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicOtherBarSpecialRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicOtherBar/specialRelease/output-metadata.json [-]
+                BundleTaskName                : bundleBasicOtherBarSpecialRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicOtherBarSpecialRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicOtherBarSpecialRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidBarSpecialRelease
-            AssembleTaskName              : assemblePaidBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/specialRelease/output-metadata.json [-]
-            BundleTaskName                : bundlePaidBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarSpecialRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarSpecialRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidBarSpecialRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidBar/specialRelease/output-metadata.json [-]
+                BundleTaskName                : bundlePaidBarSpecialRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidBarSpecialRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidBarSpecialRelease/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarSpecialRelease
-            AssembleTaskName              : assemblePaidOtherBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/specialRelease/output-metadata.json [-]
-            BundleTaskName                : bundlePaidOtherBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarSpecialRelease/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarSpecialRelease/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidOtherBarSpecialRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/paidOtherBar/specialRelease/output-metadata.json [-]
+                BundleTaskName                : bundlePaidOtherBarSpecialRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/paidOtherBarSpecialRelease/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/paidOtherBarSpecialRelease/output-metadata.json [-]
     IdeVariants
         IdeVariant
             Name                          : basicBarDebug
@@ -635,7 +647,6 @@ MODULE                        : project.app
                 Name                          : MAIN
                 CompileTaskName               : compileBasicBarDebugSources
                 AssembleTaskName              : assembleBasicBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebug/out [-]
                 IsTestArtifact                : false
@@ -1266,18 +1277,20 @@ MODULE                        : project.app
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleBasicBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarDebug/output-metadata.json [-]
-                ApkFromBundleTaskName         : extractApksForBasicBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarDebug/output-metadata.json [-]
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleBasicBarDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/basicBar/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleBasicBarDebug
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_model/basicBarDebug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForBasicBarDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_model/basicBarDebug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicBarDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/basicBar/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -1993,9 +2006,12 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleBasicBarDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForBasicBarDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleBasicBarDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/basicBar/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleBasicBarDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForBasicBarDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
                 TestOptions
@@ -2005,7 +2021,6 @@ MODULE                        : project.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicBarDebugUnitTestSources
                 AssembleTaskName              : assembleBasicBarDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -2826,16 +2841,18 @@ MODULE                        : project.dyn_feature
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/release/output-metadata.json [-]
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2846,7 +2863,6 @@ MODULE                        : project.dyn_feature
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -2858,16 +2874,18 @@ MODULE                        : project.dyn_feature
                 AdditionalClassesFolders      : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -2885,9 +2903,12 @@ MODULE                        : project.dyn_feature
                             ProjectPath                   : :dyn_feature
                             BuildId                       : <ROOT>
                 IsSigned                      : false
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -2897,7 +2918,6 @@ MODULE                        : project.dyn_feature
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -3137,14 +3157,16 @@ MODULE                        : project.lib
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -3157,7 +3179,6 @@ MODULE                        : project.lib
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -3687,16 +3708,17 @@ MODULE                        : project.lib
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -4234,9 +4256,12 @@ MODULE                        : project.lib
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -4246,7 +4271,6 @@ MODULE                        : project.lib
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -4996,14 +5020,16 @@ MODULE                        : project.nested1
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -5014,7 +5040,6 @@ MODULE                        : project.nested1
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -5026,16 +5051,17 @@ MODULE                        : project.nested1
                 AdditionalClassesFolders      : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/nested1/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -5056,9 +5082,12 @@ MODULE                        : project.nested1
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/nested1/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -5068,7 +5097,6 @@ MODULE                        : project.nested1
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -5304,14 +5332,16 @@ MODULE                        : project.nested1.deep
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -5324,7 +5354,6 @@ MODULE                        : project.nested1.deep
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -5336,16 +5365,17 @@ MODULE                        : project.nested1.deep
                 AdditionalClassesFolders      : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -5366,9 +5396,12 @@ MODULE                        : project.nested1.deep
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -5378,7 +5411,6 @@ MODULE                        : project.nested1.deep
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -5715,24 +5747,28 @@ MODULE                        : project.nested2
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : basicDebug
-            AssembleTaskName              : assembleBasicDebug
-            BundleTaskName                : bundleBasicDebug
-            ApkFromBundleTaskName         : extractApksForBasicDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicDebug
+                BundleTaskName                : bundleBasicDebug
+                ApkFromBundleTaskName         : extractApksForBasicDebug
         VariantBuildInformation
             VariantName                   : paidDebug
-            AssembleTaskName              : assemblePaidDebug
-            BundleTaskName                : bundlePaidDebug
-            ApkFromBundleTaskName         : extractApksForPaidDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidDebug
+                BundleTaskName                : bundlePaidDebug
+                ApkFromBundleTaskName         : extractApksForPaidDebug
         VariantBuildInformation
             VariantName                   : basicRelease
-            AssembleTaskName              : assembleBasicRelease
-            BundleTaskName                : bundleBasicRelease
-            ApkFromBundleTaskName         : extractApksForBasicRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleBasicRelease
+                BundleTaskName                : bundleBasicRelease
+                ApkFromBundleTaskName         : extractApksForBasicRelease
         VariantBuildInformation
             VariantName                   : paidRelease
-            AssembleTaskName              : assemblePaidRelease
-            BundleTaskName                : bundlePaidRelease
-            ApkFromBundleTaskName         : extractApksForPaidRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assemblePaidRelease
+                BundleTaskName                : bundlePaidRelease
+                ApkFromBundleTaskName         : extractApksForPaidRelease
     IdeVariants
         IdeVariant
             Name                          : basicDebug
@@ -5744,7 +5780,6 @@ MODULE                        : project.nested2
                 Name                          : MAIN
                 CompileTaskName               : compileBasicDebugSources
                 AssembleTaskName              : assembleBasicDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebug/out [-]
                 IsTestArtifact                : false
@@ -5770,16 +5805,17 @@ MODULE                        : project.nested2
                     MlModelsDirectories           : <ROOT>/nested2/src/basicDebug/ml [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleBasicDebug
-                ApkFromBundleTaskName         : extractApksForBasicDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleBasicDebug
+                    BundleTaskName                : bundleBasicDebug
+                    ApkFromBundleTaskName         : extractApksForBasicDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/basic/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileBasicDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/nested2/build/outputs/apk/androidTest/basic/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -5814,9 +5850,12 @@ MODULE                        : project.nested2
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleBasicDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForBasicDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleBasicDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/build/outputs/apk/androidTest/basic/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleBasicDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForBasicDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
                 TestOptions
@@ -5826,7 +5865,6 @@ MODULE                        : project.nested2
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicDebugUnitTestSources
                 AssembleTaskName              : assembleBasicDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -6073,14 +6111,16 @@ MODULE                        : project.nested2.deep
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -6091,7 +6131,6 @@ MODULE                        : project.nested2.deep
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -6103,16 +6142,17 @@ MODULE                        : project.nested2.deep
                 AdditionalClassesFolders      : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -6133,9 +6173,12 @@ MODULE                        : project.nested2.deep
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -6145,7 +6188,6 @@ MODULE                        : project.nested2.deep
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -6379,14 +6421,16 @@ MODULE                        : project.nested2.trans.deep2
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -6397,7 +6441,6 @@ MODULE                        : project.nested2.trans.deep2
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -6409,16 +6452,17 @@ MODULE                        : project.nested2.trans.deep2
                 AdditionalClassesFolders      : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 Level2Dependencies
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -6439,9 +6483,12 @@ MODULE                        : project.nested2.trans.deep2
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -6451,7 +6498,6 @@ MODULE                        : project.nested2.trans.deep2
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true

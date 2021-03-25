@@ -16,7 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.util.LaunchStatus
@@ -50,10 +52,12 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockPrinter: ConsolePrinter
   @Mock lateinit var mockProcessHandler: ProcessHandler
   @Mock lateinit var mockAndroidTestResultListener:  AndroidTestResultListener
+  @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
 
   @Before
   fun setup() {
     openMocks(this)
+    `when`(mockAndroidModuleModel.modelVersion).thenReturn(GradleVersion(7, 0))
   }
 
   private fun createMockDevice(serialNumber: String): IDevice {
@@ -76,14 +80,15 @@ class GradleAndroidTestApplicationLaunchTaskTest {
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
-    val mockProject = gradleProjectRule.project
+    val project = gradleProjectRule.project
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
     val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(1)
     `when`(gradleConnectedAndroidTestInvoker.run(mockDevice)).thenReturn(true)
     `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
 
     val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
-      mockProject,
+      project,
+      mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
       mockProcessHandler,
@@ -91,19 +96,21 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       gradleConnectedAndroidTestInvoker)
 
-    assertThat(launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))?.success)
-      .isTrue()
+    val result = launchTask.run(LaunchContext(project, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+
+    assertThat(result.success).isTrue()
   }
 
   @Test
   fun checkGradleExecutionSettingsForAllInPackageTestWithSingleDevice() {
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
-    val mockProject = gradleProjectRule.project
+    val project = gradleProjectRule.project
     val mockPackageName = "packageName"
     val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(1)
 
     val launchTask = GradleAndroidTestApplicationLaunchTask.allInPackageTest(
-      mockProject,
+      project,
+      mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
       mockProcessHandler,
@@ -120,12 +127,13 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Test
   fun checkGradleExecutionSettingsForClassTestWithMultipleDevices() {
     val mockDevice = createMockDevice("SERIAL_NUMBER_2")
-    val mockProject = gradleProjectRule.project
+    val project = gradleProjectRule.project
     val mockClassName = "className"
     val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(2)
 
     val launchTask = GradleAndroidTestApplicationLaunchTask.classTest(
-      mockProject,
+      project,
+      mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/false,
       mockProcessHandler,
@@ -142,13 +150,14 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Test
   fun checkGradleExecutionSettingsForMethodTestWithDebugger() {
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
-    val mockProject = gradleProjectRule.project
+    val project = gradleProjectRule.project
     val mockClassName = "className"
     val mockMethodName = "methodName"
     val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(1)
 
     val launchTask = GradleAndroidTestApplicationLaunchTask.methodTest(
-      mockProject,
+      project,
+      mockAndroidModuleModel,
       "taskId",
       /*waitForDebugger*/true,
       mockProcessHandler,
@@ -162,5 +171,48 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       "-Pandroid.testInstrumentationRunnerArguments.class=$mockClassName#$mockMethodName")
     assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
       "-Pandroid.testInstrumentationRunnerArguments.debug=true")
+  }
+
+  @Test
+  fun useUnifiedTestPlatformFlagShouldBeEnabledInGradleExecutionSettings() {
+    val project = gradleProjectRule.project
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      project,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      createMockDevice("serial"),
+      mock(GradleConnectedAndroidTestInvoker::class.java))
+
+    assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
+      "-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+  }
+
+  @Test
+  fun testTaskReturnsFailedIfAGPVersionIsTooOld() {
+    val project = gradleProjectRule.project
+    val mockDevice = createMockDevice("SERIAL_NUMBER_1")
+    val gradleConnectedAndroidTestInvoker = createMockGradleAndroidTestInvoker(1)
+    `when`(gradleConnectedAndroidTestInvoker.run(mockDevice)).thenReturn(true)
+    `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
+    `when`(mockAndroidModuleModel.modelVersion).thenReturn(GradleVersion(6, 0))
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      project,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      mockDevice,
+      gradleConnectedAndroidTestInvoker)
+
+    val result = launchTask.run(LaunchContext(project, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+
+    assertThat(result.success).isFalse()
+    assertThat(result.errorId).isEqualTo("ANDROID_TEST_AGP_VERSION_TOO_OLD")
   }
 }

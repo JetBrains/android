@@ -46,6 +46,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getTotalBuildTimeMs(): Long = 0
+    override fun getConfigurationPhaseTimeMs(): Long = 0
     override fun getCriticalPathTasks(): List<TaskData> = emptyList()
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = emptyList()
     override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = emptyList()

@@ -32,7 +32,7 @@ abstract class AbstractAndroidRenameTest : KotlinAndroidTestCase() {
     }
 
     private fun assertResourcesEqual(expectedPath: String) {
-        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath), getResourceDirectory())
+        PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
     }
 
     private fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")

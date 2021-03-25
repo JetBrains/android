@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
-import static com.android.SdkConstants.EXT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
@@ -32,7 +30,6 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -44,21 +41,18 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
 import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
 import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
 import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
-import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectType;
@@ -137,38 +131,6 @@ public final class GradleUtil {
   private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
-  }
-
-  /**
-   * Returns the path of the folder ".idea/caches" in the given project. The returned path is an absolute path.
-   *
-   * @param project the given project.
-   * @return the path of the folder ".idea/caches" in the given project.
-   */
-  @NotNull
-  public static File getCacheFolderRootPath(@NotNull Project project) {
-    return new File(project.getBasePath(), join(DIRECTORY_STORE_NAME, "caches"));
-  }
-
-  /**
-   * Get the main output APK file for the selected variant.
-   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
-   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
-   *
-   * @return the main output file for selected variant.
-   */
-  @Nullable
-  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
-    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
-    }
-    else {
-      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
-      if (outputs.isEmpty()) return null;
-      IdeAndroidArtifactOutput output = getFirstItem(outputs);
-      assert output != null;
-      return output.getOutputFile();
-    }
   }
 
   @NotNull
@@ -270,17 +232,6 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns true if the file given by the file exists, is a file and ends with either ".gradle"
-   * or ".gradle.kts".
-   *
-   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#isGradleScript(File)}.
-   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
-   */
-  public static boolean isGradleScript(@NotNull VirtualFile file) {
-    return !file.isDirectory() && (file.getName().endsWith(EXT_GRADLE) || file.getName().endsWith(EXT_GRADLE_KTS));
-  }
-
-  /**
    * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
    * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
    *
@@ -349,23 +300,6 @@ public final class GradleUtil {
   public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
     File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
-    return (result != null && result.isValid()) ? result : null;
-  }
-
-  /**
-   * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
-   * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
-   * should use {@link BuildScriptUtil#findGradleSettingsFile(File)} along with
-   * {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
-   * to ensure a refresh occurs.
-   *
-   * @param dirPath the path to find the Gradle settings file for.
-   * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
-   */
-  @Nullable
-  public static VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
-    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
-    VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
 
@@ -905,10 +839,6 @@ public final class GradleUtil {
       addBuildFileType(result, getGradleBuildFile(module));
     }
     return result;
-  }
-
-  public static boolean hasKtsBuildFiles(@NotNull Project project) {
-    return projectBuildFilesTypes(project).contains(DOT_KTS);
   }
 
   private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {

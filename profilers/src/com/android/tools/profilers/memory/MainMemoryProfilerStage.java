@@ -134,7 +134,19 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     if (isNativeAllocationSamplingEnabled()) {
       myRecordingOptionsModel.addBuiltInOptions(makeNativeRecordingOption());
     }
-    myRecordingOptionsModel.addBuiltInOptions(makeJavaRecodingOption());
+    RecordingOption javaRecordingOption = makeJavaRecodingOption();
+    myRecordingOptionsModel.addBuiltInOptions(javaRecordingOption);
+    if (isLiveAllocationTrackingSupported() && !isLiveAllocationTrackingReady()) {
+      Runnable update = () -> {
+        if (isLiveAllocationTrackingReady()) {
+          myRecordingOptionsModel.setOptionReady(javaRecordingOption);
+        } else {
+          myRecordingOptionsModel.setOptionNotReady(javaRecordingOption, LIVE_ALLOCATION_TRACKING_NOT_READY_TOOLTIP);
+        }
+      };
+      update.run();
+      getAspect().addDependency(this).onChange(MemoryProfilerAspect.LIVE_ALLOCATION_STATUS, update);
+    }
 
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();

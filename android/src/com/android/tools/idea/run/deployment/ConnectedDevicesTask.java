@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.android.tools.idea.run.deployment.Tasks.getTypeFromAndroidDevice;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
@@ -79,7 +81,8 @@ final class ConnectedDevicesTask implements AsyncSupplier<List<ConnectedDevice>>
     ConnectedDevice.Builder builder = new ConnectedDevice.Builder()
       .setName(composeDeviceName(ddmlibDevice))
       .setKey(newKey(ddmlibDevice))
-      .setAndroidDevice(androidDevice);
+      .setAndroidDevice(androidDevice)
+      .setType(getTypeFromAndroidDevice(androidDevice));
 
     if (myChecker == null) {
       return builder.build();

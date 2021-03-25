@@ -24,11 +24,15 @@ import javax.swing.JPanel
 /**
  * A panel containing two subpanels separated by a [OnePixelSplitter].
  */
-class EmulatorSplitPanel(layoutNode: SplitNode) : JPanel(BorderLayout()) {
-  private val splitter = OnePixelSplitter(layoutNode.splitType == SplitType.VERTICAL, layoutNode.splitRatio.toFloat())
+class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(BorderLayout()) {
+  private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat())
 
-  val isVerticalSplit
-    get() = splitter.orientation
+  var splitType: SplitType
+    get() = if (splitter.orientation) SplitType.VERTICAL else SplitType.HORIZONTAL
+    set(value) { splitter.orientation = value == SplitType.VERTICAL }
+  var proportion: Double
+    get() = splitter.proportion.toDouble()
+    set(value) { splitter.proportion = value.toFloat() }
   var firstComponent: JComponent
     get() = splitter.firstComponent
     set(value) { splitter.firstComponent = value }
@@ -36,7 +40,35 @@ class EmulatorSplitPanel(layoutNode: SplitNode) : JPanel(BorderLayout()) {
     get() = splitter.secondComponent
     set(value) { splitter.secondComponent = value }
 
+  constructor(layoutNode: SplitNode) : this(layoutNode.splitType, layoutNode.splitRatio)
+
   init {
     background = primaryPanelBackground
+    add(splitter, BorderLayout.CENTER)
   }
+
+  fun getState(): EmulatorPanelState {
+    return EmulatorPanelState(splitType, proportion, getChildState(firstComponent), getChildState(secondComponent))
+  }
+
+  private fun getChildState(child: JComponent): EmulatorPanelState {
+    return when (child) {
+      is EmulatorDisplayPanel -> {
+        EmulatorPanelState(child.displayId)
+      }
+      is EmulatorSplitPanel -> {
+        child.getState()
+      }
+      else -> {
+        throw IllegalArgumentException()
+      }
+    }
+  }
+}
+
+enum class SplitType {
+  /** Panels are side by side. */
+  HORIZONTAL,
+  /** One panel is above the other. */
+  VERTICAL
 }

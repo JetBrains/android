@@ -236,7 +236,6 @@ class InstallTask extends Task.Backgroundable {
   void preparePackages(@NotNull Map<RepoPackage, PackageOperation> packageOperationMap,
                        @NotNull List<RepoPackage> failures,
                        @NotNull com.intellij.openapi.progress.ProgressIndicator taskProgressIndicator) {
-    double progressMax = 0;
     ImmutableSet<RepoPackage> packages = ImmutableSet.copyOf(packageOperationMap.keySet());
     double progressIncrement = 1. / (packages.size() * 2.);
     boolean wasBackgrounded = false;
@@ -253,7 +252,7 @@ class InstallTask extends Task.Backgroundable {
         }
         double currentProgress = myLogger.getFraction();
         try {
-          progressMax += progressIncrement;
+          double progressMax = currentProgress + progressIncrement;
           // Allow pausing package preparation when installing.
           // We probably don't want to allow pausing in other cases to minimize the risk of leaving SDK in an inconsistent
           // state - e.g. it's way easier to pause, forget about it and turn off the machine so the cancellation handlers
@@ -285,7 +284,6 @@ class InstallTask extends Task.Backgroundable {
         op = op.getFallbackOperation();
         if (op != null) {
           // We're going to try again, so reset the progress.
-          progressMax -= progressIncrement;
           myLogger.setFraction(currentProgress);
         }
       }

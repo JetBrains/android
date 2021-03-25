@@ -43,10 +43,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
   val pluginContainer = PluginContainer()
 
+  private val appPluginData = binaryPlugin("com.android.build.gradle.AppPlugin")
+
   @Test
   fun `AGP compatible, no other plugins`() = test(TestCase(
-    agpVersion = GradleVersion.parse("4.2.0"),
-    pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
+    agpVersion = GradleVersion.parse("7.0.0"),
+    pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
     expectedResult = NoIncompatiblePlugins(emptyList())
@@ -55,10 +57,10 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun `AGP incompatible, no other plugins`() = test(TestCase(
     agpVersion = GradleVersion.parse("4.1.0"),
-    pluginsApplied = listOf(binaryPlugin("com.android.build.gradle.AppPlugin")),
+    pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"))
+    expectedResult = AGPUpdateRequired(GradleVersion.parse("4.1.0"), listOf(appPluginData))
   ))
 
   @Test
@@ -159,13 +161,13 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
     val studioProvidedInfo = StudioProvidedInfo(
       agpVersion = testCaseData.agpVersion,
-      //TODO add test for true
       configurationCachingGradlePropertyState = "false"
     )
     Mockito.`when`(analysisResult.getAppliedPlugins()).thenReturn(mapOf(":" to testCaseData.pluginsApplied))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
-      buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo)
-    )
+      buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo,
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), false)
+    ))
     analyzer.receiveKnownPluginsData(testCaseData.knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
@@ -175,8 +177,9 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun testPluginAppliedInSeveralProjects() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
+    val agpVersionString = "7.0.0"
     val studioProvidedInfo = StudioProvidedInfo(
-      agpVersion = GradleVersion.parse("4.2.0"),
+      agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "false"
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
@@ -186,8 +189,9 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       ":lib" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":lib")),
     ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
-      buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"))
-    )
+      buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
+    ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
@@ -204,8 +208,9 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
   @Test
   fun testWhenCCFlagIsAlreadyOn() {
     val analyzer = ConfigurationCachingCompatibilityAnalyzer()
+    val agpVersionString = "7.0.0"
     val studioProvidedInfo = StudioProvidedInfo(
-      agpVersion = GradleVersion.parse("4.2.0"),
+      agpVersion = GradleVersion.parse(agpVersionString),
       configurationCachingGradlePropertyState = "true"
     )
     val analysisResult = Mockito.mock(BuildEventsAnalysisResult::class.java)
@@ -214,23 +219,24 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
       ":app" to listOf(binaryPlugin("my.org.gradle.Plugin1", ":app")),
     ))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
-      buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"))
-    )
+      buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
+    ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
     Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCachingTurnedOn)
   }
 
-  private fun binaryPlugin(pluginClassName: String, projectPath: String = ":") = pluginContainer
-    .getPlugin(object : BinaryPluginIdentifier{
-      override fun getDisplayName(): String = pluginClassName
+  private fun binaryPlugin(pluginClassName: String, projectPath: String = ":", displayName: String = pluginClassName) = pluginContainer
+    .getPlugin(object : BinaryPluginIdentifier {
+      override fun getDisplayName(): String = displayName
       override fun getClassName(): String = pluginClassName
       override fun getPluginId(): String = pluginClassName
     }, projectPath)
 
   data class TestCase(
-    val agpVersion: GradleVersion = GradleVersion.parse("4.2.0"),
+    val agpVersion: GradleVersion = GradleVersion.parse("7.0.0"),
     val pluginsApplied: List<PluginData>,
     val buildscriptDependenciesInfo: Set<String>,
     val knownPluginsData: GradlePluginsData,

@@ -35,16 +35,15 @@ import java.awt.font.TextAttribute
  * The link is displayed in a small font with an underline with the following options:
  * - [showAsLink] if false, show as normal text (in case the link could not be resolved)
  * - [strikeout] if true, the label is shown with strikeout (typically used for overridden values)
- * - [isUsedInTableRendererWithSelection] when used in a table cell renderer, controls colors
  * - [hyperLinkListeners] add a listener to be notified when the link is activated through mouse or keyboard
  */
 class CommonHyperLinkLabel(
   private val showAsLink: Boolean = true,
   private val strikeout: Boolean = false
 ) : JBLabel() {
-  var isUsedInTableRendererWithSelection = false
   val hyperLinkListeners = mutableListOf<() -> Unit>()
-  private var normalForegroundColor: Color = JBColor.BLACK
+  var normalForegroundColor: Color = JBColor.BLACK
+    private set
   private var initialized = true
 
   init {
@@ -74,8 +73,6 @@ class CommonHyperLinkLabel(
   }
 
   override fun paintComponent(g: Graphics) {
-    foreground = if (isUsedInTableRendererWithSelection) UIUtil.getTableForeground(true, true) else normalForegroundColor
-    background = if (isUsedInTableRendererWithSelection) UIUtil.getTableBackground(true, true) else UIUtil.TRANSPARENT_COLOR
     super.paintComponent(g)
     if (hasFocus() && g is Graphics2D) {
       val insets = this.insets

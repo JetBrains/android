@@ -127,8 +127,8 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
   val groupName = overrideGroupName ?: previewAnnotation.findDeclaredAttributeValue(PARAMETER_GROUP)?.evaluateString()
   val showDecorations = getBooleanAttribute(PARAMETER_SHOW_DECORATION) ?: (getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI)) ?: false
   val showBackground = getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
+  // We don't use the library's default value for BackgroundColor and instead use a value defined here, see PreviewElement#toPreviewXml.
   val backgroundColor = previewAnnotation.findDeclaredAttributeValue(PARAMETER_BACKGROUND_COLOR)?.evaluate()
-                        ?: defaultValues[PARAMETER_BACKGROUND_COLOR]?.substringBeforeLast('L')?.toLong()
   val backgroundColorString = when(backgroundColor) {
     is Int -> backgroundColor.toString(16)
     is Long -> backgroundColor.toString(16)

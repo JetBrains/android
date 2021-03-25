@@ -228,20 +228,22 @@ MODULE                        : My_First_App.app
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
-            BundleTaskName                : bundleDebug
-            BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/release/output-metadata.json [-]
-            BundleTaskName                : bundleRelease
-            BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
-            ApkFromBundleTaskName         : extractApksForRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/release/output-metadata.json [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/release/output-metadata.json [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/release/output-metadata.json [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -255,7 +257,6 @@ MODULE                        : My_First_App.app
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/firstapp/app/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -783,19 +784,19 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -832,18 +833,20 @@ MODULE                        : My_First_App.app
                             BuildId                       : <ROOT>/firstapp
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
-                ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/firstapp/app/build/intermediates/bundle_ide_model/debug/output-metadata.json [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/firstapp/app/build/intermediates/apk_from_bundle_ide_model/debug/output-metadata.json [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/firstapp/app/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -1371,15 +1374,15 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -1403,7 +1406,7 @@ MODULE                        : My_First_App.app
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -1425,9 +1428,12 @@ MODULE                        : My_First_App.app
                             BuildId                       : <ROOT>/firstapp
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -1437,7 +1443,6 @@ MODULE                        : My_First_App.app
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/firstapp/app/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -1970,19 +1975,19 @@ MODULE                        : My_First_App.app
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -2248,14 +2253,16 @@ MODULE                        : My_First_App.app.mysharedlibrary
     VariantBuildInformation
         VariantBuildInformation
             VariantName                   : debug
-            AssembleTaskName              : assembleDebug
-            BundleTaskName                : bundleDebug
-            ApkFromBundleTaskName         : extractApksForDebug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                BundleTaskName                : bundleDebug
+                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
-            AssembleTaskName              : assembleRelease
-            BundleTaskName                : bundleRelease
-            ApkFromBundleTaskName         : extractApksForRelease
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                BundleTaskName                : bundleRelease
+                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2269,7 +2276,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
                 JavaResourcesFolder           : <ROOT>/shared/mysharedlibrary/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
@@ -2778,19 +2784,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -2814,16 +2820,17 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 IsSigned                      : false
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    BundleTaskName                : bundleDebug
+                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/outputs/apk/androidTest/debug/output-metadata.json [-]
                 ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/shared/mysharedlibrary/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
@@ -3332,19 +3339,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
@@ -3377,9 +3384,12 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             BuildId                       : <ROOT>/firstapp
                 SigningConfigName             : debug
                 IsSigned                      : true
-                BundleTaskName                : bundleDebugAndroidTest
-                ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/outputs/apk/androidTest/debug/output-metadata.json [-]
+                    BundleTaskName                : bundleDebugAndroidTest
+                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -3389,7 +3399,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
-                AssembleTaskOutputListingFile :  [-]
                 ClassFolder                   : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
                 JavaResourcesFolder           : <ROOT>/shared/mysharedlibrary/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
@@ -3903,19 +3912,19 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.30@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.4.31@jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary

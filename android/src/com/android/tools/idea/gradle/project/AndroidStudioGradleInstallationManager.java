@@ -1,26 +1,152 @@
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_JAVA_HOME_NAME;
+import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.EMBEDDED_JDK_NAME;
+import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.FileUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
+import java.io.File;
+import org.gradle.internal.impldep.com.amazonaws.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class AndroidStudioGradleInstallationManager extends GradleInstallationManager {
   @Nullable
   @Override
   public Sdk getGradleJdk(@Nullable Project project, @NotNull String linkedProjectPath) {
+    if ((project != null) && StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      // GradleInstallationManager.getGradleJdk implementation calls getGradleJvmPath and generates a JDK from this result.
+      return super.getGradleJdk(project, linkedProjectPath);
+    }
     return IdeSdks.getInstance().getJdk();
   }
 
   @Nullable
   @Override
   public String getGradleJvmPath(@NotNull Project project, @NotNull String linkedProjectPath) {
-    @Nullable Sdk jdk = getGradleJdk(project, linkedProjectPath);
-    if (jdk == null) {
-      return null;
+    if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      @Nullable Sdk jdk = getGradleJdk(project, linkedProjectPath);
+      if (jdk == null) {
+        return null;
+      }
+      return jdk.getHomePath();
     }
-    return jdk.getHomePath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    // Using environment variable
+    if (IdeSdks.getInstance().isUsingEnvVariableJdk()) {
+      return ideSdks.getEnvVariableJdkValue();
+    }
+
+    GradleProjectSettings settings = GradleSettings.getInstance(project).getLinkedProjectSettings(linkedProjectPath);
+    if (settings != null) {
+      String settingsJvm = settings.getGradleJvm();
+      if (settingsJvm != null) {
+        // Try to resolve from variables before looking in GradleInstallationManager
+        switch (settingsJvm) {
+          case JDK_LOCATION_ENV_VARIABLE_NAME:
+            if (IdeSdks.getInstance().isJdkEnvVariableValid()) {
+              return ideSdks.getEnvVariableJdkValue();
+            }
+          case EMBEDDED_JDK_NAME: {
+            File embeddedPath = ideSdks.getEmbeddedJdkPath();
+            if (embeddedPath != null) {
+              return embeddedPath.getAbsolutePath();
+            }
+          }
+          case ANDROID_STUDIO_JAVA_HOME_NAME: {
+            String javaHome = IdeSdks.getJdkFromJavaHome();
+            if (!StringUtils.isNullOrEmpty(javaHome)) {
+              return javaHome;
+            }
+          }
+        }
+      }
+    }
+    // None of the environment variables is used (or is used but invalid), handle it in the same way IDEA does.
+    return super.getGradleJvmPath(project, linkedProjectPath);
+  }
+
+  public boolean isUsingJavaHomeJdk(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) {
+      return false;
+    }
+    String projectJvmPath = getGradleJvmPath(project, basePath);
+    if (projectJvmPath == null) {
+      return false;
+    }
+    String javaHome = IdeSdks.getJdkFromJavaHome();
+    if (javaHome == null) {
+      return false;
+    }
+    return FileUtils.isSameFile(new File(projectJvmPath), new File(javaHome));
+  }
+
+  /**
+   * Creates or reuses a JDK with the name {@link AndroidGradleProjectSettingsControlBuilder#ANDROID_STUDIO_JAVA_HOME_NAME} with the given
+   * path and sets the project to use it. Must be run inside of a write action.
+   * @param project Project to be modified to use the given JDK
+   * @param jdkPath Path where the JDK is located
+   */
+  public static void setJdkAsJavaHome(@NotNull Project project, @NotNull String jdkPath) {
+    setNamedJdk(project, jdkPath, ANDROID_STUDIO_JAVA_HOME_NAME);
+  }
+
+  /**
+   * Creates or reuses a JDK with the name {@link AndroidGradleProjectSettingsControlBuilder#EMBEDDED_JDK_NAME} with the given path and sets
+   * the project to use it. Must be run inside a write action.
+   * @param project Project to be modified to use the given JDK
+   */
+  public static void setJdkAsEmbedded(@NotNull Project project) {
+    File embeddedJdkPath = IdeSdks.getInstance().getEmbeddedJdkPath();
+    assert embeddedJdkPath != null;
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      setNamedJdk(project, embeddedJdkPath.getAbsolutePath(), EMBEDDED_JDK_NAME);
+    }
+    else {
+      IdeSdks.getInstance().setUseEmbeddedJdk();
+    }
+  }
+
+  /**
+   * Creates or reuses a JDK with its default name and sets the project to use it.  Must be run inside a write action.
+   * @param project Project to be modified to use the given JDK
+   * @param jdkPath Path where the JDK is located
+   */
+  public static void setJdkAsProjectJdk(@NotNull Project project, @NotNull String jdkPath) {
+    Sdk jdk = IdeSdks.getInstance().setJdkPath(new File(jdkPath));
+    ProjectRootManager.getInstance(project).setProjectSdk(jdk);
+    String basePath = project.getBasePath();
+    if (basePath != null) {
+      GradleProjectSettings projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath);
+      if (projectSettings != null) {
+        projectSettings.setGradleJvm(USE_PROJECT_JDK);
+      }
+    }
+  }
+
+  private static void setNamedJdk(@NotNull Project project, @NotNull String jdkPath, @NotNull String name) {
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      String basePath = project.getBasePath();
+      if (basePath != null) {
+        Sdk jdk = IdeSdks.findOrCreateJdk(name, new File(jdkPath));
+        GradleProjectSettings projectSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(basePath);
+        if (projectSettings != null) {
+          projectSettings.setGradleJvm(name);
+          return;
+        }
+      }
+    }
+    // If cannot set in project, set as default value
+    setJdkAsProjectJdk(project, jdkPath);
   }
 }

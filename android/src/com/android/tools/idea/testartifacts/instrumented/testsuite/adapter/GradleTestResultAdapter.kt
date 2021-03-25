@@ -29,6 +29,7 @@ import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
 import com.intellij.psi.util.ClassUtil
+import java.io.File
 import java.util.UUID
 
 /**
@@ -88,6 +89,12 @@ class GradleTestResultAdapter(device: IDevice,
       testCase.errorStackTrace = testCaseResult.error.errorMessage
     }
 
+    testCaseResult.outputArtifactList.asSequence().filter { it.label.namespace == "android" }.forEach {
+      when (it.label.label) {
+        "icebox.info" -> testCase.retentionInfo = File(it.sourcePath.path)
+        "icebox.snapshot" -> testCase.retentionSnapshot = File(it.sourcePath.path)
+      }
+    }
     listener.onTestCaseFinished(device, myTestSuite, testCase)
   }
 
@@ -95,10 +102,6 @@ class GradleTestResultAdapter(device: IDevice,
     myTestSuite.result = testSuiteResult.testStatus.toAndroidTestSuiteResult()
     listener.onTestSuiteFinished(device, myTestSuite)
   }
-
-  override fun onError() {}
-
-  override fun onComplete() {}
 }
 
 private fun TestCaseProto.TestCase.toTestIdentifier(): TestIdentifier {

@@ -168,6 +168,7 @@ class SelectProcessAction(private val model: ProcessesModel,
 
     init {
       val (preferredProcesses, otherProcesses) = model.processes
+        .sortedBy { it.name }
         .filter { (it.isRunning || supportsOffline) && (it.device.serial == process.device.serial) }
         .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }
 
