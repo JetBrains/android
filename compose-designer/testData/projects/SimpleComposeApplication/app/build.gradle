@@ -47,7 +47,9 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs += ["-P", "plugin:androidx.compose.plugins.kotlin:sourceInformation=true"]
+        freeCompilerArgs += [
+          "-P", "plugin:androidx.compose.plugins.kotlin:sourceInformation=true",
+        ]
     }
 }
 
