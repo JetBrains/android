@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.perfetto
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.CpuCapture
@@ -65,6 +66,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       check(processList.isNotEmpty()) { "Invalid trace without any process information." }
       val traceUIMetadata = traceProcessor.getTraceMetadata(traceId, "ui-state", ideProfilerServices)
       var selectedProcess = 0
+      val initialViewRange = Range()
 
       if (traceUIMetadata.isNotEmpty()) {
         // TODO (gijosh): The UI metadata will come back as a proto that has been base 64 encoded.
@@ -84,7 +86,11 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       val model = traceProcessor.loadCpuData(traceId, pidsToQuery, ideProfilerServices)
 
       val builder = SystemTraceCpuCaptureBuilder(model)
-      return builder.build(traceId, selectedProcess)
+
+      if (initialViewRange.isEmpty()) {
+        initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
+      }
+      return builder.build(traceId, selectedProcess, initialViewRange)
     }
   }
 }
