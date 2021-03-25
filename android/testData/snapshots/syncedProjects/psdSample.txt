@@ -8,9 +8,7 @@ PROJECT                       : testPsdSample
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSample [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSample [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdSample.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -1924,9 +1922,7 @@ PROJECT                       : testPsdSample
         LinkedProjectPath             : <PROJECT>/nested2/trans
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSample.nested2.trans [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSample.nested2.trans [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testPsdSample.nested2.trans.iml [-]
         ModuleTypeName                : JAVA_MODULE

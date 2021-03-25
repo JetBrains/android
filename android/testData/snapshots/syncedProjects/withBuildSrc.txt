@@ -8,9 +8,7 @@ PROJECT                       : testWithBuildSrc
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithBuildSrc.iml [-]
         ModuleTypeName                : JAVA_MODULE

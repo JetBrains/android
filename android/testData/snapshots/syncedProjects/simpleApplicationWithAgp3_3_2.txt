@@ -8,9 +8,7 @@ PROJECT                       : testSimpleApplicationWithAgp3_3_2
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSimpleApplicationWithAgp3_3_2 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSimpleApplicationWithAgp3_3_2 [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testSimpleApplicationWithAgp3_3_2.iml [-]
         ModuleTypeName                : JAVA_MODULE

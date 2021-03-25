@@ -6,8 +6,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
         LinkedProjectPath             : <TEMP>
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<TEMP>/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<TEMP>/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/testLightTestsWithDefaultTestProjectStructureForAndroidTestCase.iml

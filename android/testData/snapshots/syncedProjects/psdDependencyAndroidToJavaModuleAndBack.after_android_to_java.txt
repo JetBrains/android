@@ -8,9 +8,7 @@ PROJECT                       : testPsdDependencyAndroidToJavaModuleAndBack
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdDependencyAndroidToJavaModuleAndBack.iml [-]
         ModuleTypeName                : JAVA_MODULE

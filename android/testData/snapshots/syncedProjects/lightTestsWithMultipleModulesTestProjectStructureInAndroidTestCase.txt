@@ -6,8 +6,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/app
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<TEMP>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<TEMP>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/app/app.iml [-]
@@ -99,8 +97,6 @@ PROJECT                       : testLightTestsWithMultipleModulesTestProjectStru
         LinkedProjectPath             : <TEMP>/lib
         RootProjectPath               : <TEMP>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<TEMP>/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<TEMP>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <TEMP>/lib/lib.iml [-]

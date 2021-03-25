@@ -8,9 +8,7 @@ PROJECT                       : testWithMlModels
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithMlModels [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithMlModels [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithMlModels.iml [-]
         ModuleTypeName                : JAVA_MODULE
