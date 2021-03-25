@@ -8,9 +8,7 @@ PROJECT                       : testSwitchingVariants_simpleApplication
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSwitchingVariants_simpleApplication [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSwitchingVariants_simpleApplication [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml [-]
         ModuleTypeName                : JAVA_MODULE

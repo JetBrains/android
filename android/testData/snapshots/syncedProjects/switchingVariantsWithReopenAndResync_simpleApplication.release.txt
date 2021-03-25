@@ -8,9 +8,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/project [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/project.iml [-]
         ModuleTypeName                : JAVA_MODULE

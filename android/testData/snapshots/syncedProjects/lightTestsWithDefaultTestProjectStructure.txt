@@ -6,8 +6,6 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/LightSyncBasedTestsWithDefaultTestProjectStructureTest.iml [-]

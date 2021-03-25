@@ -8,9 +8,7 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyUpgradeLibraryModule [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyUpgradeLibraryModule [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdDependencyUpgradeLibraryModule.iml [-]
         ModuleTypeName                : JAVA_MODULE
