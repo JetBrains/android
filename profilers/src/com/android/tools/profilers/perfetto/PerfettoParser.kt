@@ -63,16 +63,24 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
 
       val processList = traceProcessor.getProcessMetadata(traceId, ideProfilerServices)
       check(processList.isNotEmpty()) { "Invalid trace without any process information." }
+      val traceUIMetadata = traceProcessor.getTraceMetadata(traceId, "ui-state", ideProfilerServices)
+      var selectedProcess = 0
 
-      val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
-      val selectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
-      checkNotNull(selectedProcess) { "It was not possible to select a process for this trace." }
-
+      if (traceUIMetadata.isNotEmpty()) {
+        // TODO (gijosh): The UI metadata will come back as a proto that has been base 64 encoded.
+        // The proto will contain the process id or process name of the selected process.
+      }
+      // If a valid process was not parsed from the UI metadata
+      if (selectedProcess <= 0) {
+        val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
+        val userSelectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
+        checkNotNull(userSelectedProcess) { "It was not possible to select a process for this trace." }
+        selectedProcess = userSelectedProcess
+      }
       val pidsToQuery = mutableListOf(selectedProcess)
       processList.find {
         it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
       }?.let { pidsToQuery.add(it.id) }
-
       val model = traceProcessor.loadCpuData(traceId, pidsToQuery, ideProfilerServices)
 
       val builder = SystemTraceCpuCaptureBuilder(model)
