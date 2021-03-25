@@ -858,6 +858,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launch
       }
 
+      composeWorkBench.updateVisibilityAndNotifications()
       refreshCallsCount.incrementAndGet()
       try {
         val filePreviewElements = withContext(workerThread) {
