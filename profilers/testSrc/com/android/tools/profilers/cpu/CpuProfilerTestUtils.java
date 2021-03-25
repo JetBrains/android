@@ -154,15 +154,16 @@ public class CpuProfilerTestUtils {
    * Note that a CpuTraceInfo will be auto-generated and added to the cpu service id'd by the current timer's timestamp. If this method
    * is called repeatedly in a single test, it is up to the caller to make sure to update the timestamp to not override the previously added
    * trace info.
+   *
+   * @return the capture's trace ID.
    */
-  static void captureSuccessfully(CpuProfilerStage stage,
+  static long captureSuccessfully(CpuProfilerStage stage,
                                   FakeCpuService cpuService,
                                   FakeTransportService transportService,
                                   ByteString traceContent) throws InterruptedException {
     // Start a successful capture
     startCapturing(stage, cpuService, transportService, true);
-    stopCapturing(stage, cpuService, transportService, true, traceContent);
-    assertThat(stage.getCapture()).isNotNull();
+    return stopCapturing(stage, cpuService, transportService, true, traceContent);
   }
 
   /**
@@ -214,8 +215,10 @@ public class CpuProfilerTestUtils {
    * for the caller to NOT update the timer's timestamp between a start/stop capture to allow this method to replace the existing
    * in-progress trace info. However, if this method is called repeatedly in a single test, it is up to the caller to make sure to update
    * the timestamp to not override the previously added trace info.
+   *
+   * @return the capture's trace ID.
    */
-  static void stopCapturing(CpuProfilerStage stage,
+  static long stopCapturing(CpuProfilerStage stage,
                             FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
@@ -266,18 +269,21 @@ public class CpuProfilerTestUtils {
     stage.getStudioProfilers().getUpdater().getTimer().tick(FakeTimer.ONE_SECOND_IN_NS);
     stopLatch.await();
     parsingLatch.await();
+    return traceId;
   }
 
   /**
    * Identical to {@link #stopCapturing(CpuProfilerStage, FakeCpuService, FakeTransportService, boolean, ByteString, long)} but defaults
    * to a 1-nanosecond capture for convenience.
+   *
+   * @return the capture's trace ID.
    */
-  static void stopCapturing(CpuProfilerStage stage,
+  static long stopCapturing(CpuProfilerStage stage,
                             FakeCpuService cpuService,
                             FakeTransportService transportService,
                             boolean success,
                             ByteString traceContent) throws InterruptedException {
     // Defaults to a 1-second capture.
-    stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
+    return stopCapturing(stage, cpuService, transportService, success, traceContent, 1);
   }
 }
