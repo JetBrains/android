@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.CommonActionsManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -58,6 +59,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val temp: TreeViewNode = ViewNode("temp").treeNode
   // a map from [AndroidWindow.id] to the root [TreeViewNode] of that window
   private val windowRoots = mutableMapOf<Any, MutableList<TreeViewNode>>()
+  private val additionalActions: List<AnAction>
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -87,6 +89,12 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
     tree?.setDefaultPainter()
+    val commonActionManager = CommonActionsManager.getInstance()
+    additionalActions = listOf(
+      FilterNodeAction,
+      commonActionManager.createExpandAllHeaderAction(tree),
+      commonActionManager.createCollapseAllHeaderAction(tree)
+    )
   }
 
   val tree: Tree?
@@ -118,7 +126,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
   }
 
-  override fun getAdditionalActions() = listOf(FilterNodeAction)
+  override fun getAdditionalActions() = additionalActions
 
   override fun getComponent() = componentTree
 
