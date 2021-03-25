@@ -25,7 +25,12 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
@@ -121,16 +126,30 @@ class ViewLayoutInspectorClient(
 
   init {
     scope.launch {
-      messenger.eventFlow.collect { eventBytes ->
-        val event = Event.parseFrom(eventBytes)
-        when (event.specializedCase) {
-          Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
-          Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
-          Event.SpecializedCase.LAYOUT_EVENT -> handleLayoutEvent(event.layoutEvent)
-          Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
-          else -> error { "Unhandled event case: ${event.specializedCase}" }
+      // Layout events are very expensive to process and we may get a bunch of intermediate layouts while still processing an older one.
+      // We skip over rendering these obsolete frames, which makes the UX feel much more responsive.
+      val recentLayouts = mutableMapOf<Long, LayoutEvent>() // Map of root IDs to their layout
+      messenger.eventFlow
+        .map { eventBytes -> Event.parseFrom(eventBytes) }
+        .onEach { event ->
+          if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
         }
-      }
+        .buffer(capacity = UNLIMITED) // Buffering allows event collection to keep happening even as we're still processing older ones
+        .filter { event ->
+          event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT || event.layoutEvent == recentLayouts[event.layoutEvent.rootView.id]
+        }
+        .collect { event ->
+          when (event.specializedCase) {
+            Event.SpecializedCase.ERROR_EVENT -> handleErrorEvent(event.errorEvent)
+            Event.SpecializedCase.ROOTS_EVENT -> handleRootsEvent(event.rootsEvent)
+            Event.SpecializedCase.LAYOUT_EVENT -> {
+              recentLayouts.remove(event.layoutEvent.rootView.id)
+              handleLayoutEvent(event.layoutEvent)
+            }
+            Event.SpecializedCase.PROPERTIES_EVENT -> handlePropertiesEvent(event.propertiesEvent)
+            else -> error { "Unhandled event case: ${event.specializedCase}" }
+          }
+        }
     }
   }
 
