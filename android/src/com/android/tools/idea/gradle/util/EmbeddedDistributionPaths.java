@@ -94,7 +94,7 @@ public class EmbeddedDistributionPaths {
     for (String customRepo : studioCustomRepo.split(pathSeparator)) {
       File customRepoPath = new File(toCanonicalPath(toSystemDependentName(customRepo)));
       if (!isValid.test(customRepoPath)) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable: " + customRepoPath);
+        Logger.getInstance(EmbeddedDistributionPaths.class).warn("Invalid path in STUDIO_CUSTOM_REPO environment variable: " + customRepoPath);
       }
       paths.add(customRepoPath);
     }

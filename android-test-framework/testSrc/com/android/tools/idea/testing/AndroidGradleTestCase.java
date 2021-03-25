@@ -21,9 +21,9 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
+import static com.android.tools.idea.testing.AndroidGradleTests.shouldUseRemoteRepositories;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertAbout;
@@ -350,7 +350,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
     return invokeGradle(project, gradleInvoker ->
-      gradleInvoker.executeTasks(projectDir, Arrays.asList(tasks), Collections.singletonList("--offline")));
+      gradleInvoker.executeTasks(projectDir, Arrays.asList(tasks),
+                                 shouldUseRemoteRepositories() ? Collections.emptyList() : Collections.singletonList("--offline")));
   }
 
   @NotNull
