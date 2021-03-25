@@ -1,5 +1,6 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
+import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
@@ -46,6 +47,10 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
 
   private inner class CancelAction :
     AnAction(WorkManagerInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = workSelectionModel.selectedWork?.state?.isFinished() == false
+    }
 
     override fun actionPerformed(e: AnActionEvent) {
       val id = workSelectionModel.selectedWork?.id ?: return
