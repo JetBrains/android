@@ -22,8 +22,11 @@ import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.base.Charsets;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
+import com.intellij.concurrency.ConcurrentCollectionFactory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,8 +35,12 @@ import com.intellij.util.lang.UrlClassLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.ClassBinaryCache;
@@ -65,6 +72,14 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
   @Nullable
   private String myCachedTransformationUniqueId = null;
   private boolean myAllowExternalJarFileLocking;
+  // We would like to remember the order the classes were loaded so that we can reload in the same order. Loading classes in the same
+  // order will prevent nested class loading.
+  private final Object myNonProjectClassLock = new Object();
+  @GuardedBy("myNonProjectClassLock")
+  private final Collection<String> myNonProjectLoadedClasses = new LinkedHashSet<>();
+  private final Object myProjectClassLock = new Object();
+  @GuardedBy("myProjectClassLock")
+  private final Collection<String> myProjectLoadedClasses = new LinkedHashSet<>();
 
   /**
    * Creates a new {@link RenderClassLoader}.
@@ -190,7 +205,11 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
     try {
       byte[] data = getNonProjectClassData(name, myNonProjectClassesTransformationProvider);
-      return defineClassAndPackage(name, data, 0, data.length);
+      Class<?> cl = defineClassAndPackage(name, data, 0, data.length);
+      synchronized (myNonProjectClassLock) {
+        myNonProjectLoadedClasses.add(name);
+      }
+      return cl;
     }
     catch (IOException | ClassNotFoundException e) {
       LOG.debug(e);
@@ -252,7 +271,11 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
   protected Class<?> loadClassFile(String fqcn, @NotNull VirtualFile classFile) {
     try {
       byte[] data = classFile.contentsToByteArray();
-      return loadClass(fqcn, data);
+      Class<?> cl = loadClass(fqcn, data);
+      synchronized (myProjectClassLock) {
+        myProjectLoadedClasses.add(fqcn);
+      }
+      return cl;
     }
     catch (IOException e) {
       LOG.warn(e);
@@ -334,5 +357,19 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
   @NotNull
   public ClassTransform getNonProjectClassesTransformationProvider() {
     return myNonProjectClassesTransformationProvider;
+  }
+
+  @NotNull
+  public ImmutableCollection<String> getNonProjectLoadedClasses() {
+    synchronized (myNonProjectClassLock) {
+      return ImmutableList.copyOf(myNonProjectLoadedClasses);
+    }
+  }
+
+  @NotNull
+  public ImmutableCollection<String> getProjectLoadedClasses() {
+    synchronized (myProjectClassLock) {
+      return ImmutableList.copyOf(myProjectLoadedClasses);
+    }
   }
 }
