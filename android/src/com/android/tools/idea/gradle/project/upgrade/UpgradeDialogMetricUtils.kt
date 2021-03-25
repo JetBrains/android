@@ -46,7 +46,7 @@ fun recordUpgradeDialogEvent(
     dialogStats.currentAndroidGradlePluginVersion = oldPluginVersion
   }
 
-  val oldGradleVersion = GradleWrapper.find(project)?.gradleFullVersion
+  val oldGradleVersion = GradleWrapper.find(project)?.gradleVersion
   if (oldGradleVersion != null) {
     dialogStats.currentGradleVersion = oldGradleVersion
   }

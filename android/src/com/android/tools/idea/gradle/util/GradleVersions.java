@@ -68,7 +68,7 @@ public class GradleVersions {
         GradleWrapper gradleWrapper = GradleWrapper.find(project);
         if (gradleWrapper != null) {
           try {
-            String wrapperVersion = gradleWrapper.getGradleFullVersion();
+            String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
               return GradleVersion.tryParse(removeTimestampFromGradleVersion(wrapperVersion));
             }

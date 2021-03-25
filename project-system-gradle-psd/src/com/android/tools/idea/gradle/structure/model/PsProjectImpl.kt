@@ -144,7 +144,7 @@ class PsProjectImpl(
 
   override fun getGradleVersionValue(notApplied: Boolean): String? =
     if (notApplied && gradleVersionModified) newGradleVersion
-    else GradleWrapper.find(ideProject)?.gradleFullVersion
+    else GradleWrapper.find(ideProject)?.gradleVersion
 
   override fun setGradleVersionValue(value: String) {
     if (value == getGradleVersionValue(notApplied = true).orEmpty()) return

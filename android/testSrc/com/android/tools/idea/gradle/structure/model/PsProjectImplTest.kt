@@ -263,14 +263,14 @@ class PsProjectImplTest : DependencyTestCase() {
 
     assertThat(
       project.gradleVersion,
-      equalTo(GradleWrapper.find(project.ideProject)?.gradleFullVersion?.asParsed()))
+      equalTo(GradleWrapper.find(project.ideProject)?.gradleVersion?.asParsed()))
 
     project.gradleVersion = "1.1".asParsed()
     project.applyChanges()
 
     project = PsProjectImpl(myFixture.project)
     assertThat(project.gradleVersion, equalTo("1.1".asParsed()))
-    assertThat(GradleWrapper.find(project.ideProject)?.gradleFullVersion, equalTo("1.1"))
+    assertThat(GradleWrapper.find(project.ideProject)?.gradleVersion, equalTo("1.1"))
   }
 
   private fun PsProject.testSubscribeToNotifications() {
