@@ -98,6 +98,11 @@ class FakeTraceProcessorService: TraceProcessorService {
     }
   }
 
+  override fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String> {
+    // TODO (gijosh): return data for ui-state when proto is defined.
+    return listOf()
+  }
+
   override fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     if (loadedTraces.containsKey(traceId)) {
       val trace = loadedTraces[traceId]!!

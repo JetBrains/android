@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.Memory
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.LoadTraceRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
@@ -291,6 +292,42 @@ class TraceProcessorServiceImpl(
       if (queryError) TraceProcessorDaemonQueryStats.QueryReturnStatus.QUERY_ERROR
       else TraceProcessorDaemonQueryStats.QueryReturnStatus.OK
     ideProfilerServices.featureTracker.trackTraceProcessorMemoryData(queryStatus, methodTimeMs, queryTimeMs)
+  }
+
+  override fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String> {
+    val query = QueryBatchRequest.newBuilder()
+      // Query metadata by name.
+      .addQuery(QueryParameters.newBuilder()
+                  .setTraceId(traceId)
+                  .setTraceMetadataRequest(QueryParameters.TraceMetadataParameters.newBuilder()
+                                             .setName(metadataName)
+                                             // Currently we only care about "metadata" type elements. All rows observed with a trace
+                                             // captured by studio had this field set to metadata.
+                                             .setType("metadata").build()))
+      .build()
+
+    LOGGER.info("TPD Service: Querying trace metadata for trace $traceId.")
+    val queryResult = executeBatchQuery(traceId, query, ideProfilerServices)
+
+    if (!queryResult.completed) {
+      val failureReason = queryResult.failure!!
+      LOGGER.warn("TPD Service: Fail to get trace metadata for trace $traceId: ${failureReason.message}")
+      throw RuntimeException("TPD Service: Fail to get trace metadata for trace $traceId: ${failureReason.message}", failureReason)
+    }
+
+    val response = queryResult.response!!
+    val results = mutableListOf<String>()
+    response.resultList.forEach { result ->
+      if (!result.ok) {
+        LOGGER.warn("TPD Service: Trace metadata query error - ${result.failureReason} - ${result.error}")
+      }
+      if (result.hasTraceMetadataResult()) {
+        result.traceMetadataResult.metadataRowList.forEach {
+          results.add(it.stringValue ?: it.int64Value.toString())
+        }
+      }
+    }
+    return results
   }
 
   /**
