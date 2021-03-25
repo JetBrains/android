@@ -437,7 +437,8 @@ of whichever profiler you have selected.
 1. Tap and hold the screen and you **should see an extended pink circle**
 1. Press volume down and you **should see a "volume up" icon**
 1. Press volume up and you **should see a "volume down" icon**
-1. Rotate the screen and you **should see a "rotation" icon**
+1. Make sure the phone or AVD's system-wide Auto-rotate setting is on
+1. Rotate the screen and when the app reacts to the rotation, you **should see a "rotation" icon**
 
 ![Events - Basic][events-basic]
 
