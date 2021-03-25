@@ -556,10 +556,15 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   /**
    * Show the content in WorkBench. This also hide the loading icon and message if they are showing.
+   *
+   * @return true if the content panel was not visible before.
    */
-  public void showContent() {
+  public boolean showContent() {
     hideLoading();
+    boolean wasVisible = myMainPanel.isVisible();
     myMainPanel.setVisible(true);
+
+    return !wasVisible;
   }
 
   @TestOnly

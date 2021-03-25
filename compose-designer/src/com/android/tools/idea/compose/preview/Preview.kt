@@ -747,13 +747,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun onAfterRender() {
     composeWorkBench.hasRendered = true
-    if (!hasRenderedAtLeastOnce.get()) {
-      // We zoom to fit to have better initial zoom level when first build is completed
-      UIUtil.invokeLaterIfNeeded {
-        surface.zoomToFit()
-        hasRenderedAtLeastOnce.set(true)
-      }
-    }
+    hasRenderedAtLeastOnce.set(true)
   }
 
   /**
