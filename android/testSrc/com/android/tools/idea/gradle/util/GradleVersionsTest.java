@@ -142,7 +142,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   private String getGradleVersionFromWrapper() throws IOException {
     GradleWrapper gradleWrapper = GradleWrapper.find(getProject());
     assertNotNull(gradleWrapper);
-    String expected = gradleWrapper.getGradleFullVersion();
+    String expected = gradleWrapper.getGradleVersion();
     assertNotNull(expected);
     return expected;
   }

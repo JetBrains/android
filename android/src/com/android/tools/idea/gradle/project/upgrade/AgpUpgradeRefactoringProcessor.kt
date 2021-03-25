@@ -1027,7 +1027,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       projectRootFolders.filterNotNull().forEach { ioRoot ->
         val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
         val gradleWrapper = GradleWrapper.get(ioFile, project)
-        val currentGradleVersion = gradleWrapper.gradleFullVersion ?: return@forEach
+        val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
         val parsedCurrentGradleVersion = GradleVersion.tryParse(currentGradleVersion) ?: return@forEach
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
           val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version.toString(), true)
