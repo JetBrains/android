@@ -27,6 +27,7 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.utp.GradleAndroidProjectResolverExtension.Companion.ENABLE_UTP_TEST_REPORT_PROPERTY
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.google.common.annotations.VisibleForTesting
@@ -217,6 +218,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
 
       // Enable UTP in Gradle. This is required for Android Studio integration.
       withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+
+      // Enable UTP test results reporting by embedded XML tag in stdout.
+      withArgument("-P${ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
 
       // Add a test filter.
       if (testPackageName != "" || testClassName != "") {

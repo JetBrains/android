@@ -24,9 +24,15 @@ class SetupUtpTestResultListenerAction implements Action<TaskExecutionGraph> {
 
   @Override
   void execute(TaskExecutionGraph taskGraph) {
+    final String ENABLE_UTP_TEST_REPORT_PROPERTY = "com.android.tools.utp.GradleAndroidProjectResolverExtension.enable"
     final String ON_RESULT_TAG = "UTP_TEST_RESULT_ON_TEST_RESULT_EVENT"
 
     taskGraph.allTasks.each { task ->
+      if (!task.project.hasProperty(ENABLE_UTP_TEST_REPORT_PROPERTY) ||
+          !task.project.property(ENABLE_UTP_TEST_REPORT_PROPERTY).toString().toBoolean()) {
+        return
+      }
+
       Class<?> testTaskClass
       try {
         testTaskClass = task.class.classLoader.loadClass(
