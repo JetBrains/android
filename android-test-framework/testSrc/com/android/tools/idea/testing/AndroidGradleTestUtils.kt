@@ -18,6 +18,7 @@ package com.android.tools.idea.testing
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.model.IdeAaptOptions
+import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
@@ -195,6 +196,7 @@ interface AndroidProjectStubBuilder {
   val dependenciesInfo: IdeDependenciesInfoImpl
   val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
+  fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl>?
   fun mainArtifact(variant: String): IdeAndroidArtifactImpl
   fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl
   fun unitTestArtifact(variant: String): IdeJavaArtifactImpl
@@ -235,6 +237,7 @@ data class AndroidProjectBuilder(
   val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeJavaArtifactImpl =
     { variant -> buildUnitTestArtifactStub(variant) },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
+  val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
 ) {
@@ -302,6 +305,9 @@ data class AndroidProjectBuilder(
   fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
     copy(androidModuleDependencyList = androidModuleDependencyList)
 
+  fun withAndroidLibraryDependencyList(androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl>) =
+    copy(androidLibraryDependencyList = androidLibraryDependencyList)
+
   fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
     copy(androidProject = androidProject)
 
@@ -331,6 +337,7 @@ data class AndroidProjectBuilder(
       override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
       override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
+      override fun androidLibraryDependencies(variant: String): List<IdeAndroidLibraryImpl> = androidLibraryDependencyList(variant)
       override fun mainArtifact(variant: String): IdeAndroidArtifactImpl = mainArtifactStub(variant)
       override fun androidTestArtifact(variant: String): IdeAndroidArtifactImpl = androidTestArtifactStub(variant)
       override fun unitTestArtifact(variant: String): IdeJavaArtifactImpl = unitTestArtifactStub(variant)
@@ -502,7 +509,9 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   classFolders: Set<File> = setOf()
 ): IdeAndroidArtifactImpl {
   val androidModuleDependencies = this.androidModuleDependencies(variant).orEmpty()
+  val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
   val dependenciesStub = buildDependenciesStub(
+    libraries = androidLibraryDependencies,
     projects = androidModuleDependencies.map {
       IdeModuleLibraryImpl(
         projectPath = it.moduleGradlePath,
@@ -887,7 +896,7 @@ private fun createAndroidModuleDataNode(
         gradlePath,
         moduleBasePath,
         gradlePlugins,
-        null,
+        moduleBasePath.resolve("build.gradle"),
         gradleVersion,
         agpVersion,
         false
