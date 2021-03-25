@@ -59,7 +59,8 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
                                @NotNull List<Map<String, List<SeriesData<Long>>>> cpuCounters,
                                @NotNull Map<String, List<SeriesData<Long>>> processMemoryCountersMap,
                                @NotNull SystemTraceFrameManager frameManager,
-                               @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager) {
+                               @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager,
+                               @NotNull Range initialViewRangeUs) {
     super(traceId, model.getSystemTraceTechnology(),
           new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()),
           captureNodes);
@@ -73,6 +74,8 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
 
     myFrameManager = frameManager;
     mySurfaceflingerManager = surfaceflingerManager;
+    // Set the view range of the capture timeline to our initial view range, this is used later by the UI to set the initial view.
+    getTimeline().getViewRange().set(initialViewRangeUs.getMin(), initialViewRangeUs.getMax());
   }
 
   @Override

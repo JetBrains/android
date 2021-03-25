@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
@@ -50,7 +51,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, danglingThreads, cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -85,7 +86,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -124,7 +125,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), cpuCores)
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getCpuCount()).isEqualTo(2)
@@ -154,7 +155,7 @@ class SystemTraceCpuCaptureBuilderTest {
     val model = TestModel(processes, emptyMap(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
-    val capture = builder.build(0L, 1)
+    val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
 
     assertThat(systemTraceData.getMemoryCounters()).hasSize(2)
@@ -170,6 +171,22 @@ class SystemTraceCpuCaptureBuilderTest {
       .inOrder()
 
     assertThat(systemTraceData.getMemoryCounters()).doesNotContainKey("non-memory")
+  }
+
+  @Test
+  fun viewRangeOnTimelineIsSet() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val model = TestModel(processes, emptyMap(), listOf())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range(1.0,2.0))
+    assertThat(capture.timeline.viewRange.min).isEqualTo(1.0)
+    assertThat(capture.timeline.viewRange.max).isEqualTo(2.0)
   }
 
   private class TestModel(
