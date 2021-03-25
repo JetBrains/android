@@ -282,7 +282,9 @@ class ModuleClassLoaderManager {
         moduleClassLoader.projectClassesTransformationProvider,
         moduleClassLoader.nonProjectClassesTransformationProvider,
         createDiagnostics())
-      moduleClassLoader.module?.putUserData(PRELOADER, Preloader(newClassLoader, moduleClassLoader.loadedClasses))
+      // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
+      val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
+      moduleClassLoader.module?.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))
     }
     return true
   }

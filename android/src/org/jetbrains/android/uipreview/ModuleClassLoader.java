@@ -40,7 +40,6 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -64,7 +63,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,8 +180,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
 
   private final List<URL> mAdditionalLibraries;
 
-  private final Set<String> loadedClasses = new HashSet<>();
-
   /**
    * Method uses to remap type names using {@link ModuleClassLoader#INTERNAL_PACKAGE} as prefix to its original name so they original
    * class can be loaded from the file system correctly.
@@ -295,7 +291,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     } finally {
       if (classLoaded) {
         myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
-        loadedClasses.add(name);
       }
     }
   }
@@ -647,11 +642,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @NotNull
   public ModuleClassLoaderDiagnosticsRead getStats() {
     return myDiagnostics;
-  }
-
-  @NotNull
-  public ImmutableCollection<String> getLoadedClasses() {
-    return ImmutableList.copyOf(loadedClasses);
   }
 
   @Nullable

@@ -287,6 +287,19 @@ public class RenderClassLoaderTest {
     assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
   }
 
+  @Test
+  public void testLoadOrder() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/loadingOrder/myloadingorder.jar");
+
+    RenderClassLoader loader = new TestableRenderClassLoader(this.getClass().getClassLoader(),
+                                                             ClassTransform.getIdentity(),
+                                                             ImmutableList.of(jarSource.toURI().toURL()));
+
+    loader.loadClass("com.loading.B");
+
+    assertThat(loader.getNonProjectLoadedClasses()).containsExactly("com.loading.A", "com.loading.B").inOrder();
+  }
+
   public static class MyLoggerFactory implements Logger.Factory {
     public MyLoggerFactory() {
     }
