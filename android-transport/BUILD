@@ -8,6 +8,7 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
+    test_tags = ["no_test_windows"],  # b/175394215
     test_timeout = "short",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
