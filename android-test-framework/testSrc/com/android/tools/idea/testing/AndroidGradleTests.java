@@ -333,14 +333,16 @@ public class AndroidGradleTests {
   private static String appendRemoteRepositoriesIfNeeded(@NotNull String localRepositories) {
     if (shouldUseRemoteRepositories()) {
       assert !IdeInfo.getInstance().isAndroidStudio() : "In Android Studio all the tests are hermetic. Remote repositories never needed.";
-      return localRepositories + "\njcenter()\ngoogle()";
+      return localRepositories + "\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/jcenter/\") } // jcenter(_)\n" +
+             "maven { setUrl(\"https://cache-redirector.jetbrains.com/dl.google.com.android.maven2/\") } // google(_)\n";
     }
     else {
       return localRepositories;
     }
   }
 
-  private static boolean shouldUseRemoteRepositories() {
+  public static boolean shouldUseRemoteRepositories() {
     if (useRemoteRepositories != null){
       return useRemoteRepositories;
     }
@@ -372,9 +374,7 @@ public class AndroidGradleTests {
         repositories.add(getWorkspaceFile("out/repo"));
       }
     } else {
-      // In IDEA there in no WORKSPACE root.
-      repositories.add(AndroidTestPaths.prebuiltsRepo().toFile());
-      repositories.add(AndroidTestPaths.outRepo().toFile());
+      assert shouldUseRemoteRepositories(): "IDEA should use real remote repositories";
     }
 
     // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)

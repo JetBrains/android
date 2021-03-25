@@ -59,6 +59,7 @@ import com.intellij.util.io.sanitizeFileName
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.facet.AndroidFacetProperties
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
@@ -129,9 +130,23 @@ class ProjectDumper(
         val (filePath, suffix) = splitPathAndSuffix()
         val file = File(filePath)
         val existenceSuffix = if (!file.exists()) " [-]" else ""
-        (if (file.isRooted) filePath.replaceKnownPaths() else filePath) + suffix + existenceSuffix
+        val maskedPath = (if (file.isRooted) filePath.replaceKnownPaths() else filePath) + suffix + existenceSuffix
+        if (IdeInfo.getInstance().isAndroidStudio) maskedPath else convertToMaskedMavenPath(maskedPath)
       }
     }
+  }
+
+  @VisibleForTesting
+  fun convertToMaskedMavenPath(maskedPath: String): String {
+    var res = maskedPath
+    val gradleFilesPrefix = "<GRADLE>/caches/modules-2/files-2.1/"
+    if (res.startsWith(gradleFilesPrefix)) {
+      val pkgEndIndex = res.indexOf('/', gradleFilesPrefix.length)
+      val pkg = res.substring(gradleFilesPrefix.length, pkgEndIndex)
+      val remaining = res.substring(pkgEndIndex).replace("/$gradleLongHashStub/", "/")
+      res = "<M2>/" + pkg.replace('.', '/') + remaining
+    }
+    return res
   }
 
   fun String.replaceKnownPaths(): String =

@@ -26,6 +26,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeThat;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory;
@@ -68,6 +69,11 @@ public class PsModuleTest extends AndroidGradleTestCase {
   }
 
   public void testLocalRepositories() throws Exception {
+    if (AndroidGradleTests.shouldUseRemoteRepositories()) {
+      assert !IdeInfo.getInstance().isAndroidStudio();
+      return; // IDEA does not use local repositories during testing
+    }
+
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
     PsProject psProject = new PsProjectImpl(getProject(), new CachingRepositorySearchFactory());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
