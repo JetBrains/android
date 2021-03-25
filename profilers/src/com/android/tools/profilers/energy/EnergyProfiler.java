@@ -19,7 +19,6 @@ import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyStartResponse;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopRequest;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyStopResponse;
-import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
@@ -53,16 +52,13 @@ public class EnergyProfiler extends StudioProfiler {
       if (myProfilers.getDevice() != null) {
         // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
         // DefaultPowerProfile.
-        // TODO(b/150503095)
-        Transport.ExecuteResponse response = myProfilers.getClient().getTransportClient().execute(
-          Transport.ExecuteRequest.newBuilder()
-            .setCommand(
-              Commands.Command.newBuilder()
-                .setStreamId(session.getStreamId())
-                .setPid(session.getPid())
-                .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
-                .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())))
-            .build());
+        myProfilers.getClient().executeAsync(
+          Commands.Command.newBuilder()
+            .setStreamId(session.getStreamId())
+            .setPid(session.getPid())
+            .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
+            .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())).build(),
+          myProfilers.getIdeServices().getPoolExecutor());
       } else {
         getLogger().warn("Unable to retrieve CPU frequency files; device ID unknown.");
       }
