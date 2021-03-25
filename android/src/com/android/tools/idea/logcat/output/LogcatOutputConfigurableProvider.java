@@ -40,7 +40,7 @@ public class LogcatOutputConfigurableProvider extends DebuggerConfigurableProvid
   public Collection<? extends Configurable> getConfigurables(@NotNull DebuggerSettingsCategory category) {
     if (LogcatOutputConfigurableUi.shouldShow() && category == DebuggerSettingsCategory.GENERAL) {
       return ImmutableList.of(SimpleConfigurable.create(ID, DISPLAY_NAME, LogcatOutputConfigurableUi.class,
-                                                        LogcatOutputSettings.getInstance()));
+                                                        () -> LogcatOutputSettings.getInstance()));
     }
     return Collections.emptyList();
   }
