@@ -3329,7 +3329,7 @@ public class GradleImportTest extends AndroidTestCase {
     }
     else {
       importer.exportProject(destDir, false);
-      updateGradle(destDir);
+      AndroidGradleTests.createGradleWrapper(destDir, GRADLE_LATEST_VERSION);
     }
     String summary = Files.asCharSource(new File(gradleProjectDir, ImportUtil.IMPORT_SUMMARY_TXT), UTF_8).read();
     summary = summary.replace("\r", "");
@@ -3364,13 +3364,6 @@ public class GradleImportTest extends AndroidTestCase {
     return summary.substring(0, index) + "$DESTDIR" +
            summary.substring(index + path.length(), nextLineIndex) +
            "        " + summary.substring(nextLineIndex + path.length());
-  }
-
-  protected static void updateGradle(File projectRoot) throws IOException {
-    GradleWrapper wrapper = GradleWrapper.create(projectRoot, null);
-    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
-    assertAbout(file()).that(path).named("Gradle distribution path").isFile();
-    wrapper.updateDistributionUrl(path);
   }
 
   private static boolean isWindows() {
