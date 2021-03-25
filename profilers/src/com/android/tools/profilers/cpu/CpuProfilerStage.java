@@ -536,19 +536,18 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   }
 
   private void goToCaptureStage(long traceId) {
-    // TODO (b/138677869): The technology should come from the trace / parser not the selected configuration.
-    // If the user changes the dropdown and clicks on a trace in the sessions panel the technology name
-    // will be wrong. While this behavior is a bug, it maps to what exists today as such will fix in
-    // a follow up.
-    CpuCaptureStage stage = CpuCaptureStage
-      .create(getStudioProfilers(), getProfilerConfigModel().getProfilingConfiguration(), traceId);
-    if (stage != null) {
-      getStudioProfilers().getIdeServices().getMainExecutor()
-        .execute(() -> getStudioProfilers().setStage(stage));
+    if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
+      CpuCaptureStage stage = CpuCaptureStage.create(
+        getStudioProfilers(),
+        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration().getUserOptions()),
+        traceId);
+      if (stage != null) {
+        getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
+        return;
+      }
     }
-    else {
-      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-    }
+    // Trace ID is not found or the capture stage cannot retrieve the trace.
+    getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
   }
 
   @NotNull
