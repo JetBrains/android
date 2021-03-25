@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.logcat.output;
 
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SimpleConfigurable;
 import com.intellij.xdebugger.settings.DebuggerConfigurableProvider;
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class LogcatOutputConfigurableProvider extends DebuggerConfigurableProvider {
   private static final String ID = "logcatOutputSettingsConfigurable";
@@ -39,8 +38,8 @@ public class LogcatOutputConfigurableProvider extends DebuggerConfigurableProvid
   @Override
   public Collection<? extends Configurable> getConfigurables(@NotNull DebuggerSettingsCategory category) {
     if (LogcatOutputConfigurableUi.shouldShow() && category == DebuggerSettingsCategory.GENERAL) {
-      return ImmutableList.of(SimpleConfigurable.create(ID, DISPLAY_NAME, LogcatOutputConfigurableUi.class,
-                                                        LogcatOutputSettings.getInstance()));
+      return List.of(SimpleConfigurable.create(ID, DISPLAY_NAME, LogcatOutputConfigurableUi.class,
+                                               () -> LogcatOutputSettings.getInstance()));
     }
     return Collections.emptyList();
   }
