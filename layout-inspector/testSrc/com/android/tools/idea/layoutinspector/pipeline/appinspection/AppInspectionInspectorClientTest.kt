@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PRO
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
@@ -235,5 +236,77 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     screenshotTypeUpdated.await()
+  }
+
+  @Test
+  fun viewClientOnlyHandlesMostRecentLayoutEvent() {
+    // This test will send two batches of layout events, to verify that we not only process the last event of a
+    // batch, but that once processed, new events can be handled afterwards.
+    var handlingFirstBatch = true
+
+    inspectionRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
+      inspectionRule.viewInspector.connection.sendEvent {
+        // We must always send roots at least once before the very first layout event
+        rootsEventBuilder.apply {
+          addIds(1)
+        }
+      }
+
+      for (i in 0..10) {
+        inspectionRule.viewInspector.connection.sendEvent {
+          layoutEventBuilder.apply {
+            rootViewBuilder.apply {
+              id = 1
+            }
+            screenshotBuilder.apply {
+              bytes = ByteString.copyFrom(byteArrayOf(i.toByte()))
+            }
+          }
+        }
+      }
+
+      ViewProtocol.Response.newBuilder().setStartFetchResponse(ViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+    }
+
+    inspectionRule.viewInspector.interceptWhen({ it.hasStopFetchCommand() }) {
+      // Note: We don't normally spam a bunch of layout events when you stop fetching, but we do it
+      // here for convenience, as stopFetching is easy to trigger in the test.
+      for (i in 11..20) {
+        inspectionRule.viewInspector.connection.sendEvent {
+          layoutEventBuilder.apply {
+            rootViewBuilder.apply {
+              id = 1
+            }
+            screenshotBuilder.apply {
+              bytes = ByteString.copyFrom(byteArrayOf(i.toByte()))
+            }
+          }
+        }
+      }
+
+      ViewProtocol.Response.newBuilder().setStopFetchResponse(ViewProtocol.StopFetchResponse.getDefaultInstance()).build()
+    }
+
+    val treeEventsHandled = CountDownLatch(1)
+    inspectorRule.launcher.addClientChangedListener { client ->
+      client.registerTreeEventCallback { data ->
+        (data as ViewLayoutInspectorClient.Data).viewEvent.let { viewEvent ->
+          assertThat(viewEvent.rootView.id).isEqualTo(1)
+
+          if (handlingFirstBatch) {
+            handlingFirstBatch = false
+            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(10.toByte())
+            client.stopFetching() // Triggers second batch of layout events
+          }
+          else {
+            assertThat(viewEvent.screenshot.bytes.byteAt(0)).isEqualTo(20.toByte())
+            treeEventsHandled.countDown()
+          }
+        }
+      }
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS) // Triggers first batch of layout events
+    treeEventsHandled.await()
   }
 }
