@@ -17,9 +17,8 @@ package com.android.tools.idea.logcat.output;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Getter;
 
-public class LogcatOutputSettings implements Getter<LogcatOutputSettings> {
+public final class LogcatOutputSettings {
   private static final String LOGCAT_RUN_OUTPUT_ENABLED = "logcat.run.output.enabled";
   private static final boolean LOGCAT_RUN_OUTPUT_ENABLED_DEFAULT = true;
   private static final String LOGCAT_DEBUG_OUTPUT_ENABLED = "logcat.debug.output.enabled";
@@ -29,14 +28,10 @@ public class LogcatOutputSettings implements Getter<LogcatOutputSettings> {
     return ApplicationManager.getApplication().getService(LogcatOutputSettings.class);
   }
 
-  @Override
-  public LogcatOutputSettings get() {
-    return this;
-  }
-
   public void reset() {
-    PropertiesComponent.getInstance().unsetValue(LOGCAT_RUN_OUTPUT_ENABLED);
-    PropertiesComponent.getInstance().unsetValue(LOGCAT_DEBUG_OUTPUT_ENABLED);
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
+    propertiesComponent.unsetValue(LOGCAT_RUN_OUTPUT_ENABLED);
+    propertiesComponent.unsetValue(LOGCAT_DEBUG_OUTPUT_ENABLED);
   }
 
   public boolean isRunOutputEnabled() {

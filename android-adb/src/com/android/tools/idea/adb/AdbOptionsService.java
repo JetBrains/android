@@ -18,13 +18,12 @@ package com.android.tools.idea.adb;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Getter;
 import com.intellij.util.SmartList;
 import java.util.List;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 
-public class AdbOptionsService implements Getter<AdbOptionsService> {
+public class AdbOptionsService {
   /**
    * Default user managed adb port. Same as {@link #USER_MANAGED_ADB_PORT_MIN_VALUE}.
    */
@@ -57,11 +56,6 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
 
   public static AdbOptionsService getInstance() {
     return ApplicationManager.getApplication().getService(AdbOptionsService.class);
-  }
-
-  @Override
-  public AdbOptionsService get() {
-    return this;
   }
 
   public boolean shouldUseLibusb() {
