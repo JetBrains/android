@@ -29,11 +29,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore("Temporarily disabled until we have alpha08 final b/174291742")
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
 
