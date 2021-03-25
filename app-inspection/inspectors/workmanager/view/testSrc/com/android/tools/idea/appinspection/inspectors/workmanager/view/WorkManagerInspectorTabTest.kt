@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBSplitter
@@ -468,21 +469,44 @@ class WorkManagerInspectorTabTest {
 
   @Test
   fun cancelSelectedWork() = runBlocking {
-    sendWorkAddedEvent(fakeWorkInfo)
+    val works = WorkInfo.State.values()
+      .filter { state -> state != WorkInfo.State.UNSPECIFIED && state != WorkInfo.State.UNRECOGNIZED }
+      .map { state ->
+        WorkInfo.newBuilder().apply {
+          id = "id$state"
+          this.state = state
+        }.build()
+      }
+      .toList()
+
+    val cancellableStates = setOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED)
+
     launch(uiDispatcher) {
       val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
-
-      val table = inspectorTab.getTable()
-      table.selectionModel.setSelectionInterval(0, 0)
       val toolbar =
         TreeWalker(inspectorTab.component).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
+
       val cancelAction = toolbar.actions[0] as AnAction
+      val event: AnActionEvent = TestActionEvent()
       assertThat(cancelAction.templateText).isEqualTo("Cancel Selected Work")
-      val event: AnActionEvent = mock(AnActionEvent::class.java)
-      cancelAction.actionPerformed(event)
-      scope.launch {
-        assertThat(Command.parseFrom(messenger.rawDataSent).cancelWork.id).isEqualTo(fakeWorkInfo.id)
-      }.join()
+      cancelAction.update(event)
+      assertThat(event.presentation.isEnabled).isFalse()
+
+      val table = inspectorTab.getTable()
+      works.forEachIndexed { i, work ->
+        sendWorkAddedEvent(work)
+        table.selectionModel.setSelectionInterval(i, i)
+        cancelAction.update(event)
+
+        val canCancel = cancellableStates.contains(work.state)
+        assertThat(event.presentation.isEnabled).isEqualTo(canCancel)
+        if (canCancel) {
+          cancelAction.actionPerformed(event)
+          scope.launch {
+            assertThat(Command.parseFrom(messenger.rawDataSent).cancelWork.id).isEqualTo(work.id)
+          }.join()
+        }
+      }
     }.join()
   }
 
