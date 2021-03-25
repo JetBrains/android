@@ -16,6 +16,10 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.model
 
 import androidx.work.inspection.WorkManagerInspectorProtocol
+import com.intellij.util.concurrency.EdtExecutorService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import javax.swing.table.AbstractTableModel
 
 class WorksTableModel(private val client: WorkManagerInspectorClient) : AbstractTableModel() {
@@ -70,7 +74,11 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
   }
 
   init {
-    client.addWorksChangedListener { fireTableDataChanged() }
+    client.addWorksChangedListener {
+      CoroutineScope(EdtExecutorService.getInstance().asCoroutineDispatcher()).launch {
+        fireTableDataChanged()
+      }
+    }
   }
 
   override fun getRowCount() = client.lockedWorks { it.size }
