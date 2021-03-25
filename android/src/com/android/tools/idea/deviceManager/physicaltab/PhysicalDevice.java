@@ -16,13 +16,17 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice {
+final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
+  private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
+    Comparator.comparing(device -> device.myConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
+
   private final @NotNull String mySerialNumber;
-  private final @Nullable Object myConnectionTime;
+  private final @Nullable Instant myConnectionTime;
 
   PhysicalDevice(@NotNull String serialNumber) {
     this(serialNumber, null);
@@ -61,5 +65,10 @@ final class PhysicalDevice {
 
     PhysicalDevice device = (PhysicalDevice)object;
     return mySerialNumber.equals(device.mySerialNumber) && Objects.equals(myConnectionTime, device.myConnectionTime);
+  }
+
+  @Override
+  public int compareTo(@NotNull PhysicalDevice device) {
+    return COMPARATOR.compare(this, device);
   }
 }
