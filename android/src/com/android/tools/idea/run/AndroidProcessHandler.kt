@@ -26,6 +26,7 @@ import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.KillableProcess
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -59,6 +60,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   val targetApplicationId: String,
   val captureLogcat: Boolean = true,
+  private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
@@ -85,6 +87,12 @@ class AndroidProcessHandler @JvmOverloads constructor(
     object : AndroidProcessMonitorManagerListener {
       override fun onAllTargetProcessesTerminated() = destroyProcess()
     })
+
+  override fun notifyTextAvailable(text: String, outputType: Key<*>) {
+    ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->
+      super.notifyTextAvailable(processedText, attributes)
+    }
+  }
 
   /**
    * Adds a target device to this handler.

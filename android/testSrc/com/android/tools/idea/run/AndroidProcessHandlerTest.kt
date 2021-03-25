@@ -23,9 +23,11 @@ import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,6 +57,7 @@ class AndroidProcessHandlerTest {
   @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
   @Mock lateinit var mockMonitorManager: AndroidProcessMonitorManager
   @Mock lateinit var mockProcessListener: ProcessListener
+  @Mock lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
 
   lateinit var handler: AndroidProcessHandler
   lateinit var textEmitter: TextEmitter
@@ -67,11 +70,19 @@ class AndroidProcessHandlerTest {
     `when`(mockProject.getService(eq(ExecutionTargetManager::class.java)))
       .thenReturn(mockExecutionTargetManager)
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
+    `when`(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
+      val (text, attributes, textAcceptor) = invocation.arguments
+      text as String
+      attributes as Key<*>
+      textAcceptor as AnsiEscapeDecoder.ColoredTextAcceptor
+      textAcceptor.coloredTextAvailable(text, attributes)
+    }
 
     handler = AndroidProcessHandler(
       mockProject,
       TARGET_APP_NAME,
       /*captureLogcat=*/true,
+      mockAnsiEscapeDecoder,
       mockDeploymentAppService
     ) { _, _, emitter, listener ->
       textEmitter = emitter
