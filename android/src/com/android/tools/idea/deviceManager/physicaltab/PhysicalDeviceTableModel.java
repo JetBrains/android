@@ -37,6 +37,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
+    devices.sort(null);
     myDevices = devices;
   }
 
@@ -46,22 +47,20 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
     if (modelRowIndex == -1) {
       myDevices.add(connectedDevice);
+    }
+    else {
+      PhysicalDevice device = myDevices.get(modelRowIndex);
 
-      int lastModelRowIndex = myDevices.size() - 1;
-      fireTableRowsInserted(lastModelRowIndex, lastModelRowIndex);
+      if (device.isConnected()) {
+        Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
+                                                                + device.toDebugString());
+      }
 
-      return;
+      myDevices.set(modelRowIndex, connectedDevice);
     }
 
-    PhysicalDevice device = myDevices.get(modelRowIndex);
-
-    if (device.isConnected()) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
-                                                              + device.toDebugString());
-    }
-
-    myDevices.set(modelRowIndex, connectedDevice);
-    fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+    myDevices.sort(null);
+    fireTableDataChanged();
   }
 
   void handleDisconnectedDevice(@NotNull PhysicalDevice disconnectedDevice) {
@@ -83,7 +82,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
 
     myDevices.set(modelRowIndex, disconnectedDevice);
-    fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+    myDevices.sort(null);
+
+    fireTableDataChanged();
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
