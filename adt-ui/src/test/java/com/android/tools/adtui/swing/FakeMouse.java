@@ -15,15 +15,15 @@
  */
 package com.android.tools.adtui.swing;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.concurrent.TimeUnit;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A fake mouse device that can be used for clicking on / scrolling programmatically in tests.
@@ -72,6 +72,10 @@ public final class FakeMouse {
     myCursor = new Cursor(button, x, y);
   }
 
+  public void dragTo(@NotNull Point point) {
+    dragTo(point.x, point.y);
+  }
+
   public void dragTo(int x, int y) {
     if (myCursor == null) {
       throw new IllegalStateException("Mouse not pressed. Call press before dragging.");
@@ -90,6 +94,10 @@ public final class FakeMouse {
     }
 
     dragTo(myCursor.x + xDelta, myCursor.y + yDelta);
+  }
+
+  public void moveTo(@NotNull Point point) {
+    moveTo(point.x, point.y);
   }
 
   public void moveTo(int x, int y) {
@@ -160,7 +168,7 @@ public final class FakeMouse {
   }
 
   /**
-   * Convenience method which calls {@link #press(JComponent, int, int, Button)}, {@link #dragTo(int, int)},
+   * Convenience method which calls {@link #press(int, int, Button)}, {@link #dragTo(int, int)},
    * and {@link #release()} in turn.
    */
   public void drag(int xStart, int yStart, int xDelta, int yDelta, Button button) {
@@ -173,6 +181,10 @@ public final class FakeMouse {
     press(xStart, yStart, button);
     dragTo(xTo, yTo);
     release();
+  }
+
+  public void press(@NotNull Point point) {
+    press(point.x, point.y, Button.LEFT);
   }
 
   public void press(int x, int y) {
@@ -214,16 +226,17 @@ public final class FakeMouse {
 
   /**
    * Helper method to dispatch a mouse event.
+   *
    * @param point Point that supplies the component and coordinates to trigger mouse event.
    * @param eventType Type of mouse event to trigger.
    * @param modifiers Mouse modifier codes.
    * @param button Which mouse button to pass to the event.
-   * @param clickCount The number of consecutive clicks passed in the event. This is not how many times to issue the event but
-   *                   how many times a click has occurred.
+   * @param clickCount The number of consecutive clicks passed in the event. This is not how many
+   *     times to issue the event but how many times a click has occurred.
    * @param popupTrigger should this event trigger a popup menu
    */
   private void dispatchMouseEvent(
-    FakeUi.RelativePoint point,
+    @NotNull FakeUi.RelativePoint point,
     int eventType,
     int modifiers,
     int button,
@@ -238,8 +251,11 @@ public final class FakeMouse {
   }
 
   private void dispatchMouseWheelEvent(int x, int y, int rotation) {
-    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    if (point == null) {
+      return;
+    }
+    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     MouseWheelEvent event = new MouseWheelEvent(point.component, MouseEvent.MOUSE_WHEEL, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                                 myKeyboard.toModifiersCode(), point.x, point.y, 0, false,
                                                 MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation);
@@ -265,13 +281,13 @@ public final class FakeMouse {
     final int x;
     final int y;
 
-    public Cursor(Button button, int x, int y) {
+    public Cursor(@NotNull Button button, int x, int y) {
       this.button = button;
       this.x = x;
       this.y = y;
     }
 
-    public Cursor(Cursor prev, int x, int y) {
+    public Cursor(@NotNull Cursor prev, int x, int y) {
       this.button = prev.button;
       this.x = x;
       this.y = y;
