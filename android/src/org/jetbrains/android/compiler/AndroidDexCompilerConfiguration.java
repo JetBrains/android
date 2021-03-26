@@ -16,7 +16,6 @@
 package org.jetbrains.android.compiler;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -46,6 +45,6 @@ public class AndroidDexCompilerConfiguration implements PersistentStateComponent
   }
 
   public static AndroidDexCompilerConfiguration getInstance(final Project project) {
-    return ServiceManager.getService(project, AndroidDexCompilerConfiguration.class);
+    return project.getService(AndroidDexCompilerConfiguration.class);
   }
 }

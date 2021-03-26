@@ -18,7 +18,6 @@ package com.android.tools.idea.apk.debugging;
 import com.android.tools.idea.smali.psi.SmaliClassName;
 import com.android.tools.idea.smali.psi.SmaliClassSpec;
 import com.android.tools.idea.smali.psi.SmaliFile;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -50,7 +49,7 @@ public class DexSourceFiles {
 
   @NotNull
   public static DexSourceFiles getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DexSourceFiles.class);
+    return project.getService(DexSourceFiles.class);
   }
 
   public DexSourceFiles(@NotNull Project project) {

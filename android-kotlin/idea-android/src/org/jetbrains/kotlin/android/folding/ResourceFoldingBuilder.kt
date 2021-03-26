@@ -30,7 +30,6 @@ import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
@@ -75,7 +74,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
         // We force creation of the app resources repository when necessary to keep things deterministic.
         val appResources = ResourceRepositoryManager.getInstance(element)?.appResources ?: return null
-        val uastContext = ServiceManager.getService(element.project, UastContext::class.java) ?: return null
+        val uastContext = element.project.getService(UastContext::class.java) ?: return null
         return uastContext.convertElement(element, null, null)?.unwrapReferenceAndGetValue(appResources)
     }
 

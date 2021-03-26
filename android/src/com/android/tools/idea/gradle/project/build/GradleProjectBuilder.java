@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.build;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -34,7 +33,7 @@ public class GradleProjectBuilder {
 
   @NotNull
   public static GradleProjectBuilder getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleProjectBuilder.class);
+    return project.getService(GradleProjectBuilder.class);
   }
 
   public GradleProjectBuilder(@NotNull Project project,

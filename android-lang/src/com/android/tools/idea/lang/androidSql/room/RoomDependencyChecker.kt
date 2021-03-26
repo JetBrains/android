@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -31,7 +30,7 @@ private val LOG = Logger.getInstance(RoomDependencyChecker::class.java)
  */
 class RoomDependencyChecker(val project: Project) {
   companion object {
-    fun getInstance(project: Project): RoomDependencyChecker = ServiceManager.getService(project, RoomDependencyChecker::class.java)!!
+    fun getInstance(project: Project): RoomDependencyChecker = project.getService(RoomDependencyChecker::class.java)!!
   }
 
   fun isRoomPresent(): Boolean {

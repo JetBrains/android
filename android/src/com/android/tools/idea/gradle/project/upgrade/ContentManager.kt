@@ -36,7 +36,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -319,7 +318,7 @@ class ToolWindowModel(
     val newProcessor = newVersion?.let {
       current?.let { current ->
         if (newVersion >= current && !project.isDisposed)
-          ServiceManager.getService(project, AssistantInvoker::class.java).createProcessor(project, current, it)
+          project.getService(AssistantInvoker::class.java).createProcessor(project, current, it)
         else
           null
       }

@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -67,7 +66,7 @@ public class ProjectStructure {
 
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectStructure.class);
+    return project.getService(ProjectStructure.class);
   }
 
   private ProjectStructure(@NotNull Project project) {

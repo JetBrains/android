@@ -16,7 +16,6 @@
 package com.android.tools.idea.explorer;
 
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface DeviceExplorerViewService {
   static @NotNull DeviceExplorerViewService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DeviceExplorerViewService.class);
+    return project.getService(DeviceExplorerViewService.class);
   }
 
   /**

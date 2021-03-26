@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -36,7 +35,7 @@ public class DataNodeCaches {
 
   @NotNull
   public static DataNodeCaches getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DataNodeCaches.class);
+    return project.getService(DataNodeCaches.class);
   }
 
   public DataNodeCaches(@NotNull Project project) {

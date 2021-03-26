@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +28,7 @@ public class VisualizationToolProjectSettings implements PersistentStateComponen
   private ProjectState myProjectState = new ProjectState();
 
   public static VisualizationToolProjectSettings getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, VisualizationToolProjectSettings.class);
+    return project.getService(VisualizationToolProjectSettings.class);
   }
 
   @NotNull

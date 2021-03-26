@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
@@ -65,8 +64,7 @@ class AnnotationProcessorsAnalyzerTest {
 
     myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(
       buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
@@ -92,8 +90,7 @@ class AnnotationProcessorsAnalyzerTest {
 
     myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(
       buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
@@ -123,8 +120,7 @@ class AnnotationProcessorsAnalyzerTest {
 
     myProjectRule.invokeTasks(":app:compileDebugJavaWithJavac")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData()).isEmpty()
   }

@@ -17,7 +17,6 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.editor.DeployTarget;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +33,7 @@ public class DevicePickerStateService {
     new TIntObjectHashMap<DeployTarget>();
 
   public static DevicePickerStateService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DevicePickerStateService.class);
+    return project.getService(DevicePickerStateService.class);
   }
 
   public void setDevicesUsedInLaunch(int id, @NotNull Set<IDevice> usedDevices, @NotNull Set<IDevice> availableDevices) {

@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
@@ -68,7 +67,7 @@ public class LibraryFilePaths {
 
   @NotNull
   public static LibraryFilePaths getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, LibraryFilePaths.class);
+    return project.getService(LibraryFilePaths.class);
   }
 
   @Nullable

@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.computeUserDataIfAbsent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -49,7 +48,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     private val MODULE_MANIFEST_CLASS = Key<PsiClass>(AndroidManifestClassPsiElementFinder::class.qualifiedName!! + ".MODULE_MANIFEST_CLASS")
 
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, AndroidManifestClassPsiElementFinder::class.java)!!
+    fun getInstance(project: Project) = project.getService(AndroidManifestClassPsiElementFinder::class.java)!!
 
   }
 

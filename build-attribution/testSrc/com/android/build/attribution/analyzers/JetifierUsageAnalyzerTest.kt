@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BUILD_ANALYZER_CHECK_JETIFIER
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
@@ -62,7 +61,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(JetifierNotUsed)
   }
@@ -75,7 +74,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(AnalyzerNotRun)
   }
@@ -92,7 +91,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
 
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(expectedResult)
   }
@@ -151,7 +150,7 @@ class JetifierUsageAnalyzerTest : AndroidGradleTestCase() {
     }
     Truth.assertThat(result.isBuildSuccessful).isTrue()
 
-    val buildAttributionManager = ServiceManager.getService(project, BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
     val jetifierUsageResult = buildAttributionManager.analyzersProxy.getJetifierUsageResult()
     Truth.assertThat(jetifierUsageResult).isEqualTo(expectedJetifierUsageAnalyzerResult)
     Truth.assertThat(expectedResultFile.exists()).isFalse()

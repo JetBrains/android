@@ -36,7 +36,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.translations.FrozenCol
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
 import com.intellij.notification.Notification;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
@@ -499,7 +498,7 @@ public final class TranslationsEditorTest {
 
     /* TODO Ideally, this would be good to have an option on the GuiTestRunner to avoid showing any notification for tests
      * because the notification prevent the robot to click on the multiline editor button */
-    Notification notification = ServiceManager.getService(frame.getProject(), AndroidNotification.class).getNotification();
+    Notification notification = frame.getProject().getService(AndroidNotification.class).getNotification();
 
     if (notification != null) {
       notification.hideBalloon();

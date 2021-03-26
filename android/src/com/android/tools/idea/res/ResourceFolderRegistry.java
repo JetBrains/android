@@ -29,7 +29,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -80,7 +79,7 @@ public class ResourceFolderRegistry implements Disposable {
 
   @NotNull
   public static ResourceFolderRegistry getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ResourceFolderRegistry.class);
+    return project.getService(ResourceFolderRegistry.class);
   }
 
   @NotNull

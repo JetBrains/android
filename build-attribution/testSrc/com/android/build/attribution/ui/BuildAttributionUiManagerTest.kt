@@ -28,7 +28,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
@@ -57,7 +56,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
 
     // Add a fake build tab
-    ServiceManager.getService(project, BuildContentManager::class.java).addContent(
+    project.getService(BuildContentManager::class.java).addContent(
       ContentImpl(JPanel(), BuildContentManagerImpl.Build_Tab_Title_Supplier.get(), true)
     )
 

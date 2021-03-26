@@ -18,7 +18,6 @@ package com.android.tools.idea.explorer;
 import com.android.tools.idea.explorer.fs.DownloadProgress;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 public interface DeviceExplorerFileManager {
   @NotNull
   static DeviceExplorerFileManager getInstance(Project project) {
-    return ServiceManager.getService(project, DeviceExplorerFileManager.class);
+    return project.getService(DeviceExplorerFileManager.class);
   }
 
   /**

@@ -18,7 +18,6 @@ package com.android.build.attribution
 import com.android.build.attribution.data.SuppressedWarnings
 import com.android.build.attribution.data.TaskData
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.project.Project
 
@@ -29,7 +28,7 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
   companion object {
     @JvmStatic
     fun getInstance(project: Project): BuildAttributionWarningsFilter {
-      return ServiceManager.getService(project, BuildAttributionWarningsFilter::class.java)
+      return project.getService(BuildAttributionWarningsFilter::class.java)
     }
   }
 

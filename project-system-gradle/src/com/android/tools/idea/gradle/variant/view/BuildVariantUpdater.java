@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
@@ -67,7 +66,7 @@ public class BuildVariantUpdater {
 
   @NotNull
   public static BuildVariantUpdater getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantUpdater.class);
+    return project.getService(BuildVariantUpdater.class);
   }
 
   // called by IDEA.

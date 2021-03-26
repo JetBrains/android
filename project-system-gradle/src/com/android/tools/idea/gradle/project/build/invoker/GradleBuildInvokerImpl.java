@@ -71,7 +71,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
@@ -415,7 +414,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   private ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request,
                                                                          @NotNull String executionName,
                                                                          @Nullable ExternalSystemTaskNotificationListener delegate) {
-    @NotNull BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
+    @NotNull BuildViewManager buildViewManager = myProject.getService(BuildViewManager.class);
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
@@ -594,7 +593,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       CountDownLatch eventDispatcherFinished = new CountDownLatch(1);
       myBuildEventDispatcher.invokeOnCompletion((t) -> {
         if (myBuildFailed) {
-          ServiceManager.getService(myProject, BuildOutputParserManager.class).sendBuildFailureMetrics();
+          myProject.getService(BuildOutputParserManager.class).sendBuildFailureMetrics();
         }
         eventDispatcherFinished.countDown();
       });
@@ -625,7 +624,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
     private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
       if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-        BuildAttributionManager manager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+        BuildAttributionManager manager = myProject.getService(BuildAttributionManager.class);
         if (manager != null && manager.shouldShowBuildOutputLink()) {
           String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
           onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", true);

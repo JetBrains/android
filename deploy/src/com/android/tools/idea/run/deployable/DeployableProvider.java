@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployable;
 
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public interface DeployableProvider {
 
   static DeployableProvider getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DeployableProvider.class);
+    return project.getService(DeployableProvider.class);
   }
 
   @Nullable

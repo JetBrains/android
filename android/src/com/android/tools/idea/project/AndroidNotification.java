@@ -26,7 +26,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -58,7 +57,7 @@ public class AndroidNotification {
 
   @NotNull
   public static AndroidNotification getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidNotification.class);
+    return project.getService(AndroidNotification.class);
   }
 
   public AndroidNotification(@NotNull Project project) {

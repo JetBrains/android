@@ -35,7 +35,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.thisLogger
@@ -496,7 +495,7 @@ class EmulatorToolWindowPanel(
     companion object {
       @JvmStatic
       fun getInstance(project: Project): MultiDisplayStateStorage {
-        return ServiceManager.getService(project, MultiDisplayStateStorage::class.java)
+        return project.getService(MultiDisplayStateStorage::class.java)
       }
     }
   }

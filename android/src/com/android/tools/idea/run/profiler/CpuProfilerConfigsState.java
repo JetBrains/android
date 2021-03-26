@@ -17,7 +17,6 @@ package com.android.tools.idea.run.profiler;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -48,7 +47,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
 
   @NotNull
   public static CpuProfilerConfigsState getInstance(Project project) {
-    return ServiceManager.getService(project, CpuProfilerConfigsState.class);
+    return project.getService(CpuProfilerConfigsState.class);
   }
 
   @NotNull

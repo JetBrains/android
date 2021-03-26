@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 
 /**
@@ -53,6 +52,6 @@ class GradleSyncResultPublisher(val project: Project) : GradleSyncListener {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GradleSyncResultPublisher =
-      ServiceManager.getService(project, GradleSyncResultPublisher::class.java)
+      project.getService(GradleSyncResultPublisher::class.java)
   }
 }

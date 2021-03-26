@@ -54,7 +54,6 @@ import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -646,7 +645,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(buildOutputListingFile);
       long lastSyncOrBuild = Long.MAX_VALUE; // If we don't have a module default to MAX which will always trigger a re-compute.
       if (myModule != null) {
-        lastSyncOrBuild = ServiceManager.getService(myModule.getProject(), LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
+        lastSyncOrBuild = myModule.getProject().getService(LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
       }
       else {
         Logger.getInstance(AndroidModuleModel.class).warn("No module set on model named: " + myModuleName);

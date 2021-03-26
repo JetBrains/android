@@ -19,7 +19,6 @@ import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.base.MoreObjects
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
@@ -42,7 +41,7 @@ class AndroidLightPackage private constructor(
   companion object {
     @JvmStatic
     fun withName(packageName: String, project: Project): PsiPackage {
-      return ServiceManager.getService(project, InstanceCache::class.java).get(packageName)
+      return project.getService(InstanceCache::class.java).get(packageName)
     }
   }
 

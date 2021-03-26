@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.stats;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 
 public class RunStatsService {
@@ -32,6 +31,6 @@ public class RunStatsService {
   }
 
   public static RunStatsService get(Project project) {
-    return ServiceManager.getService(project, RunStatsService.class);
+    return project.getService(RunStatsService.class);
   }
 }

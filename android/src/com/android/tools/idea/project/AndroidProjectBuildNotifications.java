@@ -16,7 +16,6 @@
 package com.android.tools.idea.project;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
@@ -49,7 +48,7 @@ public class AndroidProjectBuildNotifications {
 
   @NotNull
   public static AndroidProjectBuildNotifications getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidProjectBuildNotifications.class);
+    return project.getService(AndroidProjectBuildNotifications.class);
   }
 
   public AndroidProjectBuildNotifications(@NotNull Project project, @NotNull MessageBus messageBus) {

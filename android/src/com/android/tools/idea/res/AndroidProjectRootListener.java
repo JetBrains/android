@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -42,7 +41,7 @@ public class AndroidProjectRootListener {
    * @param project the project to listen on
    */
   public static void ensureSubscribed(@NotNull Project project) {
-    ServiceManager.getService(project, AndroidProjectRootListener.class);
+    project.getService(AndroidProjectRootListener.class);
   }
 
   private AndroidProjectRootListener(@NotNull Project project) {

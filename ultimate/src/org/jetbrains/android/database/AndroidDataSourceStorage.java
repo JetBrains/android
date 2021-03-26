@@ -18,7 +18,7 @@ public class AndroidDataSourceStorage implements PersistentStateComponent<Androi
   private final List<AndroidDataSource> myDataSources = ContainerUtil.createLockFreeCopyOnWriteList();
 
   public static AndroidDataSourceStorage getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidDataSourceStorage.class);
+    return project.getService(AndroidDataSourceStorage.class);
   }
 
   @Override

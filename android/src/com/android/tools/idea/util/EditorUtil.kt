@@ -20,7 +20,6 @@ import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -96,7 +95,7 @@ object EditorUtil {
     // The textRange of psiElement in the file can change after reformatting
     textRange = if (psiElement == null) psiFile.textRange else psiElement.textRange
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
-    ServiceManager.getService(project, ArrangementEngine::class.java).arrange(psiFile, setOf(textRange))
+    project.getService(ArrangementEngine::class.java).arrange(psiFile, setOf(textRange))
 
     if (keepDocumentLocked) {
       psiDocumentManager.commitDocument(document)

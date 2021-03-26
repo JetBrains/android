@@ -31,7 +31,7 @@ public class GradleBuildTreeViewConfiguration implements PersistentStateComponen
 
   @NotNull
   public static GradleBuildTreeViewConfiguration getInstance(Project project) {
-    return ServiceManager.getService(project, GradleBuildTreeViewConfiguration.class);
+    return project.getService(GradleBuildTreeViewConfiguration.class);
   }
 
   @Override

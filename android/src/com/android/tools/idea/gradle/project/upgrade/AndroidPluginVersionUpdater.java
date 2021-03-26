@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -44,7 +43,7 @@ public class AndroidPluginVersionUpdater {
 
   @NotNull
   public static AndroidPluginVersionUpdater getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidPluginVersionUpdater.class);
+    return project.getService(AndroidPluginVersionUpdater.class);
   }
 
   public AndroidPluginVersionUpdater(@NotNull Project project) {

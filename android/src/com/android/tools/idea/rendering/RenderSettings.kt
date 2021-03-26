@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.project.Project
@@ -36,7 +35,7 @@ data class RenderSettings(var quality: Float = 0.9f,
   companion object {
     @JvmStatic
     fun getProjectSettings(project: Project): RenderSettings {
-      return ServiceManager.getService(project, RenderSettings::class.java) ?: RenderSettings()
+      return project.getService(RenderSettings::class.java) ?: RenderSettings()
     }
   }
 }

@@ -47,7 +47,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
@@ -644,7 +643,7 @@ public final class NlComponentTest extends LayoutTestCase {
   @NotNull
   private static String arrangeXml(@NotNull Project project, @NotNull PsiFile psiFile) {
     WriteCommandAction.runWriteCommandAction(project, () -> {
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      project.getService(ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
       ApplicationManager.getApplication().saveAll();
     });
     return FileDocumentManager.getInstance().getDocument(psiFile.getVirtualFile()).getText();

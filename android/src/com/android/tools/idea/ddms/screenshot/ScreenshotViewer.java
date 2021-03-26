@@ -31,7 +31,6 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -609,7 +608,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     public static PersistentState getInstance(@NotNull Project project) {
-      return ServiceManager.getService(project, PersistentState.class);
+      return project.getService(PersistentState.class);
     }
   }
 }

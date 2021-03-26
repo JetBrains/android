@@ -44,7 +44,7 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
 
   @NotNull
   public static ConfigurationStateManager get(@NotNull Project project) {
-    return ServiceManager.getService(project, ConfigurationStateManager.class);
+    return project.getService(ConfigurationStateManager.class);
   }
 
   @Nullable

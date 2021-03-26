@@ -23,7 +23,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -34,7 +33,7 @@ abstract class SafeArgsTracker(private val project: Project) {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): SafeArgsTracker {
-      return ServiceManager.getService(project, SafeArgsTracker::class.java)
+      return project.getService(SafeArgsTracker::class.java)
     }
   }
 

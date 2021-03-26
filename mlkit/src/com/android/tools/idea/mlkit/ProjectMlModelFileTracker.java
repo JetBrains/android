@@ -23,7 +23,6 @@ import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SimpleModificationTracker;
@@ -99,7 +98,7 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
 
   @NotNull
   public static ProjectMlModelFileTracker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectMlModelFileTracker.class);
+    return project.getService(ProjectMlModelFileTracker.class);
   }
 
   @VisibleForTesting

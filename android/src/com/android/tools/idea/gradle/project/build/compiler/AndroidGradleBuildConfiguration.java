@@ -34,7 +34,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   public boolean CONTINUE_FAILED_BUILD = true;
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidGradleBuildConfiguration.class);
+    return project.getService(AndroidGradleBuildConfiguration.class);
   }
 
   @Nullable

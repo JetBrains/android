@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -82,7 +81,7 @@ public class CaptureService {
 
   @NotNull
   public static CaptureService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, CaptureService.class);
+    return project.getService(CaptureService.class);
   }
 
   private static Set<VirtualFile> findCaptureFiles(@NotNull VirtualFile[] files, @NotNull CaptureType type) {

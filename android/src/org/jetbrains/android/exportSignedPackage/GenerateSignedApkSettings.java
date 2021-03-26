@@ -29,6 +29,6 @@ public class GenerateSignedApkSettings implements PersistentStateComponent<Gener
   }
 
   public static GenerateSignedApkSettings getInstance(final Project project) {
-    return ServiceManager.getService(project, GenerateSignedApkSettings.class);
+    return project.getService(GenerateSignedApkSettings.class);
   }
 }

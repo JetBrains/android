@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
@@ -39,7 +38,7 @@ public class AndroidProjectInfo {
 
   @NotNull
   public static AndroidProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidProjectInfo.class);
+    return project.getService(AndroidProjectInfo.class);
   }
 
   public AndroidProjectInfo(@NotNull Project project) {

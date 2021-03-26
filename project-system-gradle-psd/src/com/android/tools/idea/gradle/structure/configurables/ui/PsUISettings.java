@@ -44,7 +44,7 @@ public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
   public static PsUISettings getInstance(Project project) {
-    return ServiceManager.getService(project, PsUISettings.class);
+    return project.getService(PsUISettings.class);
   }
 
   public void addListener(@NotNull ChangeListener listener, @NotNull Disposable parentDisposable) {

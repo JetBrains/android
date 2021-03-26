@@ -40,7 +40,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -72,7 +71,7 @@ public class GradleProjectInfo {
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleProjectInfo.class);
+    return project.getService(GradleProjectInfo.class);
   }
 
   public GradleProjectInfo(@NotNull Project project) {

@@ -33,7 +33,6 @@ import com.intellij.build.events.Failure;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -225,7 +224,7 @@ public abstract class AbstractSyncMessages implements Disposable {
     else {
       // Only emit the event if it's not an error. Errors are saved in myShownFailures and will be emitted at the end of sync as part of FinishBuildEvent.
       // FinishBuildEvent is better to emit errors since the failures in FinishBuildEvent has better format of simplified node titles and clickable hyperlinks.
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, issueEvent);
+      myProject.getService(SyncViewManager.class).onEvent(taskId, issueEvent);
     }
   }
 

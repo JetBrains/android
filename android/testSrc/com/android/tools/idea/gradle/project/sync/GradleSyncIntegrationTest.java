@@ -85,7 +85,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -585,7 +584,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     SimulatedSyncErrors.registerSyncErrorToSimulate(new JdkImportCheckException("Presync checks failed"));
 
     // Spy on SyncView manager to confirm it is displaying the error message
-    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    SyncViewManager spyViewManager = spy(project.getService(SyncViewManager.class));
     myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
 
     String syncError = loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
@@ -595,7 +594,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   public void testFinishBuildEventOnlyCreatedOnce() throws Exception {
     Project project = getProject();
     // Spy on SyncView manager to capture the build events.
-    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    SyncViewManager spyViewManager = spy(project.getService(SyncViewManager.class));
     myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
 
     // Invoke Gradle sync.
@@ -613,7 +612,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   public void testStartAndFinishBuildEventHasSameBuildId() throws Exception {
     Project project = getProject();
     // Spy on SyncView manager to capture the build events.
-    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    SyncViewManager spyViewManager = spy(project.getService(SyncViewManager.class));
     myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
 
     // Invoke Gradle sync.

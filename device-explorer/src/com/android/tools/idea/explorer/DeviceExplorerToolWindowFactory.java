@@ -22,7 +22,6 @@ import com.intellij.ide.actions.OpenFileAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,8 +56,8 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService adbService = ServiceManager.getService(project, AdbDeviceFileSystemService.class);
-    DeviceExplorerFileManager fileManager = ServiceManager.getService(project, DeviceExplorerFileManager.class);
+    AdbDeviceFileSystemService adbService = project.getService(AdbDeviceFileSystemService.class);
+    DeviceExplorerFileManager fileManager = project.getService(DeviceExplorerFileManager.class);
 
     DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(adbService);
 

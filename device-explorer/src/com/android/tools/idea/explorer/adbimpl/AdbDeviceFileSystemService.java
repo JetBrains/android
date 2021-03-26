@@ -29,7 +29,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -52,7 +51,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public final class AdbDeviceFileSystemService implements Disposable, DeviceFileSystemService<AdbDeviceFileSystem> {
   @NotNull
   public static AdbDeviceFileSystemService getInstance(Project project) {
-    return ServiceManager.getService(project, AdbDeviceFileSystemService.class);
+    return project.getService(AdbDeviceFileSystemService.class);
   }
 
   public static Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);

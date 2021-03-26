@@ -20,7 +20,6 @@ import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -49,6 +48,6 @@ class ProjectNamespacingStatusService(val project: Project) {
   }
 
   companion object {
-    @JvmStatic fun getInstance(project: Project) = ServiceManager.getService(project, ProjectNamespacingStatusService::class.java)!!
+    @JvmStatic fun getInstance(project: Project) = project.getService(ProjectNamespacingStatusService::class.java)!!
   }
 }

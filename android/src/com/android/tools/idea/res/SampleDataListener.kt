@@ -17,7 +17,6 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -49,7 +48,7 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
 
     @JvmStatic
     fun ensureSubscribed(project: Project) {
-      ServiceManager.getService(project, SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
+      project.getService(SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
     }
 
     @JvmStatic

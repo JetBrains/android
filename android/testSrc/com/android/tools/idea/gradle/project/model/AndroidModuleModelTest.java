@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtilTest;
 import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import java.io.IOException;
@@ -113,7 +112,7 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     writeToFile(outputFile, newSingleAPKOutputFileTest);
     // Check cache still produces old value
     assertThat(androidModel.getApplicationId()).isEqualTo("com.example.myapplication");
-    ServiceManager.getService(getProject(), LastBuildOrSyncService.class).setLastBuildOrSyncTimeStamp(System.currentTimeMillis());
+    getProject().getService(LastBuildOrSyncService.class).setLastBuildOrSyncTimeStamp(System.currentTimeMillis());
 
     // Fake the cache clearing and check new value is re-parsed
     assertThat(androidModel.getApplicationId()).isEqualTo("com.cool.app");

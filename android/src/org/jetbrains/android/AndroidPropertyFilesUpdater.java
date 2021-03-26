@@ -15,7 +15,6 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -66,7 +65,10 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   public static class ModuleRootListenerImpl implements ModuleRootListener {
     @Override
     public void rootsChanged(@NotNull final ModuleRootEvent event) {
-      ServiceManager.getService(event.getProject(), AndroidPropertyFilesUpdater.class).onRootsChanged();
+      Project project = event.getProject();
+      if (!project.isDefault()) {
+        project.getService(AndroidPropertyFilesUpdater.class).onRootsChanged();
+      }
     }
   }
 

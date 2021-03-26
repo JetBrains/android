@@ -61,7 +61,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHype
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 
@@ -95,7 +94,7 @@ interface SyncIssueUsageReporter {
 
   companion object {
     fun getInstance(project: Project): SyncIssueUsageReporter {
-      return ServiceManager.getService(project, SyncIssueUsageReporter::class.java)
+      return project.getService(SyncIssueUsageReporter::class.java)
     }
   }
 }

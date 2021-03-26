@@ -54,7 +54,6 @@ import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
@@ -611,7 +610,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  */
 internal fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
   DumbService.getInstance(project).smartInvokeLater {
-    val contentManager = ServiceManager.getService(project, ContentManager::class.java)
+    val contentManager = project.getService(ContentManager::class.java)
     contentManager.showContent(new)
   }
 }

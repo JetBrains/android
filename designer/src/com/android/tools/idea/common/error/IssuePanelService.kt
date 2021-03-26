@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.ide.DataManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -229,6 +228,6 @@ class IssuePanelService(private val project: Project) {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): IssuePanelService? = ServiceManager.getService(project, IssuePanelService::class.java)
+    fun getInstance(project: Project): IssuePanelService? = project.getService(IssuePanelService::class.java)
   }
 }

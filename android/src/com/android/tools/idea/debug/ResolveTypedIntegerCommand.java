@@ -26,7 +26,6 @@ import com.intellij.debugger.ui.tree.ValueDescriptor;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
 import com.intellij.debugger.ui.tree.render.ToStringCommand;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiAnnotation;
@@ -78,7 +77,7 @@ public class ResolveTypedIntegerCommand extends ToStringCommand {
     });
 
     if (annotation != null) {
-      ResourceIdResolver resolver = ServiceManager.getService(myEvaluationContext.getProject(), ResourceIdResolver.class);
+      ResourceIdResolver resolver = myEvaluationContext.getProject().getService(ResourceIdResolver.class);
       DynamicResourceIdResolver resolver1 = new DynamicResourceIdResolver(myEvaluationContext, resolver);
       myResult = AnnotationsRenderer.render(resolver1, annotation, ((IntegerValue)myValue).value());
     }
