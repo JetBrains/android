@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionM
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.junit.After
 import org.junit.Before
@@ -174,8 +173,7 @@ class CriticalPathAnalyzerTest {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     myProjectRule.invokeTasks("assembleDebug")
     myProjectRule.invokeTasks("assembleDebug")
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getTasksDeterminingBuildDuration()).isEmpty()
     assertThat(buildAttributionManager.analyzersProxy.getPluginsDeterminingBuildDuration()).isEmpty()

@@ -17,7 +17,6 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileType;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SimpleModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -62,6 +61,6 @@ public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
 
   @NotNull
   public static ProjectMlModelFileTracker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectMlModelFileTracker.class);
+    return project.getService(ProjectMlModelFileTracker.class);
   }
 }

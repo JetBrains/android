@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.analytics.api
 
 import com.google.wireless.android.sdk.stats.DataBindingEvent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 
 /**
@@ -31,7 +30,7 @@ interface DataBindingTracker {
      * Otherwise return a default dummy [DataBindingDefaultTracker] that returns a default (negative) proto.
      */
     fun getInstance(project: Project): DataBindingTracker {
-      return ServiceManager.getService(project, DataBindingTracker::class.java)
+      return project.getService(DataBindingTracker::class.java)
     }
   }
 

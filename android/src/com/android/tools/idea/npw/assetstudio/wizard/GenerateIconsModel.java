@@ -19,7 +19,6 @@ import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -50,7 +49,7 @@ public final class GenerateIconsModel extends WizardModel {
   public GenerateIconsModel(@NotNull AndroidFacet androidFacet, @NotNull String wizardId, @NotNull AndroidModulePaths paths) {
     myPaths = paths;
     Project project = androidFacet.getModule().getProject();
-    myStateStorage = ServiceManager.getService(project, StateStorage.class);
+    myStateStorage = project.getService(StateStorage.class);
     assert myStateStorage != null;
     myWizardId = wizardId;
   }
@@ -116,7 +115,7 @@ public final class GenerateIconsModel extends WizardModel {
 
     @NotNull
     public static StateStorage getInstance(@NotNull Project project) {
-      return ServiceManager.getService(project, StateStorage.class);
+      return project.getService(StateStorage.class);
     }
   }
 }

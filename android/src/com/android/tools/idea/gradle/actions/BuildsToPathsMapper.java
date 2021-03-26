@@ -30,7 +30,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.util.OutputType;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ImmutableList;
@@ -53,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 public class BuildsToPathsMapper {
   @NotNull
   public static BuildsToPathsMapper getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildsToPathsMapper.class);
+    return project.getService(BuildsToPathsMapper.class);
   }
 
   @NotNull

@@ -27,7 +27,6 @@ import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
@@ -86,8 +85,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("assembleDebug")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
@@ -112,8 +110,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("assembleDebug")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
   }
@@ -186,8 +183,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("assembleDebug")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     val alwaysRunTasks = buildAttributionManager.analyzersProxy.getAlwaysRunTasks()
 
@@ -210,8 +206,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("dummyDelete")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getAlwaysRunTasks()).isEmpty()
   }

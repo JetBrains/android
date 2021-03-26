@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.profiling.capture;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.FutureCallback;
@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -37,17 +36,23 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.EdtExecutorService;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A service responsible for writing data to "capture" files and opening them with a suitable editor after the files are done writing to.
@@ -82,7 +87,7 @@ public class CaptureService {
 
   @NotNull
   public static CaptureService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, CaptureService.class);
+    return project.getService(CaptureService.class);
   }
 
   private static Set<VirtualFile> findCaptureFiles(@NotNull VirtualFile[] files, @NotNull CaptureType type) {

@@ -51,7 +51,6 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
@@ -140,7 +139,7 @@ open class GradleSyncState @NonInjectable internal constructor (
     }
 
     @JvmStatic
-    fun getInstance(project: Project) : GradleSyncState = ServiceManager.getService(project, GradleSyncState::class.java)
+    fun getInstance(project: Project) : GradleSyncState = project.getService(GradleSyncState::class.java)
 
     @JvmStatic
     fun isSingleVariantSync(): Boolean {

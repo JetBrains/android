@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.project.Project;
@@ -38,7 +37,7 @@ public final class PostSyncProjectSetup {
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, PostSyncProjectSetup.class);
+    return project.getService(PostSyncProjectSetup.class);
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
@@ -70,7 +69,7 @@ public final class PostSyncProjectSetup {
     // Create StartBuildEvent
     String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
     DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
-    SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
+    SyncViewManager syncManager = project.getService(SyncViewManager.class);
     syncManager.onEvent(taskId, new StartBuildEventImpl(buildDescriptor, "reading from cache..."));
     return taskId;
   }

@@ -24,7 +24,6 @@ import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ProjectComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
@@ -235,7 +234,7 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
 
     // Temporarily subscribe the component to notifications when the ProjectSystemService is available only.  Many tests are still
     // configured to run without ProjectSystemService.
-    if (ServiceManager.getService(project, ProjectSystemService::class.java) != null) {
+    if (project.getService(ProjectSystemService::class.java) != null) {
       connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
         override fun facetConfigurationChanged(facet: Facet<*>) {
           if (facet is AndroidFacet) {

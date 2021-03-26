@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
@@ -35,7 +34,7 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
   public String COMMAND_LINE_OPTIONS = "";
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidGradleBuildConfiguration.class);
+    return project.getService(AndroidGradleBuildConfiguration.class);
   }
 
   @Nullable

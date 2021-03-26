@@ -19,13 +19,11 @@ import static com.intellij.notification.NotificationDisplayType.NONE;
 import static com.intellij.notification.NotificationType.WARNING;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.notification.impl.NotificationSettings;
 import com.intellij.notification.impl.NotificationsConfigurationImpl;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +39,7 @@ public class AndroidKtsSupportNotification {
 
   @NotNull
   public static AndroidKtsSupportNotification getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidKtsSupportNotification.class);
+    return project.getService(AndroidKtsSupportNotification.class);
   }
 
   public AndroidKtsSupportNotification(@NotNull Project project) {

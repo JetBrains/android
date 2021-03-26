@@ -62,7 +62,6 @@ import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -305,7 +304,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }, connection);
 
         if (enableBuildAttribution) {
-          buildAttributionManager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+          buildAttributionManager = myProject.getService(BuildAttributionManager.class);
           setUpBuildAttributionManager(operation, buildAttributionManager,
                                        // In some tests we don't care about build attribution being setup
                                        ApplicationManager.getApplication().isUnitTestMode());

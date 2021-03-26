@@ -16,7 +16,6 @@
 package com.android.tools.idea.device.fs
 
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 
 /**
@@ -26,7 +25,7 @@ interface DeviceFileDownloaderService {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): DeviceFileDownloaderService {
-      return ServiceManager.getService(project, DeviceFileDownloaderService::class.java)
+      return project.getService(DeviceFileDownloaderService::class.java)
     }
   }
 

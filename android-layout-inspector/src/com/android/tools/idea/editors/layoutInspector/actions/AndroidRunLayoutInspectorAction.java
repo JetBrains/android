@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorServ
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -62,7 +61,7 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
       Client client = dialog.getClient();
       if (client != null) {
-        ServiceManager.getService(project, AndroidLayoutInspectorService.class).getTask(project, client).queue();
+        project.getService(AndroidLayoutInspectorService.class).getTask(project, client).queue();
       }
       else {
         Logger.getInstance(AndroidRunLayoutInspectorAction.class).warn("Not launching layout inspector - no client selected");

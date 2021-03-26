@@ -20,7 +20,6 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBus;
@@ -64,7 +63,7 @@ public class GradleBuildState {
 
   @NotNull
   public static GradleBuildState getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleBuildState.class);
+    return project.getService(GradleBuildState.class);
   }
 
   public GradleBuildState(@NotNull Project project, @NotNull MessageBus messageBus) {
