@@ -22,6 +22,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
@@ -29,12 +30,47 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and the initialization is controlled by IJ's
  * framework.
  */
 class VisualizationToolWindowFactory : ToolWindowFactory {
+
+  /**
+   * [isApplicable] is called first before other functions.
+   */
+  private lateinit var project: Project
+
+  override fun isApplicable(project: Project): Boolean {
+    this.project = project
+    return ModuleManager.getInstance(project).modules.any { AndroidFacet.getInstance(it) != null }
+  }
+
+  override fun init(toolWindow: ToolWindow) {
+    project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
+      object : FileEditorManagerListener {
+        override fun fileOpened(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow)
+
+        override fun fileClosed(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow)
+
+        override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow)
+      }
+    )
+    // Set up initial availability.
+    updateAvailable(toolWindow)
+  }
+
+  /**
+   * Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise.
+   */
+  private fun updateAvailable(toolWindow: ToolWindow) {
+    val psiManager = PsiManager.getInstance(project)
+    val openedFiles = FileEditorManager.getInstance(project).selectedEditors.mapNotNull { it.file }
+    val hasLayoutEditor = openedFiles.mapNotNull { psiManager.findFile(it) }.any { getFolderType(it) == ResourceFolderType.LAYOUT }
+    toolWindow.isAvailable = hasLayoutEditor
+  }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val manager = VisualizationManager.getInstance(project)
