@@ -16,7 +16,7 @@
 package com.android.tools.idea.diagnostics.profiler;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,11 +27,11 @@ public class StartJfr extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    getTemplatePresentation().setEnabled(JfrUtilsKt.isJfrAvailable() && !ServiceManager.getService(Jfr.class).isProfilerActive());
+    getTemplatePresentation().setEnabled(JfrUtilsKt.isJfrAvailable() && !ApplicationManager.getApplication().getService(Jfr.class).isProfilerActive());
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    ServiceManager.getService(Jfr.class).start();
+    ApplicationManager.getApplication().getService(Jfr.class).start();
   }
 }

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.configuration
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.RoamingType
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
@@ -34,7 +34,7 @@ data class AndroidTestConfiguration(
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
     @JvmStatic
-    fun getInstance(): AndroidTestConfiguration = ServiceManager.getService(AndroidTestConfiguration::class.java)
+    fun getInstance(): AndroidTestConfiguration = ApplicationManager.getApplication().getService(AndroidTestConfiguration::class.java)
   }
   override fun getState(): AndroidTestConfiguration = this
   override fun loadState(state: AndroidTestConfiguration) {

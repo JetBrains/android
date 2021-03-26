@@ -20,8 +20,8 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.util.DeviceUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.serviceContainer.NonInjectable;
 import java.time.Clock;
 import java.time.Instant;
@@ -49,7 +49,7 @@ final class BuilderService {
   }
 
   static @NotNull BuilderService getInstance() {
-    return ServiceManager.getService(BuilderService.class);
+    return ApplicationManager.getApplication().getService(BuilderService.class);
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {

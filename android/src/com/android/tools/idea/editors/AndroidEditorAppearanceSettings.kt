@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
@@ -26,7 +26,7 @@ import com.intellij.openapi.components.Storage
 @State(name = "AndroidEditorAppearanceSettings", storages = [Storage("android-editor-appearance.xml")])
 class AndroidEditorAppearanceSettings : SimplePersistentStateComponent<AndroidEditorAppearanceState>(AndroidEditorAppearanceState()) {
   companion object {
-    fun getInstance(): AndroidEditorAppearanceSettings = ServiceManager.getService(AndroidEditorAppearanceSettings::class.java)
+    fun getInstance(): AndroidEditorAppearanceSettings = ApplicationManager.getApplication().getService(AndroidEditorAppearanceSettings::class.java)
   }
 }
 

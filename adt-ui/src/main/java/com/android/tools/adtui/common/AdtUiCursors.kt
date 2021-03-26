@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.common
 
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.UIUtil
@@ -58,7 +58,7 @@ interface AdtUiCursorsProvider {
   companion object {
     @JvmStatic
     fun getInstance(): AdtUiCursorsProvider {
-      return ServiceManager.getService<AdtUiCursorsProvider>(AdtUiCursorsProvider::class.java)
+      return ApplicationManager.getApplication().getService(AdtUiCursorsProvider::class.java)
     }
   }
 }

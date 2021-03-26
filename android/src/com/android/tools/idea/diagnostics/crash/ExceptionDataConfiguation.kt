@@ -17,13 +17,13 @@ package com.android.tools.idea.diagnostics.crash
 
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.ExceptionConfiguration
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 
 interface ExceptionDataConfiguration {
   companion object {
     @JvmStatic
     fun getInstance(): ExceptionDataConfiguration {
-      return ServiceManager.getService(ExceptionDataConfiguration::class.java)
+      return ApplicationManager.getApplication().getService(ExceptionDataConfiguration::class.java)
     }
   }
 

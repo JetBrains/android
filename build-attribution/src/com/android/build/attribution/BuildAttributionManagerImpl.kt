@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.project.build.attribution.getAgpAttribution
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.util.UUID
@@ -50,7 +50,7 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
-    ServiceManager.getService(KnownGradlePluginsService::class.java).asyncRefresh()
+    ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
   }
 
   override fun onBuildSuccess(request: GradleBuildInvoker.Request) {
@@ -63,7 +63,7 @@ class BuildAttributionManagerImpl(
       analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          val pluginsData = ServiceManager.getService(KnownGradlePluginsService::class.java).gradlePluginsData
+          val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder)
           analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
         }

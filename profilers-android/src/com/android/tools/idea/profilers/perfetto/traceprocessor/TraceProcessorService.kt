@@ -32,8 +32,8 @@ import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -58,7 +58,7 @@ class TraceProcessorServiceImpl(
 
     @JvmStatic
     fun getInstance(): TraceProcessorService {
-      return ServiceManager.getService(TraceProcessorServiceImpl::class.java)
+      return ApplicationManager.getApplication().getService(TraceProcessorServiceImpl::class.java)
     }
 
     @VisibleForTesting

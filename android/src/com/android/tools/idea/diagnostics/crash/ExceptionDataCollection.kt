@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.diagnostic.DebugLogManager
 import com.intellij.diagnostic.DialogAppender
 import com.intellij.idea.IdeaLogger
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import org.apache.log4j.AppenderSkeleton
 import org.apache.log4j.ConsoleAppender
@@ -58,7 +58,7 @@ class ExceptionDataCollection {
 
     @JvmStatic
     fun getInstance(): ExceptionDataCollection {
-      return ServiceManager.getService(ExceptionDataCollection::class.java)
+      return ApplicationManager.getApplication().getService(ExceptionDataCollection::class.java)
     }
 
     private val LOG = Logger.getInstance(ExceptionDataCollection::class.java)

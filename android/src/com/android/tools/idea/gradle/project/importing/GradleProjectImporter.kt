@@ -29,7 +29,6 @@ import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -200,7 +199,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     private val SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup"
 
     @JvmStatic
-    fun getInstance(): GradleProjectImporter = ServiceManager.getService(GradleProjectImporter::class.java)
+    fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
 
     @VisibleForTesting
     @JvmStatic

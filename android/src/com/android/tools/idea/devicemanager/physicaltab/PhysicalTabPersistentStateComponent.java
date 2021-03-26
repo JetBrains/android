@@ -19,9 +19,9 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
 import com.android.tools.idea.util.xmlb.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,7 +48,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
   }
 
   static @NotNull PhysicalTabPersistentStateComponent getInstance() {
-    return ServiceManager.getService(PhysicalTabPersistentStateComponent.class);
+    return ApplicationManager.getApplication().getService(PhysicalTabPersistentStateComponent.class);
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> get() {
