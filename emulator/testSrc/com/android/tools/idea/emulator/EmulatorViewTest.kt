@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.fileEditor.FileEditor
@@ -50,11 +51,15 @@ import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
+import java.awt.MouseInfo
+import java.awt.Point
+import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.VK_CONTROL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -115,7 +120,7 @@ class EmulatorViewTest {
       frameNumber = view.frameNumber
     }
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
-    assertAppearance(ui, "image1")
+    assertAppearance(ui, "EmulatorView1")
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
 
@@ -125,7 +130,7 @@ class EmulatorViewTest {
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertAppearance(ui, "image2")
+    assertAppearance(ui, "EmulatorView2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
@@ -181,7 +186,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 456 height: 363")
-    assertAppearance(ui, "image3")
+    assertAppearance(ui, "EmulatorView3")
 
     // Check mouse input in landscape orientation.
     ui.mouse.press(10, 153)
@@ -256,7 +261,7 @@ class EmulatorViewTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
-    assertAppearance(ui, "image2")
+    assertAppearance(ui, "EmulatorView2")
 
     // Check mouse input in portrait orientation.
     ui.mouse.press(82, 7)
@@ -276,7 +281,7 @@ class EmulatorViewTest {
     view.deviceFrameVisible = false
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
-    assertAppearance(ui, "image4")
+    assertAppearance(ui, "EmulatorView4")
 
     // Check clipboard synchronization.
     val content = StringSelection("host clipboard")
@@ -312,9 +317,65 @@ class EmulatorViewTest {
     ui.layoutAndDispatchEvents()
     val call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 320 height: 320")
-    assertAppearance(ui, "image5")
+    assertAppearance(ui, "LargeScale")
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
+  }
+
+  @Test
+  fun testMultiTouch() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+
+    @Suppress("UndesirableClassUsage")
+    val container = JScrollPane(view).apply { border = null }
+    container.isFocusable = true
+    val ui = FakeUi(container, 2.0)
+
+    var frameNumber = view.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    var call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
+
+    val mousePosition = Point(150, 75)
+    val pointerInfo = mock<PointerInfo>()
+    `when`(pointerInfo.location).thenReturn(mousePosition)
+    val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
+    mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+
+    ui.keyboard.setFocus(view)
+    ui.mouse.moveTo(mousePosition)
+    ui.keyboard.press(VK_CONTROL)
+    ui.layoutAndDispatchEvents()
+    assertAppearance(ui, "MultiTouch1")
+
+    ui.mouse.press(mousePosition)
+    assertAppearance(ui, "MultiTouch2")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
+    assertThat(shortDebugString(call.request)).isEqualTo(
+        "touches { x: 1272 y: 741 pressure: 1 expiration: NEVER_EXPIRE }" +
+        " touches { x: 168 y: 2219 identifier: 1 pressure: 1 expiration: NEVER_EXPIRE }")
+
+    mousePosition.x -= 20
+    mousePosition.y += 20
+    ui.mouse.dragTo(mousePosition)
+    assertAppearance(ui, "MultiTouch3")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
+    assertThat(shortDebugString(call.request)).isEqualTo(
+        "touches { x: 1056 y: 958 pressure: 1 expiration: NEVER_EXPIRE }" +
+        " touches { x: 384 y: 2002 identifier: 1 pressure: 1 expiration: NEVER_EXPIRE }")
+
+    ui.mouse.release()
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendTouch")
+    assertThat(shortDebugString(call.request)).isEqualTo(
+        "touches { x: 1056 y: 958 expiration: NEVER_EXPIRE } touches { x: 384 y: 2002 identifier: 1 expiration: NEVER_EXPIRE }")
+
+    ui.keyboard.release(VK_CONTROL)
+    assertAppearance(ui, "MultiTouch4")
   }
 
   @Test

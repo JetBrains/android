@@ -38,6 +38,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.flags.override
+import com.android.tools.idea.testing.mockStatic
 import com.android.utils.FlightRecorder
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -47,7 +48,6 @@ import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
 import com.intellij.ide.dnd.TransferableWrapper
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -64,10 +64,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.MockedStatic
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyLong
-import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
@@ -560,7 +558,3 @@ class EmulatorToolWindowPanelTest {
 }
 
 private const val TEST_DATA_PATH = "tools/adt/idea/emulator/testData/EmulatorToolWindowPanelTest"
-
-private inline fun <reified T> mockStatic(disposable: Disposable): MockedStatic<T> {
-  return mockStatic(T::class.java).also { mock -> Disposer.register(disposable) { mock.close() } }
-}
