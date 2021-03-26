@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,8 +34,6 @@ import com.intellij.util.xmlb.annotations.Tag;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Field;
 
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
@@ -53,7 +50,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       return;
     }
 
-    WhatsNewService service = ServiceManager.getService(WhatsNewService.class);
+    WhatsNewService service = ApplicationManager.getApplication().getService(WhatsNewService.class);
     if (service == null) {
       return;
     }

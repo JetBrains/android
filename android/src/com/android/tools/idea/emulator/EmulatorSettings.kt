@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
@@ -68,7 +67,7 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   companion object {
     @JvmStatic
     fun getInstance(): EmulatorSettings {
-      return ServiceManager.getService(EmulatorSettings::class.java)
+      return ApplicationManager.getApplication().getService(EmulatorSettings::class.java)
     }
   }
 }

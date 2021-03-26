@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil.getTempDirectory
@@ -393,7 +393,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   companion object {
     @JvmStatic
     fun getInstance(): RunningEmulatorCatalog {
-      return ServiceManager.getService(RunningEmulatorCatalog::class.java)
+      return ApplicationManager.getApplication().getService(RunningEmulatorCatalog::class.java)
     }
 
     @JvmStatic

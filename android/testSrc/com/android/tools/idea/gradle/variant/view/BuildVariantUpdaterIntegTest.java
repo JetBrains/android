@@ -36,7 +36,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
@@ -328,7 +328,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
     final Ref<Boolean> syncPerformed = new Ref<>(false);
     ExternalSystemProgressNotificationManager notificationManager =
-      ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+      ApplicationManager.getApplication().getService(ExternalSystemProgressNotificationManager.class);
     ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
       @Override
       public void onEnd(@NotNull ExternalSystemTaskId id) {
@@ -380,7 +380,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
     final Ref<Boolean> syncPerformed = new Ref<>(false);
     ExternalSystemProgressNotificationManager notificationManager =
-      ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+      ApplicationManager.getApplication().getService(ExternalSystemProgressNotificationManager.class);
     ExternalSystemTaskNotificationListenerAdapter listener = new ExternalSystemTaskNotificationListenerAdapter() {
       @Override
       public void onEnd(@NotNull ExternalSystemTaskId id) {

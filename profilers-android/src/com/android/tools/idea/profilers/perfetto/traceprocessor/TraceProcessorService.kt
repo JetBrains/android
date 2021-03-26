@@ -23,8 +23,8 @@ import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.android.tools.profilers.systemtrace.ProcessModel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import java.io.File
@@ -46,7 +46,7 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
 
     @JvmStatic
     fun getInstance(): TraceProcessorService {
-      return ServiceManager.getService(TraceProcessorServiceImpl::class.java)
+      return ApplicationManager.getApplication().getService(TraceProcessorServiceImpl::class.java)
     }
   }
 
