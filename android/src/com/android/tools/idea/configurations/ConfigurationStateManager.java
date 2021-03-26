@@ -16,18 +16,20 @@
 package com.android.tools.idea.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Persistent state management for configurations.
@@ -44,7 +46,7 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
 
   @NotNull
   public static ConfigurationStateManager get(@NotNull Project project) {
-    return ServiceManager.getService(project, ConfigurationStateManager.class);
+    return project.getService(ConfigurationStateManager.class);
   }
 
   @Nullable

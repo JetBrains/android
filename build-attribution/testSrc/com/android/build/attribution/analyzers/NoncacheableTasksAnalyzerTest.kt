@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.After
 import org.junit.Before
@@ -73,8 +72,7 @@ class NoncacheableTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("assembleDebug")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).hasSize(1)
     val noncacheableTask = buildAttributionManager.analyzersProxy.getNonCacheableTasks()[0]
@@ -94,8 +92,7 @@ class NoncacheableTasksAnalyzerTest {
 
     myProjectRule.invokeTasks("assembleDebug")
 
-    val buildAttributionManager = ServiceManager.getService(myProjectRule.project,
-                                                            BuildAttributionManager::class.java) as BuildAttributionManagerImpl
+    val buildAttributionManager = myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl
 
     assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).isEmpty()
   }

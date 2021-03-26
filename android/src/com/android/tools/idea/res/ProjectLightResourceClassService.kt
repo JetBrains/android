@@ -36,7 +36,6 @@ import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -90,7 +89,7 @@ private data class ResourceClasses(
 class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, ProjectLightResourceClassService::class.java)!!
+    fun getInstance(project: Project) = project.getService(ProjectLightResourceClassService::class.java)!!
   }
 
   /** Cache of AAR package names. */

@@ -17,7 +17,6 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.ProjectTopics
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
@@ -30,7 +29,7 @@ open class ProjectSystemService(val project: Project) {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ProjectSystemService {
-      return ServiceManager.getService(project, ProjectSystemService::class.java)!!
+      return project.getService(ProjectSystemService::class.java)!!
     }
   }
 

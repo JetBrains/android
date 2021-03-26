@@ -26,16 +26,14 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationsManagerImpl;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.BalloonLayoutData;
 import com.intellij.ui.awt.RelativePoint;
-import java.awt.Dimension;
-import java.awt.Point;
-import javax.swing.JFrame;
+import java.awt.*;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +55,7 @@ public class AndroidNotification {
 
   @NotNull
   public static AndroidNotification getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidNotification.class);
+    return project.getService(AndroidNotification.class);
   }
 
   public AndroidNotification(@NotNull Project project) {

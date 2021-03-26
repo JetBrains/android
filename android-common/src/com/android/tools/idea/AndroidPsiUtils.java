@@ -26,7 +26,6 @@ import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -194,7 +193,7 @@ public class AndroidPsiUtils {
     // e.g. if PsiIdentifier has PsiMethod as parent, converting it to UElement gives us a UIdentifier with null parent
     for (PsiElement psiElement = element; psiElement != null; psiElement = psiElement.getParent()) {
       UElement uElement =
-        ServiceManager.getService(element.getProject(), UastContext.class).convertElementWithParent(psiElement, UElement.class);
+        element.getProject().getService(UastContext.class).convertElementWithParent(psiElement, UElement.class);
       if (uElement != null) {
         T parentPsiElement = getPsiParentOfType(uElement, parentClass, strict && (psiElement == element));
         if (parentPsiElement != null) {

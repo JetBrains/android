@@ -19,15 +19,12 @@ import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MIS
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -42,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
@@ -57,7 +53,7 @@ public final class DependencySetupIssues {
 
   @NotNull
   public static DependencySetupIssues getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DependencySetupIssues.class);
+    return project.getService(DependencySetupIssues.class);
   }
 
   public DependencySetupIssues(@NotNull Project project) {

@@ -16,12 +16,11 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -48,7 +47,7 @@ class ProjectBuildModelHandler(val project: Project) {
   private val lock: Lock = ReentrantLock()
 
   companion object {
-    fun getInstance(project: Project) : ProjectBuildModelHandler = ServiceManager.getService(project, ProjectBuildModelHandler::class.java)
+    fun getInstance(project: Project) : ProjectBuildModelHandler = project.getService(ProjectBuildModelHandler::class.java)
   }
 
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.build.output;
 
 import com.intellij.build.output.BuildOutputParser;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemOutputParserProvider;
@@ -36,7 +35,7 @@ public class GradleOutputParserProvider implements ExternalSystemOutputParserPro
   public List<BuildOutputParser> getBuildOutputParsers(@NotNull ExternalSystemTaskId taskId) {
     Project project = taskId.findProject();
     if (project != null) {
-      return ServiceManager.getService(project, BuildOutputParserManager.class).getBuildOutputParsers();
+      return project.getService(BuildOutputParserManager.class).getBuildOutputParsers();
     }
     return Collections.emptyList();
   }

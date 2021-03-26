@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil;
 import com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,7 @@ public final class RunConfigurationChecker  {
 
   @NotNull
   public static RunConfigurationChecker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, RunConfigurationChecker.class);
+    return project.getService(RunConfigurationChecker.class);
   }
 
   public void ensureRunConfigsInvokeBuild() {

@@ -1,24 +1,26 @@
-// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
 import com.intellij.database.util.DbImplUtil;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.annotations.XCollection;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidDataSourceStorage", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidDataSourceStorage implements PersistentStateComponent<AndroidDataSourceStorage.State> {
   private final List<AndroidDataSource> myDataSources = ContainerUtil.createLockFreeCopyOnWriteList();
 
   public static AndroidDataSourceStorage getInstance(Project project) {
-    return ServiceManager.getService(project, AndroidDataSourceStorage.class);
+    return project.getService(AndroidDataSourceStorage.class);
   }
 
   @Override

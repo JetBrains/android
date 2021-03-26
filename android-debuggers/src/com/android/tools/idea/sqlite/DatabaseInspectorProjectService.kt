@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -59,7 +58,7 @@ import javax.swing.JComponent
 interface DatabaseInspectorProjectService {
   companion object {
     @JvmStatic fun getInstance(project: Project): DatabaseInspectorProjectService {
-      return ServiceManager.getService(project, DatabaseInspectorProjectService::class.java)
+      return project.getService(DatabaseInspectorProjectService::class.java)
     }
   }
 

@@ -21,15 +21,11 @@ import com.google.common.collect.Multimap
 import com.intellij.analysis.AnalysisScope
 import com.intellij.ide.hierarchy.*
 import com.intellij.ide.hierarchy.actions.BrowseHierarchyActionBase
-import com.intellij.ide.hierarchy.HierarchyBrowser
-import com.intellij.ide.hierarchy.HierarchyProvider
-import com.intellij.ide.hierarchy.JavaHierarchyUtil
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -43,12 +39,11 @@ import org.jetbrains.uast.convertWithParent
 import org.jetbrains.uast.visitor.UastVisitor
 import java.util.*
 import javax.swing.JTree
-import kotlin.collections.ArrayList
 
 /** Creates a collection of UFiles from a project and scope. */
 fun UastVisitor.visitAll(project: Project, scope: AnalysisScope): Collection<UFile> {
   val res = ArrayList<UFile>()
-  val uastContext = ServiceManager.getService(project, UastContext::class.java)
+  val uastContext = project.getService(UastContext::class.java)
   scope.accept { virtualFile ->
     if (!uastContext.isFileSupported(virtualFile.name)) return@accept true
     val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@accept true

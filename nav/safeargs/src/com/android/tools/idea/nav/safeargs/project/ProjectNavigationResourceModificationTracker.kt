@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -30,7 +28,7 @@ class ProjectNavigationResourceModificationTracker(val project: Project) : Modif
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = ServiceManager.getService(project, ProjectNavigationResourceModificationTracker::class.java)!!
+    fun getInstance(project: Project) = project.getService(ProjectNavigationResourceModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount

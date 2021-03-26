@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -526,7 +525,7 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
 
     @JvmStatic
     fun getInstance(project: Project): ProjectStructureConfigurable =
-      ServiceManager.getService(project, ProjectStructureConfigurable::class.java)
+      project.getService(ProjectStructureConfigurable::class.java)
 
     private fun parseFloatValue(value: String?): Float = value?.toFloatOrNull() ?: 0f
 

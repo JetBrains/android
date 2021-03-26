@@ -17,16 +17,14 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Service to persist the state of {@link ProfilingConfiguration}.
@@ -44,7 +42,7 @@ public class CpuProfilingConfigService implements PersistentStateComponent<CpuPr
   }
 
   public static CpuProfilingConfigService getInstance(Project project) {
-    return ServiceManager.getService(project, CpuProfilingConfigService.class);
+    return project.getService(CpuProfilingConfigService.class);
   }
 
   public List<ProfilingConfiguration> getConfigurations() {

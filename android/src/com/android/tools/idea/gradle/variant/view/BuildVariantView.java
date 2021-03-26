@@ -40,7 +40,6 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
@@ -123,7 +122,7 @@ public class BuildVariantView {
 
   @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantView.class);
+    return project.getService(BuildVariantView.class);
   }
 
   public BuildVariantView(@NotNull Project project) {

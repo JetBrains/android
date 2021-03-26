@@ -20,10 +20,8 @@ import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
@@ -47,7 +45,7 @@ public class DeploymentService {
 
   @NotNull
   public static DeploymentService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, DeploymentService.class);
+    return project.getService(DeploymentService.class);
   }
 
   private DeploymentService(@NotNull Project project) {

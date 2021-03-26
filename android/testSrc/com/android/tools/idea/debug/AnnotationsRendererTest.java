@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.debug;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.PsiAnnotation;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class AnnotationsRendererTest extends AndroidTestCase {
   public void testColorIntRendering() {
@@ -38,7 +37,7 @@ public class AnnotationsRendererTest extends AndroidTestCase {
   }
 
   public void testResourceRefRendering() {
-    ResourceIdResolver resolver = ServiceManager.getService(getProject(), ResourceIdResolver.class);
+    ResourceIdResolver resolver = getProject().getService(ResourceIdResolver.class);
     AnnotationsRenderer.Result result =
       AnnotationsRenderer.render(resolver, createFakeAnnotation(ResourceEvaluator.RES_SUFFIX), 0x01080074);
     assertEquals("0x01080074 {@android:drawable/star_on}", result.label);

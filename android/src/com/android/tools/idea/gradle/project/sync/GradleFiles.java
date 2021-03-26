@@ -36,7 +36,6 @@ import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -110,7 +109,7 @@ public class GradleFiles {
 
   @NotNull
   public static GradleFiles getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleFiles.class);
+    return project.getService(GradleFiles.class);
   }
 
   private GradleFiles(@NotNull Project project) {

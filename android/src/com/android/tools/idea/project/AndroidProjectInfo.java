@@ -23,7 +23,6 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
@@ -36,7 +35,7 @@ public class AndroidProjectInfo {
 
   @NotNull
   public static AndroidProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidProjectInfo.class);
+    return project.getService(AndroidProjectInfo.class);
   }
 
   public AndroidProjectInfo(@NotNull Project project) {

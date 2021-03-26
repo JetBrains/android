@@ -17,7 +17,6 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 public final class MlProjectService {
 
   public static MlProjectService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, MlProjectService.class);
+    return project.getService(MlProjectService.class);
   }
 
   private final Project myProject;

@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
 import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
@@ -114,7 +113,7 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
 
   companion object {
     fun getInstance(project: Project): AvailableLibraryUpdateStorage {
-      return ServiceManager.getService(project, AvailableLibraryUpdateStorage::class.java)
+      return project.getService(AvailableLibraryUpdateStorage::class.java)
     }
   }
 }

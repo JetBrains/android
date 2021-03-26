@@ -33,9 +33,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.module.Module
@@ -204,7 +202,7 @@ class LastBuildOrSyncService {
 internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAdapter() {
   override fun onEnd(id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
-      ServiceManager.getService(project, LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
+      project.getService(LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()
     }
   }
 }
@@ -219,12 +217,12 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
         if (context == null) return
-        val service = ServiceManager.getService(context.project, LastBuildOrSyncService::class.java)
+        val service = context.project.getService(LastBuildOrSyncService::class.java)
         service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
       }
     })
 
-    val service = ServiceManager.getService(project, LastBuildOrSyncService::class.java)
+    val service = project.getService(LastBuildOrSyncService::class.java)
     service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
   }
 }

@@ -23,7 +23,6 @@ import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -52,7 +51,7 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
 
     @JvmStatic
     fun ensureSubscribed(project: Project) {
-      ServiceManager.getService(project, SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
+      project.getService(SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
     }
 
     @JvmStatic

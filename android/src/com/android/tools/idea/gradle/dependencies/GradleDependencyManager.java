@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -53,7 +52,7 @@ public class GradleDependencyManager {
 
   @NotNull
   public static GradleDependencyManager getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleDependencyManager.class);
+    return project.getService(GradleDependencyManager.class);
   }
 
   /**
