@@ -24,13 +24,16 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.ide.PooledThreadExecutor
 
-class DeviceFileDownloaderServiceImpl(
+class DeviceFileDownloaderServiceImpl @NonInjectable constructor(
   private val project: Project,
   private val adbDeviceFileSystemService: AdbDeviceFileSystemService,
   private val fileManager: DeviceExplorerFileManager) : DeviceFileDownloaderService {
+  constructor(project: Project) : this(project, AdbDeviceFileSystemService.getInstance(project),
+                                       DeviceExplorerFileManager.getInstance(project))
 
   private val taskExecutor = FutureCallbackExecutor(PooledThreadExecutor.INSTANCE)
 
