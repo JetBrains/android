@@ -20,7 +20,10 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -62,9 +65,11 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.verify
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import javax.swing.JTree
 
 private val PROCESS = MODERN_DEVICE.createProcess()
@@ -123,7 +128,7 @@ class LayoutInspectorTreePanelTest {
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
 
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
 
     assertThat(descriptor.file.name).isEqualTo("demo.xml")
@@ -211,7 +216,7 @@ class LayoutInspectorTreePanelTest {
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
     setToolContext(tree, inspector)
-    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    val jtree = tree.tree!!
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jtree).blockingGet(10, TimeUnit.SECONDS)
 
@@ -226,6 +231,78 @@ class LayoutInspectorTreePanelTest {
     assertThat(selectionOrigin).isEqualTo(SelectionOrigin.COMPONENT_TREE)
     assertThat(selectedView?.drawId).isEqualTo(VIEW2)
     assertThat(selectedView?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testFiltering() {
+    TreeSettings.hideSystemNodes = false
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    val model = inspectorRule.inspectorModel
+    setToolContext(tree, inspector)
+    UIUtil.dispatchAllInvocationEvents()
+
+    // The component tree is now collapsed with the top element: DecorView
+    // Demo has 3 views: DecorView, RelativeLayout, TextView. We should be able to find views even if they are currently collapsed:
+    tree.setFilter("View")
+    UIUtil.dispatchAllInvocationEvents()
+    var selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate a down arrow keyboard event in the search field: the next match should be found (TextView)
+    val searchField = JPanel()
+    searchField.addKeyListener(tree.filterKeyListener)
+    val ui = FakeUi(searchField)
+    ui.keyboard.setFocus(searchField)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(2)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(selection?.view?.viewId?.name).isEqualTo("title")
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate an up arrow keyboard event in the search field: the previous match should be found (TextView)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(2)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(selection?.view?.viewId?.name).isEqualTo("title")
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Accepting a matched value, should close the search field
+    val callbacks: ToolWindowCallback = mock()
+    tree.registerCallbacks(callbacks)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    verify(callbacks).stopFiltering()
+  }
+
+  @RunsInEdt
+  @Test
+  fun keyTypedStartsFiltering() {
+    TreeSettings.hideSystemNodes = false
+    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    setToolContext(tree, inspector)
+    UIUtil.dispatchAllInvocationEvents()
+
+    val callbacks: ToolWindowCallback = mock()
+    tree.registerCallbacks(callbacks)
+    val ui = FakeUi(tree.tree!!)
+    ui.keyboard.setFocus(tree.tree!!)
+    ui.keyboard.type('T'.toInt())
+    verify(callbacks).startFiltering("T")
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

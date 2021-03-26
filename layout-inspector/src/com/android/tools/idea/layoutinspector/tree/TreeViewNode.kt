@@ -26,4 +26,8 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 class TreeViewNode(val view: ViewNode) {
   var parent: TreeViewNode? = null
   val children = mutableListOf<TreeViewNode>()
+
+  fun flatten(): Sequence<TreeViewNode> {
+    return sequenceOf(this).plus(children.asSequence().flatMap { it.flatten() })
+  }
 }
