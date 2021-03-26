@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyMode
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyView
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.Point
@@ -30,6 +29,7 @@ import javax.swing.BoxLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
+import javax.swing.LayoutFocusTraversalPolicy
 
 object PsiPickerManager {
 
@@ -59,9 +59,13 @@ private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyM
       border = JBUI.Borders.empty(8, 0)
     })
     add(JSeparator())
-    add(propertiesPanel.component.apply {
+    add(propertiesPanel.component.apply propertiesComponent@{
       isOpaque = false
       border = JBUI.Borders.empty(0, 0, 8, 0)
+      isFocusCycleRoot = true
+      isFocusTraversalPolicyProvider = true
+      focusTraversalPolicy = LayoutFocusTraversalPolicy()
+      // TODO(b/154503873): Figure out a way to focus the first property's editor
     })
   }
 }
