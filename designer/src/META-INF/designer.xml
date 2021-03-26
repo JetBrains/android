@@ -38,7 +38,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow factoryClass="com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory"
                 id="Layout Validation" anchor="right" icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW" canCloseContents="false" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationManager"/>
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
   </extensions>
