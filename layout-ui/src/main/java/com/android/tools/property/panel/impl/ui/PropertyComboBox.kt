@@ -173,7 +173,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   private fun tab(action: () -> Unit) {
     action()
-    textField.transferFocus()
+    if (isEditable) textField.transferFocus() else transferFocus()
   }
 
   private fun backtab(action: () -> Unit) {

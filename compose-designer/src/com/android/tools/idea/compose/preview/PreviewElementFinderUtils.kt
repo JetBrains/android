@@ -19,14 +19,12 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.compose.findComposeLibraryNamespace
-import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewParameter
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
@@ -75,6 +73,10 @@ internal fun UAnnotation.toPreviewElement(overrideGroupName: String? = null): Pr
   return@compute null
 }
 
+internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> = (this.resolve() as KtLightClass).methods.map { psiMethod ->
+  Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
+}.toMap()
+
 private fun UAnnotation.findAttributeIntValue(name: String) =
   findAttributeValue(name)?.evaluate() as? Int
 
@@ -97,13 +99,13 @@ private fun UAnnotated.findAnnotation(fqName: Set<String>): UAnnotation? = uAnno
  */
 private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<String, String?>): PreviewConfiguration {
   val apiLevel = node.getIntAttribute(PARAMETER_API_LEVEL, defaultValues)
-  val theme = node.findAttributeValue(PARAMETER_THEME)?.evaluateString()?.nullize()
+  val theme = node.getStringAttribute(PARAMETER_THEME, defaultValues)
   // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width = node.getIntAttribute(PARAMETER_WIDTH, defaultValues) ?: node.getIntAttribute(WIDTH_PARAMETER, defaultValues)
-  val height = node.getIntAttribute(PARAMETER_HEIGHT, defaultValues) ?: node.getIntAttribute(HEIGHT_PARAMETER, defaultValues)
+  val width = node.getIntAttribute(PARAMETER_WIDTH, defaultValues) ?: node.getIntAttribute(PARAMETER_WIDTH_DP, defaultValues)
+  val height = node.getIntAttribute(PARAMETER_HEIGHT, defaultValues) ?: node.getIntAttribute(PARAMETER_HEIGHT_DP, defaultValues)
   val fontScale = node.getFloatAttribute(PARAMETER_FONT_SCALE, defaultValues)
   val uiMode = node.getIntAttribute(PARAMETER_UI_MODE, defaultValues)
-  val device = node.findAttributeValue(PARAMETER_DEVICE)?.evaluateString()?.nullize()
+  val device = node.getStringAttribute(PARAMETER_DEVICE, defaultValues)
 
   return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode, device)
 }
@@ -117,9 +119,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
   val uClass: UClass = annotatedMethod.uastParent as UClass
   val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
   val previewName = previewAnnotation.findDeclaredAttributeValue(PARAMETER_NAME)?.evaluateString() ?: annotatedMethod.name
-  val defaultValues = (previewAnnotation.resolve() as KtLightClass).methods.map { psiMethod ->
-    Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
-  }.toMap()
+  val defaultValues = previewAnnotation.findPreviewDefaultValues()
 
   fun getBooleanAttribute(attributeName: String) = previewAnnotation.findDeclaredAttributeValue(attributeName)?.evaluate() as? Boolean
                                                    ?: defaultValues[attributeName]?.toBoolean()
@@ -129,7 +129,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
   val showBackground = getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
   // We don't use the library's default value for BackgroundColor and instead use a value defined here, see PreviewElement#toPreviewXml.
   val backgroundColor = previewAnnotation.findDeclaredAttributeValue(PARAMETER_BACKGROUND_COLOR)?.evaluate()
-  val backgroundColorString = when(backgroundColor) {
+  val backgroundColorString = when (backgroundColor) {
     is Int -> backgroundColor.toString(16)
     is Long -> backgroundColor.toString(16)
     else -> null
@@ -176,3 +176,6 @@ private fun UAnnotation.getIntAttribute(attributeName: String, defaultValues: Ma
 
 private fun UAnnotation.getFloatAttribute(attributeName: String, defaultValues: Map<String, String?>) =
   this.findAttributeFloatValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
+
+private fun UAnnotation.getStringAttribute(attributeName: String, defaultValues: Map<String, String?>) =
+  this.findAttributeValue(attributeName)?.evaluateString()?.nullize() ?: defaultValues[attributeName]

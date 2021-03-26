@@ -18,10 +18,8 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
-import com.android.tools.idea.compose.preview.util.HEIGHT_PARAMETER
 import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
 import com.android.tools.idea.compose.preview.util.MAX_WIDTH
-import com.android.tools.idea.compose.preview.util.WIDTH_PARAMETER
 import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
@@ -179,7 +177,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry) {
-    previewAnnotation.findValueArgument(WIDTH_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(PARAMETER_WIDTH_DP)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.width.limit.description", MAX_WIDTH),
@@ -187,7 +185,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
 
-    previewAnnotation.findValueArgument(HEIGHT_PARAMETER)?.let {
+    previewAnnotation.findValueArgument(PARAMETER_HEIGHT_DP)?.let {
       if (it.exceedsLimit(MAX_HEIGHT)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
                                message("inspection.height.limit.description", MAX_HEIGHT),

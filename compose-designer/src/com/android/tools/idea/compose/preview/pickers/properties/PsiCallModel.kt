@@ -17,16 +17,20 @@ package com.android.tools.idea.compose.preview.pickers.properties
 
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
+import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
+import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
+import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -35,6 +39,8 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.toUElement
 
 /**
  * [PsiPropertyModel] for pickers handling calls. This is common in Compose where most pickers interact with method calls.
@@ -70,11 +76,14 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
     })
 
   companion object {
-    fun fromPreviewElement(project: Project,
-                           previewElement: PreviewElement): PsiCallPropertyModel {
+    fun fromPreviewElement(project: Project, previewElement: PreviewElement): PsiCallPropertyModel {
       val annotationEntry = previewElement.previewElementDefinitionPsi?.element as? KtAnnotationEntry
       val resolvedCall = annotationEntry?.getResolvedCall(annotationEntry.analyze(BodyResolveMode.FULL))!!
-      return PsiCallPropertyModel(project, resolvedCall, previewElement.getDefaultValues())
+      val defaultValues: Map<String, String?> = (annotationEntry.toUElement() as? UAnnotation)?.findPreviewDefaultValues() ?: kotlin.run {
+        Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
+        emptyMap()
+      }
+      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable())
     }
   }
 }
@@ -101,14 +110,20 @@ private fun parserResolvedCallToPsiPropertyItems(project: Project,
 /**
  * Get the default values from the [PreviewElement] in a format that's easier to understand for the [PsiPropertyItem]s.
  */
-private fun PreviewElement.getDefaultValues(): Map<String, String?> =
-  mapOf(
-    PARAMETER_API_LEVEL to configuration.apiLevel.toString(),
-    PARAMETER_WIDTH to configuration.width.toString(),
-    PARAMETER_HEIGHT to configuration.height.toString(),
-    PARAMETER_FONT_SCALE to configuration.fontScale.toString() + "f",
-    PARAMETER_SHOW_SYSTEM_UI to displaySettings.showDecoration.toString(),
-    PARAMETER_SHOW_DECORATION to displaySettings.showDecoration.toString(),
-    PARAMETER_SHOW_BACKGROUND to displaySettings.showBackground.toString(),
-    PARAMETER_BACKGROUND_COLOR to displaySettings.backgroundColor?.substringAfter('#')?.let { "0x$it" }
-  )
+private fun Map<String, String?>.toReadable(): Map<String, String?> = this.mapValues { entry ->
+  when (entry.key) {
+    PARAMETER_API_LEVEL -> entry.value?.apiToReadable()
+    PARAMETER_WIDTH,
+    PARAMETER_WIDTH_DP,
+    PARAMETER_HEIGHT,
+    PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
+    PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
+    // TODO: Combobox currently doesn't support empty default value, so we set a text, that will fallback to the desired default option.
+    PARAMETER_DEVICE -> entry.value ?: "Default"
+    else -> entry.value
+  }
+}
+
+private fun String.sizeToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_DIMENSION }?.toString()
+
+private fun String.apiToReadable(): String? = this.takeIf { it.toInt() != UNDEFINED_API_LEVEL }?.toString()

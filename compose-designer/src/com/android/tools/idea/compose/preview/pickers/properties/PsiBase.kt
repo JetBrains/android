@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.util.ListenerCollection
@@ -112,8 +113,9 @@ internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiProp
         PARAMETER_UI_MODE -> ControlType.DROPDOWN
         PARAMETER_DEVICE -> ControlType.DROPDOWN
         PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
+        PARAMETER_SHOW_DECORATION,
         PARAMETER_SHOW_SYSTEM_UI,
-        PARAMETER_SHOW_BACKGROUND -> ControlType.BOOLEAN
+        PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
         PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
         else -> ControlType.TEXT_EDITOR
       }
