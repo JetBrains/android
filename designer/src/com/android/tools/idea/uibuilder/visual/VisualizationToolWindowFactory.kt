@@ -72,15 +72,11 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val manager = VisualizationManager.getInstance(project)
-    if (manager == null) {
-      toolWindow.isAvailable = false
-      return
-    }
+    val manager = VisualizationManager()
     toolWindow.isAutoHide = false
     // TODO(b/180927397): Consider to move content initialization from VisualizationManager to here?
 
-    val editorChangeTask: (FileEditor?) -> Unit = { editor -> manager.processFileEditorChange(editor, toolWindow) }
+    val editorChangeTask: (FileEditor?) -> Unit = { editor -> manager.processFileEditorChange(editor, project, toolWindow) }
     val fileCloseTask: (FileEditorManager, VirtualFile) -> Unit = { source, virtualFile -> manager.processFileClose(source, virtualFile) }
     project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
                                                                 MyFileEditorManagerListener(project, editorChangeTask, fileCloseTask))

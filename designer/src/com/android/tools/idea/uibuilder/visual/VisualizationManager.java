@@ -40,7 +40,6 @@ import com.intellij.util.ui.update.Update;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Manages a shared visualization window on the right side of the source editor which shows a preview
@@ -51,7 +50,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  *
  * TODO(b/180927397): Remove VisualizationManager from Project Service. It doesn't need to be a service.
  */
-public class VisualizationManager implements Disposable {
+public class VisualizationManager {
 
   // Must be same as the tool window id in designer.xml
   @NotNull public static final String TOOL_WINDOW_ID = "Layout Validation";
@@ -61,20 +60,16 @@ public class VisualizationManager implements Disposable {
    */
   private static final int DEFAULT_WINDOW_WIDTH = 500;
 
-  @NotNull private final Project myProject;
-  @NotNull private final MergingUpdateQueue myToolWindowUpdateQueue;
+  @Nullable private MergingUpdateQueue myToolWindowUpdateQueue;
   @Nullable private VisualizationForm myToolWindowForm;
 
-  public VisualizationManager(@NotNull Project project) {
-    myProject = project;
-    // TODO(b/180927397): The disposable parent of this queue can be ToolWindow.
-    myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, this);
+  public VisualizationManager() {
   }
 
   @NotNull
-  private VisualizationForm initToolWindowContent(@NotNull ToolWindow toolWindow) {
+  private VisualizationForm initToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     // TODO(b/180927397): move tool initialization to VisualizationToolFactory if possible?
-    VisualizationForm visualizationForm = new VisualizationForm(myProject, toolWindow.getDisposable());
+    VisualizationForm visualizationForm = new VisualizationForm(project, toolWindow.getDisposable());
 
     final JComponent contentPanel = visualizationForm.getComponent();
     final ContentManager contentManager = toolWindow.getContentManager();
@@ -102,7 +97,11 @@ public class VisualizationManager implements Disposable {
     return visualizationForm;
   }
 
-  public void processFileEditorChange(@Nullable final FileEditor newEditor, @NotNull ToolWindow toolWindow) {
+  public void processFileEditorChange(@Nullable final FileEditor newEditor, @NotNull Project project, @NotNull ToolWindow toolWindow) {
+    if (myToolWindowUpdateQueue == null) {
+      // TODO(b/180927397): Consider to move Queue into VisualizationWindowFactory.
+      myToolWindowUpdateQueue = createUpdateQueue(toolWindow.getDisposable());
+    }
     myToolWindowUpdateQueue.cancelAllUpdates();
     myToolWindowUpdateQueue.queue(new Update("update") {
       @Override
@@ -112,13 +111,13 @@ public class VisualizationManager implements Disposable {
         }
 
         if (myToolWindowForm == null) {
-          final VisualizationForm form = initToolWindowContent(toolWindow);
+          final VisualizationForm form = initToolWindowContent(project, toolWindow);
           myToolWindowForm = form;
 
-          myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
+          project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
             @Override
             public void stateChanged(@NotNull ToolWindowManager manager) {
-              if (myProject.isDisposed()) {
+              if (project.isDisposed()) {
                 return;
               }
               if (VisualizationToolSettings.getInstance().getGlobalState().isFirstTimeOpen() && toolWindow instanceof ToolWindowEx) {
@@ -162,12 +161,17 @@ public class VisualizationManager implements Disposable {
             // There is no way to show the tool window without also taking the focus.
             // This hack is a workaround that sets the focus back to editor.
             // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
-            restoreFocus = () -> IdeFocusManager.getInstance(myProject).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
+            restoreFocus = () -> IdeFocusManager.getInstance(project).doWhenFocusSettlesDown(() -> restoreFocusToEditor(newEditor));
           }
           toolWindow.activate(restoreFocus, false, false);
         }
       }
     });
+  }
+
+  @NotNull
+  private static MergingUpdateQueue createUpdateQueue(@NotNull Disposable parentDisposable) {
+    return new MergingUpdateQueue("android.layout.visual", 100, true, null, parentDisposable);
   }
 
   public void processFileClose(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
@@ -177,26 +181,7 @@ public class VisualizationManager implements Disposable {
     }
   }
 
-  @Override
-  public void dispose() {
-    if (myToolWindowForm != null) {
-      Disposer.dispose(myToolWindowForm);
-      myToolWindowForm = null;
-    }
-  }
-
   private static void restoreFocusToEditor(@NotNull FileEditor newEditor) {
     ApplicationManager.getApplication().invokeLater(() -> newEditor.getComponent().requestFocus());
-  }
-
-  @Nullable
-  public static VisualizationManager getInstance(@NotNull Project project) {
-    return project.getService(VisualizationManager.class);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  public MergingUpdateQueue getToolWindowUpdateQueue() {
-    return myToolWindowUpdateQueue;
   }
 }
