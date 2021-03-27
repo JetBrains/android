@@ -15,9 +15,23 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.utils;
 
-import com.intellij.psi.*;
+import com.intellij.psi.JavaResolveResult;
+import com.intellij.psi.PsiAnonymousClass;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassInitializer;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiThisExpression;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
-
 import java.util.logging.Logger;
 
 public class PsiCFGDebugUtil {
@@ -88,7 +102,7 @@ public class PsiCFGDebugUtil {
     sb.append("\n");
 
     String qualifiedName = psiClass.getQualifiedName();
-    sb.append("Qualified Name: " + qualifiedName == null ? "null" : qualifiedName + "\n");
+    sb.append("Qualified Name: " + (qualifiedName == null ? "null" : qualifiedName) + "\n");
     sb.append("Inner Classes Count: " + psiClass.getInnerClasses().length + "\n");
     sb.append("All Inner Classes Count: " + psiClass.getAllInnerClasses().length + "\n");
 
