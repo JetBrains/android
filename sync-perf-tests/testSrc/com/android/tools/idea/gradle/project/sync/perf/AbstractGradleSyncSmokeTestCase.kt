@@ -19,7 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.impl.ApplicationInfoImpl
+import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -101,8 +101,8 @@ abstract class AbstractGradleSyncSmokeTestCase {
 }
 
 fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
-  ApplicationInfoImpl.setInStressTest(true)
+  ApplicationManagerEx.setInStressTest(true)
   Disposer.register(fixture.testRootDisposable, {
-    ApplicationInfoImpl.setInStressTest(false)
+    ApplicationManagerEx.setInStressTest(false)
   })
 }
