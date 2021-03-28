@@ -91,7 +91,7 @@ import org.jetbrains.annotations.Nullable;
  * convenient way to user to preview the layout in different devices.
  */
 public class VisualizationForm
-  implements Disposable, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
+  implements VisualizationContent, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
 
@@ -300,6 +300,7 @@ public class VisualizationForm
    *
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
+  @Override
   public boolean setNextEditor(@NotNull FileEditor editor) {
     if (IdeResourcesUtil.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
       return false;
@@ -436,6 +437,7 @@ public class VisualizationForm
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
+  @Override
   public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
     if (myEditor == null) {
       setNoActiveModel();
@@ -604,6 +606,7 @@ public class VisualizationForm
   /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */
+  @Override
   public void activate() {
     if (isActive) {
       return;

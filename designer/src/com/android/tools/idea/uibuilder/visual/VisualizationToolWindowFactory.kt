@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -30,6 +31,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.ui.update.MergingUpdateQueue
+import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -37,6 +40,11 @@ import org.jetbrains.android.facet.AndroidFacet
  * framework.
  */
 class VisualizationToolWindowFactory : ToolWindowFactory {
+
+  companion object {
+    // Must be same as the tool window id in designer.xml
+    const val TOOL_WINDOW_ID = "Layout Validation"
+  }
 
   /**
    * [isApplicable] is called first before other functions.
@@ -73,22 +81,41 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val manager = VisualizationManager()
-    toolWindow.isAutoHide = false
-    // TODO(b/180927397): Consider to move content initialization from VisualizationManager to here?
+    val handler = AsyncVisualizationEditorChangeHandler(toolWindow.disposable,
+                                                        SyncVisualizationEditorChangeHandler(VisualizationFormProvider))
 
-    val editorChangeTask: (FileEditor?) -> Unit = { editor -> manager.processFileEditorChange(editor, project, toolWindow) }
-    val fileCloseTask: (FileEditorManager, VirtualFile) -> Unit = { source, virtualFile -> manager.processFileClose(source, virtualFile) }
+    toolWindow.isAutoHide = false
     project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
-                                                                MyFileEditorManagerListener(project, editorChangeTask, fileCloseTask))
+                                                                MyFileEditorManagerListener(project, toolWindow, handler))
     // Process editor change task to have initial status.
-    editorChangeTask(FileEditorManager.getInstance(project).selectedEditor)
+    handler.onFileEditorChange(FileEditorManager.getInstance(project).selectedEditor, project, toolWindow)
+  }
+}
+
+/**
+ * Wrapped a [VisualizationEditorChangeHandler] with [MergingUpdateQueue] to make it run asynchronously.
+ */
+private class AsyncVisualizationEditorChangeHandler(parentDisposable: Disposable, private val delegator: VisualizationEditorChangeHandler)
+  : VisualizationEditorChangeHandler by delegator {
+
+  private val toolWindowUpdateQueue: MergingUpdateQueue by lazy {
+    MergingUpdateQueue("android.layout.visual", 100, true, null, parentDisposable)
+  }
+
+  override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
+    toolWindowUpdateQueue.cancelAllUpdates()
+    toolWindowUpdateQueue.queue(object : Update("update") {
+      override fun run() {
+        delegator.onFileEditorChange(newEditor, project, toolWindow)
+      }
+    })
   }
 }
 
 private class MyFileEditorManagerListener(private val project: Project,
-                                          private val editorChangeTask: (FileEditor?) -> Unit,
-                                          private val fileCloseTask: (FileEditorManager, VirtualFile) -> Unit) : FileEditorManagerListener {
+                                          private val toolWindow: ToolWindow,
+                                          private val visualizationEditorChangeHandler: VisualizationEditorChangeHandler)
+  : FileEditorManagerListener {
   override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
     if (!file.isValid) {
       return
@@ -96,19 +123,12 @@ private class MyFileEditorManagerListener(private val project: Project,
     val psiFile = PsiManager.getInstance(project).findFile(file)
     val fileEditor = getActiveLayoutEditor(psiFile)
     if (fileEditor != null) {
-      editorChangeTask(fileEditor)
+      visualizationEditorChangeHandler.onFileEditorChange(fileEditor, project, toolWindow)
     }
   }
 
   override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-    fileCloseTask(source, file)
-    // When using "Close All" action, the selectionChanged event is not triggered.
-    // Thus we have to handle this case here.
-    // In other cases, do not respond to fileClosed events since this has led to problems
-    // with the preview window in the past. See b/64199946 and b/64288544
-    if (source.openFiles.isEmpty()) {
-      editorChangeTask(null)
-    }
+    visualizationEditorChangeHandler.onFileClose(source, toolWindow, file)
   }
 
   override fun selectionChanged(event: FileEditorManagerEvent) {
@@ -124,7 +144,7 @@ private class MyFileEditorManagerListener(private val project: Project,
         }
       }
     }
-    editorChangeTask(editorForLayout)
+    visualizationEditorChangeHandler.onFileEditorChange(editorForLayout, project, toolWindow)
   }
 
   /**
