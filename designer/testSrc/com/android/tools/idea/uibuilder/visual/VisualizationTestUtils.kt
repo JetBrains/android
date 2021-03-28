@@ -32,8 +32,8 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
 
   init {
     // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
-    val ep = ToolWindowEP.EP_NAME.extensions.firstOrNull { ex -> ex.id == VisualizationManager.TOOL_WINDOW_ID }
-    assertNotNull(ep, "Layout validation tool window (id = ${VisualizationManager.TOOL_WINDOW_ID}) is not registered as plugin")
+    val ep = ToolWindowEP.EP_NAME.extensions.firstOrNull { ex -> ex.id == VisualizationToolWindowFactory.TOOL_WINDOW_ID }
+    assertNotNull(ep, "Layout validation tool window (id = ${VisualizationToolWindowFactory.TOOL_WINDOW_ID}) is not registered as plugin")
 
     val factory = ep.getToolWindowFactory(ep.pluginDescriptor)
     val anchor = ToolWindowAnchor.fromText(ep.anchor ?: ToolWindowAnchor.LEFT.toString())
@@ -41,7 +41,7 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
   }
 
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
-    val toolWindow = MyMockToolWindow(project)
+    val toolWindow = VisualizationTestToolWindow(project)
     toolWindows[task.id] = toolWindow
     task.contentFactory?.createToolWindowContent(project, toolWindow)
     fireStateChange()
@@ -58,7 +58,10 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
   }
 }
 
-private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+/**
+ * This window is used to test the change of availability.
+ */
+class VisualizationTestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var _isAvailable = false
 
   override fun setAvailable(available: Boolean, runnable: Runnable?) {

@@ -21,10 +21,10 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class VisualizationToolWindowFactoryTest {
@@ -37,16 +37,18 @@ class VisualizationToolWindowFactoryTest {
   @Rule
   val edtRule = EdtRule()
 
-  @Before
-  fun setupToolWindowManager() {
-    // The HeadlessToolWindowManager doesn't record the status of ToolWindow. We create a simple one to record it.
+  @Test
+  fun testToolWindowIsRegistered() {
+    // VisualizationTestToolWindowManager loads the tool window from extension point.
     val toolManager = VisualizationTestToolWindowManager(projectRule.project, projectRule.fixture.testRootDisposable)
     projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
+    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID))
   }
 
   @Test
   fun testAvailableWhenOpeningProject() {
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+
     val factory = VisualizationToolWindowFactory()
     factory.isApplicable(projectRule.project)
 
@@ -68,7 +70,7 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenSwitchingFile() {
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
     val factory = VisualizationToolWindowFactory()
     factory.isApplicable(projectRule.project)
     WriteCommandAction.runWriteCommandAction(projectRule.project) { factory.init(toolWindow) }
@@ -95,7 +97,7 @@ class VisualizationToolWindowFactoryTest {
 
   @Test
   fun testAvailableWhenClosingFile() {
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
     val factory = VisualizationToolWindowFactory()
     factory.isApplicable(projectRule.project)
 
