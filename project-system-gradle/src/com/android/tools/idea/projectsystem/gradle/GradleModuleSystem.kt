@@ -218,14 +218,19 @@ class GradleModuleSystem(
       ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
       ManifestSystemProperty.PACKAGE to androidModel.applicationId
     )
-    val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
-    val variant = gradleModel.selectedVariant
-    val placeholders = variant.manifestPlaceholders
+    val variant = androidModel.selectedVariant
+    val placeholders = getManifestPlaceholders()
     val directOverridesFromGradle = notNullMapOf(
       ManifestSystemProperty.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
-      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel)
+      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, androidModel)
     )
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
+  }
+
+  override fun getManifestPlaceholders(): Map<String, String> {
+    val facet = AndroidFacet.getInstance(module)
+    val androidModel = facet?.let(AndroidModuleModel::get) ?: return emptyMap()
+    return androidModel.selectedVariant.manifestPlaceholders
   }
 
   override fun getMergedManifestContributors(): MergedManifestContributors {

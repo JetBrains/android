@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class that resolves manifest merger placeholder values in gradle module.
@@ -37,14 +35,7 @@ public class ManifestPlaceholderResolver {
   private final ImmutableMap<String, Object> myPlaceholders;
 
   public ManifestPlaceholderResolver(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
-
-    if (model != null) {
-      IdeVariant selectedVariant = model.getSelectedVariant();
-      myPlaceholders = ImmutableMap.copyOf(selectedVariant.getManifestPlaceholders());
-    } else {
-      myPlaceholders = ImmutableMap.of();
-    }
+    myPlaceholders = ImmutableMap.copyOf(ProjectSystemUtil.getModuleSystem(module).getManifestPlaceholders());
   }
 
   /**
