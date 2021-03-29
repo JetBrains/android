@@ -464,7 +464,7 @@ class ContentManager(val project: Project) {
           }
           selectedStep.helpLinkUrl?.let { url ->
             // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
-            text.append("<a href='$url'>Read more</a>.")
+            text.append("<a href='$url'>Read more</a><icon src='ide/external_link_arrow.svg'>.")
           }
           label.text = text.toString()
           detailsPanel.add(label)
