@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.npw.importing
 
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.util.AndroidBundle.message
+import org.mockito.Mockito.mock
 import java.io.File
 
 class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
@@ -29,7 +32,8 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     page = SourceToGradleModuleStep(SourceToGradleModuleModel(project, DefaultProjectSyncInvoker()))
-    Disposer.register(project, page)
+    page.onWizardStarting(mock(ModelWizard.Facade::class.java))
+    Disposer.register(testRootDisposable, page)
   }
 
   fun testCheckPathValidInput() {
@@ -44,7 +48,21 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
 
   fun testCheckPathEmptyPath() {
     // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
-    assertEquals(Validator.Severity.OK, page.updateStepStatus("").severity)
+    assertEquals(Validator.Severity.OK, page.updateForwardStatus("").severity)
+  }
+
+  fun testCheckDirectoryWithNoModules() {
+    val noModulesDirectory = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/")
+    assertThat(noModulesDirectory).exists()
+    assertThat(noModulesDirectory).isDirectory()
+    assertEquals(Validator.Severity.ERROR, page.updateForwardStatus(noModulesDirectory.path).severity)
+  }
+
+  fun testCheckSelectFile() {
+    val jarFile = File(AndroidTestBase.getTestDataPath(), TestProjectPaths.IMPORTING + "/simple/lib/library.jar")
+    assertThat(jarFile).exists()
+    assertThat(jarFile).isFile()
+    assertEquals(Validator.Severity.ERROR, page.updateForwardStatus(jarFile.path).severity)
   }
 
   fun testCheckPathNotAProject() {
