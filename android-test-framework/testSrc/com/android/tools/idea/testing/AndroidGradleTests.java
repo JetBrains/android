@@ -30,6 +30,7 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
@@ -495,6 +496,7 @@ public class AndroidGradleTests {
       if (IdeInfo.getInstance().isAndroidStudio()) {
         if (!ideSdks.isUsingEnvVariableJdk()) {
           ideSdks.setUseEmbeddedJdk();
+          applyJdkToProject(project, ideSdks.getJdk());
         }
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }

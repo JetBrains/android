@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
 import org.jetbrains.plugins.gradle.util.GradleBundle
+import java.io.File
 
 class GradleJvmNotificationExtension: GradleNotificationExtension() {
   override fun customize(notificationData: NotificationData, project: Project, error: Throwable?) {
@@ -31,10 +33,18 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val registeredListeners = notificationData.registeredListenerIds
       val gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project) ?: return
       if (gradleProjectSettings.gradleJvm != null && gradleProjectSettings.gradleJvm != USE_PROJECT_JDK) {
-        if ((registeredListeners != null) && (!registeredListeners.contains(UseProjectJdkAsGradleJvmListener.ID))) {
-          val listener = UseProjectJdkAsGradleJvmListener(project)
-          notificationData.message = notificationData.message + "<a href=\"${UseProjectJdkAsGradleJvmListener.ID}\">Use JDK from project structure</a>"
-          notificationData.setListener(UseProjectJdkAsGradleJvmListener.ID, listener)
+        if ((registeredListeners != null) && (!registeredListeners.contains(UseJdkAsProjectJdkListener.ID))) {
+          val ideSdks = IdeSdks.getInstance()
+          val defaultJdk = ideSdks.jdk
+          val defaultPath = defaultJdk?.homePath
+          if (defaultPath != null) {
+            if (ideSdks.validateJdkPath(File(defaultPath)) != null) {
+              val listener = UseJdkAsProjectJdkListener(project, defaultPath)
+              notificationData.message = notificationData.message + "<a href=\"${UseJdkAsProjectJdkListener.ID}\">" +
+                                         "Use JDK ${defaultJdk.name} ($defaultPath)</a>"
+              notificationData.setListener(UseJdkAsProjectJdkListener.ID, listener)
+            }
+          }
         }
       }
       else {
