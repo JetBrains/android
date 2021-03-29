@@ -195,6 +195,16 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getManifestOverrides(): ManifestOverrides
 
   /**
+   * Returns the manifest placeholders that the underlying build system applies when computing the module's
+   * merged manifest.
+   *
+   * This is a light version of [getManifestOverrides] and the returned value is supposed to be equal to
+   * `getManifestOverrides().placeholders`.
+   */
+  @JvmDefault
+  fun getManifestPlaceholders(): Map<String, String> = getManifestOverrides().placeholders
+
+  /**
    * Returns a structure describing the manifest files contributing to the module's merged manifest.
    */
   @JvmDefault
