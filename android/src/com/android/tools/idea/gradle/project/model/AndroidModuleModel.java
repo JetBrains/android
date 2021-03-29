@@ -546,23 +546,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
-  /**
-   * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
-   */
-  @Deprecated
-  @NotNull
-  public List<IdeSourceProvider> getFlavorSourceProviders() {
-    IdeVariant selectedVariant = getSelectedVariant();
-    List<String> productFlavors = selectedVariant.getProductFlavors();
-    List<IdeSourceProvider> providers = new ArrayList<>();
-    for (String flavor : productFlavors) {
-      IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.add(productFlavor.getSourceProvider());
-    }
-    return providers;
-  }
-
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
     IdeVariant variant = getSelectedVariant();
     AndroidFacetProperties state = facet.getProperties();
