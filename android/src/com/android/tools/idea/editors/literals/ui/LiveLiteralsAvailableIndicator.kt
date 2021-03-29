@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtUiUtils.showAbove
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.actions.CustomizeLiveLiteralsThemeAction
 import com.android.tools.idea.editors.literals.actions.ShowLiveLiteralsProblemAction
+import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsHighlightAction
 import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsStatusAction
 import com.android.tools.idea.editors.literals.actions.UpdateHighlightsKeymapAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
@@ -117,6 +118,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     JBPopupFactory.getInstance().createActionGroupPopup(null,
                                                         DefaultActionGroup(
                                                           ToggleLiveLiteralsStatusAction(),
+                                                          ToggleLiveLiteralsHighlightAction(),
                                                           ShowLiveLiteralsProblemAction(),
                                                           UpdateHighlightsKeymapAction(),
                                                           CustomizeLiveLiteralsThemeAction()
