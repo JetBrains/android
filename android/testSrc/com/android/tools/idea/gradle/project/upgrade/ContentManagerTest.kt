@@ -347,4 +347,52 @@ class ContentManagerTest {
     assertThat((null as GradleVersion?).contentDisplayName()).contains("unknown AGP")
     assertThat(GradleVersion.parse("4.1.0").contentDisplayName()).contains("AGP 4.1.0")
   }
+
+  @Test
+  fun testSuggestedVersions() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsLatestExplicitlyKnown() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyKnown() {
+    val toolWindowModel = ToolWindowModel(project, latestAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyUnknown() {
+    val toolWindowModel = ToolWindowModel(project, latestAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsEmptyWhenCurrentUnknown() {
+    val toolWindowModel = ToolWindowModel(project, null)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
+  }
+
+  @Test
+  fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "4.2.0-alpha01", "4.2.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion))
+  }
 }
