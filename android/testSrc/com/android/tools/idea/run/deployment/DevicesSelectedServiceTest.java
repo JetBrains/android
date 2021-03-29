@@ -185,6 +185,35 @@ public final class DevicesSelectedServiceTest {
     assertEquals(Optional.of(target), optionalTarget);
   }
 
+  /**
+   * getTargetSelectedWithComboBox contains a statement that asserts that timeTargetWasSelectedWithDropDown isn't null. It failed in
+   * scenarios involving setting the drop down target to a RunningDeviceTarget. This test verifies the fix.
+   */
+  @Test
+  public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownAssertionDoesntFail() {
+    // Arrange
+    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Target target = new RunningDeviceTarget(key);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 30")
+      .setKey(key)
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    myService.setTargetSelectedWithComboBox(target);
+    myService.setMultipleDevicesSelectedInComboBox(false);
+
+    // Act
+    Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
+
+    // Assert
+    assertEquals(Optional.of(target), optionalTarget);
+  }
+
   @Test
   public void setTargetSelectedWithComboBox() {
     // Arrange
