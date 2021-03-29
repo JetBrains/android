@@ -1985,7 +1985,7 @@ data class PropertiesOperationsRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
-  val shortDescriptionSupplier: Supplier<String>? = null,
+  val shortDescriptionSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
   val propertiesOperationInfos: List<PropertiesOperationInfo>
@@ -2166,6 +2166,10 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
     optionalFromVersion = GradleVersion.parse("7.0.0-alpha08"),
     requiredFromVersion = GradleVersion.parse("8.0.0"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
+    shortDescriptionSupplier = { """
+      Configuration related to Android assets and other resources is
+      now performed using the androidResources block.
+    """.trimIndent() },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
     componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
     propertiesOperationInfos = listOf(
