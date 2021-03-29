@@ -651,10 +651,6 @@
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
     <option name="show" path="ActionManager" hit="Show In Resource Manager" />
-    <option name="highlights" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="literals" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="live" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="show" path="ActionManager" hit="Show Live Literals Highlights" />
     <option name="controls" path="ActionManager" hit="Show extended controls" />
     <option name="extended" path="ActionManager" hit="Show extended controls" />
     <option name="show" path="ActionManager" hit="Show extended controls" />
@@ -714,6 +710,10 @@
     <option name="issue" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="panel" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="toggle" path="ActionManager" hit="Toggle Issue Panel" />
+    <option name="highlights" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="literals" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="live" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="toggle" path="ActionManager" hit="Toggle Live Literals Highlights" />
     <option name="editor" path="ActionManager" hit="Toggle live literals highlights in the editor" />
     <option name="highlights" path="ActionManager" hit="Toggle live literals highlights in the editor" />
     <option name="in" path="ActionManager" hit="Toggle live literals highlights in the editor" />

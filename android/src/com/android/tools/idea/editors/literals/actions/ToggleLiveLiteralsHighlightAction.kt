@@ -20,23 +20,18 @@ import com.intellij.ide.actions.ShowSettingsUtilImpl
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.keymap.KeyMapBundle
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil
 import com.intellij.openapi.options.newEditor.SettingsDialogFactory
 import org.jetbrains.android.util.AndroidBundle.message
 
-class ToggleLiveLiteralsHighlightAction : ToggleAction(message("live.literals.highlight.toggle.show.title"),
-                                                       message("live.literals.highlight.toggle.description"), null) {
-  override fun isSelected(e: AnActionEvent): Boolean {
-    val project = e.project ?: return false
-    return LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights
-  }
-
-  override fun setSelected(e: AnActionEvent, state: Boolean) {
+class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highlight.toggle.title"),
+                                                   message("live.literals.highlight.toggle.description"), null) {
+  override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights = state
+    LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights = !LiveLiteralsService.getInstance(
+      project).showLiveLiteralsHighlights
   }
 
   override fun update(e: AnActionEvent) {
@@ -46,9 +41,9 @@ class ToggleLiveLiteralsHighlightAction : ToggleAction(message("live.literals.hi
     e.presentation.apply {
       isEnabledAndVisible = LiveLiteralsService.getInstance(project).isEnabled
       text = if (LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights)
-        message("live.literals.highlight.toggle.hide.title")
+        message("live.literals.highlight.toggle.hide.title", getShortcutLabel())
       else
-        message("live.literals.highlight.toggle.show.title")
+        message("live.literals.highlight.toggle.show.title", getShortcutLabel())
     }
   }
 
@@ -83,7 +78,7 @@ internal class UpdateHighlightsKeymapAction : AnAction(
       project,
       settingsGroup,
       keymapConfigurable,
-      message("live.literals.highlight.toggle.show.title")
+      message("live.literals.highlight.toggle.title")
     ).show()
   }
 }
