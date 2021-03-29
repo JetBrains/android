@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.view
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
@@ -113,7 +114,7 @@ class BuildOverviewPageView(
     val defaultGCUsageWarning = htmlTextLabelWithFixedLines("""
       |The default garbage collector was used in this build running with JDK ${model.reportUiData.buildSummary.javaVersionUsed}.<br/>
       |Note that the default GC was changed starting with JDK 9. This could impact your build performance by as much as 10%.<br/>
-      |<b>Recommendation:</b> <a href="${BuildAnalyzerBrowserLinks.CONFIGURE_GC.name}">Fine tune your JVM</a>.<br/>
+      |<b>Recommendation:</b> ${externalLink("Fine tune your JVM", BuildAnalyzerBrowserLinks.CONFIGURE_GC)}.<br/>
       |<a href="suppress">Don't show this again</a>.
     """.trimMargin())
     defaultGCUsageWarning.name = "no-gc-setting-warning"
