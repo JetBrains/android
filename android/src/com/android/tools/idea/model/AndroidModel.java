@@ -36,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AndroidModel {
 
+  String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
+
   Key<AndroidModel> KEY = Key.create(AndroidModel.class.getName());
 
   @Nullable
@@ -71,6 +73,8 @@ public interface AndroidModel {
 
   /**
    * @return the current application ID.
+   *
+   * NOTE: Some implementations may return {@link #UNINITIALIZED_APPLICATION_ID} when unable to get the application id.
    */
   @NotNull
   String getApplicationId();
