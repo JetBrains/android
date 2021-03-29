@@ -127,7 +127,13 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
         val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { current?.let { current -> it > current && it < latestKnownVersion } ?: false }
+          // Make sure the latestKnownVersion is present, whether it's been published or not
+          .union(listOf(latestKnownVersion))
+          // Keep only versions that are later than or equal to current
+          .filter { current?.let { current -> it >= current } ?: false }
+          // Keep only versions that are no later than the latest version we support
+          .filter { it <= latestKnownVersion }
+          // Do not keep versions that would force an upgrade from on sync
           .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
           .toList()
           .sortedDescending()
