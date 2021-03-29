@@ -901,6 +901,15 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.commandName", current, new)
 
+  override fun getShortDescription(): String =
+    """
+      Changing the version of the Android Gradle Plugin dependency
+      effectively upgrades the project.  Pre-upgrade steps must be run
+      no later than this version change; post-upgrade steps must be run
+      no earlier, but can be run afterwards by continuing to use this
+      assistant after running the upgrade.
+    """.trimIndent()
+
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.classpathDependency"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
@@ -1076,6 +1085,12 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     builder.setKind(GRADLE_VERSION)
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpGradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version)
+
+  override fun getShortDescription(): String =
+    """
+      Version ${compatibleGradleVersion.version} is the minimum version of Gradle compatible
+      with Android Gradle Plugin version $new.
+    """.trimIndent()
 
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
@@ -1767,6 +1782,11 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.commandName")
 
+  override fun getShortDescription() =
+    """
+       The Fabric SDK is no longer supported as of November 15, 2020.
+    """.trimIndent()
+
   override fun getReadMoreUrl(): String? = "https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android"
 
   companion object {
@@ -1965,6 +1985,7 @@ data class PropertiesOperationsRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
+  val shortDescriptionSupplier: Supplier<String>? = null,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
   val propertiesOperationInfos: List<PropertiesOperationInfo>
@@ -1977,6 +1998,8 @@ data class PropertiesOperationsRefactoringInfo(
     override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
+
+    override fun getShortDescription(): String? = shortDescriptionSupplier?.get()
 
     override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
       builder.setKind(componentKind)
@@ -2074,6 +2097,11 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("4.0.0-alpha05"),
   requiredFromVersion = GradleVersion.parse("7.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
+  shortDescriptionSupplier = { """
+    The viewBinding and dataBinding features used to be enabled using
+    a flag in their respective blocks; they are now enabled using an
+    equivalent flag in the buildFeatures block.
+  """.trimIndent() },
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   componentKind = MIGRATE_TO_BUILD_FEATURES,
   propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
@@ -2124,6 +2152,10 @@ val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
   requiredFromVersion = GradleVersion.parse("8.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  shortDescriptionSupplier = { """
+    The jni block in an android sourceSet does nothing, and will be removed
+    in Android Gradle Plugin version 8.0.0.
+  """.trimIndent() },
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
   componentKind = REMOVE_SOURCE_SET_JNI,
   propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
