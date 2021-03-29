@@ -142,7 +142,7 @@ public class VisualizationForm
     Disposer.register(parentDisposable, this);
     myProject = project;
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
-    myCurrentModelsProvider = myCurrentConfigurationSet.getModelsProviderCreator().invoke(this);
+    myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this);
 
     mySurface = NlDesignSurface.builder(myProject, VisualizationForm.this)
       .showModelNames()
@@ -187,13 +187,11 @@ public class VisualizationForm
   }
 
   private void updateScreenMode() {
-    switch (myCurrentConfigurationSet) {
-      case COLOR_BLIND_MODE:
-        mySurface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false);
-        break;
-      default:
-        mySurface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false);
-        break;
+    if (myCurrentConfigurationSet == ConfigurationSet.ColorBlindMode.INSTANCE) {
+      mySurface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false);
+    }
+    else {
+      mySurface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false);
     }
   }
 
@@ -638,7 +636,7 @@ public class VisualizationForm
 
       MultiViewMetricTrackerKt.trackOpenConfigSet(mySurface, myCurrentConfigurationSet);
       VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
-      myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
+      myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this);
       refresh();
     }
   }

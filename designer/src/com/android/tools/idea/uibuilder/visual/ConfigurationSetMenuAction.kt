@@ -16,41 +16,11 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 
-/**
- * Pre-defined Configuration sets for visualization tools.
- */
-@Suppress("unused") // Entries are indirectly used by for-loop.
-enum class ConfigurationSet(val title: String,
-                            val modelsProviderCreator: (ConfigurationSetListener) -> VisualizationModelsProvider,
-                            val visible: Boolean = true) {
-  PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
-  WEAR_DEVICES("Wear OS Devices", { WearDeviceModelsProvider }),
-  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }, StudioFlags.NELE_VISUALIZATION_LOCALE_MODE.get()),
-  CUSTOM("Custom", { CustomModelsProvider(it) }),
-  COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }),
-  LARGE_FONT("Font Sizes", { LargeFontModelsProvider })
-}
-
-interface ConfigurationSetListener {
-  /**
-   * Callback when selected [ConfigurationSet] is changed. For example, the selected [ConfigurationSet] is changed from
-   * [ConfigurationSet.PIXEL_DEVICES] to [ConfigurationSet.PROJECT_LOCALES].
-   */
-  fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet)
-
-  /**
-   * Callback when the current [ConfigurationSet] changes the provided [com.android.tools.idea.common.model.NlModel]s. For example,
-   * assuming the current selected [ConfigurationSet] is [ConfigurationSet.CUSTOM], and user add one more configuration. In such case this
-   * callback is triggered because [ConfigurationSet.CUSTOM] now provides one more [com.android.tools.idea.common.model.NlModel].
-   */
-  fun onCurrentConfigurationSetUpdated()
-}
 
 /**
  * The dropdown action used to choose the configuration set in visualization tool.
@@ -59,19 +29,11 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
                                  defaultSet: ConfigurationSet)
   : DropDownAction(null, "Configuration Set", null) {
 
-  companion object {
-    val MENU_GROUPS = listOf(
-      listOf(ConfigurationSet.PIXEL_DEVICES, ConfigurationSet.WEAR_DEVICES, ConfigurationSet.PROJECT_LOCALES),
-      listOf(ConfigurationSet.CUSTOM),
-      listOf(ConfigurationSet.COLOR_BLIND_MODE, ConfigurationSet.LARGE_FONT)
-    )
-  }
-
   private var currentConfigurationSet = defaultSet
 
   init {
     var isPreviousGroupEmpty = true
-    for (group in MENU_GROUPS) {
+    for (group in ConfigurationSetProvider.getGroupedConfigurationSets()) {
       if (!isPreviousGroupEmpty) {
         addSeparator()
       }
@@ -88,7 +50,7 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
   }
 
   private fun updatePresentation(presentation: Presentation) {
-    presentation.text = currentConfigurationSet.title
+    presentation.text = currentConfigurationSet.name
   }
 
   private fun selectConfigurationSet(newSet: ConfigurationSet) {
@@ -101,8 +63,8 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
   }
 
   private inner class SetConfigurationSetAction(private val configurationSet: ConfigurationSet)
-    : AnAction(configurationSet.title,
-               "Set configuration set to ${configurationSet.title}",
+    : AnAction(configurationSet.name,
+               "Set configuration set to ${configurationSet.name}",
                if (currentConfigurationSet === configurationSet) StudioIcons.Common.CHECKED else null) {
 
     override fun actionPerformed(e: AnActionEvent) {
