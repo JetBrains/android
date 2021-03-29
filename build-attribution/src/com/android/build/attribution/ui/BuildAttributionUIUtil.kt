@@ -69,3 +69,6 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
  * Wraps long path to spans to make it possible to auto-wrap to a new line
  */
 fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
+fun String.insertBRTags(): String = replace("\n", "<br/>\n")
+fun externalLink(text: String, link: BuildAnalyzerBrowserLinks) =
+  "<a href='${link.name}'>$text</a><icon src='ide/external_link_arrow.svg'>"
