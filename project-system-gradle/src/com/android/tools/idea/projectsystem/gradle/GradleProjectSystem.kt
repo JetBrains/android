@@ -203,11 +203,13 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    (model as? AndroidModuleModel)?.let { androidModuleModel ->
+    run {
+      val flavorNames = model.selectedVariant.productFlavors.toSet()
       listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
-      @Suppress("DEPRECATION") androidModuleModel.flavorSourceProviders.map { it.toIdeaSourceProvider() }
+      model.androidProject.productFlavors
+        .filter { it.productFlavor.name in flavorNames }
+        .map { it.sourceProvider.toIdeaSourceProvider() }
     }
-    ?: emptyList()
   )
 }
 
