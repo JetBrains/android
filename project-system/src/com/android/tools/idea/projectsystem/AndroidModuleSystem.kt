@@ -281,6 +281,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   @JvmDefault
   val isMlModelBindingEnabled: Boolean get() = false
 
+  /** Whether the view binding feature is enabled for this module. */
+  @JvmDefault
+  val isViewBindingEnabled: Boolean get() = false
+
   /**
    * Whether the R class in applications and dynamic features are constant.
    *
