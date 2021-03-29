@@ -9,6 +9,10 @@ android {
         targetSdkVersion 24
 
     }
+
+    publishing {
+        singleVariant("release")
+    }
 }
 
 group = 'com.example.google'
