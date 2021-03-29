@@ -49,7 +49,7 @@ import java.util.Arrays;
 public class IssueView extends JPanel {
 
   private static final int COLLAPSED_ROW_HEIGHT = 30;
-  private static final String SUGGESTED_FIXES = "Suggested Fixes";
+  private static final String SUGGESTED_FIXES = "Suggestion(s)";
   private static final int BORDER_THICKNESS = 1;
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
 
