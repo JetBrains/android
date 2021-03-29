@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
+import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
-import com.intellij.notification.NotificationListener
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
@@ -56,21 +56,22 @@ class GradleJvmNotificationExtensionTest {
   fun `customize with expected message`() {
     val originalMessage = "Invalid Gradle JDK configuration found.\n"
     val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
-    val expectedMessage = originalMessage + "<a href=\"${UseProjectJdkAsGradleJvmListener.ID}\">Use JDK from project structure</a>"
+    val jdk = IdeSdks.getInstance().jdk!!
+    val expectedMessage = originalMessage + "<a href=\"${UseJdkAsProjectJdkListener.ID}\">Use JDK ${jdk.name} (${jdk.homePath})</a>"
     assertThat(notificationData.registeredListenerIds).isEmpty()
 
     gradleProjectSettings!!.gradleJvm = USE_JAVA_HOME
     gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
     assertThat(notificationData.message).isEqualTo(expectedMessage)
     val newListeners = notificationData.registeredListenerIds
-    assertThat(newListeners).contains(UseProjectJdkAsGradleJvmListener.ID)
+    assertThat(newListeners).contains(UseJdkAsProjectJdkListener.ID)
   }
 
   @Test
   fun `customize with expected message and quickfix already`() {
-    val originalMessage = "Invalid Gradle JDK configuration found.\n<a href=\"${UseProjectJdkAsGradleJvmListener.ID}\">Use JDK from project structure</a>"
+    val originalMessage = "Invalid Gradle JDK configuration found.\n<a href=\"${UseJdkAsProjectJdkListener.ID}\">Customized message</a>"
     val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
-    notificationData.setListener(UseProjectJdkAsGradleJvmListener.ID, NotificationListener { _: Notification, _: HyperlinkEvent -> })
+    notificationData.setListener(UseJdkAsProjectJdkListener.ID) { _: Notification, _: HyperlinkEvent -> }
     assertThat(notificationData.registeredListenerIds).hasSize(1)
     val spyData = spy(notificationData)
 
@@ -100,7 +101,7 @@ class GradleJvmNotificationExtensionTest {
   fun `customize with expected message, USE_PROJECT_JDK and quickfix already`() {
     val originalMessage = "Invalid Gradle JDK configuration found.\n"
     val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
-    notificationData.setListener(OpenProjectJdkLocationListener.ID, NotificationListener { _: Notification, _: HyperlinkEvent -> })
+    notificationData.setListener(OpenProjectJdkLocationListener.ID) { _: Notification, _: HyperlinkEvent -> }
     assertThat(notificationData.registeredListenerIds).hasSize(1)
     val spyData = spy(notificationData)
 

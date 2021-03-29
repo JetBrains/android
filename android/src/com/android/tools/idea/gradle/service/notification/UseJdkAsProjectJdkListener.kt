@@ -15,36 +15,35 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsProjectJdk
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import javax.swing.event.HyperlinkEvent
 
-class UseProjectJdkAsGradleJvmListener(private val project: Project): NotificationListener.Adapter() {
+class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String): NotificationListener.Adapter() {
   companion object {
-    const val ID = "use.project.jdk.as.gradle.jvm"
+    const val ID = "use.jdk.as.project.jdk"
   }
 
   override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
     val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings (project)
     if (projectSettings != null) {
-      changeGradleProjectSetting(projectSettings)
+      changeGradleProjectSetting()
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK)
     }
     else {
-      Messages.showErrorDialog(project, "Could not set project JDK as Gradle JVM", "Use project JDK as Gradle JVM")
+      Messages.showErrorDialog(project, "Could not set project JDK", "Change Gradle JDK")
     }
   }
 
   @VisibleForTesting
-  fun changeGradleProjectSetting(projectSettings: GradleProjectSettings) {
-    projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
+  fun changeGradleProjectSetting() {
+    setJdkAsProjectJdk(project, defaultJdkPath)
   }
 }

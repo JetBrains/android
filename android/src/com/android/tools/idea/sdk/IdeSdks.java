@@ -378,7 +378,7 @@ public class IdeSdks {
       Sdk chosenJdk = null;
 
       ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
-      if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
+      if ((myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) && (!StudioFlags.ALLOW_JDK_PER_PROJECT.get())) {
         // Delete all JDKs in Android Studio. We want to have only one.
         List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
         for (final Sdk jdk : jdks) {
@@ -403,9 +403,12 @@ public class IdeSdks {
           }
           setJdkOfAndroidSdks(chosenJdk);
 
-          Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-          for (Project project : openProjects) {
-            applyJdkToProject(project, chosenJdk);
+          // Update open projects only if setting is global
+          if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+            Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+            for (Project project : openProjects) {
+              applyJdkToProject(project, chosenJdk);
+            }
           }
         }
         else {
@@ -416,6 +419,18 @@ public class IdeSdks {
       return chosenJdk;
     }
     return null;
+  }
+
+  public void removeInvalidJdksFromTable() {
+    // Delete all JDKs that are not valid.
+    ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+    List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
+    for (final Sdk jdk : jdks) {
+      String homePath = jdk.getHomePath();
+      if (homePath == null || validateJdkPath(new File(homePath)) == null) {
+        projectJdkTable.removeJdk(jdk);
+      }
+    }
   }
 
   /**
