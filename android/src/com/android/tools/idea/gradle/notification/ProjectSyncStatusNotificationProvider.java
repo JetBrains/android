@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
@@ -29,6 +28,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
@@ -197,7 +197,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
         // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
         // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
-        project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+        project.putUserData(AndroidGradleProjectResolver.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
       }
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));

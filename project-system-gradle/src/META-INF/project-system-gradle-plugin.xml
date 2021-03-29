@@ -33,6 +33,14 @@
                        order="first, before gradle"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"
                     serviceImplementation="com.android.tools.idea.gradle.project.build.BuildsToPathsMapperImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantUpdater"/>
+    <facet.toolWindow id="Build Variants"
+                      facetIdList="android,android-gradle"
+                      anchor="left"
+                      secondary="true"
+                      icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
+                      factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
   </extensions>
   <actions>
     <group id="Internal.Android.Gradle" internal="true">
