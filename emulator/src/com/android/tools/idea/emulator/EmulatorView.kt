@@ -179,6 +179,8 @@ class EmulatorView(
     get() = if (displayId == PRIMARY_DISPLAY_ID) emulator.emulatorConfig.initialOrientation else SkinRotation.PORTRAIT
   private val deviceDisplaySize
     get() = displaySize ?: emulator.emulatorConfig.displaySize
+  private val currentDisplaySize
+    get() = screenshotShape.foldedDisplayRegion?.size ?: deviceDisplaySize
   /** Count of received display frames. */
   @VisibleForTesting
   var frameNumber = 0
@@ -464,10 +466,10 @@ class EmulatorView(
   private fun computeActualSize(rotation: SkinRotation): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(rotation, deviceDisplaySize)
+      skin.getRotatedFrameSize(rotation, currentDisplaySize)
     }
     else {
-      deviceDisplaySize.rotated(rotation)
+      currentDisplaySize.rotated(rotation)
     }
   }
 
@@ -495,26 +497,25 @@ class EmulatorView(
     }
     val normalizedX = (physicalX - displayRect.x) / displayRect.width - 0.5  // X relative to display center in [-0.5, 0.5) range.
     val normalizedY = (physicalY - displayRect.y) / displayRect.height - 0.5 // Y relative to display center in [-0.5, 0.5) range.
-    val deviceDisplayWidth = deviceDisplaySize.width
-    val deviceDisplayHeight = deviceDisplaySize.height
+    val deviceDisplayRegion = screenshotShape.foldedDisplayRegion ?: Rectangle(0, 0, deviceDisplaySize.width, deviceDisplaySize.height)
     val displayX: Int
     val displayY: Int
     when (screenshotShape.rotation) {
       SkinRotation.PORTRAIT -> {
-        displayX = ((0.5 + normalizedX) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 + normalizedY) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 + normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 + normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.LANDSCAPE -> {
-        displayX = ((0.5 - normalizedY) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 + normalizedX) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 - normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 + normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.REVERSE_PORTRAIT -> {
-        displayX = ((0.5 - normalizedX) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 - normalizedY) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 - normalizedX) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 - normalizedY) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       SkinRotation.REVERSE_LANDSCAPE -> {
-        displayX = ((0.5 + normalizedY) * deviceDisplayWidth).roundToInt()
-        displayY = ((0.5 - normalizedX) * deviceDisplayHeight).roundToInt()
+        displayX = ((0.5 + normalizedY) * deviceDisplayRegion.width).roundToInt() + deviceDisplayRegion.x
+        displayY = ((0.5 - normalizedX) * deviceDisplayRegion.height).roundToInt() + deviceDisplayRegion.y
       }
       else -> {
         return
@@ -525,7 +526,7 @@ class EmulatorView(
       val touchEvent = TouchEvent.newBuilder()
         .setDevice(displayId)
         .addTouches(createTouch(displayX, displayY, 0, button))
-        .addTouches(createTouch(deviceDisplayWidth - displayX, deviceDisplayHeight - displayY, 1, button))
+        .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
         .build()
       emulator.sendTouch(touchEvent)
       lastMultiTouchEvent = touchEvent
@@ -533,8 +534,8 @@ class EmulatorView(
     else {
       val mouseEvent = MouseEventMessage.newBuilder()
         .setDevice(displayId)
-        .setX(displayX.coerceIn(0, deviceDisplayWidth))
-        .setY(displayY.coerceIn(0, deviceDisplayHeight))
+        .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
+        .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
         .setButtons(button)
         .build()
       emulator.sendMouse(mouseEvent)
@@ -766,14 +767,20 @@ class EmulatorView(
   }
 
   private fun requestScreenshotFeed(rotation: SkinRotation) {
+    val currentReceiver = screenshotReceiver
+    if (currentReceiver != null && currentReceiver.viewSize == size && currentReceiver.rotation == rotation &&
+        currentReceiver.deviceFrame == deviceFrameVisible) {
+      return // Keep the current screenshot feed.
+    }
+
     cancelScreenshotFeed()
     if (width != 0 && height != 0 && connected) {
-      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
       val actualSize = computeActualSize(rotation)
 
       // Limit the size of the received screenshots to the size of the device display to avoid wasting gRPC resources.
       val scaleX = (realSize.width.toDouble() / actualSize.width).coerceAtMost(1.0)
       val scaleY = (realSize.height.toDouble() / actualSize.height).coerceAtMost(1.0)
+      val rotatedDisplaySize = deviceDisplaySize.rotated(rotation)
       val w = rotatedDisplaySize.width.scaledDown(scaleX)
       val h = rotatedDisplaySize.height.scaledDown(scaleY)
 
@@ -1115,6 +1122,8 @@ class EmulatorView(
   }
 
   private inner class ScreenshotReceiver(val rotation: SkinRotation) : EmptyStreamObserver<ImageMessage>(), Disposable {
+    val viewSize: Dimension = size
+    val deviceFrame = deviceFrameVisible
     private val screenshotForProcessing = AtomicReference<Screenshot?>()
     private val screenshotForDisplay = AtomicReference<Screenshot?>()
     private val skinLayoutCache = SkinLayoutCache(emulator)
@@ -1130,7 +1139,8 @@ class EmulatorView(
 
       if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
         val latency = arrivalTime - frameOriginationTime
-        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height} $imageRotation $latency ms latency")
+        val foldedState = if (imageFormat.hasFoldedDisplay()) " ${imageFormat.foldedDisplay}" else ""
+        LOG.info("Screenshot ${response.seq} ${imageFormat.width}x${imageFormat.height}$foldedState $imageRotation $latency ms latency")
       }
       if (screenshotReceiver != this) {
         expectedFrameNumber++
@@ -1174,7 +1184,10 @@ class EmulatorView(
       stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
-      val displayShape = DisplayShape(imageFormat)
+      val foldedDisplay = imageFormat.foldedDisplay
+      val foldedDisplayRegion = if (foldedDisplay.width == 0 || foldedDisplay.height == 0) null
+                                else Rectangle(foldedDisplay.xOffset, foldedDisplay.yOffset, foldedDisplay.width, foldedDisplay.height)
+      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, foldedDisplayRegion)
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape)
       if (skinLayout == null) {
@@ -1296,9 +1309,7 @@ class EmulatorView(
     }
   }
 
-  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation) {
-    constructor(imageFormat: ImageFormat) : this(imageFormat.width, imageFormat.height, imageFormat.rotation.rotation)
-  }
+  private data class DisplayShape(val width: Int, val height: Int, val rotation: SkinRotation, val foldedDisplayRegion: Rectangle? = null)
 
   private class Stats: Disposable {
     @GuardedBy("this")
