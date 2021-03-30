@@ -299,7 +299,6 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting again, loading should show
-    inspectorRule.processes.resume()
     inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(pid = 2)
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
