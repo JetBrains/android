@@ -330,6 +330,11 @@ public final class StudioFlags {
     "When the model changes, layout editor will run the series of layout validations and update lint output",
     true);
 
+  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_ADD_INCLUDE = Flag.create(
+    NELE, "toggle.layout.editor.validator.a11y.include", "Toggle whether to show included layout or not.",
+    "If the layout contains <include>, turning this flag on will run the scanner in the included layout.",
+    false);
+
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
     "Enable the new transform panel in the layout editor and motion editor",
