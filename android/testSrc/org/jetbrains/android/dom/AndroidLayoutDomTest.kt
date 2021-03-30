@@ -307,6 +307,63 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testColorLiteralResourceCompletion() {
+    myFixture.addFileToProject(
+      "res/values/other_colors.xml",
+      //language=XML
+      """
+      <resources>
+        <color name="foocolor">#150</integer>
+      </resources>
+      """.trimIndent())
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:textColor="$caret"/>
+          </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect color related resources
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@color/foocolor")
+  }
+
+  fun testColorLiteralResourceHighlighting() {
+    val highlightedFile = myFixture.addFileToProject(
+      "res/layout/incorrect_layout.xml",
+      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:textColor="#F12"
+                  android:shadowColor="#F123"
+                  android:textColorHighlight="#FF1234"
+                  android:textColorHint="#FF432343k"
+                  android:textColorLink="@android:color/black"
+                  android:outlineSpotShadowColor="<error descr="Cannot resolve color 'This is not a color'">This is not a color</error>"
+                  android:outlineAmbientShadowColor="<error descr="Cannot resolve color '#FA342'">#FA342</error>"/>
+          </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(highlightedFile)
+    myFixture.checkHighlighting()
+  }
+
   fun testFloatLiteralResourceCompletion() {
     myFixture.addFileToProject(
       "res/values/other_integers.xml",
