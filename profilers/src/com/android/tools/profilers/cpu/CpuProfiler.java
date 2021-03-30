@@ -184,6 +184,20 @@ public class CpuProfiler extends StudioProfiler {
       }
       else {
         FileUtil.copy(new ByteArrayInputStream(traceResponse.getContents().toByteArray()), outputStream);
+        if (info.getConfiguration().getUserOptions().getTraceType() == CpuTraceType.PERFETTO) {
+          // TODO (b/184681183): Uncomment this when we know what we want the user experience to be.
+          //PerfettoTrace.Trace trace = PerfettoTrace.Trace.newBuilder()
+          //  .addPacket(PerfettoTrace.TracePacket.newBuilder()
+          //               .setUiState(PerfettoTrace.UiState.newBuilder()
+          //               .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess
+          //                                      .newBuilder()
+          //                                      .setPid(profilers.getSession().getPid())
+          //                                      .build())
+          //                             .build())
+          //               .build())
+          //  .build();
+          //outputStream.write(trace.toByteArray());
+        }
       }
     }
     catch (IOException exception) {
