@@ -25,12 +25,16 @@ import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.android.tools.profilers.cpu.systemtrace.ProcessListSorter
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
+import com.intellij.openapi.diagnostic.Logger
+import perfetto.protos.PerfettoTrace
 import java.io.File
+import java.util.Base64
 
 class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
                      private val ideProfilerServices: IdeProfilerServices) : TraceParser {
 
   companion object {
+    private val LOGGER = Logger.getInstance(PerfettoParser::class.java)
     // This lock controls access to TPD, see comment below in the synchronized block.
     // We use this instead of @Synchronized, because CpuCaptureParser build and return new instances of PerfettoParser,
     // so we need a static object to serve as the lock monitor.
@@ -64,22 +68,29 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
 
       val processList = traceProcessor.getProcessMetadata(traceId, ideProfilerServices)
       check(processList.isNotEmpty()) { "Invalid trace without any process information." }
-      val traceUIMetadata = traceProcessor.getTraceMetadata(traceId, "ui-state", ideProfilerServices)
-      var selectedProcess = 0
+      val traceUIMetadata = traceProcessor.getTraceMetadata(traceId, "ui_state", ideProfilerServices)
+      var processHint = mainProcessSelector.nameHint
       val initialViewRange = Range()
 
       if (traceUIMetadata.isNotEmpty()) {
-        // TODO (gijosh): The UI metadata will come back as a proto that has been base 64 encoded.
-        // The proto will contain the process id or process name of the selected process.
+        try {
+          val uiState = PerfettoTrace.UiState.parseFrom(Base64.getDecoder().decode(traceUIMetadata.last()))
+          val wantedProcessId = uiState.getHighlightProcess().getPid()
+          processHint = processList.find { it.id == wantedProcessId }?.getSafeProcessName() ?: mainProcessSelector.nameHint
+          if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
+            initialViewRange.set(uiState.timelineStartTs.toDouble(), uiState.timelineEndTs.toDouble());
+          }
+        }
+        catch (throwable:Throwable) {
+          // Failed to parse / decode ui metadata log and continue.
+          LOGGER.warn("Trace contained ui-state, however it failed to parse correctly. Ui state will not be loaded", throwable)
+        }
       }
       // If a valid process was not parsed from the UI metadata
-      if (selectedProcess <= 0) {
-        val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
-        val userSelectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
-        checkNotNull(userSelectedProcess) { "It was not possible to select a process for this trace." }
-        selectedProcess = userSelectedProcess
-      }
-      val pidsToQuery = mutableListOf(selectedProcess)
+      val processListSorter = ProcessListSorter(processHint)
+      val userSelectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
+      checkNotNull(userSelectedProcess) { "It was not possible to select a process for this trace." }
+      val pidsToQuery = mutableListOf(userSelectedProcess)
       processList.find {
         it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
       }?.let { pidsToQuery.add(it.id) }
@@ -90,7 +101,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       if (initialViewRange.isEmpty()) {
         initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
       }
-      return builder.build(traceId, selectedProcess, initialViewRange)
+      return builder.build(traceId, userSelectedProcess, initialViewRange)
     }
   }
 }
