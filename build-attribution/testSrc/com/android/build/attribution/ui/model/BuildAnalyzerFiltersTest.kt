@@ -67,7 +67,8 @@ class BuildAnalyzerFiltersTest {
     BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS,
     BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS,
     BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS,
-    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS
+    BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS,
+    BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS,
   )
 
   private val defaultTasksFilterItemsList = listOf(
@@ -105,6 +106,7 @@ class BuildAnalyzerFiltersTest {
       "Show issues for project customization" to true,
       "Include issues for tasks non determining this build duration" to false,
       "Show annotation processors issues" to true,
+      "Show configuration cache issues" to true,
     )
 
     Truth.assertThat(initialFilterActionsState).isEqualTo(expected)
@@ -153,10 +155,26 @@ class BuildAnalyzerFiltersTest {
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
 
     filterToggleAction.actionPerformed(TestActionEvent())
-    // All tasks should be back.
+    // All warnings should be back.
     Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
 
     verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS, defaultWarningFilterItemsList)
+  }
+
+  @Test
+  fun testShowConfigurationCacheIssuesFilterApplyToWarnings() {
+    val filterActions = warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup
+    val filterToggleAction = filterActions.childActionsOrStubs.first { it.templateText == "Show configuration cache issues" }
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // When CC warnings are filtered out only Always-run tasks and AP warnings should be shown.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(2)
+
+    filterToggleAction.actionPerformed(TestActionEvent())
+    // All warnings should be back.
+    Truth.assertThat(model.warningsPageModel.treeRoot.childCount).isEqualTo(3)
+
+    verifyMetricsSent(BuildAttributionUiEvent.FilterItem.SHOW_CONFIGURATION_CACHE_WARNINGS, defaultWarningFilterItemsList)
   }
 
   @Test

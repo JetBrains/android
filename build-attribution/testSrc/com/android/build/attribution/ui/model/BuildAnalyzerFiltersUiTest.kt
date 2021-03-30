@@ -38,7 +38,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = emptySet(),
         showTaskWarningTypes = emptySet(),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Nothing selected")
     verifyFilter(
@@ -46,7 +47,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN),
         showTaskWarningTypes = emptySet(),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Nothing selected")
     verifyFilter(
@@ -54,7 +56,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN),
         showTaskWarningTypes = emptySet(),
         showAnnotationProcessorWarnings = true,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Annotation processors")
     verifyFilter(
@@ -62,7 +65,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = emptySet(),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Nothing selected")
     verifyFilter(
@@ -70,7 +74,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = emptySet(),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = true,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Annotation processors")
     verifyFilter(
@@ -78,7 +83,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -86,7 +92,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -94,7 +101,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -102,7 +110,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -110,7 +119,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -118,7 +128,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -126,7 +137,8 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "Selected types of task warnings")
     verifyFilter(
@@ -134,15 +146,17 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = true,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = true
       ),
-      expectedText = "Selected types of task warnings, Annotation processors")
+      expectedText = "Selected types of task warnings, Annotation processors, Configuration cache")
     verifyFilter(
       filter = WarningsFilter(
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = false
       ),
       expectedText = "All task warnings")
     verifyFilter(
@@ -150,9 +164,10 @@ class BuildAnalyzerFiltersUiTest {
         showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = true,
-        showNonCriticalPathTasks = false
+        showNonCriticalPathTasks = false,
+        showConfigurationCacheWarnings = true
       ),
-      expectedText = "All task warnings, Annotation processors"
+      expectedText = "All task warnings, Annotation processors, Configuration cache"
     )
   }
 
