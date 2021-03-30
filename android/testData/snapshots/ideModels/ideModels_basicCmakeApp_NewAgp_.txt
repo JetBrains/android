@@ -331,3 +331,28 @@ MODULE                        : project.app
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    SelectedAbiName               : x86
+    Name                          : app
+    NativeBuildSystem             : CMAKE
+    NdkVersion                    : {DEFAULT_NDK_VERSION}
+    DefaultNdkVersion             : {DEFAULT_NDK_VERSION}
+    ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
+    Variants
+        NativeVariant
+            Name                          : debug
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{DEBUG}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{DEBUG}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/additional_project_files.txt [-]
+        NativeVariant
+            Name                          : release
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{RELEASE}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{RELEASE}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/additional_project_files.txt [-]

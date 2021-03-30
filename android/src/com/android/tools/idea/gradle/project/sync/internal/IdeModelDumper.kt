@@ -43,6 +43,7 @@ import com.android.ide.common.gradle.model.IdeVariant
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
 import com.android.ide.common.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
@@ -60,6 +61,11 @@ fun ProjectDumper.dumpAndroidIdeModel(project: Project) {
               it.variants.forEach { ideVariant -> dump(ideVariant)
               }
             }
+        }
+      }
+      nest {
+        NdkModuleModel.get(module)?.let { it ->
+          dumpNdkModuleModel(it)
         }
       }
     }
