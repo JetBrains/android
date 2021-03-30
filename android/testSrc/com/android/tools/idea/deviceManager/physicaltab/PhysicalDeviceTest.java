@@ -16,9 +16,10 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -26,80 +27,22 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTest {
   @Test
-  public void compareToPixel3IsDisconnectedAndPixel5IsDisconnected() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R");
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG");
+  public void sort() {
+    Instant time1 = Instant.parse("2021-03-24T22:38:05.890571Z");
+    Instant time2 = Instant.parse("2021-03-24T22:38:05.890570Z");
+
+    Object device1 = PhysicalDevice.newConnectedDevice("serialNumber1", time1);
+    Object device2 = PhysicalDevice.newConnectedDevice("serialNumber2", time2);
+    Object device3 = PhysicalDevice.newDisconnectedDevice("serialNumber3", time1);
+    Object device4 = PhysicalDevice.newDisconnectedDevice("serialNumber4", time2);
+    Object device5 = PhysicalDevice.newDisconnectedDevice("serialNumber5", null);
+
+    List<Object> devices = Arrays.asList(device5, device4, device2, device1, device3);
 
     // Act
-    int i = pixel3.compareTo(pixel5);
+    devices.sort(null);
 
     // Assert
-    assertEquals(0, i);
-  }
-
-  @Test
-  public void compareToPixel3IsDisconnectedAndPixel5IsConnected() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R");
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
-
-    // Act
-    int i = pixel3.compareTo(pixel5);
-
-    // Assert
-    assertTrue(i > 0);
-  }
-
-  @Test
-  public void compareToPixel3IsConnectedAndPixel5IsDisconnected() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG");
-
-    // Act
-    int i = pixel3.compareTo(pixel5);
-
-    // Assert
-    assertTrue(i < 0);
-  }
-
-  @Test
-  public void compareToPixel3IsConnectedAndPixel5IsConnected() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
-
-    // Act
-    int i = pixel3.compareTo(pixel5);
-
-    // Assert
-    assertEquals(0, i);
-  }
-
-  @Test
-  public void compareToPixel3WasConnectedBeforePixel5() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890571Z"));
-
-    // Act
-    int i = pixel3.compareTo(pixel5);
-
-    // Assert
-    assertTrue(i > 0);
-  }
-
-  @Test
-  public void compareToPixel3WasConnectedAfterPixel5() {
-    // Arrange
-    PhysicalDevice pixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890571Z"));
-    PhysicalDevice pixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
-
-    // Act
-    int i = pixel3.compareTo(pixel5);
-
-    // Assert
-    assertTrue(i < 0);
+    assertEquals(Arrays.asList(device1, device2, device3, device4, device5), devices);
   }
 }

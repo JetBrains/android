@@ -23,18 +23,25 @@ import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
   private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
-    Comparator.comparing(device -> device.myConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
+    Comparator.comparing(PhysicalDevice::isConnected, Comparator.reverseOrder())
+      .thenComparing(PhysicalDevice::getLastConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
 
   private final @NotNull String mySerialNumber;
-  private final @Nullable Instant myConnectionTime;
+  private final boolean myConnected;
+  private final @Nullable Instant myLastConnectionTime;
 
-  PhysicalDevice(@NotNull String serialNumber) {
-    this(serialNumber, null);
+  private PhysicalDevice(@NotNull String serialNumber, boolean connected, @Nullable Instant lastConnectionTime) {
+    mySerialNumber = serialNumber;
+    myConnected = connected;
+    myLastConnectionTime = lastConnectionTime;
   }
 
-  PhysicalDevice(@NotNull String serialNumber, @Nullable Instant connectionTime) {
-    mySerialNumber = serialNumber;
-    myConnectionTime = connectionTime;
+  static @NotNull PhysicalDevice newConnectedDevice(@NotNull String serialNumber, @NotNull Instant lastConnectionTime) {
+    return new PhysicalDevice(serialNumber, true, lastConnectionTime);
+  }
+
+  static @NotNull PhysicalDevice newDisconnectedDevice(@NotNull String serialNumber, @Nullable Instant lastConnectionTime) {
+    return new PhysicalDevice(serialNumber, false, lastConnectionTime);
   }
 
   @NotNull String getSerialNumber() {
@@ -42,19 +49,29 @@ final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
   }
 
   boolean isConnected() {
-    return myConnectionTime != null;
+    return myConnected;
+  }
+
+  @Nullable Instant getLastConnectionTime() {
+    return myLastConnectionTime;
   }
 
   @NotNull String toDebugString() {
     String separator = System.lineSeparator();
 
     return "serialNumber = " + mySerialNumber + separator
-           + "connectionTime = " + myConnectionTime + separator;
+           + "connected = " + myConnected + separator
+           + "lastConnectionTime = " + myLastConnectionTime + separator;
   }
 
   @Override
   public int hashCode() {
-    return 31 * mySerialNumber.hashCode() + Objects.hashCode(myConnectionTime);
+    int hashCode = mySerialNumber.hashCode();
+
+    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
+    hashCode = 31 * hashCode + Objects.hashCode(myLastConnectionTime);
+
+    return hashCode;
   }
 
   @Override
@@ -64,7 +81,10 @@ final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
     }
 
     PhysicalDevice device = (PhysicalDevice)object;
-    return mySerialNumber.equals(device.mySerialNumber) && Objects.equals(myConnectionTime, device.myConnectionTime);
+
+    return mySerialNumber.equals(device.mySerialNumber) &&
+           myConnected == device.myConnected &&
+           Objects.equals(myLastConnectionTime, device.myLastConnectionTime);
   }
 
   @Override

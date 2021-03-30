@@ -26,6 +26,7 @@ import java.util.List;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,12 +35,12 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableModelTest {
-  private static final PhysicalDevice DISCONNECTED_PIXEL_3 = new PhysicalDevice("86UX00F4R");
+  private static final @NotNull PhysicalDevice DISCONNECTED_PIXEL_3 = PhysicalDevice.newDisconnectedDevice("86UX00F4R", null);
 
   @Test
   public void newPhysicalDeviceTableModel() {
     // Arrange
-    PhysicalDevice connectedPixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
+    PhysicalDevice connectedPixel5 = PhysicalDevice.newConnectedDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
     List<PhysicalDevice> devices = Arrays.asList(DISCONNECTED_PIXEL_3, connectedPixel5);
 
     // Act
@@ -57,7 +58,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(DISCONNECTED_PIXEL_3));
     model.addTableModelListener(listener);
 
-    PhysicalDevice connectedPixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
+    PhysicalDevice connectedPixel5 = PhysicalDevice.newConnectedDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
 
     // Act
     model.handleConnectedDevice(connectedPixel5);
@@ -71,12 +72,12 @@ public final class PhysicalDeviceTableModelTest {
   public void handleConnectedDeviceModelRowIndexDoesntEqualNegativeOne() {
     // Arrange
     TableModelListener listener = Mockito.mock(TableModelListener.class);
-    PhysicalDevice disconnectedPixel5 = new PhysicalDevice("0A071FDD4003ZG");
+    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG", null);
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Arrays.asList(DISCONNECTED_PIXEL_3, disconnectedPixel5));
     model.addTableModelListener(listener);
 
-    PhysicalDevice connectedPixel5 = new PhysicalDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
+    PhysicalDevice connectedPixel5 = PhysicalDevice.newConnectedDevice("0A071FDD4003ZG", Instant.parse("2021-03-24T22:38:05.890570Z"));
 
     // Act
     model.handleConnectedDevice(connectedPixel5);
@@ -91,8 +92,8 @@ public final class PhysicalDeviceTableModelTest {
     // Arrange
     Instant connectionTime = Instant.parse("2021-03-24T22:38:05.890570Z");
 
-    PhysicalDevice connectedPixel3 = new PhysicalDevice("86UX00F4R", connectionTime);
-    PhysicalDevice connectedPixel5 = new PhysicalDevice("0A071FDD4003ZG", connectionTime);
+    PhysicalDevice connectedPixel3 = PhysicalDevice.newConnectedDevice("86UX00F4R", connectionTime);
+    PhysicalDevice connectedPixel5 = PhysicalDevice.newConnectedDevice("0A071FDD4003ZG", connectionTime);
 
     TableModelListener listener = Mockito.mock(TableModelListener.class);
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.tools.idea.deviceManager.physicaltab.PhysicalTabPersistentStateComponent.PhysicalTabState;
+import com.android.tools.idea.util.xmlb.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
@@ -26,6 +27,7 @@ import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.intellij.util.xmlb.annotations.XCollection.Style;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -89,27 +91,36 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "serialNumber", nameAttribute = "")
     private @Nullable String serialNumber;
 
+    @OptionTag(tag = "lastConnectionTime", nameAttribute = "", converter = InstantConverter.class)
+    private @Nullable Instant lastConnectionTime;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
       serialNumber = device.getSerialNumber();
+      lastConnectionTime = device.getLastConnectionTime();
     }
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
-      return new PhysicalDevice(serialNumber);
+      return PhysicalDevice.newDisconnectedDevice(serialNumber, lastConnectionTime);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(serialNumber);
+      return 31 * Objects.hashCode(serialNumber) + Objects.hashCode(lastConnectionTime);
     }
 
     @Override
     public boolean equals(@Nullable Object object) {
-      return object instanceof PhysicalDeviceState && Objects.equals(serialNumber, ((PhysicalDeviceState)object).serialNumber);
+      if (!(object instanceof PhysicalDeviceState)) {
+        return false;
+      }
+
+      PhysicalDeviceState device = (PhysicalDeviceState)object;
+      return Objects.equals(serialNumber, device.serialNumber) && Objects.equals(lastConnectionTime, device.lastConnectionTime);
     }
   }
 }
