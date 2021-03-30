@@ -61,7 +61,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
@@ -313,7 +312,7 @@ class EmulatorView(
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
   private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
-  private val stats = Stats()
+  private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
 
   init {
     Disposer.register(disposableParent, this)
@@ -374,7 +373,7 @@ class EmulatorView(
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
-    Disposer.dispose(stats) // stats have to be disposed last.
+    stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
 
   fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {
@@ -671,7 +670,7 @@ class EmulatorView(
     if (!screenshot.painted) {
       screenshot.painted = true
       val paintTime = System.currentTimeMillis()
-      stats.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
+      stats?.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
     }
   }
 
@@ -1181,7 +1180,7 @@ class EmulatorView(
       }
 
       val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
-      stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
+      stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
       val foldedDisplay = imageFormat.foldedDisplay
@@ -1207,7 +1206,7 @@ class EmulatorView(
         if (screenshotReceiver == this) {
           val screenshot = screenshotForProcessing.getAndSet(null)
           if (screenshot == null) {
-            stats.recordDroppedFrame()
+            stats?.recordDroppedFrame()
           }
           else {
             screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
@@ -1234,7 +1233,7 @@ class EmulatorView(
 
       val screenshot = screenshotForDisplay.getAndSet(null)
       if (screenshot == null) {
-        stats.recordDroppedFrame()
+        stats?.recordDroppedFrame()
         return
       }
 
@@ -1377,9 +1376,9 @@ class EmulatorView(
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
-                            "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
-                            "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+          LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+                   "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+                   "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
         }
       }
     }
@@ -1402,6 +1401,6 @@ private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_
                                    32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
-private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis() // TODO: Change to 1 hour when switching to analytics logging.
+private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis()
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
