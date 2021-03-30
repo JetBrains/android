@@ -74,7 +74,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()
                    .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
-                   .setGradleVersion(GradleVersions.removeTimestampFromGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
+                   .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .setUserEnabledIr(true)
                    .setModelSupportsIr(true)
                    .setVariantSupportsIr(true)
