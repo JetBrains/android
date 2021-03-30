@@ -210,6 +210,7 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       IdeSyncIssue.TYPE_EDIT_LOCKED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EDIT_LOCKED_DSL_VALUE
       IdeSyncIssue.TYPE_MISSING_ANDROID_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_ANDROID_MANIFEST
       IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JCENTER_IS_DEPRECATED
+      IdeSyncIssue.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 
