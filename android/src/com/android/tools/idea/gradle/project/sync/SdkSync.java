@@ -114,10 +114,11 @@ public final class SdkSync {
       }
     }
     else if (ideAndroidSdkPath == null && projectAndroidSdkPath == null) {
-      if (localProperties.getPropertiesFilePath().exists() || IdeInfo.getInstance().isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         // We don't have any SDK (IDE or project.)
         // In IDEA there are non-android gradle projects. IDEA should not create local.properties file and should not ask users to configure
-        // Android SDK unless we are sure that they are working with Android projects (e.g. local.properties file already exists)
+        // Android SDK unless we are sure that they are working with Android projects
+        // Note that local.properties file does not imply Android (this can also be KMPP. See IDEA-265504)
         File selectedPath = findSdkPathTask.selectValidSdkPath();
         if (selectedPath == null) {
           throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
