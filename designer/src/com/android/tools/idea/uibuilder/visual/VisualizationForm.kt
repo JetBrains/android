@@ -16,83 +16,83 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
-import com.android.tools.adtui.common.border
-import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild.Companion.getInstance
-import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.android.tools.idea.util.listenUntilNextSync
-import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler.updateVisualLintIssues
-import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
-import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
-import com.android.tools.editor.PanZoomListener
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.common.surface.DesignSurface
-import javax.swing.JPanel
-import java.awt.BorderLayout
-import com.intellij.openapi.vfs.VirtualFile
-import java.util.concurrent.locks.ReentrantLock
-import javax.swing.JComponent
-import java.lang.Runnable
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
-import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
-import java.util.concurrent.atomic.AtomicBoolean
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
-import com.android.tools.adtui.common.AdtPrimaryPanel
-import javax.swing.BorderFactory
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.psi.PsiManager
-import org.jetbrains.android.facet.AndroidFacet
-import icons.StudioIcons
-import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction
-import com.android.tools.idea.common.model.NlModel
-import com.android.resources.ResourceFolderType
-import com.intellij.openapi.project.DumbService
 import com.android.annotations.concurrency.UiThread
+import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.actions.DropDownAction
-import java.util.concurrent.CompletableFuture
-import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.android.tools.idea.res.ResourceNotificationManager
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.RenderListener
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
-import java.awt.event.AdjustmentEvent
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import java.awt.DefaultFocusTraversalPolicy
-import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.common.border
+import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.editor.PanZoomListener
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanel
-import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
+import com.android.tools.idea.common.surface.LayoutScannerEnabled
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.res.ResourceNotificationManager
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
+import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild.Companion.getInstance
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
+import com.android.tools.idea.uibuilder.graphics.NlConstants
+import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler.updateVisualLintIssues
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.RenderListener
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
+import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
+import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyticsManager
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzeAfterModelUpdate
+import com.android.tools.idea.util.listenUntilNextSync
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
 import com.intellij.util.ArrayUtil
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
+import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
-import java.util.HashSet
+import java.awt.DefaultFocusTraversalPolicy
+import java.awt.event.AdjustmentEvent
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
+import java.util.stream.Collectors
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a
@@ -158,7 +158,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
   init {
     Disposer.register(parentDisposable, this)
     myProject = project
-    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().globalState.configurationSet
+    myCurrentConfigurationSet = VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
     val surfaceLayoutManager = myGridSurfaceLayoutManager
     val config = if (StudioFlags.NELE_VISUAL_LINT.get() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) LayoutScannerEnabled() else DISABLED
@@ -255,6 +255,19 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     viewOptions.add(ToggleShowDecorationAction())
     viewOptions.isPopup = true
     group.add(viewOptions)
+    if (StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get()) {
+      group.add(AddCustomConfigurationSetAction { createdConfigSetId: String ->
+        val configurationSets = getConfigurationSets().stream()
+          .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
+          .collect(Collectors.toList())
+        if (configurationSets.isNotEmpty()) {
+          onSelectedConfigurationSetChanged(configurationSets[0])
+        }
+      })
+      group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
+        onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
+      })
+    }
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
@@ -653,7 +666,7 @@ class VisualizationForm(project: Project, parentDisposable: Disposable) : Visual
     if (myCurrentConfigurationSet !== newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet
       trackOpenConfigSet(surface, myCurrentConfigurationSet)
-      VisualizationToolSettings.getInstance().globalState.configurationSet = newConfigurationSet
+      VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet = newConfigurationSet
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this)
       myLayoutManager.setLayoutManager(myGridSurfaceLayoutManager, DesignSurface.SceneViewAlignment.LEFT)
       refresh()

@@ -24,7 +24,6 @@ import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language
-import org.junit.Ignore
 import org.mockito.Mockito
 
 class CustomModelsProviderTest : LayoutTestCase() {
@@ -38,7 +37,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     super.tearDown()
     DesignerTypeRegistrar.clearRegisteredTypes()
     // Cleanup any added configurations
-    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = emptyList()
+    VisualizationToolSettings.getInstance().globalState.customConfigurationSets = mutableMapOf()
   }
 
   fun testCreateActions() {
@@ -46,7 +45,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider(listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val actions = modelsProvider.createActions(file, myFacet).getChildren(null)
 
     assertSize(1, actions)
@@ -58,7 +57,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider(listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     val config = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(file.virtualFile)
 
@@ -71,7 +70,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider(listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
 
@@ -85,7 +84,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
                                                   NightMode.NOTNIGHT)
     modelsProvider.addCustomConfigurationAttributes(attributes)
 
-    assertSize(1, modelsProvider.configurationAttributes)
+    assertSize(1, modelsProvider.customConfigSet.customConfigAttributes)
     // The created nlModels contains default one plus all custom configurations,
     // so its size is CustomModelsProvider.customConfigurations.size() + 1.
     val nlModelsAfterAdded = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
@@ -94,7 +93,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals("Preview", nlModelsAfterAdded[1].modelDisplayName)
 
     modelsProvider.removeCustomConfigurationAttributes(nlModelsAfterAdded[1])
-    assertSize(0, modelsProvider.configurationAttributes)
+    assertSize(0, modelsProvider.customConfigSet.customConfigAttributes)
     val nlModelsAfterRemoved = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertSize(1, nlModelsAfterRemoved)
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
@@ -106,7 +105,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider(listener)
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
@@ -133,7 +132,8 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val listener = Mockito.mock(ConfigurationSetListener::class.java)
 
-    val modelsProvider = CustomModelsProvider(listener)
+
+    val modelsProvider = CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 

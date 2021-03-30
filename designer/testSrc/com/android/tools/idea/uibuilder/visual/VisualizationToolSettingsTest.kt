@@ -22,15 +22,15 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
   private var defaultVisible: Boolean = false
   private var defaultShowDecoration: Boolean = false
   private lateinit var defaultConfigurationSet: ConfigurationSet
-  private lateinit var customConfigurationAttributes: List<CustomConfigurationAttribute>
+  private lateinit var customConfigurationSets: Map<String, CustomConfigurationSet>
 
   override fun setUp() {
     super.setUp()
     val settings = VisualizationToolSettings.getInstance()
     defaultVisible = settings.globalState.isVisible
     defaultShowDecoration = settings.globalState.showDecoration
-    defaultConfigurationSet = settings.globalState.configurationSet
-    customConfigurationAttributes = settings.globalState.customConfigurationAttributes
+    defaultConfigurationSet = settings.globalState.lastSelectedConfigurationSet
+    customConfigurationSets = settings.globalState.customConfigurationSets
   }
 
   override fun tearDown() {
@@ -38,8 +38,8 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     try {
       settings.globalState.isVisible = defaultVisible
       settings.globalState.showDecoration = defaultShowDecoration
-      settings.globalState.configurationSet = defaultConfigurationSet
-      settings.globalState.customConfigurationAttributes = customConfigurationAttributes
+      settings.globalState.lastSelectedConfigurationSet = defaultConfigurationSet
+      settings.globalState.customConfigurationSets = customConfigurationSets
     } catch (t: Throwable) {
       addSuppressedException(t)
     } finally {
@@ -58,21 +58,20 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     val settings = VisualizationToolSettings.getInstance()
 
     val visible = false
-    val scale = 0.1
     val showDecoration = false
     val configurationSet = ConfigurationSet.LargeFont
-    val customConfigurations = emptyList<CustomConfigurationAttribute>()
+    val customConfigurations = mutableMapOf<String, CustomConfigurationSet>()
 
     settings.globalState.isVisible = visible
     settings.globalState.showDecoration = showDecoration
-    settings.globalState.configurationSet = configurationSet
-    settings.globalState.customConfigurationAttributes = customConfigurations
+    settings.globalState.lastSelectedConfigurationSet = configurationSet
+    settings.globalState.customConfigurationSets = customConfigurations
 
     // Check the values are same after getting another instance.
     val anotherSettings = VisualizationToolSettings.getInstance()
     assertEquals(visible, anotherSettings.globalState.isVisible)
     assertEquals(showDecoration, anotherSettings.globalState.showDecoration)
-    assertEquals(configurationSet, anotherSettings.globalState.configurationSet)
-    assertEquals(customConfigurations, anotherSettings.globalState.customConfigurationAttributes)
+    assertEquals(configurationSet, anotherSettings.globalState.lastSelectedConfigurationSet)
+    assertEquals(customConfigurations, anotherSettings.globalState.customConfigurationSets)
   }
 }

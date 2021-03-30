@@ -342,6 +342,11 @@ public final class StudioFlags {
     "Apply the configuration to Layout Editor by double clicking the preview in Validation Tool",
     true);
 
+  public static final Flag<Boolean> NELE_VISUALIZATION_MULTIPLE_CUSTOM = Flag.create(
+    NELE, "visualization.multiple.custom", "Multiple Custom Categories in Layout Validation Tool",
+    "Allow to create or delete multiple custom categories in Layout Validation Tool",
+    false);
+
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
