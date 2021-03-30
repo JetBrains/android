@@ -123,14 +123,18 @@ public class SdkSyncTest extends PlatformTestCase {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertProjectSdkSet();
       assertDefaultSdkSet();
+    } else {
+      assertNoLocalPropertiesExists();
     }
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
+    Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
     SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
       @Nullable
       @Override
       File selectValidSdkPath() {
+        selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
     };
@@ -138,8 +142,16 @@ public class SdkSyncTest extends PlatformTestCase {
     createEmptyLocalPropertiesFile();
     mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
 
-    assertProjectSdkSet();
-    assertDefaultSdkSet();
+    assertEquals("IDEA should not ask users to configure Android SDK in KMPP projects with no android modules (https://youtrack.jetbrains.com/issue/IDEA-265504). " +
+                 "Android Studio asks users to do so.",
+                 IdeInfo.getInstance().isAndroidStudio(), selectSdkDialogShown.get().booleanValue());
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertProjectSdkSet();
+      assertDefaultSdkSet();
+    } else {
+      assertNull(myLocalProperties.getAndroidSdkPath());
+    }
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
