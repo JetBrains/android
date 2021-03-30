@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.util.xmlb.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
@@ -463,18 +464,6 @@ final class DevicesSelectedService {
     @Override
     public @NotNull String toString(@NotNull Path path) {
       return path.toString();
-    }
-  }
-
-  private static final class InstantConverter extends Converter<Instant> {
-    @Override
-    public @NotNull Instant fromString(@NotNull String string) {
-      return Instant.parse(string);
-    }
-
-    @Override
-    public @NotNull String toString(@NotNull Instant instant) {
-      return instant.toString();
     }
   }
 }

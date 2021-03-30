@@ -23,10 +23,11 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Service
 final class ConnectionTimeService {
-  private final @NotNull Map<@NotNull String, @NotNull Instant> mySerialNumberToConnectionTimeMap;
+  private final @NotNull Map<@NotNull String, @Nullable Instant> mySerialNumberToConnectionTimeMap;
   private final @NotNull Clock myClock;
 
   @SuppressWarnings("unused")
@@ -48,7 +49,7 @@ final class ConnectionTimeService {
     return mySerialNumberToConnectionTimeMap.computeIfAbsent(serialNumber, s -> myClock.instant());
   }
 
-  void remove(@NotNull String serialNumber) {
-    mySerialNumberToConnectionTimeMap.remove(serialNumber);
+  @Nullable Instant remove(@NotNull String serialNumber) {
+    return mySerialNumberToConnectionTimeMap.remove(serialNumber);
   }
 }

@@ -117,7 +117,7 @@ final class PhysicalDeviceAsyncSupplier {
     return devices.stream()
       .filter(device -> !device.isEmulator())
       .map(IDevice::getSerialNumber)
-      .map(serialNumber -> new PhysicalDevice(serialNumber, service.get(serialNumber)))
+      .map(serialNumber -> PhysicalDevice.newConnectedDevice(serialNumber, service.get(serialNumber)))
       .collect(Collectors.toList());
   }
 }
