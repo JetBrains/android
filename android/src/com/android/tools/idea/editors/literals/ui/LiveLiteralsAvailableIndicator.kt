@@ -107,13 +107,10 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   override fun copy(): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
 
   private fun onClick() {
-    if (!literalsService.isEnabled) {
-      // When the feature is not enable, this widget should not be visible so log a warning
-      Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Live Literals feature is not enabled")
+    if (!isComposeProject()) {
+      Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Not a Compose Project")
       return
     }
-
-    if (!literalsService.isAvailable) return
 
     JBPopupFactory.getInstance().createActionGroupPopup(null,
                                                         DefaultActionGroup(
