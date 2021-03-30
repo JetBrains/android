@@ -61,6 +61,9 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -78,7 +81,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -92,11 +94,19 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 
 /**
  * Background color for the surface while "Interactive" is enabled.
  */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ourInteractiveBackgroundColor)
+
+/**
+ * [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`.
+ */
+private val NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
 /**
  * [NlModel] associated preview data
@@ -833,9 +843,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
+  @OptIn(ExperimentalTime::class)
   private fun refresh(quickRefresh: Boolean = false): Job {
-    var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
+      val startTime = System.nanoTime()
+
+      fun createRefreshElapsedTimeNotification(bundleStringEntry: String) = Notification(
+        NOTIFICATION_GROUP_ID,
+        message("event.log.refresh.title"),
+        message(bundleStringEntry, (System.nanoTime() - startTime).toDuration(DurationUnit.NANOSECONDS)),
+        NotificationType.INFORMATION
+      )
+
       LOG.debug("Refresh triggered", refreshTrigger)
 
       if (!isActive.get()) {
@@ -871,6 +891,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         } else emptyList()
 
+        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.find.preview.elements"))
         val needsFullRefresh = filePreviewElements != previewElements ||
                                PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
 
@@ -906,6 +927,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
+        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"))
       }
     }
   }
