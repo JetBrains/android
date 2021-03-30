@@ -291,16 +291,13 @@ public class GradleFiles {
         if (propertiesFilePath.isFile()) {
           VirtualFile propertiesFile = gradleWrapper.getPropertiesFile();
           if (propertiesFile != null) {
-            putHashForFile(fileHashes, propertiesFile);
+            application.runReadAction(() -> putHashForFile(fileHashes, propertiesFile));
           }
         }
       }
     };
     Future wrapperHashFuture = executorService.submit(
-      () -> progressManager.executeProcessUnderProgress(
-        () -> application.runReadAction(computeWrapperHashRunnable),
-        progressIndicator
-      )
+      () -> progressManager.executeProcessUnderProgress(computeWrapperHashRunnable, progressIndicator)
     );
     try {
       wrapperHashFuture.get();
@@ -320,7 +317,7 @@ public class GradleFiles {
         ProgressManager.checkCanceled();
         File path = VfsUtilCore.virtualToIoFile(buildFile);
         if (path.isFile()) {
-          putHashForFile(fileHashes, buildFile);
+          application.runReadAction(() -> putHashForFile(fileHashes, buildFile));
         }
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
@@ -332,7 +329,7 @@ public class GradleFiles {
             VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
             externalBuildFiles.add(virtualFile);
             if (virtualFile != null) {
-              putHashForFile(fileHashes, virtualFile);
+              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
             }
           }
         }
@@ -342,11 +339,7 @@ public class GradleFiles {
     modules.stream()
       .map(module ->
              executorService.submit(
-               () -> progressManager.executeProcessUnderProgress(
-                 () -> application.runReadAction(
-                   () -> computeHashes.accept(module)),
-                 progressIndicator
-               )
+               () -> progressManager.executeProcessUnderProgress(() -> computeHashes.accept(module), progressIndicator)
              )
       )
       .forEach(future -> {
@@ -370,17 +363,14 @@ public class GradleFiles {
         if (filePath.isFile()) {
           VirtualFile virtualFile = rootFolder.findChild(fileName);
           if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-            putHashForFile(fileHashes, virtualFile);
+            application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
           }
         }
       }
     };
     if (rootFolder != null) {
       Future settingsAndPropertiesFuture = executorService.submit(
-        () -> progressManager.executeProcessUnderProgress(
-          () -> application.runReadAction(settingsAndPropertiesRunnable),
-          progressIndicator
-        )
+        () -> progressManager.executeProcessUnderProgress(settingsAndPropertiesRunnable, progressIndicator)
       );
       try {
         settingsAndPropertiesFuture.get();
