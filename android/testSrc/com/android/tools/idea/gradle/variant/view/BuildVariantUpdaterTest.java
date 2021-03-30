@@ -29,15 +29,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeDependencies;
 import com.android.ide.common.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -392,8 +390,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
     IdeModuleLibrary moduleLibrary = mock(IdeModuleLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
-    NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
-
 
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
@@ -413,9 +409,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(libraryAndroidModel.getAndroidProject()).thenReturn(libraryAndroidProject);
     when(libraryAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(libraryIdeDependencies);
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
-
-    // Setup NDK expectations for library.
-    when(libraryNdkDebugVariant.getName()).thenReturn(libraryVariantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
     when(moduleLibrary.getVariant()).thenReturn("release");
@@ -479,7 +472,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     ModuleSetupContext libraryModuleSetupContext = mock(ModuleSetupContext.class);
     IdeModuleLibrary moduleLibrary = mock(IdeModuleLibrary.class);
     NdkModuleModel libraryNdkModel = mock(NdkModuleModel.class);
-    NdkVariant libraryNdkDebugVariant = mock(NdkVariant.class);
 
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
@@ -499,9 +491,6 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(libraryAndroidModel.getAndroidProject()).thenReturn(libraryAndroidProject);
     when(libraryAndroidModel.getSelectedMainCompileLevel2Dependencies()).thenReturn(libraryIdeDependencies);
     when(myModuleSetupContextFactory.create(libraryModule, myModifiableModelsProvider)).thenReturn(libraryModuleSetupContext);
-
-    // Setup NDK expectations for library.
-    when(libraryNdkDebugVariant.getName()).thenReturn(variantAbi.getVariant());
 
     // Register "library" into gradle so that "app:release" depends on "library:release".
     when(moduleLibrary.getVariant()).thenReturn("release");
