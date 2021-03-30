@@ -167,7 +167,7 @@ class ProcessesModelTest {
   }
 
   @Test
-  fun stopAndResume() {
+  fun stop() {
     val testNotifier = TestProcessNotifier()
     val model = ProcessesModel(testNotifier) { listOf("A", "B") }
 
@@ -188,15 +188,10 @@ class ProcessesModelTest {
     assertThat(deadProcess.name).isEqualTo(fakeProcessB.name)
     assertThat(deadProcess.isRunning).isFalse()
 
-    // Cannot update the selected process when the model is stopped
-    model.selectedProcess = fakeProcessA
-    assertThat(model.selectedProcess).isSameAs(deadProcess)
-
-    // Resuming allows updating the selected process again
-    model.resume()
-    assertThat(model.selectedProcess).isSameAs(deadProcess)
-    model.selectedProcess = fakeProcessA
-    assertThat(model.selectedProcess).isSameAs(fakeProcessA)
+    // Restart a new process by changing the selected process
+    model.selectedProcess = fakeProcessB
+    assertThat(model.selectedProcess).isNotSameAs(deadProcess)
+    assertThat(model.selectedProcess).isSameAs(fakeProcessB)
   }
 
   @Test

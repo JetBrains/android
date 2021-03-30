@@ -93,13 +93,17 @@ class DeviceViewContentPanel(
 
   init {
     emptyText.appendLine("No process connected")
-    emptyText.appendLine("Select process", SimpleTextAttributes.LINK_ATTRIBUTES) {
+
+    emptyText.appendLine("Deploy your app or ")
+    emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
       val button = selectProcessAction.button
       val dataContext = DataManager.getInstance().getDataContext(button)
       selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
       val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation, dataContext)
       selectProcessAction.actionPerformed(event)
     }
+    emptyText.appendText(" to begin inspection.")
+
     emptyText.appendLine("")
     emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
       Desktop.getDesktop().browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
