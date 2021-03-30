@@ -59,7 +59,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
     myFixture.checkHighlighting(true, false, false)
     myFixture.moveCaret("Recycler|View")
-    val action = myFixture.getIntentionAction("Import and add dependency on com.android.support:recyclerview-v7")!!
+    val action = myFixture.getIntentionAction("Add dependency on com.android.support:recyclerview-v7")!!
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
@@ -100,7 +100,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
     myFixture.checkHighlighting(true, false, false)
     myFixture.moveCaret("Recycler|View")
-    val action = myFixture.getIntentionAction("Import and add dependency on androidx.recyclerview:recyclerview")!!
+    val action = myFixture.getIntentionAction("Add dependency on androidx.recyclerview:recyclerview")!!
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
@@ -144,7 +144,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
     myFixture.checkHighlighting(true, false, false)
     myFixture.moveCaret("SupportMap|Fragment")
-    val action = myFixture.getIntentionAction("Import and add dependency on com.google.android.gms:play-services-maps")!!
+    val action = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {
@@ -188,7 +188,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
 
     myFixture.checkHighlighting(true, false, false)
     myFixture.moveCaret("fragmen|t")
-    val action = myFixture.getIntentionAction("Import and add dependency on com.google.android.gms:play-services-maps")!!
+    val action = myFixture.getIntentionAction("Add dependency on com.google.android.gms:play-services-maps")!!
 
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.runWriteCommandAction(myFixture.project, Runnable {

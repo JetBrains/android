@@ -22,11 +22,11 @@ import org.jetbrains.android.util.AndroidBundle
 
 class AndroidMavenImportFix(val className: String, val artifact: String, val version: String?) : LocalQuickFix {
   override fun getName(): String {
-    return AndroidBundle.message("android.suggested.import.action.name.prefix", flagPreview(artifact, version))
+    return AndroidBundle.message("android.suggested.dependency.action.name.prefix", flagPreview(artifact, version))
   }
 
   override fun getFamilyName(): String {
-    return AndroidBundle.message("android.suggested.import.action.family.name")
+    return AndroidBundle.message("android.suggested.dependency.action.family.name")
   }
 
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {

@@ -96,7 +96,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
     var available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isTrue()
     // Since we have more than one suggestion, we just show general text `Add library dependency` here.
-    assertThat(action.text).isEqualTo("Import and add library dependency")
+    assertThat(action.text).isEqualTo("Add library dependency and import")
     // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
