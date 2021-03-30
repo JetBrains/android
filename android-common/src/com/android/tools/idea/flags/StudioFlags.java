@@ -509,7 +509,7 @@ public final class StudioFlags {
     "wear.device.pairing.enabled",
     "Enable Wear emulator pairing assistant",
     "Show the Wear emulator pairing assistant",
-    false);
+    true);
 
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
     RUNDEBUG,

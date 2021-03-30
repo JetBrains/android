@@ -22,6 +22,7 @@ import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.Splitter
@@ -58,9 +59,8 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.isRightMouseButton
 
-class DeviceListStep(model: WearDevicePairingModel, val emptyListClickedAction: () -> Unit) :
+class DeviceListStep(model: WearDevicePairingModel, val project: Project, val emptyListClickedAction: () -> Unit) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
-
   private val listeners = ListenerManager()
   private val phoneList = createList(
     listName = "phoneList",
@@ -81,9 +81,15 @@ class DeviceListStep(model: WearDevicePairingModel, val emptyListClickedAction: 
     }
   }
 
+  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
+    return listOf(
+      NewConnectionAlertStep(model, project),
+      DevicesConnectionStep(model, project, true),
+      DevicesConnectionStep(model, project, false)
+    )
+  }
+
   override fun getComponent(): JComponent = JBPanel<JBPanel<*>>(null).apply {
-    preferredSize = JBUI.size(500, 350)
-    minimumSize = JBUI.size(400, 250)
     border = empty(24)
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
 
@@ -223,8 +229,7 @@ class DeviceListStep(model: WearDevicePairingModel, val emptyListClickedAction: 
             val menu = JBPopupMenu()
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection"))
             item.addActionListener {
-              // TODO: WearPairingManager.removeKeepForwardAlive()
-              println("TODO: Disconnect Paired Devices")
+              WearPairingManager.removeKeepForwardAlive()
             }
             menu.add(item)
             JBPopupMenu.showByEvent(e, menu)

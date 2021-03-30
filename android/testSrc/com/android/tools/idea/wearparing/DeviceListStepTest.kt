@@ -166,7 +166,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   }
 
   private fun createDeviceListStepUi(emptyListClickedAction: () -> Unit = {}): FakeUi {
-    val deviceListStep = DeviceListStep(model, emptyListClickedAction)
+    val deviceListStep = DeviceListStep(model, project, emptyListClickedAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceListStep).build()
     Disposer.register(testRootDisposable, modelWizard)
     invokeStrategy.updateAllSteps()
