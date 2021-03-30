@@ -36,16 +36,26 @@ class LayoutlibSceneManagerRefreshIconAction private constructor(
   addRenderListener: (RenderListener) -> Unit,
   setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
   parentDisposable: Disposable): AnAction() {
-
-  constructor(sceneManager: LayoutlibSceneManager):
-    this(sceneManager.model.project, sceneManager::addRenderListener, ::setupBuildListener, sceneManager)
-
   companion object {
     fun forTesting(project: Project,
                    addRenderListener: (RenderListener) -> Unit,
                    setupBuildListener: (Project, BuildListener, Disposable) -> Unit,
                    parentDisposable: Disposable): LayoutlibSceneManagerRefreshIconAction =
       LayoutlibSceneManagerRefreshIconAction(project, addRenderListener, setupBuildListener, parentDisposable)
+
+    /**
+     * Creates a [LayoutlibSceneManagerRefreshIconAction] that shows progress when the project is building or the [LayoutlibSceneManager] is
+     * refreshing.
+     */
+    fun forRefreshAndBuild(sceneManager: LayoutlibSceneManager) =
+      LayoutlibSceneManagerRefreshIconAction(sceneManager.model.project, sceneManager::addRenderListener, ::setupBuildListener, sceneManager)
+
+    /**
+     * Creates a [LayoutlibSceneManagerRefreshIconAction] that shows progress when the [LayoutlibSceneManager] is refreshing but ignores
+     * builds.
+     */
+    fun forRefreshOnly(sceneManager: LayoutlibSceneManager) =
+      LayoutlibSceneManagerRefreshIconAction(sceneManager.model.project, sceneManager::addRenderListener, {_, _, _ ->}, sceneManager)
   }
 
   private var isRendering = false
@@ -84,6 +94,10 @@ class LayoutlibSceneManagerRefreshIconAction private constructor(
 
     setupBuildListener(project, buildListener, parentDisposable)
     addRenderListener(object : RenderListener {
+      override fun onInflateStarted() {
+        isRendering = true
+      }
+
       override fun onRenderStarted() {
         isRendering = true
       }
