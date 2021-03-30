@@ -190,6 +190,7 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
   }
 
   private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
+    refreshTree(newProcessor)
     if (!projectFilesClean) {
       runEnabled.set(false)
       runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
@@ -205,7 +206,6 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
       )
     }
     else {
-      refreshTree(newProcessor)
       runEnabled.set(true)
     }
     showLoadingState.set(false)
