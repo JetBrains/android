@@ -28,7 +28,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.AutoPopupSupportingListener
 import com.intellij.openapi.project.DumbAware
@@ -96,11 +95,11 @@ data class WarningsFilter(
   }
 }
 
-private abstract class WarningsFilterToggleAction(
+abstract class WarningsFilterToggleAction(
   uiName: String,
   val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : ToggleAction(uiName), DumbAware, KeepingPopupOpenAction {
+) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 
   private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
   private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
@@ -119,17 +118,18 @@ private abstract class WarningsFilterToggleAction(
     // they correspond to different notions:
     // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
     // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
-    toggleableIcon.setLayerEnabled(1, isSelected(e))
-    toggleableSelectedIcon.setLayerEnabled(1, isSelected(e))
+    val selected = isSelected(warningsModel.filter)
+    toggleableIcon.setLayerEnabled(1, selected)
+    toggleableSelectedIcon.setLayerEnabled(1, selected)
   }
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) {
+  private fun setSelected(state: Boolean) {
     val updatedFilter = if (state) onAdd(warningsModel.filter)
     else onRemove(warningsModel.filter)
     actionHandlers.applyWarningsFilter(updatedFilter)
   }
 
-  override fun isSelected(e: AnActionEvent): Boolean = isSelected(warningsModel.filter)
+  override fun actionPerformed(e: AnActionEvent) = setSelected(!isSelected(warningsModel.filter))
 
   abstract fun onAdd(filter: WarningsFilter): WarningsFilter
   abstract fun onRemove(filter: WarningsFilter): WarningsFilter
@@ -266,11 +266,11 @@ private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
   PluginSourceType.THIRD_PARTY -> "Other"
 }
 
-private abstract class TasksFilterToggleAction(
+abstract class TasksFilterToggleAction(
   uiName: String,
   val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
-) : ToggleAction(uiName), DumbAware, KeepingPopupOpenAction {
+) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 
   private val toggleableIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getIcon("checkmark"))
   private val toggleableSelectedIcon = LayeredIcon(EmptyIcon.ICON_16, LafIconLookup.getSelectedIcon("checkmark"))
@@ -289,16 +289,17 @@ private abstract class TasksFilterToggleAction(
     // they correspond to different notions:
     // - setSelected()/isSelected() correspond to the action state, if is should be marked as being 'on'.
     // - 'selected' icon is used when list row is under selection and rendered in selection color (e.g. dark blue).
-    toggleableIcon.setLayerEnabled(1, isSelected(e))
-    toggleableSelectedIcon.setLayerEnabled(1, isSelected(e))
+    val selected = isSelected(tasksModel.filter)
+    toggleableIcon.setLayerEnabled(1, selected)
+    toggleableSelectedIcon.setLayerEnabled(1, selected)
   }
 
-  override fun setSelected(e: AnActionEvent, state: Boolean) {
+  private fun setSelected(state: Boolean) {
     val updatedFilter = if (state) onAdd(tasksModel.filter) else onRemove(tasksModel.filter)
     actionHandlers.applyTasksFilter(updatedFilter)
   }
 
-  override fun isSelected(e: AnActionEvent): Boolean = isSelected(tasksModel.filter)
+  override fun actionPerformed(e: AnActionEvent) = setSelected(!isSelected(tasksModel.filter))
 
   abstract fun onAdd(filter: TasksFilter): TasksFilter
   abstract fun onRemove(filter: TasksFilter): TasksFilter
