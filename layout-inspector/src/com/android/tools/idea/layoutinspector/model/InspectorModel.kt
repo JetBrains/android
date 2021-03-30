@@ -60,9 +60,6 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   // synthetic node to hold the roots of the current windows.
   val root = ViewNode("root - hide")
 
-  val hasSubImages
-    get() = windows.values.any { it.hasSubImages }
-
   /** Whether there are currently any views in this model */
   val isEmpty
     get() = windows.isEmpty()

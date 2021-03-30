@@ -77,7 +77,7 @@ class ViewAndroidWindow(
   }
 
   @Slow
-  override fun doRefreshImages(scale: Double) {
+  override fun refreshImages(scale: Double) {
     if (bytes.isNotEmpty()) {
       try {
         when (imageType) {

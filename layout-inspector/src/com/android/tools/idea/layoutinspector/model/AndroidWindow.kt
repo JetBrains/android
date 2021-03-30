@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 /**
  * Container for window-level information in the layout inspector.
@@ -61,18 +60,9 @@ abstract class AndroidWindow(
   val height: Int
     get() = root.height
 
-  // TODO: find a way to achieve the behavior allowed by this in a cleaner fashion
-  var hasSubImages = calculateHasSubimages()
-    private set
-
   @OverridingMethodsMustInvokeSuper
   open fun copyFrom(other: AndroidWindow) {
     imageType = other.imageType
-  }
-
-  fun refreshImages(scale: Double) {
-    doRefreshImages(scale)
-    hasSubImages = calculateHasSubimages()
   }
 
   /**
@@ -82,10 +72,6 @@ abstract class AndroidWindow(
    * Subclasses are expected to respect this window's [imageType] and call [ViewNode.writeDrawChildren] to generate draw results into
    * [ViewNode.drawChildren].
    */
-  protected abstract fun doRefreshImages(scale: Double)
+  abstract fun refreshImages(scale: Double)
 
-  private fun calculateHasSubimages(): Boolean =
-    ViewNode.readDrawChildren { drawChildren ->
-      root.flatten().minus(root).any { it.drawChildren().firstIsInstanceOrNull<DrawViewImage>() != null }
-    }
 }
