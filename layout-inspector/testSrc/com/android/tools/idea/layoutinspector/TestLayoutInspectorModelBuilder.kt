@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -58,6 +60,7 @@ fun window(windowId: Any,
     }
   }
 
+private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
 
 fun view(drawId: Long,
          x: Int = 0,
@@ -69,7 +72,7 @@ fun view(drawId: Long,
          viewId: ResourceReference? = null,
          textValue: String = "",
          layoutFlags: Int = 0,
-         layout: ResourceReference? = null,
+         layout: ResourceReference? = defaultLayout,
          body: InspectorViewDescriptor.() -> Unit = {}) =
   InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout)
     .also(body).build()
@@ -85,8 +88,9 @@ fun compose(drawId: Long,
             width: Int = 0,
             height: Int = 0,
             body: InspectorViewDescriptor.() -> Unit = {}) =
-  InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0, null,
-                          composeFilename, composePackageHash, composeOffset, composeLineNumber).also(body)
+  InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0,
+                          composeFilename = composeFilename, composePackageHash = composePackageHash, composeOffset = composeOffset,
+                          composeLineNumber = composeLineNumber).also(body)
 
 interface InspectorNodeDescriptor
 class InspectorImageDescriptor(internal val image: BufferedImage): InspectorNodeDescriptor
@@ -101,7 +105,7 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val viewId: ResourceReference?,
                               private val textValue: String,
                               private val layoutFlags: Int,
-                              private val layout: ResourceReference?,
+                              private val layout: ResourceReference? = defaultLayout,
                               private val composeFilename: String = "",
                               private val composePackageHash: Int = 0,
                               private val composeOffset: Int = 0,
@@ -124,7 +128,7 @@ class InspectorViewDescriptor(private val drawId: Long,
            viewId: ResourceReference? = null,
            textValue: String = "",
            layoutFlags: Int = 0,
-           layout: ResourceReference? = null,
+           layout: ResourceReference? = defaultLayout,
            body: InspectorViewDescriptor.() -> Unit = {}) =
     children.add(InspectorViewDescriptor(
       drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout).apply(body))
@@ -150,8 +154,10 @@ class InspectorViewDescriptor(private val drawId: Long,
               width: Int = 0,
               height: Int = 0,
               body: InspectorViewDescriptor.() -> Unit = {}) =
-    children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0, null,
-                                         composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags).apply(body))
+    children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0,
+                                         composeFilename = composeFilename, composePackageHash = composePackageHash,
+                                         composeOffset = composeOffset, composeLineNumber = composeLineNumber,
+                                         composeFlags = composeFlags).apply(body))
 
   fun build(): ViewNode {
     val result =
@@ -190,7 +196,7 @@ class InspectorModelDescriptor(val project: Project) {
            viewId: ResourceReference? = null,
            textValue: String = "",
            layoutFlags: Int = 0,
-           layout: ResourceReference? = null,
+           layout: ResourceReference? = defaultLayout,
            imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            body: InspectorViewDescriptor.() -> Unit = {}) {
     root = InspectorViewDescriptor(
@@ -203,8 +209,9 @@ class InspectorModelDescriptor(val project: Project) {
            viewId: ResourceReference? = null,
            textValue: String = "",
            imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
+           layout: ResourceReference? = defaultLayout,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, null,
+    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, layout,
          imageType, body)
 
   fun build(): InspectorModel {

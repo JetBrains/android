@@ -160,14 +160,14 @@ class DeviceViewContentPanel(
 
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        val view = nodeAtPoint(e)?.findClosestUnfilteredNode()
+        val view = nodeAtPoint(e)
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
         inspectorModel.stats.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)?.findClosestUnfilteredNode()
+        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)
       }
     }
     addMouseListener(listener)
@@ -175,7 +175,7 @@ class DeviceViewContentPanel(
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        val views = findComponentsAt(x, y).filter { it.isInComponentTree }
+        val views = findComponentsAt(x, y)
         showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
@@ -274,7 +274,7 @@ class DeviceViewContentPanel(
     val view = drawView.owner
     val selection = inspectorModel.selection
 
-    if (!drawInfo.isCollapsed && view.isInComponentTree &&
+    if (!drawInfo.isCollapsed &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
