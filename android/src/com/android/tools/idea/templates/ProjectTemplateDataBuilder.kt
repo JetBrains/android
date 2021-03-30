@@ -34,7 +34,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.File
 
 val log: Logger get() = logger<ProjectTemplateDataBuilder>()
@@ -44,6 +44,9 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  *
  * Extracts information from various data sources.
  */
+
+const val DEFAULT_KOTLIN_VERSION = "1.4.31"
+
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
@@ -61,12 +64,21 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
-    kotlinVersion = bundledRuntimeVersion()
+    kotlinVersion = getBestKotlinVersion()
     gradlePluginVersion = determineGradlePluginVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
     }
+  }
+
+  private fun getBestKotlinVersion() : String {
+    // From https://github.com/JetBrains/intellij-kotlin/blob/master/project-wizard/idea/src/org/jetbrains/kotlin/tools/projectWizard/wizard/service/IdeaKotlinVersionProviderService.kt
+    val kotlinVersionFromCompiler = KotlinCompilerVersion.getVersion()
+      ?.takeUnless { it.contains("snapshot", ignoreCase = true) }
+      ?.substringBefore("-release")
+
+    return kotlinVersionFromCompiler ?: DEFAULT_KOTLIN_VERSION // The default version will only be used as a fallback
   }
 
   /**
@@ -89,7 +101,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   }
 
   /**
-   * Same as [setFacet], but uses a [AndroidVersionsInfo.VersionItem]. This version is used when the Module is not created yet.
+   * This version is used when the Module is not created yet.
    *
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
