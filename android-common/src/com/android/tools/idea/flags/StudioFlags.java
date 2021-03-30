@@ -706,6 +706,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "folding", "Enable Emulator Folding",
     "Enables display folding in the Embedded Emulator",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(
+    EMBEDDED_EMULATOR, "screenshot.statistics", "Enable Collection of Screenshot Statistics",
+    "Captures statistics of received Emulator screenshots",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
