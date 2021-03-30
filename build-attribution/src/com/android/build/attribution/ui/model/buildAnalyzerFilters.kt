@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
@@ -59,15 +58,14 @@ data class WarningsFilter(
   val showTaskSourceTypes: Set<PluginSourceType>,
   val showTaskWarningTypes: Set<TaskIssueType>,
   val showAnnotationProcessorWarnings: Boolean,
-  val showNonCriticalPathTasks: Boolean
+  val showNonCriticalPathTasks: Boolean,
+  val showConfigurationCacheWarnings: Boolean
 ) {
 
   fun acceptTaskIssue(issueData: TaskIssueUiData): Boolean =
     showTaskWarningTypes.contains(issueData.type) &&
     showTaskSourceTypes.contains(issueData.task.sourceType) &&
     (showNonCriticalPathTasks || issueData.task.onExtendedCriticalPath)
-
-  fun acceptAnnotationProcessorIssue(annotationProcessorData: AnnotationProcessorUiData): Boolean = showAnnotationProcessorWarnings
 
   fun toUiText(): String {
     val taskWarningsPart = when {
@@ -78,8 +76,9 @@ data class WarningsFilter(
     }
 
     val annotationProcessorsPart = if (showAnnotationProcessorWarnings) "Annotation processors" else ""
+    val configurationCachePart = if (showConfigurationCacheWarnings) "Configuration cache" else ""
 
-    return sequenceOf(taskWarningsPart, annotationProcessorsPart)
+    return sequenceOf(taskWarningsPart, annotationProcessorsPart, configurationCachePart)
              .filter { it.isNotBlank() }
              .joinToString(separator = ", ")
              .takeIf { it.isNotBlank() } ?: "Nothing selected"
@@ -90,7 +89,8 @@ data class WarningsFilter(
       showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
       showAnnotationProcessorWarnings = true,
-      showNonCriticalPathTasks = false
+      showNonCriticalPathTasks = false,
+      showConfigurationCacheWarnings = true
     )
   }
 }
@@ -166,28 +166,17 @@ private class TaskSourceTypeWarningFilterToggleAction(
   override fun isSelected(filter: WarningsFilter): Boolean = filter.showTaskSourceTypes.contains(sourceType)
 }
 
-private class AnnotationProcessorWarningsFilterToggleAction(
+
+private class BoolValueWarningsFilterToggleAction(
   uiName: String,
   warningsModel: WarningsDataPageModel,
-  actionHandlers: ViewActionHandlers
+  actionHandlers: ViewActionHandlers,
+  val valueGetter: (WarningsFilter) -> Boolean,
+  val valueSetter: (WarningsFilter, Boolean) -> WarningsFilter
 ) : WarningsFilterToggleAction(uiName, warningsModel, actionHandlers) {
-  override fun onAdd(filter: WarningsFilter): WarningsFilter = filter.copy(showAnnotationProcessorWarnings = true)
-
-  override fun onRemove(filter: WarningsFilter): WarningsFilter = filter.copy(showAnnotationProcessorWarnings = false)
-
-  override fun isSelected(filter: WarningsFilter): Boolean = filter.showAnnotationProcessorWarnings
-}
-
-private class NonCriticalPathTaskWarningsFilterToggleAction(
-  uiName: String,
-  warningsModel: WarningsDataPageModel,
-  actionHandlers: ViewActionHandlers
-) : WarningsFilterToggleAction(uiName, warningsModel, actionHandlers) {
-  override fun onAdd(filter: WarningsFilter): WarningsFilter = filter.copy(showNonCriticalPathTasks = true)
-
-  override fun onRemove(filter: WarningsFilter): WarningsFilter = filter.copy(showNonCriticalPathTasks = false)
-
-  override fun isSelected(filter: WarningsFilter): Boolean = filter.showNonCriticalPathTasks
+  override fun onAdd(filter: WarningsFilter): WarningsFilter = valueSetter(filter, true)
+  override fun onRemove(filter: WarningsFilter): WarningsFilter = valueSetter(filter, false)
+  override fun isSelected(filter: WarningsFilter): Boolean = valueGetter(filter)
 }
 
 fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup {
@@ -211,11 +200,18 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
     add(TaskSourceTypeWarningFilterToggleAction(
       "Show issues for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
     ))
-    add(NonCriticalPathTaskWarningsFilterToggleAction(
-      "Include issues for tasks non determining this build duration", model, actionHandlers
+    add(BoolValueWarningsFilterToggleAction(
+      "Include issues for tasks non determining this build duration", model, actionHandlers,
+      valueGetter = { filter -> filter.showNonCriticalPathTasks },
+      valueSetter = { filter, value -> filter.copy(showNonCriticalPathTasks = value) }
     ))
     addSeparator("Other warnings")
-    add(AnnotationProcessorWarningsFilterToggleAction("Show annotation processors issues", model, actionHandlers))
+    add(BoolValueWarningsFilterToggleAction("Show annotation processors issues", model, actionHandlers,
+                                            valueGetter = { filter -> filter.showAnnotationProcessorWarnings },
+                                            valueSetter = { filter, value -> filter.copy(showAnnotationProcessorWarnings = value) }))
+    add(BoolValueWarningsFilterToggleAction("Show configuration cache issues", model, actionHandlers,
+                                            valueGetter = { filter -> filter.showConfigurationCacheWarnings },
+                                            valueSetter = { filter, value -> filter.copy(showConfigurationCacheWarnings = value) }))
   }
 }
 

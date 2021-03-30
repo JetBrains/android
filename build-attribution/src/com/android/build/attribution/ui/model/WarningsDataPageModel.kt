@@ -212,41 +212,39 @@ private class WarningsTreeStructure(
         }
       }
       treeStats.totalWarningsCount += reportData.issues.sumBy { it.warningCount }
-      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
-        .filter { filter.acceptAnnotationProcessorIssue(it) }
-        .map { AnnotationProcessorDetailsNodeDescriptor(it) }
-        .toList()
-        .ifNotEmpty {
-          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
-          rootNode.add(annotationProcessorsRootNode)
-          forEach {
-            annotationProcessorsRootNode.add(treeNode(it))
+
+      if (filter.showAnnotationProcessorWarnings) {
+        reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+          .map { AnnotationProcessorDetailsNodeDescriptor(it) }
+          .toList()
+          .ifNotEmpty {
+            val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+            rootNode.add(annotationProcessorsRootNode)
+            forEach {
+              annotationProcessorsRootNode.add(treeNode(it))
+            }
+            treeStats.filteredWarningsCount += size
           }
-          treeStats.filteredWarningsCount += size
-        }
+      }
       treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
 
       // Add configuration caching issues
-      if (reportData.confCachingData != ConfigurationCachingTurnedOn) {
+      if (filter.showConfigurationCacheWarnings && reportData.confCachingData != ConfigurationCachingTurnedOn) {
         val configurationDuration = reportData.buildSummary.configurationDuration
-        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(reportData.confCachingData, configurationDuration)).apply {
-          reportData.confCachingData.let {
-            if (it is IncompatiblePluginsDetected) {
-              it.upgradePluginWarnings.forEach {
-                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
-              }
-              it.incompatiblePluginWarnings.forEach {
-                add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
-              }
+        val configurationCacheData = reportData.confCachingData
+        rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(configurationCacheData, configurationDuration)).apply {
+          if (configurationCacheData is IncompatiblePluginsDetected) {
+            configurationCacheData.upgradePluginWarnings.forEach {
+              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
             }
-            // Update tree stats.
-            it.warningsCount().let { warnings ->
-              treeStats.filteredWarningsCount += warnings
-              treeStats.totalWarningsCount += warnings
+            configurationCacheData.incompatiblePluginWarnings.forEach {
+              add(treeNode(ConfigurationCachingWarningNodeDescriptor(it, configurationDuration)))
             }
           }
         })
+        treeStats.filteredWarningsCount += configurationCacheData.warningsCount()
       }
+      treeStats.totalWarningsCount += reportData.confCachingData.warningsCount()
     }
   }
 
