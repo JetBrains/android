@@ -15,12 +15,25 @@
  */
 package com.android.tools.idea.wearparing
 
+import com.android.ddmlib.IDevice
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.project.Project
+
+enum class ConnectionState {
+  ONLINE, OFFLINE, DISCONNECTED
+}
+
 data class PairingDevice(
   val deviceID: String,
   val displayName: String,
   val versionName: String,
   val isWearDevice: Boolean,
   val hasPlayStore: Boolean,
-  val isOnline: Boolean,
+  val state: ConnectionState,
   val isPaired: Boolean,
-)
+) {
+  // This field is declared outside the main constructor because it should not be used for equals/hash. Kotlin doesn't have a better way.
+  lateinit var launch: (Project) -> ListenableFuture<IDevice>
+
+  fun isOnline(): Boolean = state == ConnectionState.ONLINE
+}
