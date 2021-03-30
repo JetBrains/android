@@ -177,18 +177,13 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
 
   @NotNull
   private UrlClassLoader createJarClassLoader(@NotNull List<URL> urls) {
-    return new UrlClassLoader(UrlClassLoader.build()
-                                .parent(this)
-                                .urls(urls)
-                                .useCache(ourLoaderCachePool, url -> true)
-                                .allowLock(myAllowExternalJarFileLocking)
-                                .setLogErrorOnMissingJar(false)) {
-      // TODO(b/151089727): Fix this (see RenderClassLoader#getResources)
-      @Override
-      public Enumeration<URL> getResources(String name) throws IOException {
-        return findResources(name);
-      }
-    };
+    return UrlClassLoader.build()
+      .parent(new FirewalledResourcesClassLoader(this))
+      .urls(urls)
+      .useCache(ourLoaderCachePool, url -> true)
+      .allowLock(myAllowExternalJarFileLocking)
+      .setLogErrorOnMissingJar(false)
+      .get();
   }
 
   @NotNull
