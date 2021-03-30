@@ -16,7 +16,8 @@
 
 package com.android.tools.idea.wearparing
 
-import com.android.tools.idea.ui.wizard.WizardUtils
+import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.intellij.openapi.actionSystem.ActionManager
@@ -24,7 +25,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
+import java.net.URL
 
 class WearDevicePairingWizard {
   private var wizardDialog: ModelWizardDialog? = null
@@ -42,21 +45,22 @@ class WearDevicePairingWizard {
     }
     val model = WearDevicePairingModel()
     val modelWizard = ModelWizard.Builder()
-      .addStep(DeviceListStep(model, emptyListClickedAction))
+      .addStep(DeviceListStep(model, project, emptyListClickedAction))
       .build()
 
     // Remove the dialog reference when the dialog is disposed (closed).
     Disposer.register(modelWizard, { wizardDialog = null })
 
-    wizardDialog = ModelWizardDialog(
-      modelWizard,
-      "Wear OS emulator pairing assistant",
-      null,
-      project,
-      WizardUtils.toUrl("https://developer.android.com/training/wearables/apps/creating#pair-phone-with-avd"),
-      DialogWrapper.IdeModalityType.MODELESS,
-      ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
-    )
+    WearPairingManager.setWearPairingListener(model.deviceList)
+
+    wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
+      .setProject(project)
+      .setHelpUrl(URL("https://developer.android.com/training/wearables/apps/creating#pair-phone-with-avd"))
+      .setModalityType(DialogWrapper.IdeModalityType.MODELESS)
+      .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL)
+      .setPreferredSize(JBUI.size(500, 350))
+      .setMinimumSize(JBUI.size(400, 250))
+      .build(SimpleStudioWizardLayout())
 
     wizardDialog?.show()
   }
