@@ -60,7 +60,7 @@ class ViewNodeTest {
   @Test
   fun testIsSystemNode() {
     val model = model {
-      view(ROOT) {
+      view(ROOT, layout = null) {
         view(VIEW1, layout = LAYOUT_SCREEN_SIMPLE) {
           view(VIEW2, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {
             view(VIEW3, layout = LAYOUT_MAIN)
@@ -94,7 +94,7 @@ class ViewNodeTest {
   @Test
   fun testClosestUnfilteredNode() {
     val model = model {
-      view(ROOT) {
+      view(ROOT, layout = null) {
         view(VIEW1, layout = LAYOUT_MAIN) {
           view(VIEW2, layout = LAYOUT_SCREEN_SIMPLE) {
             view(VIEW3, layout = LAYOUT_APPCOMPAT_SCREEN_SIMPLE) {

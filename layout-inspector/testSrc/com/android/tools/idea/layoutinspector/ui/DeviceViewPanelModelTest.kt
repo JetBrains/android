@@ -75,8 +75,8 @@ class DeviceViewPanelModelTest {
   fun testFlatRectsWithHiddenSystemNodes() {
     TreeSettings.hideSystemNodes = true
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -25.0, -40.0),
-      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -25.0, -40.0))
+      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0),
+      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0))
 
     checkRects(expectedTransforms, 0.0, 0.0)
   }
@@ -96,8 +96,8 @@ class DeviceViewPanelModelTest {
   fun test1dRectsWithHiddenSystemNodes() {
     TreeSettings.hideSystemNodes = true
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -24.925, -40.0),
-      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.925, -40.0))
+      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0),
+      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0))
 
     checkRects(expectedTransforms, 0.1, 0.0)
   }
@@ -268,8 +268,8 @@ class DeviceViewPanelModelTest {
 
     @Suppress("MapGetWithNotNullAssertionOperator")
     val model = model {
-      view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP) {
-        view(VIEW1, rectMap[VIEW1]!!) {
+      view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP, layout = null) {
+        view(VIEW1, rectMap[VIEW1]!!, layout = null) {
           view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) {
             image()
           }
@@ -289,10 +289,10 @@ class DeviceViewPanelModelTest {
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(xOff, yOff)
 
-    val actualTransforms = panelModel.hitRects.associate { it.node.owner.drawId to it.transform }
+    val actualTransforms = panelModel.hitRects.associate { it.node.owner?.drawId to it.transform }
     assertEquals(expectedTransforms, actualTransforms)
 
-    panelModel.hitRects.associateBy { it.node.owner.drawId }.forEach { (drawId, info) ->
+    panelModel.hitRects.associateBy { it.node.owner?.drawId }.forEach { (drawId, info) ->
       assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
     }
   }

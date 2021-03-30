@@ -55,11 +55,11 @@ object CheckUtil {
 
   private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode) {
     if (expected is DrawViewChild && actual is DrawViewChild) {
-      assertDrawTreesEqual(expected.owner, actual.owner)
+      assertDrawTreesEqual(expected.owner!!, actual.owner!!)
     }
     else if (expected is DrawViewImage && actual is DrawViewImage) {
       if (expected.image !is BufferedImage) {
-        fail("expected image should be a BufferedImage for id ${expected.owner.drawId}")
+        fail("expected image should be a BufferedImage for id ${expected.owner!!.drawId}")
       }
       ImageDiffUtil.assertImageSimilar("image", expected.image as BufferedImage, actual.image, 0.0)
     }

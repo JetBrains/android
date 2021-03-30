@@ -204,7 +204,12 @@ class LayoutInspectorTreePanelTest {
     assertThat(model[VIEW1]!!.qualifiedName).isEqualTo(FQCN_RELATIVE_LAYOUT)
 
     // ROOT & VIEW4 are system views (no layout, android layout)
-    model.update(window(ROOT, ROOT) { view(VIEW4, layout = android) { view(VIEW1, layout = demo) } }, listOf(ROOT), 0)
+    model.update(
+      window(ROOT, ROOT) {
+        view(VIEW4, layout = android) {
+          view(VIEW1, layout = demo)
+        }
+      }, listOf(ROOT), 0)
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jtree).blockingGet(1, TimeUnit.SECONDS)
     assertThat(jtree.rowCount).isEqualTo(1)

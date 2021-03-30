@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.window
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
@@ -241,15 +242,19 @@ class InspectorModelTest {
     assertSingleRoot(model)
   }
 
+  private fun DrawViewNode.flattenDrawChildren(drawChildren: ViewNode.() -> List<DrawViewNode>): List<DrawViewNode> =
+    listOf(this).plus(this.unfilteredOwner.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) })
+
   private fun assertSingleRoot(model: InspectorModel) {
     ViewNode.readDrawChildren { drawChildren ->
-      assertEquals(
-        model.root.flatten()
-          .flatMap { it.drawChildren().asSequence().map { drawChild -> drawChild.owner }.plus(it) }
-          .map { it.parentSequence.last() }
-          .distinct()
-          .single(),
-        model.root)
+      val allDrawChildren = model.root.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) }
+      // Check that the drawView tree contains exactly the drawChildren of every element of the view tree
+      assertThat(allDrawChildren).containsExactlyElementsIn(
+        model.root.flatten().flatMap { it.drawChildren().asSequence() }.toList())
+      // Check that the unfiltered owners of the drawViews are all in the view tree
+      assertThat(model.root.flatten().toList()).containsAllIn(allDrawChildren.map { it.unfilteredOwner })
+      // Check that the owners of the drawViews are all in the view tree or null
+      assertThat(model.root.flatten().plus(null).toList()).containsAllIn(allDrawChildren.map { it.owner })
     }
   }
 }

@@ -210,7 +210,7 @@ class DeviceViewContentPanelTest {
   @Test
   fun testPaintWithHiddenSystemViews() {
     val model = model {
-      view(ROOT, 0, 0, 500, 1000) {
+      view(ROOT, 0, 0, 500, 1000, layout = null) {
         view(VIEW1, 125, 150, 250, 250, layout = activityMain) {
           image()
         }
@@ -421,7 +421,7 @@ class DeviceViewContentPanelTest {
     val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
+      view(ROOT, 0, 0, 100, 200, layout = null) {
         view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
           view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
             view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat) {
