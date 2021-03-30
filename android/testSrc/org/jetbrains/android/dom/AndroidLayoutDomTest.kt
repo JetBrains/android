@@ -307,6 +307,51 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testFloatLiteralResourceCompletion() {
+    myFixture.addFileToProject(
+      "res/values/other_integers.xml",
+      //language=XML
+      """
+      <resources>
+        <integer name="foo">150</integer>
+      </resources>
+      """.trimIndent())
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:rotationX="$caret">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect integer related resources
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@integer/foo")
+  }
+
+  fun testFloatLiteralResourceHighlighting() {
+    val highlightedFile = myFixture.addFileToProject(
+      "res/layout/incorrect_layout.xml",
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:rotationX="<error descr="Cannot resolve float 'bad float'">bad float</error>">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(highlightedFile)
+    myFixture.checkHighlighting()
+  }
+
   fun testAutoFillHints() {
     val layoutFile = myFixture.addFileToProject(
       "res/layout/layout.xml",

@@ -77,7 +77,6 @@ import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -116,6 +115,7 @@ import org.jetbrains.android.dom.converters.AutoFillHintsConverter;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
 import org.jetbrains.android.dom.converters.FlagConverter;
+import org.jetbrains.android.dom.converters.FloatConverter;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
 import org.jetbrains.android.dom.converters.IntegerConverter;
 import org.jetbrains.android.dom.converters.OnClickConverter;
@@ -253,14 +253,16 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter<String> getStringConverter(@NotNull AttributeFormat format, @NotNull String[] values) {
     switch (format) {
-      case ENUM:
-        return new StaticEnumConverter(values);
       case BOOLEAN:
         return BOOLEAN_CONVERTER;
-      case INTEGER:
-        return IntegerConverter.INSTANCE;
       case DIMENSION:
         return DimensionConverter.INSTANCE;
+      case ENUM:
+        return new StaticEnumConverter(values);
+      case INTEGER:
+        return IntegerConverter.INSTANCE;
+      case FLOAT:
+        return FloatConverter.INSTANCE;
       default:
         return null;
     }
