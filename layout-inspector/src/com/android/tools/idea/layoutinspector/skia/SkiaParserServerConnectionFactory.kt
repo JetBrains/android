@@ -23,13 +23,14 @@ import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.common.toInt
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.util.StudioPathManager
+import com.android.tools.layoutinspector.LayoutInspectorUtils
+import com.android.tools.layoutinspector.LayoutInspectorUtils.getSkpVersion
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -38,10 +39,6 @@ import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
-import javax.xml.bind.JAXBContext
-import javax.xml.bind.annotation.XmlAttribute
-import javax.xml.bind.annotation.XmlElement
-import javax.xml.bind.annotation.XmlRootElement
 
 private const val PARSER_PACKAGE_NAME = "skiaparser"
 
@@ -49,7 +46,7 @@ private const val PARSER_PACKAGE_NAME = "skiaparser"
 // It's the parser's responsibility to be compatible with all supported studio versions.
 private val minimumRevisions = mapOf(
   "skiaparser;1" to Revision(6),
-  "skiaparser;2" to Revision(1)
+  "skiaparser;2" to Revision(2)
 )
 
 fun interface SkiaParserServerConnectionFactory {
@@ -143,7 +140,6 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     }
   }
 
-  private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
   private val devbuildServerInfo = ServerInfo(null, -1, -1)
   private var supportedVersionMap: Map<Int?, ServerInfo>? = null
   private var latestPackagePath: String? = null
@@ -232,11 +228,9 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     if (latestPackage != null) {
       val mappingFile = latestPackage.location.resolve(VERSION_MAP_FILE_NAME)
       try {
-        val mapInputStream = CancellableFileIo.newInputStream(mappingFile)
-        val map = unmarshaller.unmarshal(mapInputStream) as VersionMap
         synchronized(mapLock) {
           val newMap = mutableMapOf<Int?, ServerInfo>()
-          for (spec in map.servers) {
+          for (spec in LayoutInspectorUtils.loadSkiaParserVersionMap(mappingFile).servers) {
             val existing = supportedVersionMap?.get(spec.version)
             if (existing?.skpVersionRange?.start == spec.skpStart && existing.skpVersionRange.last == spec.skpEnd) {
               newMap[spec.version] = existing
@@ -258,49 +252,12 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
   private fun getLatestParserPackage(sdkHandler: AndroidSdkHandler): LocalPackage? {
     return sdkHandler.getLatestLocalPackageForPrefix(PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
   }
-
-  @VisibleForTesting
-  fun getSkpVersion(data: ByteArray): Int {
-    // SKPs start with "skiapict" in ascii
-    if (data.slice(0..7) != "skiapict".toByteArray(Charsets.US_ASCII).asList() || data.size < 12) {
-      throw InvalidPictureException()
-    }
-    return data.sliceArray(8..11).toInt()
-  }
-}
-
-@XmlRootElement(name="versionMapping")
-private class VersionMap {
-  @XmlElement(name = "server")
-  val servers: MutableList<ServerVersionSpec> = mutableListOf()
-}
-
-/**
- * The `SkPicture` versions supported by a given `skiaparser` server version. Used by JAXB to parse `version-map.xml`.
- */
-private class ServerVersionSpec {
-  /** The version of the `skiaparser` package (e.g. the `1` in the sdk package `skiaparser;1` */
-  @XmlAttribute(name = "version", required = true)
-  val version: Int = 0
-
-  /** The first `SkPicture` version supported by this server. */
-  @XmlAttribute(name = "skpStart", required = true)
-  val skpStart: Int = 0
-
-  /** The last `SkPicture` version supported by this server. */
-  @XmlAttribute(name = "skpEnd", required = false)
-  val skpEnd: Int? = null
 }
 
 /**
  * Thrown if a request is made to create a server for a `SkPicture` with a version that we don't know how to render.
  */
 class UnsupportedPictureVersionException(val version: Int) : Exception()
-
-/**
- * Thrown if a request is made to create a server for something that doesn't look like a valid `SkPicture`.
- */
-class InvalidPictureException : Exception()
 
 /**
  * Thrown if parsing a `SkPicture` fails in the parser.

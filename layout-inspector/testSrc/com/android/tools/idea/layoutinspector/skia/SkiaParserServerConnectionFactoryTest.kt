@@ -19,7 +19,6 @@ import com.android.repository.testframework.MockFileOp
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -31,14 +30,6 @@ class SkiaParserServerConnectionFactoryTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(fakeSdkRule)!!
-
-  @Test
-  fun testGetSkpVersion() {
-    val version =
-      SkiaParserServerConnectionFactoryImpl.getSkpVersion("skiapict".toByteArray().plus(byteArrayOf(10, 0, 1, 0)).plus("blah".toByteArray()))
-    TestCase.assertEquals(65546, version)
-  }
-
 
   // TODO: test with downloading (currently no way to mock out installation)
   @Test
