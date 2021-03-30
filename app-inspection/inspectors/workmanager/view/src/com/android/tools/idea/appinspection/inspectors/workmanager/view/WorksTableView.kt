@@ -128,11 +128,14 @@ class WorksTableView(tab: WorkManagerInspectorTab,
         val tableModelRow = client.lockedWorks { works ->
           works.indexOfFirst { it.id == work.id }
         }
-        if (tableModelRow != -1) {
+        if (tableModelRow != -1 && tableModelRow < model.rowCount) {
           val tableRow = convertRowIndexToView(tableModelRow)
-          addRowSelectionInterval(tableRow, tableRow)
-          if (context == WorkSelectionModel.Context.DETAILS) {
-            scrollRectToVisible(Rectangle(getCellRect(tableRow, 0, true)))
+          // Check if the row converted from model is visible.
+          if (tableRow != -1) {
+            addRowSelectionInterval(tableRow, tableRow)
+            if (context == WorkSelectionModel.Context.DETAILS) {
+              scrollRectToVisible(Rectangle(getCellRect(tableRow, 0, true)))
+            }
           }
         }
       }
