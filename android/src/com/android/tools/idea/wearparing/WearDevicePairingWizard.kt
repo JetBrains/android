@@ -19,19 +19,36 @@ package com.android.tools.idea.wearparing
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 
+class WearDevicePairingWizard {
+  private var wizardDialog: ModelWizardDialog? = null
 
-class WearDevicePairingWizard(val project: Project) {
+  @Synchronized
+  fun show(project: Project) {
+    wizardDialog?.apply {
+      window?.toFront()  // We already have a dialog, just bring it to front and return
+      return
+    }
 
-  fun show() {
+    val emptyListClickedAction = {
+      wizardDialog?.close(CANCEL_EXIT_CODE)
+      (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
+    }
     val model = WearDevicePairingModel()
     val modelWizard = ModelWizard.Builder()
-      .addStep(DeviceListStep(model, project))
+      .addStep(DeviceListStep(model, emptyListClickedAction))
       .build()
 
-    ModelWizardDialog(
+    // Remove the dialog reference when the dialog is disposed (closed).
+    Disposer.register(modelWizard, { wizardDialog = null })
+
+    wizardDialog = ModelWizardDialog(
       modelWizard,
       "Wear OS emulator pairing assistant",
       null,
@@ -39,6 +56,8 @@ class WearDevicePairingWizard(val project: Project) {
       WizardUtils.toUrl("https://developer.android.com/training/wearables/apps/creating#pair-phone-with-avd"),
       DialogWrapper.IdeModalityType.MODELESS,
       ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
-    ).show()
+    )
+
+    wizardDialog?.show()
   }
 }

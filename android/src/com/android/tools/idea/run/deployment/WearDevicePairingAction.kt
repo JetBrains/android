@@ -25,6 +25,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * The action to show the [WearDevicePairingWizard] dialog.
  */
 class WearDevicePairingAction : AnAction() {
+  // Keep an instance, so if the wizard is already running, just bring it to front
+  private val pairingWizard: WearDevicePairingWizard = WearDevicePairingWizard()
+
   @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -37,7 +40,7 @@ class WearDevicePairingAction : AnAction() {
       return
     }
     val project = event.project ?: return
-    WearDevicePairingWizard(project).show()
+    pairingWizard.show(project)
   }
 
   companion object {
