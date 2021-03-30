@@ -64,6 +64,7 @@ import com.intellij.application.subscribe
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -544,11 +545,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
+        // Force updating toolbar icons when build starts
+        ActivityTracker.getInstance().inc()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
         composeWorkBench.updateVisibilityAndNotifications()
+        // Force updating toolbar icons after build
+        ActivityTracker.getInstance().inc()
       }
 
       override fun buildStarted() {
@@ -560,6 +565,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // build is complete and refresh is triggered.
         ComposePreviewAnimationManager.invalidate()
         EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+        // Force updating toolbar icons after build
+        ActivityTracker.getInstance().inc()
       }
     }, this)
 
