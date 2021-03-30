@@ -13,7 +13,7 @@
   <size android:width="2dp" android:dashWidth="<error descr="Missing value"></error>"/>
   <solid/>
   <stroke android:width="4dp"
-          android:color="color"
+          android:color="<error>color</error>"
           android:dashWidth="<error>integer</error>"
           android:dashGap="<error>4</error>"
           <warning>android:aba</warning>=""/>

@@ -112,6 +112,7 @@ import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.converters.AutoFillHintsConverter;
+import org.jetbrains.android.dom.converters.ColorConverter;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
 import org.jetbrains.android.dom.converters.FlagConverter;
@@ -253,14 +254,16 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter<String> getStringConverter(@NotNull AttributeFormat format, @NotNull String[] values) {
     switch (format) {
-      case BOOLEAN:
-        return BOOLEAN_CONVERTER;
-      case DIMENSION:
-        return DimensionConverter.INSTANCE;
       case ENUM:
         return new StaticEnumConverter(values);
+      case BOOLEAN:
+        return BOOLEAN_CONVERTER;
       case INTEGER:
         return IntegerConverter.INSTANCE;
+      case DIMENSION:
+        return DimensionConverter.INSTANCE;
+      case COLOR:
+        return ColorConverter.INSTANCE;
       case FLOAT:
         return FloatConverter.INSTANCE;
       default:
