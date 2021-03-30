@@ -20,6 +20,8 @@ import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.util.UserDataHolder
+import com.intellij.openapi.util.UserDataHolderBase
 import kotlinx.coroutines.CompletableDeferred
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -35,7 +37,7 @@ import javax.swing.JTabbedPane
  */
 class AppInspectorTabShell(
   val provider: AppInspectorTabProvider
-) : Comparable<AppInspectorTabShell> {
+) : Comparable<AppInspectorTabShell>, UserDataHolderBase() {
   @VisibleForTesting
   val containerPanel = JPanel(BorderLayout())
 
