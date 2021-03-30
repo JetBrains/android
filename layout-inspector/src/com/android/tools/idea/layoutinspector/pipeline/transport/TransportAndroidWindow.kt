@@ -63,7 +63,7 @@ class TransportAndroidWindow(
   }
 
   @Slow
-  override fun doRefreshImages(scale: Double) {
+  override fun refreshImages(scale: Double) {
     val bytes = client.getPayload(payloadId)
     if (bytes.isNotEmpty()) {
       try {

@@ -21,7 +21,6 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
-import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.BasicStroke.CAP_BUTT
 import java.awt.BasicStroke.JOIN_MITER
@@ -202,17 +201,11 @@ class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : Draw
   override val canCollapse = true
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
-    val composite = g2.composite
-    // Check hasSubImages, since it doesn't make sense to dim if we're only showing one image.
-    if (model.selection != null && owner != model.selection && model.hasSubImages) {
-      g2.composite = AlphaComposite.SrcOver.derive(0.6f)
-    }
     val bounds = owner.transformedBounds.bounds
     UIUtil.drawImage(
       g2, image,
       Rectangle(max(bounds.x, 0), max(bounds.y, 0), bounds.width + min(bounds.x, 0), bounds.height + min(bounds.y, 0)),
       Rectangle(0, 0, image.getWidth(null), image.getHeight(null)), null)
-    g2.composite = composite
   }
 
   override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
