@@ -281,6 +281,8 @@
     <option name="or" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="separate" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
+    <option name="fold" path="ActionManager" hit="Fold/Unfold" />
+    <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
     <option name="force" path="ActionManager" hit="Force Refresh Layout" />
     <option name="layout" path="ActionManager" hit="Force Refresh Layout" />
     <option name="refresh" path="ActionManager" hit="Force Refresh Layout" />
@@ -661,6 +663,9 @@
     <option name="controls" path="ActionManager" hit="Show extended controls" />
     <option name="extended" path="ActionManager" hit="Show extended controls" />
     <option name="show" path="ActionManager" hit="Show extended controls" />
+    <option name="controls" path="ActionManager" hit="Show folding controls" />
+    <option name="folding" path="ActionManager" hit="Show folding controls" />
+    <option name="show" path="ActionManager" hit="Show folding controls" />
     <option name="editor" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="for" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="help" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />

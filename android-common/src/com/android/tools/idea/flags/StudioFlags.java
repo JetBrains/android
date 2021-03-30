@@ -697,6 +697,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
     "Enables configurable multiple displays in the Embedded Emulator",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_FOLDING = Flag.create(
+    EMBEDDED_EMULATOR, "folding", "Enable Emulator Folding",
+    "Enables display folding in the Embedded Emulator",
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",

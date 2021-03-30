@@ -125,8 +125,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
@@ -662,7 +662,7 @@ public class AvdManagerConnection {
     // In order for an AVD to be launched in a tool window the corresponding option should be
     // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
     return isEmulatorToolWindowAvailable(project) && // Emulator tool window is available only for Android projects.
-           !isFoldable(avd) &&
+           (StudioFlags.EMBEDDED_EMULATOR_FOLDING.get() || !isFoldable(avd)) &&
            (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() ||
             !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
             !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID)));

@@ -230,6 +230,7 @@ public class StudioIcons {
 
     public static class Toolbar {
       public static final Icon BACK = load("/studio/icons/emulator/toolbar/back.svg"); // 16x16
+      public static final Icon FOLD = load("/studio/icons/emulator/toolbar/fold.svg"); // 16x16
       public static final Icon HOME = load("/studio/icons/emulator/toolbar/home.svg"); // 16x16
       public static final Icon OVERVIEW = load("/studio/icons/emulator/toolbar/overview.svg"); // 16x16
       public static final Icon POWER = load("/studio/icons/emulator/toolbar/power.svg"); // 16x16
