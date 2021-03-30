@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.DisposableRule
@@ -93,8 +94,8 @@ class BuildAnalyzerFiltersTest {
   @Test
   fun testInitialWarningsFilterState() {
     val initialFilterActionsState = (warningsFilterActions(model.warningsPageModel, controller) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<ToggleAction>()
-      .map { it.templateText to it.isSelected(TestActionEvent()) }
+      .filterIsInstance<WarningsFilterToggleAction>()
+      .map { it.templateText to it.isSelected(model.warningsPageModel.filter) }
 
     val expected = listOf(
       "Show Always-run tasks" to true,
@@ -161,8 +162,8 @@ class BuildAnalyzerFiltersTest {
   @Test
   fun testInitialTaskFilterState() {
     val initialFilterActionsState = (tasksFilterActions(model.tasksPageModel, controller) as DefaultActionGroup).childActionsOrStubs
-      .filterIsInstance<ToggleAction>()
-      .map { it.templateText to it.isSelected(TestActionEvent()) }
+      .filterIsInstance<TasksFilterToggleAction>()
+      .map { it.templateText to it.isSelected(model.tasksPageModel.filter) }
 
     val expected = listOf(
       "Show tasks for Android/Java/Kotlin plugins" to true,
