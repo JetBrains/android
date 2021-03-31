@@ -1140,7 +1140,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
         VERSION_6_5 -> GradleVersion.parse("1.3.20")
         VERSION_6_7_1 -> GradleVersion.parse("1.3.20")
-        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20")
+        VERSION_FOR_DEV -> GradleVersion.parse("1.3.40")
     }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
