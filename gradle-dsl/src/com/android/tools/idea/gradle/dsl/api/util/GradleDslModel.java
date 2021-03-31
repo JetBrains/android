@@ -26,7 +26,7 @@ import java.util.Map;
  * Interface for common functionality for the Dsl models. This interface will be implemented by
  * the model classes as needed.
  */
-public interface GradleDslModel extends PsiElementHolder {
+public interface GradleDslModel extends DeletablePsiElementHolder {
   /**
    * @return a map containing all of the GradlePropertyModels that are in scope in this model. Note: for block
    * elements this method should include all of the containing properties.
@@ -44,10 +44,4 @@ public interface GradleDslModel extends PsiElementHolder {
    */
   @NotNull
   List<GradlePropertyModel> getDeclaredProperties();
-
-  /**
-   * Marks this model and all of its sub-models for deletion; when {@link GradleFileModel#applyChanges()} is called they will be
-   * removed from the file.
-   */
-  void delete();
 }
