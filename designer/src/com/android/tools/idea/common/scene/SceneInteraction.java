@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
+import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.KeyPressedEvent;
 import com.android.tools.idea.common.surface.KeyReleasedEvent;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
@@ -47,7 +48,6 @@ public class SceneInteraction extends Interaction {
    * Base constructor
    *
    * @param sceneView the ScreenView we belong to
-   * @param component  the component we belong to
    */
   public SceneInteraction(@NotNull SceneView sceneView) {
     mySceneView = sceneView;
@@ -125,13 +125,26 @@ public class SceneInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    assert event instanceof MouseReleasedEvent : "The instance of event should be MouseReleasedEvent but it is " + event.getClass() +
-                                                 "; The SceneView is " + mySceneView +
-                                                 ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
-
-    MouseEvent mouseEvent = ((MouseReleasedEvent)event).getEventObject();
+    int x;
+    int y;
+    int modifiers;
+    if (!(event instanceof MouseReleasedEvent)) {
+      Logger.getInstance(getClass()).error("The instance of event should be MouseReleasedEvent but it is " + event.getClass() +
+                                           "; The SceneView is " + mySceneView +
+                                           ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask);
+      InteractionInformation info = event.getInfo();
+      x = info.getX();
+      y = info.getY();
+      modifiers = info.getModifiersEx();
+    }
+    else {
+      MouseEvent mouseEvent = ((MouseReleasedEvent)event).getEventObject();
+      x = mouseEvent.getX();
+      y = mouseEvent.getY();
+      modifiers = mouseEvent.getModifiersEx();
+    }
     resumeScanner();
-    end(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
+    end(x, y, modifiers);
   }
 
   /**
