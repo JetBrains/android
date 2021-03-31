@@ -422,12 +422,12 @@ class ConfigurationCachingRootNodeDescriptor(
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Configuration cache",
       suffix = when (data) {
-        is AGPUpdateRequired -> "Android Gradle plugin upgrade required"
+        is AGPUpdateRequired -> "Android Gradle plugin update required"
         is IncompatiblePluginsDetected -> data.upgradePluginWarnings.size.let {
           when (it) {
             0 -> ""
-            1 -> "1 plugin requires upgrade"
-            else -> "$it plugins require upgrade"
+            1 -> "1 plugin requires update"
+            else -> "$it plugins require update"
           }
         }
         is NoIncompatiblePlugins -> ""
