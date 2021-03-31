@@ -43,7 +43,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -2112,7 +2112,7 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
 )
 
 data class RemovePropertiesInfo(
-  val propertyModelListGetter: GradleBuildModel.() -> List<GradleDslModel>,
+  val propertyModelListGetter: GradleBuildModel.() -> List<DeletablePsiElementHolder>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
 ): PropertiesOperationInfo {
@@ -2133,7 +2133,7 @@ data class RemovePropertiesInfo(
 
   inner class RemovePropertyUsageInfo(
     element: WrappedPsiElement,
-    val model: GradleDslModel
+    val model: DeletablePsiElementHolder
   ) : GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
