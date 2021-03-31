@@ -67,6 +67,13 @@ interface ConfigurationSet {
     override val name = "Font Sizes"
     override fun createModelsProvider(listener: ConfigurationSetListener) = LargeFontModelsProvider
   }
+
+  object Tablets : ConfigurationSet {
+    override val id = "tablets"
+    override val name = "Tablets"
+    override fun createModelsProvider(listener: ConfigurationSetListener) = TabletModelsProvider
+    override val visible = StudioFlags.NELE_TABLET_SUPPORT.get()
+  }
 }
 
 object ConfigurationSetProvider {
@@ -77,6 +84,7 @@ object ConfigurationSetProvider {
   fun getConfigurationSets(): List<ConfigurationSet> =
     listOf(ConfigurationSet.PixelDevices,
            ConfigurationSet.WearDevices,
+           ConfigurationSet.Tablets,
            ConfigurationSet.ProjectLocal,
            ConfigurationSet.Custom,
            ConfigurationSet.ColorBlindMode,
@@ -84,7 +92,7 @@ object ConfigurationSetProvider {
 
   @JvmStatic
   fun getGroupedConfigurationSets(): List<List<ConfigurationSet>> =
-    listOf(listOf(ConfigurationSet.PixelDevices, ConfigurationSet.WearDevices, ConfigurationSet.ProjectLocal),
+    listOf(listOf(ConfigurationSet.PixelDevices, ConfigurationSet.WearDevices, ConfigurationSet.Tablets, ConfigurationSet.ProjectLocal),
            listOf(ConfigurationSet.Custom),
            listOf(ConfigurationSet.ColorBlindMode, ConfigurationSet.LargeFont))
 
