@@ -68,7 +68,7 @@ data class NdkModuleModel
   override fun getModuleName() = moduleName
 
   fun getDefaultVariantAbi(): VariantAbi? =
-    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && abi == "x86" } ?: allVariantAbis.firstOrNull()
+    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && (abi == "x86" || abi == "x86_64") } ?: allVariantAbis.firstOrNull()
 
   companion object {
     @JvmStatic
