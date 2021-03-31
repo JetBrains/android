@@ -61,10 +61,10 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
+import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -72,6 +72,9 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.progress.PerformInBackgroundOption
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -770,12 +773,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   /**
-   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
-   * The call will block until all the given [PreviewElement]s have completed rendering. If [quickRefresh]
-   * is true the preview surfaces for the same [PreviewElement]s do not get reinflated, this allows to save
-   * time for e.g. static to animated preview transition.
+   * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements. The call will block until all
+   * the given [PreviewElement]s have completed rendering. If [quickRefresh] is true the preview surfaces for the same [PreviewElement]s do
+   * not get reinflated, this allows to save time for e.g. static to animated preview transition. A [ProgressIndicator] that runs while
+   * refresh is in progress is given, and this method should return early if the indicator is cancelled.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean) {
+  private fun doRefreshSync(filePreviewElements: List<PreviewElement>, quickRefresh: Boolean, progressIndicator: ProgressIndicator) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.count()} elements.")
     val psiFile = ReadAction.compute<PsiFile?, Throwable> {
       val element = psiFilePointer.element
@@ -794,6 +797,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       refreshedWhileDeactivated.set(true)
       return
     }
+    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     // Cache available groups
     availableGroups = previewElementProvider.allAvailableGroups
@@ -816,6 +820,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         LOG,
         psiFile,
         this,
+        progressIndicator,
         this::onAfterRender,
         this::toPreviewXmlString,
         this::getPreviewDataContextForPreviewElement,
@@ -823,6 +828,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       ).isNotEmpty()
     }
     lastPinsModificationCount = pinnedManager.modificationCount
+    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     val showingPreviewElements = surface.updatePreviewsAndRefresh(
       quickRefresh,
@@ -830,11 +836,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       LOG,
       psiFile,
       this,
+      progressIndicator,
       this::onAfterRender,
       this::toPreviewXmlString,
       this::getPreviewDataContextForPreviewElement,
       this::configureLayoutlibSceneManagerForPreviewElement
     )
+    if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     if (showingPreviewElements.size >= filePreviewElements.size) {
       previewElements = filePreviewElements
@@ -855,6 +863,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       val startTime = System.nanoTime()
+      // Start a progress indicator so users are aware that a long task is running. Stop it by calling processFinish() if returning early.
+      val refreshProgressIndicator = BackgroundableProcessIndicator(
+        project,
+        message("refresh.progress.indicator.title"),
+        PerformInBackgroundOption.ALWAYS_BACKGROUND,
+        "",
+        "",
+        true
+      )
 
       fun createRefreshElapsedTimeNotification(bundleStringEntry: String) = Notification(
         NOTIFICATION_GROUP_ID,
@@ -863,27 +880,46 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         NotificationType.INFORMATION
       )
 
+      /**
+       * Check if `refreshProgressIndicator` is cancelled. If it is, stop it. Otherwise, update its text.
+       */
+      fun checkProgressIndicatorIsCancelledAndUpdateText(bundleStringEntry: String) =
+        if (refreshProgressIndicator.isCanceled) {
+          LOG.debug("Refresh cancelled")
+          refreshProgressIndicator.processFinish()
+          true
+        }
+        else {
+          refreshProgressIndicator.text = message(bundleStringEntry)
+          false
+        }
+
       LOG.debug("Refresh triggered", refreshTrigger)
 
       if (!isActive.get()) {
         LOG.debug("Refresh, the preview is not active, scheduling for later.")
         refreshedWhileDeactivated.set(true)
+        refreshProgressIndicator.processFinish()
         return@launch
       }
 
       if (DumbService.isDumb(project)) {
         LOG.debug("Project is in dumb mode, not able to refresh")
+        refreshProgressIndicator.processFinish()
         return@launch
       }
 
       if (Bridge.hasNativeCrash() && composeWorkBench is ComposePreviewViewImpl) {
         composeWorkBench.handleLayoutlibNativeCrash { refresh() }
+        refreshProgressIndicator.processFinish()
         return@launch
       }
 
       composeWorkBench.updateVisibilityAndNotifications()
       refreshCallsCount.incrementAndGet()
+
       try {
+        if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.finding.previews")) return@launch
         val filePreviewElements = withContext(workerThread) {
           memoizedElementsProvider.previewElements
             .toList()
@@ -891,6 +927,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
 
         val pinnedPreviewElements = if (StudioFlags.COMPOSE_PIN_PREVIEW.get()) {
+          if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.finding.pinned.previews")) return@launch
+
           withContext(workerThread) {
             memoizedPinnedPreviewProvider.previewElements
               .toList()
@@ -908,8 +946,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // In this case, there are no new previews. We need to make sure that the surface is still correctly
           // configured and that we are showing the right size for components. For example, if the user switches on/off
           // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
+          if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.reusing.existing.previews")) return@launch
           uniqueRefreshLauncher.launch {
-            surface.refreshExistingPreviewElements { previewElement, sceneManager ->
+            surface.refreshExistingPreviewElements(refreshProgressIndicator) { previewElement, sceneManager ->
               // When showing decorations, show the full device size
               configureLayoutlibSceneManager(sceneManager,
                                              showDecorations = previewElement.displaySettings.showDecoration,
@@ -922,9 +961,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }?.join()
         }
         else {
+          if (checkProgressIndicatorIsCancelledAndUpdateText("refresh.progress.indicator.refreshing.all.previews")) return@launch
           uniqueRefreshLauncher.launch {
             composeWorkBench.updateProgress(message("panel.initializing"))
-            doRefreshSync(filePreviewElements, quickRefresh)
+            doRefreshSync(filePreviewElements, quickRefresh, refreshProgressIndicator)
           }?.join()
         }
       }
@@ -935,6 +975,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
         Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"))
+        refreshProgressIndicator.processFinish()
       }
     }
   }
