@@ -36,7 +36,6 @@ import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
-import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
@@ -55,6 +54,7 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vcs.FileStatusManager
 import com.intellij.util.SystemProperties
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 
@@ -132,7 +132,7 @@ fun recommendPluginUpgrade(project: Project) {
     }
 
     val notification = ProjectUpgradeNotification(
-      "Plugin Update Recommended", IdeBundle.message("updates.ready.message", "Android Gradle Plugin"), listener)
+      AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body"), listener)
     notification.notify(project)
   }
 }
