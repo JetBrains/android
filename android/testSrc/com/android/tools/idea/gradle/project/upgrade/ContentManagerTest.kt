@@ -33,7 +33,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
@@ -225,7 +224,7 @@ class ContentManagerTest {
     val view = ContentManager.View(model, toolWindow.contentManager)
     view.tree.selectionPath = view.tree.getPathForRow(0)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
-    assertThat(detailsPanelContent.text).contains("<b>Upgrade steps</b>")
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade</b>")
     assertThat(detailsPanelContent.text).contains("at the same time")
   }
 
@@ -318,22 +317,23 @@ class ContentManagerTest {
 
   @Test
   fun testNecessityTreeText() {
-    assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Pre-upgrade steps")
-    assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade steps")
+    assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Upgrade prerequisites")
+    assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade")
     assertThat(OPTIONAL_CODEPENDENT.treeText()).isEqualTo("Post-upgrade steps")
     assertThat(OPTIONAL_INDEPENDENT.treeText()).isEqualTo("Optional steps")
   }
 
   @Test
   fun testNecessityDescription() {
-    assertThat(MANDATORY_INDEPENDENT.description()).contains("are required")
-    assertThat(MANDATORY_INDEPENDENT.description()).contains("separate steps")
-    assertThat(MANDATORY_CODEPENDENT.description()).contains("are required")
-    assertThat(MANDATORY_CODEPENDENT.description()).contains("must all happen together")
-    assertThat(OPTIONAL_CODEPENDENT.description()).contains("are not required")
-    assertThat(OPTIONAL_CODEPENDENT.description()).contains("only if")
-    assertThat(OPTIONAL_INDEPENDENT.description()).contains("are not required")
-    assertThat(OPTIONAL_INDEPENDENT.description()).contains("with or without")
+    fun AgpUpgradeComponentNecessity.descriptionString() : String = this.description().replace("\n", " ")
+    assertThat(MANDATORY_INDEPENDENT.descriptionString()).contains("are required")
+    assertThat(MANDATORY_INDEPENDENT.descriptionString()).contains("separate steps")
+    assertThat(MANDATORY_CODEPENDENT.descriptionString()).contains("are required")
+    assertThat(MANDATORY_CODEPENDENT.descriptionString()).contains("must all happen together")
+    assertThat(OPTIONAL_CODEPENDENT.descriptionString()).contains("are not required")
+    assertThat(OPTIONAL_CODEPENDENT.descriptionString()).contains("only if")
+    assertThat(OPTIONAL_INDEPENDENT.descriptionString()).contains("are not required")
+    assertThat(OPTIONAL_INDEPENDENT.descriptionString()).contains("with or without")
   }
 
   @Test

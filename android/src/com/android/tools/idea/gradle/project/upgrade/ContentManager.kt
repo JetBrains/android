@@ -523,8 +523,8 @@ private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessit
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
 fun AgpUpgradeComponentNecessity.treeText() = when (this) {
-  MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
-  MANDATORY_CODEPENDENT -> "Upgrade steps"
+  MANDATORY_INDEPENDENT -> "Upgrade prerequisites"
+  MANDATORY_CODEPENDENT -> "Upgrade"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
   OPTIONAL_INDEPENDENT -> "Optional steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
@@ -540,13 +540,15 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
     "They must all happen together, at the same time as the Android Gradle Plugin\n" +
     "upgrade itself."
   OPTIONAL_CODEPENDENT ->
-    "These steps are not required to perform the upgrade of this project.  You\n" +
-    "can choose to do them, but only if the Android Gradle Plugin is upgraded\n" +
-    "to its new version."
+    "These steps are not required to perform the upgrade of this project at this time,\n" +
+    "but will be required when upgrading to a later version of the Android Gradle\n" +
+    "Plugin.  You can choose to do them in this upgrade to prepare for the future, but\n" +
+    "only if the Android Gradle Plugin is upgraded to its new version."
   OPTIONAL_INDEPENDENT ->
-    "These steps are not required to perform the upgrade of this project.  You\n" +
-    "can choose to do them, with or without upgrading the Android Gradle Plugin\n" +
-    "to its new version."
+    "These steps are not required to perform the upgrade of this project at this time,\n" +
+    "but will be required when upgrading to a later version of the Android Gradle\n" +
+    "Plugin.  You can choose to do them in this upgrade to prepare for the future,\n" +
+    "with or without upgrading the Android Gradle Plugin to its new version."
   else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }
 
