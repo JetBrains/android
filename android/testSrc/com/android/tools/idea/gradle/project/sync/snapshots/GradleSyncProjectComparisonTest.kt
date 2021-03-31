@@ -354,8 +354,18 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testKapt() {
-      val text = importSyncAndDumpProject(KOTLIN_KAPT)
-      assertIsEqualToSnapshot(text)
+      importSyncAndDumpProject(KOTLIN_KAPT) { project ->
+        val debugBefore = project.saveAndDump()
+        switchVariant(project, ":app", "release")
+        val release = project.saveAndDump()
+        switchVariant(project, ":app", "debug")
+        val debugAfter = project.saveAndDump()
+        assertAreEqualToSnapshots(
+          debugBefore to ".debug.before",
+          release to ".release",
+          debugAfter to ".debug.after"
+        )
+      }
     }
 
     @Test
