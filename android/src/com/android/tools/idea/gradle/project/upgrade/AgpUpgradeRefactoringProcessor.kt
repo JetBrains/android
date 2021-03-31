@@ -285,6 +285,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
+    REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -2195,6 +2196,26 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
       )
     )
   )
+
+val BUILD_TYPE_USE_PROGUARD_INFO = RemovePropertiesInfo(
+  propertyModelListGetter = { android().buildTypes().map { buildType -> buildType.useProguard() } },
+  tooltipTextSupplier = { "remove useProguard setting" },
+  usageType = UsageType("remove useProguard setting")
+)
+
+val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
+  optionalFromVersion = GradleVersion.parse("3.5.0"),
+  requiredFromVersion = GradleVersion.parse("7.0.0-alpha14"),
+  commandNameSupplier = { "Remove buildType useProguard setting" },
+  shortDescriptionSupplier = { """
+    The useProguard setting for build types is not supported in Android
+    Gradle Plugin version 7.0.0 and higher; from that version the R8 minifier
+    is used unconditionally.
+  """.trimIndent()},
+  processedElementsHeaderSupplier = { "Remove buildType useProguard setting" },
+  componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+  propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
+)
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.
