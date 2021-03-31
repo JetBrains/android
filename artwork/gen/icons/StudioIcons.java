@@ -62,6 +62,7 @@ public class StudioIcons {
     /** @deprecated use AllIcons.Actions.Edit */
     @Deprecated
     public static final Icon EDIT = load("/studio/icons/common/edit.svg"); // 16x16
+    public static final Icon ERROR_DECORATOR = load("/studio/icons/common/error-decorator.svg"); // 16x16
 
     /** @deprecated use ColoredIconGenerator.kt */
     @Deprecated
@@ -208,6 +209,7 @@ public class StudioIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon DEVICE_PAIRED = load("/studio/icons/device-explorer/device-paired.svg"); // 16x16
     public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
@@ -842,6 +844,7 @@ public class StudioIcons {
   }
 
   public static class Test {
+    public static final Icon FAILED_TEST_RETENTION = load("/studio/icons/test/failed-test-retention.svg"); // 16x16
     public static final Icon RECORD_ESPRESSO_TEST = load("/studio/icons/test/record-espresso-test.svg"); // 16x16
   }
 
