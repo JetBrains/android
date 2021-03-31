@@ -17,6 +17,7 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
@@ -32,12 +33,13 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
@@ -58,8 +60,26 @@ class AndroidProcessHandlerTest {
   @Mock lateinit var mockMonitorManager: AndroidProcessMonitorManager
   @Mock lateinit var mockProcessListener: ProcessListener
   @Mock lateinit var mockAnsiEscapeDecoder: AnsiEscapeDecoder
+  var captureLogcat: Boolean = true
+  var autoTerminate: Boolean = true
 
-  lateinit var handler: AndroidProcessHandler
+  val handler: AndroidProcessHandler by lazy {
+    AndroidProcessHandler(
+      mockProject,
+      TARGET_APP_NAME,
+      captureLogcat,
+      autoTerminate,
+      mockAnsiEscapeDecoder,
+      mockDeploymentAppService
+    ) { _, _, emitter, listener ->
+      textEmitter = emitter
+      monitorManagerListener = listener
+      mockMonitorManager
+    }.apply {
+      addProcessListener(mockProcessListener)
+      startNotify()
+    }
+  }
   lateinit var textEmitter: TextEmitter
   lateinit var monitorManagerListener: AndroidProcessMonitorManagerListener
 
@@ -77,21 +97,6 @@ class AndroidProcessHandlerTest {
       textAcceptor as AnsiEscapeDecoder.ColoredTextAcceptor
       textAcceptor.coloredTextAvailable(text, attributes)
     }
-
-    handler = AndroidProcessHandler(
-      mockProject,
-      TARGET_APP_NAME,
-      /*captureLogcat=*/true,
-      mockAnsiEscapeDecoder,
-      mockDeploymentAppService
-    ) { _, _, emitter, listener ->
-      textEmitter = emitter
-      monitorManagerListener = listener
-      mockMonitorManager
-    }.apply {
-      addProcessListener(mockProcessListener)
-      startNotify()
-    }
   }
 
   @Test
@@ -101,6 +106,8 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun runProcessOnOneDevice() {
+    handler
+
     val inOrder = inOrder(mockProcessListener)
     inOrder.verify(mockProcessListener).startNotified(any())
     assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isNull()
@@ -122,6 +129,8 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun runProcessOnMultipleDevices() {
+    handler
+
     val inOrder = inOrder(mockProcessListener)
     inOrder.verify(mockProcessListener).startNotified(any())
     assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isNull()
@@ -148,6 +157,7 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun textEmitterShouldRedirectToNotifyText() {
+    handler
     textEmitter.emit("test emit message", ProcessOutputTypes.STDOUT)
     verify(mockProcessListener).onTextAvailable(argThat { event -> event.text == "test emit message" }, eq(ProcessOutputTypes.STDOUT))
   }
@@ -213,6 +223,35 @@ class AndroidProcessHandlerTest {
     `when`(mockExecutionTargetManager.activeTarget).thenReturn(mock(ExecutionTarget::class.java))
 
     assertThat(handler.canKillProcess()).isFalse()
+  }
+
+  @Test
+  fun ProcessHandlerShouldAutoTerminateWhenAutoTerminateIsEnabled() {
+    autoTerminate = true
+
+    handler.addTargetDevice(createMockDevice(28))
+    monitorManagerListener.onAllTargetProcessesTerminated()
+
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+    inOrder(mockProcessListener).apply {
+      verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+      verify(mockProcessListener, timeout(1000)).processTerminated(any())
+      verifyNoMoreInteractions()
+    }
+
+    assertThat(handler.isProcessTerminated).isTrue()
+  }
+
+  @Test
+  fun ProcessHandlerShouldNotAutoTerminateWhenAutoTerminateIsOff() {
+    autoTerminate = false
+
+    handler.addTargetDevice(createMockDevice(28))
+    monitorManagerListener.onAllTargetProcessesTerminated()
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isFalse()
+
+    verify(mockProcessListener, never()).processWillTerminate(any(), anyBoolean())
+    assertThat(handler.isProcessTerminated).isFalse()
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
