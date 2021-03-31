@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.compose.decorator
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.compose.Anchor
+import com.android.tools.compose.ConstraintsInfo
 import com.android.tools.compose.DESIGN_INFO_LIST_KEY
 import com.android.tools.compose.DesignInfo
 import com.android.tools.compose.PxBounds
@@ -26,6 +28,8 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalGuideline
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Rectangle
 import kotlin.math.roundToInt
@@ -78,56 +82,154 @@ private fun addConnections(
   sceneContext: SceneContext,
   time: Long
 ) {
-  val rooViewDescription = viewDescriptionsMap.values.firstOrNull { it.isRoot }
-  if (rooViewDescription == null) {
+  // TODO(b/148788971): Try to refactor ConstraintLayoutDecorator so that the logic can be used here, using DesignInfo instead of NlModel
+  //  and SceneComponents
+  val rootViewDescription = viewDescriptionsMap.values.firstOrNull { it.isRoot }
+  if (rootViewDescription == null) {
     LOG.warn("Root view missing from constraints map")
     return
   }
-  val rootId = rooViewDescription.viewId
-  val rootRectangle = rooViewDescription.box.toSwingRectangle(sceneContext)
+  val rootId = rootViewDescription.viewId
+  val rootRectangle = rootViewDescription.box.toSwingRectangle(sceneContext)
 
   val sourceRect = viewDescription.box.toSwingRectangle(sceneContext)
   if (viewDescription.isHelper) {
+    drawHelperIfPossible(list, sceneContext, viewDescription.box, rootViewDescription.box)
     ensureHelperSize(sourceRect, rootRectangle)
   }
   viewDescription.constraints.forEach { constraintInfo ->
     val targetIsRoot = constraintInfo.target == rootId
-    val targetInfo = viewDescriptionsMap[constraintInfo.target]
-    if (targetInfo == null) {
+    val targetView = viewDescriptionsMap[constraintInfo.target]
+    if (targetView == null) {
       LOG.warn("Constraint target: ${constraintInfo.target} not found in map")
       return@forEach
     }
-    val targetRect = targetInfo.box.toSwingRectangle(sceneContext)
-    val targetIsHelper = targetInfo.isHelper
+    val targetRect = targetView.box.toSwingRectangle(sceneContext)
+    val targetIsHelper = targetView.isHelper
     if (targetIsHelper) {
       ensureHelperSize(targetRect, rootRectangle)
     }
-    // TODO(b/148788971): finish constraints support: bias, chains, etc.
-    DrawConnection.buildDisplayList(
-      list,
-      null,
-      DrawConnection.TYPE_NORMAL,
-      sourceRect,
-      constraintInfo.originAnchor.toDrawDirection(),
-      targetRect,
-      when {
-        targetIsHelper -> constraintInfo.originAnchor.toOppositeDrawDirection()
-        else -> constraintInfo.targetAnchor.toDrawDirection()
-      },
-      when {
-        targetIsRoot -> DrawConnection.DEST_PARENT
-        targetIsHelper -> DrawConnection.DEST_GUIDELINE
-        else -> DrawConnection.DEST_NORMAL
-      },
-      false,
-      sceneContext.pxToDp(constraintInfo.margin).roundToInt(),
-      sceneContext.getSwingDimensionDip(sceneContext.pxToDp(constraintInfo.margin)),
-      false,
-      0.5f,
-      DrawConnection.MODE_NORMAL,
-      DrawConnection.MODE_NORMAL,
-      time
-    )
+    when (constraintInfo.targetAnchor) {
+      // TODO(b/148788971): Consider making the baseline part of the [ViewDescription], for accurate baseline visualization
+      Anchor.BASELINE -> {
+        drawConnection(
+          list = list,
+          connectionType = DrawConnection.TYPE_BASELINE,
+          // Since we can't get the actual baseline from the model, we have to assume a position
+          source = sourceRect.apply {
+            y += (3 * height / 4f).roundToInt()
+            height = 0
+          },
+          sourceDirection = DrawConnection.TYPE_BASELINE,
+          dest = targetRect.apply {
+            y += (3 * height / 4f).roundToInt()
+            height = 0
+          },
+          destDirection = DrawConnection.TYPE_BASELINE,
+          destType = DrawConnection.DEST_NORMAL,
+          nanoTime = time
+        )
+      }
+      else -> {
+        drawConnection(
+          list = list,
+          connectionType = getConnectionType(viewDescription, constraintInfo, targetView, rootId),
+          source = sourceRect,
+          sourceDirection = constraintInfo.originAnchor.toDrawDirection(),
+          dest = targetRect,
+          destDirection = when {
+            targetIsHelper -> constraintInfo.originAnchor.toOppositeDrawDirection()
+            else -> constraintInfo.targetAnchor.toDrawDirection()
+          },
+          destType = when {
+            targetIsRoot -> DrawConnection.DEST_PARENT
+            targetIsHelper -> DrawConnection.DEST_GUIDELINE
+            else -> DrawConnection.DEST_NORMAL
+          },
+          margin = sceneContext.pxToDp(constraintInfo.margin).roundToInt(),
+          marginDistance = sceneContext.getSwingDimensionDip(sceneContext.pxToDp(constraintInfo.margin)),
+          nanoTime = time
+        )
+      }
+    }
+  }
+}
+
+private fun getConnectionType(currentView: ViewDescription,
+                              currentConstraint: ConstraintsInfo,
+                              targetView: ViewDescription,
+                              rootId: String): Int {
+  if (targetView.constraints.any { it.target == currentView.viewId && currentConstraint.targetAnchor == it.originAnchor }) {
+    // Connecting view connects back
+    return DrawConnection.TYPE_CHAIN
+  }
+  val oppositeConstraint = currentView.constraints.firstOrNull { it.originAnchor == currentConstraint.originAnchor.toOppositeAnchor() }
+  if (oppositeConstraint != null) {
+    // Both sides are connected
+    if (currentConstraint.target == rootId) {
+      return DrawConnection.TYPE_SPRING
+    }
+    if (oppositeConstraint.target == currentConstraint.target) {
+      // View is center around another view
+      return if (oppositeConstraint.targetAnchor == currentConstraint.targetAnchor) {
+        DrawConnection.TYPE_CENTER
+      }
+      else {
+        DrawConnection.TYPE_CENTER_WIDGET
+      }
+    }
+    return DrawConnection.TYPE_SPRING
+  }
+  return DrawConnection.TYPE_NORMAL
+}
+
+/**
+ * Simplified auxiliary method for [DrawConnection.buildDisplayList].
+ */
+private fun drawConnection(list: DisplayList,
+                           connectionType: Int,
+                           @SwingCoordinate source: Rectangle,
+                           sourceDirection: Int,
+                           @SwingCoordinate dest: Rectangle,
+                           destDirection: Int,
+                           destType: Int,
+                           margin: Int = 0,
+                           @SwingCoordinate marginDistance: Int = 0,
+                           nanoTime: Long) =
+  DrawConnection.buildDisplayList(list,
+                                  null,
+                                  connectionType,
+                                  source,
+                                  sourceDirection,
+                                  dest,
+                                  destDirection,
+                                  destType,
+                                  false,
+                                  margin,
+                                  marginDistance,
+                                  false,
+                                  0f,
+                                  DrawConnection.MODE_NORMAL,
+                                  DrawConnection.MODE_NORMAL,
+                                  nanoTime)
+
+/**
+ * We currently don't have all helper information available, but we can make some assumptions to offer some visual feedback.
+ */
+private fun drawHelperIfPossible(list: DisplayList, sceneContext: SceneContext, viewBox: PxBounds, rootBox: PxBounds) {
+  if (viewBox.width == 0) {
+    DrawHorizontalGuideline.add(list,
+                                sceneContext,
+                                sceneContext.pxToDp(rootBox.left),
+                                sceneContext.pxToDp(viewBox.top),
+                                sceneContext.pxToDp(rootBox.right))
+  }
+  else if (viewBox.height == 0) {
+    DrawVerticalGuideline.add(list,
+                              sceneContext,
+                              sceneContext.pxToDp(viewBox.left),
+                              sceneContext.pxToDp(rootBox.top),
+                              sceneContext.pxToDp(rootBox.bottom))
   }
 }
 
@@ -151,6 +253,18 @@ private fun ensureHelperSize(targetRectangle: Rectangle, rootRectangle: Rectangl
     targetRectangle.y = rootRectangle.y
     targetRectangle.height = rootRectangle.height
   }
+}
+
+private fun Anchor.toOppositeAnchor() = when (this) {
+  Anchor.LEFT -> Anchor.RIGHT
+  Anchor.TOP -> Anchor.BOTTOM
+  Anchor.RIGHT -> Anchor.LEFT
+  Anchor.BOTTOM -> Anchor.TOP
+  Anchor.BASELINE -> Anchor.NONE
+  Anchor.CENTER -> Anchor.NONE
+  Anchor.CENTER_X -> Anchor.NONE
+  Anchor.CENTER_Y -> Anchor.NONE
+  Anchor.NONE -> Anchor.NONE
 }
 
 private fun Anchor.toDrawDirection() = when (this) {
