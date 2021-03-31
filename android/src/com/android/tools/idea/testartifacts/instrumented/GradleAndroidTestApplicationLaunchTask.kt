@@ -30,6 +30,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_T
 import com.android.tools.utp.GradleAndroidProjectResolverExtension.Companion.ENABLE_UTP_TEST_REPORT_PROPERTY
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
+import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -152,7 +153,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       }.toMap()
 
       val path: File = getBaseDirPath(project)
-      val taskNames: List<String> = listOf("connectedAndroidTest")
+      val taskNames: List<String> = getTaskNames()
       val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
                                                                              ExternalSystemTaskType.EXECUTE_TASK, project)
       val taskOutputProcessor = TaskOutputProcessor(adapters)
@@ -241,5 +242,10 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
         withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
       }
     }
+  }
+
+  @VisibleForTesting
+  fun getTaskNames(): List<String> {
+    return listOf("connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
   }
 }
