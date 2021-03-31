@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
@@ -44,10 +43,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.TextFormat.shortDebugString
-import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -72,8 +69,6 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import org.HdrHistogram.Histogram
 import java.awt.BorderLayout
 import java.awt.Color
@@ -92,12 +87,10 @@ import java.awt.RenderingHints.KEY_RENDERING
 import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
 import java.awt.RenderingHints.VALUE_RENDER_QUALITY
 import java.awt.color.ColorSpace
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
-import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -192,10 +185,6 @@ class EmulatorView(
   private var screenshotFeed: Cancelable? = null
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
-
-  private var clipboardFeed: Cancelable? = null
-  @Volatile
-  private var clipboardReceiver: ClipboardReceiver? = null
 
   private var notificationFeed: Cancelable? = null
   @Volatile
@@ -337,18 +326,14 @@ class EmulatorView(
     addKeyListener(MyKeyListener())
 
     if (displayId == PRIMARY_DISPLAY_ID) {
-      addFocusListener(object : FocusAdapter() {
+      addFocusListener(object : FocusListener {
         override fun focusGained(event: FocusEvent) {
-          if (connected) {
-            setDeviceClipboardAndListenToChanges()
-          }
           if (virtualSceneCameraActive) {
             showVirtualSceneCameraPrompt()
           }
         }
 
         override fun focusLost(event: FocusEvent) {
-          cancelClipboardFeed()
           hideVirtualSceneCameraPrompt()
         }
       })
@@ -369,7 +354,6 @@ class EmulatorView(
 
   override fun dispose() {
     cancelNotificationFeed()
-    cancelClipboardFeed()
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
@@ -564,9 +548,6 @@ class EmulatorView(
           requestScreenshotFeed()
         }
         if (displayId == PRIMARY_DISPLAY_ID) {
-          if (isFocusOwner) {
-            setDeviceClipboardAndListenToChanges()
-          }
           if (notificationFeed == null) {
             requestNotificationFeed()
           }
@@ -582,36 +563,6 @@ class EmulatorView(
 
     revalidate()
     repaint()
-  }
-
-  private fun setDeviceClipboardAndListenToChanges() {
-    val text = getClipboardText()
-    if (text.isEmpty()) {
-      requestClipboardFeed()
-    }
-    else {
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
-        override fun onCompleted() {
-          requestClipboardFeed()
-        }
-
-        override fun onError(t: Throwable) {
-          if (t is StatusRuntimeException && t.status.code == Status.Code.UNIMPLEMENTED) {
-            notifyEmulatorIsOutOfDate()
-          }
-        }
-      })
-    }
-  }
-
-  private fun getClipboardText(): String {
-    val synchronizer = ClipboardSynchronizer.getInstance()
-    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
-    }
-    else {
-      ""
-    }
   }
 
   private fun notifyEmulatorIsOutOfDate() {
@@ -802,21 +753,6 @@ class EmulatorView(
     screenshotFeed = null
   }
 
-  private fun requestClipboardFeed() {
-    cancelClipboardFeed()
-    if (connected) {
-      val receiver = ClipboardReceiver()
-      clipboardReceiver = receiver
-      clipboardFeed = emulator.streamClipboard(receiver)
-    }
-  }
-
-  private fun cancelClipboardFeed() {
-    clipboardReceiver = null
-    clipboardFeed?.cancel()
-    clipboardFeed = null
-  }
-
   private fun requestNotificationFeed() {
     cancelNotificationFeed()
     if (connected) {
@@ -844,7 +780,6 @@ class EmulatorView(
   }
 
   override fun componentHidden(event: ComponentEvent) {
-    cancelClipboardFeed()
   }
 
   override fun componentMoved(event: ComponentEvent) {
@@ -938,25 +873,6 @@ class EmulatorView(
       component = component.parent
     }
     return null
-  }
-
-  private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-    var responseCount = 0
-
-    override fun onNext(response: ClipData) {
-      if (clipboardReceiver != this) {
-        return // This clipboard feed has already been cancelled.
-      }
-
-      // Skip the first response that reflects the current clipboard state.
-      if (responseCount != 0 && response.text.isNotEmpty()) {
-        invokeLaterInAnyModalityState {
-          val content = StringSelection(response.text)
-          ClipboardSynchronizer.getInstance().setContent(content, content)
-        }
-      }
-      responseCount++
-    }
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
