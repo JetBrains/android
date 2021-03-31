@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 
 abstract class ModelCollectionPropertyBase<ModelT, out ResolvedT, ParsedT, in CollectionT : Any, ValueT : Any> :
   ModelPropertyBase<ModelT, ValueT>() {
@@ -75,6 +76,7 @@ fun <T : Any> makeItemPropertyCore(
   override fun modify(block: () -> Unit) = modifier(block)
   override fun getResolvedValue(): ResolvedValue<T> = resolvedValueGetter()
   override val defaultValueGetter: (() -> T?)? = null
+  override val variableScope: (() -> PsVariablesScope?)? = null
   override val isModified: Boolean? get() = resolvedProperty.isModified
   override fun parsedAndResolvedValuesAreEqual(parsedValue: T?, resolvedValue: T): Boolean = matcher(parsedValue, resolvedValue)
 }

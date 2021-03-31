@@ -96,6 +96,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
           if (resolvedModel.value != null) ResolvedValue.Set(resolvedModel.value) else ResolvedValue.NotResolved()
 
         override val defaultValueGetter: (() -> String?)? get() = defaultValue?.let { { it } }
+        override val variableScope: (() -> PsVariablesScope?)? get() = { null }
         override fun annotateParsedResolvedMismatch(): ValueAnnotation? =
           annotateParsedResolvedMismatchBy { parsed, resolved -> parsed == resolved }
 
