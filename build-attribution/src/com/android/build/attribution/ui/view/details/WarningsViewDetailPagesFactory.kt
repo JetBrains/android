@@ -223,8 +223,8 @@ class WarningsViewDetailPagesFactory(
     val incompatiblePluginsCountLine = uiData.incompatiblePluginWarnings.size.let {
       when (it) {
         0 -> null
-        1 -> "1 plugin is not known to have compatible version yet, please contact plugin providers for details."
-        else -> "$it plugins are not known to have compatible version yet, please contact plugin providers for details."
+        1 -> "1 plugin is not known to have a compatible version yet, please contact plugin providers for details."
+        else -> "$it plugins are not known to have a compatible version yet, please contact plugin providers for details."
       }
     }
 
