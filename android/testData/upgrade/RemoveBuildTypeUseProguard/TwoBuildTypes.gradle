@@ -1,0 +1,12 @@
+android {
+  buildTypes {
+    abc {
+      useProguard = false
+      jniDebuggable = true
+    }
+    xyz {
+      debuggable false
+      useProguard true
+    }
+  }
+}

@@ -156,6 +156,19 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("RenameBlocks/AaptOptionsToAndroidResourcesExpected"))
   }
 
+  @Test
+  fun testEnabledEffectOnRemoveUseProguard() {
+    fun AgpUpgradeComponentRefactoringProcessor.isRemoveUseProguard() =
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_BUILD_TYPE_USE_PROGUARD_INFO
+
+    writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRemoveUseProguard() }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
+  }
+
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEnabledEffectOnAgpGradleVersion() {
     writeToBuildFile(TestFileName("AgpGradleVersion/OldGradleVersion"))
