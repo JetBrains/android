@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.buildNdkModelStub
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
@@ -57,6 +58,37 @@ class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
 
   @Test
   fun testLightTestsWithGradleLikeStructure() {
+    assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().containsExactly(projectRule.module)
+    val dump = projectRule.project.saveAndDump()
+    assertIsEqualToSnapshot(dump)
+  }
+}
+
+/**
+ * A test case that ensures the correct behavior of [AndroidProjectRule.withAndroidModels] way to set up test projects with NDK models.
+ *
+ * See [AndroidProjectRule.withAndroidModels] for more details.
+ */
+@RunsInEdt
+class LightSyncBasedTestsWithCMakeLikeStructureTest : SnapshotComparisonTest {
+  @get:Rule
+  var testName = TestName()
+
+  val projectRule = AndroidProjectRule.withAndroidModel(
+    AndroidProjectBuilder(
+      ndkModel = { buildNdkModelStub() }
+    )
+  )
+
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  override fun getName(): String = testName.methodName
+
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/snapshots/syncedProjects"
+
+  @Test
+  fun testLightTestsWithCMakeLikeStructure() {
     assertThat(ModuleManager.getInstance(projectRule.project).modules).asList().containsExactly(projectRule.module)
     val dump = projectRule.project.saveAndDump()
     assertIsEqualToSnapshot(dump)
