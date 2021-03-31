@@ -16,6 +16,7 @@ android {
       shrinkResources false
       testCoverageEnabled = true
       useJack false
+      useProguard false
       versionNameSuffix = "abc"
       zipAlignEnabled true
     }
@@ -37,6 +38,7 @@ android.buildTypes.xyz {
   shrinkResources = true
   testCoverageEnabled false
   useJack true
+  useProguard true
   versionNameSuffix = "abc-1"
   zipAlignEnabled = false
 }

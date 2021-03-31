@@ -13,6 +13,7 @@ android {
       isShrinkResources = false
       isTestCoverageEnabled = true
       useJack = false
+      isUseProguard = true
       versionNameSuffix = "abc"
       isZipAlignEnabled = true
     }

@@ -16,6 +16,7 @@ android {
       isShrinkResources = false
       isTestCoverageEnabled = true
       //useJack(false)
+      isUseProguard = false
       versionNameSuffix = "abc"
       isZipAlignEnabled = true
     }
@@ -37,6 +38,7 @@ android.buildTypes.getByName("xyz") {
   isShrinkResources = true
   isTestCoverageEnabled = false
   //useJack(true)
+  isUseProguard = true
   versionNameSuffix = "abc-1"
   isZipAlignEnabled = false
 }

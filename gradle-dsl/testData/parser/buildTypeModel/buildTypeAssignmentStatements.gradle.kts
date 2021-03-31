@@ -20,7 +20,7 @@ android.buildTypes.getByName("xyz").isRenderscriptDebuggable = true
 android.buildTypes.getByName("xyz").renderscriptOptimLevel = 1
 android.buildTypes.getByName("xyz").isShrinkResources = true
 android.buildTypes.getByName("xyz").isTestCoverageEnabled = true
-// TODO(xof): useJack might not be implemented in newer versions of AGP (it was deprecated in 3.0)
 android.buildTypes.getByName("xyz").isUseJack = true
+android.buildTypes.getByName("xyz").isUseProguard = true
 android.buildTypes.getByName("xyz").versionNameSuffix = "abc"
 android.buildTypes.getByName("xyz").isZipAlignEnabled = true

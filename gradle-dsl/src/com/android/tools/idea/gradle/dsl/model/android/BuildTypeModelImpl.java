@@ -40,6 +40,7 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls public static final String RENDERSCRIPT_OPTIM_LEVEL = "mRenderscriptOptimLevel";
   @NonNls public static final String SHRINK_RESOURCES = "mShrinkResources";
   @NonNls public static final String TEST_COVERAGE_ENABLED = "mTestCoverageEnabled";
+  @NonNls public static final String USE_PROGUARD = "mUseProguard";
   @NonNls public static final String ZIP_ALIGN_ENABLED = "mZipAlignEnabled";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
@@ -98,6 +99,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel testCoverageEnabled() {
     return getModelForProperty(TEST_COVERAGE_ENABLED);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel useProguard() {
+    return getModelForProperty(USE_PROGUARD);
   }
 
   @Override

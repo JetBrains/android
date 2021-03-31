@@ -18,6 +18,7 @@ android {
       shrinkResources true
       testCoverageEnabled true
       useJack true
+      useProguard true
       versionNameSuffix "abc"
       zipAlignEnabled true
     }

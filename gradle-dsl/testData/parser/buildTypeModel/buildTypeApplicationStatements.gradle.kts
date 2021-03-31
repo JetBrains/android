@@ -21,5 +21,6 @@ android.buildTypes.getByName("xyz").resValue("mnop", "qrst", "uvwx")
 android.buildTypes.getByName("xyz").isShrinkResources = true
 android.buildTypes.getByName("xyz").isTestCoverageEnabled = true
 android.buildTypes.getByName("xyz").useJack(true)
+android.buildTypes.getByName("xyz").setUseProguard(true)
 android.buildTypes.getByName("xyz").setVersionNameSuffix("abc")
 android.buildTypes.getByName("xyz").setZipAlignEnabled(true)

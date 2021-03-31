@@ -21,5 +21,6 @@ android.buildTypes.xyz.resValue "mnop", "qrst", "uvwx"
 android.buildTypes.xyz.shrinkResources true
 android.buildTypes.xyz.testCoverageEnabled true
 android.buildTypes.xyz.useJack true
+android.buildTypes.xyz.useProguard true
 android.buildTypes.xyz.versionNameSuffix "abc"
 android.buildTypes.xyz.zipAlignEnabled true

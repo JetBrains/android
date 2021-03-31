@@ -60,6 +60,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       {"setRenderscriptOptimLevel", exactly(1), RENDERSCRIPT_OPTIM_LEVEL, SET},
       {"isShrinkResources", property, SHRINK_RESOURCES, VAR},
       {"isTestCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
+      {"isUseProguard", property, USE_PROGUARD, VAR},
+      {"setUseProguard", exactly(1), USE_PROGUARD, SET},
       {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
       {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
     }))
@@ -89,6 +91,8 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       {"shrinkResources", exactly(1), SHRINK_RESOURCES, SET},
       {"testCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
       {"testCoverageEnabled", exactly(1), TEST_COVERAGE_ENABLED, SET},
+      {"useProguard", property, USE_PROGUARD, VAR},
+      {"useProguard", exactly(1), USE_PROGUARD, SET},
       {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
       {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
     }))
