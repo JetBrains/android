@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
