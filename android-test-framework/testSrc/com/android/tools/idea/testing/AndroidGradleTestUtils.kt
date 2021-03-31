@@ -18,7 +18,6 @@ package com.android.tools.idea.testing
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
 import com.android.ide.common.gradle.model.IdeAaptOptions
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.gradle.model.IdeArtifactName
 import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
@@ -46,10 +45,16 @@ import com.android.ide.common.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.ide.common.gradle.model.impl.IdeVariantImpl
 import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.ide.common.gradle.model.ndk.v2.IdeNativeVariant
+import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.getWorkspaceRoot
@@ -60,6 +65,8 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -79,6 +86,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.android.utils.cxx.CompileCommandsEncoder
 import com.google.common.truth.Truth.assertThat
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
@@ -123,7 +131,13 @@ import java.io.File
 import java.io.IOException
 import java.util.function.Consumer
 
-typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> Pair<IdeAndroidProjectImpl, Collection<IdeVariantImpl>>
+data class AndroidProjectModels(
+  val androidProject: IdeAndroidProjectImpl,
+  val variants: Collection<IdeVariantImpl>,
+  val ndkModel: V2NdkModel?
+)
+
+typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProjectModels
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
@@ -136,7 +150,8 @@ data class AndroidModuleModelBuilder(
   override val gradleVersion: String? = null,
   override val agpVersion: String? = null,
   val projectBuilder: AndroidProjectBuilderCore,
-  val selectedBuildVariant: String
+  val selectedBuildVariant: String,
+  val selectedAbiVariant: String? = null
 ) : ModuleModelBuilder() {
   constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
     : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
@@ -148,7 +163,7 @@ data class AndroidModuleModelBuilder(
     selectedBuildVariant: String,
     projectBuilder: AndroidProjectBuilder
   )
-    : this(gradlePath, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant)
+    : this(gradlePath, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant, selectedAbiVariant = null)
 }
 
 data class JavaModuleModelBuilder(
@@ -202,6 +217,7 @@ interface AndroidProjectStubBuilder {
   fun unitTestArtifact(variant: String): IdeJavaArtifactImpl
   val androidProject: IdeAndroidProjectImpl
   val variants: List<IdeVariantImpl>
+  val ndkModel: V2NdkModel?
 }
 
 /**
@@ -240,6 +256,7 @@ data class AndroidProjectBuilder(
   val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<IdeAndroidLibraryImpl> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl> = { buildVariantStubs() },
+  val ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel? = { null }
 ) {
 
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
@@ -311,8 +328,14 @@ data class AndroidProjectBuilder(
   fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
     copy(androidProject = androidProject)
 
+  fun withVariants(variants: AndroidProjectStubBuilder.() -> List<IdeVariantImpl>) =
+    copy(variants = variants)
 
-  fun build(): AndroidProjectBuilderCore = fun(projectName: String, basePath: File, agpVersion: String) : Pair<IdeAndroidProjectImpl, Collection<IdeVariantImpl>> {
+  fun withNdkModel(ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel?) =
+    copy(ndkModel = ndkModel)
+
+
+  fun build(): AndroidProjectBuilderCore = fun(projectName: String, basePath: File, agpVersion: String) : AndroidProjectModels {
     val builder = object : AndroidProjectStubBuilder {
       override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
@@ -343,8 +366,13 @@ data class AndroidProjectBuilder(
       override fun unitTestArtifact(variant: String): IdeJavaArtifactImpl = unitTestArtifactStub(variant)
       override val variants: List<IdeVariantImpl> = variants()
       override val androidProject: IdeAndroidProjectImpl = androidProject()
+      override val ndkModel: V2NdkModel? = ndkModel()
     }
-    return builder.androidProject to builder.variants
+    return AndroidProjectModels(
+      androidProject = builder.androidProject,
+      variants = builder.variants,
+      ndkModel = builder.ndkModel
+    )
   }
 }
 
@@ -695,6 +723,37 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   )
 }
 
+fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
+  return V2NdkModel(
+    agpVersion = agpVersion,
+    nativeModule = IdeNativeModuleImpl(
+      name = projectName,
+      variants = variants
+        .map { variant ->
+          IdeNativeVariantImpl(
+            variant.name,
+            listOf(Abi.X86_64, Abi.ARM64_V8A).map {abi ->
+              val sourceFlagsFile = basePath.resolve("some-build-dir/${variant.name}/${abi.name}/compile_commands.json.bin")
+              FileUtil.ensureExists(sourceFlagsFile.parentFile)
+              CompileCommandsEncoder(sourceFlagsFile).use {}
+              IdeNativeAbiImpl(
+                abi.toString(),
+                sourceFlagsFile = sourceFlagsFile,
+                symbolFolderIndexFile = basePath.resolve("some-build-dir/${variant.name}/${abi.name}/symbol_folder_index.txt"),
+                buildFileIndexFile = basePath.resolve("some-build-dir/${variant.name}/${abi.name}/build_file_index.txt"),
+                additionalProjectFilesIndexFile = basePath.resolve("some-build-dir/${variant.name}/${abi.name}/additional_project_files.txt")
+              )
+            }
+          )
+        },
+      nativeBuildSystem = NativeBuildSystem.CMAKE,
+      ndkVersion = "21.4.7075529",
+      defaultNdkVersion = "21.4.7075529",
+      externalNativeBuildFile = basePath.resolve("CMakeLists.txt")
+    )
+  )
+}
+
 fun AndroidProjectStubBuilder.buildDependenciesStub(
   libraries: List<IdeAndroidLibraryImpl> = listOf(),
   javaLibraries: List<IdeJavaLibraryImpl> = listOf(),
@@ -819,7 +878,7 @@ fun setupTestProjectFromAndroidModel(
     FileUtils.mkdirs(moduleBasePath)
     val moduleDataNode = when (moduleBuilder) {
       is AndroidModuleModelBuilder -> {
-        val (androidProject, variants) = moduleBuilder.projectBuilder(
+        val (androidProject, variants, ndkModel) = moduleBuilder.projectBuilder(
           moduleName,
           moduleBasePath,
           moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
@@ -833,7 +892,9 @@ fun setupTestProjectFromAndroidModel(
           gradlePlugins,
           androidProject,
           variants.let { if (!setupAllVariants) it.take(1) else it },
-          moduleBuilder.selectedBuildVariant
+          ndkModel,
+          moduleBuilder.selectedBuildVariant,
+          moduleBuilder.selectedAbiVariant
         ).also { androidModelDataNode ->
           val model = ExternalSystemApiUtil.find(androidModelDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
           if (model != null) {
@@ -882,7 +943,9 @@ private fun createAndroidModuleDataNode(
   gradlePlugins: List<String>,
   androidProject: IdeAndroidProjectImpl,
   variants: Collection<IdeVariantImpl>,
+  ndkModel: V2NdkModel?,
   selectedVariantName: String,
+  selectedAbiName: String?
 ): DataNode<ModuleData> {
 
   val moduleDataNode = createGradleModuleDataNode(gradlePath, moduleName, moduleBasePath)
@@ -918,6 +981,25 @@ private fun createAndroidModuleDataNode(
       null
     )
   )
+
+  if (ndkModel != null) {
+    val selectedAbiName = selectedAbiName
+                          ?: ndkModel.abiByVariantAbi.keys.firstOrNull { it.variant == selectedVariantName }?.abi
+                          ?: error(
+                            "Cannot determine the selected ABI for module '$moduleName' with the selected variant '$selectedVariantName'")
+    moduleDataNode.addChild(
+      DataNode<NdkModuleModel>(
+        AndroidProjectKeys.NDK_MODEL,
+        NdkModuleModel(
+          moduleName,
+          moduleBasePath,
+          selectedAbiName,
+          ndkModel
+        ),
+        null
+      )
+    )
+  }
 
   return moduleDataNode
 }
