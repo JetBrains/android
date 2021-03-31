@@ -76,7 +76,10 @@ public class AndroidRunState implements RunProfileState {
 
     if (processHandler == null) {
       processHandler = new AndroidProcessHandler(
-        myEnv.getProject(), getMasterAndroidProcessId(myEnv.getRunProfile()), shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()));
+        myEnv.getProject(),
+        getMasterAndroidProcessId(myEnv.getRunProfile()),
+        shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()),
+        shouldAutoTerminate(myEnv.getRunnerAndConfigurationSettings()));
     }
     if (console == null) {
       console = myConsoleProvider.createAndAttach(myModule.getProject(), processHandler, executor);
@@ -102,16 +105,25 @@ public class AndroidRunState implements RunProfileState {
   }
 
   private static boolean shouldCaptureLogcat(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {
-    if (runnerAndConfigurationSettings == null) {
-      // Enable logcat captor when the run configuration is unknown to maintain the previous version's behavior.
-      return true;
-    }
-    boolean isInstrumentationTest =
-      AndroidTestRunConfigurationType.getInstance().equals(runnerAndConfigurationSettings.getType());
     // Don't capture logcat message in AndroidProcessHandler if this run is an instrumentation test because
     // a test application process is often a short lived process and it finishes before the handler finds
     // the process. We cannot display logcat messages reliably, thus disable it at all.
-    return !isInstrumentationTest;
+    // (Enable logcat captor when the run configuration is unknown (=null) to maintain the previous version's behavior).
+    return !isAndroidInstrumentationTest(runnerAndConfigurationSettings);
+  }
+
+  private static boolean shouldAutoTerminate(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {
+    // AndroidProcessHandler should not be closed even if the target application process is killed. During an
+    // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
+    // runner knows when all test run completes.
+    return !isAndroidInstrumentationTest(runnerAndConfigurationSettings);
+  }
+
+  private static boolean isAndroidInstrumentationTest(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {
+    if (runnerAndConfigurationSettings == null) {
+      return false;
+    }
+    return AndroidTestRunConfigurationType.getInstance().equals(runnerAndConfigurationSettings.getType());
   }
 
   private RunStats createRunStats() throws ExecutionException {
