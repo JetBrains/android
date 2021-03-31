@@ -383,10 +383,14 @@ PROJECT                       : MainActivity
             IsExported                    : false
             Name                          : Gradle: kaptGeneratedClasses [=]
             *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debug [-]
+        LIBRARY                       : Gradle: kaptGeneratedTestClasses
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: kaptGeneratedTestClasses [=]
             *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
             *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
-            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/release [-]
-            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/releaseUnitTest [-]
         LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0
             LibraryLevel                  : project
             IsModuleLevel                 : false

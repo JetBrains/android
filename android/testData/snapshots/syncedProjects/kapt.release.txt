@@ -297,10 +297,13 @@ PROJECT                       : MainActivity
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: kaptGeneratedClasses [=]
-            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debug [-]
-            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
-            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
             *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/release [-]
+        LIBRARY                       : Gradle: kaptGeneratedTestClasses
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: kaptGeneratedTestClasses [=]
             *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/releaseUnitTest [-]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
             LibraryLevel                  : project

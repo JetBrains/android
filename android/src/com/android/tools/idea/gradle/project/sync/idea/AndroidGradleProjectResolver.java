@@ -93,6 +93,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule;
 import com.android.tools.idea.gradle.project.sync.idea.svs.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidNativeVariantsModels;
@@ -132,6 +133,7 @@ import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.pom.java.LanguageLevel;
@@ -183,6 +185,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     new Key<>("use.variants.from.previous.gradle.syncs");
   public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
+  // For variant switching we need to store the Kapt model with all the source set information as we only setup one
+  // variant at a time
+  public static final Key<KaptGradleModel> KAPT_GRADLE_MODEL_KEY = Key.create("KAPT_GRADLE_MODEL_KEY");
 
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY");
@@ -401,11 +406,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, androidTest);
       }
     }
-    // TODO - IMPORTANT: Check patching kapt information to source sets.
-    // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
+
+    // Ensure the kapt module is stored on the datanode so that dependency setup can use it
+    moduleNode.putUserData(KAPT_GRADLE_MODEL_KEY, kaptGradleModel);
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
 
-    // 5 - Populate extra things
+    // Populate extra things
     populateAdditionalClassifierArtifactsModel(gradleModule);
   }
 
@@ -574,53 +580,85 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
    * KaptProjectResolverExtension, however as of now this class only works when module per source set is
    * enabled.
    */
-  private static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable AndroidModuleModel androidModel,
-                                                                      @NotNull DataNode<ModuleData> moduleDataNode,
-                                                                      @Nullable KaptGradleModel kaptGradleModel) {
+  public static void patchMissingKaptInformationOntoModelAndDataNode(@Nullable AndroidModuleModel androidModel,
+                                                                     @NotNull DataNode<ModuleData> moduleDataNode,
+                                                                     @Nullable KaptGradleModel kaptGradleModel) {
     if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
       return;
     }
 
     Set<File> generatedClassesDirs = new HashSet<>();
+    Set<File> generatedTestClassesDirs = new HashSet<>();
     kaptGradleModel.getSourceSets().forEach(sourceSet -> {
-      File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
-      if (androidModel != null) {
-        IdeBaseArtifact artifact = findArtifact(sourceSet, androidModel);
-        if (artifact != null && kotlinGenSourceDir != null) {
-          artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
+      if (androidModel == null) {
+        // This is a non-android module
+        if (sourceSet.isTest()) {
+          generatedTestClassesDirs.add(sourceSet.getGeneratedClassesDirFile());
+        } else {
+          generatedClassesDirs.add(sourceSet.getGeneratedClassesDirFile());
         }
+        return;
       }
 
-      // We should really only add the current variant here, but we need to work out how to store this information and switch
-      // the library. For now just add all of them.
-      File classesDirFile = sourceSet.getGeneratedClassesDirFile();
-      if (classesDirFile != null) {
-        generatedClassesDirs.add(classesDirFile);
+      File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
+      Pair<IdeVariant, IdeBaseArtifact> result = findVariantAndArtifact(sourceSet, androidModel);
+      if (result == null) {
+        // No artifact was found for the current source set
+        return;
+      }
+
+      IdeVariant variant = result.first;
+      IdeBaseArtifact artifact = result.second;
+      if (artifact != null) {
+        if (kotlinGenSourceDir != null && !artifact.getGeneratedSourceFolders().contains(kotlinGenSourceDir)) {
+          artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
+        }
+
+        if (variant.equals(androidModel.getSelectedVariant())) {
+          File classesDirFile = sourceSet.getGeneratedClassesDirFile();
+          if (classesDirFile != null) {
+            if (artifact.isTestArtifact()) {
+              generatedTestClassesDirs.add(classesDirFile);
+            } else {
+              generatedClassesDirs.add(classesDirFile);
+            }
+          }
+        }
       }
     });
 
+    addToNewOrExistingLibraryData(moduleDataNode, "kaptGeneratedClasses", generatedClassesDirs, false);
+    addToNewOrExistingLibraryData(moduleDataNode, "kaptGeneratedTestClasses", generatedTestClassesDirs, true);
+  }
+
+  private static void addToNewOrExistingLibraryData(@NotNull DataNode<ModuleData> moduleDataNode,
+                                             @NotNull String name,
+                                             @NotNull Set<File> files,
+                                             boolean isTest) {
     // Code adapted from KaptProjectResolverExtension
-    LibraryData newLibrary = new LibraryData(GRADLE_SYSTEM_ID, "kaptGeneratedClasses");
-    LibraryData existingData = moduleDataNode.getChildren().stream().map(node -> node.getData()).filter(
+    LibraryData newLibrary = new LibraryData(GRADLE_SYSTEM_ID, name);
+    LibraryData existingData = moduleDataNode.getChildren().stream().map(DataNode::getData).filter(
       (data) -> data instanceof LibraryDependencyData &&
                 newLibrary.getExternalName().equals(((LibraryDependencyData)data).getExternalName()))
       .map(data -> ((LibraryDependencyData)data).getTarget()).findFirst().orElse(null);
 
     if (existingData != null) {
-      generatedClassesDirs.forEach((file) -> existingData.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
+      files.forEach((file) -> existingData.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
     } else {
-      generatedClassesDirs.forEach((file) -> newLibrary.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
+      files.forEach((file) -> newLibrary.addPath(LibraryPathType.BINARY, file.getAbsolutePath()));
       LibraryDependencyData libraryDependencyData = new LibraryDependencyData(moduleDataNode.getData(), newLibrary, LibraryLevel.MODULE);
+      libraryDependencyData.setScope(isTest ? DependencyScope.TEST : DependencyScope.COMPILE);
       moduleDataNode.createChild(LIBRARY_DEPENDENCY, libraryDependencyData);
     }
   }
 
   @Nullable
-  private static IdeBaseArtifact findArtifact(@NotNull KaptSourceSetModel sourceSetModel, @NotNull AndroidModuleModel androidModel) {
+  private static Pair<IdeVariant, IdeBaseArtifact> findVariantAndArtifact(@NotNull KaptSourceSetModel sourceSetModel,
+                                                                          @NotNull AndroidModuleModel androidModel) {
     String sourceSetName = sourceSetModel.getSourceSetName();
     if (!sourceSetModel.isTest()) {
       IdeVariant variant = androidModel.findVariantByName(sourceSetName);
-      return variant == null ? null : variant.getMainArtifact();
+      return variant == null ? null : Pair.create(variant, variant.getMainArtifact());
     }
 
     // Check if it's android test source set.
@@ -628,7 +666,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (sourceSetName.endsWith(androidTestSuffix)) {
       String variantName = sourceSetName.substring(0, sourceSetName.length() - androidTestSuffix.length());
       IdeVariant variant = androidModel.findVariantByName(variantName);
-      return variant == null ? null : variant.getAndroidTestArtifact();
+      return variant == null ? null : Pair.create(variant, variant.getAndroidTestArtifact());
     }
 
     // Check if it's unit test source set.
@@ -636,7 +674,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (sourceSetName.endsWith(unitTestSuffix)) {
       String variantName = sourceSetName.substring(0, sourceSetName.length() - unitTestSuffix.length());
       IdeVariant variant = androidModel.findVariantByName(variantName);
-      return variant == null ? null : variant.getUnitTestArtifact();
+      return variant == null ? null : Pair.create(variant, variant.getUnitTestArtifact());
     }
 
     return null;
