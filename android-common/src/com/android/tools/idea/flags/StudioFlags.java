@@ -365,6 +365,11 @@ public final class StudioFlags {
     "Include resource directories from AARs found through project system.",
     false);
 
+  public static final Flag<Boolean> NELE_TABLET_SUPPORT = Flag.create(
+    NELE, "tablet.support", "Enable tablet support tools",
+    "Enable all the various tools related to better support for tablets and other form factors.",
+    false);
+
   //endregion
 
   //region Navigation Editor
