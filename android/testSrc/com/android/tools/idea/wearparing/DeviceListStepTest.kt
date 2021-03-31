@@ -198,7 +198,10 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
     val fakeUi = createDeviceListStepUi()
 
+    phoneDevice.launch = { throw RuntimeException("Can't launch on tests") } // launch fields needs some value, so it can be copied
+    wearDevice.launch = phoneDevice.launch
     WearPairingManager.setKeepForwardAlive(phoneDevice, wearDevice)
+
     model.deviceList.set(listOf(
       phoneDevice.copy(isPaired = true),
     ))
@@ -238,7 +241,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
   }
 
-  private fun createDeviceListStepUi(emptyListClickedAction: () -> Unit = {}): FakeUi {
+  private fun createDeviceListStepUi(emptyListClickedAction: (Boolean) -> Unit = {}): FakeUi {
     val deviceListStep = DeviceListStep(model, project, emptyListClickedAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceListStep).build()
     Disposer.register(testRootDisposable, modelWizard)
