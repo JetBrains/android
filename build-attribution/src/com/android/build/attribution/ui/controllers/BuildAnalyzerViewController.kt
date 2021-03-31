@@ -182,20 +182,21 @@ class BuildAnalyzerViewController(
   }
 
   override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {
-    val buildModel = ProjectBuildModel.get(project)
-    val rootBuildModel = buildModel.projectBuildModel
-    val psiToOpen = findPluginDeclarationPsi(rootBuildModel, pluginWarningData)
-    val openFile = if (psiToOpen != null) {
-      OpenFileDescriptor(project, psiToOpen.containingFile.virtualFile, psiToOpen.textOffset)
+    val duration = runAndMeasureDuration {
+      val buildModel = ProjectBuildModel.get(project)
+      val rootBuildModel = buildModel.projectBuildModel
+      val psiToOpen = findPluginDeclarationPsi(rootBuildModel, pluginWarningData)
+      val openFile = if (psiToOpen != null) {
+        OpenFileDescriptor(project, psiToOpen.containingFile.virtualFile, psiToOpen.textOffset)
+      }
+      else {
+        rootBuildModel?.virtualFile?.let { OpenFileDescriptor(project, it, -1) }
+      }
+      if (openFile?.canNavigate() == true) {
+        openFile.navigate(true)
+      }
     }
-    else {
-      rootBuildModel?.virtualFile?.let { OpenFileDescriptor(project, it, -1)}
-    }
-    if (openFile?.canNavigate() == true) {
-      openFile.navigate(true)
-    }
-    //TODO (b/177051800): add event to analytics
-    analytics.reportUnregisteredEvent()
+    analytics.updatePluginButtonClicked(duration)
   }
 
   private fun findPluginDeclarationPsi(projectBuildModel: GradleBuildModel?, pluginWarningData: IncompatiblePluginWarning): PsiElement?{

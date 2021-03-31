@@ -172,6 +172,12 @@ class BuildAttributionUiAnalytics(
     newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.TURN_ON_CONFIGURATION_CACHE_IN_PROPERTIES_LINK_CLICKED)
   )
 
+  fun updatePluginButtonClicked(duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.UPDATE_PLUGIN_BUTTON_CLICKED)
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
+
   fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
