@@ -41,21 +41,23 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations.openMocks
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
 
 
 @RunWith(JUnit4::class)
 class GradleTestResultAdapterTest {
 
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val mockitoJUnitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Mock private lateinit var mockDevice1: IDevice
   @Mock private lateinit var mockListener: AndroidTestResultListener
 
   @Before
   fun setup() {
-    openMocks(this)
     `when`(mockDevice1.serialNumber).thenReturn("mockDevice1SerialNumber")
     `when`(mockDevice1.avdName).thenReturn("mockDevice1AvdName")
     `when`(mockDevice1.version).thenReturn(AndroidVersion(29))
@@ -250,4 +252,29 @@ class GradleTestResultAdapterTest {
     })
   }
 
+  @Test
+  fun gradleTaskFinishedOrCancelledBeforeTestSuiteFinishes() {
+    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+        scheduledTestCaseCount = 1
+      }.build())
+
+      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }.build())
+
+      onGradleTaskFinished()
+    }
+
+    inOrder(mockListener).apply {
+      verify(mockListener).onTestSuiteScheduled(any())
+      verify(mockListener).onTestSuiteStarted(any(), any())
+      verify(mockListener).onTestCaseStarted(any(), any(), any())
+      verify(mockListener).onTestSuiteFinished(any(), argThat {
+        it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.CANCELLED
+      })
+    }
+  }
 }

@@ -179,6 +179,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
           super.onEnd(id)
           outputLineProcessor.close()
           processHandler.detachProcess()
+          adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
         }
       }
 
