@@ -19,6 +19,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
+    <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.AtfIssueExternalAnnotator"/>
   </extensions>
 
   <!-- Extension points -->

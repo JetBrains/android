@@ -18,7 +18,10 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.lint.AtfIssueList
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.util.Key
+import java.util.concurrent.CountDownLatch
 
 /**
  * Data key for the actions work in Design Editor. This includes DesignSurface and ActionToolBar, but **exclude** all attached ToolWindows.
@@ -27,3 +30,15 @@ import com.intellij.openapi.actionSystem.DataKey
  */
 @JvmField
 val DESIGN_SURFACE: DataKey<DesignSurface> = DataKey.create(DesignSurface::class.qualifiedName!!)
+
+/**
+ * User data key for render related issues. It is used as a bus between external annotator and design surface.
+ */
+@JvmField
+val ATF_ISSUES: Key<AtfIssueList> = Key.create(AtfIssueList::class.qualifiedName!!)
+
+/**
+ * User data key for render related latch. It is used to control scheduling between lint and render.
+ */
+@JvmField
+val ATF_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${AtfIssueList::class.qualifiedName!!}_LATCH")
