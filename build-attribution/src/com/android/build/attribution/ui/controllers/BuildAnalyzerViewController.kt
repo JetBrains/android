@@ -37,14 +37,18 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import java.time.Duration
 
@@ -173,7 +177,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    GradleBuildInvoker.getInstance(project).rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+    ConfigurationCacheTestBuildFlowRunner(project, this).startTestBuildsFlow()
     analytics.rerunBuildWithConfCacheClicked()
   }
 
@@ -218,7 +222,7 @@ class PluginVersionDeclarationFinder(val project: Project) {
     projectBuildModel: GradleBuildModel?,
     pluginArtifact: GradlePluginsData.DependencyCoordinates?,
     pluginDisplayNames: Set<String>
-  ): PsiElement?{
+  ): PsiElement? {
     if (projectBuildModel == null) return null
     // Examine dependencies block
     val buildScriptDependenciesBlock = projectBuildModel.buildscript().dependencies()
@@ -238,5 +242,98 @@ class PluginVersionDeclarationFinder(val project: Project) {
     // TODO Support Plugin management case
 
     return buildScriptDependenciesBlock.psiElement
+  }
+}
+
+class ConfigurationCacheTestBuildFlowRunner(
+  val project: Project,
+  val controller: BuildAnalyzerViewController
+) {
+
+  fun startTestBuildsFlow() {
+    runFirstConfigurationCacheTestBuildWithConfirmation()
+  }
+
+  private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
+
+  private fun runFirstConfigurationCacheTestBuildWithConfirmation() {
+    invokeLater(ModalityState.NON_MODAL) {
+      val confirmationResult = Messages.showIdeaMessageDialog(
+        project,
+        """
+        |This test will rerun the latest build twice with configuration cache temporarily enabled.
+        |The first build makes sure that Gradle is able to serialize the task graph of the current build.
+        |The second build verifies that this serialized task graph can be reused from the cache.
+        |
+        |If any incompatibilities are detected by Gradle, the build fails and a detailed report is generated
+        |in the build output. The build runs in background, you will be notified once it finishes.
+        """.trimMargin(),
+        confirmationDialogHeader,
+        arrayOf("Run Builds", Messages.getCancelButton()), 0,
+        Messages.getInformationIcon(), null
+      )
+      if (confirmationResult == Messages.OK) {
+        scheduleRebuildWithCCOptionAndRunOnSuccess {
+          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess { showFinalSuccessMessage() } }
+        }
+      }
+    }
+  }
+
+  private fun showFinalSuccessMessage() {
+    invokeLater(ModalityState.NON_MODAL) {
+      val confirmationResult = Messages.showIdeaMessageDialog(
+        project,
+        """
+        |Both build reruns with Configuration cache on finished successfully.
+        |This means Gradle was able to serialize the task graph of this build and reuse it for the second run.
+        |You can turn on the configuration cache permanently in gradle.properties.
+        |
+        |Note: This test covered only a set of tasks of the latest build and more incompatibilities
+        |might be hit later while using the feature. If any problems are detected by Gradle,
+        |a detailed report is generated in build output.
+        """.trimMargin(),
+        confirmationDialogHeader,
+        arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
+        Messages.getInformationIcon(), null
+      )
+      if (confirmationResult == Messages.OK) controller.turnConfigurationCachingOnInProperties()
+    }
+  }
+
+  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(onSuccess: () -> Unit) {
+    GradleBuildInvoker.getInstance(project).let { invoker ->
+      invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
+        override fun execute(result: GradleInvocationResult) {
+          invoker.remove(this)
+          if (result.isBuildSuccessful) onSuccess()
+          else showFailureMessage(result)
+        }
+      })
+      invoker.rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+    }
+  }
+
+  private fun showFailureMessage(result: GradleInvocationResult) {
+    invokeLater(ModalityState.NON_MODAL) {
+      if (result.isBuildCancelled) {
+        Messages.showIdeaMessageDialog(
+          project,
+          "Build was cancelled.",
+          confirmationDialogHeader,
+          arrayOf(Messages.getOkButton()), 0,
+          Messages.getInformationIcon(), null
+        )
+      }
+      //TODO (mlazeba): we have configuration cache exception with a detailed message and a link to the html report inside.
+      // So I can present that in the Dialog. find cause recursively?
+      Messages.showIdeaMessageDialog(
+        project,
+        "Build failed. Please, check build output for a detailed report of incompatibilities detected by Gradle.",
+        confirmationDialogHeader,
+        arrayOf(Messages.getOkButton()), 0,
+        Messages.getErrorIcon(), null
+      )
+    }
   }
 }
