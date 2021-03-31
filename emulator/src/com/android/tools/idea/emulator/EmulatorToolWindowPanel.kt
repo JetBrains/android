@@ -55,11 +55,14 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.EventQueue
+import java.awt.KeyboardFocusManager
+import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+
 
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
@@ -67,18 +70,36 @@ import javax.swing.SwingConstants
 class EmulatorToolWindowPanel(
   private val project: Project,
   val emulator: EmulatorController
-) : BorderLayoutPanel(), DataProvider {
+) : BorderLayoutPanel(), DataProvider, ConnectionStateListener {
 
   private val mainToolbar: ActionToolbar
   private val centerPanel = BorderLayoutPanel()
   private val displayPanels = Int2ObjectRBTreeMap<EmulatorDisplayPanel>()
   private val displayConfigurator = DisplayConfigurator()
+  private var clipboardSynchronizer: EmulatorClipboardSynchronizer? = null
   private var contentDisposable: Disposable? = null
 
   private var primaryEmulatorView: EmulatorView? = null
   private val multiDisplayStateStorage = MultiDisplayStateStorage.getInstance(project)
   private val multiDisplayStateUpdater = Runnable {
     multiDisplayStateStorage.setMultiDisplayState(id.avdFolder, displayConfigurator.getMultiDisplayState())
+  }
+
+  private val focusOwnerListener = PropertyChangeListener { event ->
+    val newFocus = event.newValue
+    val gained = newFocus is EmulatorView && newFocus.emulator == emulator
+    val oldFocus = event.oldValue
+    val lost = oldFocus is EmulatorView && oldFocus.emulator == emulator
+    if (gained != lost) {
+      if (gained) {
+        if (connected) {
+          clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
+        }
+      }
+      else if (lost) {
+        clipboardSynchronizer?.stopKeepingHostClipboardInSync()
+      }
+    }
   }
 
   val id
@@ -114,6 +135,8 @@ class EmulatorToolWindowPanel(
 
     addToCenter(centerPanel)
     addToolbar()
+
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
   }
 
   private fun addToolbar() {
@@ -137,6 +160,17 @@ class EmulatorToolWindowPanel(
     primaryEmulatorView?.deviceFrameVisible = visible
   }
 
+  override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
+    if (connectionState == ConnectionState.CONNECTED) {
+      displayConfigurator.refreshDisplayConfiguration()
+      EventQueue.invokeLater {
+        if (isFocusOwner) {
+          clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
+        }
+      }
+    }
+  }
+
   /**
    * Populates the emulator panel with content.
    */
@@ -146,6 +180,8 @@ class EmulatorToolWindowPanel(
       val disposable = Disposer.newDisposable()
       contentDisposable = disposable
 
+      clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator)
+
       val primaryDisplayPanel =
           EmulatorDisplayPanel(disposable, emulator, PRIMARY_DISPLAY_ID, null, zoomToolbarVisible, deviceFrameVisible)
       displayPanels[primaryDisplayPanel.displayId] = primaryDisplayPanel
@@ -154,7 +190,7 @@ class EmulatorToolWindowPanel(
       mainToolbar.setTargetComponent(emulatorView)
       installFileDropHandler(this, emulatorView, project)
       emulatorView.addDisplayConfigurationListener(displayConfigurator)
-      emulator.addConnectionStateListener(displayConfigurator)
+      emulator.addConnectionStateListener(this)
 
       val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(id.avdFolder)
       if (multiDisplayState == null) {
@@ -222,6 +258,7 @@ class EmulatorToolWindowPanel(
       })
     }
 
+    emulator.removeConnectionStateListener(this)
     contentDisposable?.let { Disposer.dispose(it) }
     contentDisposable = null
 
@@ -229,6 +266,7 @@ class EmulatorToolWindowPanel(
     displayPanels.clear()
     primaryEmulatorView = null
     mainToolbar.setTargetComponent(null)
+    clipboardSynchronizer = null
     lastUiState = uiState
     return uiState
   }
@@ -251,18 +289,12 @@ class EmulatorToolWindowPanel(
     return toolbar
   }
 
-  private inner class DisplayConfigurator : DisplayConfigurationListener, ConnectionStateListener {
+  private inner class DisplayConfigurator : DisplayConfigurationListener {
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
     override fun displayConfigurationChanged() {
       refreshDisplayConfiguration()
-    }
-
-    override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
-      if (connectionState == ConnectionState.CONNECTED) {
-        refreshDisplayConfiguration()
-      }
     }
 
     fun refreshDisplayConfiguration() {

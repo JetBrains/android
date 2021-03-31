@@ -73,6 +73,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
+import junit.framework.Assert
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -95,6 +96,7 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
@@ -120,9 +122,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
   private var startTime = 0L
-  private val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
-                                             "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                             "android.emulation.control.EmulatorController/streamNotification")
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
@@ -749,6 +748,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       completion.get(timeout, unit)
     }
 
+    fun waitForCancellation(timeout: Long, unit: TimeUnit) {
+      try {
+        waitForCompletion(2, TimeUnit.SECONDS)
+        Assert.fail("The $methodName call was not cancelled")
+      }
+      catch (expected: CancellationException) {
+      }
+    }
+
     override fun toString(): String {
       return "$methodName(${shortDebugString(request)})"
     }
@@ -757,6 +765,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   class CallFilter(private vararg val methodNamesToIgnore: String) : Predicate<GrpcCallRecord> {
     override fun test(call: GrpcCallRecord): Boolean {
       return call.methodName !in methodNamesToIgnore
+    }
+
+    fun or(vararg moreMethodNamesToIgnore: String): CallFilter {
+      return CallFilter(*arrayOf(*methodNamesToIgnore) + arrayOf(*moreMethodNamesToIgnore))
     }
   }
 
@@ -1141,6 +1153,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
+
+    @JvmStatic
+    val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                       "android.emulation.control.EmulatorController/getDisplayConfigurations",
+                                       "android.emulation.control.EmulatorController/streamNotification")
   }
 }
 

@@ -25,10 +25,10 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
@@ -44,6 +44,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
+import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
@@ -69,11 +70,11 @@ import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
@@ -121,12 +122,14 @@ class EmulatorToolWindowPanelTest {
   @Before
   fun setUp() {
     setPortableUiFont()
-    // Necessary to properly update button states.
+    // Necessary to properly update toolbar button states.
     installHeadlessTestDataManager(projectRule.project, testRootDisposable)
   }
 
   @Test
   fun testAppearanceAndToolbarActions() {
+    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
+
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
@@ -180,9 +183,26 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 
+    // Check clipboard synchronization.
+    val content = StringSelection("host clipboard")
+    ClipboardSynchronizer.getInstance().setContent(content, content)
+    focusManager.focusOwner = emulatorView
+    call = emulator.getNextGrpcCall(3, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
+    assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    emulator.clipboard = "device clipboard"
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    assertThat(call.completion.isCancelled).isFalse()
+    focusManager.focusOwner = null
+    call.waitForCancellation(2, TimeUnit.SECONDS)
+
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
   }
 
   @Test
@@ -263,7 +283,7 @@ class EmulatorToolWindowPanelTest {
 
     val uiState = panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
 
     // Check serialization and deserialization of MultiDisplayStateStorage.
     val state = MultiDisplayStateStorage.getInstance(projectRule.project)
@@ -299,11 +319,8 @@ class EmulatorToolWindowPanelTest {
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
-    ui.keyboard.setFocus(emulatorView)
-    val mockFocusManager = mock<KeyboardFocusManager>()
-    `when`(mockFocusManager.focusOwner).thenReturn(emulatorView)
-    `when`(mockFocusManager.redispatchEvent(any(), any())).thenCallRealMethod()
-    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    focusManager.focusOwner = emulatorView
 
     assertThat(ui.findComponent<EditorNotificationPanel>()).isNull()
 
@@ -331,23 +348,19 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<EditorNotificationPanel>()?.text)
         .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
 
-    // Drain the gRPC call log.
-    for (i in 1..5) {
-      if (emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName.endsWith("streamClipboard")) {
-        break
-      }
-    }
-
     // Check camera movement.
     val velocityExpectations =
         mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
+    val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
+                                                       "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.toInt())
-      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+
+      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
       ui.keyboard.release(key.toInt())
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo("")
     }
@@ -357,7 +370,7 @@ class EmulatorToolWindowPanelTest {
     val y = initialMousePosition.y + 10
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
 
@@ -367,7 +380,7 @@ class EmulatorToolWindowPanelTest {
                                      VK_PAGE_UP to "x: 0.08726646 y: -0.08726646", VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646")
     for ((key, expected) in rotationExpectations) {
       ui.keyboard.pressAndRelease(key)
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
     }
