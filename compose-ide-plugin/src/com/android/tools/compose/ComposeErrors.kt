@@ -112,8 +112,6 @@ object ComposeErrors {
     DiagnosticFactory2.create<KtExpression, KotlinType, KotlinType>(Severity.ERROR)
 
   init {
-    Errors.Initializer.initializeFactoryNames(
-      ComposeErrors::class.java
-    )
+    Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(ComposeErrors::class.java, ComposeErrorMessages)
   }
 }
