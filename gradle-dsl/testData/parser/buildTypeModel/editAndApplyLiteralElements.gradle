@@ -13,6 +13,7 @@ android {
       shrinkResources false
       testCoverageEnabled true
       useJack false
+      useProguard true
       versionNameSuffix "abc"
       zipAlignEnabled true
     }

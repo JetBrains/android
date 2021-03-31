@@ -77,6 +77,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
@@ -103,6 +104,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
@@ -131,6 +133,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
@@ -162,6 +165,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
       // versions of AGP recent enough to have a Kotlin DSL have also removed the (deprecated in 3.0) Jack configuration
       assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     }
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
 
@@ -190,6 +194,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     if (isGroovy()) {
       assertEquals("useJack", Boolean.TRUE, buildType.useJack());
     }
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
   }
 
@@ -246,6 +251,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
@@ -266,6 +272,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().delete();
     buildType.testCoverageEnabled().delete();
     buildType.useJack().delete();
+    buildType.useProguard().delete();
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
     assertMissingProperty("applicationIdSuffix", buildType.applicationIdSuffix());
@@ -285,6 +292,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -308,6 +316,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
@@ -330,6 +339,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.FALSE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.FALSE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
@@ -345,6 +355,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().setValue(true);
     buildType.testCoverageEnabled().setValue(false);
     buildType.useJack().setValue(true);
+    buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
 
@@ -360,6 +371,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -376,6 +388,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.FALSE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.FALSE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
   }
@@ -403,6 +416,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -418,6 +432,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().setValue(true);
     buildType.testCoverageEnabled().setValue(false);
     buildType.useJack().setValue(true);
+    buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
 
@@ -433,6 +448,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -454,6 +470,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
   }
@@ -668,6 +685,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals(isGroovy()?"shrinkResources":"isShrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals(isGroovy()?"testCoverageEnabled":"isTestCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals(isGroovy()?"zipAlignEnabled":"isZipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
@@ -688,6 +706,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().delete();
     buildType.testCoverageEnabled().delete();
     buildType.useJack().delete();
+    buildType.useProguard().delete();
     buildType.versionNameSuffix().delete();
     buildType.zipAlignEnabled().delete();
     assertThat(android, instanceOf(AndroidModelImpl.class));
@@ -711,6 +730,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -738,6 +758,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -766,6 +787,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -813,6 +835,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.FALSE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.TRUE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.FALSE, buildType.useJack());
+    assertEquals("useProguard", Boolean.TRUE, buildType.useProguard());
     assertEquals("versionNameSuffix", "abc", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.TRUE, buildType.zipAlignEnabled());
 
@@ -828,6 +851,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().setValue(true);
     buildType.testCoverageEnabled().setValue(false);
     buildType.useJack().setValue(true);
+    buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
 
@@ -843,6 +867,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -861,6 +886,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -878,6 +904,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
   }
@@ -905,6 +932,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("shrinkResources", buildType.shrinkResources());
     assertMissingProperty("testCoverageEnabled", buildType.testCoverageEnabled());
     assertMissingProperty("useJack", buildType.useJack());
+    assertMissingProperty("useProguard", buildType.useProguard());
     assertMissingProperty("versionNameSuffix", buildType.versionNameSuffix());
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
@@ -920,6 +948,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     buildType.shrinkResources().setValue(true);
     buildType.testCoverageEnabled().setValue(false);
     buildType.useJack().setValue(true);
+    buildType.useProguard().setValue(false);
     buildType.versionNameSuffix().setValue("def");
     buildType.zipAlignEnabled().setValue(false);
 
@@ -935,6 +964,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -953,6 +983,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
@@ -970,6 +1001,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("shrinkResources", Boolean.TRUE, buildType.shrinkResources());
     assertEquals("testCoverageEnabled", Boolean.FALSE, buildType.testCoverageEnabled());
     assertEquals("useJack", Boolean.TRUE, buildType.useJack());
+    assertEquals("useProguard", Boolean.FALSE, buildType.useProguard());
     assertEquals("versionNameSuffix", "def", buildType.versionNameSuffix());
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
   }
