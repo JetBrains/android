@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.lint.detector.api.isKotlin
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -57,7 +56,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 /**
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on them.
  */
-class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction(), HighPriorityAction {
+class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private var intentionActionText: String = familyName
   private val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
