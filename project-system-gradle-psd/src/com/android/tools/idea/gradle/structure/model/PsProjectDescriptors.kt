@@ -82,7 +82,9 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       setter = { setValue(it) },
       parser = ::parseString,
       knownValuesGetter = ::androidGradlePluginVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      preferredVariableName = { "agp_version" },
+      variableScope = { buildScriptVariables }
     )
   }
 
@@ -125,6 +127,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override val description: String = "Gradle Version"
           override val defaultValueGetter: (() -> String?)? = null
+          override val variableScope: (() -> PsVariablesScope?)? = { PsVariablesScope.NONE }
           override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
         }
 
