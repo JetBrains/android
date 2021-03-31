@@ -19,6 +19,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -67,7 +68,7 @@ import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating"
 
-class DeviceListStep(model: WearDevicePairingModel, val project: Project, val emptyListClickedAction: () -> Unit) :
+class DeviceListStep(model: WearDevicePairingModel, val project: Project, val restartPairingAction: (Boolean) -> Unit) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
   private val phoneList = createList(
@@ -86,14 +87,16 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
 
       updateList(phoneList, phones)
       updateList(wearList, wears)
+      updateSelectedDevice(phones, model.phoneDevice)
+      updateSelectedDevice(wears, model.wearDevice)
     }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
       NewConnectionAlertStep(model, project),
-      DevicesConnectionStep(model, project, true),
-      DevicesConnectionStep(model, project, false)
+      DevicesConnectionStep(model, project, true, restartPairingAction),
+      DevicesConnectionStep(model, project, false, restartPairingAction)
     )
   }
 
@@ -191,7 +194,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
         emptyText.appendLine(it)
       }
       emptyText.appendLine(message("wear.assistant.device.list.open.avd"), LINK_PLAIN_ATTRIBUTES) {
-        emptyListClickedAction()
+        restartPairingAction(false)
       }
 
       addListSelectionListener {
@@ -265,6 +268,12 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
       super.setSelectionInterval(n, n)
     }
   }
+}
+
+private fun updateSelectedDevice(deviceList: List<PairingDevice>, device: OptionalProperty<PairingDevice>) {
+  val currentDevice = device.valueOrNull ?: return
+  // Assign the new value from the list, or if missing, update the current state to DISCONNECTED
+  device.value = deviceList.firstOrNull { currentDevice.deviceID == it.deviceID } ?: currentDevice.disconnectedCopy()
 }
 
 private fun PairingDevice.isDisabled(): Boolean {

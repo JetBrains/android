@@ -28,7 +28,6 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wearparing.ConnectionState.OFFLINE
 import com.android.tools.idea.wearparing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
@@ -60,16 +59,15 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>) {
     this.listHolder = listHolder
 
-    if (runningJob == null) {
-      AndroidDebugBridge.addDeviceChangeListener(this)
-      runningJob = GlobalScope.launch(Dispatchers.IO) {
-        for (operation in updateDevicesChannel) {
-          try {
-            updateListAndForwardState()
-          }
-          catch (ex: Throwable) {
-            LOG.warn(ex)
-          }
+    AndroidDebugBridge.addDeviceChangeListener(this)
+    runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
+    runningJob = GlobalScope.launch(Dispatchers.IO) {
+      for (operation in updateDevicesChannel) {
+        try {
+          updateListAndForwardState()
+        }
+        catch (ex: Throwable) {
+          LOG.warn(ex)
         }
       }
     }
@@ -79,8 +77,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   @Synchronized
   fun setKeepForwardAlive(phone: PairingDevice, wear: PairingDevice) {
-    keepAlivePhone = phone.copy(isPaired = true, state = DISCONNECTED)
-    keepAliveWear = wear.copy(isPaired = true, state = DISCONNECTED)
+    keepAlivePhone = phone.disconnectedCopy(isPaired = true)
+    keepAliveWear = wear.disconnectedCopy(isPaired = true)
     keepAlivePhoneIsOnline = phone.isOnline()
     updateDevicesChannel.offer(Unit)
   }

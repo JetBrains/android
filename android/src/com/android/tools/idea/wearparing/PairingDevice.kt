@@ -37,4 +37,10 @@ data class PairingDevice(
   lateinit var launch: (Project) -> ListenableFuture<IDevice>
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE
+
+  fun disconnectedCopy(isPaired: Boolean = false): PairingDevice {
+    val res = copy(state = ConnectionState.DISCONNECTED, isPaired = isPaired)
+    res.launch = this.launch
+    return res
+  }
 }

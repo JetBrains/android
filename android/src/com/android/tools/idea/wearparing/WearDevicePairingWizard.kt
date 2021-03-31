@@ -39,13 +39,18 @@ class WearDevicePairingWizard {
       return
     }
 
-    val emptyListClickedAction = {
+    val restartPairingAction = { restart: Boolean ->
       wizardDialog?.close(CANCEL_EXIT_CODE)
-      (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
+      if (restart) {
+        show(project)
+      }
+      else {
+        (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
+      }
     }
     val model = WearDevicePairingModel()
     val modelWizard = ModelWizard.Builder()
-      .addStep(DeviceListStep(model, project, emptyListClickedAction))
+      .addStep(DeviceListStep(model, project, restartPairingAction))
       .build()
 
     // Remove the dialog reference when the dialog is disposed (closed).

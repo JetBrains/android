@@ -73,16 +73,16 @@ class NewConnectionAlertStep(
     // Bottom padding
     add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0))
   }
-
-  private fun gridConstraint(
-    x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1): GridBagConstraints =
-    GridBagConstraints().apply {
-      this.gridx = x
-      this.gridy = y
-      this.weightx = weightx
-      this.weighty = weighty
-      this.fill = fill
-      this.gridwidth = gridwidth
-      this.anchor = GridBagConstraints.NORTH
-    }
 }
+
+internal fun gridConstraint(
+  x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1): GridBagConstraints =
+  GridBagConstraints().apply {
+    this.gridx = x
+    this.gridy = y
+    this.weightx = weightx
+    this.weighty = weighty
+    this.fill = fill
+    this.gridwidth = gridwidth
+    this.anchor = GridBagConstraints.NORTH
+  }
