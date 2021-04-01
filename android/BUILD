@@ -980,6 +980,8 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.6.5:jar",
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy-agent/1.9.10:jar",
         "//prebuilts/tools/common/m2/repository/net/bytebuddy/byte-buddy/1.9.10:jar",
+        "//prebuilts/tools/common/m2/repository/net/sf/proguard/proguard-base/6.0.3:jar",
+        "//prebuilts/tools/common/m2/repository/net/sf/proguard/proguard-gradle/6.0.3:jar",
         "//prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.5.2-1:jar",
         "//prebuilts/tools/common/m2/repository/org/apache/commons/commons-compress/1.12:jar",
         "//prebuilts/tools/common/m2/repository/org/apache/httpcomponents/httpclient/4.5.3:jar",
