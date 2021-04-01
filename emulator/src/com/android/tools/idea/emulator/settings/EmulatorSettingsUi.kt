@@ -34,7 +34,7 @@ import javax.swing.JCheckBox
 /**
  * Implementation of Settings > Tools > Emulator preference page.
  */
-internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
+class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
   private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
