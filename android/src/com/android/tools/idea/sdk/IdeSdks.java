@@ -423,14 +423,16 @@ public class IdeSdks {
 
   public void removeInvalidJdksFromTable() {
     // Delete all JDKs that are not valid.
-    ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
-    List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
-    for (final Sdk jdk : jdks) {
-      String homePath = jdk.getHomePath();
-      if (homePath == null || validateJdkPath(new File(homePath)) == null) {
-        projectJdkTable.removeJdk(jdk);
+    ApplicationManager.getApplication().runWriteAction( () -> {
+      ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
+      List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
+      for (final Sdk jdk : jdks) {
+        String homePath = jdk.getHomePath();
+        if (homePath == null || validateJdkPath(new File(homePath)) == null) {
+          projectJdkTable.removeJdk(jdk);
+        }
       }
-    }
+    });
   }
 
   /**

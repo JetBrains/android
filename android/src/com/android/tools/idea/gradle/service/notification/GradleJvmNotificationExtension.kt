@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
+import com.android.utils.FileUtils
 import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
@@ -30,31 +29,43 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
   override fun customize(notificationData: NotificationData, project: Project, error: Throwable?) {
     super.customize(notificationData, project, error)
     if (notificationData.message.startsWith(GradleBundle.message("gradle.jvm.is.invalid"))) {
-      val registeredListeners = notificationData.registeredListenerIds
-      val gradleProjectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project) ?: return
-      if (gradleProjectSettings.gradleJvm != null && gradleProjectSettings.gradleJvm != USE_PROJECT_JDK) {
-        if ((registeredListeners != null) && (!registeredListeners.contains(UseJdkAsProjectJdkListener.ID))) {
-          val ideSdks = IdeSdks.getInstance()
-          val defaultJdk = ideSdks.jdk
-          val defaultPath = defaultJdk?.homePath
-          if (defaultPath != null) {
-            if (ideSdks.validateJdkPath(File(defaultPath)) != null) {
-              val listener = UseJdkAsProjectJdkListener(project, defaultPath)
-              notificationData.message = notificationData.message + "<a href=\"${UseJdkAsProjectJdkListener.ID}\">" +
-                                         "Use JDK ${defaultJdk.name} ($defaultPath)</a>"
-              notificationData.setListener(UseJdkAsProjectJdkListener.ID, listener)
+      // Suggest use embedded
+      var registeredListeners = notificationData.registeredListenerIds
+      val ideSdks = IdeSdks.getInstance()
+      val embeddedJdkPath = ideSdks.embeddedJdkPath
+      if (embeddedJdkPath != null) {
+        if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
+          val absolutePath = embeddedJdkPath.absolutePath
+          val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
+          if (!registeredListeners.contains(listener.id)) {
+            notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
+            notificationData.setListener(listener.id, listener)
+            registeredListeners = notificationData.registeredListenerIds
+          }
+        }
+      }
+      // Suggest IdeSdks.jdk (if different to embedded)
+      val defaultJdk = ideSdks.jdk
+      val defaultPath = defaultJdk?.homePath
+      if (defaultPath != null) {
+        if (ideSdks.validateJdkPath(File(defaultPath)) != null) {
+          if (embeddedJdkPath == null || (!FileUtils.isSameFile(embeddedJdkPath, File(defaultPath)))) {
+            val listener = UseJdkAsProjectJdkListener(project, defaultPath)
+            if (!registeredListeners.contains(listener.id)) {
+              notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"
+              notificationData.setListener(listener.id, listener)
+              registeredListeners = notificationData.registeredListenerIds
             }
           }
         }
       }
-      else {
-        if ((registeredListeners != null) && (!registeredListeners.contains(OpenProjectJdkLocationListener.ID))) {
-          val service = ProjectSettingsService.getInstance(project)
-          if (service is AndroidProjectSettingsService) {
-            val listener = OpenProjectJdkLocationListener(service)
-            notificationData.message = notificationData.message + "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>"
-            notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
-          }
+      // Add change JDK location link
+      if ((registeredListeners != null) && (!registeredListeners.contains(OpenProjectJdkLocationListener.ID))) {
+        val service = ProjectSettingsService.getInstance(project)
+        if (service is AndroidProjectSettingsService) {
+          val listener = OpenProjectJdkLocationListener(service)
+          notificationData.message = notificationData.message + "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
+          notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
         }
       }
     }
