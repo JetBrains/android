@@ -71,6 +71,5 @@ class ComposeViewNode(
             && parent is ComposeViewNode // The top node is usually create by the user, but it has no location i.e. packageHash is -1
 
   override val isSingleCall: Boolean
-    get() = TreeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 &&
-            (TreeSettings.composeDrawablesInCallstack || drawId < 0)
+    get() = TreeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1
 }

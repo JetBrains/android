@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.ui.tree.ui.Control
+import com.intellij.ui.treeStructure.Tree
 import icons.StudioIcons
+
+/**
+ * This file contains view options for the component tree.
+ */
+
 
 /**
  * Filter system nodes from view hierarchy and compose hierarchy.
  */
-object FilterNodeAction : ToggleAction("Filter system-defined layers", null, StudioIcons.Common.FILTER) {
+object FilterNodeAction : ToggleAction("Filter System-Defined Layers", null, StudioIcons.Common.FILTER) {
   override fun isSelected(event: AnActionEvent): Boolean =
     TreeSettings.hideSystemNodes
 
@@ -56,8 +64,48 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
     event.presentation.isVisible =
       LayoutInspector.get(event)?.currentClient?.let { client ->
         !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
-        || client.capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
+        || client.capabilities.contains(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
       }
       ?: true
   }
+}
+
+object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    TreeSettings.composeAsCallstack
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.composeAsCallstack = state
+
+    // Update the component tree:
+    event.treePanel()?.refresh()
+  }
+}
+
+object SupportLines : ToggleAction("Show Support Lines", null, null) {
+
+  override fun isSelected(event: AnActionEvent): Boolean =
+    event.tree()?.getClientProperty(Control.Painter.KEY) == LINES
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.supportLines = state
+    val newPainter = when {
+      state -> LINES
+      else -> null
+    }
+    val tree = event.tree() ?: return
+    tree.putClientProperty(Control.Painter.KEY, newPainter)
+    tree.repaint()
+  }
+}
+
+fun Tree.setDefaultPainter() {
+  val painter = with(TreeSettings) {
+    when {
+      supportLines -> LINES
+      else -> null
+    }
+  }
+  putClientProperty(Control.Painter.KEY, painter)
 }
