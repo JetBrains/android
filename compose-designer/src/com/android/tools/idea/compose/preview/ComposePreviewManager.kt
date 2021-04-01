@@ -124,6 +124,11 @@ interface ComposePreviewManager {
    * Enables/disables live literals in the preview.
    */
   val isLiveLiteralsEnabled: Boolean
+
+  /**
+   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo object.
+   */
+  val hasDesignInfoProviders: Boolean
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
