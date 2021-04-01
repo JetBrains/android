@@ -100,7 +100,7 @@ class BuildAttributionReportBuilder(
     pluginCriticalPathBuildData: PluginBuildData,
     totalCriticalPathDuration: TimeWithPercentage
   ) = object : CriticalPathPluginUiData {
-    override val name = pluginCriticalPathBuildData.plugin.displayNames().first()
+    override val name = pluginCriticalPathBuildData.plugin.displayName
     override val criticalPathDuration = TimeWithPercentage(pluginCriticalPathBuildData.buildDuration, totalCriticalPathDuration.timeMs)
     override val criticalPathTasks = createPluginTasksCriticalPath(criticalPathTasks, criticalPathDuration)
     override val issues = issueUiDataContainer.pluginIssueGroups(pluginCriticalPathBuildData.plugin)
