@@ -936,7 +936,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         } else emptyList()
 
-        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.find.preview.elements"))
         val needsFullRefresh = filePreviewElements != previewElements ||
                                PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
 
