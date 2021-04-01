@@ -21,7 +21,10 @@ import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
+import com.intellij.ui.tree.ui.Control
 import com.intellij.util.ui.JBUI
+import java.awt.Component
+import java.awt.Graphics
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -56,6 +59,7 @@ class ComponentTreeBuilder {
   private var horizontalScrollbar = false
   private var autoScroll = false
   private var componentName =  "componentTree"
+  private var painter: (() -> Control.Painter?)? = null
 
   /**
    * Register a [NodeType].
@@ -123,12 +127,17 @@ class ComponentTreeBuilder {
   fun withAutoScroll() = apply { autoScroll = true }
 
   /**
+   * Sets a custom tree painter (e.g. [Control.Painter.COMPACT]) for this tree to use, which may change during runtime.
+   */
+  fun withPainter(painter: () -> Control.Painter?) = apply { this.painter = painter }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter)
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
     if (installTreeSearch) {

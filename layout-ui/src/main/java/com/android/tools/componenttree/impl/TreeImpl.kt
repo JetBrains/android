@@ -24,11 +24,13 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.PopupHandler
+import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
+import java.awt.Graphics
 import java.awt.Window
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
@@ -53,7 +55,8 @@ class TreeImpl(
   private val contextPopup: ContextPopupHandler,
   private val doubleClick: DoubleClickHandler,
   private val badges: List<BadgeItem>,
-  componentName: String
+  componentName: String,
+  private val painter: (() -> Control.Painter?)?
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
@@ -100,6 +103,11 @@ class TreeImpl(
       model!!.clearRendererCache()
       setCellRenderer(TreeCellRendererImpl(this, badges, model!!))
     }
+  }
+
+  override fun paintComponent(g: Graphics?) {
+    putClientProperty(Control.Painter.KEY, painter?.invoke())
+    super.paintComponent(g)
   }
 
   override fun getModel() = super.getModel() as? ComponentTreeModelImpl
