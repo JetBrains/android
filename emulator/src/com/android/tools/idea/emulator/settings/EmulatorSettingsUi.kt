@@ -46,14 +46,15 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
 
   override fun createComponent() = panel {
     row {
-      val extendedControlsNote = if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) ""
-                                 else " The Emulator's extended controls are not available when launched in a tool window."
+      val note1 = if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() && StudioFlags.EMBEDDED_EMULATOR_FOLDING.get()) ""
+                  else " Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles."
+      val note2 = if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) ""
+                  else " The Emulator's extended controls are not available when launched in a tool window."
       launchInToolWindowCheckBox =
           checkBox("Launch in a tool window",
                    comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                             "Otherwise the Android Emulator will launch as a standalone application. Some AVDs " +
-                             "will launch as standalone applications regardless of this setting due to their " +
-                             "hardware profiles.$extendedControlsNote").component
+                             "Otherwise the Android Emulator will launch as a standalone application." +
+                             "$note1$note2").component
     }
     blockRow {} // Visual separator.
     row {
