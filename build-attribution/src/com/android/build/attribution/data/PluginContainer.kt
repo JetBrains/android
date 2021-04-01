@@ -54,6 +54,7 @@ class PluginContainer {
 
   fun clear() {
     pluginCache.clear()
+    pluginDisplayNamesToPlugin.clear()
   }
 
   private fun getPluginType(pluginIdentifier: PluginIdentifier?): PluginData.PluginType {
