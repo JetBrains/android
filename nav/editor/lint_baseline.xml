@@ -117,30 +117,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="138"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="145"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="369"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/naveditor/scene/targets/EmptyDesignerTarget.kt"
             line="79"/>
     </issue>
