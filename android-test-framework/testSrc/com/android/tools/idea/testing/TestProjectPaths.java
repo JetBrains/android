@@ -46,10 +46,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_BOTH = "projects/moduleInfo/both";
   public static final String MODULE_INFO_FLAVORS = "projects/moduleInfo/flavors";
   public static final String MODULE_INFO_GRADLE_ONLY = "projects/moduleInfo/gradleOnly";
-  public static final String MODULE_INFO_MANIFEST_ERROR = "projects/moduleInfo/manifestError";
-  public static final String MODULE_INFO_MANIFEST_MERGER = "projects/moduleInfo/manifestMerger";
   public static final String MODULE_INFO_MANIFEST_ONLY = "projects/moduleInfo/manifestOnly";
-  public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTI_FEATURE = "projects/multiFeature";
   public static final String MULTIPLE_MODULE_DEPEND_ON_AAR = "projects/multipleModuleDependOnAar";
