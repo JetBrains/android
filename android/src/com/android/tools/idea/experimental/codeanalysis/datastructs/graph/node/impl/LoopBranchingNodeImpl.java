@@ -180,6 +180,7 @@ public class LoopBranchingNodeImpl extends GraphNodeImpl implements LoopBranchin
         break;
       case LoopBranchingNode.DOWHILE_LOOP:
         loopTypeName = "[DOWHILE LOOP]";
+        break;
       case LoopBranchingNode.FOREACH_LOOP:
         loopTypeName = "[FOREACH LOOP]";
         break;
