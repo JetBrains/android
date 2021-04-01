@@ -79,7 +79,9 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
@@ -2177,7 +2179,7 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
       now performed using the androidResources block.
     """.trimIndent() },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
-    componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
+    componentKind = MIGRATE_TO_ANDROID_RESOURCES,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(
@@ -2214,7 +2216,7 @@ val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
     is used unconditionally.
   """.trimIndent()},
   processedElementsHeaderSupplier = { "Remove buildType useProguard setting" },
-  componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+  componentKind = REMOVE_BUILD_TYPE_USE_PROGUARD,
   propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
 )
 
