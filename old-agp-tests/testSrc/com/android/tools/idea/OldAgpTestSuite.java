@@ -16,8 +16,6 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.idea.gradle.project.sync.IdeAndroidProjectIntegrationOldAgpTest;
-import com.android.tools.idea.run.AndroidRunConfigurationGradleOldAgpTest;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
@@ -26,9 +24,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  OldAgpTestSuite.class,  // a suite mustn't contain itself
-  IdeAndroidProjectIntegrationOldAgpTest.class, // Disabled due to https://github.com/gradle/gradle/issues/8431
-  AndroidRunConfigurationGradleOldAgpTest.class, // Disabled due to https://github.com/gradle/gradle/issues/8431
+  OldAgpTestSuite.class  // a suite mustn't contain itself
 })
 public class OldAgpTestSuite extends IdeaTestSuiteBase {
 
@@ -38,9 +34,6 @@ public class OldAgpTestSuite extends IdeaTestSuiteBase {
 
   static {
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/1.5.0.zip");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.zip");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.0.0.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.3.2.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.5.0.zip");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
