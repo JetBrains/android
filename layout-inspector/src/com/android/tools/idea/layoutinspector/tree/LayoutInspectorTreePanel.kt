@@ -21,6 +21,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -82,6 +83,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
+      .withPainter { if (TreeSettings.supportLines) LINES else null }
 
     val (scrollPane, model, selectionModel) = builder.build()
     componentTree = scrollPane
@@ -97,7 +99,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
-    tree?.setDefaultPainter()
     tree?.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.toInt())) {
