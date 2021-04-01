@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.model
 
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.util.toIoFile
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -26,6 +26,7 @@ import com.intellij.util.io.delete
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidRootUtil
+import java.util.concurrent.TimeUnit
 
 class MergedManifestModificationListenerTest : AndroidTestCase() {
   private lateinit var mergedManifestTracker: MergedManifestModificationTracker
@@ -44,7 +45,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
     updatePrimaryManifestXml { addPermissionWithoutSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document change(from a cached psi file)
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
+    waitForCondition(2, TimeUnit.SECONDS) { mergedManifestTracker.modificationCount == baseMergedManifestTrackerCount + 1 }
   }
 
   fun testManifestVirtualFileUpdate() {
@@ -52,7 +53,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
     updatePrimaryManifestXml { addPermissionWithSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document(from virtual file corresponding to this specified document) change
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
+    waitForCondition(2, TimeUnit.SECONDS) { mergedManifestTracker.modificationCount == baseMergedManifestTrackerCount + 1 }
   }
 
   fun testManifestVirtualFileAndPsiFileUpdate() {
@@ -62,7 +63,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
     updatePrimaryManifestXml { addPermissionWithSaving("com.example.SEND_MESSAGE") }
 
     // picked up 1 document(from a cached psi file) change
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
+    waitForCondition(2, TimeUnit.SECONDS) { mergedManifestTracker.modificationCount == baseMergedManifestTrackerCount + 1 }
   }
 
   fun testAncestorDirectoryDeleted() {
@@ -73,29 +74,7 @@ class MergedManifestModificationListenerTest : AndroidTestCase() {
     manifestParentPath.delete(true)
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifestParent)
 
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount + 1)
-  }
-
-  fun testNoManifestContributorUpdate() {
-    val baseMergedManifestTrackerCount: Long = mergedManifestTracker.modificationCount
-
-    myFixture.addFileToProject(
-      "/src/p1/p2/MainActivity.kt",
-      // language=kotlin
-      """
-        package p1.p2
-        import android.app.Activity
-        import android.os.Bundle
-        import android.util.Log
-        class MainActivity : Activity() {
-            override fun onCreate(savedInstanceState: Bundle) {
-                super.onCreate(savedInstanceState)
-                Log.d("tag", Manifest.permission.SEND_MESSAGE)
-            }
-        }
-        """.trimIndent()
-    )
-    assertThat(mergedManifestTracker.modificationCount).isEqualTo(baseMergedManifestTrackerCount)
+    waitForCondition(2, TimeUnit.SECONDS) { mergedManifestTracker.modificationCount == baseMergedManifestTrackerCount + 1 }
   }
 
   private fun updatePrimaryManifestXml(update: VirtualFile.() -> Unit) {
