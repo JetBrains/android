@@ -1482,10 +1482,11 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       //  to determine what kind of a module we have.
       val applicationSet = setOf(
         "application", "org.gradle.application", // see Gradle documentation for PluginDependenciesSpec for `org.gradle.` prefix
+        "android", // deprecated but equivalent to com.android.application
         "com.android.application", "com.android.test", "com.android.instant-app")
       val librarySet = setOf(
         "java", "java-library", "org.gradle.java", "org.gradle.java-library",
-        "com.android.library", "com.android.dynamic-feature", "com.android.feature")
+        "com.android.base", "com.android.library", "com.android.dynamic-feature", "com.android.feature")
       val compileReplacement = when {
         !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
         pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
