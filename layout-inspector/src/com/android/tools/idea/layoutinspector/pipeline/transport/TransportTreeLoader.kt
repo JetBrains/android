@@ -132,9 +132,7 @@ private class TransportTreeLoaderImpl(
     }
     else {
       val composeFileName = stringTable[view.composeFilename]
-      canAddToCallstack = view.subViewCount == 1 &&
-                          TreeSettings.composeAsCallstack &&
-                          (TreeSettings.composeDrawablesInCallstack || view.subViewList.first().drawId < 0L)
+      canAddToCallstack = view.subViewCount == 1 && TreeSettings.composeAsCallstack
       ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
                       view.layoutFlags, composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
     }

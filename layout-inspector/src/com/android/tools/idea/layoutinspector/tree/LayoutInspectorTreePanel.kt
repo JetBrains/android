@@ -21,7 +21,6 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -134,14 +133,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
-  override fun getGearActions(): List<AnAction> {
-    return if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_COMPONENT_TREE_OPTIONS.get()) {
-      listOf(CallstackAction, DrawablesInCallstackAction, CompactTree, SupportLines)
-    }
-    else {
-      listOf()
-    }
-  }
+  override fun getGearActions() = listOf(CallstackAction, SupportLines)
 
   override fun getAdditionalActions() = additionalActions
 

@@ -24,7 +24,6 @@ import java.awt.Graphics
 import javax.swing.tree.TreeModel
 
 val LINES: Control.Painter = LinePainter(Control.Painter.DEFAULT)
-val COMPACT_LINES: Control.Painter = LinePainter(Control.Painter.COMPACT)
 
 class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePainter {
 
