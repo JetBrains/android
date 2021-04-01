@@ -544,26 +544,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
-  public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
-    IdeVariant variant = getSelectedVariant();
-    AndroidFacetProperties state = facet.getProperties();
-    state.SELECTED_BUILD_VARIANT = variant.getName();
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-
-    // When multi test artifacts are enabled, test tasks are computed dynamically.
-    updateGradleTaskNames(state, mainArtifact);
-  }
-
-  private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
-    state.ASSEMBLE_TASK_NAME = mainArtifact.getBuildInformation().getAssembleTaskName();
-    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());
-
-    state.ASSEMBLE_TEST_TASK_NAME = "";
-    state.COMPILE_JAVA_TEST_TASK_NAME = "";
-  }
-
   @Override
   @NotNull
   public ClassJarProvider getClassJarProvider() {

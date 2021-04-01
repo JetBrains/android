@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceKt;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -320,7 +321,7 @@ public class BuildVariantUpdater {
     }
 
     androidModel.setSelectedVariantName(variantToSelect);
-    androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
+    AndroidModuleDataServiceKt.syncSelectedVariant(androidFacet, androidModel.getSelectedVariant());
     // The variant of dependency modules can be updated only if the target variant exists, otherwise, there's no way to get the dependency modules of target variant.
     updateSelectedVariantsForDependencyModules(project, androidModel, abiToSelect, affectedAndroidFacets, affectedNdkFacets);
     return true;

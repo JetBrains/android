@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import static com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceKt.syncSelectedVariant;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -83,7 +84,7 @@ public final class ConflictResolution {
     }
 
     source.setSelectedVariantName(newVariant);
-    source.syncSelectedVariantAndTestArtifact(facet);
+    syncSelectedVariant(facet, source.getSelectedVariant());
     return true;
   }
 
