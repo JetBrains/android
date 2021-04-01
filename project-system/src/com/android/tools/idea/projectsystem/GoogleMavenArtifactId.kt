@@ -54,6 +54,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   // Misc. layouts
   CONSTRAINT_LAYOUT("com.android.support.constraint", "constraint-layout", false),
   ANDROIDX_CONSTRAINT_LAYOUT("androidx.constraintlayout", "constraintlayout", false),
+  ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE("androidx.constraintlayout", "constraintlayout-compose", false),
   FLEXBOX_LAYOUT("com.google.android", "flexbox", false),
 
   // Navigation

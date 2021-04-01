@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.actions.UnpinAllPreviewElementsAct
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
+import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
@@ -88,6 +89,7 @@ import com.intellij.ui.JBColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
 import java.util.UUID
@@ -230,6 +232,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val previewDeviceId = "Preview#${UUID.randomUUID()}"
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
+  private val module = psiFile.module
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   private val projectBuildStatusManager = ProjectBuildStatusManager(this, psiFile)
@@ -422,6 +425,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override val isLiveLiteralsEnabled: Boolean
     get() = liveLiteralsManager.isAvailable
+
+  override val hasDesignInfoProviders: Boolean
+    get() = module?.let { hasDesignInfoProviders(it) } ?: false
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -744,8 +750,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
       .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
-      // TODO(b/148788971): Consider making 'findDesignInfoProviders' depend on the existence of a supported ConstraintLayout library
-      .toolsAttribute("findDesignInfoProviders", StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get().toString())
+      .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
       .apply {
         if (animationInspection.get()) {
           // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
