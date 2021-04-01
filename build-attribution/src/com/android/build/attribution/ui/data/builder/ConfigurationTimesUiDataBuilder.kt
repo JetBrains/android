@@ -56,7 +56,7 @@ class ConfigurationTimesUiDataBuilder(
 
   private fun createPluginConfigurationUiData(pluginData: PluginConfigurationData): PluginConfigurationUiData =
     object : PluginConfigurationUiData {
-      override val pluginName = pluginData.plugin.displayNames().first()
+      override val pluginName = pluginData.plugin.displayName
       override val configurationTime = TimeWithPercentage(pluginData.configurationTimeMs, totalConfigurationTimeMs)
       override val slowsConfiguration = false
       override val nestedPlugins: List<PluginConfigurationUiData> = emptyList()

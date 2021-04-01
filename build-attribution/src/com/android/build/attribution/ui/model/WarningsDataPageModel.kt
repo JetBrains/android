@@ -443,7 +443,7 @@ class ConfigurationCachingWarningNodeDescriptor(
   override val analyticsPageType = PageType.CONFIGURATION_CACHE_PLUGIN_WARNING
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
-      mainText = data.plugin.displayNames().first(),
+      mainText = data.plugin.displayName,
       suffix = if (data.requiredVersion != null) "update required" else "not compatible",
       nodeIconState = NodeIconState.WARNING_ICON
     )
