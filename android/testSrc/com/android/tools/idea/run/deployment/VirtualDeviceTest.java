@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import static com.android.ddmlib.IDevice.HardwareFeature.TV;
 import static com.android.ddmlib.IDevice.HardwareFeature.WATCH;
 import static com.intellij.icons.AllIcons.General.WarningDecorator;
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
 import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
 import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
 import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
@@ -196,9 +197,8 @@ public final class VirtualDeviceTest {
       .setLaunchCompatibility(new LaunchCompatibility(LaunchCompatibility.State.ERROR, "error"))
       .build();
 
-    //TODO(b/180670146): replace with error decorator.
     assertIconSimilar(
-      new LayeredIcon(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_WEAR), WarningDecorator),
+      new LayeredIcon(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_WEAR), ERROR_DECORATOR),
       connectedWearWithError.getIcon()
     );
   }
