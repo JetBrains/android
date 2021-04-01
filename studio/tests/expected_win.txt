@@ -118,6 +118,7 @@ android-studio/jre/bin/saproc.dll
 android-studio/jre/bin/serialver.exe
 android-studio/jre/bin/server/jvm.dll
 android-studio/jre/bin/splashscreen.dll
+android-studio/jre/bin/sspi_bridge.dll
 android-studio/jre/bin/sunec.dll
 android-studio/jre/bin/unpack.dll
 android-studio/jre/bin/unpack200.exe
