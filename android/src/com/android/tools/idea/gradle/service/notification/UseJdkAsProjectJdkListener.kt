@@ -24,17 +24,23 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import javax.swing.event.HyperlinkEvent
 
-class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String): NotificationListener.Adapter() {
+class UseJdkAsProjectJdkListener(private val project: Project, private val defaultJdkPath: String, idSuffix: String = ""): NotificationListener.Adapter() {
   companion object {
-    const val ID = "use.jdk.as.project.jdk"
+    @VisibleForTesting
+    fun baseId() = "use.jdk.as.project.jdk"
   }
+
+  val id = "${baseId()}$idSuffix"
 
   override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
     val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings (project)
     if (projectSettings != null) {
-      changeGradleProjectSetting()
+      runWriteAction {
+        changeGradleProjectSetting()
+      }
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK)
     }
     else {
