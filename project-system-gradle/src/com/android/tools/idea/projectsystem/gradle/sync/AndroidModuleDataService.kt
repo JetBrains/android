@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.AndroidProjectTypes
 import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags
@@ -36,18 +37,12 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.compiler.options.CompileStepBeforeRun
-import com.intellij.execution.BeforeRunTask
-import com.intellij.execution.BeforeRunTaskProvider
-import com.intellij.execution.RunManagerEx
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ModifiableFacetModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
@@ -73,7 +68,7 @@ import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN
 import org.jetbrains.kotlin.idea.framework.GRADLE_SYSTEM_ID
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
-import java.util.LinkedList
+import java.util.HashSet
 import java.util.concurrent.TimeUnit
 
 /**
@@ -288,7 +283,7 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
   }
 
   AndroidModel.set(androidFacet, androidModuleModel)
-  androidModuleModel.syncSelectedVariantAndTestArtifact(androidFacet)
+  syncSelectedVariant(androidFacet, androidModuleModel.selectedVariant)
 }
 
 // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
@@ -302,28 +297,15 @@ private fun relativePath(basePath: File, file: File?): String {
   return ""
 }
 
-// TODO: Find a better place for this method.
-private fun setMakeStepInJUnitConfiguration(
-  project: Project,
-  targetProvider: BeforeRunTaskProvider<*>,
-  runConfiguration: RunConfiguration
-) {
-  // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
-  val newBeforeRunTasks: MutableList<BeforeRunTask<*>> = LinkedList()
-  val runManager = RunManagerEx.getInstanceEx(project)
-  for (beforeRunTask in runManager.getBeforeRunTasks(runConfiguration)) {
-    if (beforeRunTask.providerId == CompileStepBeforeRun.ID) {
-      if (runManager.getBeforeRunTasks(runConfiguration, MakeBeforeRunTaskProvider.ID).isEmpty()) {
-        val task = targetProvider.createTask(runConfiguration)
-        if (task != null) {
-          task.isEnabled = true
-          newBeforeRunTasks.add(task)
-        }
-      }
-    }
-    else {
-      newBeforeRunTasks.add(beforeRunTask)
-    }
-  }
-  runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks)
+fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
+  val state = facet.properties
+  state.SELECTED_BUILD_VARIANT = variant.name
+  val mainArtifact = variant.mainArtifact
+
+  // When multi test artifacts are enabled, test tasks are computed dynamically.
+  state.ASSEMBLE_TASK_NAME = mainArtifact.buildInformation.assembleTaskName
+  state.COMPILE_JAVA_TASK_NAME = mainArtifact.compileTaskName
+  state.AFTER_SYNC_TASK_NAMES = HashSet(mainArtifact.ideSetupTaskNames)
+  state.ASSEMBLE_TEST_TASK_NAME = ""
+  state.COMPILE_JAVA_TEST_TASK_NAME = ""
 }
