@@ -77,7 +77,6 @@ import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -113,9 +112,11 @@ import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.converters.AutoFillHintsConverter;
+import org.jetbrains.android.dom.converters.ColorConverter;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.DimensionConverter;
 import org.jetbrains.android.dom.converters.FlagConverter;
+import org.jetbrains.android.dom.converters.FloatConverter;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
 import org.jetbrains.android.dom.converters.IntegerConverter;
 import org.jetbrains.android.dom.converters.OnClickConverter;
@@ -261,6 +262,10 @@ public class AndroidDomUtil {
         return IntegerConverter.INSTANCE;
       case DIMENSION:
         return DimensionConverter.INSTANCE;
+      case COLOR:
+        return ColorConverter.INSTANCE;
+      case FLOAT:
+        return FloatConverter.INSTANCE;
       default:
         return null;
     }

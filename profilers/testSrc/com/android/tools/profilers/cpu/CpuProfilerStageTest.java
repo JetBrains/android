@@ -965,13 +965,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   /**
-   * Simulate the scenario of calling {@link CpuProfilerStage#getCapture(int)} before calling {@link CpuProfilerStage#stopCapturing()}.
+   * Simulate the scenario of calling {@link CpuProfilerStage#setAndSelectCapture(long)} before calling
+   * {@link CpuProfilerStage#stopCapturing()}.
    */
   @Test
   public void captureShouldBeParsedOnlyOnce() throws IOException, InterruptedException {
     assertThat(myStage.getCapture()).isNull();
-    myTimer.setCurrentTimeNs(1);
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myStage.getCapture();
     assertThat(capture).isNotNull();
     myStage.setCaptureState(CpuProfilerStage.CaptureState.IDLE);
@@ -979,26 +980,26 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     // Capture should be the same as the one obtained by myStage.getCapture(...),
     // because we should not parse the trace into another CpuCapture object.
-    myStage.setAndSelectCapture(myTimer.getCurrentTimeNs());
+    myStage.setAndSelectCapture(traceId);
     assertThat(myStage.getCapture()).isEqualTo(capture);
   }
 
   /**
-   * Simulate the scenario of calling {@link CpuProfilerStage#stopCapturing()} before calling {@link CpuProfilerStage#getCapture(int)}.
+   * Simulate the scenario of calling {@link CpuProfilerStage#stopCapturing()} before calling
+   * {@link CpuProfilerStage#getCaptureFuture(long)}.
    */
   @Test
   public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws IOException, ExecutionException, InterruptedException {
     assertThat(myStage.getCapture()).isNull();
-    myTimer.setCurrentTimeNs(1);
     // stopCapturing() should create a capture with id == 1
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
-                                             CpuProfilerTestUtils.readValidTrace());
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
     CpuCapture capture = myStage.getCapture();
     assertThat(capture).isNotNull();
 
     // Capture should be the same as the one created by stopCapturing(),
     // because we should not parse the trace into another CpuCapture object.
-    assertThat(myStage.getCaptureFuture(1).get()).isEqualTo(capture);
+    assertThat(myStage.getCaptureFuture(traceId).get()).isEqualTo(capture);
   }
 
   @Test
@@ -1007,15 +1008,15 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureParser().isParsing()).isFalse();
 
     // Complete a capture once so we have valid data in the service.
-    myTimer.setCurrentTimeNs(1);
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
 
     // Start a new stage so the capture has to be manually selected and parse.
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
     myStage.getStudioProfilers().setStage(myStage);
     AspectObserver observer = new AspectObserver();
     CountDownLatch latch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer);
-    myStage.getCaptureFuture(1);
+    myStage.getCaptureFuture(traceId);
     latch.countDown();
 
     // Parsing should set the profiler to EXPANDED
@@ -1025,8 +1026,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void setCaptureWhileCapturingShouldParseAndContinueInCapturingState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
-    myTimer.setCurrentTimeNs(1);
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
 
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
     // Invoke enter to update the profiling configuration model
@@ -1037,7 +1038,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Select the previous capture
     AspectObserver observer = new AspectObserver();
     CountDownLatch parseLatch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer);
-    myStage.setAndSelectCapture(1);
+    myStage.setAndSelectCapture(traceId);
     parseLatch.await();
     assertThat(myStage.getCaptureState()).isEqualTo(CaptureState.CAPTURING);
     assertThat(myStage.getCaptureParser().isParsing()).isFalse();
@@ -1046,8 +1047,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void setCaptureWhileIdleShouldParseAndStayInIdleState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
-    myTimer.setCurrentTimeNs(1);
-    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
 
     myStage = new CpuProfilerStage(myStage.getStudioProfilers());
     myStage.getStudioProfilers().setStage(myStage);
@@ -1056,10 +1057,23 @@ public final class CpuProfilerStageTest extends AspectObserver {
     // Select the previous capture
     AspectObserver observer = new AspectObserver();
     CountDownLatch parseLatch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer);
-    myStage.setAndSelectCapture(myTimer.getCurrentTimeNs());
+    myStage.setAndSelectCapture(traceId);
     parseLatch.await();
     assertThat(myStage.getCaptureState()).isEqualTo(CaptureState.IDLE);
     assertThat(myStage.getCaptureParser().isParsing()).isFalse();
+  }
+
+  @Test
+  public void setCaptureShouldUseTraceType() throws IOException, InterruptedException {
+    myServices.enableCpuCaptureStage(true);
+    // Capture a new trace.
+    long traceId =
+      CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService, CpuProfilerTestUtils.readValidTrace());
+    // Now change the recording type configuration.
+    myStage.getProfilerConfigModel().setProfilingConfiguration(new SimpleperfConfiguration("new-simpleperf"));
+    // Load the previously recorded trace. It should be parsed as the trace's own type, not the selected configuration type.
+    myStage.setAndSelectCapture(traceId);
+    assertThat(myStage.getStudioProfilers().getStage()).isInstanceOf(CpuCaptureStage.class);
   }
 
   @Test

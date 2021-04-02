@@ -18,16 +18,11 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.RegisterToolWindowTask
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ToolWindowEP
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,7 +47,15 @@ class VisualizationManagerTest {
   @Before
   fun setupToolWindowManager() {
     // The HeadlessToolWindowManager doesn't record the status of ToolWindow. We create a simple one to record it.
-    projectRule.replaceProjectService(ToolWindowManager::class.java, MyToolWindowManager(projectRule.project))
+    val toolManager = VisualizationTestToolWindowManager(projectRule.project, projectRule.fixture.testRootDisposable)
+    projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
+  }
+
+  @After
+  fun tearDown() {
+    // The plugin service doesn't not be disposed automatically. Dispose it manually to avoid the leakage in unit test.
+    // TODO(b/180927397): Remove this when VisualizationManager is not a Project Service.
+    VisualizationManager.getInstance(projectRule.project)?.let { Disposer.dispose(it) }
   }
 
   @Test
@@ -66,37 +69,40 @@ class VisualizationManagerTest {
     VisualizationToolSettings.getInstance().globalState.isVisible = true
 
     val project = projectRule.project
+
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+
     val manager = projectRule.project.getService(VisualizationManager::class.java)
     val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
 
     // Handle post activity case.
-    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
+    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
     // Not visible when there is no editor.
-    assertFalse(manager.isToolWindowAvailable)
+    assertFalse(toolWindow.isAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertTrue(manager.isToolWindowAvailable)
+    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertTrue(toolWindow.isAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
-    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertFalse(manager.isToolWindowAvailable)
+    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertFalse(toolWindow.isAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertTrue(manager.isToolWindowAvailable)
+    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertTrue(toolWindow.isAvailable)
 
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       FileEditorManager.getInstance(project).closeFile(ktFile.virtualFile)
       FileEditorManager.getInstance(project).closeFile(layoutFile.virtualFile)
     }
-    manager.toolWindowUpdateQueue?.waitForAllExecuted(10, TimeUnit.SECONDS)
-    assertFalse(manager.isToolWindowAvailable)
+    manager.toolWindowUpdateQueue.waitForAllExecuted(10, TimeUnit.SECONDS)
+    assertFalse(toolWindow.isAvailable)
   }
 }
 
@@ -111,48 +117,3 @@ private const val LAYOUT_FILE_TEXT = """<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent" />"""
-
-private class MyToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
-  private val toolWindows = mutableMapOf<String, ToolWindow>()
-
-  init {
-    // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
-    @Suppress("UnstableApiUsage")
-    ToolWindowEP.EP_NAME.processWithPluginDescriptor { bean, pluginDescriptor ->
-      val factory = bean.getToolWindowFactory(pluginDescriptor)!!
-      if (factory.isApplicable(project)) {
-        val anchor = ToolWindowAnchor.fromText(bean.anchor ?: ToolWindowAnchor.LEFT.toString())
-        registerToolWindow(RegisterToolWindowTask(id = bean.id, anchor = anchor, contentFactory = factory))
-      }
-    }
-  }
-
-  override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
-    val toolWindow = MyMockToolWindow(project)
-    toolWindows[task.id] = toolWindow
-    fireStateChange()
-    return toolWindow
-  }
-
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return toolWindows[id]
-  }
-
-  private fun fireStateChange() {
-    project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(this)
-  }
-}
-
-private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-  private var _isAvailable = false
-
-  override fun setAvailable(available: Boolean, runnable: Runnable?) {
-    _isAvailable = available
-  }
-
-  override fun setAvailable(value: Boolean) {
-    _isAvailable = value
-  }
-
-  override fun isAvailable() = _isAvailable
-}

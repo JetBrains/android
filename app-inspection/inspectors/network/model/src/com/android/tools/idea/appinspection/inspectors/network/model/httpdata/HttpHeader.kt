@@ -35,7 +35,8 @@ sealed class HttpHeader {
    * This function does not care about the case of the key.
    * For example: Content-Type and content-type will return the same mapped value.
    */
-  private fun getField(key: String): String {
+  @VisibleForTesting
+  fun getField(key: String): String {
     return fields.getOrDefault(key.toLowerCase(Locale.getDefault()), "")
   }
 
@@ -58,7 +59,7 @@ private fun parseHeaderFields(fields: String): Map<String, String> {
     .associate { line: String ->
       val keyAndValue = line.split('=', limit = 2)
       assert(keyAndValue.size == 2) { "Unexpected http header field ($line)" }
-      keyAndValue[0].trim { it <= ' ' } to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
+      keyAndValue[0].trim { it <= ' ' }.toLowerCase(Locale.getDefault()) to keyAndValue[1].trim { it <= ' ' }.trimEnd(';')
     }
 }
 

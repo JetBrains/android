@@ -22,6 +22,8 @@ import com.android.tools.property.panel.api.PropertyItem
  * An [EnumValue] used to write values from an specific class.
  */
 internal interface ClassEnumValue : EnumValue {
+  val classValue: String
+
   val fqClass: String
 
   private val className: String
@@ -29,20 +31,26 @@ internal interface ClassEnumValue : EnumValue {
 
   override fun select(property: PropertyItem): Boolean {
     if (property is ClassPsiCallParameter) {
-      property.setFqValue(fqClass, className, value!!)
+      property.setFqValue(fqClass, className, classValue)
     }
     else {
-      property.value = "$fqClass.$value"
+      property.value = "$fqClass.$classValue"
     }
     return true
   }
 }
 
-// TODO: Add remaining supported UiModes, or update so that the values are pulled from the project's Sdk.
-internal enum class UiMode(name: String, displayName: String, val resolvedValue: Int) : ClassEnumValue {
+// TODO(154503873): Add remaining supported UiModes, or update so that the values are pulled from the project's Sdk.
+internal enum class UiMode(override val classValue: String, override val display: String, val resolvedValue: Int) : ClassEnumValue {
   // TODO(154503873): Add proper support to display values as enums, currently, selecting one of these values, will leave the dropwdown
   //  empty, even though the value is properly set in the code.
-  NORMAL("UI_MODE_TYPE_NORMAL", "Normal", 1),
+  NORMAL("UI_MODE_TYPE_NORMAL", "Normal", 1) {
+    override val value: String? = null
+    override fun select(property: PropertyItem): Boolean {
+      property.value = null
+      return true
+    }
+  },
   DESK("UI_MODE_TYPE_DESK", "Desk", 2),
   CAR("UI_MODE_TYPE_CAR", "Car", 3),
   TELEVISION("UI_MODE_TYPE_TELEVISION", "Tv", 4),
@@ -52,14 +60,18 @@ internal enum class UiMode(name: String, displayName: String, val resolvedValue:
 
   override val fqClass: String = "android.content.res.Configuration"
 
-  override val display: String = displayName
-
-  override val value: String? = name
+  override val value: String? = resolvedValue.toString()
 }
 
-// TODO: Add remaining supported Devices, or update so that the values are pulled from the Devices class in the project.
-internal enum class Device(name: String, displayName: String, val resolvedValue: String) : ClassEnumValue {
-  DEFAULT("DEFAULT", "Default", ""),
+// TODO(154503873): Add remaining supported Devices, or update so that the values are pulled from the Devices class in the project.
+internal enum class Device(override val classValue: String, override val display: String, val resolvedValue: String) : ClassEnumValue {
+  DEFAULT("DEFAULT", "Default", "") {
+    override val value: String? = null
+    override fun select(property: PropertyItem): Boolean {
+      property.value = null
+      return true
+    }
+  },
   NEXUS_7("NEXUS_7", "Nexus 7 (2012)", "id:Nexus 7"),
   NEXUS_7_2013("NEXUS_7_2013", "Nexus 7", "id:Nexus 7 2013"),
   NEXUS_10("NEXUS_10", "Nexus 10", "name:Nexus 10"),
@@ -72,9 +84,7 @@ internal enum class Device(name: String, displayName: String, val resolvedValue:
 
   override val fqClass: String = "androidx.compose.ui.tooling.preview.Devices"
 
-  override val display: String = displayName
-
-  override val value: String? = name
+  override val value: String? = resolvedValue
 }
 
 internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValue {

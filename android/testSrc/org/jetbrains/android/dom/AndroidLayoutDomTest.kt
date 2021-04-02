@@ -307,6 +307,154 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testLayoutParamsDeclareStyleable() {
+    myFixture.addClass(
+      """
+      package p1.p2;
+      public class CustomViewGroup extends android.view.ViewGroup {}
+      """.trimIndent())
+
+    myFixture.addFileToProject(
+      "res/values/values.xml",
+      // language=XML
+      """
+      <resources>
+        <declare-styleable name="CustomViewGroup_LayoutParams">
+          <attr format="integer" name="customLayoutParam"/>
+          <attr format="integer" name="customLayoutParam2"/>
+        </declare-styleable>
+
+        <declare-styleable name="CustomViewGroup">
+          <attr format="integer" name="notLayoutParam"/>
+        </declare-styleable>
+      </resources>
+      """.trimIndent()
+    )
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<p1.p2.CustomViewGroup
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <Button
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              app:${caret}/>
+        </p1.p2.CustomViewGroup>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
+
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).containsAllOf("app:customLayoutParam", "app:customLayoutParam2")
+    assertThat(lookupElementStrings).doesNotContain("app:notLayoutParam")
+  }
+
+  fun testColorLiteralResourceCompletion() {
+    myFixture.addFileToProject(
+      "res/values/other_colors.xml",
+      //language=XML
+      """
+      <resources>
+        <color name="foocolor">#150</integer>
+      </resources>
+      """.trimIndent())
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:textColor="$caret"/>
+          </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect color related resources
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@color/foocolor")
+  }
+
+  fun testColorLiteralResourceHighlighting() {
+    val highlightedFile = myFixture.addFileToProject(
+      "res/layout/incorrect_layout.xml",
+      """
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+              <Button
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:textColor="#F12"
+                  android:shadowColor="#F123"
+                  android:textColorHighlight="#FF1234"
+                  android:textColorHint="#FF432343k"
+                  android:textColorLink="@android:color/black"
+                  android:outlineSpotShadowColor="<error descr="Cannot resolve color 'This is not a color'">This is not a color</error>"
+                  android:outlineAmbientShadowColor="<error descr="Cannot resolve color '#FA342'">#FA342</error>"/>
+          </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(highlightedFile)
+    myFixture.checkHighlighting()
+  }
+
+  fun testFloatLiteralResourceCompletion() {
+    myFixture.addFileToProject(
+      "res/values/other_integers.xml",
+      //language=XML
+      """
+      <resources>
+        <integer name="foo">150</integer>
+      </resources>
+      """.trimIndent())
+
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:rotationX="$caret">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(layoutFile)
+
+    // Expect integer related resources
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).containsAllOf("@android:","@integer/foo")
+  }
+
+  fun testFloatLiteralResourceHighlighting() {
+    val highlightedFile = myFixture.addFileToProject(
+      "res/layout/incorrect_layout.xml",
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:rotationX="<error descr="Cannot resolve float 'bad float'">bad float</error>">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(highlightedFile)
+    myFixture.checkHighlighting()
+  }
+
   fun testAutoFillHints() {
     val layoutFile = myFixture.addFileToProject(
       "res/layout/layout.xml",

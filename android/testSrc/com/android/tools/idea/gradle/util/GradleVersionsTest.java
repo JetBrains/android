@@ -63,7 +63,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     // double-check GradleSyncState, just in case
     GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getLastSyncedGradleVersion();
     assertNotNull(gradleVersionFromSync);
-    assertEquals(expected, GradleVersions.removeTimestampFromGradleVersion(gradleVersionFromSync.toString()));
+    assertEquals(expected, GradleVersions.inferStableGradleVersion(gradleVersionFromSync.toString()));
   }
 
   public void testReadGradleVersionFromWrapperWhenGradleSyncStateReturnsNullGradleVersion() throws Exception {
@@ -125,6 +125,12 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     assertFalse(GradleVersions.getInstance().isGradle4OrNewer(project));
   }
 
+  public void testInferStableGradleVersion() {
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0"));
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0-rc-1"));
+    assertEquals("7.0", GradleVersions.inferStableGradleVersion("7.0-20210328000045+0000"));
+  }
+
   @NotNull
   private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
@@ -144,6 +150,6 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     assertNotNull(gradleWrapper);
     String expected = gradleWrapper.getGradleVersion();
     assertNotNull(expected);
-    return expected;
+    return GradleVersions.inferStableGradleVersion(expected);
   }
 }

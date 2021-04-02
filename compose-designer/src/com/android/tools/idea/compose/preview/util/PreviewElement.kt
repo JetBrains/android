@@ -66,9 +66,6 @@ const val MAX_WIDTH = 2000
 @VisibleForTesting
 const val MAX_HEIGHT = 2000
 
-const val WIDTH_PARAMETER = "widthDp"
-const val HEIGHT_PARAMETER = "heightDp"
-
 /**
  * Default background to be used by the rendered elements when showBackground is set to true.
  */

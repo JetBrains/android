@@ -36,6 +36,7 @@ import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
@@ -297,6 +298,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
     }
     emulatorController.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
+  }
+
+  /**
+   * Sends a [TouchEvent] to the Emulator.
+   */
+  fun sendTouch(touchEvent: TouchEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
+      LOG.info("sendTouch(${shortDebugString(touchEvent)})")
+    }
+    emulatorController.sendTouch(touchEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendTouchMethod()))
   }
 
   /**

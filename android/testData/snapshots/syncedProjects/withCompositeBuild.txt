@@ -8,9 +8,7 @@ PROJECT                       : testWithCompositeBuild
         LinkedProjectPath             : <PROJECT>/TestCompositeLib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib1 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1 [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -1044,9 +1042,7 @@ PROJECT                       : testWithCompositeBuild
         LinkedProjectPath             : <PROJECT>/TestCompositeLib3
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib3 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3 [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -2056,9 +2052,7 @@ PROJECT                       : testWithCompositeBuild
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithCompositeBuild [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCompositeBuild [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithCompositeBuild.iml [-]
         ModuleTypeName                : JAVA_MODULE

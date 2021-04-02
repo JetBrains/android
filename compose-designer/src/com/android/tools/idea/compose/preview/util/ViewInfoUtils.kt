@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.common
+package com.android.tools.idea.compose.preview.util
 
-/**
- * Convert the first four bytes to an Int, assuming little-endian representation.
- */
-fun ByteArray.toInt(): Int {
-  var result = 0
-  for (i in 0..3) {
-    result += (this[i].toInt() and 0xFF).shl(i * 8)
+import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQNS
+
+internal fun findComposeViewAdapter(viewObj: Any): Any? {
+  if (COMPOSE_VIEW_ADAPTER_FQNS.contains(viewObj.javaClass.name)) {
+    return viewObj
   }
-  return result
+
+  val childrenCount = viewObj.javaClass.getMethod("getChildCount").invoke(viewObj) as Int
+  for (i in 0 until childrenCount) {
+    val child = viewObj.javaClass.getMethod("getChildAt", Int::class.javaPrimitiveType).invoke(viewObj, i)
+    return findComposeViewAdapter(child)
+  }
+  return null
 }

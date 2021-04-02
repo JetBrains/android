@@ -61,6 +61,10 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.application.subscribe
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -78,7 +82,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -92,11 +95,19 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 
 /**
  * Background color for the surface while "Interactive" is enabled.
  */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(Color(203, 210, 217), MEUI.ourInteractiveBackgroundColor)
+
+/**
+ * [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`.
+ */
+private val NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
 /**
  * [NlModel] associated preview data
@@ -534,11 +545,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         forceRefresh()
+        // Force updating toolbar icons when build starts
+        ActivityTracker.getInstance().inc()
       }
 
       override fun buildFailed() {
         LOG.debug("buildFailed")
         composeWorkBench.updateVisibilityAndNotifications()
+        // Force updating toolbar icons after build
+        ActivityTracker.getInstance().inc()
       }
 
       override fun buildStarted() {
@@ -550,6 +565,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // build is complete and refresh is triggered.
         ComposePreviewAnimationManager.invalidate()
         EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+        // Force updating toolbar icons after build
+        ActivityTracker.getInstance().inc()
       }
     }, this)
 
@@ -724,6 +741,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
       .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
+      // TODO(b/148788971): Consider making 'findDesignInfoProviders' depend on the existence of a supported ConstraintLayout library
+      .toolsAttribute("findDesignInfoProviders", StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get().toString())
       .apply {
         if (animationInspection.get()) {
           // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
@@ -747,13 +766,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun onAfterRender() {
     composeWorkBench.hasRendered = true
-    if (!hasRenderedAtLeastOnce.get()) {
-      // We zoom to fit to have better initial zoom level when first build is completed
-      UIUtil.invokeLaterIfNeeded {
-        surface.zoomToFit()
-        hasRenderedAtLeastOnce.set(true)
-      }
-    }
+    hasRenderedAtLeastOnce.set(true)
   }
 
   /**
@@ -837,9 +850,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
+  @OptIn(ExperimentalTime::class)
   private fun refresh(quickRefresh: Boolean = false): Job {
-    var refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
+    val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
+      val startTime = System.nanoTime()
+
+      fun createRefreshElapsedTimeNotification(bundleStringEntry: String) = Notification(
+        NOTIFICATION_GROUP_ID,
+        message("event.log.refresh.title"),
+        message(bundleStringEntry, (System.nanoTime() - startTime).toDuration(DurationUnit.NANOSECONDS)),
+        NotificationType.INFORMATION
+      )
+
       LOG.debug("Refresh triggered", refreshTrigger)
 
       if (!isActive.get()) {
@@ -858,6 +881,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         return@launch
       }
 
+      composeWorkBench.updateVisibilityAndNotifications()
       refreshCallsCount.incrementAndGet()
       try {
         val filePreviewElements = withContext(workerThread) {
@@ -874,6 +898,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           }
         } else emptyList()
 
+        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.find.preview.elements"))
         val needsFullRefresh = filePreviewElements != previewElements ||
                                PinnedPreviewElementManager.getInstance(project).modificationCount != lastPinsModificationCount
 
@@ -909,6 +934,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
+        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"))
       }
     }
   }

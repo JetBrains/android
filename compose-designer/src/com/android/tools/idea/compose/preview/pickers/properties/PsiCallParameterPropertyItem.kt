@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
+private const val WRITE_COMMAND = "Psi Parameter Modification"
+
 /**
  * A [PsiPropertyItem] for a named parameter.
  *
@@ -40,12 +42,10 @@ internal open class PsiCallParameterPropertyItem(
 
   override val namespace: String = ""
 
-  override var value: String? = null
+  override var value: String?
     get() = argumentExpression?.tryEvaluateConstantAsText()
     set(value) {
-      if (value != field) {
-        field = value
-
+      if (value != this.value) {
         writeNewValue(value, false)
       }
     }
@@ -56,21 +56,28 @@ internal open class PsiCallParameterPropertyItem(
    */
   protected fun writeNewValue(value: String?, writeRawValue: Boolean) {
     if (value == null) {
-      WriteCommandAction.runWriteCommandAction(project) {
-        argumentExpression?.parent?.deleteElementAndCleanParent()
-        argumentExpression = null
-      }
-      return
-    }
-
-    val parameterString = if (descriptor.type.nameIfStandardType == Name.identifier("String") && !writeRawValue) {
-      "$name = \"$value\""
+      deleteParameter()
     }
     else {
-      "$name = $value"
+      val parameterString = if (descriptor.type.nameIfStandardType == Name.identifier("String") && !writeRawValue) {
+        "$name = \"$value\""
+      }
+      else {
+        "$name = $value"
+      }
+      writeParameter(parameterString)
+    }
+    model.firePropertyValuesChanged()
+  }
+
+  private fun deleteParameter() =
+    runModification {
+      argumentExpression?.parent?.deleteElementAndCleanParent()
+      argumentExpression = null
     }
 
-    WriteCommandAction.runWriteCommandAction(project) {
+  private fun writeParameter(parameterString: String) =
+    runModification {
       var newValueArgument = model.psiFactory.createArgument(parameterString)
       val currentArgumentExpression = argumentExpression
 
@@ -88,6 +95,7 @@ internal open class PsiCallParameterPropertyItem(
         CodeStyleManager.getInstance(it.project).reformat(it)
       }
     }
-    model.firePropertyValuesChanged()
-  }
+
+  private fun runModification(invoke: () -> Unit) =
+    WriteCommandAction.runWriteCommandAction(project, WRITE_COMMAND, null, invoke, model.ktFile)
 }

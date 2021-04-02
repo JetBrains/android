@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtUiUtils.showAbove
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.actions.CustomizeLiveLiteralsThemeAction
 import com.android.tools.idea.editors.literals.actions.ShowLiveLiteralsProblemAction
+import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsHighlightAction
 import com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsStatusAction
 import com.android.tools.idea.editors.literals.actions.UpdateHighlightsKeymapAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
@@ -106,17 +107,15 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   override fun copy(): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
 
   private fun onClick() {
-    if (!literalsService.isEnabled) {
-      // When the feature is not enable, this widget should not be visible so log a warning
-      Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Live Literals feature is not enabled")
+    if (!isComposeProject()) {
+      Logger.getInstance(LiveLiteralsAvailableIndicator::class.java).warn("Not a Compose Project")
       return
     }
-
-    if (!literalsService.isAvailable) return
 
     JBPopupFactory.getInstance().createActionGroupPopup(null,
                                                         DefaultActionGroup(
                                                           ToggleLiveLiteralsStatusAction(),
+                                                          ToggleLiveLiteralsHighlightAction(),
                                                           ShowLiveLiteralsProblemAction(),
                                                           UpdateHighlightsKeymapAction(),
                                                           CustomizeLiveLiteralsThemeAction()

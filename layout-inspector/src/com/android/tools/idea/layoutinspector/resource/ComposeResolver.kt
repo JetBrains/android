@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.resource
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
@@ -23,7 +24,6 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.psi.KtFile
-import kotlin.math.absoluteValue
 
 /**
  * Service for finding Composable function locations.
@@ -48,8 +48,4 @@ open class ComposeResolver(val project: Project) {
     }
     return files.asSequence().filterIsInstance<PsiClassOwner>().find { packageNameMatcher(it.packageName) } as? KtFile
   }
-
-  // Must match packageNameHash in androidx.ui.tooling.inspector.LayoutInspectorTree
-  private fun packageNameHash(packageName: String): Int =
-    packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
 }

@@ -15,10 +15,14 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import java.io.IOException
 import java.nio.file.Files
+
+private const val INVALID_TIMESTAMP = -1L
 
 private fun lastModifiedTimeFromDisk(vFile: VirtualFile): Long = try {
   Files.getLastModifiedTime(vFile.toNioPath()).toMillis()
@@ -26,6 +30,12 @@ private fun lastModifiedTimeFromDisk(vFile: VirtualFile): Long = try {
   // If the Virtual File is not backed by an actual file, always return 0. Only the virtual file
   // elements will be used in that case.
   0L
+} catch (_: IOException) {
+  // The file has been removed, return an invalid timestamp.
+  INVALID_TIMESTAMP
+} catch (e: Throwable) {
+  Logger.getInstance(ClassModificationTimestamp::class.java).error(e)
+  INVALID_TIMESTAMP
 }
 
 /**
@@ -46,6 +56,7 @@ class ClassModificationTimestamp(private val vFileTimestamp: Long,
     if (!vFile.isValid
         || vFile.timeStamp != vFileTimestamp
         || vFile.length != vFileLength
+        || fileTimestamp == INVALID_TIMESTAMP
         || diskTimeStampProvider(vFile) != fileTimestamp) return false
     return true
   }

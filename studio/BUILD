@@ -531,9 +531,9 @@ android_studio(
     },
     searchable_options = "searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 13,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
 )
 
 py_test(
@@ -642,10 +642,10 @@ java_binary(
         "//prebuilts/tools/common/m2/repository/log4j/log4j/1.2.17:jar",
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna-platform/5.5.0:jar",
         "//prebuilts/tools/common/m2/repository/net/java/dev/jna/jna/5.5.0:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.31:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.31:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31:jar",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.31:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.32:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.32:jar",
         "//prebuilts/studio/intellij-sdk:studio-sdk-updater",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/studio-updater:intellij.android.updater.studio-updater.jar",  # Adds analytics to the updater

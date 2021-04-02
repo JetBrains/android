@@ -70,6 +70,8 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.EdtTestUtil;
@@ -792,8 +794,11 @@ public class EditorFixture {
   }
 
   private boolean isVisualizationToolShowing() {
-    return GuiQuery.getNonNull(
-      () -> VisualizationManager.getInstance(myFrame.getProject()).isWindowVisible());
+    ToolWindow toolWindow = ToolWindowManager.getInstance(myFrame.getProject()).getToolWindow(VisualizationManager.TOOL_WINDOW_ID);
+    if (toolWindow == null) {
+      return false;
+    }
+    return GuiQuery.getNonNull(() -> toolWindow.isVisible());
   }
 
   /**

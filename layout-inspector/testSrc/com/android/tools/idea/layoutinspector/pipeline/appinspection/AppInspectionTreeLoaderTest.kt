@@ -36,10 +36,10 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRec
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.skia.InvalidPictureException
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.toBytes

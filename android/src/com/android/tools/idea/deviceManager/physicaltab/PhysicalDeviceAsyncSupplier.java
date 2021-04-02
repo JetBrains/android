@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,23 +44,27 @@ final class PhysicalDeviceAsyncSupplier {
   private final @NotNull ListeningExecutorService myService;
   private final @NotNull Function<@Nullable Project, @NotNull Path> myGetAdb;
   private final @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> myGetDebugBridge;
+  private final @NotNull Supplier<@NotNull ConnectionTimeService> myConnectionTimeServiceGetInstance;
 
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
     this(project,
          MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
          PhysicalDeviceAsyncSupplier::getAdb,
-         PhysicalDeviceAsyncSupplier::getDebugBridge);
+         PhysicalDeviceAsyncSupplier::getDebugBridge,
+         ConnectionTimeService::getInstance);
   }
 
   @VisibleForTesting
   PhysicalDeviceAsyncSupplier(@Nullable Project project,
                               @NotNull ListeningExecutorService service,
                               @NotNull Function<@Nullable Project, @NotNull Path> getAdb,
-                              @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge) {
+                              @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge,
+                              @NotNull Supplier<@NotNull ConnectionTimeService> connectionTimeServiceGetInstance) {
     myProject = project;
     myService = service;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
+    myConnectionTimeServiceGetInstance = connectionTimeServiceGetInstance;
   }
 
   /**
@@ -83,7 +88,7 @@ final class PhysicalDeviceAsyncSupplier {
     return FluentFuture.from(myService.submit(() -> myGetAdb.apply(myProject)))
       .transformAsync(myGetDebugBridge, myService)
       .transform(PhysicalDeviceAsyncSupplier::getDevices, myService)
-      .transform(PhysicalDeviceAsyncSupplier::collectToPhysicalDevices, myService);
+      .transform(this::collectToPhysicalDevices, myService);
   }
 
   /**
@@ -106,11 +111,13 @@ final class PhysicalDeviceAsyncSupplier {
    * Called by a pooled application thread
    */
   @WorkerThread
-  private static @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+  private @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+    ConnectionTimeService service = myConnectionTimeServiceGetInstance.get();
+
     return devices.stream()
       .filter(device -> !device.isEmulator())
       .map(IDevice::getSerialNumber)
-      .map(PhysicalDevice::newConnectedDevice)
+      .map(serialNumber -> new PhysicalDevice(serialNumber, service.get(serialNumber)))
       .collect(Collectors.toList());
   }
 }

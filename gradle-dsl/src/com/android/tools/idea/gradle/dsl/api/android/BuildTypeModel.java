@@ -48,6 +48,9 @@ public interface BuildTypeModel extends FlavorTypeModel {
   ResolvedPropertyModel testCoverageEnabled();
 
   @NotNull
+  ResolvedPropertyModel useProguard();
+
+  @NotNull
   ResolvedPropertyModel zipAlignEnabled();
 
   @NotNull

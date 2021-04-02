@@ -188,6 +188,8 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     val ideSdks = IdeSdks.getInstance()
     val ideInfo = IdeInfo.getInstance()
     if (ideInfo.isAndroidStudio || ideInfo.isGameTools) {
+      // Remove any invalid JDK
+        ideSdks.removeInvalidJdksFromTable()
       // Add embedded
       val embeddedJdkPath = ideSdks.embeddedJdkPath
       if (embeddedJdkPath != null) {

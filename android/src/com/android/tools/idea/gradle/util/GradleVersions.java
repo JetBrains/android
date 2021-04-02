@@ -54,7 +54,7 @@ public class GradleVersions {
       if (gradleVersion != null) {
         // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
         // settings.
-        GradleVersion revision = GradleVersion.tryParse(removeTimestampFromGradleVersion(gradleVersion.toString()));
+        GradleVersion revision = GradleVersion.tryParse(inferStableGradleVersion(gradleVersion.toString()));
         if (revision != null) {
           return revision;
         }
@@ -70,7 +70,7 @@ public class GradleVersions {
           try {
             String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
-              return GradleVersion.tryParse(removeTimestampFromGradleVersion(wrapperVersion));
+              return GradleVersion.tryParse(inferStableGradleVersion(wrapperVersion));
             }
           }
           catch (IOException e) {
@@ -127,12 +127,16 @@ public class GradleVersions {
     return null;
   }
 
+  /**
+   * Infers and returns the stable Gradle version for the given input.
+   *
+   * For example, this method would return "7.0" for the following inputs: "7.0", "7.0-rc-1", "7.0-20210328000045+0000".
+   */
   @VisibleForTesting
   @NotNull
-  public static String removeTimestampFromGradleVersion(@NotNull String gradleVersion) {
+  public static String inferStableGradleVersion(@NotNull String gradleVersion) {
     int dashIndex = gradleVersion.indexOf('-');
     if (dashIndex != -1) {
-      // in case this is a nightly (e.g. "2.4-20150409092851+0000").
       return gradleVersion.substring(0, dashIndex);
     }
     return gradleVersion;

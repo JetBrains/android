@@ -19,10 +19,15 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.compose.preview.pickers.properties.PsiCallPropertyModel
+import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
 import com.android.tools.idea.compose.preview.util.PreviewElement
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -52,9 +57,13 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
   @get:Rule
   val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
                                        composableAnnotationPackage = composableAnnotationPackage)
+
+  @get:Rule
+  val edtRule = EdtRule()
   private val fixture get() = projectRule.fixture
   private val project get() = projectRule.project
 
+  @RunsInEdt
   @Test
   fun `the psi model reads the preview annotation correctly`() {
     @Language("kotlin")
@@ -96,8 +105,6 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       previews[1].also { namedPreview ->
         val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreview)
         assertEquals("named", parsed.properties["", "name"].value)
-        // Check default value
-        assertEquals("-1", parsed.properties["", "apiLevel"].defaultValue)
       }
       previews[3].also { namedPreviewFromConst ->
         val parsed = PsiCallPropertyModel.fromPreviewElement(project, namedPreviewFromConst)
@@ -106,6 +113,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     }
   }
 
+  @RunsInEdt
   @Test
   fun `updating model updates the psi correctly`() {
     @Language("kotlin")
@@ -135,6 +143,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertUpdatingModelUpdatesPsiCorrectly(emptyAnnotation)
   }
 
+  @RunsInEdt
   @Test
   fun `supported parameters displayed correctly`() {
     @Language("kotlin")
@@ -162,6 +171,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("0x0000FF00", runReadAction { model.properties["", "backgroundColor"].value })
   }
 
+  @RunsInEdt
   @Test
   fun `preview default values`() {
     @Language("kotlin")
@@ -178,19 +188,34 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     val file = fixture.configureByText("Test.kt", fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
-    assertEquals("1.0f", runReadAction { model.properties["", "fontScale"].defaultValue })
-    assertEquals("false", runReadAction { model.properties["", "showBackground"].defaultValue })
-    assertEquals("false", runReadAction { model.properties["", "showDecoration"].defaultValue })
+    assertEquals("1f", model.properties["", "fontScale"].defaultValue)
+    assertEquals("false", model.properties["", "showBackground"].defaultValue)
+    assertEquals("false", model.properties["", "showDecoration"].defaultValue)
+
+    // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
+    assertEquals("0", model.properties["", "uiMode"].defaultValue)
+    assertEquals("Default", model.properties["", "device"].defaultValue)
+
+    // We hide the default value of some values when the value's behavior is undefined
+    assertEquals(null, model.properties["", "widthDp"].defaultValue)
+    assertEquals(null, model.properties["", "heightDp"].defaultValue)
+    assertEquals(null, model.properties["", "apiLevel"].defaultValue)
     // We don't take the library's default value for color
-    assertEquals(null, runReadAction { model.properties["", "backgroundColor"].defaultValue })
+    assertEquals(null, model.properties["", "backgroundColor"].defaultValue)
   }
 
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
     val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, noParametersPreview) }
-    model.properties["", "name"].value = "NoHello"
+    var expectedModificationsCountdown = 7
+    model.addListener(object : PropertiesModelListener<PsiPropertyItem> {
+      override fun propertyValuesChanged(model: PropertiesModel<PsiPropertyItem>) {
+        expectedModificationsCountdown--
+      }
+    })
 
+    model.properties["", "name"].value = "NoHello"
     // Try to override our previous write. Only the last one should persist
     model.properties["", "name"].value = "Hello"
     assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
@@ -198,6 +223,9 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     // Add other properties
     model.properties["", "group"].value = "Group2"
     model.properties["", "widthDp"].value = "32"
+    assertEquals("Hello", model.properties["", "name"].value)
+    assertEquals("Group2", model.properties["", "group"].value)
+    assertEquals("32", model.properties["", "widthDp"].value)
     assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
 
     // Set back to the default value
@@ -212,6 +240,14 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     }
     catch (expected: NoSuchElementException) {
     }
+
+    // Verify final values on model
+    assertNull(model.properties["", "name"].value)
+    assertNull(model.properties["", "group"].value)
+    assertNull(model.properties["", "widthDp"].value)
+    // Verify final state of file
     assertEquals("@Preview", noParametersPreview.annotationText())
+    // Verify that every modification (setting, overwriting and deleting values) triggered the listener
+    assertEquals(0, expectedModificationsCountdown)
   }
 }

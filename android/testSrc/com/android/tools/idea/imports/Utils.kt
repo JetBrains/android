@@ -98,6 +98,14 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 ]
               },
               {
+                "groupId": "com.google.android.gms",
+                "artifactId": "play-services-maps",
+                "version": "17.0.0",
+                "fqcns": [
+                  "com.google.android.gms.maps.SupportMapFragment"
+                ]
+              },
+              {
                 "groupId": "androidx.camera",
                 "artifactId": "camera-view",
                 "version": "1.0.0-alpha22",

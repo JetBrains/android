@@ -106,22 +106,6 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
     refresh()
   }
 
-  val pictureType
-    get() =
-      when {
-        model.windows.values.any { it.imageType == BITMAP_AS_REQUESTED } -> {
-          // If we find that we've requested and received a png, that's what we'll use first
-          BITMAP_AS_REQUESTED
-        }
-        model.windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
-          // If all windows are SKP, use that
-          AndroidWindow.ImageType.SKP
-        }
-        else -> {
-          UNKNOWN
-        }
-      }
-
   val isActive
     get() = !model.isEmpty
 
@@ -164,7 +148,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    ViewNode.readDrawChildren { drawChildren ->
+    ViewNode.readFilteredDrawChildren { drawChildren ->
       root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
     }
     maxDepth = levelLists.size
@@ -201,9 +185,9 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
   private fun buildLevelLists(root: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int,
-                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
+                              drawChildren: ViewNode.() -> Sequence<DrawViewNode>) {
     var newLevelIndex = levelListCollector.size
-    if (root.owner.visible) {
+    if (model.isVisible(root.owner)) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
       // in the next level above that (that is, the last level, starting from the top, where there's space).
       val rootArea = Area(root.owner.transformedBounds)
@@ -269,4 +253,9 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
     yOff = 0.0
     refresh()
   }
+
+  /**
+   * Fire the modification listeners manually.
+   */
+  fun fireModified() = modificationListeners.forEach { it() }
 }

@@ -45,6 +45,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -379,7 +380,14 @@ internal class ComposePreviewViewImpl(private val project: Project,
         log.debug("Show content")
         hideLoading()
         if (hasContent) {
-          showContent()
+          if (showContent()) {
+            // We zoom to fit to have better initial zoom level when first build is completed.
+            // We invoke later to allow the panel to layout itself before calling zoomToFit.
+            ApplicationManager.getApplication().invokeLater {
+              pinnedSurface.zoomToFit()
+              mainSurface.zoomToFit()
+            }
+          }
         }
         else {
           hideContent()

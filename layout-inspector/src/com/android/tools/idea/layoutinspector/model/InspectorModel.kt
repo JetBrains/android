@@ -58,7 +58,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
 
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, null, "", 0)
+  val root = ViewNode("root - hide")
 
   val hasSubImages
     get() = windows.values.any { it.hasSubImages }
@@ -66,6 +66,24 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /** Whether there are currently any views in this model */
   val isEmpty
     get() = windows.isEmpty()
+
+  val pictureType
+    get() =
+      when {
+        windows.values.any { it.imageType == AndroidWindow.ImageType.BITMAP_AS_REQUESTED } -> {
+          // If we find that we've requested and received a png, that's what we'll use first
+          AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+        }
+        windows.values.all { it.imageType == AndroidWindow.ImageType.SKP } -> {
+          // If all windows are SKP, use that
+          AndroidWindow.ImageType.SKP
+        }
+        else -> {
+          AndroidWindow.ImageType.UNKNOWN
+        }
+      }
+
+  private val hiddenNodes = mutableSetOf<ViewNode>()
 
   /**
    * Get a ViewNode by drawId
@@ -180,6 +198,8 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
     lastGeneration = generation
     idLookup.clear()
+    val allNodes = root.flatten().toSet()
+    hiddenNodes.removeIf { !allNodes.contains(it) }
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
@@ -198,6 +218,33 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     }
   }
 
+  fun showAll() {
+    hiddenNodes.clear()
+    notifyModified()
+  }
+
+  fun hideSubtree(node: ViewNode) {
+    hiddenNodes.addAll(node.flatten())
+    notifyModified()
+  }
+
+  fun showOnlySubtree(subtreeRoot: ViewNode) {
+    hiddenNodes.clear()
+    lateinit var findNodes: (ViewNode) -> Sequence<ViewNode>
+    findNodes = { node -> node.children.asSequence().filter { it != subtreeRoot }.flatMap { findNodes(it) }.plus(node) }
+    hiddenNodes.addAll(findNodes(root).plus(root))
+    notifyModified()
+  }
+
+  fun showOnlyParents(node: ViewNode) {
+    hiddenNodes.clear()
+    hiddenNodes.addAll(root.flatten().minus(node.parentSequence))
+    notifyModified()
+  }
+
+  fun isVisible(node: ViewNode) = !hiddenNodes.contains(node)
+
+  fun hasHiddenNodes() = hiddenNodes.isNotEmpty()
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateByTo(mutableMapOf()) { it.drawId }

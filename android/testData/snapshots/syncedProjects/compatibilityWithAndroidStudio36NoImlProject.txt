@@ -8,9 +8,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/AS36_noiml.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -571,9 +569,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/features
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.features [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.features [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/AS36_noiml.features.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -888,9 +884,7 @@ PROJECT                       : AS36_noiml
         LinkedProjectPath             : <PROJECT>/libs
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36_noiml.libs [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36_noiml.libs [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36_noiml.libs.iml [-]
         ModuleTypeName                : JAVA_MODULE

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
@@ -30,25 +31,44 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.CommonActionsManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.treeStructure.Tree
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.util.Collections
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
+import kotlin.math.max
 
-fun ToolContent<*>.tree(): Tree? =
-  (component as? JScrollPane)?.viewport?.view as? Tree
+fun AnActionEvent.treePanel(): LayoutInspectorTreePanel? =
+  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT)) as? LayoutInspectorTreePanel
+
+fun AnActionEvent.tree(): Tree? = treePanel()?.tree
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private val componentTree: JComponent
   private val componentTreeModel: ComponentTreeModel
   private val nodeType = InspectorViewNodeType()
+  // synthetic node to hold the root of the tree.
+  private var root: TreeViewNode = ViewNode("root").treeNode
+  // synthetic node for computing new hierarchy.
+  private val temp: TreeViewNode = ViewNode("temp").treeNode
+  // a map from [AndroidWindow.id] to the root [TreeViewNode] of that window
+  private val windowRoots = mutableMapOf<Any, MutableList<TreeViewNode>>()
+  private val additionalActions: List<AnAction>
+  private val comparator = SpeedSearchComparator(false)
+  private var toolWindowCallback: ToolWindowCallback? = null
+  private var filter = ""
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -59,31 +79,48 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withAutoScroll()
       .withNodeType(nodeType)
       .withContextMenu(::showPopup)
+      .withoutTreeSearch()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
 
-    val (tree, model, selectionModel) = builder.build()
-    componentTree = tree
+    val (scrollPane, model, selectionModel) = builder.build()
+    componentTree = scrollPane
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
       ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTree, parentDisposable) }
     selectionModel.addSelectionListener {
       layoutInspector?.layoutInspectorModel?.apply {
-        val view = it.firstOrNull() as? ViewNode
+        val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
         stats.selectionMadeFromComponentTree(view)
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
-    tree()?.setDefaultPainter()
+    tree?.setDefaultPainter()
+    tree?.addKeyListener(object : KeyAdapter() {
+      override fun keyTyped(event: KeyEvent) {
+        if (Character.isAlphabetic(event.keyChar.toInt())) {
+          toolWindowCallback?.startFiltering(event.keyChar.toString())
+        }
+      }
+    })
+    val commonActionManager = CommonActionsManager.getInstance()
+    additionalActions = listOf(
+      FilterNodeAction,
+      commonActionManager.createExpandAllHeaderAction(tree),
+      commonActionManager.createCollapseAllHeaderAction(tree)
+    )
   }
 
+  val tree: Tree?
+    get() = (component as? JScrollPane)?.viewport?.view as? Tree
+
   private fun showPopup(component: JComponent, x: Int, y: Int) {
-    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as ViewNode?
+    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
     if (node != null) {
-      layoutInspector?.let { showViewContextMenu(listOf(node), it.layoutInspectorModel, component, x, y) }
+      layoutInspector?.let { showViewContextMenu(listOf(node.view), it.layoutInspectorModel, component, x, y) }
     }
   }
 
@@ -91,8 +128,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   override fun setToolContext(toolContext: LayoutInspector?) {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector = toolContext
+    nodeType.model = layoutInspector?.layoutInspectorModel
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
-    componentTreeModel.treeRoot = layoutInspector?.layoutInspectorModel?.root
+    componentTreeModel.treeRoot = root
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
@@ -105,9 +143,105 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
   }
 
-  override fun getAdditionalActions() = listOf(FilterNodeAction)
+  override fun getAdditionalActions() = additionalActions
 
   override fun getComponent() = componentTree
+
+  override fun registerCallbacks(callback: ToolWindowCallback) {
+    toolWindowCallback = callback
+  }
+
+  override fun supportsFiltering(): Boolean = true
+
+  override fun setFilter(newFilter: String) {
+    filter = newFilter
+    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val nodes = getNodes()
+    val nodeCount = nodes.size
+    val startIndex = max(0, nodes.indexOf(selection))
+    for (i in 0 until nodeCount) {
+      // Select the next matching node, wrapping at the last node, and starting with the current selection:
+      if (matchAndSelectNode(nodes[Math.floorMod(startIndex + i, nodeCount)])) {
+        return
+      }
+    }
+  }
+
+  private fun nextMatch() {
+    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val nodes = getNodes()
+    val nodeCount = nodes.size
+    val startIndex = max(0, nodes.indexOf(selection))
+    for (i in 1..nodeCount) {
+      // Select the next matching node, wrapping at the last node, and starting with the node just after the current selection:
+      if (matchAndSelectNode(nodes[Math.floorMod(startIndex + i, nodeCount)])) {
+        return
+      }
+    }
+  }
+
+  private fun previousMatch() {
+    val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
+    val nodes = getNodes()
+    val nodeCount = nodes.size
+    val startIndex = max(0, nodes.indexOf(selection))
+    for (i in 1..nodeCount) {
+      // Select the previous matching node, wrapping at the first node, and starting with the node just prior to the current selection:
+      if (matchAndSelectNode(nodes[Math.floorMod(startIndex - i, nodeCount)])) {
+        return
+      }
+    }
+  }
+
+  private fun matchAndSelectNode(node: TreeViewNode): Boolean {
+    if (filter.isEmpty()) {
+      return true
+    }
+    val name = node.view.qualifiedName
+    val id = node.view.viewId?.name
+    val text = node.view.textValue.ifEmpty { null }
+    val searchString = listOfNotNull(name, id, text).joinToString(" - ")
+    if (comparator.matchingFragments(filter, searchString) != null) {
+      if (node !== tree?.selectionModel?.selectionPath?.lastPathComponent) {
+        componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
+        layoutInspector?.layoutInspectorModel?.apply {
+          setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
+          stats.selectionMadeFromComponentTree(node.view)
+        }
+      }
+      return true
+    }
+    return false
+  }
+
+  private fun getNodes(): List<TreeViewNode> =
+    root.flatten().minus(root).toList()
+
+  override fun getFilterKeyListener() = filterKeyListener
+
+  private val filterKeyListener = object : KeyAdapter() {
+    override fun keyPressed(event: KeyEvent) {
+      if (event.modifiersEx != 0) {
+        return
+      }
+      when (event.keyCode) {
+        KeyEvent.VK_DOWN -> {
+          nextMatch()
+          event.consume()
+        }
+        KeyEvent.VK_UP -> {
+          previousMatch()
+          event.consume()
+        }
+        KeyEvent.VK_ENTER -> {
+          tree?.requestFocusInWindow()
+          toolWindowCallback?.stopFiltering()
+          event.consume()
+        }
+      }
+    }
+  }
+
 
   override fun dispose() {
   }
@@ -115,61 +249,79 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @Suppress("UNUSED_PARAMETER")
   private fun modelModified(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
-      nodeType.update()
-      componentTreeModel.hierarchyChanged(new?.root)
+      var changedNode = new?.let { addToRoot(it) }
+      if (windowRoots.keys.retainAll(layoutInspector?.layoutInspectorModel?.windows?.keys ?: emptyList())) {
+        changedNode = root
+      }
+      if (changedNode == root) {
+        rebuildRoot()
+      }
+      changedNode?.let { componentTreeModel.hierarchyChanged(it) }
     }
+  }
+
+  private fun addToRoot(window: AndroidWindow): TreeViewNode {
+    temp.children.clear()
+    updateHierarchy(window.root, temp)
+    temp.children.forEach { it.parent = root }
+    val changedNode = temp.children.singleOrNull()
+    val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
+    if (changedNode != null && windowNodes.singleOrNull() === changedNode) {
+      temp.children.clear()
+      return changedNode
+    }
+    windowNodes.clear()
+    windowNodes.addAll(temp.children)
+    temp.children.clear()
+
+    return root
+  }
+
+  private fun rebuildRoot() {
+    root.children.clear()
+    layoutInspector?.layoutInspectorModel?.windows?.keys?.flatMapTo(root.children) { id -> windowRoots[id] ?: emptyList() }
+  }
+
+  fun refresh() {
+    windowRoots.clear()
+    layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { addToRoot(it) }
+    rebuildRoot()
+    componentTreeModel.hierarchyChanged(root)
+  }
+
+  private fun updateHierarchy(node: ViewNode, parent: TreeViewNode) {
+    val nextParent = if (!node.isInComponentTree) parent else {
+      val treeNode = node.treeNode
+      parent.children.add(treeNode)
+      treeNode.parent = parent
+      treeNode.children.clear()
+      if (node.isSingleCall) parent else treeNode
+    }
+    node.children.forEach { updateHierarchy(it, nextParent) }
   }
 
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
-    if (newView == null) {
-      componentTreeSelectionModel.currentSelection = emptyList()
-    }
-    else {
-      componentTreeSelectionModel.currentSelection = Collections.singletonList(newView)
-    }
+    componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
   }
 
-  private class InspectorViewNodeType : ViewNodeType<ViewNode>() {
-    private var hideTopSystemNodes = TreeSettings.hideSystemNodes
+  private class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {
+    var model: InspectorModel? = null
+    override val clazz = TreeViewNode::class.java
 
-    fun update() {
-      hideTopSystemNodes = TreeSettings.hideSystemNodes
-    }
+    override fun tagNameOf(node: TreeViewNode) = node.view.qualifiedName
 
-    override val clazz = ViewNode::class.java
+    override fun idOf(node: TreeViewNode) = node.view.viewId?.name
 
-    override fun tagNameOf(node: ViewNode) = node.qualifiedName
+    override fun textValueOf(node: TreeViewNode) = node.view.textValue
 
-    override fun idOf(node: ViewNode) = node.viewId?.name
+    override fun iconOf(node: TreeViewNode): Icon =
+      IconProvider.getIconForView(node.view.qualifiedName, node.view is ComposeViewNode)
 
-    override fun textValueOf(node: ViewNode) = node.textValue
+    override fun parentOf(node: TreeViewNode): TreeViewNode? = node.parent
 
-    override fun iconOf(node: ViewNode): Icon =
-      IconProvider.getIconForView(node.qualifiedName, node is ComposeViewNode)
+    override fun childrenOf(node: TreeViewNode): List<TreeViewNode> = node.children
 
-    override fun parentOf(node: ViewNode): ViewNode? =
-      if (hideTopSystemNodes && isTopSystemNode(node.parent)) node.parent?.parent else node.parent
-
-    override fun childrenOf(node: ViewNode): List<ViewNode> = when {
-      !hideTopSystemNodes || node.parent != null -> node.children
-      node.children.size == 1 -> if (isTopSystemNode(node.children.single())) node.children.single().children else node.children
-      else -> node.children.flatMap { if (isTopSystemNode(it)) it.children else listOf(it)  }
-    }
-
-    override fun isEnabled(node: ViewNode) = node.visible
-
-    /**
-     * Return true if this is a system node that is a child of the generated root node in [InspectorModel].
-     *
-     * When the agent is filtering out system nodes, the top system node (typically a DecorView)
-     * will still be included. This method returns true if the [node] is such a system node and the
-     * grandParent is null indicating that [node] is a child of the generated root node in [InspectorModel].
-     */
-    private fun isTopSystemNode(node: ViewNode?): Boolean {
-      val parent = node?.parent
-      val grandParent = parent?.parent
-      return parent != null && grandParent == null && node.layout == null
-    }
+    override fun isEnabled(node: TreeViewNode) = model?.isVisible(node.view) == true
   }
 }

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -140,8 +141,15 @@ public final class EmulatorCommandBuilderTest {
     GeneralCommandLine command = builder.build();
 
     // Assert
-    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -qt-hide-window -grpc-use-token -idle-grpc-timeout 300",
-                 command.getCommandLineString());
+    if (StudioFlags.EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS.get()) {
+      assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -qt-hide-window -grpc-use-token -idle-grpc-timeout 300" +
+                   " -experimental-enable-multidisplay",
+                   command.getCommandLineString());
+    }
+    else {
+      assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -qt-hide-window -grpc-use-token -idle-grpc-timeout 300",
+                   command.getCommandLineString());
+    }
   }
 
   @Test

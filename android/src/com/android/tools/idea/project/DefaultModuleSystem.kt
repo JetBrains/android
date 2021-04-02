@@ -32,6 +32,7 @@ import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ManifestOverrides
@@ -102,7 +103,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
     // The following if / else if chain maintains previous support for supportlib and appcompat until
     // we can determine it's safe to take away.
@@ -158,7 +159,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
+  override fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary> {
     val libraries = mutableListOf<ExternalLibrary>()
 
     ModuleRootManager.getInstance(module)

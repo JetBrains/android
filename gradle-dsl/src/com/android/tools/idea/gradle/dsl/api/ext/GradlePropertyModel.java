@@ -13,8 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.api.ext;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,7 +39,7 @@ import java.util.Map;
  *   <li>{@link #toMap()}<li/>
  * <ul/>
  */
-public interface GradlePropertyModel extends PsiElementHolder {
+public interface GradlePropertyModel extends DeletablePsiElementHolder {
   @NotNull
   String DOUBLE_QUOTES = "\"";
 
@@ -231,12 +230,6 @@ public interface GradlePropertyModel extends PsiElementHolder {
    */
   @Nullable
   GradlePropertyModel getListValue(@NotNull Object value);
-
-  /**
-   * Marks this property for deletion, which when {@link GradleBuildModel#applyChanges()} is called, removes it and its value
-   * from the file. Any call to {@link #setValue(Object)} will recreate the property and add it back to the file.
-   */
-  void delete();
 
   /**
    * @return a resolved model representing this property.

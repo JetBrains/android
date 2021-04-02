@@ -30,6 +30,7 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
@@ -99,8 +100,8 @@ class GradleModuleSystem(
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 
-  override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return getResolvedLibraryDependencies()
+  override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
+    return getResolvedLibraryDependencies(scope)
       .asSequence()
       .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
       .find { it.matches(coordinate) }
@@ -130,7 +131,7 @@ class GradleModuleSystem(
       }
     }
     else {
-      getResolvedLibraryDependencies(module)
+      getResolvedLibraryDependencies(module, DependencyScopeType.MAIN)
         .asSequence()
         .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
     }
@@ -141,18 +142,22 @@ class GradleModuleSystem(
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
     module)
 
-  override fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> {
+  override fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
-    return getResolvedLibraryDependencies(module)
+    return getResolvedLibraryDependencies(module, scope)
   }
 
-  private fun getResolvedLibraryDependencies(module: Module): Collection<ExternalLibrary> {
+  private fun getResolvedLibraryDependencies(module: Module, scope: DependencyScopeType): Collection<ExternalLibrary> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
-    val javaLibraries =
-      gradleModel.selectedMainCompileLevel2Dependencies.javaLibraries.map(::convertLibraryToExternalLibrary)
-    val androidLibraries =
-      gradleModel.selectedMainCompileLevel2Dependencies.androidLibraries.map(::convertLibraryToExternalLibrary)
+    val dependencies = when(scope) {
+      DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
+      DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.level2Dependencies
+      DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.level2Dependencies
+    } ?: return emptyList()
+
+    val javaLibraries = dependencies.javaLibraries.map(::convertLibraryToExternalLibrary)
+    val androidLibraries = dependencies.androidLibraries.map(::convertLibraryToExternalLibrary)
 
     return javaLibraries + androidLibraries
   }
@@ -309,6 +314,8 @@ class GradleModuleSystem(
   }
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
+
+  override val isViewBindingEnabled: Boolean get() = AndroidModuleModel.get(module)?.androidProject?.viewBindingOptions?.enabled ?: false
 
   override val applicationRClassConstantIds: Boolean get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true
 

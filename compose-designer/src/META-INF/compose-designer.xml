@@ -98,6 +98,8 @@
     <annotator
       language="kotlin"
       implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
+
+    <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">

@@ -136,7 +136,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     // @formatter:off
     Object data = Arrays.asList(
       Arrays.asList("",    "Type",           "Device"),
-      Arrays.asList(false, device.getIcon(), "<html>Pixel 4 API 29<br>Missing system image"));
+      Arrays.asList(false, device.getIcon(), "<html>Pixel 4 API 29<br><font size=-2 color=#999999>Missing system image</font></html>"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());

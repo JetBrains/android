@@ -15,13 +15,12 @@
  */
 package com.android.tools.compose
 
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers.RENDER_TYPE_WITH_ANNOTATIONS
 
-class ComposeErrorMessages : DefaultErrorMessages.Extension {
+object ComposeErrorMessages : DefaultErrorMessages.Extension {
   private val MAP = DiagnosticFactoryToRendererMap("Compose")
   override fun getMap() = MAP
 
@@ -105,8 +104,5 @@ class ComposeErrorMessages : DefaultErrorMessages.Extension {
       ComposeErrors.COMPOSABLE_FUN_MAIN,
       ComposeBundle.message("errors.composable_fun_main")
     )
-
-    Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(
-      ComposeErrors::class.java, this)
   }
 }

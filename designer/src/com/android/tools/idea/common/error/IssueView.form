@@ -71,7 +71,7 @@
             </constraints>
             <properties>
               <font style="1"/>
-              <text value="Suggested Fix"/>
+              <text value="Suggestion(s)"/>
               <visible value="false"/>
             </properties>
           </component>

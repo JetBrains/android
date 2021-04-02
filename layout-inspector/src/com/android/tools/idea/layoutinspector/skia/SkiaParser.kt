@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.skia
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
+import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils.buildTree
 import com.android.tools.layoutinspector.SkiaViewNode
 

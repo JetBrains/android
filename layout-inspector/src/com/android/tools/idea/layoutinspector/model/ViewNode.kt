@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -58,9 +61,41 @@ open class ViewNode(
   var textValue: String,
   var layoutFlags: Int
 ) {
+  /** constructor for synthetic nodes */
+  constructor(qualifiedName: String): this(-1, qualifiedName, null, 0, 0, 0, 0, null, null, "", 0)
+
   /** The bounds used by android for layout. Always a rectangle. */
   val layoutBounds: Rectangle
     get() = Rectangle(x, y, width, height)
+
+  @Suppress("LeakingThis")
+  val treeNode = TreeViewNode(this)
+
+  /** Returns true if this [ViewNode] is found in a layout in the framework or in a system layout from appcompat */
+  open val isSystemNode: Boolean
+    get() =
+      layout == null ||
+      layout?.namespace == ResourceNamespace.ANDROID ||
+      layout?.name?.startsWith("abc_") == true
+
+  /**
+   * Return the closest unfiltered node
+   *
+   * This will either be:
+   * - the node itself
+   * - the closest ancestor that is not filtered out of the component tree
+   * - null
+   */
+  fun findClosestUnfilteredNode(): ViewNode? =
+    if (TreeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
+
+  /** Returns true if the node appears in the component tree. False if it currently filtered out */
+  val isInComponentTree: Boolean
+    get() = !(TreeSettings.hideSystemNodes && isSystemNode)
+
+  /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
+  open val isSingleCall: Boolean
+    get() = false
 
   private var _transformedBounds = bounds
 
@@ -83,6 +118,17 @@ open class ViewNode(
   // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
   private val drawChildren = mutableListOf<DrawViewNode>()
 
+  private val filteredDrawChildren: Sequence<DrawViewNode>
+    get() = drawChildren.asSequence().flatMap {
+      if (it.owner.isInComponentTree) sequenceOf(it)
+      else {
+        if (it is DrawViewChild) {
+          it.owner.filteredDrawChildren
+        }
+        else sequenceOf(it)
+      }
+    }
+
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {
@@ -91,9 +137,6 @@ open class ViewNode(
 
   val unqualifiedName: String
     get() = qualifiedName.substringAfterLast('.')
-
-  // TODO: move to draw node
-  var visible = true
 
   val isDimBehind: Boolean
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
@@ -108,6 +151,11 @@ open class ViewNode(
     fun <T> readDrawChildren(fn: (ViewNode.() -> List<DrawViewNode>) -> T): T =
       lock.read {
         fn(ViewNode::drawChildren)
+      }
+
+    fun <T> readFilteredDrawChildren(fn: (ViewNode.() -> Sequence<DrawViewNode>) -> T): T =
+      lock.read {
+        fn(ViewNode::filteredDrawChildren)
       }
 
     fun writeDrawChildren(fn: (ViewNode.() -> MutableList<DrawViewNode>) -> Unit) =

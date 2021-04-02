@@ -8,9 +8,7 @@ PROJECT                       : testPsdSampleRenamingModule
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testPsdSampleRenamingModule.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -1924,9 +1922,7 @@ PROJECT                       : testPsdSampleRenamingModule
         LinkedProjectPath             : <PROJECT>/nested2/trans
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSampleRenamingModule.nested2.trans [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSampleRenamingModule.nested2.trans [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testPsdSampleRenamingModule.nested2.trans.iml [-]
         ModuleTypeName                : JAVA_MODULE

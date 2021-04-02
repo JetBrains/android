@@ -47,7 +47,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     return ServiceManager.getService(PhysicalTabPersistentStateComponent.class);
   }
 
-  @NotNull Object get() {
+  @NotNull Collection<@NotNull PhysicalDevice> get() {
     return myState.physicalDevices.stream()
       .map(PhysicalDeviceState::asPhysicalDevice)
       .collect(Collectors.toList());
@@ -99,7 +99,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
-      return PhysicalDevice.newDisconnectedDevice(serialNumber);
+      return new PhysicalDevice(serialNumber);
     }
 
     @Override

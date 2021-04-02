@@ -8,9 +8,7 @@ PROJECT                       : testWithCentralBuildDirectoryInRootModuleDeleted
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithCentralBuildDirectoryInRootModuleDeleted [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCentralBuildDirectoryInRootModuleDeleted [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testWithCentralBuildDirectoryInRootModuleDeleted.iml [-]
         ModuleTypeName                : JAVA_MODULE

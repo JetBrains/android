@@ -174,6 +174,7 @@ public final class SelectDeviceActionTest {
     action.update(myEvent);
 
     // Assert
-    assertEquals("Missing system image", myPresentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
+    assertEquals("<html><font size=+1>Error</font><br><font color=#999999>Missing system image</font></html>",
+                 myPresentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
   }
 }

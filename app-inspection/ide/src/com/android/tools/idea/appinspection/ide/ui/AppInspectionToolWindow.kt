@@ -80,11 +80,11 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
     override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
       val fqcn = codeLocation.fqcn
-      val navigatable: Navigatable? = if (fqcn != null) {
-        ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
-      }
-      else {
-        runReadAction {
+      val navigatable: Navigatable? = runReadAction {
+        if (fqcn != null) {
+          ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
+        }
+        else {
           val fileName = codeLocation.fileName!!
           FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
             .firstOrNull()?.virtualFile

@@ -313,3 +313,18 @@ MODULE                        : project.app
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    SelectedAbiName               : x86
+    ModelVersion                  : 4.1.0
+    ApiVersion                    : 3
+    Name                          : app
+    DefaultNdkVersion             : 21.1.6352462
+    BuildSystems                  : cmake
+    VariantInfos
+        debug
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/debug/x86
+        release
+            AbiName                       : x86
+            BuildRootFolderMap
+                x86                           : <ROOT>/app/.cxx/cmake/release/x86 [-]

@@ -26,6 +26,7 @@ import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.KillableProcess
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -46,8 +47,8 @@ import java.io.OutputStream
  * When you detach, all those processes are kept running and this process handler just stops capturing logcat messages from them.
  *
  * There are two ways you can get to destroy state. First, if you call [destroyProcess] method, this process handler terminates all
- * running target processes and moves to destroy state. Second, when all target processes terminate this process handler automatically
- * terminate.
+ * running target processes and moves to destroy state. Second, when all target processes terminate and [autoTerminate] is true,
+ * this process handler automatically terminate.
  *
  * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
@@ -59,6 +60,8 @@ class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   val targetApplicationId: String,
   val captureLogcat: Boolean = true,
+  val autoTerminate: Boolean = true,
+  private val ansiEscapeDecoder: AnsiEscapeDecoder = AnsiEscapeDecoder(),
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
@@ -76,15 +79,25 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Logcat messages from all target devices are redirected to [notifyTextAvailable]. When all target processes terminate on
    * all devices, it invokes [destroyProcess] to terminate android process handler.
    */
-  private val myMonitorManager = androidProcessMonitorManagerFactory.invoke(
+  private val myMonitorManager = androidProcessMonitorManagerFactory(
     targetApplicationId,
     deploymentApplicationService,
     object : TextEmitter {
       override fun emit(message: String, key: Key<*>) = notifyTextAvailable(message, key)
     },
     object : AndroidProcessMonitorManagerListener {
-      override fun onAllTargetProcessesTerminated() = destroyProcess()
+      override fun onAllTargetProcessesTerminated() {
+        if (autoTerminate) {
+          destroyProcess()
+        }
+      }
     })
+
+  override fun notifyTextAvailable(text: String, outputType: Key<*>) {
+    ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->
+      super.notifyTextAvailable(processedText, attributes)
+    }
+  }
 
   /**
    * Adds a target device to this handler.

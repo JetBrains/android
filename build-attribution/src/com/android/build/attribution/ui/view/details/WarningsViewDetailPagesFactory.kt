@@ -22,6 +22,7 @@ import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -29,7 +30,9 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
@@ -42,7 +45,6 @@ import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
-import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
@@ -221,8 +223,8 @@ class WarningsViewDetailPagesFactory(
     val incompatiblePluginsCountLine = uiData.incompatiblePluginWarnings.size.let {
       when (it) {
         0 -> null
-        1 -> "1 plugin is not known to have compatible version yet, please contact plugin providers for details."
-        else -> "$it plugins are not known to have compatible version yet, please contact plugin providers for details."
+        1 -> "1 plugin is not known to have a compatible version yet, please contact plugin providers for details."
+        else -> "$it plugins are not known to have a compatible version yet, please contact plugin providers for details."
       }
     }
 
@@ -295,7 +297,6 @@ class WarningsViewDetailPagesFactory(
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
       """.trimIndent().insertBRTags()
-
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     if (data.requiredVersion != null) {
       add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
@@ -305,11 +306,9 @@ class WarningsViewDetailPagesFactory(
   private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
     "<p>" +
     "You could save about ${configurationTime.durationStringHtml()} by turning " +
-    "<a href='${BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING.name}'>configuration cache</a> on.<br/>" +
+    "${externalLink("configuration cache", CONFIGURATION_CACHING)} on.<br/>" +
     "With configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
     "</p>"
-
-  private fun String.insertBRTags(): String = replace("\n", "<br/>\n")
 
   private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {
     border = JBUI.Borders.emptyLeft(3)

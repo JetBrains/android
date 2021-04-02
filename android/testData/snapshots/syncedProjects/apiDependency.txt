@@ -8,9 +8,7 @@ PROJECT                       : testApiDependency
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testApiDependency.iml [-]
         ModuleTypeName                : JAVA_MODULE

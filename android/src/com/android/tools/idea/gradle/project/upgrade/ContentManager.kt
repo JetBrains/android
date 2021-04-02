@@ -126,15 +126,24 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
-        val knownVersionsList = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
-          .filter { current?.let { current -> it > current && it < latestKnownVersion } ?: false }
-          .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
-          .toList()
-          .sortedDescending()
+        val gMavenVersions = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+        val knownVersionsList = suggestedVersionsList(gMavenVersions)
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
       }
     })
   }
+
+  fun suggestedVersionsList(gMavenVersions: Set<GradleVersion>): List<GradleVersion> = gMavenVersions
+    // Make sure the latestKnownVersion is present, whether it's been published or not
+    .union(listOf(latestKnownVersion))
+    // Keep only versions that are later than or equal to current
+    .filter { current?.let { current -> it >= current } ?: false }
+    // Keep only versions that are no later than the latest version we support
+    .filter { it <= latestKnownVersion }
+    // Do not keep versions that would force an upgrade from on sync
+    .filter { !versionsShouldForcePluginUpgrade(it, latestKnownVersion) }
+    .toList()
+    .sortedDescending()
 
   fun refresh(refindPlugin: Boolean = false) {
     showLoadingState.set(true)
@@ -181,6 +190,7 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
   }
 
   private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
+    refreshTree(newProcessor)
     if (!projectFilesClean) {
       runEnabled.set(false)
       runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
@@ -196,7 +206,6 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
       )
     }
     else {
-      refreshTree(newProcessor)
       runEnabled.set(true)
     }
     showLoadingState.set(false)
@@ -455,7 +464,7 @@ class ContentManager(val project: Project) {
           }
           selectedStep.helpLinkUrl?.let { url ->
             // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
-            text.append("<a href='$url'>Read more</a>.")
+            text.append("<a href='$url'>Read more</a><icon src='ide/external_link_arrow.svg'>.")
           }
           label.text = text.toString()
           detailsPanel.add(label)
@@ -514,8 +523,8 @@ private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessit
   this.components().filter { it.isEnabled }.filter { it.necessity() == necessity }.filter { !it.isAlwaysNoOpForProject }
 
 fun AgpUpgradeComponentNecessity.treeText() = when (this) {
-  MANDATORY_INDEPENDENT -> "Pre-upgrade steps"
-  MANDATORY_CODEPENDENT -> "Upgrade steps"
+  MANDATORY_INDEPENDENT -> "Upgrade prerequisites"
+  MANDATORY_CODEPENDENT -> "Upgrade"
   OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
   OPTIONAL_INDEPENDENT -> "Optional steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
@@ -531,13 +540,15 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
     "They must all happen together, at the same time as the Android Gradle Plugin\n" +
     "upgrade itself."
   OPTIONAL_CODEPENDENT ->
-    "These steps are not required to perform the upgrade of this project.  You\n" +
-    "can choose to do them, but only if the Android Gradle Plugin is upgraded\n" +
-    "to its new version."
+    "These steps are not required to perform the upgrade of this project at this time,\n" +
+    "but will be required when upgrading to a later version of the Android Gradle\n" +
+    "Plugin.  You can choose to do them in this upgrade to prepare for the future, but\n" +
+    "only if the Android Gradle Plugin is upgraded to its new version."
   OPTIONAL_INDEPENDENT ->
-    "These steps are not required to perform the upgrade of this project.  You\n" +
-    "can choose to do them, with or without upgrading the Android Gradle Plugin\n" +
-    "to its new version."
+    "These steps are not required to perform the upgrade of this project at this time,\n" +
+    "but will be required when upgrading to a later version of the Android Gradle\n" +
+    "Plugin.  You can choose to do them in this upgrade to prepare for the future,\n" +
+    "with or without upgrading the Android Gradle Plugin to its new version."
   else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
 }
 

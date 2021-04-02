@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -33,13 +32,13 @@ import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -49,7 +48,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Key;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,10 +59,6 @@ import org.jetbrains.annotations.Nullable;
  * Updates the contents/settings of a module when a build variant changes.
  */
 public class BuildVariantUpdater {
-  @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
-    new Key<>("module.with.build.variant.switched.from.ui");
-  @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
-    new Key<>("use.variants.from.previous.gradle.syncs");
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -196,7 +190,7 @@ public class BuildVariantUpdater {
     }
     else if (!variantToUpdateExists) {
       // Build file is not changed, the cached variants should be cached and reused.
-      project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
+      project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
       requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
@@ -221,23 +215,10 @@ public class BuildVariantUpdater {
     if (moduleToUpdate == null) {
       return;
     }
-    String moduleId = getModuleIdForModule(moduleToUpdate);
+    String moduleId = AndroidGradleProjectResolver.getModuleIdForModule(moduleToUpdate);
     if (moduleId != null) {
-      project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
+      project.putUserData(AndroidGradleProjectResolver.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
     }
-  }
-
-  @Nullable
-  public static String getModuleIdForModule(@NotNull Module module) {
-    ExternalSystemModulePropertyManager propertyManager = ExternalSystemModulePropertyManager.getInstance(module);
-    String rootProjectPath = propertyManager.getRootProjectPath();
-    if (rootProjectPath != null) {
-      String gradlePath = propertyManager.getLinkedProjectId();
-      if (gradlePath != null) {
-        return createUniqueModuleId(rootProjectPath, gradlePath);
-      }
-    }
-    return null;
   }
 
   /**
@@ -472,12 +453,12 @@ public class BuildVariantUpdater {
     return new GradleSyncListener() {
       @Override
       public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
+        project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
       }
 
       @Override
       public void syncSucceeded(@NotNull Project project) {
-        project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
+        project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
         variantSelectionChangeListeners.run();
       }
     };

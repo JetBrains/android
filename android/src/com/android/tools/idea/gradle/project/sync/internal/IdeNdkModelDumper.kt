@@ -38,13 +38,18 @@ fun ProjectDumper.dumpNdkIdeModel(project: Project) {
       head("MODULE") { module.name }
       nest {
         NdkModuleModel.get(module)?.let { it ->
-          prop("SelectedAbiName") { it.selectedAbi }
-          if (it.ndkModel is V2NdkModel) dump(it.ndkModel.nativeModule)
-          if (it.ndkModel is V1NdkModel) dump(it.ndkModel.androidProject)
+          dumpNdkModuleModel(it)
         }
       }
     }
   }
+}
+
+fun ProjectDumper.dumpNdkModuleModel(ndkModuleModel: NdkModuleModel) {
+  val ndkModel = ndkModuleModel.ndkModel
+  prop("SelectedAbiName") { ndkModuleModel.selectedAbi }
+  if (ndkModel is V2NdkModel) dump(ndkModel.nativeModule)
+  if (ndkModel is V1NdkModel) dump(ndkModel.androidProject)
 }
 
 private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {

@@ -47,16 +47,20 @@ interface InspectorClient {
     SUPPORTS_CONTINUOUS_MODE,
 
     /**
-     * Indicates that this client is aware of and uses [TreeSettings.hideSystemNodes] when
+     * Indicates that this client is aware of and uses [TreeSettings.skipSystemNodesInAgent] when
      * [startFetching] is called.
      */
     SUPPORTS_FILTERING_SYSTEM_NODES,
 
     /**
-     * Indicates that this client is able to send [LayoutInspectorViewProtocol.Screenshot.Type.SKP] screenshots.
+     * Indicates that this client is able to separate user defined nodes from system defined nodes.
+     */
+    SUPPORTS_SYSTEM_NODES,
+
+    /**
+     * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
      */
     SUPPORTS_SKP,
-
   }
 
   /**
@@ -133,7 +137,7 @@ interface InspectorClient {
   /**
    * Set the requested screenshot type and zoom to be provided by the device.
    */
-  fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float = 1.0f) {}
+  fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float = 1.0f) {}
 
   /**
    * Report this client's capabilities so that external systems can check what functionality is

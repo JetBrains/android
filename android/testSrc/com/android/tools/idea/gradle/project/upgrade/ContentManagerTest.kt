@@ -33,7 +33,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
@@ -225,7 +224,7 @@ class ContentManagerTest {
     val view = ContentManager.View(model, toolWindow.contentManager)
     view.tree.selectionPath = view.tree.getPathForRow(0)
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
-    assertThat(detailsPanelContent.text).contains("<b>Upgrade steps</b>")
+    assertThat(detailsPanelContent.text).contains("<b>Upgrade</b>")
     assertThat(detailsPanelContent.text).contains("at the same time")
   }
 
@@ -318,22 +317,23 @@ class ContentManagerTest {
 
   @Test
   fun testNecessityTreeText() {
-    assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Pre-upgrade steps")
-    assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade steps")
+    assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Upgrade prerequisites")
+    assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade")
     assertThat(OPTIONAL_CODEPENDENT.treeText()).isEqualTo("Post-upgrade steps")
     assertThat(OPTIONAL_INDEPENDENT.treeText()).isEqualTo("Optional steps")
   }
 
   @Test
   fun testNecessityDescription() {
-    assertThat(MANDATORY_INDEPENDENT.description()).contains("are required")
-    assertThat(MANDATORY_INDEPENDENT.description()).contains("separate steps")
-    assertThat(MANDATORY_CODEPENDENT.description()).contains("are required")
-    assertThat(MANDATORY_CODEPENDENT.description()).contains("must all happen together")
-    assertThat(OPTIONAL_CODEPENDENT.description()).contains("are not required")
-    assertThat(OPTIONAL_CODEPENDENT.description()).contains("only if")
-    assertThat(OPTIONAL_INDEPENDENT.description()).contains("are not required")
-    assertThat(OPTIONAL_INDEPENDENT.description()).contains("with or without")
+    fun AgpUpgradeComponentNecessity.descriptionString() : String = this.description().replace("\n", " ")
+    assertThat(MANDATORY_INDEPENDENT.descriptionString()).contains("are required")
+    assertThat(MANDATORY_INDEPENDENT.descriptionString()).contains("separate steps")
+    assertThat(MANDATORY_CODEPENDENT.descriptionString()).contains("are required")
+    assertThat(MANDATORY_CODEPENDENT.descriptionString()).contains("must all happen together")
+    assertThat(OPTIONAL_CODEPENDENT.descriptionString()).contains("are not required")
+    assertThat(OPTIONAL_CODEPENDENT.descriptionString()).contains("only if")
+    assertThat(OPTIONAL_INDEPENDENT.descriptionString()).contains("are not required")
+    assertThat(OPTIONAL_INDEPENDENT.descriptionString()).contains("with or without")
   }
 
   @Test
@@ -346,5 +346,53 @@ class ContentManagerTest {
   fun testContentDisplayName() {
     assertThat((null as GradleVersion?).contentDisplayName()).contains("unknown AGP")
     assertThat(GradleVersion.parse("4.1.0").contentDisplayName()).contains("AGP 4.1.0")
+  }
+
+  @Test
+  fun testSuggestedVersions() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsLatestExplicitlyKnown() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyKnown() {
+    val toolWindowModel = ToolWindowModel(project, latestAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsAlreadyAtLatestVersionExplicitlyUnknown() {
+    val toolWindowModel = ToolWindowModel(project, latestAgpVersion)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion))
+  }
+
+  @Test
+  fun testSuggestedVersionsEmptyWhenCurrentUnknown() {
+    val toolWindowModel = ToolWindowModel(project, null)
+    val knownVersions = listOf("4.1.0", "20000.1.0").map { GradleVersion.parse(it) }.toSet().union(setOf(latestAgpVersion))
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
+  }
+
+  @Test
+  fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
+    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
+    val knownVersions = listOf("4.1.0", "4.2.0-alpha01", "4.2.0").map { GradleVersion.parse(it) }.toSet()
+    val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion))
   }
 }

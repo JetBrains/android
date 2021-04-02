@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -28,9 +28,12 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.JTable;
@@ -39,52 +42,68 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
+  private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
+
   private @Nullable JTable myTable;
 
   PhysicalDevicePanel(@Nullable Project project) {
-    this(PhysicalDeviceChangeListener::new, new PhysicalDeviceAsyncSupplier(project), EdtExecutorService.getInstance());
+    this(PhysicalTabPersistentStateComponent::getInstance,
+         PhysicalDeviceChangeListener::new,
+         new PhysicalDeviceAsyncSupplier(project),
+         EdtExecutorService.getInstance());
   }
 
   @VisibleForTesting
-  PhysicalDevicePanel(@NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
+  PhysicalDevicePanel(@NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
+                      @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Executor executor) {
     super(new BorderLayout());
+
+    myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
 
     add(new JBTable(new PhysicalDeviceTableModel()).getTableHeader(), BorderLayout.NORTH);
     add(new JBLabel("No physical devices added. Connect a device via USB cable.", SwingConstants.CENTER), BorderLayout.CENTER);
 
-    Futures.addCallback(supplier.get(), new AddNewTable(this), executor);
+    FutureUtils.addCallback(supplier.get(), executor, new FutureCallback<@Nullable List<@NotNull PhysicalDevice>>() {
+      @Override
+      public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
+        assert devices != null;
+        addNewTable(addDisconnectedDevices(devices));
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable throwable) {
+        Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
+      }
+    });
   }
 
-  private static final class AddNewTable implements FutureCallback<@Nullable List<@NotNull PhysicalDevice>> {
-    private final @NotNull PhysicalDevicePanel myPanel;
+  private @NotNull List<@NotNull PhysicalDevice> addDisconnectedDevices(@NotNull List<@NotNull PhysicalDevice> connectedDevices) {
+    Collection<PhysicalDevice> persistedDevices = myPhysicalTabPersistentStateComponentGetInstance.get().get();
 
-    private AddNewTable(@NotNull PhysicalDevicePanel panel) {
-      myPanel = panel;
-    }
+    List<PhysicalDevice> devices = new ArrayList<>(connectedDevices.size() + persistedDevices.size());
+    devices.addAll(connectedDevices);
 
-    @Override
-    public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
-      assert devices != null;
-      PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+    persistedDevices.stream()
+      .filter(persistedDevice -> PhysicalDevices.indexOf(connectedDevices, persistedDevice) == -1)
+      .forEach(devices::add);
 
-      Disposer.register(myPanel, myPanel.myNewPhysicalDeviceChangeListener.apply(model));
+    return devices;
+  }
 
-      JTable table = new JBTable(model);
+  private void addNewTable(@NotNull List<@NotNull PhysicalDevice> devices) {
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+    model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
 
-      myPanel.myTable = table;
+    Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
 
-      myPanel.removeAll();
-      myPanel.add(new JBScrollPane(table));
-    }
+    myTable = new JBTable(model);
 
-    @Override
-    public void onFailure(@NotNull Throwable throwable) {
-      Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
-    }
+    removeAll();
+    add(new JBScrollPane(myTable));
   }
 
   @Override

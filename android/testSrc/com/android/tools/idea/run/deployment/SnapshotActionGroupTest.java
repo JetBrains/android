@@ -146,6 +146,7 @@ public final class SnapshotActionGroupTest {
     action.update(event);
 
     // Assert
-    assertEquals("Missing system image", presentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
+    assertEquals("<html><font size=+1>Error</font><br><font color=#999999>Missing system image</font></html>",
+                 presentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
   }
 }

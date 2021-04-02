@@ -105,15 +105,15 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
     myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation);
 
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel.registerValidator(model.sourceLocation, value -> updateForwardStatus(model.sourceLocation.get()));
+
     myModulesPanel.bindPrimaryModuleEntryComponents(myPrimaryModel, myRequiredModulesLabel);
     myModulesPanel.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, event -> {
       if (ModulesTable.PROPERTY_SELECTED_MODULES.equals(event.getPropertyName())) {
-        updateStepStatus();
+        updateForwardStatus(!myValidatorPanel.hasErrors().get());
       }
     });
-
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myValidatorPanel.registerValidator(model.sourceLocation, value -> updateStepStatus(model.sourceLocation.get()));
 
     myRootPanel = wrapWithVScroll(myValidatorPanel, SMALL);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -169,7 +169,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
   @NotNull
   @VisibleForTesting
-  Validator.Result updateStepStatus(@NotNull String path) {
+  Validator.Result updateForwardStatus(@NotNull String path) {
     // Hide modules UI. They will be enabled again if all validation is OK.
     myPrimaryModel.setVisible(false);
     myRequiredModulesLabel.setVisible(false);
@@ -182,11 +182,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     }
 
     Validator.Result result = checkPath(path);
-    if (result.getSeverity() != Validator.Severity.ERROR) {
+    boolean hasValidPath = result.getSeverity() != Validator.Severity.ERROR;
+    if (hasValidPath) {
       updateModuleValidation();
     }
 
-    updateStepStatus();
+    updateForwardStatus(hasValidPath);
 
     return result;
   }
@@ -204,14 +205,9 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     myFacade.updateNavigationProperties();
   }
 
-  private void updateStepStatus() {
+  private void updateForwardStatus(boolean hasValidPath) {
     // Validation of import location can be superseded by lack of modules selected for import
-    if (myModulesPanel.getSelectedModules().isEmpty()) {
-      myCanGoForward.set(false);
-      return;
-    }
-
-    myCanGoForward.set(!myValidatorPanel.hasErrors().get() && myModulesPanel.canImport());
+    myCanGoForward.set(hasValidPath && myModulesPanel.canImport() && myModulesPanel.getSelectedModules().isEmpty());
   }
 
   @NotNull

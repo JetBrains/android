@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries
 class NetworkSpeedLineChartModel(
   services: NetworkInspectorServices,
   private val dataSource: NetworkInspectorDataSource
-) : LineChartModel() {
+) : LineChartModel(services.backgroundExecutor) {
   val trafficRange = Range(0.0, 4.0)
 
   val rxSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_RECEIVED.getLabel(false),

@@ -51,7 +51,7 @@ class IssuePanelSplitter(
     return object : IssuePanel.EventListener {
       override fun onPanelExpanded(isExpanded: Boolean) {
         surface.analyticsManager.trackIssuePanel(!isExpanded)
-        updateSplitter(!isExpanded, issuePanel.suggestedHeight)
+        updateSplitter(isExpanded, issuePanel.suggestedHeight)
       }
 
       override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) { }

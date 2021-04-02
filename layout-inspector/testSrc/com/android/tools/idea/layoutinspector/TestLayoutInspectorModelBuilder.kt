@@ -129,13 +129,13 @@ class InspectorViewDescriptor(private val drawId: Long,
       drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout).apply(body))
 
   fun view(drawId: Long,
-           rect: Rectangle,
+           rect: Rectangle?,
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
            layout: ResourceReference? = null,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, null, qualifiedName, viewId, textValue, 0, layout, body)
+    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, null, qualifiedName, viewId, textValue, 0, layout, body)
 
   fun compose(drawId: Long,
               name: String,
@@ -196,13 +196,14 @@ class InspectorModelDescriptor(val project: Project) {
   }
 
   fun view(drawId: Long,
-           rect: Rectangle,
+           rect: Rectangle?,
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
            imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, rect, qualifiedName, viewId, textValue, 0, null, imageType, body)
+    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, null,
+         imageType, body)
 
   fun build(): InspectorModel {
     val model = InspectorModel(project)

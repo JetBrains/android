@@ -76,8 +76,6 @@ import org.jetbrains.annotations.Nullable;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  // Placeholder application id if the project is never built before, there is no way to get application id.
-  public static final String UNINITIALIZED_APPLICATION_ID = "uninitialized.application.id";
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
   private final static String ourAndroidSyncVersion = "2021-03-17/1";
 
@@ -271,7 +269,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     Set<String> ids = new HashSet<>();
     for (IdeVariant variant : getVariants()) {
       String applicationId = getApplicationIdUsingCache(variant.getName());
-      if (applicationId != UNINITIALIZED_APPLICATION_ID) {
+      if (!UNINITIALIZED_APPLICATION_ID.equals(applicationId)) {
         ids.add(applicationId);
       }
     }
@@ -544,23 +542,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   private void parseAndSetModelVersion() {
     // Old plugin versions do not return model version.
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
-  }
-
-  /**
-   * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
-   */
-  @Deprecated
-  @NotNull
-  public List<IdeSourceProvider> getFlavorSourceProviders() {
-    IdeVariant selectedVariant = getSelectedVariant();
-    List<String> productFlavors = selectedVariant.getProductFlavors();
-    List<IdeSourceProvider> providers = new ArrayList<>();
-    for (String flavor : productFlavors) {
-      IdeProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.add(productFlavor.getSourceProvider());
-    }
-    return providers;
   }
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {

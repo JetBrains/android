@@ -43,7 +43,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
+import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -94,6 +94,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.lang.properties.psi.PropertyKeyValueFormat
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
@@ -284,6 +285,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
+    REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -900,6 +902,15 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.commandName", current, new)
 
+  override fun getShortDescription(): String =
+    """
+      Changing the version of the Android Gradle Plugin dependency
+      effectively upgrades the project.  Pre-upgrade steps must be run
+      no later than this version change; post-upgrade steps must be run
+      no earlier, but can be run afterwards by continuing to use this
+      assistant after running the upgrade.
+    """.trimIndent()
+
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.classpathDependency"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
@@ -1076,6 +1087,12 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpGradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version)
 
+  override fun getShortDescription(): String =
+    """
+      Version ${compatibleGradleVersion.version} is the minimum version of Gradle compatible
+      with Android Gradle Plugin version $new.
+    """.trimIndent()
+
   override fun getRefactoringId(): String = "com.android.tools.agp.upgrade.gradleVersion"
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
@@ -1103,6 +1120,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4
         GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1
         GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
+        GradleVersion.parse("4.2") >= agpVersionMajorMinor -> VERSION_6_7_1
         else -> VERSION_FOR_DEV
       }
       return when {
@@ -1122,14 +1140,16 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_5_6_4 -> GradleVersion.parse("1.3.10")
         VERSION_6_1_1 -> GradleVersion.parse("1.3.20")
         VERSION_6_5 -> GradleVersion.parse("1.3.20")
-        VERSION_FOR_DEV -> GradleVersion.parse("1.3.20")
+        VERSION_6_7_1 -> GradleVersion.parse("1.3.20")
+        VERSION_FOR_DEV -> GradleVersion.parse("1.3.40")
     }
 
     fun `androidx-navigation-safeargs-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
-        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5 ->
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1 ->
           GradleVersion.parse("2.0.0")
-        // TODO(xof): for Studio 4.2 / AGP 4.2, this is correct.  For Studio 4.3 / AGP 7.0, it might not be: a feature deprecated in
+        // TODO(xof): For Studio 4.3 / AGP 7.0, this might not be correct: a feature deprecated in
         //  AGP 4 might be removed in AGP 7.0 (see b/159542337) at which point we would need to upgrade the version to whatever the
         //  version is that doesn't use that deprecated interface (2.3.2?  2.4.0?  3.0.0?  Who knows?)
         VERSION_FOR_DEV -> GradleVersion.parse("2.0.0")
@@ -1140,7 +1160,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> GradleVersion.parse("1.3.1.0")
         VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> GradleVersion.parse("1.4.2.1")
-        VERSION_6_5, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
+        VERSION_6_5, VERSION_6_7_1, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
       }
 
     val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
@@ -1164,6 +1184,7 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_5_6_4(GradleVersion.parse("5.6.4")),
   VERSION_6_1_1(GradleVersion.parse("6.1.1")),
   VERSION_6_5(GradleVersion.parse("6.5")),
+  VERSION_6_7_1(GradleVersion.parse("6.7.1")),
   VERSION_FOR_DEV(GradleVersion.parse(GRADLE_LATEST_VERSION))
 }
 
@@ -1175,7 +1196,7 @@ class GradleVersionUsageInfo(
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.gradleVersionUsageInfo.tooltipText", gradleVersion)
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl)
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl.escapeColons(), PropertyKeyValueFormat.FILE)
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
     //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
     //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
@@ -1189,6 +1210,8 @@ class GradleVersionUsageInfo(
       documentManager.commitDocument(document)
     }
   }
+
+  fun String.escapeColons() = this.replace(":", "\\:")
 }
 
 class WellKnownGradlePluginUsageInfo(
@@ -1764,6 +1787,11 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.fabricCrashlyticsRefactoringProcessor.commandName")
 
+  override fun getShortDescription() =
+    """
+       The Fabric SDK is no longer supported as of November 15, 2020.
+    """.trimIndent()
+
   override fun getReadMoreUrl(): String? = "https://firebase.google.com/docs/crashlytics/upgrade-sdk?platform=android"
 
   companion object {
@@ -1962,6 +1990,7 @@ data class PropertiesOperationsRefactoringInfo(
   val optionalFromVersion: GradleVersion,
   val requiredFromVersion: GradleVersion,
   val commandNameSupplier: Supplier<String>,
+  val shortDescriptionSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
   val componentKind: UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind,
   val propertiesOperationInfos: List<PropertiesOperationInfo>
@@ -1974,6 +2003,8 @@ data class PropertiesOperationsRefactoringInfo(
     override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
+
+    override fun getShortDescription(): String? = shortDescriptionSupplier?.get()
 
     override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
       builder.setKind(componentKind)
@@ -2071,13 +2102,18 @@ val MIGRATE_TO_BUILD_FEATURES_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("4.0.0-alpha05"),
   requiredFromVersion = GradleVersion.parse("7.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
+  shortDescriptionSupplier = { """
+    The viewBinding and dataBinding features used to be enabled using
+    a flag in their respective blocks; they are now enabled using an
+    equivalent flag in the buildFeatures block.
+  """.trimIndent() },
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   componentKind = MIGRATE_TO_BUILD_FEATURES,
   propertiesOperationInfos = listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
 
 data class RemovePropertiesInfo(
-  val propertyModelListGetter: GradleBuildModel.() -> List<GradleDslModel>,
+  val propertyModelListGetter: GradleBuildModel.() -> List<DeletablePsiElementHolder>,
   val tooltipTextSupplier: Supplier<String>,
   val usageType: UsageType
 ): PropertiesOperationInfo {
@@ -2098,7 +2134,7 @@ data class RemovePropertiesInfo(
 
   inner class RemovePropertyUsageInfo(
     element: WrappedPsiElement,
-    val model: GradleDslModel
+    val model: DeletablePsiElementHolder
   ) : GradleBuildModelUsageInfo(element) {
 
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
@@ -2121,6 +2157,10 @@ val REMOVE_SOURCE_SET_JNI_INFO = PropertiesOperationsRefactoringInfo(
   optionalFromVersion = GradleVersion.parse("7.0.0-alpha06"),
   requiredFromVersion = GradleVersion.parse("8.0.0"),
   commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  shortDescriptionSupplier = { """
+    The jni block in an android sourceSet does nothing, and will be removed
+    in Android Gradle Plugin version 8.0.0.
+  """.trimIndent() },
   processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
   componentKind = REMOVE_SOURCE_SET_JNI,
   propertiesOperationInfos = listOf(SOURCE_SET_JNI_INFO)
@@ -2131,6 +2171,10 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
     optionalFromVersion = GradleVersion.parse("7.0.0-alpha08"),
     requiredFromVersion = GradleVersion.parse("8.0.0"),
     commandNameSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.commandName"),
+    shortDescriptionSupplier = { """
+      Configuration related to Android assets and other resources is
+      now performed using the androidResources block.
+    """.trimIndent() },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
     componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
     propertiesOperationInfos = listOf(
@@ -2152,6 +2196,26 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
       )
     )
   )
+
+val BUILD_TYPE_USE_PROGUARD_INFO = RemovePropertiesInfo(
+  propertyModelListGetter = { android().buildTypes().map { buildType -> buildType.useProguard() } },
+  tooltipTextSupplier = { "remove useProguard setting" },
+  usageType = UsageType("remove useProguard setting")
+)
+
+val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
+  optionalFromVersion = GradleVersion.parse("3.5.0"),
+  requiredFromVersion = GradleVersion.parse("7.0.0-alpha14"),
+  commandNameSupplier = { "Remove buildType useProguard setting" },
+  shortDescriptionSupplier = { """
+    The useProguard setting for build types is not supported in Android
+    Gradle Plugin version 7.0.0 and higher; from that version the R8 minifier
+    is used unconditionally.
+  """.trimIndent()},
+  processedElementsHeaderSupplier = { "Remove buildType useProguard setting" },
+  componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+  propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
+)
 
 /**
  * Usage Types for usages coming from [AgpUpgradeComponentRefactoringProcessor]s.

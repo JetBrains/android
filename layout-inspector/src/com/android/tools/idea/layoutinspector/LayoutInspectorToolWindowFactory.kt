@@ -58,8 +58,8 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
  * Create a [DataProvider] for the specified [layoutInspector].
  */
 @VisibleForTesting
-fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider =
-  DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else null }
+fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewPanel: DataProvider): DataProvider =
+  DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -109,9 +109,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
         val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, workbench)
         val layoutInspector = LayoutInspector(launcher, model)
-        DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
-
         val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
+        DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 

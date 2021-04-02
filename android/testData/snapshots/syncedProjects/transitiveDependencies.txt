@@ -8,9 +8,7 @@ PROJECT                       : testTransitiveDependencies
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testTransitiveDependencies.iml [-]
         ModuleTypeName                : JAVA_MODULE

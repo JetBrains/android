@@ -21,11 +21,11 @@ import com.google.wireless.android.sdk.stats.MultiViewEvent.MultiViewEventType
 
 fun trackOpenConfigSet(surface: DesignSurface, configSet: ConfigurationSet) {
   when (configSet) {
-    ConfigurationSet.PIXEL_DEVICES -> track(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
-    ConfigurationSet.PROJECT_LOCALES -> track(surface, MultiViewEventType.OPEN_PROJECT_LOCALES)
-    ConfigurationSet.CUSTOM -> track(surface, MultiViewEventType.OPEN_CUSTOM_CONFIGURATION_SETS)
-    ConfigurationSet.COLOR_BLIND_MODE -> track(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
-    ConfigurationSet.LARGE_FONT -> track(surface, MultiViewEventType.OPEN_LARGE_FONT)
+    ConfigurationSet.PixelDevices -> track(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
+    ConfigurationSet.ProjectLocal -> track(surface, MultiViewEventType.OPEN_PROJECT_LOCALES)
+    ConfigurationSet.Custom -> track(surface, MultiViewEventType.OPEN_CUSTOM_CONFIGURATION_SETS)
+    ConfigurationSet.ColorBlindMode -> track(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
+    ConfigurationSet.LargeFont -> track(surface, MultiViewEventType.OPEN_LARGE_FONT)
   }
 }
 

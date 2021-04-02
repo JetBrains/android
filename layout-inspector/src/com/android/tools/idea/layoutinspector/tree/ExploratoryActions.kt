@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.componenttree.ui.COMPACT_LINES
 import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
@@ -38,15 +36,8 @@ object CallstackAction : ToggleAction("Show compose as Callstack", null, null) {
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.composeAsCallstack = state
 
-    // Update the current client if currently connected:
-    val client = inspector(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
-      }
-    }
+    // Update the component tree:
+    event.treePanel()?.refresh()
   }
 }
 
@@ -58,15 +49,8 @@ object DrawablesInCallstackAction : ToggleAction("Show compose Drawables in Call
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.composeDrawablesInCallstack = state
 
-    // Update the current client if currently connected:
-    val client = inspector(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
-      }
-    }
+    // Update the component tree:
+    event.treePanel()?.refresh()
   }
 
   override fun update(event: AnActionEvent) {
@@ -117,9 +101,6 @@ object SupportLines : ToggleAction("Show support lines", null, null) {
 
 private fun inspector(event: AnActionEvent): LayoutInspector? =
   event.getData(LAYOUT_INSPECTOR_DATA_KEY)
-
-private fun AnActionEvent.tree(): Tree? =
-  ToolContent.getToolContent(this.getData(PlatformDataKeys.CONTEXT_COMPONENT))?.tree()
 
 fun Tree.setDefaultPainter() {
   val painter = with(TreeSettings) {

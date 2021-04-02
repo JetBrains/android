@@ -34,12 +34,16 @@ import org.junit.Test
 import javax.swing.JComponent
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnActionEvent
 import org.junit.After
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
@@ -57,6 +61,7 @@ class ViewContextMenuFactoryTest {
   private var createdGroup: ActionGroup? = null
 
   private var inspectorModel: InspectorModel? = null
+  private val event: AnActionEvent = mock()
 
   @Before
   fun setUp() {
@@ -79,6 +84,13 @@ class ViewContextMenuFactoryTest {
         }
       }
     }
+
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    val layoutInspector: LayoutInspector = mock()
+    `when`(layoutInspector.currentClient).thenReturn(client)
+    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    `when`(event.actionManager).thenReturn(mockActionManager)
   }
 
   @After
@@ -98,14 +110,15 @@ class ViewContextMenuFactoryTest {
   @Test
   fun testNoViews() {
     val model = inspectorModel!!
-    model.root.flatten().filter { it.drawId == VIEW1 || it.drawId == VIEW3 }.forEach { it.visible = false }
+    model.hideSubtree(model[VIEW1]!!)
+    model.hideSubtree(model[VIEW3]!!)
     showViewContextMenu(listOf(), model, source!!, 123, 456)
-    val actions = createdGroup?.getChildren(null)
+    val actions = createdGroup?.getChildren(event)
     assertThat(actions?.size).isEqualTo(2)
     val createdAction = actions?.get(0)
     assertThat(createdAction?.templateText).isEqualTo("Show All")
     createdAction?.actionPerformed(mock())
-    assertThat(model.root.flatten().all { it.visible }).isTrue()
+    assertThat(model.root.flatten().all { model.isVisible(it) }).isTrue()
 
     verify(popupMenuComponent!!).show(source, 123, 456)
   }
@@ -114,25 +127,26 @@ class ViewContextMenuFactoryTest {
   fun testOneView() {
     val model = inspectorModel!!
     showViewContextMenu(listOf(model.root.flatten().first { it.drawId == VIEW2 }), model, source!!, 0, 0)
-    assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
-    val hideSubtree = createdGroup?.getChildren(null)?.get(0)!!
+    val hideSubtree = createdGroup?.getChildren(event)?.get(0)!!
     hideSubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
+    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
 
-    model.root.flatten().forEach { it.visible = true }
-    val showOnlySubtree = createdGroup?.getChildren(null)?.get(1)!!
+    model.hideSubtree(model[VIEW1]!!)
+    model.hideSubtree(model[VIEW3]!!)
+    val showOnlySubtree = createdGroup?.getChildren(event)?.get(1)!!
     showOnlySubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
+    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
 
-    model.root.flatten().forEach { it.visible = true }
-    val showOnlyParents = createdGroup?.getChildren(null)?.get(2)!!
+    model.showAll()
+    val showOnlyParents = createdGroup?.getChildren(event)?.get(2)!!
     showOnlyParents.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
+    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
   }
 
   @Test
@@ -140,11 +154,11 @@ class ViewContextMenuFactoryTest {
     val model = inspectorModel!!
     showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
-    assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
-    val selectView = createdGroup?.getChildren(null)?.get(0)!!
-    val views = (selectView as DropDownAction).getChildren(null)
+    val selectView = createdGroup?.getChildren(event)?.get(0)!!
+    val views = (selectView as DropDownAction).getChildren(event)
     assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
@@ -175,6 +189,8 @@ class ViewContextMenuFactoryLegacyTest {
     }
   }
 
+  private val event: AnActionEvent = mock()
+
   @Before
   fun setUp() {
     val mockActionManager: ActionManager = mock()
@@ -185,6 +201,12 @@ class ViewContextMenuFactoryLegacyTest {
       mockPopupMenu
     }
     `when`(mockPopupMenu.component).thenReturn(popupMenuComponent)
+    val client: InspectorClient = mock()
+    `when`(client.capabilities).thenReturn(setOf())
+    val layoutInspector: LayoutInspector = mock()
+    `when`(layoutInspector.currentClient).thenReturn(client)
+    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    `when`(event.actionManager).thenReturn(mockActionManager)
   }
 
   @After
@@ -198,9 +220,10 @@ class ViewContextMenuFactoryLegacyTest {
   @Test
   fun testNoViews() {
     val model = inspectorModel!!
-    model.root.flatten().filter { it.drawId == VIEW1 || it.drawId == VIEW3 }.forEach { it.visible = false }
+    model.hideSubtree(model[VIEW1]!!)
+    model.hideSubtree(model[VIEW3]!!)
     showViewContextMenu(listOf(), model, source!!, 123, 456)
-    assertThat(createdGroup?.getChildren(null)).isEmpty()
+    assertThat(createdGroup?.getChildren(event)).isEmpty()
 
     verify(popupMenuComponent!!).show(source, 123, 456)
   }
@@ -210,10 +233,10 @@ class ViewContextMenuFactoryLegacyTest {
     val model = inspectorModel!!
     showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
-    assertThat(createdGroup?.getChildren(null)?.map { it.templateText }).containsExactly("Select View").inOrder()
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText }).containsExactly("Select View").inOrder()
 
-    val selectView = createdGroup?.getChildren(null)?.get(0)!!
-    val views = (selectView as DropDownAction).getChildren(null)
+    val selectView = createdGroup?.getChildren(event)?.get(0)!!
+    val views = (selectView as DropDownAction).getChildren(event)
     assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())

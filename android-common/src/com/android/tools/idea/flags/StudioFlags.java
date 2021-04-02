@@ -330,6 +330,11 @@ public final class StudioFlags {
     "When the model changes, layout editor will run the series of layout validations and update lint output",
     true);
 
+  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_ADD_INCLUDE = Flag.create(
+    NELE, "toggle.layout.editor.validator.a11y.include", "Toggle whether to show included layout or not.",
+    "If the layout contains <include>, turning this flag on will run the scanner in the included layout.",
+    false);
+
   public static final Flag<Boolean> NELE_TRANSFORM_PANEL = Flag.create(
     NELE, "toggle.layout.editor.transform.panel", "Toggle transform panel in layout editor and motion editor.",
     "Enable the new transform panel in the layout editor and motion editor",
@@ -497,6 +502,13 @@ public final class StudioFlags {
     "adb.wireless.enabled",
     "Enable pairing devices through ADB wireless",
     "Allow pairing new physical device through QR Code pairing via ADB wireless",
+    true);
+
+  public static final Flag<Boolean> WEAR_DEVICE_PAIRING_ENABLED = Flag.create(
+    RUNDEBUG,
+    "wear.device.pairing.enabled",
+    "Enable Wear emulator pairing assistant",
+    "Show the Wear emulator pairing assistant",
     true);
 
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
@@ -684,7 +696,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
     EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
     "Enables configurable multiple displays in the Embedded Emulator",
-    false);
+    true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_FOLDING = Flag.create(
+    EMBEDDED_EMULATOR, "folding", "Enable Emulator Folding",
+    "Enables display folding in the Embedded Emulator",
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -1090,6 +1106,13 @@ public final class StudioFlags {
     COMPOSE, "preview.pin.enable",
     "Enable pinning compose previews",
     "If enabled, a user can pin a preview",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
+    COMPOSE, "constraint.visualization",
+    "Enable ConstraintLayout visualization in Compose previews",
+    "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
     false
   );
 

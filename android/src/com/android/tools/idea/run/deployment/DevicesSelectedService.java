@@ -141,12 +141,7 @@ final class DevicesSelectedService {
   }
 
   void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
-    State state = myPersistentStateComponent.getState();
-
-    state.timeTargetWasSelectedWithDropDown = null;
-    state.targetSelectedWithDropDown = null;
-
-    state.multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
+    myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
   @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull List<@NotNull Device> devices) {

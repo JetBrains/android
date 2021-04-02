@@ -70,10 +70,10 @@ class BuildAnalyzerViewControllerTest {
 
   val warningSuppressions = BuildAttributionWarningsFilter()
   val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), warningSuppressions = warningSuppressions)
-  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
   lateinit var showSettingsUtilMock: ShowSettingsUtil
+  lateinit var analytics: BuildAttributionUiAnalytics
 
   @Before
   fun setUp() {
@@ -81,6 +81,7 @@ class BuildAnalyzerViewControllerTest {
     showSettingsUtilMock = ideComponents.mockApplicationService(ShowSettingsUtil::class.java)
     ideComponents.replaceProjectService(BuildAttributionWarningsFilter::class.java, warningSuppressions)
     UsageTracker.setWriterForTest(tracker)
+    analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
     analytics.newReportSessionId(buildSessionId)
   }
 

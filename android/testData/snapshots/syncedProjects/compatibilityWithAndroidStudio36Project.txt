@@ -8,9 +8,7 @@ PROJECT                       : AS36
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36 [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36 [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/AS36.iml
         ModuleTypeName                : JAVA_MODULE
@@ -570,9 +568,7 @@ PROJECT                       : AS36
         LinkedProjectPath             : <PROJECT>/features
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.features [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.features [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/features/AS36.features.iml [-]
         ModuleTypeName                : JAVA_MODULE
@@ -887,9 +883,7 @@ PROJECT                       : AS36
         LinkedProjectPath             : <PROJECT>/libs
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36.libs [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36.libs [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/libs/AS36.libs.iml [-]
         ModuleTypeName                : JAVA_MODULE

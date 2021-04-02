@@ -108,6 +108,11 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
+    <action id="Android.WearDevicePairing"
+            class="com.android.tools.idea.run.deployment.WearDevicePairingAction"
+            icon="StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN"
+            text="Wear OS emulator pairing assistant"
+            description="Opens the Wear OS emulator pairing assistant" />
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager"
@@ -606,12 +611,6 @@
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
-    <facet.toolWindow id="Build Variants"
-                      facetIdList="android,android-gradle"
-                      anchor="left"
-                      secondary="true"
-                      icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
-                      factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
                       facetIdList="android,apk"
                       anchor="right"
@@ -626,8 +625,6 @@
                       factoryClass="com.android.tools.idea.deviceManager.DeviceManagerFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>

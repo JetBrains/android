@@ -39,9 +39,6 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
-import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS;
-import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -118,6 +115,7 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
@@ -179,6 +177,11 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
+  @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
+    new Key<>("module.with.build.variant.switched.from.ui");
+  @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
+    new Key<>("use.variants.from.previous.gradle.syncs");
+  public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
 
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
@@ -233,9 +236,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels);
-    if (androidModels != null) {
-      CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
-    }
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels != null ? androidModels.getAndroidProject() : null);
 
     return moduleDataNode;
@@ -298,6 +298,13 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (currentAgpVersion != null && GradlePluginUpgrade.shouldForcePluginUpgrade(project, currentAgpVersion, latestVersion)) {
       throw new AgpUpgradeRequiredException(project, currentAgpVersion);
     }
+  }
+
+  @Override
+  public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule) {
+    super.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    CompilerOutputUtilKt.setupCompilerOutputPaths(ideModule);
   }
 
   @Override
@@ -669,13 +676,6 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   }
 
   @Override
-  public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!isAndroidGradleProject()) {
-      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
-    }
-  }
-
-  @Override
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
@@ -854,7 +854,12 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     displayInternalWarningIfForcedUpgradesAreDisabled();
     expireProjectUpgradeNotifications(myProjectFinder.findProject(resolverCtx));
 
-    cleanUpHttpProxySettings();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
+      // (https://youtrack.jetbrains.com/issue/IDEA-245273, see BaseResolverExtension#getExtraJvmArgs)
+      // To be discussed with the AOSP team to find a way to unify configuration across IDEA and AndroidStudio.
+      cleanUpHttpProxySettings();
+    }
   }
 
   @Override
@@ -1041,5 +1046,18 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     classPath.add(getJarPathForClass(getClass()));
     classPath.add(getJarPathForClass(Revision.class));
     classPath.add(getJarPathForClass(AndroidGradleSettings.class));
+  }
+
+  @Nullable
+  public static String getModuleIdForModule(@NotNull Module module) {
+    ExternalSystemModulePropertyManager propertyManager = ExternalSystemModulePropertyManager.getInstance(module);
+    String rootProjectPath = propertyManager.getRootProjectPath();
+    if (rootProjectPath != null) {
+      String gradlePath = propertyManager.getLinkedProjectId();
+      if (gradlePath != null) {
+        return createUniqueModuleId(rootProjectPath, gradlePath);
+      }
+    }
+    return null;
   }
 }

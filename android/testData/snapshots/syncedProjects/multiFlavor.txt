@@ -8,9 +8,7 @@ PROJECT                       : MultiFlavor
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/MultiFlavor.iml [-]
         ModuleTypeName                : JAVA_MODULE

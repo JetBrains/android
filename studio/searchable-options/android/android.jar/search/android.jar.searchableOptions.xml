@@ -281,6 +281,8 @@
     <option name="or" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="separate" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
+    <option name="fold" path="ActionManager" hit="Fold/Unfold" />
+    <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
     <option name="force" path="ActionManager" hit="Force Refresh Layout" />
     <option name="layout" path="ActionManager" hit="Force Refresh Layout" />
     <option name="refresh" path="ActionManager" hit="Force Refresh Layout" />
@@ -509,6 +511,13 @@
     <option name="the" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
     <option name="virtual" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
     <option name="which" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
+    <option name="assistant" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="emulator" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="opens" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="os" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="pairing" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="the" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
+    <option name="wear" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="overview" path="ActionManager" hit="Overview" />
     <option name="devices" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="pair" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
@@ -651,13 +660,12 @@
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
     <option name="show" path="ActionManager" hit="Show In Resource Manager" />
-    <option name="highlights" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="literals" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="live" path="ActionManager" hit="Show Live Literals Highlights" />
-    <option name="show" path="ActionManager" hit="Show Live Literals Highlights" />
     <option name="controls" path="ActionManager" hit="Show extended controls" />
     <option name="extended" path="ActionManager" hit="Show extended controls" />
     <option name="show" path="ActionManager" hit="Show extended controls" />
+    <option name="controls" path="ActionManager" hit="Show folding controls" />
+    <option name="folding" path="ActionManager" hit="Show folding controls" />
+    <option name="show" path="ActionManager" hit="Show folding controls" />
     <option name="editor" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="for" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
     <option name="help" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
@@ -714,6 +722,10 @@
     <option name="issue" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="panel" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="toggle" path="ActionManager" hit="Toggle Issue Panel" />
+    <option name="highlights" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="literals" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="live" path="ActionManager" hit="Toggle Live Literals Highlights" />
+    <option name="toggle" path="ActionManager" hit="Toggle Live Literals Highlights" />
     <option name="editor" path="ActionManager" hit="Toggle live literals highlights in the editor" />
     <option name="highlights" path="ActionManager" hit="Toggle live literals highlights in the editor" />
     <option name="in" path="ActionManager" hit="Toggle live literals highlights in the editor" />
@@ -757,6 +769,11 @@
     <option name="volume" path="ActionManager" hit="Volume Down" />
     <option name="up" path="ActionManager" hit="Volume Up" />
     <option name="volume" path="ActionManager" hit="Volume Up" />
+    <option name="assistant" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="emulator" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="os" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="pairing" path="ActionManager" hit="Wear OS emulator pairing assistant" />
+    <option name="wear" path="ActionManager" hit="Wear OS emulator pairing assistant" />
   </configurable>
   <configurable id="editor.preferences.folding" configurable_name="Code Folding">
     <option name="android" hit="Android" />

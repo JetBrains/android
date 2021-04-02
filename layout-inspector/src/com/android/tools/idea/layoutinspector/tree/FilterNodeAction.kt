@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
@@ -31,22 +33,30 @@ object FilterNodeAction : ToggleAction("Filter system-defined layers", null, Stu
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.hideSystemNodes = state
 
-    // Update the current client if currently connected:
-    val client = LayoutInspector.get(event)?.currentClient ?: return
-    if (client.isConnected) {
-      if (client.isCapturing) {
-        client.startFetching()
-      } else {
-        client.refresh()
+    if (state) {
+      val model = LayoutInspector.get(event)?.layoutInspectorModel
+      val selectedNode = model?.selection
+      if (selectedNode?.isInComponentTree == false) {
+        model.setSelection(selectedNode.findClosestUnfilteredNode(), SelectionOrigin.COMPONENT_TREE)
+      }
+      val hoveredNode = model?.hoveredNode
+      if (hoveredNode?.isInComponentTree == false) {
+        model.hoveredNode = null
       }
     }
+
+    // Update the component tree:
+    event.treePanel()?.refresh()
+
+    event.getData(DEVICE_VIEW_MODEL_KEY)?.refresh()
   }
 
   override fun update(event: AnActionEvent) {
+    super.update(event)
     event.presentation.isVisible =
       LayoutInspector.get(event)?.currentClient?.let { client ->
         !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
-        || client.capabilities.contains(Capability.SUPPORTS_FILTERING_SYSTEM_NODES)
+        || client.capabilities.contains(Capability.SUPPORTS_SYSTEM_NODES)
       }
       ?: true
   }

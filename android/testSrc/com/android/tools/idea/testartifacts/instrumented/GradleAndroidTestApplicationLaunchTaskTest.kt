@@ -58,6 +58,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   fun setup() {
     openMocks(this)
     `when`(mockAndroidModuleModel.modelVersion).thenReturn(GradleVersion(7, 0))
+    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
   }
 
   private fun createMockDevice(serialNumber: String): IDevice {
@@ -99,6 +100,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
     val result = launchTask.run(LaunchContext(project, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
     assertThat(result.success).isTrue()
+    assertThat(launchTask.getTaskNames()).contains("connectedDebugAndroidTest")
   }
 
   @Test
@@ -192,6 +194,24 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   }
 
   @Test
+  fun utpTestResultsReportShouldBeEnabled() {
+    val project = gradleProjectRule.project
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      project,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      createMockDevice("serial"),
+      mock(GradleConnectedAndroidTestInvoker::class.java))
+
+    assertThat(launchTask.getGradleExecutionSettings().arguments).contains(
+      "-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
+  }
+
+  @Test
   fun testTaskReturnsFailedIfAGPVersionIsTooOld() {
     val project = gradleProjectRule.project
     val mockDevice = createMockDevice("SERIAL_NUMBER_1")
@@ -214,5 +234,23 @@ class GradleAndroidTestApplicationLaunchTaskTest {
 
     assertThat(result.success).isFalse()
     assertThat(result.errorId).isEqualTo("ANDROID_TEST_AGP_VERSION_TOO_OLD")
+  }
+
+  @Test
+  fun testTaskNamesMatchSelectedBuildVariant() {
+    val project = gradleProjectRule.project
+    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("nonDefaultBuildVariant")
+
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      project,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      createMockDevice("serial"),
+      mock(GradleConnectedAndroidTestInvoker::class.java))
+
+    assertThat(launchTask.getTaskNames()).contains("connectedNonDefaultBuildVariantAndroidTest")
   }
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -77,7 +78,10 @@ class AppInspectionInspectorClient(
   private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
 
   override val capabilities =
-    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE, Capability.SUPPORTS_FILTERING_SYSTEM_NODES, Capability.SUPPORTS_SKP)!!
+    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
+               Capability.SUPPORTS_FILTERING_SYSTEM_NODES,
+               Capability.SUPPORTS_SYSTEM_NODES,
+               Capability.SUPPORTS_SKP)!!
 
   private val skiaParser = SkiaParserImpl(
     {
@@ -147,6 +151,13 @@ class AppInspectionInspectorClient(
 
   override fun stopFetching() {
     scope.launch(exceptionHandler) {
+      // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
+      if (capabilities.contains(Capability.SUPPORTS_SKP)) {
+        updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
+      }
+      else {
+        viewInspector.updateScreenshotType(null, 1.0f)
+      }
       viewInspector.stopFetching()
     }
   }
@@ -157,6 +168,9 @@ class AppInspectionInspectorClient(
     }
   }
 
-  override fun updateScreenshotType(type: LayoutInspectorViewProtocol.Screenshot.Type?, scale: Float) =
-    viewInspector.updateScreenshotType(type, scale)
+  override fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float) {
+    if (model.pictureType != type || scale >= 0f) {
+      viewInspector.updateScreenshotType(type?.protoType, scale)
+    }
+  }
 }

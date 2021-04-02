@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import kotlinx.coroutines.runBlocking
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import java.util.concurrent.TimeUnit
 
@@ -27,8 +28,7 @@ import java.util.concurrent.TimeUnit
  * Note, the padding does not throw off the accuracy of the model at all.
  * It is used to guarantee enough sampling points so a result can be interpolated.
  */
-private const val TIME_BUFFER_NS = 1000000
-
+private const val TIME_BUFFER_US = 1000000
 
 class NetworkInspectorDataSeries<T>(
   private val dataSource: NetworkInspectorDataSource,
@@ -36,12 +36,11 @@ class NetworkInspectorDataSeries<T>(
 ) : DataSeries<T> {
 
   override fun getDataForRange(range: Range): List<SeriesData<T>> {
-    return dataSource.speedData
-      .filter { event ->
-        event.timestamp < TimeUnit.MICROSECONDS.toNanos(range.max.toLong() + TIME_BUFFER_NS)
-        && event.timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong() - TIME_BUFFER_NS)
-      }.map { event ->
-        SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestamp), transform(event))
-      }
+    return runBlocking {
+      dataSource.queryForSpeedData(Range(range.min - TIME_BUFFER_US, range.max + TIME_BUFFER_US))
+        .map { event ->
+          SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestamp), transform(event))
+        }
+    }
   }
 }

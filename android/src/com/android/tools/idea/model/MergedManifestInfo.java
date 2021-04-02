@@ -223,8 +223,7 @@ final class MergedManifestInfo {
   private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
-    Project project = facet.getModule().getProject();
-    if (project.isDisposed() || manifests.primaryManifest == null) {
+    if (manifests.primaryManifest == null) {
       return null;
     }
 

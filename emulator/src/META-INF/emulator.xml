@@ -51,6 +51,8 @@
               icon="StudioIcons.Emulator.Toolbar.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.actions.EmulatorRotateRightAction"
               icon="StudioIcons.Emulator.Toolbar.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.emulator.folding.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowFoldingControlsAction"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls"/>
       <action id="android.emulator.back.button" class="com.android.tools.idea.emulator.actions.EmulatorBackButtonAction"
               icon="StudioIcons.Emulator.Toolbar.BACK" text="Back" description="Press the Back button"/>
       <action id="android.emulator.home.button" class="com.android.tools.idea.emulator.actions.EmulatorHomeButtonAction"
@@ -60,11 +62,9 @@
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.actions.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.Toolbar.SCREENSHOT" text="Take Screenshot" description="Take a screenshot"/>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
-              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS"
-              text="Snapshots" description="Create, load, rename or delete snapshots"/>
+              icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete snapshots"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
-              icon="AllIcons.Actions.More"
-              text="Extended Controls" description="Show extended controls"/>
+              icon="AllIcons.Actions.More" text="Extended Controls" description="Show extended controls"/>
     </group>
   </actions>
 </idea-plugin>

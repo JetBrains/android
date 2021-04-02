@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -58,6 +59,15 @@ import java.net.URI
 
 private const val MARGIN = 50
 
+private const val FRAMES_BEFORE_RESET_TO_BITMAP = 3
+
+private val HQ_RENDERING_HINTS = mapOf(
+  RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+  RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+  RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
+  RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
+)
+
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, disposableParent: Disposable
 ) : AdtPrimaryPanel() {
@@ -76,13 +86,6 @@ class DeviceViewContentPanel(
       return Point((modelLocation.x * viewSettings.scaleFraction).toInt() + (size.width / 2),
                    (modelLocation.y * viewSettings.scaleFraction).toInt() + (size.height / 2))
     }
-
-  private val HQ_RENDERING_HINTS = mapOf(
-    RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION to RenderingHints.VALUE_INTERPOLATION_BILINEAR,
-    RenderingHints.KEY_STROKE_CONTROL to RenderingHints.VALUE_STROKE_PURE
-  )
 
   private val emptyText: StatusText = object : StatusText(this) {
     override fun isStatusVisible() = !model.isActive && showEmptyText
@@ -142,7 +145,7 @@ class DeviceViewContentPanel(
           val dataContext = DataManager.getInstance().getDataContext(this@DeviceViewContentPanel)
           val toggle3dButton = dataContext.getData(TOGGLE_3D_ACTION_BUTTON_KEY)!!
           GotItTooltip("LayoutInspector.RotateViewTooltip", "Click to toggle 3D mode", disposableParent)
-            .withShowCount(3)
+            .withShowCount(FRAMES_BEFORE_RESET_TO_BITMAP)
             .withPosition(Balloon.Position.atLeft)
             .show(toggle3dButton, GotItTooltip.LEFT_MIDDLE)
         }
@@ -153,14 +156,14 @@ class DeviceViewContentPanel(
 
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        val view = nodeAtPoint(e)
+        val view = nodeAtPoint(e)?.findClosestUnfilteredNode()
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
         inspectorModel.stats.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)
+        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)?.findClosestUnfilteredNode()
       }
     }
     addMouseListener(listener)
@@ -168,11 +171,33 @@ class DeviceViewContentPanel(
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        showViewContextMenu(findComponentsAt(x, y).toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
+        val views = findComponentsAt(x, y).filter { it.isInComponentTree }
+        showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
 
     viewSettings.modificationListeners.add { repaint() }
+    // If we get three consecutive pictures where SKPs aren't needed, reset to bitmap.
+    var toResetCount = 0
+    inspectorModel.modificationListeners.add { _, _, _ ->
+      // SKP is needed if the view is rotated or if anything is hidden. We have to check on each update, since previously-hidden nodes
+      // may have been removed.
+      val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
+      if (inspectorModel.pictureType == AndroidWindow.ImageType.SKP &&
+          client?.isCapturing == true &&
+          !model.isRotated && !inspectorModel.hasHiddenNodes()) {
+        // We know for sure there's not a hidden descendant now, so update the field in case it was out of date.
+        if (toResetCount++ > FRAMES_BEFORE_RESET_TO_BITMAP) {
+          toResetCount = 0
+          // Be sure to reset the scale as well, since if we were previously paused the scale will be set to 1.
+          client.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, viewSettings.scaleFraction.toFloat())
+        }
+      }
+      else {
+        // SKP was needed
+        toResetCount = 0
+      }
+    }
     model.modificationListeners.add {
       revalidate()
       repaint()
@@ -245,7 +270,7 @@ class DeviceViewContentPanel(
     val view = drawView.owner
     val selection = inspectorModel.selection
 
-    if (!drawInfo.isCollapsed &&
+    if (!drawInfo.isCollapsed && view.isInComponentTree &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }

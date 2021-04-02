@@ -8,9 +8,7 @@ PROJECT                       : testSyncWithKotlinDsl
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl [-]
-            isCompilerPathInherited       : true
+            isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml [-]
         ModuleTypeName                : JAVA_MODULE

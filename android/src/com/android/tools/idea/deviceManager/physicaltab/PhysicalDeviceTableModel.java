@@ -16,8 +16,8 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
@@ -37,36 +37,35 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
+    devices.sort(null);
     myDevices = devices;
   }
 
   void handleConnectedDevice(@NotNull PhysicalDevice connectedDevice) {
     assert connectedDevice.isConnected();
-    int modelRowIndex = modelRowIndexOf(connectedDevice);
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, connectedDevice);
 
     if (modelRowIndex == -1) {
       myDevices.add(connectedDevice);
+    }
+    else {
+      PhysicalDevice device = myDevices.get(modelRowIndex);
 
-      int lastModelRowIndex = myDevices.size() - 1;
-      fireTableRowsInserted(lastModelRowIndex, lastModelRowIndex);
+      if (device.isConnected()) {
+        Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
+                                                                + device.toDebugString());
+      }
 
-      return;
+      myDevices.set(modelRowIndex, connectedDevice);
     }
 
-    PhysicalDevice device = myDevices.get(modelRowIndex);
-
-    if (device.isConnected()) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
-                                                              + device.toDebugString());
-    }
-
-    myDevices.set(modelRowIndex, connectedDevice);
-    fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+    myDevices.sort(null);
+    fireTableDataChanged();
   }
 
   void handleDisconnectedDevice(@NotNull PhysicalDevice disconnectedDevice) {
     assert !disconnectedDevice.isConnected();
-    int modelRowIndex = modelRowIndexOf(disconnectedDevice);
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, disconnectedDevice);
 
     if (modelRowIndex == -1) {
       Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting an unknown device" + System.lineSeparator()
@@ -83,23 +82,12 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     }
 
     myDevices.set(modelRowIndex, disconnectedDevice);
-    fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+    myDevices.sort(null);
+
+    fireTableDataChanged();
   }
 
-  private int modelRowIndexOf(@NotNull PhysicalDevice device) {
-    Object serialNumber = device.getSerialNumber();
-
-    for (int modelRowIndex = 0, modelRowCount = myDevices.size(); modelRowIndex < modelRowCount; modelRowIndex++) {
-      if (myDevices.get(modelRowIndex).getSerialNumber().equals(serialNumber)) {
-        return modelRowIndex;
-      }
-    }
-
-    return -1;
-  }
-
-  @VisibleForTesting
-  @NotNull Object getDevices() {
+  @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
     return myDevices;
   }
 

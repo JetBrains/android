@@ -22,6 +22,7 @@ import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
+import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.ImageFormat.ImgFormat
@@ -40,6 +41,7 @@ import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
 import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.Velocity
 import com.android.emulator.control.VmRunState
@@ -125,6 +127,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
+  private var foldedDisplay: FoldedDisplay? = null
+  private var screenshotStreamRequest: ImageFormat? = null
+  @Volatile private var screenshotStreamObserver: StreamObserver<Image>? = null
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
@@ -261,6 +266,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   /**
+   * Folds/unfolds the primary display.
+   */
+  fun setFoldedDisplay(foldedDisplay: FoldedDisplay?) {
+    executor.execute {
+      if (foldedDisplay != this.foldedDisplay) {
+        this.foldedDisplay = foldedDisplay
+        val screenshotObserver = screenshotStreamObserver ?: return@execute
+        val request = screenshotStreamRequest ?: return@execute
+        sendScreenshot(request, screenshotObserver)
+      }
+    }
+  }
+
+  /**
    * Waits for the next gRPC call while dispatching UI events. Returns the next gRPC call and removes
    * it from the queue of recorded calls. Throws TimeoutException if the call is not recorded within
    * the specified timeout.
@@ -391,6 +410,56 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
+  private fun sendScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
+    val displayId = request.display
+    val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
+    val image = drawDisplayImage(size, displayId)
+    val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
+    val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
+    var i = 0
+    for (y in 0 until rotatedImage.height) {
+      for (x in 0 until rotatedImage.width) {
+        val rgb = rotatedImage.getRGB(x, y)
+        imageBytes[i++] = (rgb ushr 16).toByte()
+        imageBytes[i++] = (rgb ushr 8).toByte()
+        imageBytes[i++] = rgb.toByte()
+      }
+    }
+
+    val imageFormat = ImageFormat.newBuilder()
+      .setFormat(ImgFormat.RGB888)
+      .setWidth(rotatedImage.width)
+      .setHeight(rotatedImage.height)
+      .setRotation(Rotation.newBuilder().setRotation(displayRotation))
+    foldedDisplay?.let { imageFormat.foldedDisplay = it }
+
+    val response = Image.newBuilder()
+      .setImage(ByteString.copyFrom(imageBytes))
+      .setFormat(imageFormat)
+    sendStreamingResponse(responseObserver, response.build())
+  }
+
+  private fun getScaledAndRotatedDisplaySize(width: Int, height: Int, displayId: Int): Dimension {
+    val display = displays.find { it.display == displayId } ?: throw IllegalArgumentException()
+    var displayWidth = display.width
+    var displayHeight = display.height
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      foldedDisplay?.let {
+        displayWidth = it.width
+        displayHeight = it.height
+      }
+    }
+    val aspectRatio = displayHeight.toDouble() / displayWidth
+    val w = if (width == 0) displayWidth else width
+    val h = if (height == 0) displayHeight else height
+    return if (displayRotation.ordinal % 2 == 0) {
+      Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
+    }
+    else {
+      Dimension(h.coerceAtMost((w / aspectRatio).toInt()), w.coerceAtMost((h * aspectRatio).toInt()))
+    }
+  }
+
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
     val event = if (cameraActive) EventType.VIRTUAL_SCENE_CAMERA_ACTIVE else EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
     return Notification.newBuilder().setEvent(event).build()
@@ -462,6 +531,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
 
+    override fun sendTouch(request: TouchEvent, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
     override fun getVmState(request: Empty, responseObserver: StreamObserver<VmRunState>) {
       executor.execute {
         val response = VmRunState.newBuilder()
@@ -514,43 +589,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun streamScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
       executor.execute {
-        val displayId = request.display
-        val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
-        val image = drawDisplayImage(size, displayId)
-        val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
-        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
-        var i = 0
-        for (y in 0 until rotatedImage.height) {
-          for (x in 0 until rotatedImage.width) {
-            val rgb = rotatedImage.getRGB(x, y)
-            imageBytes[i++] = (rgb ushr 16).toByte()
-            imageBytes[i++] = (rgb ushr 8).toByte()
-            imageBytes[i++] = rgb.toByte()
-          }
-        }
-        val response = Image.newBuilder()
-          .setImage(ByteString.copyFrom(imageBytes))
-          .setFormat(ImageFormat.newBuilder()
-                       .setFormat(ImgFormat.RGB888)
-                       .setWidth(rotatedImage.width)
-                       .setHeight(rotatedImage.height)
-                       .setRotation(Rotation.newBuilder().setRotation(displayRotation))
-          )
-
-        sendStreamingResponse(responseObserver, response.build())
-      }
-    }
-
-    private fun getScaledAndRotatedDisplaySize(width: Int, height: Int, displayId: Int): Dimension {
-      val display = displays.find { it.display == displayId } ?: throw IllegalArgumentException()
-      val aspectRatio = display.height.toDouble() / display.width
-      val w = if (width == 0) display.width else width
-      val h = if (height == 0) display.height else height
-      return if (displayRotation.ordinal % 2 == 0) {
-        Dimension(w.coerceAtMost((h / aspectRatio).toInt()), h.coerceAtMost((w * aspectRatio).toInt()))
-      }
-      else {
-        Dimension(h.coerceAtMost((w / aspectRatio).toInt()), w.coerceAtMost((h * aspectRatio).toInt()))
+        screenshotStreamObserver = responseObserver
+        screenshotStreamRequest = request
+        sendScreenshot(request, responseObserver)
       }
     }
   }
@@ -871,6 +912,111 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.battery = true
           hw.accelerometer = false
           hw.gyroscope = true
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """.trimIndent()
+
+      return createAvd(avdFolder, configIni, hardwareIni)
+    }
+
+    /**
+     * Creates a fake AVD folder for Pixel 3 XL API 29. The skin path in config.ini is absolute.
+     */
+    @JvmStatic
+    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
+      val avdId = "7.6_Fold-in_with_outer_display_API_29"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=800M
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=virtualscene
+          hw.camera.front=emulated
+          hw.cpu.arch=x86
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name = 7.6in Foldable
+          hw.displayRegion.0.1.height = 2208
+          hw.displayRegion.0.1.width = 884
+          hw.displayRegion.0.1.xOffset = 0
+          hw.displayRegion.0.1.yOffset = 0
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=Portrait
+          hw.keyboard=yes
+          hw.lcd.density = 480
+          hw.lcd.height = 2208
+          hw.lcd.width = 1768
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=yes
+          hw.sensor.hinge = yes
+          hw.sensor.hinge.areas = 884-0-1-2208
+          hw.sensor.hinge.count = 1
+          hw.sensor.hinge.defaults = 180
+          hw.sensor.hinge.ranges = 0-180
+          hw.sensor.hinge.sub_type = 1
+          hw.sensor.hinge.type = 1
+          hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
+          hw.sensor.posture_list = 1,2,3
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=no
+          image.sysdir.1=system-images/android-29/google_apis/x86/
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          sdcard.size=512 MB
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.name = 1768x2208
+          skin.path = _no_skin
+          tag.display=Google APIs
+          tag.id=google_apis
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86
+          hw.cpu.model = qemu32
+          hw.cpu.ncore = 4
+          hw.lcd.width = 1768
+          hw.lcd.height = 2208
+          hw.lcd.density = 480
+          hw.displayRegion.0.1.xOffset = 0
+          hw.displayRegion.0.1.yOffset = 0
+          hw.displayRegion.0.1.width = 884
+          hw.displayRegion.0.1.height = 2208
+          hw.ramSize = 1536
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = false
+          hw.accelerometer = false
+          hw.gyroscope = true
+          hw.sensor.hinge = true
+          hw.sensor.hinge.count = 1
+          hw.sensor.hinge.type = 1
+          hw.sensor.hinge.sub_type = 1
+          hw.sensor.hinge.ranges = 0-180
+          hw.sensor.hinge.defaults = 180
+          hw.sensor.hinge.areas = 884-0-1-2208
+          hw.sensor.posture_list = 1,2,3
+          hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
+          hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture = 1
           hw.audioInput = true
           hw.audioOutput = true
           hw.sdCard = false

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -36,7 +36,6 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectType
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -149,9 +148,11 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     projectInfo.isImportedProject = true
     silenceUnlinkedGradleProjectNotificationIfNecessary(newProject)
     WriteAction.runAndWait<RuntimeException> {
-      val jdk = IdeSdks.getInstance().jdk
-      if (jdk != null) {
-        ProjectRootManager.getInstance(newProject).projectSdk = jdk
+      if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+        val jdk = IdeSdks.getInstance().jdk
+        if (jdk != null) {
+          ProjectRootManager.getInstance(newProject).projectSdk = jdk
+        }
       }
       if (request.javaLanguageLevel != null) {
         val extension = LanguageLevelProjectExtension.getInstance(newProject)
@@ -222,9 +223,15 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       val projectSettings = GradleProjectSettings()
       gradleSettings.setupGradleSettings()
       projectSettings.setupGradleProjectSettings(File(externalProjectPath).toPath())
-      // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio
+      // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
       ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
+      WriteAction.runAndWait<RuntimeException> {
+        val jdk = IdeSdks.getInstance().jdk
+        if (jdk != null) {
+          ProjectRootManager.getInstance(newProject).projectSdk = jdk
+        }
+      }
     }
 
     private fun silenceUnlinkedGradleProjectNotificationIfNecessary(newProject: Project) {
