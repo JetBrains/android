@@ -15,41 +15,75 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.tools.idea.deviceManager.Device;
+import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
+final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
   private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
-    Comparator.comparing(PhysicalDevice::isConnected, Comparator.reverseOrder())
+    Comparator.<PhysicalDevice, Boolean>comparing(Device::isConnected, Comparator.reverseOrder())
       .thenComparing(PhysicalDevice::getLastConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
 
   private final @NotNull String mySerialNumber;
-  private final boolean myConnected;
   private final @Nullable Instant myLastConnectionTime;
 
-  private PhysicalDevice(@NotNull String serialNumber, boolean connected, @Nullable Instant lastConnectionTime) {
-    mySerialNumber = serialNumber;
-    myConnected = connected;
-    myLastConnectionTime = lastConnectionTime;
+  static final class Builder extends Device.Builder {
+    private @Nullable String mySerialNumber;
+    private @Nullable Instant myLastConnectionTime;
+
+    // TODO Initialize myName and myTarget properly
+    Builder() {
+      myName = "Physical Device";
+      myTarget = "Target";
+    }
+
+    @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
+      mySerialNumber = serialNumber;
+      return this;
+    }
+
+    @NotNull Builder setLastConnectionTime(@Nullable Instant lastConnectionTime) {
+      myLastConnectionTime = lastConnectionTime;
+      return this;
+    }
+
+    @NotNull Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    @NotNull Builder setConnected(@SuppressWarnings("SameParameterValue") boolean connected) {
+      myConnected = connected;
+      return this;
+    }
+
+    @NotNull Builder setTarget(@NotNull String target) {
+      myTarget = target;
+      return this;
+    }
+
+    @Override
+    protected @NotNull PhysicalDevice build() {
+      return new PhysicalDevice(this);
+    }
   }
 
-  static @NotNull PhysicalDevice newConnectedDevice(@NotNull String serialNumber, @NotNull Instant lastConnectionTime) {
-    return new PhysicalDevice(serialNumber, true, lastConnectionTime);
-  }
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
 
-  static @NotNull PhysicalDevice newDisconnectedDevice(@NotNull String serialNumber, @Nullable Instant lastConnectionTime) {
-    return new PhysicalDevice(serialNumber, false, lastConnectionTime);
+    assert builder.mySerialNumber != null;
+    mySerialNumber = builder.mySerialNumber;
+
+    myLastConnectionTime = builder.myLastConnectionTime;
   }
 
   @NotNull String getSerialNumber() {
     return mySerialNumber;
-  }
-
-  boolean isConnected() {
-    return myConnected;
   }
 
   @Nullable Instant getLastConnectionTime() {
@@ -60,16 +94,25 @@ final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
     String separator = System.lineSeparator();
 
     return "serialNumber = " + mySerialNumber + separator
+           + "lastConnectionTime = " + myLastConnectionTime + separator
+           + "name = " + myName + separator
            + "connected = " + myConnected + separator
-           + "lastConnectionTime = " + myLastConnectionTime + separator;
+           + "target = " + myTarget + separator;
+  }
+
+  @Override
+  protected @NotNull Icon getIcon() {
+    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
   }
 
   @Override
   public int hashCode() {
     int hashCode = mySerialNumber.hashCode();
 
-    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
     hashCode = 31 * hashCode + Objects.hashCode(myLastConnectionTime);
+    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
+    hashCode = 31 * hashCode + myTarget.hashCode();
 
     return hashCode;
   }
@@ -83,8 +126,10 @@ final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
     PhysicalDevice device = (PhysicalDevice)object;
 
     return mySerialNumber.equals(device.mySerialNumber) &&
+           Objects.equals(myLastConnectionTime, device.myLastConnectionTime) &&
+           myName.equals(device.myName) &&
            myConnected == device.myConnected &&
-           Objects.equals(myLastConnectionTime, device.myLastConnectionTime);
+           myTarget.equals(device.myTarget);
   }
 
   @Override

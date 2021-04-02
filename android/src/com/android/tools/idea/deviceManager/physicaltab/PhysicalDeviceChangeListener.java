@@ -22,7 +22,6 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.Disposable;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeListener {
@@ -54,7 +53,14 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   public void deviceConnected(@NotNull IDevice device) {
     EdtExecutorService.getInstance().execute(() -> {
       String serialNumber = device.getSerialNumber();
-      myModel.handleConnectedDevice(PhysicalDevice.newConnectedDevice(serialNumber, ConnectionTimeService.getInstance().get(serialNumber)));
+
+      PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
+        .setSerialNumber(serialNumber)
+        .setLastConnectionTime(ConnectionTimeService.getInstance().get(serialNumber))
+        .setConnected(true)
+        .build();
+
+      myModel.handleConnectedDevice(physicalDevice);
     });
   }
 
@@ -66,9 +72,13 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   public void deviceDisconnected(@NotNull IDevice device) {
     EdtExecutorService.getInstance().execute(() -> {
       String serialNumber = device.getSerialNumber();
-      Instant time = ConnectionTimeService.getInstance().remove(serialNumber);
 
-      myModel.handleDisconnectedDevice(PhysicalDevice.newDisconnectedDevice(serialNumber, time));
+      PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
+        .setSerialNumber(serialNumber)
+        .setLastConnectionTime(ConnectionTimeService.getInstance().remove(serialNumber))
+        .build();
+
+      myModel.handleDisconnectedDevice(physicalDevice);
     });
   }
 

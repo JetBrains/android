@@ -63,6 +63,12 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Future<List<PhysicalDevice>> future = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(PhysicalDevice.newConnectedDevice("86UX00F4R", connectionTime)), future.get());
+    Object physicalDevice = new PhysicalDevice.Builder()
+      .setSerialNumber("86UX00F4R")
+      .setLastConnectionTime(connectionTime)
+      .setConnected(true)
+      .build();
+
+    assertEquals(Collections.singletonList(physicalDevice), future.get());
   }
 }
