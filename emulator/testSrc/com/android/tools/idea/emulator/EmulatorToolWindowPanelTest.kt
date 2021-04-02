@@ -460,21 +460,21 @@ class EmulatorToolWindowPanelTest {
 
     verify(dnDEvent2).isDropPossible = true
 
-    val allFilesPushed = CountDownLatch(fileList.size)
-    val firstArgCaptor = ArgumentCaptor.forClass(String::class.java)
+    val pushCalled = CountDownLatch(1)
+    val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
     val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
-      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: file pushed")
-      allFilesPushed.countDown()
+    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
+      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: files pushed")
+      pushCalled.countDown()
     }
 
     // Simulate drop.
     target.drop(dnDEvent2)
 
     try {
-      assertThat(allFilesPushed.await(5, TimeUnit.SECONDS)).isTrue()
-      assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
-      assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
+      assertThat(pushCalled.await(5, TimeUnit.SECONDS)).isTrue()
+      assertThat(firstArgCaptor.value).isEqualTo(fileList.map(File::getAbsolutePath).toTypedArray())
+      assertThat(secondArgCaptor.value).isEqualTo("/sdcard/Download")
       FlightRecorder.print()
     }
     catch (t: Throwable) {
