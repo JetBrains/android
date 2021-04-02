@@ -162,7 +162,18 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
       if (field != value) {
         field = value
         if (!activeClient.isConnected && value) {
-          executor.execute { handleProcess(processes.selectedProcess) }
+          // If here, we may be re-enabling this launcher after previously disabling it (the "isConnected" check above could indicate that
+          // the user minimized the inspector and then stopped inspection or the running process afterwards). Now that we're re-enabling,
+          // we try to autoconnect but only if we find a valid, running process.
+          processes.selectedProcess?.let { process ->
+            val runningProcess = process.takeIf { it.isRunning }
+                                 ?: processes.processes.firstOrNull { it.pid == process.pid && it.isRunning }
+
+            if (runningProcess != null) {
+              processes.selectedProcess = runningProcess // As a side effect, will ensure the pulldown is updated
+              executor.execute { handleProcess(processes.selectedProcess) }
+            }
+          }
         }
       }
     }

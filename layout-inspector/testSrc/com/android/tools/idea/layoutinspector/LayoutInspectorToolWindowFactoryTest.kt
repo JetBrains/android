@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
 import org.junit.Test
@@ -37,8 +38,8 @@ class LayoutInspectorToolWindowFactoryTest {
       return toolWindow
     }
 
-    override fun notifyByBalloon(toolWindowId: String, type: MessageType, htmlBody: String) {
-      notificationText = htmlBody
+    override fun notifyByBalloon(options: ToolWindowBalloonShowOptions) {
+      notificationText = options.htmlBody
     }
   }
 
@@ -110,11 +111,11 @@ class LayoutInspectorToolWindowFactoryTest {
     toolWindow.hide()
     assertThat(toolWindow.manager.notificationText).isNotEmpty()
 
-    // Message is only shown once
+    // Message is shown each time.
     toolWindow.manager.notificationText = ""
     toolWindow.show()
     toolWindow.hide()
-    assertThat(toolWindow.manager.notificationText).isEmpty()
+    assertThat(toolWindow.manager.notificationText).isNotEmpty()
   }
 
   @Test
