@@ -31,11 +31,31 @@ public final class PhysicalDeviceTest {
     Instant time1 = Instant.parse("2021-03-24T22:38:05.890571Z");
     Instant time2 = Instant.parse("2021-03-24T22:38:05.890570Z");
 
-    Object device1 = PhysicalDevice.newConnectedDevice("serialNumber1", time1);
-    Object device2 = PhysicalDevice.newConnectedDevice("serialNumber2", time2);
-    Object device3 = PhysicalDevice.newDisconnectedDevice("serialNumber3", time1);
-    Object device4 = PhysicalDevice.newDisconnectedDevice("serialNumber4", time2);
-    Object device5 = PhysicalDevice.newDisconnectedDevice("serialNumber5", null);
+    Object device1 = new PhysicalDevice.Builder()
+      .setSerialNumber("serialNumber1")
+      .setLastConnectionTime(time1)
+      .setConnected(true)
+      .build();
+
+    Object device2 = new PhysicalDevice.Builder()
+      .setSerialNumber("serialNumber2")
+      .setLastConnectionTime(time2)
+      .setConnected(true)
+      .build();
+
+    Object device3 = new PhysicalDevice.Builder()
+      .setSerialNumber("serialNumber3")
+      .setLastConnectionTime(time1)
+      .build();
+
+    Object device4 = new PhysicalDevice.Builder()
+      .setSerialNumber("serialNumber4")
+      .setLastConnectionTime(time2)
+      .build();
+
+    Object device5 = new PhysicalDevice.Builder()
+      .setSerialNumber("serialNumber5")
+      .build();
 
     List<Object> devices = Arrays.asList(device5, device4, device2, device1, device3);
 

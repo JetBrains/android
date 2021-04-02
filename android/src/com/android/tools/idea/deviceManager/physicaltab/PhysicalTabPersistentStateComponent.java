@@ -105,7 +105,11 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
-      return PhysicalDevice.newDisconnectedDevice(serialNumber, lastConnectionTime);
+
+      return new PhysicalDevice.Builder()
+        .setSerialNumber(serialNumber)
+        .setLastConnectionTime(lastConnectionTime)
+        .build();
     }
 
     @Override

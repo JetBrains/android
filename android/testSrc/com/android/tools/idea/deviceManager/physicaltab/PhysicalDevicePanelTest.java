@@ -55,7 +55,11 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    myConnectedPixel3 = PhysicalDevice.newConnectedDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
+    myConnectedPixel3 = new PhysicalDevice.Builder()
+      .setSerialNumber("86UX00F4R")
+      .setLastConnectionTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
+      .setConnected(true)
+      .build();
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
     Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myConnectedPixel3)));
@@ -83,7 +87,10 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = PhysicalDevice.newDisconnectedDevice("0A071FDD4003ZG", null);
+    PhysicalDevice disconnectedPixel5 = new PhysicalDevice.Builder()
+      .setSerialNumber("0A071FDD4003ZG")
+      .build();
+
     myComponent.set(Collections.singletonList(disconnectedPixel5));
 
     // Act

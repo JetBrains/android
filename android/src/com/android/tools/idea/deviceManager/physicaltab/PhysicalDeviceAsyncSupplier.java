@@ -112,12 +112,22 @@ final class PhysicalDeviceAsyncSupplier {
    */
   @WorkerThread
   private @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
-    ConnectionTimeService service = myConnectionTimeServiceGetInstance.get();
-
     return devices.stream()
       .filter(device -> !device.isEmulator())
       .map(IDevice::getSerialNumber)
-      .map(serialNumber -> PhysicalDevice.newConnectedDevice(serialNumber, service.get(serialNumber)))
+      .map(this::buildPhysicalDevice)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Called by a pooled application thread
+   */
+  @WorkerThread
+  private @NotNull PhysicalDevice buildPhysicalDevice(@NotNull String serialNumber) {
+    return new PhysicalDevice.Builder()
+      .setSerialNumber(serialNumber)
+      .setLastConnectionTime(myConnectionTimeServiceGetInstance.get().get(serialNumber))
+      .setConnected(true)
+      .build();
   }
 }

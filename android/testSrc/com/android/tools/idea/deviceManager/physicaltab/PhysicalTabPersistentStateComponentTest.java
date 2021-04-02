@@ -28,7 +28,11 @@ public final class PhysicalTabPersistentStateComponentTest {
   @Test
   public void get() {
     // Arrange
-    Collection<PhysicalDevice> expectedDevices = Collections.singletonList(PhysicalDevice.newDisconnectedDevice("86UX00F4R", null));
+    PhysicalDevice device = new PhysicalDevice.Builder()
+      .setSerialNumber("86UX00F4R")
+      .build();
+
+    Collection<PhysicalDevice> expectedDevices = Collections.singletonList(device);
 
     PhysicalTabPersistentStateComponent component = new PhysicalTabPersistentStateComponent();
     component.set(expectedDevices);
