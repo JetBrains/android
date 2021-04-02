@@ -170,6 +170,7 @@ class DeviceViewPanel(
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
+  private val loadingPane: JBLoadingPanel
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbarProvider
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
                                                               { contentPanel.rootLocation })
@@ -203,7 +204,7 @@ class DeviceViewPanel(
     }
 
   init {
-    val loadingPane = JBLoadingPanel(BorderLayout(), disposableParent)
+    loadingPane = JBLoadingPanel(BorderLayout(), disposableParent)
     loadingPane.addListener(object: JBLoadingPanelListener {
       override fun onLoadingStart() {
         contentPanel.showEmptyText = false
@@ -219,10 +220,7 @@ class DeviceViewPanel(
                                                   stopPresentation = SelectProcessAction.StopPresentation(
                                                     "Stop inspector",
                                                     "Stop running the layout inspector against the current process"),
-                                                  onStopAction = {
-                                                    loadingPane.stopLoading()
-                                                    processes.stop()
-                                                  })
+                                                  onStopAction = { stopInspectors() })
     contentPanel.selectProcessAction = selectProcessAction
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
@@ -341,6 +339,11 @@ class DeviceViewPanel(
         }
       }
     }
+  }
+
+  fun stopInspectors() {
+    loadingPane.stopLoading()
+    processes.stop()
   }
 
   private fun updateLayeredPaneSize() {

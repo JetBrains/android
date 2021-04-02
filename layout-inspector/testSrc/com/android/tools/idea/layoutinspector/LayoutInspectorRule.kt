@@ -71,13 +71,17 @@ val OLDER_LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
   override val version = "L"
 }
 
-fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp", pid: Int = 1, streamId: Long = 13579): ProcessDescriptor {
+fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp",
+                                   pid: Int = 1,
+                                   streamId: Long = 13579,
+                                   isRunning: Boolean = true
+): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
     override val device = device
     override val abiCpuArch = "x86_64"
     override val name = name
-    override val isRunning = true
+    override val isRunning = isRunning
     override val pid = pid
     override val streamId = streamId
   }

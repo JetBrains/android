@@ -270,7 +270,13 @@ class InspectorClientLauncherTest {
 
   @Test
   fun inspectorLauncherCanBeDisabledAndRenabled() {
-    val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
+    val process1 = MODERN_DEVICE.createProcess(pid = 1)
+    val process2 = MODERN_DEVICE.createProcess(pid = 2)
+    val process3 = MODERN_DEVICE.createProcess(pid = 3)
+    val deadProcess3 = MODERN_DEVICE.createProcess(pid = 3, isRunning = false)
+
+    val notifier = TestProcessNotifier()
+    val processes = ProcessesModel(notifier) { listOf(process1.name) } // Note: This covers all processes as they have the same name
     val launcher = InspectorClientLauncher(
       adbRule.bridge,
       processes,
@@ -279,11 +285,7 @@ class InspectorClientLauncherTest {
       MoreExecutors.directExecutor())
 
     launcher.enabled = false
-
-    val process1 = MODERN_DEVICE.createProcess()
-    val process2 = MODERN_DEVICE.createProcess()
-
-    processes.selectedProcess = process1
+    notifier.fireConnected(process1)
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
 
     launcher.enabled = true
@@ -298,13 +300,27 @@ class InspectorClientLauncherTest {
       assertThat(launcher.activeClient).isSameAs(currClient)
     }
 
-    // If disabled, changing processes will kill the current process but the new process won't be
-    // launched until the launcher re-enabled again.
+    // If disabled, new process won't be launched until the launcher is re-enabled again.
+    processes.stop()
     launcher.enabled = false
-    processes.selectedProcess = process2
+    notifier.fireConnected(process2)
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
-
     launcher.enabled = true
     assertThat(launcher.activeClient.process).isSameAs(process2)
+
+    // When re-enabling and finding a dead process, launcher tries to find same version of the live process
+    launcher.enabled = false
+    assertThat(launcher.activeClient).isNotInstanceOf(DisconnectedClient::class.java)
+    processes.stop() // Stops inspecting process2, but it is still in the processes list
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+    launcher.enabled = true
+    assertThat(launcher.activeClient.process).isSameAs(process2)
+
+    // .. but it gives up if it can't find a live process with the same PID
+    launcher.enabled = false
+    processes.selectedProcess = deadProcess3 // This emulates process3 having been stopped on the device
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
+    launcher.enabled = true
+    assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
 }

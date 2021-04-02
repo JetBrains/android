@@ -53,6 +53,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.BorderLayout
 import java.util.concurrent.Executor
 import javax.swing.JPanel
+import javax.swing.event.HyperlinkEvent
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
@@ -125,7 +126,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
         project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC,
-                                                        LayoutInspectorToolWindowManagerListener(project, toolWindow, launcher))
+                                                        LayoutInspectorToolWindowManagerListener(project, toolWindow, deviceViewPanel,
+                                                                                                 launcher))
       }
     }
   }
@@ -148,13 +150,15 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
  */
 class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(private val project: Project,
                                                                               private val clientLauncher: InspectorClientLauncher,
-                                                                              private var wasWindowVisible: Boolean = false)
-  : ToolWindowManagerListener {
+                                                                              private val stopInspectors: () -> Unit = {},
+                                                                              private var wasWindowVisible: Boolean = false
+) : ToolWindowManagerListener {
 
-  internal constructor(project: Project, toolWindow: ToolWindow, clientLauncher: InspectorClientLauncher) : this(project, clientLauncher,
-                                                                                                                 toolWindow.isVisible)
-
-  private var wasMinimizedMessageShown = false
+  internal constructor(project: Project,
+                       toolWindow: ToolWindow,
+                       deviceViewPanel: DeviceViewPanel,
+                       clientLauncher: InspectorClientLauncher
+  ) : this(project, clientLauncher, { deviceViewPanel.stopInspectors() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
     val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
@@ -165,13 +169,20 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
       if (isWindowVisible) {
         LayoutInspectorMetrics.create(project).logEvent(DynamicLayoutInspectorEventType.OPEN)
       }
-      else if (clientLauncher.activeClient.isConnected && !wasMinimizedMessageShown) {
-        wasMinimizedMessageShown = true
-        toolWindowManager.notifyByBalloon(LAYOUT_INSPECTOR_TOOL_WINDOW_ID, MessageType.INFO,
-                                          "<b>Layout Inspection</b> is running in the background.<br>" +
-                                          "To stop it, open the <b>Layout Inspector</b> window and select <b>Stop Inspector</b> from " +
-                                          "the process dropdown menu."
-        )
+      else if (clientLauncher.activeClient.isConnected) {
+        toolWindowManager.notifyByBalloon(
+          LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
+          MessageType.INFO,
+          """
+            <b>Layout Inspection</b> is running in the background.<br>
+            You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
+          """.trimIndent(),
+          null
+        ) { hyperlinkEvent ->
+          if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+            stopInspectors()
+          }
+        }
       }
       clientLauncher.enabled = isWindowVisible
     }
