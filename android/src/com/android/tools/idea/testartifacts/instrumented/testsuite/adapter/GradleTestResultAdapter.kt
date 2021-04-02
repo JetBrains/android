@@ -112,6 +112,12 @@ class GradleTestResultAdapter(device: IDevice,
    * Called when Gradle test task has finished or cancelled.
    */
   fun onGradleTaskFinished() {
+    if (!this::myTestSuite.isInitialized) {
+      // Initialize test suite if it hasn't initialized yet.
+      // This may happen if a build fails before it starts test task.
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.getDefaultInstance())
+    }
+
     // There can be pending test cases remained even after the Gradle task has finished,
     // because a user may cancel the task execution or an exception is thrown from the
     // task execution. We update test results to cancelled state for those pending tests.
@@ -119,7 +125,7 @@ class GradleTestResultAdapter(device: IDevice,
       if (!testCase.result.isTerminalState) {
         testCase.result = AndroidTestCaseResult.CANCELLED
         testCase.endTimestampMillis = System.currentTimeMillis()
-        myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.CANCELLED
+        listener.onTestCaseFinished(device, myTestSuite, testCase)
       }
     }
 
