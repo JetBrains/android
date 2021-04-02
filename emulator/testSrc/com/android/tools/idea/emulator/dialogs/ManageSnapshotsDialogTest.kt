@@ -37,6 +37,7 @@ import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.currentTime
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -397,7 +398,11 @@ class ManageSnapshotsDialogTest {
 
   private fun showManageSnapshotsDialog(): DialogWrapper {
     emulatorViewRule.executeAction("android.emulator.snapshots", emulatorView)
-    return findManageSnapshotDialog(emulatorView)!!
+    val dialog = findManageSnapshotDialog(emulatorView)!!
+    Disposer.register(testRootDisposable) {
+      dialog.close(CLOSE_EXIT_CODE)
+    }
+    return dialog
   }
 
   private fun findPreviewImagePanel(ui: FakeUi) = ui.findComponent<ImagePanel>()
