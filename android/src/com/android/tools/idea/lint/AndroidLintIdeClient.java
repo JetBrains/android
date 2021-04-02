@@ -22,7 +22,6 @@ import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_S
 import com.android.annotations.NonNull;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -269,18 +268,15 @@ public class AndroidLintIdeClient extends LintIdeClient {
   public org.w3c.dom.Document getMergedManifest(@NonNull com.android.tools.lint.detector.api.Project project) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
-        org.w3c.dom.Document document = mergedManifest.getDocument();
-        if (document != null) {
-          Element root = document.getDocumentElement();
-          if (root != null && !isMergeManifestNode(root)) {
-            resolveMergeManifestSources(document, project.getDir());
-            document.setUserData(MERGED_MANIFEST_INFO, mergedManifest, null);
-          }
-          return document;
+      MergedManifestSnapshot mergedManifest = MergedManifestManager.getFreshSnapshot(module);
+      org.w3c.dom.Document document = mergedManifest.getDocument();
+      if (document != null) {
+        Element root = document.getDocumentElement();
+        if (root != null && !isMergeManifestNode(root)) {
+          resolveMergeManifestSources(document, project.getDir());
+          document.setUserData(MERGED_MANIFEST_INFO, mergedManifest, null);
         }
+        return document;
       }
     }
 
