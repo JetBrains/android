@@ -507,7 +507,7 @@ class EmulatorView(
 
     if (multiTouchMode) {
       val touchEvent = TouchEvent.newBuilder()
-        .setDevice(displayId)
+        .setDisplay(displayId)
         .addTouches(createTouch(displayX, displayY, 0, button))
         .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
         .build()
@@ -516,7 +516,7 @@ class EmulatorView(
     }
     else {
       val mouseEvent = MouseEventMessage.newBuilder()
-        .setDevice(displayId)
+        .setDisplay(displayId)
         .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
         .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
         .setButtons(button)
