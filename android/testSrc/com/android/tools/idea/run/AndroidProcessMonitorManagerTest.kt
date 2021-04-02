@@ -21,9 +21,8 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.util.Ref
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -32,9 +31,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
-import java.lang.Boolean.FALSE
-import java.util.concurrent.CountDownLatch
+import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
 class AndroidProcessMonitorManagerTest {
@@ -42,6 +39,8 @@ class AndroidProcessMonitorManagerTest {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
+  @get:Rule
+  var mockitoJunit = MockitoJUnit.rule()
   @Mock
   lateinit var mockDeploymentAppService: DeploymentApplicationService
   @Mock
@@ -55,8 +54,6 @@ class AndroidProcessMonitorManagerTest {
 
   @Before
   fun setUp() {
-    MockitoAnnotations.initMocks(this)
-
     monitorManager =  AndroidProcessMonitorManager(TARGET_APP_NAME,
                                                    mockDeploymentAppService,
                                                    mockTextEmitter,
@@ -65,7 +62,6 @@ class AndroidProcessMonitorManagerTest {
       if (::stateChangeListener.isInitialized) {
         assertThat(listener).isSameAs(stateChangeListener)
       }
-      assertThat(mockSingleDeviceAndroidProcessMonitors).doesNotContainKey(device)
 
       stateChangeListener = listener
 
@@ -207,43 +203,26 @@ class AndroidProcessMonitorManagerTest {
 
   @Test
   fun replaceDevice() {
-    val terminatedLatch = CountDownLatch(1)
-    val managerListener = object : AndroidProcessMonitorManagerListener {
-      override fun onAllTargetProcessesTerminated() {
-        terminatedLatch.countDown()
-      }
-    }
-    val isReplacing = Ref(false)
+    val device1 = createMockDevice(28)
 
-    val targetDevice = createMockDevice(28)
-    monitorManager = AndroidProcessMonitorManager(TARGET_APP_NAME,
-                                                   mockDeploymentAppService,
-                                                   mockTextEmitter,
-                                                   /*captureLogcat=*/true,
-                                                   managerListener) {_, device, listener, deployService, logcat ->
-      if (::stateChangeListener.isInitialized) {
-        assertThat(listener).isSameAs(stateChangeListener)
-      }
+    monitorManager.add(device1)
 
-      if (isReplacing.get() == FALSE) {
-        assertThat(mockSingleDeviceAndroidProcessMonitors).doesNotContainKey(targetDevice)
-      }
+    assertThat(monitorManager.getMonitor(device1)).isNotNull()
 
-      stateChangeListener = listener
+    val monitor = monitorManager.getMonitor(device1)
+    monitorManager.closeAndReplace(device1)
+    val monitorAfterReplaced = monitorManager.getMonitor(device1)
 
-      val textEmitter = mock(TextEmitter::class.java)
-      val monitor = SingleDeviceAndroidProcessMonitor(TARGET_APP_NAME, device, listener, deployService, logcat, textEmitter,
-                                                      SingleDeviceAndroidProcessMonitor.POLLING_INTERVAL_MILLIS,
-                                                      SingleDeviceAndroidProcessMonitor.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS,
-                                                      MoreExecutors.directExecutor())
-      mockSingleDeviceAndroidProcessMonitors[device] = monitor
+    assertThat(monitorManager.getMonitor(device1)).isNotNull()
+    assertThat(monitorAfterReplaced).isNotEqualTo(monitor)
 
-      monitor
-    }
-    monitorManager.add(targetDevice)
-    isReplacing.set(true)
-    monitorManager.closeAndReplace(targetDevice)
-    assertThat(terminatedLatch.count).isEqualTo(1)
+    // The process is still running so the callback should not be called yet.
+    verify(mockMonitorManagerListener, never()).onAllTargetProcessesTerminated()
+
+    stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device1), PROCESS_FINISHED)
+    assertThat(monitorManager.getMonitor(device1)).isNull()
+
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
