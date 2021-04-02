@@ -137,17 +137,17 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
 
   private fun install(files: List<File>, device: IDevice): InstallResult {
     FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.install: on $device" }
-    val filePaths = files.asSequence().map { it.path }.toList()
+    val filePaths = files.map(File::getPath).toList()
     return createAdbClient(device).install(filePaths, listOf("-t", "--user", "current", "--full", "--dont-kill"), true)
   }
 
   private fun push(files: List<File>, device: IDevice) {
     FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push" }
-    val adbClient = createAdbClient(device)
-    for (file in files) {
-      FlightRecorder.log { "${TraceUtils.currentTime()} EmulatorFileDropHandler.push: pushing ${file.name} to $device" }
-      adbClient.push(file.absolutePath, DEVICE_DOWNLOAD_DIR + file.name)
+    val filePaths = files.map(File::getAbsolutePath).toTypedArray()
+    FlightRecorder.log {
+      "${TraceUtils.currentTime()} EmulatorFileDropHandler.push: pushing ${filePaths.joinToString(", ")} to $device"
     }
+    device.push(filePaths, DEVICE_DOWNLOAD_DIR)
   }
 
   private fun createAdbClient(device: IDevice) = AdbClient(device, LogWrapper(EmulatorFileDropHandler::class.java))
@@ -176,4 +176,4 @@ private class EmulatorFileDropHandler(private val emulatorView: EmulatorView, pr
   private enum class FileType { APK, OTHER }
 }
 
-private const val DEVICE_DOWNLOAD_DIR = "/sdcard/Download/"
+private const val DEVICE_DOWNLOAD_DIR = "/sdcard/Download"
