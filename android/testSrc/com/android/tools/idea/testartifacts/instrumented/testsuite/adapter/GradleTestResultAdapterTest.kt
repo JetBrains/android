@@ -272,8 +272,31 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteScheduled(any())
       verify(mockListener).onTestSuiteStarted(any(), any())
       verify(mockListener).onTestCaseStarted(any(), any(), any())
+      verify(mockListener).onTestCaseFinished(any(), any(), argThat {
+        it.packageName == "com.example.test" &&
+        it.className == "ExampleTest" &&
+        it.methodName == "testExample" &&
+        it.result == AndroidTestCaseResult.CANCELLED &&
+        it.startTimestampMillis != null &&
+        it.endTimestampMillis != null
+      })
       verify(mockListener).onTestSuiteFinished(any(), argThat {
         it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.CANCELLED
+      })
+    }
+  }
+
+  @Test
+  fun gradleTaskFinishedOrCancelledBeforeTestSuiteStarts() {
+    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+      onGradleTaskFinished()
+    }
+
+    inOrder(mockListener).apply {
+      verify(mockListener).onTestSuiteScheduled(any())
+      verify(mockListener).onTestSuiteStarted(any(), any())
+      verify(mockListener).onTestSuiteFinished(any(), argThat {
+        it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 0 && it.result == AndroidTestSuiteResult.CANCELLED
       })
     }
   }
