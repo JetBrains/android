@@ -67,6 +67,7 @@ class FakeEmulatorRule : TestRule {
     get() = nullableRoot ?: throw IllegalStateException()
 
   override fun apply(base: Statement, description: Description): Statement {
+    println("${currentTime()} FakeEmulatorRule.apply: ${description.methodName}")
     return tempDirectory.apply(emulatorResource.apply(base, description), description)
   }
 
