@@ -16,9 +16,7 @@
 package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.testing.IdeComponents
-import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
@@ -26,15 +24,12 @@ import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
-import java.util.Arrays
-import java.util.concurrent.TimeUnit
 
 class KeystoreStepTest : LightPlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -109,7 +104,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.KEY_STORE_PATH = testKeyStorePath
     settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = false
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
@@ -131,7 +125,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.KEY_STORE_PATH = testKeyStorePath
     settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = true
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
@@ -158,7 +151,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.KEY_STORE_PATH = testKeyStorePath
     settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = true
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
@@ -209,8 +201,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val settings = GenerateSignedApkSettings()
     settings.KEY_STORE_PATH = testKeyStorePath
     settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = true
-
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val passwordSafeSettings = PasswordSafeSettings()
@@ -221,98 +211,5 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(project)
     return wizard
-  }
-
-  fun testRememberPasswords() {
-    val testKeyStorePath = "/test/path/to/keystore"
-    val testKeyAlias = "testkey"
-    val testKeyStorePassword = "123456"
-    val testKeyPassword = "qwerty"
-    val testExportKeyPath = "test"
-    File(testExportKeyPath).mkdir()
-
-    val settings = GenerateSignedApkSettings()
-    settings.KEY_STORE_PATH = testKeyStorePath
-    settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = true
-
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val passwordSafeSettings = PasswordSafeSettings()
-    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
-
-    val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
-    assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
-    assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
-    assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
-    assertEquals(0, keystoreStep.keyPasswordField.password.size)
-
-    // Set passwords and commit.
-    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
-    keystoreStep.keyPasswordField.text = testKeyPassword
-    keystoreStep.commitForNext()
-
-    // Assert that the passwords are persisted and a new form instance fields populated as necessary.
-    val keystoreStep2 = KeystoreStep(wizard, true, facets)
-    assertEquals(testKeyStorePath, keystoreStep2.keyStorePathField.text)
-    assertEquals(testKeyAlias, keystoreStep2.keyAliasField.text)
-    waitForCondition(1, TimeUnit.SECONDS) {
-      Arrays.equals(testKeyStorePassword.toCharArray(), keystoreStep2.keyStorePasswordField.password)
-    }
-    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testKeyPassword.toCharArray(), keystoreStep2.keyPasswordField.password) }
-  }
-
-  // See b/64995008 & b/70937387 - we want to ensure smooth transition so that the user didn't have to retype both passwords
-  fun testRememberPasswordsUsingLegacyRequestor() {
-    val testKeyStorePath = "/test/path/to/keystore"
-    val testKeyAlias = "testkey"
-    val testKeyStorePassword = "123456"
-    val testKeyPassword = "qwerty"
-    val testLegacyKeyPassword = "somestuff"
-    val legacyRequestor = KeystoreStep::class.java
-    val testExportKeyPath = "test"
-    File(testExportKeyPath).mkdir()
-
-    val settings = GenerateSignedApkSettings()
-    settings.KEY_STORE_PATH = testKeyStorePath
-    settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = true
-
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val passwordSafeSettings = PasswordSafeSettings()
-    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
-    passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
-
-    val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(project)
-    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
-    assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
-    assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
-    // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
-    // never be populated, whereas the key password would be saved as expected.
-    assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
-    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password) }
-
-    // Set passwords and commit.
-    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
-    keystoreStep.keyPasswordField.text = testKeyPassword
-    keystoreStep.commitForNext()
-
-    // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor, keyPasswordKey)))
   }
 }
