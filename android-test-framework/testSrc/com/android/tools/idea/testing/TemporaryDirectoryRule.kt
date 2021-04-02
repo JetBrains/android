@@ -20,12 +20,11 @@ import org.junit.rules.ExternalResource
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.IOException
-import java.nio.file.AccessDeniedException
-import java.nio.file.DirectoryNotEmptyException
+import java.nio.file.FileSystemException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.function.Predicate
 import kotlin.properties.Delegates
 
 /**
@@ -58,7 +57,7 @@ class TemporaryDirectoryRule : ExternalResource() {
     fun testNameToFileName(name: String): String {
       // remove prefix `test` or `test `
       // ` symbols causes git tests failures, even if it is a valid symbol for file name
-      return sanitizeFileName(name.removePrefix("test").trimStart(), extraIllegalChars = Predicate { it == ' ' || it == '\'' })
+      return sanitizeFileName(name.removePrefix("test").trimStart(), extraIllegalChars = { it == ' ' || it == '\'' })
     }
 
     @JvmStatic
@@ -126,8 +125,11 @@ class TemporaryDirectoryRule : ExternalResource() {
         path.delete()
         return
       }
-      catch (e: IOException) {
-        if (SystemInfoRt.isWindows && (e is AccessDeniedException || e is DirectoryNotEmptyException || e is NoSuchFileException)) {
+      catch (e: FileSystemException) {
+        if (SystemInfoRt.isWindows) {
+          // Examples of exceptions that are being retried here:
+          //   AccessDeniedException, DirectoryNotEmptyException, NoSuchFileException,
+          //   FileSystemException("The process cannot access the file because it is being used by another process.")
           if (++attemptCount == maxAttemptCount) {
             throw e
           }
