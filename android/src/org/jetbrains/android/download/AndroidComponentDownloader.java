@@ -35,7 +35,7 @@ public abstract class AndroidComponentDownloader {
   private static final Logger LOG = Logger.getInstance(AndroidComponentDownloader.class);
   private static final String VERSION = "27.0.0.1";
   public static final String BINTRAY_ANDROID_TOOLS_BASE =
-    "https://cache-redirector.jetbrains.com/jetbrains.bintray.com/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/base/";
+    "https://cache-redirector.jetbrains.com/intellij-dependencies/org/jetbrains/intellij/deps/android/tools/base/";
   public static final String ZIP = "zip";
   public static final String ANDROID_GROUP_DISPLAY_ID = "Android";
 
