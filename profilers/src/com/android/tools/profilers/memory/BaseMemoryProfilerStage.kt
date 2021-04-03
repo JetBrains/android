@@ -21,6 +21,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CancellationException
@@ -44,6 +45,8 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
     private val logger
       get() = Logger.getInstance(BaseMemoryProfilerStage::class.java)
   }
+
+  override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_STAGE
 
   protected fun doSelectCaptureDuration(durationData: CaptureDurationData<out CaptureObject?>?, joiner: Executor?) {
     pendingCaptureStartTime = INVALID_START_TIME

@@ -66,6 +66,7 @@ import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
@@ -270,7 +271,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @Override
   public void enter() {
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(this.getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
@@ -279,11 +280,13 @@ public class CpuCaptureStage extends Stage<Timeline> {
             // User will get a notification then sent back to the CpuProfilerStage
             getStudioProfilers().getIdeServices().getMainExecutor()
               .execute(() -> getStudioProfilers().setStage(getParentStage()));
-          } else {
+          }
+          else {
             // If the user was importing a trace the user will be sent to the null stage with an error + notification.
-            getStudioProfilers().getIdeServices().getMainExecutor()
-              .execute(() -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), "The profiler was " +
-                              "unable to parse the trace file. Please make sure the file selected is a valid trace.")));
+            getStudioProfilers().getIdeServices().getMainExecutor().execute(
+              () -> getStudioProfilers().setStage(new NullMonitorStage(
+                getStudioProfilers(),
+                "The profiler was unable to parse the trace file. Please make sure the file selected is a valid trace.")));
           }
         }
         else {
@@ -302,6 +305,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @Override
   public void exit() {
     getStudioProfilers().getUpdater().unregister(myCpuCaptureHandler);
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE;
   }
 
   public void addCpuAnalysisModel(@NotNull CpuAnalysisModel model) {

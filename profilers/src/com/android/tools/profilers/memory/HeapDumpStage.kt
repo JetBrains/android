@@ -26,7 +26,7 @@ class HeapDumpStage(profilers: StudioProfilers,
       : BaseMemoryProfilerStage(profilers, loader) {
 
   override fun enter() {
-    studioProfilers.ideServices.featureTracker.trackEnterStage(javaClass)
+    studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
     loader.start()
     doSelectCaptureDuration(durationData, joiner)
   }

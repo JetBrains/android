@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.TooltipModel;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +60,11 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   abstract public void enter();
 
   abstract public void exit();
+
+  /**
+   * @return the stage enum for Studio feature tracker.
+   */
+  abstract public AndroidProfilerEvent.Stage getStageType();
 
   @NotNull
   public final ProfilerMode getProfilerMode() { return myProfilerMode; }

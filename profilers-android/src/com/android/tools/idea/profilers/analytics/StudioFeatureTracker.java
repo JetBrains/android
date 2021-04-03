@@ -30,25 +30,18 @@ import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Energy;
-import com.android.tools.profilers.NullMonitorStage;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
-import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.energy.EnergyDuration;
-import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
-import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
-import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
@@ -95,17 +88,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public StudioFeatureTracker(@NotNull Project trackingProject) {
     myTrackingProject = trackingProject;
   }
-
-  private final ImmutableMap<Class<? extends Stage>, AndroidProfilerEvent.Stage> STAGE_MAP =
-    ImmutableMap.<Class<? extends Stage>, AndroidProfilerEvent.Stage>builder()
-      .put(NullMonitorStage.class, AndroidProfilerEvent.Stage.NULL_STAGE)
-      .put(StudioMonitorStage.class, AndroidProfilerEvent.Stage.OVERVIEW_STAGE)
-      .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
-      .put(CpuCaptureStage.class, AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE)
-      .put(MainMemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
-      .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
-      .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
-      .build();
 
   private final ImmutableMap<Common.SessionMetaData.SessionType, ProfilerSessionCreationMetaData.SessionType> SESSION_TYPE_MAP =
     ImmutableMap.of(
@@ -228,8 +210,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
-    myCurrStage = STAGE_MAP.getOrDefault(stage, AndroidProfilerEvent.Stage.UNKNOWN_STAGE);
+  public void trackEnterStage(AndroidProfilerEvent.Stage stageType) {
+    myCurrStage = stageType;
     track(AndroidProfilerEvent.Type.STAGE_ENTERED);
   }
 
