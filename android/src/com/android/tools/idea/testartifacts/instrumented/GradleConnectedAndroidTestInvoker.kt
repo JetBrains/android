@@ -16,21 +16,190 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.utp.GradleAndroidProjectResolverExtension
+import com.android.tools.utp.TaskOutputLineProcessor
+import com.android.tools.utp.TaskOutputProcessor
+import com.android.utils.usLocaleCapitalize
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.project.Project
+import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
+import java.io.File
+import java.util.concurrent.Future
 
 /**
- * TestInvoker for instrumentation tests via UTP
+ * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
+ *
+ * @param selectedDevices number of total selected devices to run instrumentation tests
  */
-class GradleConnectedAndroidTestInvoker(val selectedDevices: Int) {
-  private var devicesRun = 0
-  private val devices = ArrayList<IDevice>()
+class GradleConnectedAndroidTestInvoker(
+  private val selectedDevices: Int,
+  private val backgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
+  private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() }
+) {
 
-  fun run(device: IDevice): Boolean {
-    devicesRun += 1
-    devices.add(device)
-    return (selectedDevices == devicesRun)
+  private val scheduledDeviceList: MutableList<IDevice> = mutableListOf()
+
+  /**
+   * Schedules a given device. Once the number of scheduled devices matches to [selectedDevices],
+   * it invokes "connectedAndroidTest" Gradle task.
+   */
+  fun schedule(project: Project,
+               taskId: String,
+               processHandler: ProcessHandler,
+               consolePrinter: ConsolePrinter,
+               androidModuleModel: AndroidModuleModel,
+               waitForDebugger: Boolean,
+               testPackageName: String,
+               testClassName: String,
+               testMethodName: String,
+               device: IDevice) {
+    scheduledDeviceList.add(device)
+    if (scheduledDeviceList.size == selectedDevices) {
+      runGradleTask(project,
+                    taskId,
+                    processHandler,
+                    consolePrinter,
+                    androidModuleModel,
+                    waitForDebugger,
+                    testPackageName,
+                    testClassName,
+                    testMethodName)
+    }
   }
 
-  fun getDevices(): List<IDevice> {
-    return devices
+  /**
+   * Runs connectedAndroidTest Gradle task asynchronously.
+   */
+  private fun runGradleTask(
+    project: Project,
+    taskId: String,
+    processHandler: ProcessHandler,
+    consolePrinter: ConsolePrinter,
+    androidModuleModel: AndroidModuleModel,
+    waitForDebugger: Boolean,
+    testPackageName: String,
+    testClassName: String,
+    testMethodName: String
+  ) {
+    consolePrinter.stdout("Running tests\n")
+
+    val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
+    val adapters = scheduledDeviceList.map {
+      val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
+      adapter.device.id to adapter
+    }.toMap()
+
+    val path: File = Projects.getBaseDirPath(project)
+    val taskNames: List<String> = getTaskNames(androidModuleModel)
+    val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
+                                                                           ExternalSystemTaskType.EXECUTE_TASK, project)
+    val taskOutputProcessor = TaskOutputProcessor(adapters)
+    val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
+      val outputLineProcessor = TaskOutputLineProcessor(object: TaskOutputLineProcessor.LineProcessor {
+        override fun processLine(line: String) {
+          val processedText = taskOutputProcessor.process(line)
+          if (!(processedText.isBlank() && line != processedText)) {
+            consolePrinter.stdout(processedText)
+          }
+        }
+      })
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+        super.onTaskOutput(id, text, stdOut)
+        if (stdOut) {
+          outputLineProcessor.append(text)
+        } else {
+          processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
+        }
+      }
+
+      override fun onEnd(id: ExternalSystemTaskId) {
+        super.onEnd(id)
+        outputLineProcessor.close()
+        processHandler.detachProcess()
+        adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
+      }
+    }
+
+    processHandler.addProcessListener(object: ProcessAdapter() {
+      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+        if (willBeDestroyed) {
+          AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+        }
+      }
+    })
+
+    val gradleExecutionSettings = getGradleExecutionSettings(
+      project, waitForDebugger, testPackageName, testClassName, testMethodName)
+
+    backgroundTaskExecutor {
+      gradleTaskManagerFactory().executeTasks(
+        externalTaskId,
+        taskNames,
+        path.path,
+        gradleExecutionSettings,
+        null,
+        listener)
+    }
+  }
+
+  private fun getGradleExecutionSettings(
+    project: Project,
+    waitForDebugger: Boolean,
+    testPackageName: String,
+    testClassName: String,
+    testMethodName: String
+  ): GradleExecutionSettings {
+    return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+      // Add an environmental variable to filter connected devices for selected devices.
+      val deviceSerials = scheduledDeviceList.joinToString(",") { device ->
+        device.serialNumber
+      }
+      withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
+
+      // Enable UTP in Gradle. This is required for Android Studio integration.
+      withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+
+      // Enable UTP test results reporting by embedded XML tag in stdout.
+      withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
+
+      // Add a test filter.
+      if (testPackageName != "" || testClassName != "") {
+        var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
+        if (testPackageName != "") {
+          testTypeArgs += ".package=$testPackageName"
+        } else if (testClassName != "") {
+          testTypeArgs += ".class=$testClassName"
+          if (testMethodName != "") {
+            testTypeArgs += "#$testMethodName"
+          }
+        }
+        withArgument(testTypeArgs)
+      }
+
+      // Enable debug flag for run with debugger.
+      if (waitForDebugger) {
+        withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
+      }
+    }
+  }
+
+  private fun getTaskNames(androidModuleModel: AndroidModuleModel): List<String> {
+    return listOf("connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
   }
 }
