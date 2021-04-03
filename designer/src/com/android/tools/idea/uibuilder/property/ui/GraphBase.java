@@ -146,7 +146,7 @@ public class GraphBase extends JPanel {
     myActualMaxx = -Float.MAX_VALUE;
     myActualMaxy = -Float.MAX_VALUE;
     for (int g = 0; g < myXPoints.length; g++) {
-      if (myXPoints[g] == null | myYPoints[g] == null) {
+      if (myXPoints[g] == null || myYPoints[g] == null) {
         continue;
       }
       for (int i = 0; i < myXPoints[g].length; i++) {

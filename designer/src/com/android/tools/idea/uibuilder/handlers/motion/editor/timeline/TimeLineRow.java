@@ -251,7 +251,7 @@ public class TimeLineRow extends JPanel {
     if (mShowTitle) {
       ret += myTitleHeight;
     }
-    if (mGraphOpen & mHasGraph) {
+    if (mGraphOpen && mHasGraph) {
       ret += myGraphHeight;
     }
     return ret;

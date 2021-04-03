@@ -576,7 +576,7 @@ public class ScoutProbabilities {
         }
 
         // if it already has a baseline do not connect to it
-        if ((toDir == Direction.TOP || toDir == Direction.BOTTOM) & from.hasBaseline()) {
+        if ((toDir == Direction.TOP || toDir == Direction.BOTTOM) && from.hasBaseline()) {
             if (from.hasConnection(Direction.BASELINE)) {
                 return;
             }
@@ -639,7 +639,7 @@ public class ScoutProbabilities {
             return;
         }
         // if it already has a baseline do not connect to it
-        if ((orientation == Direction.ORIENTATION_VERTICAL) & from.hasBaseline()) {
+        if ((orientation == Direction.ORIENTATION_VERTICAL) && from.hasBaseline()) {
             if (from.hasConnection(Direction.BASELINE)) {
                 return;
             }

@@ -52,7 +52,7 @@ public class ScoutChains {
     // ===============  CHECK for horizontal chain ===============
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
-      child.mCheckedForChain = child.isConnected(Direction.LEFT) | child.isConnected(Direction.RIGHT);
+      child.mCheckedForChain = child.isConnected(Direction.LEFT) || child.isConnected(Direction.RIGHT);
     }
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
@@ -103,7 +103,7 @@ public class ScoutChains {
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
       child.mCheckedForChain =
-        child.isConnected(Direction.BOTTOM) | child.isConnected(Direction.TOP) | child.isConnected(Direction.BASELINE);
+        child.isConnected(Direction.BOTTOM) || child.isConnected(Direction.TOP) || child.isConnected(Direction.BASELINE);
     }
     for (int i = 0; i < children.length; i++) {
       ScoutWidget child = children[i];
