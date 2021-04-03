@@ -47,7 +47,7 @@ class ColoredIconGeneratorTest {
   @Before
   fun setUp() {
     wasDarkMode = !JBColor.isBright()
-    IconManager.activate()
+    IconManager.activate(null)
     IconLoader.activate()
   }
 
@@ -58,6 +58,7 @@ class ColoredIconGeneratorTest {
     IconLoader.setUseDarkIcons(wasDarkMode)
     IconManager.deactivate()
     IconLoader.deactivate()
+    IconLoader.clearCacheInTests()
   }
 
   @Test

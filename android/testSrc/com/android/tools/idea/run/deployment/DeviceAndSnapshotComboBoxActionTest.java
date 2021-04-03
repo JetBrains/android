@@ -106,8 +106,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Before
-  public void activateIconLoader()  {
-    IconManager.activate();
+  public void activateIconLoader() throws Throwable {
+    IconManager.activate(null);
     IconLoader.activate();
   }
 

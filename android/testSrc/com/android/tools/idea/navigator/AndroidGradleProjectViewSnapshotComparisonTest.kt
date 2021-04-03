@@ -65,6 +65,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
   override fun getAdditionalRepos() =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
+  override fun isIconRequired() = true
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)

@@ -49,7 +49,7 @@ class PhysicalDeviceTest {
 
   @Before
   fun activateIconLoader() {
-    IconManager.activate()
+    IconManager.activate(null)
     IconLoader.activate()
   }
 
