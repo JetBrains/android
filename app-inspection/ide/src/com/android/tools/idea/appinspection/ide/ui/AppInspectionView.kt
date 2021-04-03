@@ -67,7 +67,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.event.HierarchyEvent.SHOWING_CHANGED
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -99,10 +98,6 @@ class AppInspectionView @VisibleForTesting constructor(
   @VisibleForTesting
   val inspectorPanel = JPanel(BorderLayout())
 
-  @get:VisibleForTesting
-  var activeProcess: ProcessDescriptor? = null
-    private set
-
   private var tabsChangedListener: (() -> Unit)? = null
 
   /**
@@ -125,30 +120,8 @@ class AppInspectionView @VisibleForTesting constructor(
   @VisibleForTesting
   val processesModel: ProcessesModel
 
-  private val selectProcessAction: SelectProcessAction
-
-  /**
-   * If enabled, this view will respond to new processes by connecting inspectors to them.
-   *
-   * This can be useful behavior to toggle when the window is showing vs. minimized.
-   *
-   * Modifying this property potentially updates the UI, so it should only be changed on the UI thread.
-   */
   @VisibleForTesting
-  @set:UiThread
-  var autoConnects: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        if (value) {
-          processesModel.selectedProcess?.let { process ->
-            if (process.isRunning && (activeProcess?.isRunning == false || process.pid != activeProcess?.pid)) {
-              handleProcessChanged(processesModel.selectedProcess)
-            }
-          }
-        }
-      }
-    }
+  val selectProcessAction: SelectProcessAction
 
   private val noInspectorsMessage = EmptyStatePanel(
     AppInspectionBundle.message("select.process"),
@@ -188,7 +161,10 @@ class AppInspectionView @VisibleForTesting constructor(
     val edtExecutor = EdtExecutorService.getInstance()
     processesModel = ProcessesModel(edtExecutor, apiServices.processNotifier, { it.isInspectable() }, getPreferredProcesses)
     Disposer.register(this, processesModel)
-    selectProcessAction = SelectProcessAction(processesModel, onStopAction = { stopInspectors() })
+    selectProcessAction = SelectProcessAction(processesModel) {
+      stopInspectors()
+      processesModel.stop()
+    }
     val group = DefaultActionGroup().apply { add(selectProcessAction) }
     val toolbar = ActionManager.getInstance().createActionToolbar("AppInspection", group, true)
     toolbar.setTargetComponent(component)
@@ -200,55 +176,41 @@ class AppInspectionView @VisibleForTesting constructor(
     }, TabularLayout.Constraint(1, 0))
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
-    component.addHierarchyListener { event ->
-      if (event.changeFlags.and(SHOWING_CHANGED.toLong()) > 0) {
-        autoConnects = component.isShowing
+    processesModel.addSelectedProcessListeners(edtExecutor) {
+      // Force a UI update NOW instead of waiting to poll.
+      ActivityTracker.getInstance().inc()
+
+      val selectedProcess = processesModel.selectedProcess
+      if (selectedProcess != null && !selectedProcess.isRunning) {
+        // If a process was just killed, we'll get notified about that by being sent a dead
+        // process. In that case, remove all inspectors except for those that opted-in to stay up
+        // in offline mode and those that haven't finished loading.
+        inspectorTabs.removeAll { tab ->
+          !tab.provider.supportsOffline() || !tab.isComponentSet
+        }
+      }
+      else {
+        // If here, either we have no selected process (e.g. we just opened this view) or we got
+        // informed of a new, running process. In this case, clear all tabs to make way for all new
+        // tabs for the new process.
+        inspectorTabs.clear()
+      }
+      updateUi()
+      if (selectedProcess != null && selectedProcess.isRunning) {
+        scope.launch { populateTabs(selectedProcess) }
+      }
+      else {
+        // Note: This is fired by populateTabs in the other case
+        fireTabsChangedListener()
       }
     }
-
-    processesModel.addSelectedProcessListeners(edtExecutor) {
-      val newProcess = processesModel.selectedProcess
-      if (newProcess != null && newProcess.isRunning && !autoConnects) return@addSelectedProcessListeners
-
-      handleProcessChanged(newProcess)
-    }
     updateUi()
   }
 
-  @UiThread
-  private fun handleProcessChanged(process: ProcessDescriptor?) {
-    activeProcess = process
-    // Force a UI update NOW instead of waiting to poll.
-    ActivityTracker.getInstance().inc()
-
-    if (process != null && !process.isRunning) {
-      // If a process was just killed, we'll get notified about that by being sent a dead
-      // process. In that case, remove all inspectors except for those that opted-in to stay up
-      // in offline mode and those that haven't finished loading.
-      inspectorTabs.removeAll { tab -> !tab.provider.supportsOffline() || !tab.isComponentSet }
-    }
-    else {
-      // If here, either we have no selected process (e.g. we just opened this view) or we got
-      // informed of a new, running process. In this case, clear all tabs to make way for all new
-      // tabs for the new process.
-      inspectorTabs.clear()
-    }
-    updateUi()
-    if (process != null && process.isRunning) {
-      scope.launch { populateTabs(process) }
-    }
-    else {
-      // Note: This is fired by populateTabs in the other case
-      fireTabsChangedListener()
-    }
-  }
-
-  fun stopInspectors() {
+  private fun stopInspectors() {
     inspectorTabs
       .mapNotNull { tabShell -> tabShell.getUserData(TAB_KEY) }
       .forEach { tab -> tab.messenger.scope.cancel() }
-
-    processesModel.stop()
   }
 
   @UiThread

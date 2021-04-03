@@ -835,8 +835,8 @@ class DeviceViewContentPanelTest {
     IconLoader.activate()
     setPortableUiFont(2.0f)
     val panel = DeviceViewContentPanel(model {}, DeviceViewSettings(), disposable.disposable)
-    panel.setSize(800, 400)
-    val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
+    panel.setSize(400, 400)
+    val generatedImage = BufferedImage(400, 400, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     // We have to use a big threshold here, since the image is almost all text and despite using the portable font there's still

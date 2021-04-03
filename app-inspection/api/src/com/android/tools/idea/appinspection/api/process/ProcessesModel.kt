@@ -64,6 +64,9 @@ class ProcessesModel(private val executor: Executor,
   private val _processes = mutableSetOf<ProcessDescriptor>()
 
   @GuardedBy("lock")
+  private var isStopped = false
+
+  @GuardedBy("lock")
   private var _selectedProcess: ProcessDescriptor? = null
 
   val processes: Set<ProcessDescriptor>
@@ -81,6 +84,7 @@ class ProcessesModel(private val executor: Executor,
     get() = synchronized(lock) { _selectedProcess }
     set(value) {
       synchronized(lock) {
+        if (isStopped) return
         if (_selectedProcess != value) {
           // While we leave processes in the list when they die, once we update the active
           // selection, we silently prune them at that point. Otherwise, dead processes would
@@ -155,11 +159,24 @@ class ProcessesModel(private val executor: Executor,
   }
 
   /**
-   * Stop this model, which means we terminate the selected process if it is set.
+   * Stop this model, which means we terminate the selected process if it is set, and prevent
+   * the selected process from being changed.
+   *
+   * See also: [resume]
    */
   fun stop() {
     synchronized(lock) {
       selectedProcess?.let { process -> stopIfSelected(process) }
+      isStopped = true
+    }
+  }
+
+  /**
+   * Resume this model, if [stopIfSelected] was previously called.
+   */
+  fun resume() {
+    synchronized(lock) {
+      isStopped = false
     }
   }
 }

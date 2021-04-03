@@ -118,7 +118,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
   init {
     Disposer.register(this, appInspectionView)
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView))
+                                               AppInspectionToolWindowManagerListener(project, appInspectionView))
   }
 
   override fun dispose() {

@@ -2,9 +2,8 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
@@ -16,27 +15,23 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
  */
 class AppInspectionToolWindowManagerListener(
   private val project: Project,
-  private val ideServices: AppInspectionIdeServices,
-  private val toolWindow: ToolWindow,
-  private val appInspectionView: AppInspectionView,
+  private val appInspectionView: AppInspectionView
 ) : ToolWindowManagerListener {
-  private var wasVisible = toolWindow.isVisible
-
+  private var isWindowMinimizedBubbleShown = false
+  private var wasVisible = false
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
-    val isVisible = toolWindow.isVisible
-    val visibilityChanged = isVisible != wasVisible
-    wasVisible = isVisible
-
+    val inspectionToolWindow = toolWindowManager.getToolWindow(APP_INSPECTION_ID) ?: return
+    val visibilityChanged = inspectionToolWindow.isVisible != wasVisible
+    wasVisible = inspectionToolWindow.isVisible
     if (visibilityChanged) {
-      if (isVisible) {
+      if (inspectionToolWindow.isVisible) {
         AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowOpened()
       }
       else {
         AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowHidden()
-        if (appInspectionView.isInspectionActive()) {
-          ideServices.showNotification(AppInspectionBundle.message("inspection.is.running"), hyperlinkClicked = {
-            appInspectionView.stopInspectors()
-          })
+        if (!isWindowMinimizedBubbleShown && appInspectionView.isInspectionActive()) {
+          isWindowMinimizedBubbleShown = true
+          toolWindowManager.notifyByBalloon(APP_INSPECTION_ID, MessageType.INFO, AppInspectionBundle.message("inspection.is.running"))
         }
       }
     }
