@@ -155,6 +155,9 @@ class SelectProcessAction(private val model: ProcessesModel,
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
+      // If the model was stopped earlier, we should resume it now as we have received a user
+      // action indicating they want to re-engage with it again.
+      model.resume()
       model.selectedProcess = processDescriptor
     }
   }
