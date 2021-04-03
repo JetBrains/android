@@ -21,8 +21,14 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.*
+import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.openPreparedProject
+import com.android.tools.idea.testing.prepareGradleProject
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
@@ -41,6 +47,7 @@ import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
 import org.jetbrains.annotations.SystemIndependent
+import org.jetbrains.kotlin.util.prefixIfNot
 import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
@@ -48,6 +55,8 @@ import javax.swing.Icon
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData/snapshots"
+
+  override fun isIconRequired() = true
 
   data class ProjectViewSettings(
     val hideEmptyPackages: Boolean = true,
@@ -231,7 +240,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       val iconText =
         (icon as? IconLoader.CachedImageIcon)?.originalPath?.let { if (it.startsWith("/")) it else "/${it}" }
         ?: (icon as? ImageIconUIResource)?.let { it.description ?: "ImageIconUIResource(?)" }
-        ?: icon?.let { "$it (${it.javaClass.simpleName})" }
+        ?: icon?.let { if (it.javaClass.simpleName == "DummyIcon") it.toString().prefixIfNot("/") else "$it (${it.javaClass.simpleName})" }
       val nodeText =
         if (coloredText.isEmpty()) presentableText
         else coloredText.joinToString(separator = "") { it.text }
@@ -260,7 +269,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
         fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
           val newState = filter(element, state) ?: return
 
-          appendln("$prefix${element.presentation.toTestText()}")
+          appendLine("$prefix${element.presentation.toTestText()}")
           treeStructure
             .getChildElements(element)
             .map { it as AbstractTreeNode<*> }
@@ -278,7 +287,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     fun applySettings(settings: ProjectViewSettings) {
       ProjectView.getInstance(this.project).apply {
         setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
-        (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages);
+        (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages)
       }
     }
 
