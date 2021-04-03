@@ -504,7 +504,7 @@ class OverviewPanel extends JPanel {
         g.setColor(colorNormalLine);
       }
 
-      boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
+      boolean hoverHighlight = mMouseOverObject != null && mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN, 0);
       if ((clicks > 0) || (swipes > 0)) {
         mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
@@ -545,7 +545,7 @@ class OverviewPanel extends JPanel {
           stagger = Float.parseFloat(str);
         }
       }
-      boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
+      boolean hoverHighlight = mMouseOverObject != null && mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], mTransitionProgress, stagger);
       if ((clicks > 0) || (swipes > 0)) {
         drawActions(g, swipes, clicks, x1, x2, y);

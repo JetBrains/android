@@ -92,7 +92,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     Integer w = getImageDimension(debugProcess, "getWidth");
     Integer h = getImageDimension(debugProcess, "getHeight");
 
-    return (w != null & h != null) ? new Dimension(w, h) : null;
+    return (w != null && h != null) ? new Dimension(w, h) : null;
   }
 
   @Override

@@ -60,7 +60,7 @@ public class LibraryFileNode extends LibraryNode {
     boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
     boolean missingPathMappings = myLibrary.isMissingPathMappings();
     SimpleTextAttributes attributes =
-      (!hasDebugSymbols | missingPathMappings) ? new SimpleTextAttributes(STYLE_WAVED, null, GRAY) : REGULAR_ATTRIBUTES;
+      (!hasDebugSymbols || missingPathMappings) ? new SimpleTextAttributes(STYLE_WAVED, null, GRAY) : REGULAR_ATTRIBUTES;
     presentation.addText(myLibrary.name, attributes);
 
     if (!hasDebugSymbols) {

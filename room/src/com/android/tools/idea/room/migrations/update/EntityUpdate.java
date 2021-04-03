@@ -267,7 +267,7 @@ public class EntityUpdate {
    * Specifies whether any primary/foreign key constraints were updated.
    */
   public boolean keysWereUpdated() {
-    return primaryKeyUpdate | foreignKeysUpdate;
+    return primaryKeyUpdate || foreignKeysUpdate;
   }
 
   /**
