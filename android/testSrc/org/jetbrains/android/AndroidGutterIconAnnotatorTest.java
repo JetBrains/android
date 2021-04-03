@@ -85,6 +85,11 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
+  @Override
+  protected boolean isIconRequired() {
+    return true;
+  }
+
   public void testDrawableInManifest() throws IOException {
     // Drawable icon in AndroidManifest.xml file.
     HighlightInfo highlightInfo =

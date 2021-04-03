@@ -62,8 +62,8 @@ public final class VirtualDeviceTest {
   }
 
   @Before
-  public void activateIconLoader() {
-    IconManager.activate();
+  public void activateIconLoader() throws Throwable {
+    IconManager.activate(null);
     IconLoader.activate();
   }
 

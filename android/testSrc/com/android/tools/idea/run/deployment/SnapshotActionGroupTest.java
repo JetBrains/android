@@ -53,8 +53,8 @@ public final class SnapshotActionGroupTest {
   private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
 
   @Before
-  public void activateIconLoader()  {
-    IconManager.activate();
+  public void activateIconLoader() throws Throwable {
+    IconManager.activate(null);
     IconLoader.activate();
   }
 
