@@ -16,58 +16,290 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.google.common.truth.Truth.assertThat
+import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.argThat
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.execution.Executor
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.testFramework.ProjectRule
+import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
+import org.mockito.Mock
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyList
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.never
+import org.mockito.Mockito.nullable
+import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
+import java.util.concurrent.ExecutorService
 
 /**
  * Unit tests for [GradleConnectedAndroidTestInvoker].
  */
 @RunWith(JUnit4::class)
 class GradleConnectedAndroidTestInvokerTest {
+  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @Test
-  fun updateDevicesListAndRunSingleDeviceTest() {
-    val gradleConnectedTestInvoker = GradleConnectedAndroidTestInvoker(1)
-    val mockDevice = Mockito.mock(IDevice::class.java)
+  @Mock lateinit var mockExecutor: Executor
+  @Mock lateinit var mockHandler: ProcessHandler
+  @Mock lateinit var mockLaunchStatus: LaunchStatus
+  @Mock lateinit var mockPrinter: ConsolePrinter
+  @Mock lateinit var mockProcessHandler: ProcessHandler
+  @Mock lateinit var mockAndroidTestResultListener: AndroidTestResultListener
+  @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
+  @Mock lateinit var mockGradleTaskManager: GradleTaskManager
+  private lateinit var mockDevices: List<IDevice>
 
-    val deviceRun = gradleConnectedTestInvoker.run(mockDevice)
-    val devices = gradleConnectedTestInvoker.getDevices()
+  private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
 
-    assertThat(deviceRun).isTrue()
-    assertThat(devices.size).isEqualTo(1)
-    assertThat(devices).contains(mockDevice)
+  @Before
+  fun setup() {
+    `when`(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
+    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
+  }
+
+  private fun createGradleConnectedAndroidTestInvoker(
+    numDevices: Int = 1
+  ) : GradleConnectedAndroidTestInvoker {
+    mockDevices = (1..numDevices).map { deviceIndex ->
+      mock<IDevice>().apply {
+        `when`(serialNumber).thenReturn("DEVICE_SERIAL_NUMBER_${deviceIndex}")
+        `when`(version).thenReturn(AndroidVersion(29))
+      }
+    }.toList()
+    return  GradleConnectedAndroidTestInvoker(
+      numDevices,
+      backgroundTaskExecutor = directExecutor::submit,
+      gradleTaskManagerFactory = { mockGradleTaskManager })
   }
 
   @Test
-  fun updateDevicesListAndDoNotRunIfMultipleDevicesSelectedButNotAllRun() {
-    val gradleConnectedTestInvoker = GradleConnectedAndroidTestInvoker(2)
-    val mockDevice = Mockito.mock(IDevice::class.java)
+  fun executeTaskSingleDevice() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
-    val deviceRun = gradleConnectedTestInvoker.run(mockDevice)
-    val devices = gradleConnectedTestInvoker.getDevices()
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
 
-    assertThat(deviceRun).isFalse()
-    assertThat(devices.size).isEqualTo(1)
-    assertThat(devices).contains(mockDevice)
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
   }
 
   @Test
-  fun updateDevicesListAndRunIfMultipleDevicesSelectedAndAllRun() {
-    val gradleConnectedTestInvoker = GradleConnectedAndroidTestInvoker(2)
-    val mockDevice1 = Mockito.mock(IDevice::class.java)
-    val mockDevice2 = Mockito.mock(IDevice::class.java)
+  fun doNotExecuteUntilAllDevicesAreScheduled() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker(numDevices = 2)
 
-    val firstRun = gradleConnectedTestInvoker.run(mockDevice1)
-    val secondRun = gradleConnectedTestInvoker.run(mockDevice2)
-    val devices = gradleConnectedTestInvoker.getDevices()
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
 
-    assertThat(firstRun).isFalse()
-    assertThat(secondRun).isTrue()
-    assertThat(devices.size).isEqualTo(2)
-    assertThat(devices).contains(mockDevice1)
-    assertThat(devices).contains(mockDevice2)
+    verify(mockGradleTaskManager, never()).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[1])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun checkGradleExecutionSettingsForAllInPackageTestWithSingleDevice() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "packageName", testClassName = "", testMethodName = "",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.package=packageName") &&
+          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1"
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun checkGradleExecutionSettingsForClassTestWithMultipleDevices() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker(numDevices = 2)
+
+    mockDevices.forEach { device ->
+      gradleConnectedTestInvoker.schedule(
+        projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+        waitForDebugger = false, testPackageName = "", testClassName = "testClassName", testMethodName = "",
+        device)
+    }
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName") &&
+          env["ANDROID_SERIAL"] == "DEVICE_SERIAL_NUMBER_1,DEVICE_SERIAL_NUMBER_2"
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun checkGradleExecutionSettingsForMethodTest() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = false, testPackageName = "", testClassName = "testClassName", testMethodName = "testMethodName",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.class=testClassName#testMethodName")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun checkGradleExecutionSettingsForMethodTestWithDebugger() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.testInstrumentationRunnerArguments.debug=true")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun useUnifiedTestPlatformFlagShouldBeEnabledInGradleExecutionSettings() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun utpTestResultsReportShouldBeEnabled() {
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pcom.android.tools.utp.GradleAndroidProjectResolverExtension.enable=true")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun testTaskNamesMatchSelectedBuildVariant() {
+    `when`(mockAndroidModuleModel.selectedVariantName).thenReturn("nonDefaultBuildVariant")
+
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0])
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      eq(listOf("connectedNonDefaultBuildVariantAndroidTest")),
+      anyString(),
+      any(),
+      nullable(String::class.java),
+      any()
+    )
   }
 }
