@@ -23,14 +23,23 @@ import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
-import com.sun.jdi.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.sun.jdi.ArrayReference;
+import com.sun.jdi.ArrayType;
+import com.sun.jdi.ByteValue;
+import com.sun.jdi.ClassType;
+import com.sun.jdi.Field;
+import com.sun.jdi.IntegerValue;
+import com.sun.jdi.Method;
+import com.sun.jdi.ObjectCollectedException;
+import com.sun.jdi.ObjectReference;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Value;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluator in the name BitmapEvaluatorProvider implies the use of the debugger evaluation mechanism to query the app for the desired
@@ -92,7 +101,7 @@ public final class BitmapEvaluatorProvider implements BitmapDecoder.BitmapDataPr
     Integer w = getImageDimension(debugProcess, "getWidth");
     Integer h = getImageDimension(debugProcess, "getHeight");
 
-    return (w != null & h != null) ? new Dimension(w, h) : null;
+    return (w != null && h != null) ? new Dimension(w, h) : null;
   }
 
   @Override

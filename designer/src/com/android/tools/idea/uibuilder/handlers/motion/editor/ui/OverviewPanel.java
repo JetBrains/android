@@ -24,19 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.LinearGradientPaint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -50,7 +38,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 /**
  * The overview panel displays graphically the layout and the transitions and allows selection for ether.
@@ -504,7 +492,7 @@ class OverviewPanel extends JPanel {
         g.setColor(colorNormalLine);
       }
 
-      boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
+      boolean hoverHighlight = mMouseOverObject != null && mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], Float.NaN, 0);
       if ((clicks > 0) || (swipes > 0)) {
         mOnActionSize[i] = drawActions(g, swipes, clicks, x1, x2, y);
@@ -545,7 +533,7 @@ class OverviewPanel extends JPanel {
           stagger = Float.parseFloat(str);
         }
       }
-      boolean hoverHighlight = mMouseOverObject != null & mTransitions[i] == mMouseOverObject;
+      boolean hoverHighlight = mMouseOverObject != null && mTransitions[i] == mMouseOverObject;
       drawTransition((Graphics2D)g, hoverHighlight, x1, x2, y, constraintSetY, mTransitions[i], mTransitionProgress, stagger);
       if ((clicks > 0) || (swipes > 0)) {
         drawActions(g, swipes, clicks, x1, x2, y);
