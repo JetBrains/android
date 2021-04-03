@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.room.migrations.update;
 
-import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.*;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.isFieldStructureTheSame;
+import static com.android.tools.idea.room.migrations.update.SchemaDiffUtil.tablesHaveSameForeignKeyConstraints;
 
 import com.android.tools.idea.room.migrations.json.EntityBundle;
 import com.android.tools.idea.room.migrations.json.FieldBundle;
@@ -267,7 +268,7 @@ public class EntityUpdate {
    * Specifies whether any primary/foreign key constraints were updated.
    */
   public boolean keysWereUpdated() {
-    return primaryKeyUpdate | foreignKeysUpdate;
+    return primaryKeyUpdate || foreignKeysUpdate;
   }
 
   /**

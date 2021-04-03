@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import static com.intellij.icons.AllIcons.FileTypes.JavaClass;
+import static com.intellij.ui.JBColor.GRAY;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -25,17 +30,11 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiBinaryFile;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-
-import static com.intellij.icons.AllIcons.FileTypes.JavaClass;
-import static com.intellij.ui.JBColor.GRAY;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The node representing the .so file.
@@ -60,7 +59,7 @@ public class LibraryFileNode extends LibraryNode {
     boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
     boolean missingPathMappings = myLibrary.isMissingPathMappings();
     SimpleTextAttributes attributes =
-      (!hasDebugSymbols | missingPathMappings) ? new SimpleTextAttributes(STYLE_WAVED, null, GRAY) : REGULAR_ATTRIBUTES;
+      (!hasDebugSymbols || missingPathMappings) ? new SimpleTextAttributes(STYLE_WAVED, null, GRAY) : REGULAR_ATTRIBUTES;
     presentation.addText(myLibrary.name, attributes);
 
     if (!hasDebugSymbols) {

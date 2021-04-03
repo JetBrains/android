@@ -19,12 +19,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.JPanel;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
+import javax.swing.*;
 
 /**
  * This represents a single row of a timeline
@@ -251,7 +247,7 @@ public class TimeLineRow extends JPanel {
     if (mShowTitle) {
       ret += myTitleHeight;
     }
-    if (mGraphOpen & mHasGraph) {
+    if (mGraphOpen && mHasGraph) {
       ret += myGraphHeight;
     }
     return ret;

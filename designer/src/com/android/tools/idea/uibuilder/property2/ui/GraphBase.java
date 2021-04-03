@@ -16,19 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.ui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Desktop;
-import java.awt.FontMetrics;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
@@ -37,10 +25,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Vector;
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class GraphBase extends JPanel {
   int myInsTop = 30;
@@ -146,7 +131,7 @@ public class GraphBase extends JPanel {
     myActualMaxx = -Float.MAX_VALUE;
     myActualMaxy = -Float.MAX_VALUE;
     for (int g = 0; g < myXPoints.length; g++) {
-      if (myXPoints[g] == null | myYPoints[g] == null) {
+      if (myXPoints[g] == null || myYPoints[g] == null) {
         continue;
       }
       for (int i = 0; i < myXPoints[g].length; i++) {
