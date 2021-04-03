@@ -20,32 +20,12 @@ import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
   private static final String TEST_APP_CLASS_NAME = "google.simpleapplication.ApplicationTest";
   private static final String DYNAMIC_FEATURE_INSTRUMENTED_TEST_CLASS_NAME = "com.example.instantapp.ExampleInstrumentedTest";
-
-  @Override
-  public void setUp() throws Exception {
-    // Flag has to be overridden as early as possible, since the run configuration type is initialized
-    // during test setup (see org.jetbrains.android.AndroidPlugin).
-    StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.override(true);
-
-    super.setUp();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
 
   public void testApkProviderForPreLDevice() throws Exception {
     loadProject(DYNAMIC_APP);
