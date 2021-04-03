@@ -45,6 +45,7 @@ import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -124,7 +125,7 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     getStudioProfilers().getUpdater().register(myUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
   @Override
@@ -135,6 +136,11 @@ public class EnergyProfilerStage extends StreamingStage implements CodeNavigator
     getStudioProfilers().getUpdater().unregister(myUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.ENERGY_STAGE;
   }
 
   @NotNull

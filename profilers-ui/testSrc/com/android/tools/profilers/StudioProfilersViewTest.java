@@ -47,6 +47,7 @@ import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
 import com.google.common.truth.Truth;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
@@ -576,6 +577,11 @@ public class StudioProfilersViewTest {
 
     @Override
     public void exit() { }
+
+    @Override
+    public AndroidProfilerEvent.Stage getStageType() {
+      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
+    }
 
     @Nullable
     @Override

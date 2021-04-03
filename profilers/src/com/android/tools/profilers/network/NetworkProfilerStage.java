@@ -41,6 +41,7 @@ import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.network.httpdata.HttpData;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -179,7 +180,7 @@ public class NetworkProfilerStage extends StreamingStage implements CodeNavigato
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
   @Override
@@ -193,6 +194,11 @@ public class NetworkProfilerStage extends StreamingStage implements CodeNavigato
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     myRangeSelectionModel.clearListeners();
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.NETWORK_STAGE;
   }
 
   @NotNull

@@ -177,7 +177,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
     studioProfilers.ideServices.codeNavigator.addListener(this)
-    studioProfilers.ideServices.featureTracker.trackEnterStage(this.javaClass)
+    studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
   override fun exit() {
