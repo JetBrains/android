@@ -44,7 +44,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +60,10 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link AndroidJavaResourceExternalAnnotator}, and {@link AndroidXMLResourceExternalAnnotator}.
  */
 public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
+  @Override
+  protected boolean isIconRequired() {
+    return true;
+  }
 
   @Override
   protected void setUp() throws Exception {
