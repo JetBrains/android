@@ -10,14 +10,7 @@ public class AndroidIcons {
 
   public static final Icon Android = load("/icons/android.svg"); // 16x16
 
-  public static final Icon NotMatch = load("/icons/notMatch.png");
-
   public static final Icon Activity = load("/icons/activity.png"); // 16x16
-
-  public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
-
-
-  public static final Icon Variant = load("/icons/variant.png");
 
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.svg"); // 64x64
@@ -37,11 +30,6 @@ public class AndroidIcons {
   }
 
   public static class DeviceExplorer {
-    public static final Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png"); // 16x16
     public static final Icon DevicesLineup = load("/icons/explorer/devices-lineup.png"); // 300x150
-  }
-
-  public static class Assistant {
-    public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16
   }
 }

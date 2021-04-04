@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -27,17 +30,13 @@ import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.SdkConstants.FD_RES_LAYOUT;
+import javax.swing.Icon;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
   private static final String FILE_ARROW = " \u2192 ";
@@ -162,6 +161,6 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   }
 
   public static Icon getBetterMatchIcon() {
-    return AndroidIcons.NotMatch;
+    return AllIcons.Actions.CloseDarkGrey;
   }
 }
