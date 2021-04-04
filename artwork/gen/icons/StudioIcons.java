@@ -44,6 +44,7 @@ public class StudioIcons {
     /** @deprecated use AllIcons.General.Add */
     @Deprecated
     public static final Icon ADD = load("/studio/icons/common/add.svg"); // 16x16
+    public static final Icon ANDROID_HEAD = load("/studio/icons/common/android-head.svg"); // 16x16
 
     /** @deprecated use AllIcons.Actions.Back */
     @Deprecated
@@ -209,6 +210,7 @@ public class StudioIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon DATABASE_FOLDER = load("/studio/icons/device-explorer/database-folder.svg"); // 16x16
     public static final Icon DEVICE_PAIRED = load("/studio/icons/device-explorer/device-paired.svg"); // 16x16
     public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
@@ -545,6 +547,7 @@ public class StudioIcons {
       public static final Icon DISTRIBUTE_VERTICAL_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/distribute-vertical-constraint.svg"); // 16x16
       public static final Icon DISTRIBUTE_VERTICAL = load("/studio/icons/layout-editor/toolbar/distribute-vertical.svg"); // 16x16
       public static final Icon DISTRIBUTE_WEIGHT = load("/studio/icons/layout-editor/toolbar/distribute-weight.svg"); // 16x16
+      public static final Icon EMPTY_FLAG = load("/studio/icons/layout-editor/toolbar/empty-flag.svg"); // 16x16
       public static final Icon EXPAND_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/expand-horizontal.svg"); // 16x16
       public static final Icon EXPAND_TO_FIT = load("/studio/icons/layout-editor/toolbar/expand-to-fit.svg"); // 16x16
       public static final Icon EXPAND_VERTICAL = load("/studio/icons/layout-editor/toolbar/expand-vertical.svg"); // 16x16
@@ -627,7 +630,9 @@ public class StudioIcons {
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR_DIMENSION = load("/studio/icons/misc/product-flavor-dimension.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR = load("/studio/icons/misc/product-flavor.svg"); // 16x16
+    public static final Icon PROJECT_SYSTEM_VARIANT = load("/studio/icons/misc/project-system-variant.svg"); // 16x16
     public static final Icon SIGNING_CONFIG = load("/studio/icons/misc/signing-config.svg"); // 16x16
+    public static final Icon TUTORIAL_INDICATOR = load("/studio/icons/misc/tutorial-indicator.svg"); // 18x18
   }
 
   public static class NavEditor {

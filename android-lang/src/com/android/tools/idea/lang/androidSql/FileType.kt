@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.androidSql
 
 import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
 const val ANDROID_SQL_DESCRIPTION = "Android Room SQL"
@@ -36,4 +37,4 @@ class AndroidSqlFileType private constructor() : LanguageFileType(AndroidSqlLang
 /**
  * Icon used for all things related to our SQL support.
  */
-val ANDROID_SQL_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
+val ANDROID_SQL_ICON: Icon = StudioIcons.DeviceExplorer.DATABASE_FOLDER
