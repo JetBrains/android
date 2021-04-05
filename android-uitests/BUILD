@@ -1816,6 +1816,7 @@ java_test(
         "no_windows",
         "qa_fast",
         "qa_fast_emu",
+        "qa_fast_unreliable_emu",
         "requires-fakeroot",
         "requires_emulator",
     ],
