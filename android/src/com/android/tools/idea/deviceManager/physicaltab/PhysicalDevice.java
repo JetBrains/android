@@ -24,7 +24,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
+public final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
   private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
     Comparator.<PhysicalDevice, Boolean>comparing(Device::isConnected, Comparator.reverseOrder())
       .thenComparing(PhysicalDevice::getLastConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
@@ -32,17 +32,17 @@ final class PhysicalDevice extends Device implements Comparable<@NotNull Physica
   private final @NotNull String mySerialNumber;
   private final @Nullable Instant myLastConnectionTime;
 
-  static final class Builder extends Device.Builder {
+  public static final class Builder extends Device.Builder {
     private @Nullable String mySerialNumber;
     private @Nullable Instant myLastConnectionTime;
 
     // TODO Initialize myName and myTarget properly
-    Builder() {
+    public Builder() {
       myName = "Physical Device";
       myTarget = "Target";
     }
 
-    @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
+    public @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
       mySerialNumber = serialNumber;
       return this;
     }
@@ -57,7 +57,7 @@ final class PhysicalDevice extends Device implements Comparable<@NotNull Physica
       return this;
     }
 
-    @NotNull Builder setConnected(@SuppressWarnings("SameParameterValue") boolean connected) {
+    public @NotNull Builder setConnected(@SuppressWarnings("SameParameterValue") boolean connected) {
       myConnected = connected;
       return this;
     }
@@ -68,7 +68,7 @@ final class PhysicalDevice extends Device implements Comparable<@NotNull Physica
     }
 
     @Override
-    protected @NotNull PhysicalDevice build() {
+    public @NotNull PhysicalDevice build() {
       return new PhysicalDevice(this);
     }
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.tools.idea.deviceManager.Device;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collection;
 import java.util.Collections;
@@ -112,6 +113,20 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         return "Type";
       case ACTIONS_MODEL_COLUMN_INDEX:
         return "Actions";
+      default:
+        throw new AssertionError(modelColumnIndex);
+    }
+  }
+
+  @Override
+  public @NotNull Class<@NotNull ?> getColumnClass(int modelColumnIndex) {
+    switch (modelColumnIndex) {
+      case DEVICE_MODEL_COLUMN_INDEX:
+        return Device.class;
+      case API_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
+      case ACTIONS_MODEL_COLUMN_INDEX:
+        return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }
