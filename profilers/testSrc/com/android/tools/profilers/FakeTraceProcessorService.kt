@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers
 
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
@@ -24,9 +24,6 @@ import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
 import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
-import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
-import com.intellij.util.Base64
-import perfetto.protos.PerfettoTrace
 import java.io.File
 import java.io.FileInputStream
 import java.io.ObjectInputStream
@@ -37,7 +34,8 @@ class FakeTraceProcessorService: TraceProcessorService {
     private val validTraces by lazy {
       setOf(
         CpuProfilerTestUtils.getTraceFile("perfetto.trace"),
-        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace")
+        CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"),
+        CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace")
       )
     }
 
@@ -98,10 +96,12 @@ class FakeTraceProcessorService: TraceProcessorService {
       return false
     }
   }
+
   override fun getProcessMetadata(traceId: Long, ideProfilerServices: IdeProfilerServices): List<ProcessModel> {
     if (loadedTraces.containsKey(traceId)) {
       return loadProcessModelListFor(loadedTraces[traceId]!!)
-    } else {
+    }
+    else {
       return emptyList()
     }
   }
@@ -114,15 +114,19 @@ class FakeTraceProcessorService: TraceProcessorService {
     return metadataList
   }
 
-  override fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
-    if (loadedTraces.containsKey(traceId)) {
+  override fun loadCpuData(traceId: Long,
+                           processIds: List<Int>,
+                           selectedProcessName: String,
+                           ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
+    return if (loadedTraces.containsKey(traceId)) {
       val trace = loadedTraces[traceId]!!
       val model: Map<Int, SystemTraceModelAdapter> = getModelMapFor(trace)
       // The pid of the main process is always the first one in the list.
       val pid = processIds[0]
-      return model[pid] ?: error("$pid process should be present in model")
-    } else {
-      return EmptyModelAdapter()
+      model[pid] ?: error("$pid process should be present in model")
+    }
+    else {
+      EmptyModelAdapter()
     }
   }
 
@@ -142,5 +146,6 @@ class FakeTraceProcessorService: TraceProcessorService {
     override fun getCpuCores(): List<CpuCoreModel> = emptyList()
     override fun getSystemTraceTechnology() = Cpu.CpuTraceType.PERFETTO
     override fun isCapturePossibleCorrupted() = false
+    override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import trebuchet.model.CpuProcessSlice
@@ -57,12 +58,18 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
   override fun getSystemTraceTechnology() = technology
   override fun isCapturePossibleCorrupted() = possibleCorruption
 
+  /**
+   * Android frame events are not supported in Trebuchet.
+   */
+  override fun getAndroidFrameLayers() = emptyList<TraceProcessor.AndroidFrameEventsResult.Layer>()
+
   init {
     // We check if we have a parent timestamp. If not this could be from an imported trace.
     // In the case it is 0, we use the first timestamp of our capture as a reference point.
     if (trebuchetModel.parentTimestamp.compareTo(0.0) == 0) {
       timeShiftFromBeginningSeconds = 0.0
-    } else {
+    }
+    else {
       timeShiftFromBeginningSeconds = trebuchetModel.parentTimestamp - trebuchetModel.parentTimestampBootTime
     }
 

@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
@@ -50,6 +51,9 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @NotNull
   private final SystemTraceSurfaceflingerManager mySurfaceflingerManager;
 
+  @NotNull
+  private final List<TraceProcessor.AndroidFrameEventsResult.Layer> myAndroidFrameLayers;
+
   public SystemTraceCpuCapture(long traceId,
                                @NotNull SystemTraceModelAdapter model,
                                @NotNull Map<CpuThreadInfo, CaptureNode> captureNodes,
@@ -74,6 +78,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
 
     myFrameManager = frameManager;
     mySurfaceflingerManager = surfaceflingerManager;
+    myAndroidFrameLayers = model.getAndroidFrameLayers();
     // Set the view range of the capture timeline to our initial view range, this is used later by the UI to set the initial view.
     getTimeline().getViewRange().set(initialViewRangeUs.getMin(), initialViewRangeUs.getMax());
   }
@@ -158,5 +163,11 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @Override
   public int getRenderThreadId() {
     return myFrameManager.getRenderThreadId();
+  }
+
+  @NotNull
+  @Override
+  public List<TraceProcessor.AndroidFrameEventsResult.Layer> getAndroidFrameLayers() {
+    return myAndroidFrameLayers;
   }
 }

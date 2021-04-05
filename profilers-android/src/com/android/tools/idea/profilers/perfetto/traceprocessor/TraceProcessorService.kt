@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.profiler.perfetto.proto.Memory
-import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.LoadTraceRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRequest
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchResponse
@@ -32,18 +31,13 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.wm.ex.WindowManagerEx
 import java.io.File
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -68,7 +62,7 @@ class TraceProcessorServiceImpl(
     }
 
     @VisibleForTesting
-    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>): QueryBatchRequest {
+    fun buildCpuDataRequestProto(traceId: Long, processIds: List<Int>, selectedProcessName: String = ""): QueryBatchRequest {
       val queryBuilder = QueryBatchRequest.newBuilder()
         // Query metadata for all processes, as we need the info from everything to reference in the scheduling events.
         .addQuery(QueryParameters.newBuilder()
@@ -82,6 +76,12 @@ class TraceProcessorServiceImpl(
         .addQuery(QueryParameters.newBuilder()
                     .setTraceId(traceId)
                     .setCpuCoreCountersRequest(QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
+        // Query Android frame events.
+        // Use the selected process name as layer name hint, e.g. com.example.app/MainActivity#0.
+        .addQuery(QueryParameters.newBuilder()
+                    .setTraceId(traceId)
+                    .setAndroidFrameEventsRequest(QueryParameters.AndroidFrameEventsParameters.newBuilder()
+                                                    .setLayerNameHint(selectedProcessName)))
 
       // Now let's add the queries that we limit for the processes we're interested in:
       for (id in processIds) {
@@ -197,9 +197,12 @@ class TraceProcessorServiceImpl(
     return model.getProcesses()
   }
 
-  override fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
+  override fun loadCpuData(traceId: Long,
+                           processIds: List<Int>,
+                           selectedProcessName: String,
+                           ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {
     val methodStopwatch = Stopwatch.createStarted(ticker)
-    val queryProto = Companion.buildCpuDataRequestProto(traceId, processIds)
+    val queryProto = buildCpuDataRequestProto(traceId, processIds, selectedProcessName)
 
     LOGGER.info("TPD Service: Querying cpu data for trace $traceId.")
     val queryStopwatch = Stopwatch.createStarted(ticker)
@@ -232,6 +235,9 @@ class TraceProcessorServiceImpl(
     response.resultList.filter { it.hasSchedResult() }.forEach { modelBuilder.addSchedulingEvents(it.schedResult) }
     response.resultList.filter { it.hasCpuCoreCountersResult() }.forEach { modelBuilder.addCpuCounters(it.cpuCoreCountersResult) }
     response.resultList.filter { it.hasProcessCountersResult() }.forEach { modelBuilder.addProcessCounters(it.processCountersResult) }
+    response.resultList.filter { it.hasAndroidFrameEventsResult() }.forEach {
+      modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult)
+    }
 
     val model = modelBuilder.build()
 
