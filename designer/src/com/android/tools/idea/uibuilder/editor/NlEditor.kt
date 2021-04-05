@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
-import com.android.tools.idea.uibuilder.property.NelePropertiesPanelDefinition
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
@@ -60,7 +60,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
-    definitions.add(NelePropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
+    definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       definitions.add(MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE))

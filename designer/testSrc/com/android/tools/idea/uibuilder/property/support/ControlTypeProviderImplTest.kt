@@ -20,8 +20,8 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -50,42 +50,42 @@ class ControlTypeProviderImplTest {
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
     `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.FLAG_EDITOR)
   }
 
   @Test
   fun testComboBoxForEnumSupport() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
+    val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NlPropertyType.DIMENSION)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
     `when`(enumSupportProvider.invoke(property)).thenReturn(enumSupport)
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.COMBO_BOX)
   }
 
   @Test
   fun testBooleanForBooleanTypes() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NelePropertyType.THREE_STATE_BOOLEAN)
+    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NlPropertyType.THREE_STATE_BOOLEAN)
     val enumSupportProvider = createEnumSupportProvider()
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)
   }
 
   @Test
   fun testTextEditorForEverythingElse() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NelePropertyType.DIMENSION)
+    val property = util.makeProperty(ANDROID_URI, ATTR_PADDING_BOTTOM, NlPropertyType.DIMENSION)
     val enumSupportProvider = createEnumSupportProvider()
-    val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.TEXT_EDITOR)
   }
 
   // Method here to isolate the unchecked cast to a single place
-  private fun createEnumSupportProvider(): EnumSupportProvider<NelePropertyItem> {
+  private fun createEnumSupportProvider(): EnumSupportProvider<NlPropertyItem> {
     @Suppress("UNCHECKED_CAST")
-    return mock(EnumSupportProvider::class.java) as EnumSupportProvider<NelePropertyItem>
+    return mock(EnumSupportProvider::class.java) as EnumSupportProvider<NlPropertyItem>
   }
 }

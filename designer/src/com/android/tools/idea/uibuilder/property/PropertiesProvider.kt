@@ -20,7 +20,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 
 interface PropertiesProvider {
 
-  fun getProperties(model: NelePropertiesModel, optionalValue: Any?, components: List<NlComponent>): PropertiesTable<NelePropertyItem>
+  fun getProperties(model: NlPropertiesModel, optionalValue: Any?, components: List<NlComponent>): PropertiesTable<NlPropertyItem>
 
-  fun createEmptyTable(): PropertiesTable<NelePropertyItem>
+  fun createEmptyTable(): PropertiesTable<NlPropertyItem>
 }

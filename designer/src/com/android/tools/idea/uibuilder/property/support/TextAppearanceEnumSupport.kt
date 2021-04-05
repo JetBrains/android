@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.util.text.StringUtil
 
 private const val TEXT_APPEARANCE = "TextAppearance"
@@ -50,7 +50,7 @@ private const val DISPLAY4 = "Display4"
  * The Android and AppCompat TextAppearances are limited to the following:
  *   Small, Medium, Large, Body1, Body2, Display1, Display2, Display3, Display4
  */
-class TextAppearanceEnumSupport(property: NelePropertyItem): StyleEnumSupport(property) {
+class TextAppearanceEnumSupport(property: NlPropertyItem): StyleEnumSupport(property) {
 
   companion object {
     // TODO: Replace with namespace for the appcompat styles

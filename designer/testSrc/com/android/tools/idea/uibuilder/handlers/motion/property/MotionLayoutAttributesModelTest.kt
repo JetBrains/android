@@ -35,7 +35,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START
 import com.android.tools.idea.uibuilder.handlers.motion.property.CustomAttributeType.CUSTOM_STRING
 import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -68,7 +68,7 @@ class MotionLayoutAttributesModelTest {
   val edtRule = EdtRule()
 
   @Mock
-  private lateinit var listener: PropertiesModelListener<NelePropertyItem>
+  private lateinit var listener: PropertiesModelListener<NlPropertyItem>
 
   @Before
   fun setUp() {

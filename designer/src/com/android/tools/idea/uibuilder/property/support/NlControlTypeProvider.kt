@@ -15,41 +15,41 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
-import com.android.tools.idea.uibuilder.property.NeleFlagsPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 
 /**
- * [ControlType] provider of a value editor for a [NelePropertyItem].
+ * [ControlType] provider of a value editor for a [NlPropertyItem].
  */
-open class NeleControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : ControlTypeProvider<NelePropertyItem> {
+open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NlPropertyItem>) : ControlTypeProvider<NlPropertyItem> {
 
-  override fun invoke(actual: NelePropertyItem): ControlType {
+  override fun invoke(actual: NlPropertyItem): ControlType {
     val property = actual.delegate ?: actual
     return when {
-      property is NeleFlagsPropertyItem ->
+      property is NlFlagsPropertyItem ->
         ControlType.FLAG_EDITOR
 
       enumSupportProvider(property) != null ->
         when (property.type) {
-          NelePropertyType.DESTINATION,
-          NelePropertyType.CLASS_NAME,
-          NelePropertyType.NAVIGATION -> ControlType.DROPDOWN
+          NlPropertyType.DESTINATION,
+          NlPropertyType.CLASS_NAME,
+          NlPropertyType.NAVIGATION -> ControlType.DROPDOWN
           else -> ControlType.COMBO_BOX
         }
 
-      property.type == NelePropertyType.THREE_STATE_BOOLEAN ->
+      property.type == NlPropertyType.THREE_STATE_BOOLEAN ->
         ControlType.THREE_STATE_BOOLEAN
 
-      property.type == NelePropertyType.BOOLEAN ->
+      property.type == NlPropertyType.BOOLEAN ->
         ControlType.BOOLEAN
 
-      property.type == NelePropertyType.DRAWABLE ||
-      property.type == NelePropertyType.COLOR ||
-      property.type == NelePropertyType.COLOR_STATE_LIST ->
+      property.type == NlPropertyType.DRAWABLE ||
+      property.type == NlPropertyType.COLOR ||
+      property.type == NlPropertyType.COLOR_STATE_LIST ->
         ControlType.COLOR_EDITOR
 
       else ->

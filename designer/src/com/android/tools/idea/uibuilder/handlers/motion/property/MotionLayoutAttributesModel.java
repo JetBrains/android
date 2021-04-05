@@ -30,8 +30,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesModel;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.google.common.base.Predicates;
@@ -57,9 +57,9 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link PropertiesModel} for motion layout property editor.
  */
-public class MotionLayoutAttributesModel extends NelePropertiesModel {
+public class MotionLayoutAttributesModel extends NlPropertiesModel {
   private final MotionLayoutPropertyProvider myMotionLayoutPropertyProvider;
-  private Map<String, PropertiesTable<NelePropertyItem>> myAllProperties;
+  private Map<String, PropertiesTable<NlPropertyItem>> myAllProperties;
 
   public MotionLayoutAttributesModel(
     @NotNull Disposable parentDisposable,
@@ -71,7 +71,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     setDefaultValueProvider(new MotionDefaultPropertyValueProvider());
   }
 
-  public Map<String, PropertiesTable<NelePropertyItem>> getAllProperties() {
+  public Map<String, PropertiesTable<NlPropertyItem>> getAllProperties() {
     return myAllProperties;
   }
 
@@ -97,7 +97,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       });
       return true;
     }
-    Map<String, PropertiesTable<NelePropertyItem>> newProperties =
+    Map<String, PropertiesTable<NlPropertyItem>> newProperties =
       myMotionLayoutPropertyProvider.getAllProperties(this, selection);
     setLastUpdateCompleted(false);
 
@@ -105,8 +105,8 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       try {
         if (wantUpdate.invoke()) {
           updateLiveListeners(components);
-          PropertiesTable<NelePropertyItem> first = newProperties.isEmpty() ? PropertiesTable.Companion.emptyTable()
-                                                                            : newProperties.values().iterator().next();
+          PropertiesTable<NlPropertyItem> first = newProperties.isEmpty() ? PropertiesTable.Companion.emptyTable()
+                                                                          : newProperties.values().iterator().next();
           myAllProperties = newProperties;
           setProperties(first);
           firePropertiesGenerated();
@@ -124,7 +124,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     if (myAllProperties == null) {
       return null;
     }
-    PropertiesTable<NelePropertyItem> nonEmptyTable = myAllProperties.values().stream()
+    PropertiesTable<NlPropertyItem> nonEmptyTable = myAllProperties.values().stream()
       .filter(table -> !table.isEmpty())
       .findFirst()
       .orElse(null);
@@ -132,7 +132,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     if (nonEmptyTable == null) {
       return null;
     }
-    NelePropertyItem property = nonEmptyTable.getFirst();
+    NlPropertyItem property = nonEmptyTable.getFirst();
     if (property == null) {
       Logger.getInstance(MotionLayoutAttributesModel.class).info("This table should not be empty!");
       // Should never happen...
@@ -144,7 +144,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
 
   @Override
   @Nullable
-  public String getPropertyValue(@NotNull NelePropertyItem property) {
+  public String getPropertyValue(@NotNull NlPropertyItem property) {
     MotionSelection selection = getMotionSelection(property);
     String subTag = getSubTag(property);
     if (selection == null) {
@@ -180,7 +180,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
 
   @Override
   @Nullable
-  public XmlTag getPropertyTag(@NotNull NelePropertyItem property) {
+  public XmlTag getPropertyTag(@NotNull NlPropertyItem property) {
     MotionSelection selection = getMotionSelection(property);
     if (selection == null) {
       return null;
@@ -193,7 +193,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Override
-  public void setPropertyValue(@NotNull NelePropertyItem property, @Nullable String newValue) {
+  public void setPropertyValue(@NotNull NlPropertyItem property, @Nullable String newValue) {
     String attributeName = property.getName();
     MotionSelection selection = getMotionSelection(property);
     String subTagName = getSubTag(property);
@@ -231,7 +231,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Override
-  public void browseToValue(@NotNull NelePropertyItem property) {
+  public void browseToValue(@NotNull NlPropertyItem property) {
     Navigation.INSTANCE.browseToValue(property);
   }
 
@@ -382,12 +382,12 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Nullable
-  public static MotionSelection getMotionSelection(@NotNull NelePropertyItem property) {
+  public static MotionSelection getMotionSelection(@NotNull NlPropertyItem property) {
     return (MotionSelection)property.getOptionalValue1();
   }
 
   @Nullable
-  public static String getSubTag(@NotNull NelePropertyItem property) {
+  public static String getSubTag(@NotNull NlPropertyItem property) {
     return (String)property.getOptionalValue2();
   }
 

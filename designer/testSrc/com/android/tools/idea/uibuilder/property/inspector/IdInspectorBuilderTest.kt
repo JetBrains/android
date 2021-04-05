@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector
 import com.android.SdkConstants.*
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.PreferenceUtils
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -38,7 +38,7 @@ class IdInspectorBuilderTest {
   fun testAvailableWhenIdIsPresent() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = IdInspectorBuilder(util.editorProvider)
-    util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+    util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).hasSize(1)
     assertThat(util.inspector.lines[0].editorModel?.property?.name).isEqualTo(ATTR_ID)
@@ -48,7 +48,7 @@ class IdInspectorBuilderTest {
   fun testNotAvailableForMultipleComponents() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, BUTTON, parentTag = LINEAR_LAYOUT)
     val builder = IdInspectorBuilder(util.editorProvider)
-    util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+    util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
     builder.attachToInspector(util.inspector, util.properties)
     assertThat(util.inspector.lines).isEmpty()
   }
@@ -66,7 +66,7 @@ class IdInspectorBuilderTest {
     for (tagName in PreferenceUtils.VALUES) {
       val util = InspectorTestUtil(projectRule, tagName, fileName = "${tagName.toLowerCase()}$DOT_XML")
       val builder = IdInspectorBuilder(util.editorProvider)
-      util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+      util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)
       assertThat(util.inspector.lines).isEmpty()
     }
@@ -77,7 +77,7 @@ class IdInspectorBuilderTest {
     for (tagName in arrayOf(TAG_MENU, TAG_ITEM, TAG_GROUP)) {
       val util = InspectorTestUtil(projectRule, tagName, fileName = "${tagName.toLowerCase()}$DOT_XML")
       val builder = IdInspectorBuilder(util.editorProvider)
-      util.addProperty(ANDROID_URI, ATTR_ID, NelePropertyType.ID)
+      util.addProperty(ANDROID_URI, ATTR_ID, NlPropertyType.ID)
       builder.attachToInspector(util.inspector, util.properties)
       assertThat(util.inspector.lines).isEmpty()
     }

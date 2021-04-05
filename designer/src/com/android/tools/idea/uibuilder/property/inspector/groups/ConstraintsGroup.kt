@@ -20,11 +20,11 @@ import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
 const val CONSTRAINT_GROUP_NAME = "layout_constraints"
 
-class ConstraintGroup(properties: PropertiesTable<NelePropertyItem>): GroupSpec<NelePropertyItem> {
+class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>): GroupSpec<NlPropertyItem> {
   private val hasConstraints = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_CONSTRAINTSET) != null
   private val others = setOf(
     SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
@@ -65,7 +65,7 @@ class ConstraintGroup(properties: PropertiesTable<NelePropertyItem>): GroupSpec<
   override val value: String?
     get() = null
 
-  override val itemFilter: (NelePropertyItem) -> Boolean
+  override val itemFilter: (NlPropertyItem) -> Boolean
     get() = {
       hasConstraints && (
         it.name.startsWith("layout_constraint") ||

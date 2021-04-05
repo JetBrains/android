@@ -29,7 +29,7 @@ import com.android.SdkConstants.PROGRESS_BAR
 import com.android.SdkConstants.VALUE_FALSE
 import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.google.common.truth.Truth.assertThat
@@ -159,18 +159,18 @@ class ProgressBarInspectorBuilderTest {
   }
 
   private fun addRequiredProperties(util: InspectorTestUtil) {
-    util.addProperty("", ATTR_STYLE, NelePropertyType.STYLE)
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NelePropertyType.DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NelePropertyType.DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_MAXIMUM, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty("", ATTR_STYLE, NlPropertyType.STYLE)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_DRAWABLE, NlPropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE, NlPropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_MAXIMUM, NlPropertyType.INTEGER)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS, NlPropertyType.INTEGER)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NlPropertyType.THREE_STATE_BOOLEAN)
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NelePropertyType.COLOR_STATE_LIST)
-    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NelePropertyType.COLOR_STATE_LIST)
+    util.addProperty(ANDROID_URI, ATTR_PROGRESS_TINT, NlPropertyType.COLOR_STATE_LIST)
+    util.addProperty(ANDROID_URI, ATTR_INDETERMINATE_TINT, NlPropertyType.COLOR_STATE_LIST)
   }
 
   private fun getHiddenProperties(util: InspectorTestUtil): List<String> {

@@ -28,11 +28,11 @@ import com.android.tools.idea.naveditor.property.inspector.LabelInspectorBuilder
 import com.android.tools.idea.naveditor.property.inspector.NameInspectorBuilder
 import com.android.tools.idea.naveditor.property.inspector.StartDestinationInspectorBuilder
 import com.android.tools.idea.naveditor.property.support.NavEnumSupportProvider
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.SelectedComponentBuilder
-import com.android.tools.idea.uibuilder.property.support.NeleControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
@@ -41,9 +41,9 @@ private const val VIEW_NAME = "NavEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a destination or action on the Design surface."
 
-class NavPropertiesView(model: NelePropertiesModel) : PropertiesView<NelePropertyItem>(VIEW_NAME, model) {
+class NavPropertiesView(model: NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
   private val enumSupportProvider = NavEnumSupportProvider()
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
   init {

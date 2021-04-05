@@ -22,7 +22,7 @@ import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.util.text.StringUtil
 
 const val PROJECT_HEADER = "Project"
@@ -40,7 +40,7 @@ const val OTHER_HEADER = "Other"
  *    "Project", "Library", "AppCompat", "Android"
  * where "Project" are the user defined styles.
  */
-open class StyleEnumSupport(val property: NelePropertyItem) : CachedEnumSupport {
+open class StyleEnumSupport(val property: NlPropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
   protected val resolver = property.resolver
   protected val derivedStyles = DerivedStyleFinder(facet, resolver)

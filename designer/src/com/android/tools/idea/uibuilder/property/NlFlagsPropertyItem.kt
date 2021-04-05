@@ -32,25 +32,25 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
- * Special version of [NelePropertyItem] for flag attributes.
+ * Special version of [NlPropertyItem] for flag attributes.
  *
- * This class will generate a [NeleFlagPropertyItem] for each flag for a particular flags attribute.
+ * This class will generate a [NlFlagPropertyItem] for each flag for a particular flags attribute.
  * There is code to read and write a single flag as a boolean value.
  */
-class NeleFlagsPropertyItem(
+class NlFlagsPropertyItem(
   namespace: String,
   name: String,
-  type: NelePropertyType,
+  type: NlPropertyType,
   private val attrDefinition: AttributeDefinition,
   componentName: String,
   libraryName: String,
-  model: NelePropertiesModel,
+  model: NlPropertiesModel,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-) : NelePropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
-    FlagsPropertyItem<NeleFlagPropertyItem> {
-  private val _flags = mutableListOf<NeleFlagPropertyItem>()
+) : NlPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
+    FlagsPropertyItem<NlFlagPropertyItem> {
+  private val _flags = mutableListOf<NlFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
   private var _lastValue: String? = null
   private var _lastMaskValue: Int = 0
@@ -74,10 +74,10 @@ class NeleFlagsPropertyItem(
       return _lastFormattedValue!!
     }
 
-  override val children: List<NeleFlagPropertyItem>
+  override val children: List<NlFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
-          attrDefinition.values.mapTo(_flags) { NeleFlagPropertyItem(this, it, lookupMaskValue(it)) }
+          attrDefinition.values.mapTo(_flags) { NlFlagPropertyItem(this, it, lookupMaskValue(it)) }
       }
       return _flags
     }
@@ -91,7 +91,7 @@ class NeleFlagsPropertyItem(
       }
     }
 
-  override fun flag(itemName: String): NeleFlagPropertyItem {
+  override fun flag(itemName: String): NlFlagPropertyItem {
     return children.find { it.name == itemName } ?: throw IllegalArgumentException(itemName)
   }
 
@@ -112,9 +112,9 @@ class NeleFlagsPropertyItem(
     }
   }
 
-  fun isFlagSet(flag: NeleFlagPropertyItem) = lastValues.contains(flag.name)
+  fun isFlagSet(flag: NlFlagPropertyItem) = lastValues.contains(flag.name)
 
-  fun setFlag(flag: NeleFlagPropertyItem, on: Boolean) {
+  fun setFlag(flag: NlFlagPropertyItem, on: Boolean) {
     val add = if (on) flag.name else null
     val remove = if (on) null else flag.name
     val values = lastValues
@@ -195,9 +195,9 @@ class NeleFlagsPropertyItem(
  *
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
-class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem, name: String, override val maskValue: Int) :
-  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
-                   flags.components, flags.optionalValue1, flags.optionalValue2),
+class NlFlagPropertyItem(override val flags: NlFlagsPropertyItem, name: String, override val maskValue: Int) :
+  NlPropertyItem(flags.namespace, name, NlPropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
+                 flags.components, flags.optionalValue1, flags.optionalValue2),
   FlagPropertyItem {
 
   override val isReference: Boolean

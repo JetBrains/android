@@ -27,7 +27,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
@@ -97,7 +97,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   }
 
   @Override
-  public void logPropertyChange(@NotNull NelePropertyItem property,
+  public void logPropertyChange(@NotNull NlPropertyItem property,
                                 int filterMatches) {
     LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
       .setAttribute(convertAttribute(property))
@@ -110,7 +110,7 @@ public class NlUsageTrackerImpl implements NlUsageTracker {
   }
 
   @NotNull
-  private static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
+  private static AndroidAttribute convertAttribute(@NotNull NlPropertyItem property) {
     AndroidFacet facet = property.getModel().getFacet();
     AndroidAttribute.AttributeNamespace namespace = UsageTrackerUtil.convertNamespace(property.getNamespace());
 

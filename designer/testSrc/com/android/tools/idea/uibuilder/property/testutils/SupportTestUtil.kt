@@ -31,11 +31,11 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.getRoot
-import com.android.tools.idea.uibuilder.property.NeleFlagsPropertyItem
-import com.android.tools.idea.uibuilder.property.NeleIdPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
@@ -46,7 +46,7 @@ import java.util.Arrays
 private const val DEFAULT_FILENAME = "layout.xml"
 
 open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: MutableList<NlComponent>) {
-  val model = NelePropertiesModel(fixture.testRootDisposable, facet)
+  val model = NlPropertiesModel(fixture.testRootDisposable, facet)
   val nlModel = components.first().model
   private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
@@ -67,27 +67,27 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     model.surface = (nlModel as? SyncNlModel)?.surface
   }
 
-  fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
+  fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
       definition == null ->
-        NelePropertyItem(namespace, name, type, null, "", "", model, components)
+        NlPropertyItem(namespace, name, type, null, "", "", model, components)
       definition.formats.contains(AttributeFormat.FLAGS) ->
-        NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, components)
+        NlFlagsPropertyItem(namespace, name, NlPropertyType.ENUM, definition, "", "", model, components)
       else ->
         makeProperty(namespace, definition, type)
     }
   }
 
-  fun makeProperty(namespace: String, definition: AttributeDefinition, type: NelePropertyType): NelePropertyItem {
-    return NelePropertyItem(namespace, definition.name, type, definition, "", "", model, components)
+  fun makeProperty(namespace: String, definition: AttributeDefinition, type: NlPropertyType): NlPropertyItem {
+    return NlPropertyItem(namespace, definition.name, type, definition, "", "", model, components)
   }
 
-  fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
-    return NeleFlagsPropertyItem(namespace, definition.name, NelePropertyType.STRING, definition, "", "", model, components)
+  fun makeFlagsProperty(namespace: String, definition: AttributeDefinition): NlPropertyItem {
+    return NlFlagsPropertyItem(namespace, definition.name, NlPropertyType.STRING, definition, "", "", model, components)
   }
 
-  fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NelePropertyItem {
+  fun makeFlagsProperty(namespace: String, name: String, values: List<String>): NlPropertyItem {
     val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, name, null, listOf(AttributeFormat.FLAGS))
     val valueMappings = HashMap<String, Int?>()
     values.forEach { valueMappings[it] = null }
@@ -95,9 +95,9 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
     return makeFlagsProperty(namespace, definition)
   }
 
-  fun makeIdProperty(): NeleIdPropertyItem {
+  fun makeIdProperty(): NlIdPropertyItem {
     val definition = findDefinition(ANDROID_URI, ATTR_ID)
-    return NeleIdPropertyItem(model, definition, "", components)
+    return NlIdPropertyItem(model, definition, "", components)
   }
 
   fun setUpCustomView() {

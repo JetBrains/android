@@ -33,7 +33,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class NeleNewPropertyItemTest {
+class NlNewPropertyItemTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.withSdk()
 
@@ -44,7 +44,7 @@ class NeleNewPropertyItemTest {
   fun testSetNameWithPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_TEXT
     assertThat(property.namespace).isEqualTo(ANDROID_URI)
     assertThat(property.delegate).isNotNull()
@@ -54,7 +54,7 @@ class NeleNewPropertyItemTest {
   fun testSetNameNoMatch() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = ATTR_ORIENTATION
     assertThat(property.delegate).isNull()
   }
@@ -63,7 +63,7 @@ class NeleNewPropertyItemTest {
   fun testSetNameWithoutPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = ATTR_STYLE
     assertThat(property.namespace).isEqualTo("")
     assertThat(property.delegate).isNotNull()
@@ -73,7 +73,7 @@ class NeleNewPropertyItemTest {
   fun testSetNameWithAppPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = PREFIX_APP + ATTR_SRC_COMPAT
     assertThat(property.namespace).isEqualTo(AUTO_URI)
     assertThat(property.delegate).isNotNull()
@@ -83,7 +83,7 @@ class NeleNewPropertyItemTest {
   fun testDelegate() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_TEXT
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val delegate = property.delegate!!
@@ -95,7 +95,7 @@ class NeleNewPropertyItemTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(property.value).isEqualTo("Hello")
-    assertThat(property.type).isEqualTo(NelePropertyType.STRING)
+    assertThat(property.type).isEqualTo(NlPropertyType.STRING)
     assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
     assertThat(property.componentName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(property.components).containsExactly(delegate.components[0])
@@ -110,7 +110,7 @@ class NeleNewPropertyItemTest {
   fun testDelegateWithoutPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = ATTR_TEXT
     val delegate = property.delegate!!
     assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
@@ -123,7 +123,7 @@ class NeleNewPropertyItemTest {
   fun testFlagsDelegate() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_GRAVITY
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val delegate = property.delegate!!
@@ -150,7 +150,7 @@ class NeleNewPropertyItemTest {
   fun testCompletion() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     val values = property.nameEditingSupport.completion("")
     assertThat(values).containsExactly("style", "android:text", "android:textSize", "android:textColor", "android:gravity", "app:srcCompat",
                                        "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
@@ -160,7 +160,7 @@ class NeleNewPropertyItemTest {
   fun testAssignedAttributesAreNotInCompletions() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties, { it.rawValue == null })
+    val property = NlNewPropertyItem(model, properties, { it.rawValue == null })
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     properties[ANDROID_URI, ATTR_TEXT_COLOR].value = "#445566"
@@ -175,7 +175,7 @@ class NeleNewPropertyItemTest {
   fun testValidationErrors() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
@@ -188,30 +188,30 @@ class NeleNewPropertyItemTest {
   fun testIsSameProperty() {
     val properties = createTable()
     val model = properties.first!!.model
-    val property = NeleNewPropertyItem(model, properties)
+    val property = NlNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_TEXT
     assertThat(property.isSameProperty("android:text")).isTrue()
     assertThat(property.isSameProperty("android:backgroundHint")).isFalse()
   }
 
-  private fun createTable(): PropertiesTable<NelePropertyItem> {
+  private fun createTable(): PropertiesTable<NlPropertyItem> {
     val descriptor = ComponentDescriptor(TEXT_VIEW)
       .withBounds(0, 0, 1000, 1000)
       .wrapContentWidth()
       .wrapContentHeight()
       .withAttribute(AUTO_URI, "something", "1")
     val util = SupportTestUtil(projectRule, descriptor)
-    val property0 = util.makeProperty("", ATTR_STYLE, NelePropertyType.STYLE)
-    val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
-    val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION)
-    val property3 = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR_STATE_LIST)
-    val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
-    val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.ENUM)
-    val table: Table<String, String, NelePropertyItem> = HashBasedTable.create()
+    val property0 = util.makeProperty("", ATTR_STYLE, NlPropertyType.STYLE)
+    val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
+    val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.DIMENSION)
+    val property3 = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+    val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
+    val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NlPropertyType.ENUM)
+    val table: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
     // Override property1 such that componentName and library name is set for the delegate test above:
     val textProperty = with(property1) {
-      NelePropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, components)
+      NlPropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, components)
     }
     add(table, property0)
     add(table, textProperty)
@@ -222,7 +222,7 @@ class NeleNewPropertyItemTest {
     return PropertiesTable.create(table)
   }
 
-  private fun add(table: Table<String, String, NelePropertyItem>, property: NelePropertyItem) {
+  private fun add(table: Table<String, String, NlPropertyItem>, property: NlPropertyItem) {
     table.put(property.namespace, property.name, property)
   }
 }

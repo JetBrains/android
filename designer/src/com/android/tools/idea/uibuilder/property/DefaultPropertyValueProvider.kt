@@ -23,7 +23,7 @@ interface DefaultPropertyValueProvider {
   /**
    * Return the default value of the specified [property] as a string.
    */
-  fun provideDefaultValue(property: NelePropertyItem): String? = null
+  fun provideDefaultValue(property: NlPropertyItem): String? = null
 
   /**
    * Return true if the default values may have changed since they were generated last.

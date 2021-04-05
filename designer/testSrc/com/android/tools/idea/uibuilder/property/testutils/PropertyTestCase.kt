@@ -26,9 +26,9 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.MinApiLayoutTestCase
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
@@ -73,25 +73,25 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
   }
 
   /**
-   * Create a [NelePropertyItem] for testing purposes.
+   * Create a [NlPropertyItem] for testing purposes.
    */
   fun createPropertyItem(
     attrNamespace: String,
     attrName: String,
-    type: NelePropertyType,
+    type: NlPropertyType,
     components: List<NlComponent>,
-    model: NelePropertiesModel = NelePropertiesModel(testRootDisposable, myFacet)
-  ): NelePropertyItem {
+    model: NlPropertiesModel = NlPropertiesModel(testRootDisposable, myFacet)
+  ): NlPropertyItem {
     val nlModel = components[0].model as SyncNlModel
     model.surface = nlModel.surface
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NelePropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
+    return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
   }
 
-  fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {
+  fun getSceneManager(property: NlPropertyItem): SyncLayoutlibSceneManager {
     return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
   }
 }

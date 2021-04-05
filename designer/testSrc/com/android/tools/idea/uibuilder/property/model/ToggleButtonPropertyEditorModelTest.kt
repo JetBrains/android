@@ -20,7 +20,7 @@ import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
@@ -31,7 +31,7 @@ import org.mockito.Mockito
 class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
 
   private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
-    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NelePropertyType.STRING, createTextView(propertyValue))
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NlPropertyType.STRING, createTextView(propertyValue))
     return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property)
   }
 

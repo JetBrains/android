@@ -24,9 +24,9 @@ import com.android.tools.idea.naveditor.property.inspector.ArgumentInspectorBuil
 import com.android.tools.idea.naveditor.property.inspector.DeepLinkInspectorBuilder
 import com.android.tools.idea.naveditor.property.ui.ComponentList
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertiesProvider
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
@@ -49,7 +49,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("action2", "action3", "action1").mapNotNull(model::find)
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
 
@@ -66,7 +66,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("argument2", "argument3", "argument1").map { name -> fragment1.children.first { it.argumentName == name } }
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
@@ -83,13 +83,13 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
     val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull(model::find)
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }
 
-  private fun verifyPanel(component: NlComponent, propertiesModel: NelePropertiesModel,
-                          builder: InspectorBuilder<NelePropertyItem>, expected: List<NlComponent>) {
-    val provider = NelePropertiesProvider(myFacet)
+  private fun verifyPanel(component: NlComponent, propertiesModel: NlPropertiesModel,
+                          builder: InspectorBuilder<NlPropertyItem>, expected: List<NlComponent>) {
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(component))
     val panel = FakeInspectorPanel()
 
@@ -121,8 +121,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
     val panel = FakeInspectorPanel()
     val builder = ActionListInspectorBuilder(propertiesModel)
@@ -155,8 +155,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
 
     val fragment1 = model.find("fragment1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(fragment1))
     val panel = FakeInspectorPanel()
     val builder = ActionListInspectorBuilder(propertiesModel)

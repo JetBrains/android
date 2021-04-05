@@ -23,8 +23,8 @@ import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
-import com.android.tools.idea.uibuilder.property.NelePropertiesModelTest
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.PropertiesTable
@@ -80,7 +80,7 @@ class MotionAttributeRule(
     select(selectionFactory!!.createKeyFrame(start, end, keyType, framePosition, target))
   }
 
-  fun property(namespace: String, name: String, subTag: String = ""): NelePropertyItem {
+  fun property(namespace: String, name: String, subTag: String = ""): NlPropertyItem {
     return model!!.allProperties!![subTag]!![namespace, name]
   }
 
@@ -88,7 +88,7 @@ class MotionAttributeRule(
     selectionFactory = MotionSelectionFactory(nlModel!!, sceneFile!!)
   }
 
-  val properties: Map<String, PropertiesTable<NelePropertyItem>>
+  val properties: Map<String, PropertiesTable<NlPropertyItem>>
     get() = model!!.allProperties!!
 
   val attributesModel: MotionLayoutAttributesModel
@@ -175,7 +175,7 @@ class MotionAttributeRule(
 
   private fun select(selection: MotionSelection) {
     timeline!!.select(selection)
-    runInEdtAndWait { NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!) }
+    runInEdtAndWait { NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!) }
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {

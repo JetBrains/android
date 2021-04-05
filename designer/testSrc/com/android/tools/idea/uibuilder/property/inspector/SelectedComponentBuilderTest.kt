@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector
 import com.android.SdkConstants
 import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth
 import com.intellij.testFramework.EdtRule
@@ -39,7 +39,7 @@ class SelectedComponentBuilderTest {
   @Test
   fun testSelectedComponent() {
     val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NelePropertyType.STRING)
+    util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val builder = SelectedComponentBuilder()
     builder.attachToInspector(util.inspector, util.properties)
     Truth.assertThat(util.inspector.lines).hasSize(1)

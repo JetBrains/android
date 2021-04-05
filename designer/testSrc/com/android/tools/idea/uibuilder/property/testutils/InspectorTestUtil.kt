@@ -16,13 +16,13 @@
 package com.android.tools.idea.uibuilder.property.testutils
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertiesModelTest
-import com.android.tools.idea.uibuilder.property.NelePropertiesProvider
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
-import com.android.tools.idea.uibuilder.property.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
@@ -56,9 +56,9 @@ import javax.swing.JPanel
 class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = "layout.xml")
   : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
 
-  private val _properties: Table<String, String, NelePropertyItem> = HashBasedTable.create()
+  private val _properties: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
-  val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
+  val properties: PropertiesTable<NlPropertyItem> = PropertiesTableImpl(_properties)
 
   val editorProvider = FakeEditorProviderImpl(model)
 
@@ -67,12 +67,12 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   init {
     // Make sure the initial property load by model is done before replacing the properties in the model:
     model.lastSelectionUpdate.get()
-    NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
+    NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
 
     model.setPropertiesInTest(properties)
   }
 
-  fun addProperty(namespace: String, name: String, type: NelePropertyType) {
+  fun addProperty(namespace: String, name: String, type: NlPropertyType) {
     _properties.put(namespace, name, makeProperty(namespace, name, type))
   }
 
@@ -85,7 +85,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   }
 
   fun loadProperties() {
-    val provider = NelePropertiesProvider(model.facet)
+    val provider = NlPropertiesProvider(model.facet)
     for (propertyItem in provider.getProperties(model, null, components).values) {
       _properties.put(propertyItem.namespace, propertyItem.name, propertyItem)
     }
@@ -138,11 +138,11 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   }
 }
 
-class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePropertyItem> {
-  private val enumSupportProvider = NeleEnumSupportProvider(model)
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+class FakeEditorProviderImpl(model: NlPropertiesModel): EditorProvider<NlPropertyItem> {
+  private val enumSupportProvider = NlEnumSupportProvider(model)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
 
-  override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: NlPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
     return when (val type = controlTypeProvider(property)) {

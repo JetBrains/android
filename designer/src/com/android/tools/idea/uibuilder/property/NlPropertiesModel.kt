@@ -68,17 +68,17 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 /**
  * [PropertiesModel] for Nele design surface properties.
  */
-open class NelePropertiesModel(
+open class NlPropertiesModel(
   parentDisposable: Disposable,
   val provider: PropertiesProvider,
   val facet: AndroidFacet,
   @VisibleForTesting
   val updateQueue: MergingUpdateQueue,
   private val updateOnComponentSelectionChanges: Boolean
-) : PropertiesModel<NelePropertyItem>, Disposable {
+) : PropertiesModel<NlPropertyItem>, Disposable {
   val project: Project = facet.module.project
 
-  private val listeners: MutableList<PropertiesModelListener<NelePropertyItem>> = mutableListOf()
+  private val listeners: MutableList<PropertiesModelListener<NlPropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
@@ -94,7 +94,7 @@ open class NelePropertiesModel(
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
   constructor(parentDisposable: Disposable, facet: AndroidFacet, updateQueue: MergingUpdateQueue) :
-    this(parentDisposable, NelePropertiesProvider(facet), facet, updateQueue, true)
+    this(parentDisposable, NlPropertiesProvider(facet), facet, updateQueue, true)
 
   constructor(parentDisposable: Disposable, facet: AndroidFacet) :
     this(parentDisposable, facet, MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null,
@@ -135,33 +135,33 @@ open class NelePropertiesModel(
     properties = PropertiesTable.emptyTable()
   }
 
-  override fun addListener(listener: PropertiesModelListener<NelePropertyItem>) {
+  override fun addListener(listener: PropertiesModelListener<NlPropertyItem>) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PropertiesModelListener<NelePropertyItem>) {
+  override fun removeListener(listener: PropertiesModelListener<NlPropertyItem>) {
     listeners.remove(listener)
   }
 
-  override var properties: PropertiesTable<NelePropertyItem> = PropertiesTable.emptyTable()
+  override var properties: PropertiesTable<NlPropertyItem> = PropertiesTable.emptyTable()
     protected set
 
   @TestOnly
-  fun setPropertiesInTest(testProperties: PropertiesTable<NelePropertyItem>) {
+  fun setPropertiesInTest(testProperties: PropertiesTable<NlPropertyItem>) {
     properties = testProperties
   }
 
-  private fun logPropertyValueChanged(property: NelePropertyItem) {
+  private fun logPropertyValueChanged(property: NlPropertyItem) {
     NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
-  fun provideDefaultValue(property: NelePropertyItem): String? {
+  fun provideDefaultValue(property: NlPropertyItem): String? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
 
-  open fun getPropertyTag(property: NelePropertyItem): XmlTag? = property.firstTag
+  open fun getPropertyTag(property: NlPropertyItem): XmlTag? = property.firstTag
 
-  open fun getPropertyValue(property: NelePropertyItem): String? {
+  open fun getPropertyValue(property: NlPropertyItem): String? {
     ApplicationManager.getApplication().assertIsDispatchThread()
     var prev: String? = null
     for (component in property.components) {
@@ -172,7 +172,7 @@ open class NelePropertiesModel(
     return prev
   }
 
-  open fun setPropertyValue(property: NelePropertyItem, newValue: String?) {
+  open fun setPropertyValue(property: NlPropertyItem, newValue: String?) {
     assert(ApplicationManager.getApplication().isDispatchThread)
     if (property.project.isDisposed || property.components.isEmpty()) {
       return
@@ -211,7 +211,7 @@ open class NelePropertiesModel(
     }, Condition<Boolean> { Disposer.isDisposed(this) })
   }
 
-  private fun compatibleMarginAttribute(property: NelePropertyItem): String? {
+  private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
     if (property.namespace != ANDROID_URI ||
         AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
       return null
@@ -407,10 +407,10 @@ open class NelePropertiesModel(
 
   private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {
     val view = activeSceneView ?: return null
-    return NeleDefaultPropertyValueProvider(view.sceneManager)
+    return NlDefaultPropertyValueProvider(view.sceneManager)
   }
 
-  open fun browseToValue(property: NelePropertyItem) {
+  open fun browseToValue(property: NlPropertyItem) {
     val tag = property.firstTag ?: return
     val resourceReference = property.resolveValueAsReference(property.value) ?: return
     val folderConfiguration = property.getFolderConfiguration() ?: return

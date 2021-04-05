@@ -55,7 +55,7 @@ import com.android.SdkConstants.ATTR_MOTION_TARGET_ID
 import com.android.SdkConstants.ID_PREFIX
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
@@ -66,7 +66,7 @@ import com.intellij.util.text.nullize
 
 private const val UNEXPECTED_ATTR = "Unexpected attribute"
 
-class IdEnumSupport(val property: NelePropertyItem) : EnumSupport {
+class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
 
   override val values: List<EnumValue>
     get() =

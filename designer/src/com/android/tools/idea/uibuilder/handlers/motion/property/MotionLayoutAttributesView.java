@@ -32,10 +32,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.property.action.AddMotio
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.DeleteCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.SubSectionControlAction;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorSection;
-import com.android.tools.idea.uibuilder.property.support.NeleEnumSupportProvider;
-import com.android.tools.idea.uibuilder.property.support.NeleTwoStateBooleanControlTypeProvider;
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider;
+import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider;
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel;
 import com.android.tools.idea.uibuilder.property.ui.TransformsPanel;
 import com.android.tools.idea.uibuilder.property.ui.EasingCurvePanel;
@@ -76,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link PropertiesView} for motion layout property editor.
  */
-public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem> {
+public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
   private static final String MOTION_VIEW_NAME = "Motion";
   private static final List<String> CONSTRAINT_SECTIONS = ImmutableList.of(
     MotionSceneAttrs.Tags.LAYOUT,
@@ -87,23 +87,23 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
-    NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
-    NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
-    EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
-    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
+    NlEnumSupportProvider enumSupportProvider = new NlEnumSupportProvider(model);
+    NlTwoStateBooleanControlTypeProvider controlTypeProvider = new NlTwoStateBooleanControlTypeProvider(enumSupportProvider);
+    EditorProvider<NlPropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
+    TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NlPropertyItem.class, controlTypeProvider, editorProvider);
     getMain().getBuilders().add(new SelectedTargetBuilder());
     addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider, enumSupportProvider));
   }
 
-  private static class MotionInspectorBuilder implements InspectorBuilder<NelePropertyItem> {
+  private static class MotionInspectorBuilder implements InspectorBuilder<NlPropertyItem> {
     private final MotionLayoutAttributesModel myModel;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;
-    private final NeleEnumSupportProvider myEnumSupportProvider;
+    private final NlEnumSupportProvider myEnumSupportProvider;
 
     private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
                                    @NotNull TableUIProvider tableUIProvider,
-                                   @NotNull NeleEnumSupportProvider enumSupportProvider) {
+                                   @NotNull NlEnumSupportProvider enumSupportProvider) {
       myModel = model;
       myTableUIProvider = tableUIProvider;
       myDescriptorProvider = new AndroidDomElementDescriptorProvider();
@@ -112,8 +112,8 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector,
-                                  @NotNull PropertiesTable<NelePropertyItem> properties) {
-      NelePropertyItem any = properties.getFirst();
+                                  @NotNull PropertiesTable<NlPropertyItem> properties) {
+      NlPropertyItem any = properties.getFirst();
       if (any == null) {
         return;
       }
@@ -156,7 +156,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         default:
           addPropertyTable(inspector, selection, selection.getMotionSceneTagName(), myModel, false, false, false);
           if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
-            Map<String, PropertiesTable<NelePropertyItem>> allProperties = myModel.getAllProperties();
+            Map<String, PropertiesTable<NlPropertyItem>> allProperties = myModel.getAllProperties();
             if (allProperties.containsKey("KeyAttribute")) {
               addTransforms(inspector, selection, myModel, properties);
             }
@@ -188,7 +188,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private void addTransforms(@NotNull InspectorPanel inspector,
                                @NotNull MotionSelection selection,
                                @NotNull MotionLayoutAttributesModel model,
-                               @NotNull PropertiesTable<NelePropertyItem> properties) {
+                               @NotNull PropertiesTable<NlPropertyItem> properties) {
       InspectorLineModel titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.getTitle(), false, Collections.emptyList());
       inspector.addComponent(new TransformsPanel(model, properties), titleModel);
 
@@ -205,11 +205,11 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       attributes.add("alpha");
       attributes.add("visibility");
 
-      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
-      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
+      NlTwoStateBooleanControlTypeProvider controlTypeProvider = new NlTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NlPropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
 
       for (String attributeName : rotationAttributes) {
-        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        NlPropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
         if (property != null) {
           inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
         }
@@ -218,7 +218,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       addSubtitle(inspector, "Other Transforms", titleModel);
 
       for (String attributeName : attributes) {
-        NelePropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
+        NlPropertyItem property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName);
         if (property != null) {
           inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
         }
@@ -230,16 +230,16 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
                                @NotNull MotionSelection selection,
                                @NotNull MotionLayoutAttributesModel model,
                                @NotNull String easingAttributeName,
-                               @NotNull PropertiesTable<NelePropertyItem> properties,
+                               @NotNull PropertiesTable<NlPropertyItem> properties,
                                @NotNull ArrayList<String> attributes) {
       InspectorLineModel titleModel = inspector.addExpandableTitle(title.getTitle(), false, Collections.emptyList());
       inspector.addComponent(new EasingCurvePanel(model, easingAttributeName, properties), titleModel);
 
-      NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
-      EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
+      NlTwoStateBooleanControlTypeProvider controlTypeProvider = new NlTwoStateBooleanControlTypeProvider(myEnumSupportProvider);
+      EditorProvider<NlPropertyItem> editorProvider = EditorProvider.Companion.create(myEnumSupportProvider, controlTypeProvider);
 
       for (String attributeName : attributes) {
-        NelePropertyItem property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName);
+        NlPropertyItem property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName);
         if (property != null) {
           inspector.addEditor(editorProvider.createEditor(property, false), titleModel);
         }
@@ -273,12 +273,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
         return;
       }
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
-      Function1<NelePropertyItem, Boolean> filter =
+      Function1<NlPropertyItem, Boolean> filter =
         (item) -> item.getNamespace().isEmpty() &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
-      Function1<NelePropertyItem, Unit> deleteOp = (item) -> null;
+      Function1<NlPropertyItem, Unit> deleteOp = (item) -> null;
 
-      FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
+      FilteredPTableModel<NlPropertyItem> tableModel = PTableModelFactory.create(
         customModel, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true, p -> true);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(myModel, selection);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
@@ -294,20 +294,20 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
     private void addPropertyTable(@NotNull InspectorPanel inspector,
                                   @NotNull MotionSelection selection,
                                   @Nullable String sectionTagName,
-                                  @NotNull PropertiesModel<NelePropertyItem> model,
+                                  @NotNull PropertiesModel<NlPropertyItem> model,
                                   boolean showDefaultValues,
                                   boolean showSectionControl,
                                   boolean showConstraintPanel) {
       if (!shouldDisplaySection(sectionTagName, selection)) {
         return;
       }
-      NelePropertyItem any = model.getProperties().getFirst();
-      Function1<NelePropertyItem, Boolean> filter =
+      NlPropertyItem any = model.getProperties().getFirst();
+      Function1<NlPropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
-      Function1<NelePropertyItem, Unit> deleteOp = (item) -> { item.setValue(null); return null; };
+      Function1<NlPropertyItem, Unit> deleteOp = (item) -> { item.setValue(null); return null; };
 
-      FilteredPTableModel<NelePropertyItem> tableModel =
+      FilteredPTableModel<NlPropertyItem> tableModel =
         PTableModelFactory.create(
           model, filter, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true, p -> true);
       SubSectionControlAction controlAction = new SubSectionControlAction(any);

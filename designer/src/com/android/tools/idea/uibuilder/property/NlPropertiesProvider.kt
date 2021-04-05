@@ -77,11 +77,11 @@ private const val EXPECTED_CELLS_PER_ROW = 10
  * There are special exceptions for the srcCompat attribute and attributes
  * on an AutoCompleteTextView widget.
  */
-class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvider {
+class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider {
 
-  override fun getProperties(model: NelePropertiesModel,
+  override fun getProperties(model: NlPropertiesModel,
                              optionalValue: Any?,
-                             components: List<NlComponent>): PropertiesTable<NelePropertyItem> {
+                             components: List<NlComponent>): PropertiesTable<NlPropertyItem> {
     assert(!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode)
 
     if (components.isEmpty()) {
@@ -96,7 +96,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     val systemAttrDefs = frameworkResourceManager?.attributeDefinitions
 
     if (frameworkResourceManager == null) {
-      Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
+      Logger.getInstance(NlPropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
       return PropertiesTable.emptyTable()
     }
     if (systemAttrDefs == null) {
@@ -104,16 +104,16 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     }
     val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
 
-    return DumbService.getInstance(project).runReadActionInSmartMode<PropertiesTable<NelePropertyItem>> {
+    return DumbService.getInstance(project).runReadActionInSmartMode<PropertiesTable<NlPropertyItem>> {
       PropertiesTable.create(generator.generate())
     }
   }
 
-  override fun createEmptyTable(): PropertiesTable<NelePropertyItem> =
+  override fun createEmptyTable(): PropertiesTable<NlPropertyItem> =
     PropertiesTable.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW))
 
   private class PropertiesGenerator(facet: AndroidFacet,
-                                    private val model: NelePropertiesModel,
+                                    private val model: NlPropertiesModel,
                                     private val components: List<NlComponent>,
                                     private val localAttrDefs: AttributeDefinitions,
                                     private val systemAttrDefs: AttributeDefinitions) {
@@ -122,11 +122,11 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     private val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
     private val psiFacade = JavaPsiFacade.getInstance(project)
     private val descriptorProvider = AndroidDomElementDescriptorProvider()
-    private var properties: Table<String, String, NelePropertyItem> = ImmutableTable.of()
-    private val emptyTable = ImmutableTable.of<String, String, NelePropertyItem>()
+    private var properties: Table<String, String, NlPropertyItem> = ImmutableTable.of()
+    private val emptyTable = ImmutableTable.of<String, String, NlPropertyItem>()
 
-    fun generate(): Table<String, String, NelePropertyItem> {
-      var combinedProperties: Table<String, String, NelePropertyItem>? = null
+    fun generate(): Table<String, String, NlPropertyItem> {
+      var combinedProperties: Table<String, String, NlPropertyItem>? = null
       for (component in components) {
         val tag = component.tag ?: return emptyTable
 
@@ -255,17 +255,17 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
                                name: String,
                                attr: AttributeDefinition?,
                                componentName: String,
-                               model: NelePropertiesModel,
-                               components: List<NlComponent>): NelePropertyItem {
+                               model: NlPropertiesModel,
+                               components: List<NlComponent>): NlPropertyItem {
       val type = TypeResolver.resolveType(name, attr)
       val libraryName = attr?.libraryName ?: ""
       if (namespace == ANDROID_URI && name == ATTR_ID) {
-        return NeleIdPropertyItem(model, attr, componentName, components)
+        return NlIdPropertyItem(model, attr, componentName, components)
       }
       if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-        return NeleFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        return NlFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
       }
-      return NelePropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+      return NlPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
     }
 
     private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {
@@ -274,8 +274,8 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
 
     // When components of different type are selected: e.g. a ImageButton and a TextView,
     // we just show the attributes those components have in common.
-    private fun combine(properties: Table<String, String, NelePropertyItem>,
-                        combinedProperties: Table<String, String, NelePropertyItem>?): Table<String, String, NelePropertyItem> {
+    private fun combine(properties: Table<String, String, NlPropertyItem>,
+                        combinedProperties: Table<String, String, NlPropertyItem>?): Table<String, String, NlPropertyItem> {
       if (combinedProperties == null) {
         return properties
       }

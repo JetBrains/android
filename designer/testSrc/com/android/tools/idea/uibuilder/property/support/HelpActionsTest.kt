@@ -33,8 +33,8 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.EXPECTED_TEXT_TOOLTIP
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
@@ -65,7 +65,7 @@ class HelpActionsTest {
   @Test
   fun testTooltipForTextProperty() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
   }
 
@@ -79,7 +79,7 @@ class HelpActionsTest {
           .withAttribute(AUTO_URI, "something", "1")
     val util = SupportTestUtil(projectRule, descriptor)
     util.setUpCustomView()
-    val property = util.makeProperty(AUTO_URI, "legend", NelePropertyType.BOOLEAN)
+    val property = util.makeProperty(AUTO_URI, "legend", NlPropertyType.BOOLEAN)
     assertThat(property.tooltipForName).isEqualTo("<html><b>app:legend</b></html>")
   }
 
@@ -129,7 +129,7 @@ class HelpActionsTest {
   }
 
   private fun toHelpUrl(componentName: String, propertyName: String): String? {
-    val property = mock(NelePropertyItem::class.java)
+    val property = mock(NlPropertyItem::class.java)
     `when`(property.name).thenReturn(propertyName)
     return HelpActions.toHelpUrl(componentName, property)
   }

@@ -26,9 +26,9 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.addDynamicFeatureModule
 import com.android.tools.idea.naveditor.property.support.ClassEnumValue
 import com.android.tools.idea.naveditor.property.support.NavEnumSupportProvider
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.google.common.truth.Truth.assertThat
@@ -50,7 +50,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     }
 
     val action1 = model.find("action1")!!
-    val property = getProperty(AUTO_URI, ATTR_DESTINATION, NelePropertyType.DESTINATION, action1)
+    val property = getProperty(AUTO_URI, ATTR_DESTINATION, NlPropertyType.DESTINATION, action1)
     val support = getSupport(property)
     val values = support.values
 
@@ -71,7 +71,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     }
 
     val root = model.find("root")!!
-    val property = getProperty(AUTO_URI, ATTR_START_DESTINATION, NelePropertyType.DESTINATION, root)
+    val property = getProperty(AUTO_URI, ATTR_START_DESTINATION, NlPropertyType.DESTINATION, root)
     val values = getValues(property)
 
     val expected = listOf("none", "activity1", "fragment1", "navigation1")
@@ -95,7 +95,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     }
 
     val fragment1 = model.find("fragment1")!!
-    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     val support = getSupport(property)
     val values = support.values
 
@@ -134,7 +134,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, fragment1)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
@@ -146,7 +146,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
   }
 
   private fun testSelectName(component: NlComponent, value: String, moduleName: String?) {
-    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, component)
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NlPropertyType.CLASS_NAME, component)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val enumValue = ClassEnumValue(value, "display", moduleName, true)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -165,17 +165,17 @@ class NavEnumSupportProviderTest : NavTestCase() {
     assertThat(values.map { it.value }).containsExactlyElementsIn(expectedValues).inOrder()
   }
 
-  private fun getProperty(namespace: String, name: String, type: NelePropertyType, component: NlComponent) : NelePropertyItem {
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    return NelePropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
+  private fun getProperty(namespace: String, name: String, type: NlPropertyType, component: NlComponent) : NlPropertyItem {
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    return NlPropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
   }
 
-  private fun getValues(property: NelePropertyItem) : List<EnumValue> {
+  private fun getValues(property: NlPropertyItem) : List<EnumValue> {
     val enumSupport = getSupport(property)
     return enumSupport.values
   }
 
-  private fun getSupport(property: NelePropertyItem): EnumSupport {
+  private fun getSupport(property: NlPropertyItem): EnumSupport {
     val enumSupportProvider = NavEnumSupportProvider()
     val enumSupport = enumSupportProvider(property)
     assertNotNull(enumSupport)

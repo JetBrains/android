@@ -32,7 +32,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.TextAlignment
 import com.android.SdkConstants.TextStyle
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
@@ -86,7 +86,7 @@ class TextViewInspectorBuilderTest {
     val builder = TextViewInspectorBuilder(util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
-    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STRING)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     util.checkTitle(0, InspectorSection.COMMON.title)
@@ -190,7 +190,7 @@ class TextViewInspectorBuilderTest {
     val builder = TextViewInspectorBuilder(util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
-    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STRING)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
     assertThat(util.inspector.lines).hasSize(11)
     val title = util.inspector.lines[0]
@@ -207,20 +207,20 @@ class TextViewInspectorBuilderTest {
   }
 
   private fun addRequiredProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
-    util.addProperty(ANDROID_URI, ATTR_TYPEFACE, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.FONT_SIZE)
-    util.addProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_STYLE, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
+    util.addProperty(ANDROID_URI, ATTR_TYPEFACE, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.FONT_SIZE)
+    util.addProperty(ANDROID_URI, ATTR_LINE_SPACING_EXTRA, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_STYLE, NlPropertyType.STRING)
     util.addFlagsProperty(ANDROID_URI, ATTR_TEXT_STYLE, listOf(TextStyle.VALUE_BOLD, TextStyle.VALUE_ITALIC))
-    util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_ALL_CAPS, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR)
   }
 
   private fun addOptionalProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NelePropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NlPropertyType.STRING)
   }
 }

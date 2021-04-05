@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.ui.ComponentList
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
@@ -45,9 +45,9 @@ import javax.swing.DefaultListModel
  */
 abstract class ComponentListInspectorBuilder(val tagName: String,
                                              private val cellRenderer: ColoredListCellRenderer<NlComponent>)
-  : InspectorBuilder<NelePropertyItem> {
+  : InspectorBuilder<NlPropertyItem> {
   abstract fun title(component: NlComponent): String
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!isApplicable(component)) {
       return

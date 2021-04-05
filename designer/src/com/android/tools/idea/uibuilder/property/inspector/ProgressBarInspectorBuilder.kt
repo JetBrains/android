@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.property.inspector
 import com.android.SdkConstants.*
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.*
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) {
+class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
     if (!isApplicable(properties)) return
 
     val titleLine = getTitleLine()
@@ -41,20 +41,20 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
     updater.valueChanged()
   }
 
-  private fun addOptionalEditor(inspector: InspectorPanel, property: NelePropertyItem?, group: InspectorLineModel): InspectorLineModel? {
+  private fun addOptionalEditor(inspector: InspectorPanel, property: NlPropertyItem?, group: InspectorLineModel): InspectorLineModel? {
     if (property == null) return null
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 
   private fun addEditorAndReturnEditorModel(inspector: InspectorPanel,
-                                            property: NelePropertyItem,
+                                            property: NlPropertyItem,
                                             group: InspectorLineModel): PropertyEditorModel {
     val (model, editor) = editorProvider.createEditor(property)
     inspector.addCustomEditor(model, editor, group)
     return model
   }
 
-  private fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
+  private fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {
     return properties.getByNamespace(ANDROID_URI).keys.containsAll(REQUIRED_PROPERTIES)
         && properties.getByNamespace("").keys.contains(ATTR_STYLE)
   }
@@ -70,7 +70,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
   }
 
   private class StateUpdater(
-    private val indeterminate: NelePropertyItem,
+    private val indeterminate: NlPropertyItem,
     private val determinateLines: List<InspectorLineModel?>,
     private val indeterminateLines: List<InspectorLineModel?>
   ) : ValueChangedListener {

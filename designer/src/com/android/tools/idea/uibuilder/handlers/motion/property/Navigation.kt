@@ -26,17 +26,17 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel.getSubTag
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutPropertyProvider.mapToCustomType
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 
 object Navigation {
 
-  fun browseToValue(property: NelePropertyItem) {
+  fun browseToValue(property: NlPropertyItem) {
     findValueNavigation(property)?.navigate(true)
   }
 
-  private fun findValueNavigation(property: NelePropertyItem): Navigatable? {
+  private fun findValueNavigation(property: NlPropertyItem): Navigatable? {
     val selection = MotionLayoutAttributesModel.getMotionSelection(property) ?: return null
     val motionTag = selection.motionSceneTag ?: return findDefaultValueNavigation(property, selection)
     return when (val subTagName = getSubTag(property)) {
@@ -46,7 +46,7 @@ object Navigation {
     }
   }
 
-  private fun findValueFromSubTag(property: NelePropertyItem,
+  private fun findValueFromSubTag(property: NlPropertyItem,
                                   selection: MotionSelection,
                                   motionTag: MotionSceneTag,
                                   subTagName: String): Navigatable? {
@@ -55,7 +55,7 @@ object Navigation {
     return findValueNavigationOfMotionTag(property, subTag)
   }
 
-  private fun findValueFromCustomAttribute(property: NelePropertyItem,
+  private fun findValueFromCustomAttribute(property: NlPropertyItem,
                                            selection: MotionSelection,
                                            constraint: MotionSceneTag): Navigatable? {
     val customTag = MotionLayoutAttributesModel.findCustomTag(constraint, property.name) as? MotionSceneTag
@@ -63,7 +63,7 @@ object Navigation {
     return customTag.xmlTag?.let { findValueNavigationOfXmlTag(it, mapToCustomType(property.type), AUTO_URI) }
   }
 
-  private fun findDefaultValueNavigation(property: NelePropertyItem, selection: MotionSelection): Navigatable? {
+  private fun findDefaultValueNavigation(property: NlPropertyItem, selection: MotionSelection): Navigatable? {
     if (selection.type != MotionEditorSelector.Type.CONSTRAINT) {
       return null
     }
@@ -93,7 +93,7 @@ object Navigation {
     }
   }
 
-  private fun findValueNavigationOfMotionTag(property: NelePropertyItem, tag: MotionSceneTag): Navigatable? {
+  private fun findValueNavigationOfMotionTag(property: NlPropertyItem, tag: MotionSceneTag): Navigatable? {
     return tag.xmlTag?.let { findValueNavigationOfXmlTag(it, property.name, property.namespace) }
   }
 

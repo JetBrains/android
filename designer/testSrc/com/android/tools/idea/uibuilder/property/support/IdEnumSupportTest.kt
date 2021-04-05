@@ -30,8 +30,8 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -60,7 +60,7 @@ class IdEnumSupportTest {
       if (attributeName == ATTR_ID || attributeName == NavigationSchema.ATTR_DESTINATION) {
         continue
       }
-      val property = util.makeProperty(ANDROID_URI, attributeName, NelePropertyType.ID)
+      val property = util.makeProperty(ANDROID_URI, attributeName, NlPropertyType.ID)
       val enumSupport = IdEnumSupport(property)
       assertThat(enumSupport.values).isNotNull()
     }
@@ -70,8 +70,8 @@ class IdEnumSupportTest {
   fun testRelativeLayoutAttribute() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
-    val property = NelePropertyItem(
-      ANDROID_URI, ATTR_LAYOUT_ALIGN_START, NelePropertyType.ID, null, "", "", util.model, listOf(textView))
+    val property = NlPropertyItem(
+      ANDROID_URI, ATTR_LAYOUT_ALIGN_START, NlPropertyType.ID, null, "", "", util.model, listOf(textView))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4")
   }
@@ -81,8 +81,8 @@ class IdEnumSupportTest {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = CONSTRAINT_LAYOUT.newName())
     val textView = util.findSiblingById("textview1")!!
     val definition = AttributeDefinition(ResourceNamespace.TODO(), SdkConstants.ATTR_LAYOUT_START_TO_END_OF)
-    val property = NelePropertyItem(
-      AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF, NelePropertyType.ID, definition, "", "", util.model, listOf(textView))
+    val property = NlPropertyItem(
+      AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF, NlPropertyType.ID, definition, "", "", util.model, listOf(textView))
     definition.setValueMappings(mapOf(Pair("parent", 0)))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/button2", "@id/textview3", "@id/button4", "parent")
@@ -92,8 +92,8 @@ class IdEnumSupportTest {
   fun testChipGroupAttribute() {
     val util = SupportTestUtil(projectRule, CHIP, CHIP, CHIP, parentTag = CHIP_GROUP)
     val group = util.components[0].parent!!
-    val property = NelePropertyItem(
-      AUTO_URI, ATTR_CHECKED_CHIP, NelePropertyType.ID, null, "", "", util.model, listOf(group))
+    val property = NlPropertyItem(
+      AUTO_URI, ATTR_CHECKED_CHIP, NlPropertyType.ID, null, "", "", util.model, listOf(group))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/chip1", "@id/chip2", "@id/chip3")
   }
@@ -102,8 +102,8 @@ class IdEnumSupportTest {
   fun testAccessibilityAttribute() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, TEXT_VIEW, BUTTON, parentTag = RELATIVE_LAYOUT)
     val textView = util.findSiblingById("textview1")!!
-    val property = NelePropertyItem(ANDROID_URI, SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, NelePropertyType.ID,
-                                    null, "", "", util.model, listOf(textView))
+    val property = NlPropertyItem(ANDROID_URI, SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE, NlPropertyType.ID,
+                                  null, "", "", util.model, listOf(textView))
     val enumSupport = IdEnumSupport(property)
     assertThat(enumSupport.values.map { it.display }).containsExactly("@id/relativelayout", "@id/button2", "@id/textview3", "@id/button4")
   }

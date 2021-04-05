@@ -31,8 +31,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.model.viewHandler
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
@@ -48,18 +48,18 @@ import java.util.IdentityHashMap
 private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 
 /**
- * Given a [NelePropertyItem] compute the [EnumSupport] of the attribute if applicable.
+ * Given a [NlPropertyItem] compute the [EnumSupport] of the attribute if applicable.
  */
-class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<NelePropertyItem> {
+class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPropertyItem> {
   private val cachedEnumSupport: Table<String, String, CachedEnumSupport> = HashBasedTable.create()
 
   init {
-    model.addListener(object: PropertiesModelListener<NelePropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+    model.addListener(object: PropertiesModelListener<NlPropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
         cachedEnumSupport.clear()
       }
 
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
         cachedEnumSupport.clear()
       }
     })
@@ -68,7 +68,7 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
   /**
    * Return the [EnumSupport] for the given [actual] property or null if not applicable.
    */
-  override fun invoke(actual: NelePropertyItem): EnumSupport? {
+  override fun invoke(actual: NlPropertyItem): EnumSupport? {
     val property = actual.delegate ?: actual
     val support = cachedEnumSupport.get(property.namespace, property.name) ?:
         provideEnumSupportFromViewHandler(property.name, property.components) ?:
@@ -148,7 +148,7 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
     return components[0].model
   }
 
-  private fun getDropDownValuesFromSpecialCases(property: NelePropertyItem): EnumSupport? {
+  private fun getDropDownValuesFromSpecialCases(property: NlPropertyItem): EnumSupport? {
     val name = property.name
     return when {
       name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
@@ -171,12 +171,12 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
     }
   }
 
-  private fun isIdType(property: NelePropertyItem): Boolean {
+  private fun isIdType(property: NlPropertyItem): Boolean {
     return property.name != ATTR_ID && property.name != NavigationSchema.ATTR_DESTINATION &&
            AndroidDomUtil.getSpecialResourceTypes(property.name).contains(ResourceType.ID)
   }
 
-  private fun getFontEnumSupport(property: NelePropertyItem): EnumSupport {
+  private fun getFontEnumSupport(property: NlPropertyItem): EnumSupport {
     val nlModel = findNlModel(property.components)
     val facet = nlModel.facet
     val resolver = nlModel.configuration.resourceResolver

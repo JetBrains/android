@@ -35,10 +35,10 @@ import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyType
-import com.android.tools.idea.uibuilder.property.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableItem
@@ -144,7 +144,7 @@ class DeclaredAttributesInspectorBuilderTest {
     util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
-    val newProperty = declared.items.last() as NeleNewPropertyItem
+    val newProperty = declared.items.last() as NlNewPropertyItem
     newProperty.name = PREFIX_ANDROID + ATTR_TEXT_SIZE
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     newProperty.delegate?.value = "10sp"
@@ -248,8 +248,8 @@ class DeclaredAttributesInspectorBuilderTest {
     assertThat(listener.called).isTrue()
   }
 
-  private fun createBuilder(model: NelePropertiesModel): DeclaredAttributesInspectorBuilder {
-    val enumSupportProvider = NeleEnumSupportProvider(model)
+  private fun createBuilder(model: NlPropertiesModel): DeclaredAttributesInspectorBuilder {
+    val enumSupportProvider = NlEnumSupportProvider(model)
     return DeclaredAttributesInspectorBuilder(model, enumSupportProvider)
   }
 
@@ -263,20 +263,20 @@ class DeclaredAttributesInspectorBuilderTest {
   }
 
   private fun addProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.FONT_SIZE)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
+    util.addProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NlPropertyType.FONT_SIZE)
+    util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, NlPropertyType.DIMENSION)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NlPropertyType.ENUM)
 
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()

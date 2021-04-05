@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property.NeleIdPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.intellij.psi.xml.XmlAttributeValue
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
@@ -25,13 +25,13 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
  * Property item for an ID.
  */
 class MotionIdPropertyItem(
-  model: NelePropertiesModel,
+  model: NlPropertiesModel,
   definition: AttributeDefinition?,
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-): NeleIdPropertyItem(model, definition, componentName, components, optionalValue1, optionalValue2) {
+): NlIdPropertyItem(model, definition, componentName, components, optionalValue1, optionalValue2) {
 
   /**
    * Override the default get method and delegate to the model.

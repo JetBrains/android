@@ -22,14 +22,14 @@ import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 private const val THEME_STYLEABLE = "Theme"
 
-class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NelePropertyItem>): GroupSpec<NelePropertyItem> {
+class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NlPropertyItem>): GroupSpec<NlPropertyItem> {
   private val themeProperty = properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_THEME)
   private val attrs = findThemeAttrs(facet)
 
@@ -39,7 +39,7 @@ class ThemeGroup(facet: AndroidFacet, properties: PropertiesTable<NelePropertyIt
   override val value: String?
     get() = themeProperty?.value
 
-  override val itemFilter: (NelePropertyItem) -> Boolean
+  override val itemFilter: (NlPropertyItem) -> Boolean
     get() = { it == themeProperty || it.definition?.let { def -> attrs.contains(def) } == true }
 
   override val comparator: Comparator<PTableItem>

@@ -21,7 +21,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.property.MotionLa
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.property.DefaultPropertyValueProvider;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ public class MotionDefaultPropertyValueProvider implements DefaultPropertyValueP
 
   @Nullable
   @Override
-  public String provideDefaultValue(@NotNull NelePropertyItem property) {
+  public String provideDefaultValue(@NotNull NlPropertyItem property) {
     MotionSelection selection = getMotionSelection(property);
     if (selection == null) {
       return null;

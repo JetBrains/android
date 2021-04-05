@@ -17,8 +17,8 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -28,9 +28,9 @@ import javax.swing.JPanel
 
 class NavPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) : ToolContent<DesignSurface> {
   private val panel = JPanel(BorderLayout())
-  private val componentModel = NelePropertiesModel(this, facet)
+  private val componentModel = NlPropertiesModel(this, facet)
   private val componentView = NavPropertiesView(componentModel)
-  private val properties = PropertiesPanel<NelePropertyItem>(componentModel)
+  private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
 
   init {
     Disposer.register(parentDisposable, this)

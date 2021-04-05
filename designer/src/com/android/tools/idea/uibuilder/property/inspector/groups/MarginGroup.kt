@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.property.inspector.groups
 
 import com.android.SdkConstants
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-class MarginGroup(properties: PropertiesTable<NelePropertyItem>) :
+class MarginGroup(properties: PropertiesTable<NlPropertyItem>) :
   AbstractMarginGroup("layout_margin",
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN),
                       properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT),

@@ -32,8 +32,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
-import com.android.tools.idea.uibuilder.property.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.AndroidAttributeFact
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.util.androidFacet
@@ -222,8 +222,8 @@ class TypeResolverSdkTest {
 
   private data class Mismatch(val tag: String,
                               val attribute: String,
-                              val found: NelePropertyType,
-                              val expected: NelePropertyType)
+                              val found: NlPropertyType,
+                              val expected: NlPropertyType)
 
   private class Report(private val name: String) {
     private val found = mutableMapOf<String, Int>()
