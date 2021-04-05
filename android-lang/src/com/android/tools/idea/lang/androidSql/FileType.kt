@@ -16,7 +16,6 @@
 package com.android.tools.idea.lang.androidSql
 
 import com.intellij.openapi.fileTypes.LanguageFileType
-import icons.AndroidIcons
 import icons.StudioIcons
 import javax.swing.Icon
 

@@ -16,22 +16,20 @@
 
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.DOT_PNG;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.Function;
-import icons.AndroidIcons;
 import icons.StudioIcons;
-import junit.framework.TestCase;
-
-import javax.swing.*;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-
-import static com.android.SdkConstants.DOT_PNG;
+import javax.swing.Icon;
+import junit.framework.TestCase;
 
 @SuppressWarnings("javadoc")
 public class FlagManagerTest extends TestCase {
