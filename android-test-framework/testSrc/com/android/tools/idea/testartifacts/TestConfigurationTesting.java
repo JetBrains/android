@@ -26,6 +26,7 @@ import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -135,6 +136,6 @@ public class TestConfigurationTesting {
       dataContext.put(LangDataKeys.MODULE, ModuleUtilCore.findModuleForPsiElement(psiElement));
     }
     dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(psiElement));
-    return ConfigurationContext.getFromContext(dataContext);
+    return ConfigurationContext.getFromContext(dataContext, ActionPlaces.UNKNOWN);
   }
 }
