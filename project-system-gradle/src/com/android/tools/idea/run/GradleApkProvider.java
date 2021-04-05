@@ -521,19 +521,30 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   @Override
   public List<ValidationError> validate() {
+    ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     if (androidModuleModel == null) {
       Runnable requestProjectSync =
         () -> ProjectSystemUtil.getSyncManager(myFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
-      return ImmutableList.of(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
+      result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
+      return result.build();
     }
+
+    if (isTest()) {
+      IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
+      if (testArtifact == null) {
+        IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
+        result.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
+      }
+    }
+
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         myOutputKindProvider.apply(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
         isArtifactSigned(androidModuleModel)) {
-      return ImmutableList.of();
+      return result.build();
     }
 
     File outputFile = getOutputFile(androidModuleModel);
@@ -551,7 +562,9 @@ public class GradleApkProvider implements ApkProvider {
         service.openModuleSettings(module);
       }
     };
-    return ImmutableList.of(ValidationError.fatal(message, quickFix));
+
+    result.add(ValidationError.fatal(message, quickFix));
+    return result.build();
   }
 
   /**
