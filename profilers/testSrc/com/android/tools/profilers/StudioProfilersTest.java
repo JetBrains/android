@@ -183,6 +183,7 @@ public final class StudioProfilersTest {
       .setName(PREFERRED_PROCESS)
       .setState(Common.Process.State.ALIVE)
       .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, earlierProcess);
@@ -198,6 +199,7 @@ public final class StudioProfilersTest {
       .setName(PREFERRED_PROCESS)
       .setState(Common.Process.State.ALIVE)
       .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
     myTransportService.addProcess(device, afterProcess);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -1570,6 +1572,7 @@ public final class StudioProfilersTest {
       .setPid(pid)
       .setName(name)
       .setState(state)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
   }
 

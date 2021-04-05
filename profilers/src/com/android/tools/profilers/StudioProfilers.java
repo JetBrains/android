@@ -486,7 +486,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               continue;
             }
             Common.Process process = aliveEvent.getProcess().getProcessStarted().getProcess();
-            if (isProcessAlive || process.getPid() == lastProcessId) {
+            boolean shouldAddProcess =
+              (isProcessAlive || process.getPid() == lastProcessId) &&
+              (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
+               (getIdeServices().getFeatureConfig().isProfileableEnabled() &&
+                process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE)));
+            if (shouldAddProcess) {
               if (!isProcessAlive) {
                 // TODO state changes are represented differently in the unified pipeline (with two separate events)
                 // remove this once we move complete away from the legacy pipeline.

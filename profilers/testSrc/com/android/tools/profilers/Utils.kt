@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Common
 
 interface WithFakeTimer {
   val timer: FakeTimer
@@ -28,4 +29,12 @@ interface WithFakeTimer {
     tick(ns)
     return get()
   }
+}
+
+object Utils {
+  fun debuggableProcess(setUp: Common.Process.Builder.() -> Unit) = Common.Process.newBuilder().apply {
+    exposureLevel = Common.Process.ExposureLevel.DEBUGGABLE
+    state = Common.Process.State.ALIVE
+    setUp()
+  }.build()
 }
