@@ -56,7 +56,7 @@ class LambdaPropertyItem(
   name = name,
   initialType = PropertyType.LAMBDA,
   initialValue = "λ",
-  group = PropertySection.DEFAULT,
+  section = PropertySection.DEFAULT,
   source = null,
   viewId = viewId,
   lookup = lookup

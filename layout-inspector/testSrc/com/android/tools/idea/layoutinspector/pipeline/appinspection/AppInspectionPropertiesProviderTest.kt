@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ShowMoreElementsItem
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.parameterNamespaceOf
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableString
@@ -81,6 +82,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 private const val TIMEOUT = 1L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val PARAM_NS = parameterNamespaceOf(PropertySection.PARAMETERS)
 
 class AppInspectionPropertiesProviderTest {
   // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more scattered.
@@ -419,6 +421,7 @@ class AppInspectionPropertiesProviderTest {
             index = 0
             Reference {
               composableId = -5
+              kind = ComposeProtocol.ParameterReference.Kind.NORMAL
               parameterIndex = 1
             }
           }
@@ -435,6 +438,7 @@ class AppInspectionPropertiesProviderTest {
             index = 11
             Reference {
               composableId = -5
+              kind = ComposeProtocol.ParameterReference.Kind.NORMAL
               parameterIndex = 1
               addCompositeIndex(11)
             }
@@ -486,6 +490,7 @@ class AppInspectionPropertiesProviderTest {
           index = 3
           Reference {
             composableId = -5
+            kind = ComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
@@ -524,6 +529,7 @@ class AppInspectionPropertiesProviderTest {
         index = 3
         Reference {
           composableId = -5
+          kind = ComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
           addAllCompositeIndex(listOf(11, 3))
         }
@@ -675,6 +681,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
+            kind = ComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
             addCompositeIndex(11)
           }
@@ -691,6 +698,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
+            kind = ComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
@@ -708,6 +716,7 @@ class AppInspectionPropertiesProviderTest {
           rootViewId = 1L
           referenceBuilder.apply {
             composableId = -5L
+            kind = ComposeProtocol.ParameterReference.Kind.NORMAL
             parameterIndex = 1
             addAllCompositeIndex(listOf(11, 3))
           }
@@ -978,8 +987,8 @@ class AppInspectionPropertiesProviderTest {
       val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
-        assertProperty("text", PropertyType.STRING, "placeholder")
-        assertProperty("clickable", PropertyType.BOOLEAN, "true")
+        assertParameter("text", PropertyType.STRING, "placeholder")
+        assertParameter("clickable", PropertyType.BOOLEAN, "true")
       }
     }
 
@@ -988,8 +997,8 @@ class AppInspectionPropertiesProviderTest {
       val result = resultQueue.poll(TIMEOUT, TIMEOUT_UNIT)!!
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
-        assertProperty("maxLines", PropertyType.INT32, "16")
-        assertProperty("color", PropertyType.COLOR, "#3700B3")
+        assertParameter("maxLines", PropertyType.INT32, "16")
+        assertParameter("color", PropertyType.COLOR, "#3700B3")
       }
     }
 
@@ -999,15 +1008,15 @@ class AppInspectionPropertiesProviderTest {
       assertThat(result.view).isSameAs(targetNode)
       result.table.run {
         PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
-        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.5px")
-        assertProperty("fontSize", PropertyType.DIMENSION_SP, "36.0px")
-        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
+        assertParameter("elevation", PropertyType.DIMENSION_DP, "1.5px")
+        assertParameter("fontSize", PropertyType.DIMENSION_SP, "36.0px")
+        assertParameter("textSize", PropertyType.DIMENSION_EM, "2.0em")
       }
       result.table.run {
         PropertiesSettings.dimensionUnits = DimensionUnits.DP
-        assertProperty("elevation", PropertyType.DIMENSION_DP, "1.0dp")
-        assertProperty("fontSize", PropertyType.DIMENSION_SP, "16.0sp")
-        assertProperty("textSize", PropertyType.DIMENSION_EM, "2.0em")
+        assertParameter("elevation", PropertyType.DIMENSION_DP, "1.0dp")
+        assertParameter("fontSize", PropertyType.DIMENSION_SP, "16.0sp")
+        assertParameter("textSize", PropertyType.DIMENSION_EM, "2.0em")
       }
     }
 
@@ -1017,12 +1026,12 @@ class AppInspectionPropertiesProviderTest {
       assertThat(result.view).isSameAs(targetNode)
 
       result.table.run {
-        assertProperty("onTextLayout", PropertyType.LAMBDA, "λ")
-        assertProperty("dataObject", PropertyType.STRING, "PojoClass")
-        val groupItem = this[ANDROID_URI, "dataObject"] as ParameterGroupItem
-        assertProperty(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
-        assertProperty(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
-        assertProperty(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
+        assertParameter("onTextLayout", PropertyType.LAMBDA, "λ")
+        assertParameter("dataObject", PropertyType.STRING, "PojoClass")
+        val groupItem = this[PARAM_NS, "dataObject"] as ParameterGroupItem
+        assertParameter(groupItem.children[0], "stringProperty", PropertyType.STRING, "stringValue")
+        assertParameter(groupItem.children[1], "intProperty", PropertyType.INT32, "812")
+        assertParameter(groupItem.children[2], "lines", PropertyType.STRING, "MyLineClass")
         assertThat(groupItem.children.size).isEqualTo(3)
 
         groupItem
@@ -1037,9 +1046,9 @@ class AppInspectionPropertiesProviderTest {
       assertThat(first.children).isEmpty()
       first.expandWhenPossible { restructured ->
         assertThat(restructured).isTrue()
-        assertProperty(first.children[0], "stringProperty", PropertyType.STRING, "stringValue")
-        assertProperty(first.children[1], "intProperty", PropertyType.INT32, "812")
-        assertProperty(first.children[2], "lines", PropertyType.STRING, "MyLineClass")
+        assertParameter(first.children[0], "stringProperty", PropertyType.STRING, "stringValue")
+        assertParameter(first.children[1], "intProperty", PropertyType.INT32, "812")
+        assertParameter(first.children[2], "lines", PropertyType.STRING, "MyLineClass")
         assertThat(first.children.size).isEqualTo(3)
         propertyExpandedLatch.countDown()
       }
@@ -1054,13 +1063,13 @@ class AppInspectionPropertiesProviderTest {
       assertThat(last.children).isEmpty()
       last.expandWhenPossible { restructured ->
         assertThat(restructured).isTrue()
-        assertProperty(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
-        assertProperty(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
-        assertProperty(last.children[2], "list", PropertyType.ITERABLE, "List[12]")
+        assertParameter(last.children[0], "firstLine", PropertyType.STRING, "Hello World")
+        assertParameter(last.children[1], "lastLine", PropertyType.STRING, "End of Text")
+        assertParameter(last.children[2], "list", PropertyType.ITERABLE, "List[12]")
         assertThat(last.children.size).isEqualTo(3)
         val list = last.children.last() as ParameterGroupItem
-        assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
-        assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
+        assertParameter(list.children[0], "[0]", PropertyType.STRING, "a")
+        assertParameter(list.children[1], "[3]", PropertyType.STRING, "b")
         assertThat(list.children[2]).isInstanceOf(ShowMoreElementsItem::class.java)
         assertThat(list.children[2].index).isEqualTo(4)
         assertThat(list.children.size).isEqualTo(3)
@@ -1090,12 +1099,12 @@ class AppInspectionPropertiesProviderTest {
       showMoreItem.link.actionPerformed(event1)
     }
     moreListElements1.await(TIMEOUT, TIMEOUT_UNIT)
-    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
+    assertParameter(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNotNull()
-    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
-    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
-    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
-    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertParameter(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertParameter(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertParameter(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertParameter(list.children[3], "[6]", PropertyType.STRING, "d")
     assertThat(list.children[4]).isInstanceOf(ShowMoreElementsItem::class.java)
     assertThat(list.children[4].index).isEqualTo(7)
     assertThat(list.children.size).isEqualTo(5)
@@ -1119,15 +1128,15 @@ class AppInspectionPropertiesProviderTest {
       showMoreItem.link.actionPerformed(event2)
     }
     moreListElements2.await(TIMEOUT, TIMEOUT_UNIT)
-    assertProperty(list, "list", PropertyType.ITERABLE, "List[12]")
+    assertParameter(list, "list", PropertyType.ITERABLE, "List[12]")
     assertThat(list.reference).isNull()
-    assertProperty(list.children[0], "[0]", PropertyType.STRING, "a")
-    assertProperty(list.children[1], "[3]", PropertyType.STRING, "b")
-    assertProperty(list.children[2], "[4]", PropertyType.STRING, "c")
-    assertProperty(list.children[3], "[6]", PropertyType.STRING, "d")
-    assertProperty(list.children[4], "[7]", PropertyType.STRING, "e")
-    assertProperty(list.children[5], "[10]", PropertyType.STRING, "f")
-    assertProperty(list.children[6], "[11]", PropertyType.STRING, "g")
+    assertParameter(list.children[0], "[0]", PropertyType.STRING, "a")
+    assertParameter(list.children[1], "[3]", PropertyType.STRING, "b")
+    assertParameter(list.children[2], "[4]", PropertyType.STRING, "c")
+    assertParameter(list.children[3], "[6]", PropertyType.STRING, "d")
+    assertParameter(list.children[4], "[7]", PropertyType.STRING, "e")
+    assertParameter(list.children[5], "[10]", PropertyType.STRING, "f")
+    assertParameter(list.children[6], "[11]", PropertyType.STRING, "g")
     assertThat(list.children.size).isEqualTo(7)
   }
 
@@ -1210,6 +1219,14 @@ class AppInspectionPropertiesProviderTest {
     }
   }
 
+  private fun PropertiesTable<InspectorPropertyItem>.assertParameter(
+    name: String,
+    type: PropertyType,
+    value: String,
+    group: PropertySection = PropertySection.PARAMETERS,
+    namespace: String = parameterNamespaceOf(group),
+  ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
+
   private fun PropertiesTable<InspectorPropertyItem>.assertProperty(
     name: String,
     type: PropertyType,
@@ -1218,9 +1235,18 @@ class AppInspectionPropertiesProviderTest {
     namespace: String = ANDROID_URI,
   ) = assertProperty(this[namespace, name], name, type, value, group, namespace)
 
+  private fun assertParameter(
+    property: InspectorPropertyItem,
+    name: String,
+    type: PropertyType,
+    value: String,
+    group: PropertySection = PropertySection.PARAMETERS,
+    namespace: String = parameterNamespaceOf(group),
+  ) = assertProperty(property, name, type, value, group, namespace)
 
   private fun assertProperty(
-    property: InspectorPropertyItem, name: String,
+    property: InspectorPropertyItem,
+    name: String,
     type: PropertyType,
     value: String,
     group: PropertySection = PropertySection.DEFAULT,
@@ -1231,7 +1257,7 @@ class AppInspectionPropertiesProviderTest {
     assertThat(property.namespace).isEqualTo(namespace)
     assertThat(property.type).isEqualTo(type)
     assertThat(property.value).isEqualTo(value)
-    assertThat(property.group).isEqualTo(group)
+    assertThat(property.section).isEqualTo(group)
   }
 
   /**

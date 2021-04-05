@@ -61,7 +61,8 @@ class ComposeParametersCache(
   ): ParameterGroupItem? {
     val response = client.getParameterDetails(rootId, reference, startIndex, maxElements)
     return if (response != GetParameterDetailsResponse.getDefaultInstance()) {
-      ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this).generate(rootId, reference.nodeId, response.parameter)
+      ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this)
+        .generate(rootId, reference.nodeId, reference.kind, response.parameter)
     }
     else {
       null
@@ -127,10 +128,11 @@ class ComposeParametersCache(
   private fun lookupInCache(rootId: Long, reference: ParameterReference): ParameterGroupItem? {
     ApplicationManager.getApplication().assertIsDispatchThread()
     val data = getCachedDataFor(rootId, reference.nodeId) ?: return null
-    if (reference.parameterIndex !in data.parameterList.indices) {
+    val parameters = data.parametersOfKind(reference.kind)
+    if (reference.parameterIndex !in parameters.indices) {
       return null
     }
-    var parameter = data.parameterList[reference.parameterIndex] as? ParameterGroupItem ?: return null
+    var parameter = parameters[reference.parameterIndex] as? ParameterGroupItem ?: return null
     for (referenceIndex in reference.indices) {
       val elementIndex = parameter.elementIndexOf(referenceIndex)
       if (elementIndex < 0) {

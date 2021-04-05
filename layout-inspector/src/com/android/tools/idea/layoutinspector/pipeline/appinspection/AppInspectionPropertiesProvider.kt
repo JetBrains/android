@@ -126,7 +126,7 @@ class AppInspectionPropertiesProvider(
   ): InspectorPropertyItem? {
     val classLocation = model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
     return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                      item.group, item.source, item.viewId, item.lookup, emptyList())
+                                      item.section, item.source, item.viewId, item.lookup, emptyList())
   }
 
   /**
@@ -161,7 +161,7 @@ class AppInspectionPropertiesProvider(
       // Make this item a group item such that the details are hidden until the item is expanded.
       // Note that there doesn't have to be sub items in the group. A source location or class location is enough to trigger this.
       return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                        item.group, item.source, item.viewId, item.lookup, map)
+                                        item.section, item.source, item.viewId, item.lookup, map)
     }
     return null
   }

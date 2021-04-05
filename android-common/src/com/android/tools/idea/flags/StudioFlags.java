@@ -687,6 +687,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
     "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
+    "If enabled, display semantic information found in the agent.", false);
+
   //endregion
 
   //region Embedded Emulator

@@ -24,4 +24,7 @@ enum class PropertySection {
   LAYOUT,     // This attribute is a layout attribute i.e. defined by the parent view
   DIMENSION,  // This attribute is intended for the Dimension section only
   VIEW,       // This attribute is intended for the SelectedView section only
+  PARAMETERS, // This attribute is a parameter of a composable
+  MERGED,     // This attribute is a merged semantic attribute of a composable
+  UNMERGED,   // This attribute is an unmerged semantic attribute from a semantic modifier of a composable
 }

@@ -28,12 +28,12 @@ open class InspectorGroupPropertyItem(
   type: PropertyType,
   value: String?,
   open val classLocation: SourceLocation?,
-  group: PropertySection,
+  section: PropertySection,
   source: ResourceReference?,
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
   override val children: List<InspectorPropertyItem>
-) : InspectorPropertyItem(namespace, name, name, type, value, group, source, viewId, lookup), PTableGroupItem {
+) : InspectorPropertyItem(namespace, name, name, type, value, section, source, viewId, lookup), PTableGroupItem {
 
   /**
    * PropertyItem instance that holds a value with resolution stack.

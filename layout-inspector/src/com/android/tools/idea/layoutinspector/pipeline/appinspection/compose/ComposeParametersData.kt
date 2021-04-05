@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.res.colorToString
@@ -32,10 +34,31 @@ class ComposeParametersData(
   val parameterList: List<ParameterItem>,
 
   /**
-   * The parameters associated with a composable as a properties table.
+   * The merged semantic information associated with a composable as a list.
+   */
+  val mergedSemantics: List<ParameterItem>,
+
+  /**
+   * The unmerged semantic information associated with a composable as a list.
+   */
+  val unmergedSemantics: List<ParameterItem>,
+
+  /**
+   * The parameters and semantic information associated with a composable as a properties table.
    */
   val parameters: PropertiesTable<InspectorPropertyItem>
-)
+) {
+
+  /**
+   * Return the parameters of the specified [kind] in the node cached by this [ComposeParametersData].
+   */
+  fun parametersOfKind(kind: ParameterKind): List<ParameterItem> = when(kind) {
+    ParameterKind.Normal -> parameterList
+    ParameterKind.MergedSemantics -> mergedSemantics
+    ParameterKind.UnmergedSemantics -> unmergedSemantics
+    else -> emptyList()
+  }
+}
 
 /**
  * Bridge between incoming proto data and classes expected by the Studio properties framework.
@@ -45,24 +68,48 @@ class ComposeParametersDataGenerator(
   private val lookup: ViewNodeAndResourceLookup) {
 
   fun generate(rootId: Long, parameterGroup: ParameterGroup): ComposeParametersData {
-    val parameterList = parameterGroup.parameterList.map { it.toParameterItem(rootId, parameterGroup.composableId) }
-    return ComposeParametersData(parameterList, toPropertiesTable(parameterList))
+    val parameterList = parameterGroup.parameterList.map {
+      it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.PARAMETERS)
+    }
+
+    val mergedSemantics = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()) {
+      parameterGroup.mergedSemanticsList.map {
+        it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.MERGED)
+      }
+    } else emptyList()
+
+    val unmergedSemantics = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()) {
+      parameterGroup.unmergedSemanticsList.map {
+        it.toParameterItem(rootId, parameterGroup.composableId, PropertySection.UNMERGED)
+      }
+    } else emptyList()
+
+    val all = parameterList.asSequence() + mergedSemantics.asSequence() + unmergedSemantics.asSequence()
+    return ComposeParametersData(parameterList, mergedSemantics, unmergedSemantics, toPropertiesTable(all))
   }
 
-  fun generate(rootId: Long, composableId: Long, parameter: Parameter): ParameterGroupItem? =
-    parameter.toParameterItem(rootId, composableId) as? ParameterGroupItem
+  fun generate(rootId: Long, composableId: Long, kind: ParameterKind, parameter: Parameter): ParameterGroupItem? =
+    parameter.toParameterItem(rootId, composableId, kind.toPropertySection()) as? ParameterGroupItem
 
-  private fun toPropertiesTable(parameterList: List<ParameterItem>): PropertiesTable<InspectorPropertyItem> {
+  private fun ParameterKind.toPropertySection(): PropertySection = when(this) {
+    ParameterKind.Normal -> PropertySection.PARAMETERS
+    ParameterKind.MergedSemantics -> PropertySection.MERGED
+    ParameterKind.UnmergedSemantics -> PropertySection.UNMERGED
+    else -> PropertySection.DEFAULT
+  }
+
+  private fun toPropertiesTable(parameters: Sequence<ParameterItem>): PropertiesTable<InspectorPropertyItem> {
     val propertyTable = HashBasedTable.create<String, String, InspectorPropertyItem>()
-    parameterList.forEach { propertyTable.put(it.namespace, it.name, it) }
+    parameters.forEach { propertyTable.put(it.namespace, it.name, it) }
     return PropertiesTable.create(propertyTable)
   }
 
-  private fun Parameter.toParameterItem(rootId: Long, composableId: Long): ParameterItem {
+  private fun Parameter.toParameterItem(rootId: Long, composableId: Long, section: PropertySection): ParameterItem {
     val name = stringTable[name]
     if (type == Parameter.Type.LAMBDA || type == Parameter.Type.FUNCTION_REFERENCE) {
       return LambdaParameterItem(
         name = name,
+        section = section,
         viewId = composableId,
         rootId = rootId,
         index = index,
@@ -99,6 +146,7 @@ class ComposeParametersDataGenerator(
         name,
         type,
         value.toString(),
+        section,
         composableId,
         lookup,
         rootId,
@@ -110,12 +158,13 @@ class ComposeParametersDataGenerator(
         name,
         type,
         value.toString(),
+        section,
         composableId,
         lookup,
         rootId,
         index,
         reference,
-        elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId) })
+        elementsList.mapTo(mutableListOf()) { it.toParameterItem(rootId, composableId, section) })
       if (type == PropertyType.ITERABLE && reference != null && group.children.isNotEmpty()) {
         group.children.add(ShowMoreElementsItem(group))
       }
