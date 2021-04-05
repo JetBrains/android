@@ -22,7 +22,6 @@ import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.AUTO_URI
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ROTATION
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM
@@ -50,7 +49,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.DEFAUL
 import com.android.tools.idea.uibuilder.handlers.motion.property.testutil.MotionAttributeRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

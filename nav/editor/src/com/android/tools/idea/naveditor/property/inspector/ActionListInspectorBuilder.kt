@@ -22,12 +22,12 @@ import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.property.ui.ActionCellRenderer
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ui.components.JBList
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 
-class ActionListInspectorBuilder(private val model: NelePropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
+class ActionListInspectorBuilder(private val model: NlPropertiesModel) : ComponentListInspectorBuilder(TAG_ACTION, ActionCellRenderer()) {
   override fun title(component: NlComponent) =
     if (component.isNavigation) {
       "Global Actions"

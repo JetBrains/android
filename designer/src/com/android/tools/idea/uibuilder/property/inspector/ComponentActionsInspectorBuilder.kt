@@ -25,8 +25,8 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.viewHandler
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
@@ -42,9 +42,9 @@ import javax.swing.JPanel
 /**
  * An [InspectorBuilder] for the component actions shown on top in the Nele inspector.
  */
-class ComponentActionsInspectorBuilder(private val model: NelePropertiesModel) : InspectorBuilder<NelePropertyItem> {
+class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : InspectorBuilder<NlPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val surface = model.surface ?: return
     val selectedComponents = surface.selectionModel.selection
     if (selectedComponents.isEmpty()) {

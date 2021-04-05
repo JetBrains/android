@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.support.NeleTwoStateBooleanControlTypeProvider
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
@@ -49,20 +49,20 @@ private const val DELETE_ROW_ACTION_TITLE = "Remove selected attribute"
 val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
 class DeclaredAttributesInspectorBuilder(
-  private val model: NelePropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NelePropertyItem>
-) : InspectorBuilder<NelePropertyItem> {
+  private val model: NlPropertiesModel,
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+) : InspectorBuilder<NlPropertyItem> {
 
-  private val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
-  private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
-  private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
-  private val controlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
+  private val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
+  private val nameControlTypeProvider = SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
+  private val nameEditorProvider = EditorProvider.createForNames<NlNewPropertyItem>()
+  private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
   private val tableUIProvider = TableUIProvider.create(
-    NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-    NelePropertyItem::class.java, controlTypeProvider, editorProvider)
+    NlNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
+    NlPropertyItem::class.java, controlTypeProvider, editorProvider)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
       return
     }
@@ -82,7 +82,7 @@ class DeclaredAttributesInspectorBuilder(
   }
 
   private class AddNewRowAction(
-    val newProperty: NeleNewPropertyItem
+    val newProperty: NlNewPropertyItem
   ) : AnAction(null, ADD_PROPERTY_ACTION_TITLE, StudioIcons.Common.ADD) {
 
     var titleModel: InspectorLineModel? = null

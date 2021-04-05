@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property;
 
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesModel;
 import com.android.tools.property.panel.api.PropertiesModelListener;
 import com.android.tools.property.panel.api.PropertiesTable;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Support Sub tags in the Attributes Panel
  */
-public class SubTagAttributesModel implements PropertiesModel<NelePropertyItem> {
+public class SubTagAttributesModel implements PropertiesModel<NlPropertyItem> {
   private final MotionLayoutAttributesModel myModel;
   private final String mySubTagName;
 
@@ -35,8 +35,8 @@ public class SubTagAttributesModel implements PropertiesModel<NelePropertyItem> 
 
   @NotNull
   @Override
-  public PropertiesTable<NelePropertyItem> getProperties() {
-    PropertiesTable<NelePropertyItem> properties = myModel.getAllProperties().get(mySubTagName);
+  public PropertiesTable<NlPropertyItem> getProperties() {
+    PropertiesTable<NlPropertyItem> properties = myModel.getAllProperties().get(mySubTagName);
     if (properties == null) {
       properties = PropertiesTable.Companion.emptyTable();
     }
@@ -48,10 +48,10 @@ public class SubTagAttributesModel implements PropertiesModel<NelePropertyItem> 
   }
 
   @Override
-  public void addListener(@NotNull PropertiesModelListener<NelePropertyItem> listener) {
+  public void addListener(@NotNull PropertiesModelListener<NlPropertyItem> listener) {
   }
 
   @Override
-  public void removeListener(@NotNull PropertiesModelListener<NelePropertyItem> listener) {
+  public void removeListener(@NotNull PropertiesModelListener<NlPropertyItem> listener) {
   }
 }

@@ -27,11 +27,11 @@ import com.intellij.testFramework.PlatformTestUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
-class NeleFlagsPropertyItemTest : PropertyTestCase() {
+class NlFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testTextStyleProperty() {
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
-    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NelePropertyType.STRING, components)
+    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     assertThat(property.children).hasSize(3)
     val normal = property.flag(TextStyle.VALUE_NORMAL)
     val bold = property.flag(TextStyle.VALUE_BOLD)
@@ -46,7 +46,7 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testSetTextStyleProperty() {
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
-    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NelePropertyType.STRING, components)
+    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
 
     italic.value = "true"
@@ -59,7 +59,7 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testSetAndResetTextStyleProperty() {
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
-    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NelePropertyType.STRING, components)
+    val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val bold = property.flag(TextStyle.VALUE_BOLD)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
 
@@ -76,7 +76,7 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testCenterImpliesMultipleEffectiveFlags() {
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
-    val property = createFlagsPropertyItem(ATTR_GRAVITY, NelePropertyType.STRING, components)
+    val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     val center = property.flag(GRAVITY_VALUE_CENTER)
     val centerHorizontal = property.flag(GRAVITY_VALUE_CENTER_HORIZONTAL)
     val centerVertical = property.flag(GRAVITY_VALUE_CENTER_VERTICAL)
@@ -93,7 +93,7 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
   fun testValidate() {
     myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
-    val property = createFlagsPropertyItem(ATTR_GRAVITY, NelePropertyType.STRING, components)
+    val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("left")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("start|bottom")).isEqualTo(EDITOR_NO_ERROR)
@@ -110,13 +110,13 @@ class NeleFlagsPropertyItemTest : PropertyTestCase() {
       Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
   }
 
-  private fun createFlagsPropertyItem(attrName: String, type: NelePropertyType, components: List<NlComponent>): NeleFlagsPropertyItem {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
+  private fun createFlagsPropertyItem(attrName: String, type: NlPropertyType, components: List<NlComponent>): NlFlagsPropertyItem {
+    val model = NlPropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NeleFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, components)
+    return NlFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, components)
   }
 
   @Language("XML")

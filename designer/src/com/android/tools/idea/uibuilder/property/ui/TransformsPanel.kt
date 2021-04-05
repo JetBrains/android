@@ -20,8 +20,8 @@ import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.adtui.common.lines3d
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
@@ -43,7 +43,7 @@ import javax.swing.border.EmptyBorder
 /**
  * Custom panel to support direct editing of transforms (rotation, etc.)
  */
-class TransformsPanel(private val model: NelePropertiesModel, properties: PropertiesTable<NelePropertyItem>) : JPanel(BorderLayout()) {
+class TransformsPanel(private val model: NlPropertiesModel, properties: PropertiesTable<NlPropertyItem>) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH + 80
@@ -63,8 +63,8 @@ class TransformsPanel(private val model: NelePropertiesModel, properties: Proper
   private var listLabels = ArrayList<JLabel>()
   private var listValueLabels = ArrayList<JLabel>()
 
-  private val modelListener = object: PropertiesModelListener<NelePropertyItem> {
-    override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+  private val modelListener = object: PropertiesModelListener<NlPropertyItem> {
+    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
       updateFromValues()
     }
   }
@@ -229,7 +229,7 @@ class TransformsPanel(private val model: NelePropertiesModel, properties: Proper
     model.removeListener(modelListener)
   }
 
-  private fun writeValue(property : NelePropertyItem?, value : String) {
+  private fun writeValue(property : NlPropertyItem?, value : String) {
     if (property == null) {
       return
     }
@@ -282,7 +282,7 @@ class TransformsPanel(private val model: NelePropertiesModel, properties: Proper
   }
 
   @VisibleForTesting
-  fun valueOf(property: NelePropertyItem?): Double? {
+  fun valueOf(property: NlPropertyItem?): Double? {
     val stringValue = property?.value?.ifEmpty { "0" } ?: "0"
     return try {
       stringValue.toDouble()

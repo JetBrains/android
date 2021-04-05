@@ -19,10 +19,10 @@ import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.TOOLS_NS_NAME
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.support.NeleTwoStateBooleanControlTypeProvider
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
@@ -53,16 +53,16 @@ private const val PACKAGE_SEPARATOR_CHAR = ':'
 const val FAVORITES_PROPERTY = "ANDROID.FAVORITE_PROPERTIES"
 
 class FavoritesInspectorBuilder(
-  private val model: NelePropertiesModel,
-  enumSupportProvider: EnumSupportProvider<NelePropertyItem>
-): InspectorBuilder<NelePropertyItem> {
-  private val nameControlTypeProvider = SimpleControlTypeProvider<NeleNewPropertyItem>(ControlType.TEXT_EDITOR)
-  private val nameEditorProvider = EditorProvider.createForNames<NeleNewPropertyItem>()
-  private val controlTypeProvider = NeleTwoStateBooleanControlTypeProvider(enumSupportProvider)
+  private val model: NlPropertiesModel,
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+): InspectorBuilder<NlPropertyItem> {
+  private val nameControlTypeProvider = SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
+  private val nameEditorProvider = EditorProvider.createForNames<NlNewPropertyItem>()
+  private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
   private val tableUIProvider = TableUIProvider.create(
-    NeleNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
-    NelePropertyItem::class.java, controlTypeProvider, editorProvider)
+    NlNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
+    NlPropertyItem::class.java, controlTypeProvider, editorProvider)
   private val splitter = Splitter.on(FAVORITE_SEPARATOR_CHAR).trimResults().omitEmptyStrings()
   private var favoritesAsString = ""
   private var favorites = mutableSetOf<ResourceReference>()
@@ -124,14 +124,14 @@ class FavoritesInspectorBuilder(
     favorites.addAll(newFavorites)
   }
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.FAVORITES.visible) {
       return
     }
     val favorites = loadFavoritePropertiesIfNeeded()
     val favoritesTableModel = FilteredPTableModel.create(model, { favorites.contains(it.asReference) }, {}, androidSortOrder)
-    val newPropertyInstance = NeleNewPropertyItem(model, PropertiesTable.emptyTable(),
-      { !favorites.contains(it.asReference)}, { newDelegate(it, favoritesTableModel) })
+    val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(),
+                                                { !favorites.contains(it.asReference)}, { newDelegate(it, favoritesTableModel) })
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
@@ -146,7 +146,7 @@ class FavoritesInspectorBuilder(
     newPropertyInstance.name = ""
   }
 
-  private fun newDelegate(newPropertyItem: NeleNewPropertyItem, tableModel: FilteredPTableModel<NelePropertyItem>) {
+  private fun newDelegate(newPropertyItem: NlNewPropertyItem, tableModel: FilteredPTableModel<NlPropertyItem>) {
     val delegate = newPropertyItem.delegate ?: return
     val reference = delegate.asReference ?: return
     val favorites = loadFavoritePropertiesIfNeeded()
@@ -158,7 +158,7 @@ class FavoritesInspectorBuilder(
   }
 
   private class AddNewRowAction(
-    val newProperty: NeleNewPropertyItem
+    val newProperty: NlNewPropertyItem
   ) : AnAction(null, ADD_ATTRIBUTE_ACTION_TITLE, StudioIcons.Common.ADD) {
 
     var titleModel: InspectorLineModel? = null
@@ -192,8 +192,8 @@ class FavoritesInspectorBuilder(
     override fun actionPerformed(event: AnActionEvent) {
       titleModel?.expanded = true
       val model = lineModel ?: return
-      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) as? NelePropertyItem ?: return
-      if (selected is NeleNewPropertyItem) {
+      val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) as? NlPropertyItem ?: return
+      if (selected is NlNewPropertyItem) {
         // This item is not in the favorites yet, just remove the item in the table:
         model.removeItem(selected)
         return

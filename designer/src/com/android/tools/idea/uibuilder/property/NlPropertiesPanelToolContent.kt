@@ -37,8 +37,8 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 
-fun getPropertiesToolContent(component: Component?): NelePropertiesPanelToolContent? =
-  ToolContent.getToolContent(component) as? NelePropertiesPanelToolContent
+fun getPropertiesToolContent(component: Component?): NlPropertiesPanelToolContent? =
+  ToolContent.getToolContent(component) as? NlPropertiesPanelToolContent
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
@@ -46,15 +46,15 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 /**
  * Create the models and views for the properties tool content.
  */
-class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
+class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
   : JPanel(BorderLayout()), ToolContent<DesignSurface> {
   private val queue = MergingUpdateQueue(
     UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
-  private val componentModel = NelePropertiesModel(this, facet, queue)
-  private val componentView = NelePropertiesView(componentModel)
+  private val componentModel = NlPropertiesModel(this, facet, queue)
+  private val componentView = NlPropertiesView(componentModel)
   private val motionModel = MotionLayoutAttributesModel(this, facet, queue)
   private val motionEditorView = MotionLayoutAttributesView(motionModel)
-  private val properties = PropertiesPanel<NelePropertyItem>(componentModel)
+  private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
   private var toolWindow: ToolWindowCallback? = null

@@ -28,9 +28,9 @@ import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.HelpSupport
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,7 +51,7 @@ const val PICK_A_RESOURCE = "Pick a Resource"
  *
  * Note: this may change pending UX specifications.
  */
-class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("Toggle Computed Value") {
+class ToggleShowResolvedValueAction(val model: NlPropertiesModel) : AnAction("Toggle Computed Value") {
 
   init {
     shortcutSet = CustomShortcutSet(SHORTCUT)
@@ -70,7 +70,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
 object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESOURCE, StudioIcons.Common.PROPERTY_UNBOUND) {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
     val newValue = property.delegate?.let { selectFromResourceDialog(it) }
     if (newValue != null) {
       property.value = newValue
@@ -81,7 +81,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
     (event.inputEvent?.source as? JComponent)?.requestFocus()
   }
 
-  private fun selectFromResourceDialog(property: NelePropertyItem): String? {
+  private fun selectFromResourceDialog(property: NlPropertyItem): String? {
     val propertyName = property.name
     val tag = property.components.firstOrNull()?.backend?.tag ?: return null
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
@@ -143,8 +143,8 @@ open class TestableColorSelectionAction(
 ) : AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
-    val actualProperty = (property as? NeleNewPropertyItem)?.delegate ?: property
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NlPropertyItem? ?: return
+    val actualProperty = (property as? NlNewPropertyItem)?.delegate ?: property
 
     val resourceReference = property.resolveValueAsReference(property.rawValue)
     val currentColor = if (resourceReference != null) {
@@ -159,7 +159,7 @@ open class TestableColorSelectionAction(
   }
 
   private fun selectFromColorDialog(location: Point,
-                                    property: NelePropertyItem,
+                                    property: NlPropertyItem,
                                     initialColor: Color?,
                                     resourceReference: ResourceReference?,
                                     restoreFocusTo: Component?) {

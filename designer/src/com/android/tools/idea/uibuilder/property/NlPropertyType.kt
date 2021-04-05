@@ -23,9 +23,9 @@ import org.jetbrains.android.dom.converters.DimensionConverter
 import java.util.EnumSet
 
 /**
- * Types of a [NelePropertyItem].
+ * Types of a [NlPropertyItem].
  */
-enum class NelePropertyType {
+enum class NlPropertyType {
   UNKNOWN,
   ANIM,
   ANIMATOR,

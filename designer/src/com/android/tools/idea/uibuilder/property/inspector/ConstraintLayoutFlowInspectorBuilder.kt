@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
@@ -42,9 +42,9 @@ import javax.swing.border.EmptyBorder
 /**
  * Provides a custom set of editors for ConstraintLayout's flow in the Property Panel.
  */
-class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) {
+class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
     if (!isApplicable(properties)) return
 
     var titleLine = getTitleLine()
@@ -72,7 +72,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
     inspector.addComponent(component, titleLine)
   }
 
-  private fun addHorizontalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+  private fun addHorizontalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
@@ -82,7 +82,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
     panel.add(createIconEditor(line, alignment, "Align End", StudioIcons.LayoutEditor.Toolbar.RIGHT_ALIGNED, SdkConstants.FlowAlignment.END))
   }
 
-  private fun addVerticalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+  private fun addVerticalAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_ALIGN) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
@@ -93,7 +93,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
     panel.add(createIconEditor(line, alignment, "Align Baseline", StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED, SdkConstants.FlowAlignment.BASELINE))
   }
 
-  private fun addHorizontalStyle(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+  private fun addHorizontalStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
@@ -103,7 +103,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
     panel.add(createIconEditor(line, alignment, "Packed", StudioIcons.LayoutEditor.Properties.PACKED_HORIZONTAL, SdkConstants.FlowStyle.PACKED))
   }
 
-  private fun addVerticalStyle(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+  private fun addVerticalStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_FLOW_VERTICAL_STYLE) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
@@ -115,7 +115,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
 
   private fun createIconEditor(
     line: InspectorLineModel,
-    property: NelePropertyItem,
+    property: NlPropertyItem,
     description: String,
     icon: Icon,
     trueValue: String,
@@ -127,7 +127,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
     return model to editor
   }
 
-  private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
+  private fun addEditor(inspector: InspectorPanel, property: NlPropertyItem, group: InspectorLineModel): InspectorLineModel {
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 
@@ -143,7 +143,7 @@ class ConstraintLayoutFlowInspectorBuilder(private val editorProvider: EditorPro
   }
 
   companion object {
-    fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
+    fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {
       var components: List<NlComponent>? = properties.first?.components ?: return false
       if (components!!.isEmpty()) return false
       var component: NlComponent? = components?.get(0)

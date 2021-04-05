@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public interface NlUsageTracker {
    * @param property The property that was changed.
    * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
    */
-  void logPropertyChange(@NotNull NelePropertyItem property, int filterMatches);
+  void logPropertyChange(@NotNull NlPropertyItem property, int filterMatches);
 
   /**
    * Logs a change in the set of favorite properties shown on the inspector.

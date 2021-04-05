@@ -31,7 +31,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
@@ -44,7 +44,7 @@ import javax.swing.JPanel
  * defined in the [ViewHandler] of the layout ViewGroup.
  */
 class LayoutInspectorBuilder(project: Project,
-                             val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
+                             val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -52,7 +52,7 @@ class LayoutInspectorBuilder(project: Project,
     cachedCustomPanels.clear()
   }
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val attributes = getLayoutAttributes(properties)
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
@@ -74,13 +74,13 @@ class LayoutInspectorBuilder(project: Project,
     }
   }
 
-  private fun isApplicable(attributes: List<String>, custom: JPanel?, properties: PropertiesTable<NelePropertyItem>): Boolean {
+  private fun isApplicable(attributes: List<String>, custom: JPanel?, properties: PropertiesTable<NlPropertyItem>): Boolean {
     if (!InspectorSection.LAYOUT.visible) return false
     if (custom != null) return true
     return attributes.any { properties.getOrNull(ANDROID_URI, it) != null }
   }
 
-  private fun getLayoutAttributes(properties: PropertiesTable<NelePropertyItem>): List<String> {
+  private fun getLayoutAttributes(properties: PropertiesTable<NlPropertyItem>): List<String> {
     val attributes = mutableListOf(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
     addAttributesFromViewHandler(properties, attributes)
     attributes.add(ATTR_VISIBILITY)
@@ -88,19 +88,19 @@ class LayoutInspectorBuilder(project: Project,
     return attributes
   }
 
-  private fun addAttributesFromViewHandler(properties: PropertiesTable<NelePropertyItem>, attributes: MutableList<String>) {
+  private fun addAttributesFromViewHandler(properties: PropertiesTable<NlPropertyItem>, attributes: MutableList<String>) {
     val parent = getParentComponent(properties) ?: return
     val handler = viewHandlerManager.getHandler(parent) ?: return
     attributes.addAll(handler.layoutInspectorProperties)
   }
 
-  private fun getParentComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
+  private fun getParentComponent(properties: PropertiesTable<NlPropertyItem>): NlComponent? {
     val property = properties.first ?: return null
     val firstParent = property.components.firstOrNull()?.parent ?: return null
     return if (property.components.all { it.parent?.tagName == firstParent.tagName }) firstParent else null
   }
 
-  private fun setupCustomPanel(properties: PropertiesTable<NelePropertyItem>): JPanel? {
+  private fun setupCustomPanel(properties: PropertiesTable<NlPropertyItem>): JPanel? {
     val parent = getParentComponent(properties) ?: return null
     val customPanelKey = getCustomPanelKey(parent)
     val panel = cachedCustomPanels[customPanelKey] ?: createCustomPanel(parent, customPanelKey)

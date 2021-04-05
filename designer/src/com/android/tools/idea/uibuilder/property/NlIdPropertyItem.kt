@@ -34,15 +34,15 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
-open class NeleIdPropertyItem(
-  model: NelePropertiesModel,
+open class NlIdPropertyItem(
+  model: NlPropertiesModel,
   definition: AttributeDefinition?,
   componentName: String,
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-) : NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model,
-                     listOf(components.first()), optionalValue1, optionalValue2) {
+) : NlPropertyItem(ANDROID_URI, ATTR_ID, NlPropertyType.ID, definition, componentName, "", model,
+                   listOf(components.first()), optionalValue1, optionalValue2) {
 
   // TODO(b/120919869): The snapshot value in NlComponent may be stale.
   // The snapshot stored in an NlComponent can get stale when something else

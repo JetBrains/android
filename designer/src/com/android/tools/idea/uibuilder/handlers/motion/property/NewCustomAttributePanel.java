@@ -27,8 +27,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
-import com.android.tools.idea.uibuilder.property.NelePropertyType;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyType;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.google.common.collect.HashBasedTable;
@@ -78,7 +78,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
   private final Supplier<CustomAttributeType> myTypeSupplier;
   private final DefaultComboBoxModel<CustomAttributeType> myModel;
   private final WindowFocusListener myWindowFocusListener;
-  private NelePropertyItem myProperty;
+  private NlPropertyItem myProperty;
 
   public NewCustomAttributePanel(@NotNull MotionLayoutAttributesModel propertiesModel,
                                  @NotNull MotionSelection selection,
@@ -187,14 +187,14 @@ public class NewCustomAttributePanel extends DialogWrapper {
     String value = getInitialValue();
     CustomAttributeType type = getType();
     Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
-      NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
+      NlPropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
         attributeName, type.getTagName(), mySelection, myPropertiesModel);
       myLineModel.addItem(newProperty);
 
       // Add to the property model since the model may treat this as a property update (not a new selection).
-      PropertiesTable<NelePropertyItem> customProperties = myPropertiesModel.getAllProperties().get(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+      PropertiesTable<NlPropertyItem> customProperties = myPropertiesModel.getAllProperties().get(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
       if (customProperties == null) {
-        Table<String, String, NelePropertyItem> customTable = HashBasedTable.create(3, 10);
+        Table<String, String, NlPropertyItem> customTable = HashBasedTable.create(3, 10);
         customProperties = PropertiesTable.Companion.create(customTable);
         myPropertiesModel.getAllProperties().put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, customProperties);
       }
@@ -229,7 +229,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
 
   private void updateAfterTypeChange() {
     String typeTag = getType().getTagName();
-    NelePropertyType propertyType = MotionLayoutPropertyProvider.mapFromCustomType(typeTag);
+    NlPropertyType propertyType = MotionLayoutPropertyProvider.mapFromCustomType(typeTag);
     if (myProperty == null || propertyType != myProperty.getType()) {
       myProperty = MotionLayoutPropertyProvider.createCustomProperty("property", typeTag, mySelection, myPropertiesModel);
       myInitialValueModel.setEditingSupport(myProperty.getEditingSupport());

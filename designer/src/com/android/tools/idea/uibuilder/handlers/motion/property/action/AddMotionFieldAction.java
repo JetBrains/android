@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property.action;
 
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel;
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.ptable2.PTableItem;
@@ -27,13 +27,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class AddMotionFieldAction extends AnAction {
-  private final NeleNewPropertyItem myNewProperty;
+  private final NlNewPropertyItem myNewProperty;
   private TableLineModel myLineModel;
 
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
-                              @NotNull PropertiesTable<NelePropertyItem> properties) {
+                              @NotNull PropertiesTable<NlPropertyItem> properties) {
     super(null, "Add attribute", AllIcons.General.Add);
-    myNewProperty = new NeleNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
+    myNewProperty = new NlNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {

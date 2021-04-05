@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
@@ -31,18 +31,18 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
  */
 object TypeResolver {
 
-  fun resolveType(name: String, attribute: AttributeDefinition?): NelePropertyType {
+  fun resolveType(name: String, attribute: AttributeDefinition?): NlPropertyType {
     return lookupByName(name)
            ?: bySpecialType(name)
            ?: fromAttributeDefinition(attribute)
            ?: fallbackByName(name)
   }
 
-  private fun bySpecialType(name: String): NelePropertyType? {
+  private fun bySpecialType(name: String): NlPropertyType? {
     val types = AndroidDomUtil.getSpecialResourceTypes(name)
     for (type in types) {
       when (type) {
-        ResourceType.ID -> return NelePropertyType.ID
+        ResourceType.ID -> return NlPropertyType.ID
         //TODO: expand in a followup CL
         else -> {}
       }
@@ -50,21 +50,21 @@ object TypeResolver {
     return null
   }
 
-  private fun fromAttributeDefinition(attribute: AttributeDefinition?): NelePropertyType? {
+  private fun fromAttributeDefinition(attribute: AttributeDefinition?): NlPropertyType? {
     if (attribute == null) return null
-    var subType: NelePropertyType? = null
+    var subType: NlPropertyType? = null
 
     for (format in attribute.formats) {
       when (format) {
-        AttributeFormat.BOOLEAN -> return NelePropertyType.THREE_STATE_BOOLEAN
-        AttributeFormat.COLOR -> return NelePropertyType.COLOR
-        AttributeFormat.DIMENSION -> return NelePropertyType.DIMENSION
-        AttributeFormat.FLOAT -> return NelePropertyType.FLOAT
-        AttributeFormat.FRACTION -> return NelePropertyType.FRACTION
-        AttributeFormat.INTEGER -> return NelePropertyType.INTEGER
-        AttributeFormat.STRING -> return NelePropertyType.STRING
-        AttributeFormat.FLAGS -> return NelePropertyType.FLAGS
-        AttributeFormat.ENUM -> subType = NelePropertyType.ENUM
+        AttributeFormat.BOOLEAN -> return NlPropertyType.THREE_STATE_BOOLEAN
+        AttributeFormat.COLOR -> return NlPropertyType.COLOR
+        AttributeFormat.DIMENSION -> return NlPropertyType.DIMENSION
+        AttributeFormat.FLOAT -> return NlPropertyType.FLOAT
+        AttributeFormat.FRACTION -> return NlPropertyType.FRACTION
+        AttributeFormat.INTEGER -> return NlPropertyType.INTEGER
+        AttributeFormat.STRING -> return NlPropertyType.STRING
+        AttributeFormat.FLAGS -> return NlPropertyType.FLAGS
+        AttributeFormat.ENUM -> subType = NlPropertyType.ENUM
         else -> {}
       }
     }
@@ -79,15 +79,15 @@ object TypeResolver {
       SdkConstants.ATTR_POPUP_THEME,
       SdkConstants.ATTR_SHAPE_APPEARANCE,
       SdkConstants.ATTR_SHAPE_APPEARANCE_OVERLAY,
-      SdkConstants.ATTR_STYLE -> NelePropertyType.STYLE
+      SdkConstants.ATTR_STYLE -> NlPropertyType.STYLE
 
-      SdkConstants.ATTR_CLASS -> NelePropertyType.FRAGMENT
+      SdkConstants.ATTR_CLASS -> NlPropertyType.FRAGMENT
 
       SdkConstants.ATTR_COMPLETION_HINT_VIEW,
       SdkConstants.ATTR_LAYOUT,
-      SdkConstants.ATTR_SHOW_IN -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_SHOW_IN -> NlPropertyType.LAYOUT
 
-      SdkConstants.ATTR_FONT_FAMILY -> NelePropertyType.FONT
+      SdkConstants.ATTR_FONT_FAMILY -> NlPropertyType.FONT
 
       SdkConstants.ATTR_CONTENT,
       SdkConstants.ATTR_DROP_DOWN_ANCHOR,
@@ -104,9 +104,9 @@ object TypeResolver {
       SdkConstants.ATTR_NEXT_FOCUS_LEFT,
       SdkConstants.ATTR_NEXT_FOCUS_RIGHT,
       SdkConstants.ATTR_NEXT_FOCUS_UP,
-      SdkConstants.ATTR_TOOLBAR_ID -> NelePropertyType.ID
+      SdkConstants.ATTR_TOOLBAR_ID -> NlPropertyType.ID
 
-      SdkConstants.ATTR_EDITOR_EXTRAS -> NelePropertyType.ID // TODO: Support <input-extras> as resource type?
+      SdkConstants.ATTR_EDITOR_EXTRAS -> NlPropertyType.ID // TODO: Support <input-extras> as resource type?
 
       SdkConstants.ATTR_BACKGROUND,
       SdkConstants.ATTR_BUTTON,
@@ -160,7 +160,7 @@ object TypeResolver {
       SdkConstants.ATTR_SCROLLBAR_THUMB_VERTICAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_HORIZONTAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_VERTICAL,
-      SdkConstants.ATTR_STATUS_BAR_SCRIM -> NelePropertyType.DRAWABLE
+      SdkConstants.ATTR_STATUS_BAR_SCRIM -> NlPropertyType.DRAWABLE
 
       SdkConstants.ATTR_IN_ANIMATION,
       SdkConstants.ATTR_OUT_ANIMATION,
@@ -171,9 +171,9 @@ object TypeResolver {
       NavigationSchema.ATTR_ENTER_ANIM,
       NavigationSchema.ATTR_EXIT_ANIM,
       NavigationSchema.ATTR_POP_ENTER_ANIM,
-      NavigationSchema.ATTR_POP_EXIT_ANIM -> NelePropertyType.ANIM
+      NavigationSchema.ATTR_POP_EXIT_ANIM -> NlPropertyType.ANIM
 
-      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIMATOR
+      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NlPropertyType.ANIMATOR
 
       SdkConstants.ATTR_AM_PM_BACKGROUND_COLOR,
       SdkConstants.ATTR_AM_PM_TEXT_COLOR,
@@ -227,60 +227,60 @@ object TypeResolver {
       "tickColorInactive",
       "trackColor",
       "trackColorActive",
-      "trackColorInactive" -> NelePropertyType.COLOR_STATE_LIST
+      "trackColorInactive" -> NlPropertyType.COLOR_STATE_LIST
 
       "values",  // actually an array of float for com.google.android.material.slider.RangeSlider
-      SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NelePropertyType.ARRAY
+      SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NlPropertyType.ARRAY
 
       SdkConstants.ATTR_INTERPOLATOR,
-      SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NelePropertyType.INTERPOLATOR
+      SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NlPropertyType.INTERPOLATOR
 
-      SdkConstants.ATTR_ENTRIES -> NelePropertyType.STRING_ARRAY
+      SdkConstants.ATTR_ENTRIES -> NlPropertyType.STRING_ARRAY
 
-      SdkConstants.ATTR_IGNORE_GRAVITY -> NelePropertyType.THREE_STATE_BOOLEAN
+      SdkConstants.ATTR_IGNORE_GRAVITY -> NlPropertyType.THREE_STATE_BOOLEAN
 
       "value",
       "valueFrom",
-      "valueTo" -> NelePropertyType.FLOAT
+      "valueTo" -> NlPropertyType.FLOAT
 
       SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
       SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,
       SdkConstants.ATTR_LAYOUT_HEIGHT_PERCENT,
       SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
-      SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS -> NelePropertyType.FRACTION
+      SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS -> NlPropertyType.FRACTION
 
-      SdkConstants.ATTR_ELEVATION -> NelePropertyType.DIMENSION
+      SdkConstants.ATTR_ELEVATION -> NlPropertyType.DIMENSION
 
-      SdkConstants.ATTR_MENU -> NelePropertyType.MENU
+      SdkConstants.ATTR_MENU -> NlPropertyType.MENU
 
       // tools
       // TODO: Figure out a way to map this using ToolsAttributeUtil
-      SdkConstants.ATTR_ITEM_COUNT -> NelePropertyType.INTEGER
-      SdkConstants.ATTR_ACTION_BAR_NAV_MODE -> NelePropertyType.ENUM
+      SdkConstants.ATTR_ITEM_COUNT -> NlPropertyType.INTEGER
+      SdkConstants.ATTR_ACTION_BAR_NAV_MODE -> NlPropertyType.ENUM
 
       SdkConstants.ATTR_LISTFOOTER,
       SdkConstants.ATTR_LISTHEADER,
-      SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
+      SdkConstants.ATTR_LISTITEM -> NlPropertyType.LAYOUT
 
       SdkConstants.ATTR_GRAPH,
-      SdkConstants.ATTR_NAV_GRAPH -> NelePropertyType.NAVIGATION
+      SdkConstants.ATTR_NAV_GRAPH -> NlPropertyType.NAVIGATION
 
       NavigationSchema.ATTR_DESTINATION,
       SdkConstants.ATTR_START_DESTINATION,
-      NavigationSchema.ATTR_POP_UP_TO -> NelePropertyType.DESTINATION
+      NavigationSchema.ATTR_POP_UP_TO -> NlPropertyType.DESTINATION
 
-      SdkConstants.ATTR_NAME -> NelePropertyType.CLASS_NAME
+      SdkConstants.ATTR_NAME -> NlPropertyType.CLASS_NAME
 
-      SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION -> NelePropertyType.XML
+      SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION -> NlPropertyType.XML
 
-      SdkConstants.ATTR_MOTION_TARGET -> NelePropertyType.ID_OR_STRING
+      SdkConstants.ATTR_MOTION_TARGET -> NlPropertyType.ID_OR_STRING
 
-      SdkConstants.ATTR_MOTION_WAVE_OFFSET -> NelePropertyType.DIMENSION_UNIT_LESS
+      SdkConstants.ATTR_MOTION_WAVE_OFFSET -> NlPropertyType.DIMENSION_UNIT_LESS
 
       else -> null
     }
 
-  private fun fallbackByName(name: String): NelePropertyType {
+  private fun fallbackByName(name: String): NlPropertyType {
     val parts = split(name)
     val last = parts.last()
     val secondLast = if (parts.size > 1) parts.elementAt(parts.size - 2) else ""
@@ -290,25 +290,25 @@ object TypeResolver {
       "drawable",
       "icon",
       "indicator" ->
-        return NelePropertyType.DRAWABLE
+        return NlPropertyType.DRAWABLE
       "color" ->
-        return if (secondLast == "text") return NelePropertyType.COLOR_STATE_LIST else NelePropertyType.COLOR
+        return if (secondLast == "text") return NlPropertyType.COLOR_STATE_LIST else NlPropertyType.COLOR
       "appearance" ->
-        if (secondLast == "text") return NelePropertyType.TEXT_APPEARANCE
+        if (secondLast == "text") return NlPropertyType.TEXT_APPEARANCE
       "handle" ->
-        if (thirdLast == "text" && secondLast == "select") return NelePropertyType.DRAWABLE
+        if (thirdLast == "text" && secondLast == "select") return NlPropertyType.DRAWABLE
       "layout" ->
-        return NelePropertyType.LAYOUT
+        return NlPropertyType.LAYOUT
       "spec" ->
-        if (secondLast == "motion") return NelePropertyType.ANIMATOR
+        if (secondLast == "motion") return NlPropertyType.ANIMATOR
       "style" ->
-        return NelePropertyType.STYLE
+        return NlPropertyType.STYLE
       else -> {
-        if (thirdLast == "text" && secondLast == "appearance") return NelePropertyType.TEXT_APPEARANCE
-        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle") return NelePropertyType.DRAWABLE
+        if (thirdLast == "text" && secondLast == "appearance") return NlPropertyType.TEXT_APPEARANCE
+        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle") return NlPropertyType.DRAWABLE
       }
     }
-    return NelePropertyType.STRING
+    return NlPropertyType.STRING
   }
 
   private fun split(name: String): Set<String> {

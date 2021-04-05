@@ -20,8 +20,8 @@ import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.testing.Dependencies
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth
@@ -45,7 +45,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     // setup
     Dependencies.add(myFixture, APPCOMPAT_LIB_ARTIFACT_ID)
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
 
     // test
     val support = TextAppearanceEnumSupport(property)
@@ -81,7 +81,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
   fun testTextViewTextAppearanceWithoutAppCompat() {
     // setup
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
 
     // test
     val support = TextAppearanceEnumSupport(property)
@@ -117,7 +117,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
   fun testTextViewTextAppearanceWithInvalidXmlTag() {
     // setup
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     deleteXmlTag(property)
 
     // test
@@ -151,7 +151,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     Truth.assertThat(index).isEqualTo(-1)
   }
 
-  private fun deleteXmlTag(property: NelePropertyItem) {
+  private fun deleteXmlTag(property: NlPropertyItem) {
     val tag = property.components.first().backend.getTagPointer().element!!
     WriteCommandAction.writeCommandAction(project).run<Throwable> {
       tag.delete()

@@ -33,7 +33,7 @@ import com.google.common.collect.HashBasedTable
  * Currently this is only done for a few view classes example: TextView,
  * but this map could be more extensive in the future.
  */
-class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): DefaultPropertyValueProvider {
+class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): DefaultPropertyValueProvider {
   // Store the default values requested so far. Use this to detect default value changes.
   @GuardedBy("lookupPerformed")
   private val lookupPerformed = HashBasedTable.create<NlComponent, ResourceReference, ResourceValue>()
@@ -42,7 +42,7 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
   @GuardedBy("styleLookupPerformed")
   private val styleLookupPerformed = mutableMapOf<NlComponent, ResourceReference>()
 
-  override fun provideDefaultValue(property: NelePropertyItem): String? {
+  override fun provideDefaultValue(property: NlPropertyItem): String? {
     val defValue = provideDefaultValueAsResourceValue(property) ?: return null
     return property.resolveDefaultValue(defValue)
   }
@@ -52,7 +52,7 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
    *
    * Or `null` if such a default value hasn't been reported.
    */
-  private fun provideDefaultValueAsResourceValue(property: NelePropertyItem): ResourceValue? {
+  private fun provideDefaultValueAsResourceValue(property: NlPropertyItem): ResourceValue? {
     if (property.namespace.isEmpty() && property.name == ATTR_STYLE) {
       return provideDefaultStyleValue(property)
     }
@@ -109,7 +109,7 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
     }
   }
 
-  private fun provideDefaultStyleValue(property: NelePropertyItem): ResourceValue? {
+  private fun provideDefaultStyleValue(property: NlPropertyItem): ResourceValue? {
     val style = property.components
                            .map { styleLookup(it) }
                            .distinct()

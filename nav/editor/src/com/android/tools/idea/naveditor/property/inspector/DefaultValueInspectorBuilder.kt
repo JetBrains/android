@@ -26,13 +26,13 @@ import com.android.tools.idea.naveditor.model.startDestination
 import com.android.tools.idea.naveditor.property.ui.DefaultValueModel
 import com.android.tools.idea.naveditor.property.ui.DefaultValuePanel
 import com.android.tools.idea.naveditor.property.ui.DefaultValueTableModel
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 
-class DefaultValueInspectorBuilder : InspectorBuilder<NelePropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+class DefaultValueInspectorBuilder : InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     val component = properties.first?.components?.singleOrNull() ?: return
     if (!component.isAction && !component.isNavigation || component.isInclude) {
       return

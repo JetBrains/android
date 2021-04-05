@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property.action;
 
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE;
 
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.ptable2.PTableItem;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -52,24 +52,24 @@ public class DeleteMotionFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    NelePropertyItem property = getSelectedOrFirstItem(myLineModel);
+    NlPropertyItem property = getSelectedOrFirstItem(myLineModel);
     if (property != null) {
       myLineModel.removeItem(property);
     }
   }
 
   @Nullable
-  public static NelePropertyItem getSelectedOrFirstItem(@Nullable TableLineModel lineModel) {
+  public static NlPropertyItem getSelectedOrFirstItem(@Nullable TableLineModel lineModel) {
     if (lineModel == null) {
       return null;
     }
-    NelePropertyItem property = (NelePropertyItem)lineModel.getSelectedItem();
+    NlPropertyItem property = (NlPropertyItem)lineModel.getSelectedItem();
     if (property == null) {
       List<PTableItem> items = lineModel.getTableModel().getItems();
       if (items.isEmpty()) {
         return null;
       }
-      property = (NelePropertyItem)items.get(0);
+      property = (NlPropertyItem)items.get(0);
     }
     return property;
   }

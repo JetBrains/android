@@ -20,8 +20,8 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.inspector.DefaultValueInspectorBuilder
 import com.android.tools.idea.naveditor.property.ui.DefaultValuePanel
 import com.android.tools.idea.naveditor.property.ui.DefaultValueTableModel
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 
 class DefaultValueInspectorBuilderTest : NavTestCase() {
@@ -41,8 +41,8 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
 
     val action1 = model.find("action1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(action1))
     val panel = FakeInspectorPanel()
     val builder = DefaultValueInspectorBuilder()
@@ -71,8 +71,8 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
 
     val action1 = model.find("action1")!!
 
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val provider = NelePropertiesProvider(myFacet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    val provider = NlPropertiesProvider(myFacet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(action1))
     val panel = FakeInspectorPanel()
     val builder = DefaultValueInspectorBuilder()

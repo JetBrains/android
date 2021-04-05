@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.InspectorLineModel;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -30,11 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SubSectionControlAction extends AnAction {
-  private final NelePropertyItem myProperty;
+  private final NlPropertyItem myProperty;
   private InspectorLineModel myLineModel;
   private LookupResult myLookupResult;
 
-  public SubSectionControlAction(@Nullable NelePropertyItem property) {
+  public SubSectionControlAction(@Nullable NlPropertyItem property) {
     myProperty = property;
     myLookupResult = new LookupResult();
   }

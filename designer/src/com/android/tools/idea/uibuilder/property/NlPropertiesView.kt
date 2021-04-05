@@ -29,16 +29,16 @@ import com.android.tools.idea.uibuilder.property.inspector.IdInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.LayoutInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.SelectedComponentBuilder
 import com.android.tools.idea.uibuilder.property.inspector.TransformsAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property.support.NeleControlTypeProvider
-import com.android.tools.idea.uibuilder.property.support.NeleEnumSupportProvider
+import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
+import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 
 private const val VIEW_NAME = "LayoutEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
 private const val WATERMARK_ACTION_MESSAGE = "Select a component in the Component Tree or on the Design Surface."
 
-class NelePropertiesView(model : NelePropertiesModel) : PropertiesView<NelePropertyItem>(VIEW_NAME, model) {
-  private val enumSupportProvider = NeleEnumSupportProvider(model)
-  private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
+class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
+  private val enumSupportProvider = NlEnumSupportProvider(model)
+  private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
   init {

@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.parentSequence
 import com.android.tools.idea.naveditor.model.visibleDestinations
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
@@ -35,8 +35,8 @@ import org.jetbrains.android.dom.navigation.isInProject
 
 private val emptyList = listOf(EnumValue.EMPTY)
 
-class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
-  override fun invoke(actual: NelePropertyItem): EnumSupport? {
+class NavEnumSupportProvider : EnumSupportProvider<NlPropertyItem> {
+  override fun invoke(actual: NlPropertyItem): EnumSupport? {
     val property = actual.delegate ?: actual
 
     val components = property.components

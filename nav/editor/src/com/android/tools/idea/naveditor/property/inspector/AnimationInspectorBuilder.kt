@@ -17,7 +17,7 @@ package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
@@ -27,8 +27,8 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 
-class AnimationInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
+class AnimationInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.first?.components?.singleOrNull()?.isAction != true) {
       return
     }

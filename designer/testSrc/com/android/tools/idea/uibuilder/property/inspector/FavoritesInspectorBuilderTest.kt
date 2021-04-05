@@ -31,9 +31,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property.NeleNewPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
@@ -61,8 +61,8 @@ class FavoritesInspectorBuilderTest {
     InspectorSection.FAVORITES.visible = true
   }
 
-  private val enumSupportProvider = object : EnumSupportProvider<NelePropertyItem> {
-    override fun invoke(property: NelePropertyItem): EnumSupport? {
+  private val enumSupportProvider = object : EnumSupportProvider<NlPropertyItem> {
+    override fun invoke(property: NlPropertyItem): EnumSupport? {
       return null
     }
   }
@@ -126,7 +126,7 @@ class FavoritesInspectorBuilderTest {
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
     util.performAction(0, 0, StudioIcons.Common.ADD)
-    val newItem = util.checkTable(1).tableModel.items[2] as NeleNewPropertyItem
+    val newItem = util.checkTable(1).tableModel.items[2] as NlNewPropertyItem
 
     // Select a new favorite property:
     newItem.name = "android:text"
@@ -145,11 +145,11 @@ class FavoritesInspectorBuilderTest {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.newName())
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
-    util.addProperty(AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF, NelePropertyType.ID)
-    util.addProperty(AUTO_URI, ATTR_LAYOUT_TOP_TO_TOP_OF, NelePropertyType.ID)
+    util.addProperty(AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF, NlPropertyType.ID)
+    util.addProperty(AUTO_URI, ATTR_LAYOUT_TOP_TO_TOP_OF, NlPropertyType.ID)
     builder.attachToInspector(util.inspector, util.properties)
     util.performAction(0, 0, StudioIcons.Common.ADD)
-    val newItem = util.checkTable(1).tableModel.items[2] as NeleNewPropertyItem
+    val newItem = util.checkTable(1).tableModel.items[2] as NlNewPropertyItem
 
     // Select a new favorite property:
     newItem.name = "app:layout_constraintBottom_toTopOf"

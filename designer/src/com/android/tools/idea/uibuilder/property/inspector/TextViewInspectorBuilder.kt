@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.property.panel.api.*
-import com.android.tools.idea.uibuilder.property.NeleFlagsPropertyItem
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.model.ToggleButtonPropertyEditorModel
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
 import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
@@ -38,9 +38,9 @@ import javax.swing.JComponent
  *     [ATTR_FONT_FAMILY] and [ATTR_TEXT_ALIGNMENT]
  * They are present if the minSdkVersion is high enough or if AppCompat is used.
  */
-class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePropertyItem>) {
+class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
     if (!isApplicable(properties)) return
 
     val titleLine = getTitleLine()
@@ -63,12 +63,12 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     addAlignment(inspector, properties, textAppearanceLabel)
   }
 
-  private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {
+  private fun addEditor(inspector: InspectorPanel, property: NlPropertyItem, group: InspectorLineModel): InspectorLineModel {
     return inspector.addEditor(editorProvider.createEditor(property), group)
   }
 
-  private fun addTextStyle(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
-    val textStyle = properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NeleFlagsPropertyItem ?: return
+  private fun addTextStyle(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
+    val textStyle = properties.getOrNull(ANDROID_URI, ATTR_TEXT_STYLE) as? NlFlagsPropertyItem ?: return
     val allCaps = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALL_CAPS) ?: return
     val bold = textStyle.flag(TextStyle.VALUE_BOLD)
     val italic = textStyle.flag(TextStyle.VALUE_ITALIC)
@@ -80,7 +80,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     panel.add(createIconEditor(line, allCaps, "All Caps", TEXT_STYLE_UPPERCASE, "true", "false"))
   }
 
-  private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, group: InspectorLineModel) {
+  private fun addAlignment(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, group: InspectorLineModel) {
     val alignment = properties.getOrNull(ANDROID_URI, ATTR_TEXT_ALIGNMENT) ?: return
     val model = HorizontalEditorPanelModel(alignment)
     val panel = HorizontalEditorPanel(model)
@@ -94,7 +94,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
 
   private fun createIconEditor(
     line: InspectorLineModel,
-    property: NelePropertyItem,
+    property: NlPropertyItem,
     description: String,
     icon: Icon,
     trueValue: String,
@@ -118,7 +118,7 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
       ATTR_TEXT_ALL_CAPS,
       ATTR_TEXT_COLOR)
 
-    fun isApplicable(properties: PropertiesTable<NelePropertyItem>): Boolean {
+    fun isApplicable(properties: PropertiesTable<NlPropertyItem>): Boolean {
       return properties.getByNamespace(ANDROID_URI).keys.containsAll(REQUIRED_PROPERTIES)
     }
   }

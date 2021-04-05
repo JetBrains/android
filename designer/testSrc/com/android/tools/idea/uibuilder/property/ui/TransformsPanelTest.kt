@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
@@ -36,7 +36,7 @@ class TransformsPanelTest {
   private fun checkValueOf(value: String?, expected: Double?) {
     val panel: TransformsPanel = mock()
     `when`(panel.valueOf(any())).thenCallRealMethod()
-    val property: NelePropertyItem = mock()
+    val property: NlPropertyItem = mock()
     `when`(property.value).thenReturn(value)
 
     assertThat(panel.valueOf(property)).isEqualTo(expected)

@@ -28,10 +28,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
-import com.android.tools.idea.uibuilder.property.NeleFlagsPropertyItem;
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
-import com.android.tools.idea.uibuilder.property.NelePropertyType;
+import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyType;
 import com.android.tools.idea.uibuilder.property.PropertiesProvider;
 import com.android.tools.idea.uibuilder.property.support.TypeResolver;
 import com.android.tools.property.panel.api.PropertiesTable;
@@ -75,7 +75,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   private final AndroidFacet myFacet;
   private final Project myProject;
   private final XmlElementDescriptorProvider myDescriptorProvider;
-  private final Table<String, String, NelePropertyItem> myEmptyTable;
+  private final Table<String, String, NlPropertyItem> myEmptyTable;
 
   private static final int EXPECTED_ROWS = 3;
   private static final int EXPECTED_CELLS_PER_ROW = 10;
@@ -90,15 +90,15 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
   @NotNull
   @Override
-  public PropertiesTable<NelePropertyItem> getProperties(@NotNull NelePropertiesModel model,
-                                                         @Nullable Object optionalValue,
-                                                         @NotNull List<? extends NlComponent> components) {
+  public PropertiesTable<NlPropertyItem> getProperties(@NotNull NlPropertiesModel model,
+                                                       @Nullable Object optionalValue,
+                                                       @NotNull List<? extends NlComponent> components) {
     return PropertiesTable.Companion.emptyTable();
   }
 
   @NotNull
-  public Map<String, PropertiesTable<NelePropertyItem>> getAllProperties(@NotNull NelePropertiesModel model,
-                                                                         @NotNull MotionSelection selection) {
+  public Map<String, PropertiesTable<NlPropertyItem>> getAllProperties(@NotNull NlPropertiesModel model,
+                                                                       @NotNull MotionSelection selection) {
     assert (!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode());
 
     return DumbService.getInstance(myProject).runReadActionInSmartMode(() -> getPropertiesImpl(model, selection));
@@ -106,12 +106,12 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
 
   @NotNull
   @Override
-  public PropertiesTable<NelePropertyItem> createEmptyTable() {
+  public PropertiesTable<NlPropertyItem> createEmptyTable() {
     return PropertiesTable.Companion.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW));
   }
 
-  private Map<String, PropertiesTable<NelePropertyItem>> getPropertiesImpl(@NotNull NelePropertiesModel model,
-                                                                           @NotNull MotionSelection selection) {
+  private Map<String, PropertiesTable<NlPropertyItem>> getPropertiesImpl(@NotNull NlPropertiesModel model,
+                                                                         @NotNull MotionSelection selection) {
     if (selection.getComponents().isEmpty()) {
       return Collections.emptyMap();
     }
@@ -131,7 +131,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       return Collections.emptyMap();
     }
 
-    Map<String, PropertiesTable<NelePropertyItem>> allProperties = new LinkedHashMap<>();
+    Map<String, PropertiesTable<NlPropertyItem>> allProperties = new LinkedHashMap<>();
 
     MotionSceneTag motionSceneTag = selection.getMotionSceneTag();
     XmlTag tag = selection.getXmlTag(motionSceneTag);
@@ -141,7 +141,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         return Collections.emptyMap();
       }
       XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(tag);
-      Table<String, String, NelePropertyItem> properties = HashBasedTable.create(3, descriptors.length);
+      Table<String, String, NlPropertyItem> properties = HashBasedTable.create(3, descriptors.length);
       for (XmlAttributeDescriptor descriptor : descriptors) {
         String namespaceUri = getNamespace(descriptor, tag);
         String name = descriptor.getName();
@@ -149,7 +149,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
         AttributeDefinition attrDef = (namespace != null && attrDefs != null)
                                       ? attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name)) : null;
-        NelePropertyItem property = createProperty(namespaceUri, name, attrDef, model, selection, null);
+        NlPropertyItem property = createProperty(namespaceUri, name, attrDef, model, selection, null);
         properties.put(namespaceUri, name, property);
       }
       allProperties.put(tag.getLocalName(), PropertiesTable.Companion.create(properties));
@@ -161,7 +161,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
         for (XmlElementDescriptor descriptor : subTagDescriptors) {
           String subTagName = descriptor.getName();
           if (!subTagName.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
-            Table<String, String, NelePropertyItem> subTagProperties =
+            Table<String, String, NlPropertyItem> subTagProperties =
               loadFromStyleableName(subTagName, localAttrDefs, model, selection);
             allProperties.put(subTagName, PropertiesTable.Companion.create(subTagProperties));
           }
@@ -169,9 +169,9 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       }
     }
     else if (selection.getType() == MotionEditorSelector.Type.CONSTRAINT) {
-      Table<String, String, NelePropertyItem> constraintProperties =
+      Table<String, String, NlPropertyItem> constraintProperties =
         loadFromStyleableName(MotionSceneAttrs.Tags.CONSTRAINT, localAttrDefs, model, selection);
-      NelePropertyItem id = createProperty(ANDROID_URI, ATTR_ID, null, model, selection, null);
+      NlPropertyItem id = createProperty(ANDROID_URI, ATTR_ID, null, model, selection, null);
       constraintProperties.put(id.getNamespace(), id.getName(), id);
       allProperties.put(MotionSceneAttrs.Tags.CONSTRAINT, PropertiesTable.Companion.create(constraintProperties));
 
@@ -180,8 +180,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     return allProperties;
   }
 
-  private static void loadCustomAttributes(@NotNull NelePropertiesModel model,
-                                           @NotNull Map<String, PropertiesTable<NelePropertyItem>> allProperties,
+  private static void loadCustomAttributes(@NotNull NlPropertiesModel model,
+                                           @NotNull Map<String, PropertiesTable<NlPropertyItem>> allProperties,
                                            @Nullable MotionSceneTag motionSceneTag,
                                            @NotNull MotionSelection selection) {
     MTag[] customTags = motionSceneTag != null ? motionSceneTag.getChildTags(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE) : new MTag[0];
@@ -196,7 +196,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     if (customTags.length == 0 && inheritedAttributes.isEmpty()) {
       return;
     }
-    Table<String, String, NelePropertyItem> customProperties = HashBasedTable.create(3, customTags.length);
+    Table<String, String, NlPropertyItem> customProperties = HashBasedTable.create(3, customTags.length);
     for (MTag customTag : customTags) {
       String name = customTag.getAttributeValue(MotionSceneAttrs.ATTR_CUSTOM_ATTRIBUTE_NAME);
       if (name == null) {
@@ -205,7 +205,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       for (String customType : MotionSceneAttrs.ourCustomAttribute) {
         String customValue = customTag.getAttributeValue(customType);
         if (customValue != null) {
-          NelePropertyItem item = createCustomProperty(name, customType, selection, model);
+          NlPropertyItem item = createCustomProperty(name, customType, selection, model);
           customProperties.put(item.getNamespace(), item.getName(), item);
           break;
         }
@@ -213,7 +213,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     }
     inheritedAttributes.forEach(
       defined -> {
-        NelePropertyItem item = createCustomProperty(defined.getName(), defined.getCustomType(), selection, model);
+        NlPropertyItem item = createCustomProperty(defined.getName(), defined.getCustomType(), selection, model);
         customProperties.put(item.getNamespace(), item.getName(), item);
       }
     );
@@ -221,49 +221,49 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     allProperties.put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, PropertiesTable.Companion.create(customProperties));
   }
 
-  private Table<String, String, NelePropertyItem> loadFromStyleableName(@NotNull String subTagName,
-                                                                        @NotNull AttributeDefinitions attrDefs,
-                                                                        @NotNull NelePropertiesModel model,
-                                                                        @NotNull MotionSelection selection) {
+  private Table<String, String, NlPropertyItem> loadFromStyleableName(@NotNull String subTagName,
+                                                                      @NotNull AttributeDefinitions attrDefs,
+                                                                      @NotNull NlPropertiesModel model,
+                                                                      @NotNull MotionSelection selection) {
     ResourceReference reference = new ResourceReference(ResourceNamespace.TODO(), ResourceType.STYLEABLE, subTagName);
     StyleableDefinition styleable = attrDefs.getStyleableDefinition(reference);
     if (styleable == null) {
       return myEmptyTable;
     }
-    Table<String, String, NelePropertyItem> properties = HashBasedTable.create(3, styleable.getAttributes().size());
+    Table<String, String, NlPropertyItem> properties = HashBasedTable.create(3, styleable.getAttributes().size());
     styleable.getAttributes().forEach((AttributeDefinition attr) -> {
-      NelePropertyItem property = createProperty(attr.getResourceReference().getNamespace().getXmlNamespaceUri(),
-                                                 attr.getName(), attr, model, selection, subTagName);
+      NlPropertyItem property = createProperty(attr.getResourceReference().getNamespace().getXmlNamespaceUri(),
+                                               attr.getName(), attr, model, selection, subTagName);
       properties.put(property.getNamespace(), property.getName(), property);
     });
     return properties;
   }
 
-  public static NelePropertyItem createCustomProperty(@NotNull String name,
-                                                      @NotNull String customType,
-                                                      @NotNull MotionSelection selection,
-                                                      @NotNull NelePropertiesModel model) {
-    NelePropertyType type = mapFromCustomType(customType);
+  public static NlPropertyItem createCustomProperty(@NotNull String name,
+                                                    @NotNull String customType,
+                                                    @NotNull MotionSelection selection,
+                                                    @NotNull NlPropertiesModel model) {
+    NlPropertyType type = mapFromCustomType(customType);
     List<? extends NlComponent> components = selection.getComponents();
-    return new NelePropertyItem("", name, type, null, "", "", model, components, selection, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+    return new NlPropertyItem("", name, type, null, "", "", model, components, selection, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
   }
 
-  private static NelePropertyItem createProperty(@NotNull String namespace,
-                                                 @NotNull String name,
-                                                 @Nullable AttributeDefinition attr,
-                                                 @NotNull NelePropertiesModel model,
-                                                 @NotNull MotionSelection selection,
-                                                 @Nullable String subTag) {
+  private static NlPropertyItem createProperty(@NotNull String namespace,
+                                               @NotNull String name,
+                                               @Nullable AttributeDefinition attr,
+                                               @NotNull NlPropertiesModel model,
+                                               @NotNull MotionSelection selection,
+                                               @Nullable String subTag) {
     List<? extends NlComponent> components = selection.getComponents();
-    NelePropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
+    NlPropertyType type = TypeResolver.INSTANCE.resolveType(name, attr);
     String libraryName = StringUtil.notNullize(attr != null ? attr.getLibraryName() : null);
     if (namespace.equals(ANDROID_URI) && name.equals(ATTR_ID)) {
       return new MotionIdPropertyItem(model, attr, "", components, selection, subTag);
     }
     if (attr != null && attr.getFormats().contains(AttributeFormat.FLAGS) && attr.getValues().length == 0) {
-      return new NeleFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, selection, subTag);
+      return new NlFlagsPropertyItem(namespace, name, type, attr, "", libraryName, model, components, selection, subTag);
     }
-    return new NelePropertyItem(namespace, name, type, attr, "", libraryName, model, components, selection, subTag);
+    return new NlPropertyItem(namespace, name, type, attr, "", libraryName, model, components, selection, subTag);
   }
 
   @NotNull
@@ -276,37 +276,37 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   }
 
   @NotNull
-  static NelePropertyType mapFromCustomType(@NotNull String customType) {
+  static NlPropertyType mapFromCustomType(@NotNull String customType) {
     switch (customType) {
       case MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE:
-        return NelePropertyType.COLOR;
+        return NlPropertyType.COLOR;
 
       case MotionSceneAttrs.ATTR_CUSTOM_COLOR_DRAWABLE_VALUE:
-        return NelePropertyType.COLOR_STATE_LIST;
+        return NlPropertyType.COLOR_STATE_LIST;
 
       case MotionSceneAttrs.ATTR_CUSTOM_INTEGER_VALUE:
-        return NelePropertyType.INTEGER;
+        return NlPropertyType.INTEGER;
 
       case MotionSceneAttrs.ATTR_CUSTOM_FLOAT_VALUE:
-        return NelePropertyType.FLOAT;
+        return NlPropertyType.FLOAT;
 
       case MotionSceneAttrs.ATTR_CUSTOM_DIMENSION_VALUE:
-        return NelePropertyType.DIMENSION;
+        return NlPropertyType.DIMENSION;
 
       case MotionSceneAttrs.ATTR_CUSTOM_PIXEL_DIMENSION_VALUE:
-        return NelePropertyType.DIMENSION_PIXEL;
+        return NlPropertyType.DIMENSION_PIXEL;
 
       case MotionSceneAttrs.ATTR_CUSTOM_BOOLEAN_VALUE:
-        return NelePropertyType.BOOLEAN;
+        return NlPropertyType.BOOLEAN;
 
       case MotionSceneAttrs.ATTR_CUSTOM_STRING_VALUE:
       default:
-        return NelePropertyType.STRING;
+        return NlPropertyType.STRING;
     }
   }
 
   @NotNull
-  static String mapToCustomType(@NotNull NelePropertyType type) {
+  static String mapToCustomType(@NotNull NlPropertyType type) {
     switch (type) {
       case COLOR:
         return MotionSceneAttrs.ATTR_CUSTOM_COLOR_VALUE;

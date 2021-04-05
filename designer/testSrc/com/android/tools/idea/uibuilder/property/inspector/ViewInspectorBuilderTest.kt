@@ -145,7 +145,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
-import com.android.tools.idea.uibuilder.property.NelePropertyType
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -600,16 +600,16 @@ class ViewInspectorBuilderTest {
 
   private fun addImageViewProperties(util: InspectorTestUtil, withAppCompat: Boolean) {
     if (withAppCompat) {
-      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
+      util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
     }
     else {
-      util.addProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
+      util.addProperty(ANDROID_URI, ATTR_SRC, NlPropertyType.DRAWABLE)
     }
-    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
-    util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NelePropertyType.INTEGER)
-    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NelePropertyType.THREE_STATE_BOOLEAN)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
+    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)
+    util.addProperty(ANDROID_URI, ATTR_BACKGROUND, NlPropertyType.DRAWABLE)
+    util.addProperty(ANDROID_URI, ATTR_SCALE_TYPE, NlPropertyType.INTEGER)
+    util.addProperty(ANDROID_URI, ATTR_ADJUST_VIEW_BOUNDS, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_CROP_TO_PADDING, NlPropertyType.THREE_STATE_BOOLEAN)
+    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NlPropertyType.ENUM)
   }
 }

@@ -29,7 +29,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.property.NelePropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -45,7 +45,7 @@ import javax.swing.JPanel
  * First the custom panel is shown if applicable, followed by the attributes
  * defined in the [ViewHandler] of the View.
  */
-class ViewInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NelePropertyItem>) {
+class ViewInspectorBuilder(project: Project, private val editorProvider: EditorProvider<NlPropertyItem>) {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -57,7 +57,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     cachedCustomPanels.clear()
   }
 
-  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>, getTitleLine: () -> InspectorLineModel) {
+  fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>, getTitleLine: () -> InspectorLineModel) {
     val tagName = getTagName(properties) ?: return
     if (tagName in TAG_EXCEPTIONS) return
     val firstComponent = getFirstComponent(properties) ?: return
@@ -79,7 +79,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
       .forEach { inspector.addEditor(editorProvider.createEditor(it), titleLine) }
   }
 
-  private fun findProperty(propertyName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+  private fun findProperty(propertyName: String, properties: PropertiesTable<NlPropertyItem>): NlPropertyItem? {
     // TODO: Handle other namespaces
     val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
     val property = findPropertyByName(attrName, properties)
@@ -87,7 +87,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     return if (isDesignProperty) property?.designProperty ?: properties.getOrNull(TOOLS_URI, attrName) else property
   }
 
-  private fun findPropertyByName(attrName: String, properties: PropertiesTable<NelePropertyItem>): NelePropertyItem? {
+  private fun findPropertyByName(attrName: String, properties: PropertiesTable<NlPropertyItem>): NlPropertyItem? {
     if (attrName == ATTR_SRC) {
       val srcCompat = properties.getOrNull(AUTO_URI, ATTR_SRC_COMPAT)
       if (srcCompat != null) {
@@ -100,11 +100,11 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
            ?: properties.getOrNull("", attrName)
   }
 
-  private fun getFirstComponent(properties: PropertiesTable<NelePropertyItem>): NlComponent? {
+  private fun getFirstComponent(properties: PropertiesTable<NlPropertyItem>): NlComponent? {
     return properties.first?.components?.firstOrNull()
   }
 
-  private fun setupCustomPanel(tagName: String, properties: PropertiesTable<NelePropertyItem>): JPanel? {
+  private fun setupCustomPanel(tagName: String, properties: PropertiesTable<NlPropertyItem>): JPanel? {
     val panel = cachedCustomPanels[tagName] ?: createCustomPanel(tagName)
     if (panel == SampleCustomPanel.INSTANCE) return null
 

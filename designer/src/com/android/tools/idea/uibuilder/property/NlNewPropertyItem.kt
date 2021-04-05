@@ -32,18 +32,18 @@ import com.android.tools.property.panel.api.PropertiesTable
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
- * A [NelePropertyItem] where it is possible to edit the name of the property.
+ * A [NlPropertyItem] where it is possible to edit the name of the property.
  *
  * The property is initially created with an empty name and an unknown type.
  * When a name is specified, it is matched against all known attributes. If
  * found this property item will act as a delegate to the matched property.
  */
-class NeleNewPropertyItem(model: NelePropertiesModel,
-                          var properties: PropertiesTable<NelePropertyItem>,
-                          val filter: (NelePropertyItem) -> Boolean = { true },
-                          val delegateUpdated: (NeleNewPropertyItem) -> Unit = {})
-  : NelePropertyItem("", "", NelePropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
-    FlagsPropertyItem<NeleFlagPropertyItem> {
+class NlNewPropertyItem(model: NlPropertiesModel,
+                        var properties: PropertiesTable<NlPropertyItem>,
+                        val filter: (NlPropertyItem) -> Boolean = { true },
+                        val delegateUpdated: (NlNewPropertyItem) -> Unit = {})
+  : NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
+    FlagsPropertyItem<NlFlagPropertyItem> {
 
   override var namespace: String = ""
     get() = delegate?.namespace ?: field
@@ -62,8 +62,8 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
       model.firePropertyValueChangeIfNeeded()
     }
 
-  override val type: NelePropertyType
-    get() = delegate?.type ?: NelePropertyType.UNKNOWN
+  override val type: NlPropertyType
+    get() = delegate?.type ?: NlPropertyType.UNKNOWN
 
   override val definition: AttributeDefinition?
     get() = delegate?.definition
@@ -83,7 +83,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   }
 
   // There should only be one instance of NeleNewPropertyItem per Property panel.
-  override fun equals(other: Any?) = other is NeleNewPropertyItem
+  override fun equals(other: Any?) = other is NlNewPropertyItem
   // The hashCode can be an arbitrary number since we only have 1 instance
   override fun hashCode() = 517
 
@@ -91,7 +91,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
    * When the property name is set to something valid, the [delegate] will be not null.
    * All remaining properties and functions should delegate to this [delegate] if present.
    */
-  override var delegate: NelePropertyItem? = null
+  override var delegate: NlPropertyItem? = null
     private set
 
   override val nameEditingSupport = object : EditingSupport {
@@ -127,15 +127,15 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val colorButton: ActionIconButton?
     get() = delegate?.colorButton
 
-  override val children: List<NeleFlagPropertyItem>
-    get() = (delegate as? NeleFlagsPropertyItem)?.children ?: emptyList()
+  override val children: List<NlFlagPropertyItem>
+    get() = (delegate as? NlFlagsPropertyItem)?.children ?: emptyList()
 
-  override fun flag(itemName: String): NeleFlagPropertyItem? {
-    return (delegate as? NeleFlagsPropertyItem)?.flag(itemName)
+  override fun flag(itemName: String): NlFlagPropertyItem? {
+    return (delegate as? NlFlagsPropertyItem)?.flag(itemName)
   }
 
   override val maskValue: Int
-    get() = (delegate as? NeleFlagsPropertyItem)?.maskValue ?: 0
+    get() = (delegate as? NlFlagsPropertyItem)?.maskValue ?: 0
 
   override val firstComponent: NlComponent?
     get() = properties.first?.components?.firstOrNull()
@@ -151,7 +151,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     return Pair(namespace, name)
   }
 
-  private fun findDelegate(propertyNamespace: String, propertyName: String): NelePropertyItem? {
+  private fun findDelegate(propertyNamespace: String, propertyName: String): NlPropertyItem? {
     var property = properties.getOrNull(propertyNamespace, propertyName)
     if (property != null) {
       return property
@@ -186,7 +186,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     return result
   }
 
-  private fun getPropertyNameWithPrefix(property: NelePropertyItem, resolver: ResourceNamespace.Resolver): String {
+  private fun getPropertyNameWithPrefix(property: NlPropertyItem, resolver: ResourceNamespace.Resolver): String {
     val name = property.name
     val prefixFromResolver = resolver.uriToPrefix(property.namespace)
     val prefix = if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX else prefixFromResolver

@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection;
-import com.android.tools.idea.uibuilder.property.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -53,7 +53,7 @@ public class DeleteCustomFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    NelePropertyItem property = DeleteMotionFieldAction.getSelectedOrFirstItem(myLineModel);
+    NlPropertyItem property = DeleteMotionFieldAction.getSelectedOrFirstItem(myLineModel);
     if (property == null) {
       return;
     }

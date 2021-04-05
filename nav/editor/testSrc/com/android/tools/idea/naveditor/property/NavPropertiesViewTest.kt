@@ -26,8 +26,8 @@ import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.uibuilder.property.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property.NelePropertiesProvider
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertiesProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeLineType
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -175,10 +175,10 @@ class NavPropertiesViewTest : NavTestCase() {
   }
 
   private fun setupPanel(component: NlComponent, facet: AndroidFacet): FakeInspectorPanel {
-    val propertiesModel = NelePropertiesModel(myRootDisposable, facet)
+    val propertiesModel = NlPropertiesModel(myRootDisposable, facet)
     val propertiesView = NavPropertiesView(propertiesModel)
 
-    val provider = NelePropertiesProvider(facet)
+    val provider = NlPropertiesProvider(facet)
     val propertiesTable = provider.getProperties(propertiesModel, null, listOf(component))
     val panel = FakeInspectorPanel()
 

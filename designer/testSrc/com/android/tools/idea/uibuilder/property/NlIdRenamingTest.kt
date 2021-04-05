@@ -40,7 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class NeleIdRenamingTest {
+class NlIdRenamingTest {
   @JvmField @Rule
   val projectRule = AndroidProjectRule.withSdk()
 

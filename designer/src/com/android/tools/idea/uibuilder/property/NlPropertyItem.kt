@@ -93,14 +93,14 @@ import javax.swing.Icon
  * that this property was defined on. If it is not present the
  * origin of the property is unknown.
  */
-open class NelePropertyItem(
+open class NlPropertyItem(
   override val namespace: String,
   override val name: String,
-  open val type: NelePropertyType,
+  open val type: NlPropertyType,
   open val definition: AttributeDefinition?,
   open val componentName: String,
   open val libraryName: String,
-  val model: NelePropertiesModel,
+  val model: NlPropertiesModel,
   open val components: List<NlComponent>,
   val optionalValue1: Any? = null,
   val optionalValue2: Any? = null
@@ -156,7 +156,7 @@ open class NelePropertyItem(
   override val resolvedValue: String?
     get() = resolveValue(rawValue)
 
-  open val delegate: NelePropertyItem?
+  open val delegate: NlPropertyItem?
     get() = this
 
   // TODO: Change the namespace property above to be of type ResourceReference
@@ -194,7 +194,7 @@ open class NelePropertyItem(
   override val helpSupport = object : HelpSupport {
     override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
-    override fun browse() { model.browseToValue(this@NelePropertyItem) }
+    override fun browse() { model.browseToValue(this@NlPropertyItem) }
   }
 
   override val editingSupport = object : EditingSupport {
@@ -206,13 +206,13 @@ open class NelePropertyItem(
     override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
   }
 
-  val designProperty: NelePropertyItem
+  val designProperty: NlPropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
+      NlPropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
 
   override fun equals(other: Any?) =
     when (other) {
-      is NelePropertyItem -> namespace == other.namespace && name == other.name
+      is NlPropertyItem -> namespace == other.namespace && name == other.name
       else -> false
     }
 
@@ -340,7 +340,7 @@ open class NelePropertyItem(
       tags.sort()
       return tags
     }
-    if (type == NelePropertyType.ID) {
+    if (type == NlPropertyType.ID) {
       return IdEnumSupport(this).values.mapNotNull { it.value }
     }
     val values = mutableListOf<String>()
@@ -396,7 +396,7 @@ open class NelePropertyItem(
       // Sort and add to the result list:
       values.addAll(valueSet.sorted())
     }
-    if (type == NelePropertyType.FONT) {
+    if (type == NlPropertyType.FONT) {
       values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
     }
     return values
@@ -469,7 +469,7 @@ open class NelePropertyItem(
   // region Implementation of browseButton
 
   private fun createBrowseButton(): ActionIconButton {
-    if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
+    if (name == ATTR_ID || type == NlPropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
     return BrowseActionIconButton()
@@ -518,7 +518,7 @@ open class NelePropertyItem(
         parsed?.type == ResourceType.COLOR -> true
         parsed?.type == ResourceType.DRAWABLE -> false
         name == ATTR_BACKGROUND -> true
-        type == NelePropertyType.DRAWABLE -> false
+        type == NlPropertyType.DRAWABLE -> false
         type.resourceTypes.contains(ResourceType.COLOR) -> true
         type.resourceTypes.contains(ResourceType.DRAWABLE) -> false
         else -> true
