@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -27,11 +29,21 @@ import icons.StudioIcons
  * This file contains view options for the component tree.
  */
 
+/**
+ * Filter menu group
+ */
+object FilterGroupAction : DropDownAction("Filter", null, StudioIcons.Common.FILTER) {
+  init {
+    add(SystemNodeFilterAction)
+    add(MergedSemanticsFilterAction)
+    add(UnmergedSemanticsFilterAction)
+  }
+}
 
 /**
  * Filter system nodes from view hierarchy and compose hierarchy.
  */
-object FilterNodeAction : ToggleAction("Filter System-Defined Layers", null, StudioIcons.Common.FILTER) {
+object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
     TreeSettings.hideSystemNodes
 
@@ -67,6 +79,36 @@ object FilterNodeAction : ToggleAction("Filter System-Defined Layers", null, Stu
   }
 }
 
+object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    TreeSettings.mergedSemanticsTree
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.mergedSemanticsTree = state
+    event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()
+  }
+}
+
+object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tree") {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    TreeSettings.unmergedSemanticsTree
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    TreeSettings.unmergedSemanticsTree = state
+    event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()
+  }
+}
+
 object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
@@ -74,8 +116,6 @@ object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     TreeSettings.composeAsCallstack = state
-
-    // Update the component tree:
     event.treePanel()?.refresh()
   }
 }

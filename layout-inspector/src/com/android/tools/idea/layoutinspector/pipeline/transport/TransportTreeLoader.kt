@@ -134,7 +134,7 @@ private class TransportTreeLoaderImpl(
       val composeFileName = stringTable[view.composeFilename]
       canAddToCallstack = view.subViewCount == 1 && TreeSettings.composeAsCallstack
       ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
-                      view.layoutFlags, composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
+                      view.layoutFlags, composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber, 0)
     }
     parent?.children?.add(node)
     node.parent = parent

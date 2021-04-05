@@ -78,6 +78,14 @@ open class ViewNode(
       layout?.namespace == ResourceNamespace.ANDROID ||
       layout?.name?.startsWith("abc_") == true
 
+  /** Returns true if this [ViewNode] has merged semantics */
+  open val hasMergedSemantics: Boolean
+    get() = false
+
+  /** Returns true if this [ViewNode] has unmerged semantics */
+  open val hasUnmergedSemantics: Boolean
+    get() = false
+
   /**
    * Return the closest unfiltered node
    *
@@ -91,7 +99,10 @@ open class ViewNode(
 
   /** Returns true if the node appears in the component tree. False if it currently filtered out */
   val isInComponentTree: Boolean
-    get() = !(TreeSettings.hideSystemNodes && isSystemNode)
+    get() = !(TreeSettings.hideSystemNodes && isSystemNode) &&
+            ((!TreeSettings.mergedSemanticsTree && !TreeSettings.unmergedSemanticsTree) ||
+             (TreeSettings.mergedSemanticsTree && hasMergedSemantics) ||
+             (TreeSettings.unmergedSemanticsTree && hasUnmergedSemantics))
 
   /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
   open val isSingleCall: Boolean

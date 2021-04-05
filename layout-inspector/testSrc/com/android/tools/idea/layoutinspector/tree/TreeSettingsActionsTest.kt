@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
@@ -44,15 +46,18 @@ import com.intellij.openapi.actionSystem.Presentation
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.util.EnumSet
 import javax.swing.JPanel
 
-class FilterNodeActionTest {
+class TreeSettingsActionsTest {
+  private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+  private val appRule = ApplicationRule()
 
   @get:Rule
-  val appRule = ApplicationRule()
+  val ruleChain = RuleChain.outerRule(appRule).around(setFlagRule)!!
 
   @Before
   fun before() {
@@ -62,19 +67,19 @@ class FilterNodeActionTest {
   @Test
   fun testFilterSystemNodeActionDefaultValue() {
     val event = createEvent(mock())
-    FilterNodeAction.update(event)
+    SystemNodeFilterAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
-    assertThat(FilterNodeAction.isSelected(event)).isTrue()
+    assertThat(SystemNodeFilterAction.isSelected(event)).isTrue()
   }
 
   @Test
-  fun testTurnOffFiltering() {
+  fun testTurnOffFilterSystemNodeAction() {
     TreeSettings.hideSystemNodes = true
     val treePanel: LayoutInspectorTreePanel = mock()
     val event = createEvent(treePanel)
-    FilterNodeAction.update(event)
+    SystemNodeFilterAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
-    FilterNodeAction.setSelected(event, false)
+    SystemNodeFilterAction.setSelected(event, false)
 
     assertThat(TreeSettings.hideSystemNodes).isFalse()
     verify(treePanel).refresh()
@@ -85,9 +90,9 @@ class FilterNodeActionTest {
     TreeSettings.hideSystemNodes = false
     val treePanel: LayoutInspectorTreePanel = mock()
     val event = createEvent(treePanel)
-    FilterNodeAction.update(event)
+    SystemNodeFilterAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
-    FilterNodeAction.setSelected(event, true)
+    SystemNodeFilterAction.setSelected(event, true)
 
     assertThat(TreeSettings.hideSystemNodes).isTrue()
     verify(treePanel).refresh()
@@ -97,14 +102,14 @@ class FilterNodeActionTest {
   fun testFilterSystemNodeActionNotAvailableIfUnsupportedByClient() {
     val event = createEvent(canSeparateSystemViews = false)
     TreeSettings.hideSystemNodes = false
-    FilterNodeAction.update(event)
+    SystemNodeFilterAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
   }
 
   @Test
   fun testFilterSystemNodeActionAlwaysAvailableIfNotConnected() {
     TreeSettings.hideSystemNodes = false
-    FilterNodeAction.update(createEvent(connected = false, canSeparateSystemViews = false))
+    SystemNodeFilterAction.update(createEvent(connected = false, canSeparateSystemViews = false))
     assertThat(createEvent().presentation.isVisible).isTrue()
   }
 
@@ -115,7 +120,7 @@ class FilterNodeActionTest {
     val model = LayoutInspector.get(event)?.layoutInspectorModel!!
     model.setSelection(model[VIEW3]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW2]!!
-    FilterNodeAction.setSelected(event, true)
+    SystemNodeFilterAction.setSelected(event, true)
 
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
     assertThat(model.hoveredNode).isNull()
@@ -128,10 +133,78 @@ class FilterNodeActionTest {
     val model = LayoutInspector.get(event)?.layoutInspectorModel!!
     model.setSelection(model[VIEW1]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]!!
-    FilterNodeAction.setSelected(event, true)
+    SystemNodeFilterAction.setSelected(event, true)
 
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
     assertThat(model.hoveredNode).isSameAs(model[VIEW1]!!)
+  }
+
+  @Test
+  fun testMergedSemanticsFilterActionDefaultValue() {
+    val event = createEvent(mock())
+    MergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(MergedSemanticsFilterAction.isSelected(event)).isFalse()
+  }
+
+  @Test
+  fun testTurnOnMergedSemanticsFilterAction() {
+    TreeSettings.mergedSemanticsTree = false
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
+    MergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    MergedSemanticsFilterAction.setSelected(event, true)
+
+    assertThat(TreeSettings.mergedSemanticsTree).isTrue()
+    verify(treePanel).refresh()
+  }
+
+  @Test
+  fun testTurnOffMergedSemanticsFilterAction() {
+    TreeSettings.mergedSemanticsTree = true
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
+    MergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    MergedSemanticsFilterAction.setSelected(event, false)
+
+    assertThat(TreeSettings.mergedSemanticsTree).isFalse()
+    verify(treePanel).refresh()
+  }
+
+  @Test
+  fun testUnmergedSemanticsFilterActionDefaultValue() {
+    val event = createEvent(mock())
+    UnmergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    assertThat(UnmergedSemanticsFilterAction.isSelected(event)).isFalse()
+  }
+
+  @Test
+  fun testTurnOnUnmergedSemanticsFilterAction() {
+    TreeSettings.unmergedSemanticsTree = false
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
+    UnmergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    UnmergedSemanticsFilterAction.setSelected(event, true)
+
+    assertThat(TreeSettings.unmergedSemanticsTree).isTrue()
+    verify(treePanel).refresh()
+  }
+
+  @Test
+  fun testTurnOffUnmergedSemanticsFilterAction() {
+    TreeSettings.unmergedSemanticsTree = true
+    val treePanel: LayoutInspectorTreePanel = mock()
+    val event = createEvent(treePanel)
+    UnmergedSemanticsFilterAction.update(event)
+    assertThat(event.presentation.isVisible).isTrue()
+    UnmergedSemanticsFilterAction.setSelected(event, false)
+
+    assertThat(TreeSettings.unmergedSemanticsTree).isFalse()
+    verify(treePanel).refresh()
   }
 
   private fun createEvent(

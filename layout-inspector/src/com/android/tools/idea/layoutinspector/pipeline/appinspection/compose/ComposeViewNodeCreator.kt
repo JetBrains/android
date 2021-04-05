@@ -61,7 +61,8 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
       stringTable[filename],
       packageHash,
       offset,
-      lineNumber
+      lineNumber,
+      flags
     )
 
     childrenList.mapTo(node.children) { it.convert(shouldInterrupt).apply { parent = node } }

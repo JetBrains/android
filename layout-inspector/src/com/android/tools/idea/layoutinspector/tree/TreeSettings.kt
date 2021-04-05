@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.util.PropertiesComponent
 
 const val KEY_HIDE_SYSTEM_NODES = "live.layout.inspector.tree.hide.system"
 const val DEFAULT_HIDE_SYSTEM_NODES = true
+
+private const val KEY_MERGED_SEMANTICS_TREE = "live.layout.inspector.tree.merged.semantics"
+private const val DEFAULT_MERGED_SEMANTICS_TREE = false
+
+private const val KEY_UNMERGED_SEMANTICS_TREE = "live.layout.inspector.tree.unmerged.semantics"
+private const val DEFAULT_UNMERGED_SEMANTICS_TREE = false
 
 private const val KEY_COMPOSE_AS_CALLSTACK = "live.layout.inspector.tree.compose.callstack"
 private const val DEFAULT_COMPOSE_AS_CALLSTACK = true
@@ -40,6 +47,16 @@ object TreeSettings {
   var composeAsCallstack: Boolean
     get() = get(KEY_COMPOSE_AS_CALLSTACK, DEFAULT_COMPOSE_AS_CALLSTACK)
     set(value) = set(KEY_COMPOSE_AS_CALLSTACK, value, DEFAULT_COMPOSE_AS_CALLSTACK)
+
+  var mergedSemanticsTree: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+            get(KEY_MERGED_SEMANTICS_TREE, DEFAULT_MERGED_SEMANTICS_TREE)
+    set(value) = set(KEY_MERGED_SEMANTICS_TREE, value, DEFAULT_MERGED_SEMANTICS_TREE)
+
+  var unmergedSemanticsTree: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+            get(KEY_UNMERGED_SEMANTICS_TREE, DEFAULT_UNMERGED_SEMANTICS_TREE)
+    set(value) = set(KEY_UNMERGED_SEMANTICS_TREE, value, DEFAULT_UNMERGED_SEMANTICS_TREE)
 
   var supportLines: Boolean
     get() = get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)

@@ -73,4 +73,30 @@ class ComposeViewNodeTest {
     assertThat(user1.isInComponentTree).isTrue()
     assertThat(user2.isInComponentTree).isTrue()
   }
+
+  @Test
+  fun testFlags() {
+    val model = model {
+      view(ROOT) {
+        compose(VIEW1, "MyApplicationTheme") {
+          compose(VIEW2, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+            compose(VIEW3, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS, composePackageHash = EXAMPLE) {
+              compose(VIEW4, "CoreText", composeFlags = FLAG_SYSTEM_DEFINED, composePackageHash = EXAMPLE)
+            }
+          }
+        }
+      }
+    }
+    assertThat(model[VIEW2]?.isSystemNode).isFalse()
+    assertThat(model[VIEW2]?.hasMergedSemantics).isTrue()
+    assertThat(model[VIEW2]?.hasUnmergedSemantics).isFalse()
+
+    assertThat(model[VIEW3]?.hasMergedSemantics).isFalse()
+    assertThat(model[VIEW3]?.hasUnmergedSemantics).isTrue()
+    assertThat(model[VIEW3]?.isSystemNode).isFalse()
+
+    assertThat(model[VIEW4]?.hasMergedSemantics).isFalse()
+    assertThat(model[VIEW4]?.hasUnmergedSemantics).isFalse()
+    assertThat(model[VIEW4]?.isSystemNode).isTrue()
+  }
 }
