@@ -21,7 +21,6 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
-import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -30,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
 import com.intellij.openapi.Disposable
