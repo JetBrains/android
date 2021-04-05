@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NelePropertyItem;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;

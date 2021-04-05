@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NelePropertyItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
