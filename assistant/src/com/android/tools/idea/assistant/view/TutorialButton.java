@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import icons.AndroidIcons;
-
 import icons.StudioIcons;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Cursor;
 import java.awt.event.ActionListener;
+import javax.swing.SwingConstants;
 
 /**
  * A custom button for navigating to tutorials. Renders similar to a link.

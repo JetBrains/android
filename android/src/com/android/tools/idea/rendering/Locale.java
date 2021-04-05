@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.intellij.openapi.util.text.StringUtil;
-import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.util.Comparator;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Comparator;
-
-import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
 /**
  * A language,region pair
