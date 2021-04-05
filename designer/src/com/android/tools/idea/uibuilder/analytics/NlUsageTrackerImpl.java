@@ -27,7 +27,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTrackerImpl;
 import com.android.tools.idea.common.analytics.UsageTrackerUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NelePropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;

@@ -20,8 +20,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.Constr
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.framework.waitUntilFound
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel
-import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
-import com.android.tools.idea.uibuilder.property2.ui.HorizontalEditorPanel
+import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
+import com.android.tools.idea.uibuilder.property.ui.HorizontalEditorPanel
 import com.android.tools.property.panel.api.PROPERTIES_PANEL_NAME
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.android.tools.property.panel.api.PropertyItem
