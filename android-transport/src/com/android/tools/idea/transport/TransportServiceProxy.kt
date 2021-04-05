@@ -22,15 +22,18 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
+import com.android.ddmlib.ProfileableClient
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.TimeoutException
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.ddms.DevicePropertyUtil
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
 import com.android.tools.profiler.proto.Commands.Command.CommandType
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Transport.*
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
@@ -75,7 +78,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
                             private val proxyBytesCache: MutableMap<String, ByteString>)
   : ServiceProxy(TransportServiceGrpc.getServiceDescriptor()), IClientChangeListener, IDeviceChangeListener {
   private val serviceStub = TransportServiceGrpc.newBlockingStub(channel)
-  @TestOnly val cachedProcesses: MutableMap<Client, Common.Process> = Collections.synchronizedMap(HashMap())
+  @TestOnly val cachedProcesses: MutableMap<Int, Common.Process> = Collections.synchronizedMap(HashMap())
   // Unsupported device are expected to have the unsupportedReason field set.
   private val isDeviceApiSupported = transportDevice.unsupportedReason.isEmpty()
   private var eventsListenerThread: Thread? = null
@@ -225,16 +228,20 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   override fun deviceDisconnected(device: IDevice) { } // Don't care
 
   override fun deviceChanged(device: IDevice, changeMask: Int) {
-    // This event can be triggered when a device goes offline. However, updateProcesses expects
+    // This event can be triggered when a device goes offline. However, `update{Debuggables,Profileables}` expect
     // an online device, so just ignore the event in that case.
-    if (device === this.ddmlibDevice && IDevice.CHANGE_CLIENT_LIST in changeMask) {
-      updateProcesses()
+    if (device === this.ddmlibDevice) {
+      if (IDevice.CHANGE_CLIENT_LIST in changeMask) updateDebuggables()
+      if (IDevice.CHANGE_PROFILEABLE_CLIENT_LIST in changeMask && isProfileableSupported()) updateProfileables()
     }
   }
 
+  private fun isProfileableSupported() =
+    ddmlibDevice.version.featureLevel >= AndroidVersion.VersionCodes.S && StudioFlags.PROFILEABLE.get()
+
   override fun clientChanged(client: Client, changeMask: Int) {
     if (Client.CHANGE_NAME in changeMask && client.device === ddmlibDevice && client.clientData.clientDescription != null) {
-      updateProcesses(listOf(client), listOf())
+      updateProcesses(listOf(ClientSummary.of(client)!!), listOf(), ExposureLevel.DEBUGGABLE)
     }
   }
 
@@ -252,31 +259,34 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     return generatePassThroughDefinitions(overrides, serviceStub)
   }
 
-  /**
-   * Note: This method is called from the ddmlib thread.
-   */
+  private fun updateProfileables() = updateProcesses(IDevice::getProfileableClients, ClientSummary::of, ExposureLevel.PROFILEABLE)
+  private fun updateDebuggables() = updateProcesses(IDevice::getClients, ClientSummary::of, ExposureLevel.DEBUGGABLE)
+
   private fun updateProcesses() {
+    updateDebuggables()
+    if (isProfileableSupported()) updateProfileables()
+  }
+
+  private fun<C> updateProcesses(getList: IDevice.() -> Array<C>, summarizeClient: (C) -> ClientSummary?, level: ExposureLevel) {
     if (isDeviceApiSupported) {
-      // Retrieve the list of Clients, but skip any that doesn't have a proper name yet.
-      val updatedClients = ddmlibDevice.clients.filterTo(mutableSetOf()) { it.clientData.clientDescription != null }
-      val existingClients = cachedProcesses.keys
+      val currentProcesses = ddmlibDevice.getList().mapNotNull(summarizeClient)
+      val previousProcessIds = cachedProcesses.mapNotNullTo(mutableSetOf()) { (id, p) -> id.takeIf { p.exposureLevel >= level } }
+      val addedProcesses = currentProcesses.filterNot { it.pid in previousProcessIds }
+      val removedProcessIds = previousProcessIds - currentProcesses.map(ClientSummary::pid)
 
       // This is needed as:
       // 1) the service test calls this function without setting up a full profiler service, and
       // 2) this is potentially being called as the device is being shut down.
-      updateProcesses(updatedClients - existingClients, existingClients - updatedClients)
+      updateProcesses(addedProcesses, removedProcessIds, level)
     }
   }
 
-  /**
-   * Note: This method is called from the ddmlib thread.
-   */
-  private fun updateProcesses(addedClients: Collection<Client>, removedClients: Collection<Client>) {
+  private fun updateProcesses(addedClients: Collection<ClientSummary>, removedClients: Collection<Int>, level: ExposureLevel) {
     // Only update if device supported and online
     if (isDeviceApiSupported && ddmlibDevice.isOnline) {
       try {
         val timestampNs = serviceStub.getCurrentTime(TimeRequest.newBuilder().setStreamId(transportDevice.deviceId).build()).timestampNs
-        addedClients.forEach { addProcess(it, timestampNs) }
+        addedClients.forEach { addProcess(it, timestampNs, level) }
         removedClients.forEach { removeProcess(it, timestampNs) }
       } catch (e: Exception) {
         // Most likely the destination server went down, and we're in shut down/disconnect mode.
@@ -285,40 +295,41 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     }
   }
 
-  private fun addProcess(client: Client, timestampNs: Long) = client.clientData.clientDescription?.let { description ->
+  private fun addProcess(client: ClientSummary, timestampNs: Long, level: ExposureLevel) = client.name.let { description ->
     // Process is started up and is ready
     // Parse cpu arch from client abi info, for example, "arm64" from "64-bit (arm64)". Abi string indicates whether application is
     // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
     // TODO: Remove when moving process discovery.
-    val abiCpuArch = client.clientData.abi.let { abi -> when {
+    val processAbiCpuArch = client.abi.let { abi -> when {
       abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
       else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
     }}
 
     // TODO: Set this to the applications actual start time.
-    val process = Common.Process.newBuilder()
+    val newProcess = Common.Process.newBuilder()
       .setName(description)
-      .setPid(client.clientData.pid)
+      .setPid(client.pid)
       .setDeviceId(transportDevice.deviceId)
       .setState(Common.Process.State.ALIVE)
       .setStartTimestampNs(timestampNs)
-      .setAbiCpuArch(abiCpuArch)
+      .setAbiCpuArch(processAbiCpuArch)
+      .setExposureLevel(level)
       .build()
-    cachedProcesses[client] = process
+    cachedProcesses[client.pid] = newProcess
     // New pipeline event - create a ProcessStarted event for each process.
     proxyEventQueue.offer(
       Common.Event.newBuilder()
-        .setGroupId(process.pid.toLong())
-        .setPid(process.pid)
+        .setGroupId(newProcess.pid.toLong())
+        .setPid(newProcess.pid)
         .setKind(Common.Event.Kind.PROCESS)
         .setProcess(Common.ProcessData.newBuilder()
-                      .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder().setProcess(process)))
+                      .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder().setProcess(newProcess)))
         .setTimestamp(timestampNs)
         .build()
     )
   }
 
-  private fun removeProcess(client: Client, timestampNs: Long) = cachedProcesses.remove(client)?.let { process ->
+  private fun removeProcess(clientPid: Int, timestampNs: Long) = cachedProcesses.remove(clientPid)?.let { process ->
     // New data pipeline event.
     proxyEventQueue.offer(
       Common.Event.newBuilder()
@@ -431,3 +442,15 @@ private fun<V> StreamObserver<V>.onLast(response: V) {
 
 private operator fun Int.contains(bitMask: Int) = this and bitMask != 0
 private fun startThread(f: Runnable) = Thread(f).apply { start() }
+
+/**
+ * Adapter for `Client` and `ProfileableClient`
+ */
+private data class ClientSummary(val pid: Int, val name: String, val abi: String?) {
+  companion object {
+    fun of(client: Client) = with (client.clientData) { of(pid, clientDescription, abi) }
+    fun of(client: ProfileableClient) =
+      with (client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, abi ) }
+    fun of(pid: Int, name: String?, abi: String?) = name?.let { ClientSummary(pid, it, abi) }
+  }
+}

@@ -245,6 +245,7 @@ public final class MemoryProfilerTest {
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
     myTransportService.addDevice(myDevice);
     myTransportService.addProcess(myDevice, myProcess);

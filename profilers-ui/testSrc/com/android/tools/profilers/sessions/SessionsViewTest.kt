@@ -34,6 +34,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -102,8 +103,8 @@ class SessionsViewTest {
     assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10 }
+    val process2 = debuggableProcess { pid = 20 }
 
     myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device.deviceId, device, process1)
@@ -179,12 +180,9 @@ class SessionsViewTest {
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
     val device2 = Common.Device.newBuilder()
       .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
-    val otherProcess1 = Common.Process.newBuilder()
-      .setPid(20).setDeviceId(1).setName("Other1").setState(Common.Process.State.ALIVE).build()
-    val otherProcess2 = Common.Process.newBuilder()
-      .setPid(30).setDeviceId(2).setName("Other2").setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1" }
+    val otherProcess1 = debuggableProcess { pid = 20; deviceId = 1; name = "Other1" }
+    val otherProcess2 = debuggableProcess { pid = 30; deviceId = 2; name = "Other2" }
     // Process* is preferred, Other* should be in the other processes flyout.
     myProfilers.setPreferredProcess("Manufacturer1 Model1", "Process", null)
 
@@ -280,16 +278,11 @@ class SessionsViewTest {
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.DISCONNECTED).build()
     val onlineDevice = Common.Device.newBuilder()
       .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
-    val deadProcess1 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.DEAD).build()
-    val aliveProcess1 = Common.Process.newBuilder()
-      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
-    val deadProcess2 = Common.Process.newBuilder()
-      .setPid(30).setDeviceId(2).setName("Process3").setState(Common.Process.State.DEAD).build()
-    val aliveProcess2 = Common.Process.newBuilder()
-      .setPid(40).setDeviceId(2).setName("Process4").setState(Common.Process.State.ALIVE).build()
-    val deadProcess3 = Common.Process.newBuilder()
-      .setPid(50).setDeviceId(2).setName("Dead").setState(Common.Process.State.DEAD).build()
+    val deadProcess1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1"; state = Common.Process.State.DEAD }
+    val aliveProcess1 = debuggableProcess { pid = 20; deviceId = 1; name = "Process2" }
+    val deadProcess2 = debuggableProcess { pid = 30; deviceId = 2; name = "Process3"; state = Common.Process.State.DEAD }
+    val aliveProcess2 = debuggableProcess { pid = 40; deviceId = 2; name = "Process4" }
+    val deadProcess3 = debuggableProcess { pid = 50; deviceId = 2; name = "Dead"; state = Common.Process.State.DEAD }
     // Also test processes that can be grouped in the fly-out menu.
     myProfilers.setPreferredProcess("Manufacturer2 Model2", "Process4", null)
 
@@ -315,12 +308,9 @@ class SessionsViewTest {
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
     val device2 = Common.Device.newBuilder()
       .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder()
-      .setPid(20).setDeviceId(1).setName("Process2").setState(Common.Process.State.ALIVE).build()
-    val process3 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(2).setName("Process3").setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1" }
+    val process2 = debuggableProcess { pid = 20; deviceId = 1; name = "Process2" }
+    val process3 = debuggableProcess { pid = 10; deviceId = 2; name = "Process3" }
     // Mark all process as preferred processes as we are not testing the other processes flyout here.
     myProfilers.setPreferredProcess(null, "Process", null)
 
@@ -353,8 +343,7 @@ class SessionsViewTest {
   fun testStopProfiling() {
     val device1 = Common.Device.newBuilder()
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder()
-      .setPid(10).setDeviceId(1).setName("Process1").setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1" }
 
     val stopProfilingButton = mySessionsView.stopProfilingButton
     assertThat(stopProfilingButton.isEnabled).isFalse()
@@ -385,7 +374,7 @@ class SessionsViewTest {
     assertThat(sessionsPanel.componentCount).isEqualTo(0)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10 }
     mySessionsManager.beginSession(device, process1)
     val session1 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
@@ -409,8 +398,8 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10 }
+    val process2 = debuggableProcess { pid = 20 }
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
       .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
@@ -478,8 +467,8 @@ class SessionsViewTest {
     sessionsPanel.setSize(200, 200)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10 }
+    val process2 = debuggableProcess { pid = 20 }
     myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process1)
     mySessionsManager.endCurrentSession()
@@ -513,8 +502,8 @@ class SessionsViewTest {
     sessionsPanel.setSize(200, 200)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10 }
+    val process2 = debuggableProcess { pid = 20 }
     myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process1)
     mySessionsManager.endCurrentSession()
@@ -553,7 +542,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
     val traceInfoId = 13L
 
     val cpuTraceInfo = Cpu.CpuTraceInfo.newBuilder()
@@ -626,7 +615,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
     val sessionStartNs = 1L
 
     // Sets an ongoing trace info in the service
@@ -683,7 +672,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
@@ -731,7 +720,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
 
     val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).build()
     val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
@@ -766,7 +755,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
 
     val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(11).setLegacy(true).setSuccess(true).build()
     myTransportService.addEventToStream(
@@ -813,7 +802,7 @@ class SessionsViewTest {
     val ui = FakeUi(sessionsPanel)
 
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+    val process = debuggableProcess { pid = 10 }
 
     val allocationInfo = AllocationsInfo.newBuilder().setStartTime(10).setEndTime(Long.MAX_VALUE).setLegacy(true).build()
     myTransportService.addEventToStream(

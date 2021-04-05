@@ -31,6 +31,7 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilers.buildSessionName
+import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -593,9 +594,9 @@ class SessionsManagerTest {
   @Test
   fun testDeleteProfilingSession() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
-    val process3 = Common.Process.newBuilder().setPid(30).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1 }
+    val process2 = debuggableProcess { pid = 20; deviceId = 1 }
+    val process3 = debuggableProcess { pid = 30; deviceId = 1 }
     myTransportService.addDevice(device)
     myTransportService.addProcess(device, process1)
     myTransportService.addProcess(device, process2)
@@ -671,8 +672,8 @@ class SessionsManagerTest {
   @Test
   fun testDeleteUnselectedSession() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
-    val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1 }
+    val process2 = debuggableProcess { pid = 20; deviceId = 1 }
     myTransportService.addDevice(device)
     myTransportService.addProcess(device, process1)
     myTransportService.addProcess(device, process2)
