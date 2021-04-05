@@ -44,12 +44,20 @@ fun LayoutInspectorComposeProtocol.Parameter.Type.convert(): PropertyType {
   }
 }
 
+fun LayoutInspectorComposeProtocol.ParameterReference.Kind.convert(): ParameterKind = when (this) {
+  LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL -> ParameterKind.Normal
+  LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS -> ParameterKind.MergedSemantics
+  LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS -> ParameterKind.UnmergedSemantics
+  else -> ParameterKind.Unknown
+}
+
 fun LayoutInspectorComposeProtocol.ParameterReference.convert(): ParameterReference? {
   if (this == LayoutInspectorComposeProtocol.ParameterReference.getDefaultInstance()) {
     return null
   }
   return ParameterReference(
     composableId,
+    kind.convert(),
     parameterIndex,
     convertCompositeIndexList(compositeIndexList)
   )

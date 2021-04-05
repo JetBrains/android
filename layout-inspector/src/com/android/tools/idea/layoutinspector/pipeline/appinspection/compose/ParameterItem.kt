@@ -15,13 +15,29 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.SdkConstants
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableGroupModification
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import org.jetbrains.annotations.VisibleForTesting
+
+/**
+ * Return the namespace used for the specified [section].
+ *
+ * Where the View inspector make use real namespaces, the strings used for the namespace qualifier for Compose
+ * does not mean anything. It is only used to avoid name clashes in the PropertyTable.
+ */
+@VisibleForTesting
+fun parameterNamespaceOf(section: PropertySection) = when (section) {
+  PropertySection.PARAMETERS -> "parameter"
+  PropertySection.MERGED -> "merged"
+  PropertySection.UNMERGED -> "unmerged"
+  PropertySection.DIMENSION -> "internal"
+  else -> ""
+}
 
 /**
  * A compose parameter for display in the attributes panel.
@@ -30,14 +46,15 @@ open class ParameterItem(
   name: String,
   type: PropertyType,
   value: String?,
+  section: PropertySection,
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
   val rootId: Long,
   var index: Int
-) : InspectorPropertyItem(SdkConstants.ANDROID_URI, name, type, value, PropertySection.DEFAULT, null, viewId, lookup) {
+) : InspectorPropertyItem(parameterNamespaceOf(section), name, type, value, section, null, viewId, lookup) {
 
   open fun clone(): ParameterItem =
-    ParameterItem(name, type, value, viewId, lookup, rootId, index)
+    ParameterItem(name, type, value, section, viewId, lookup, rootId, index)
 }
 
 /**
@@ -47,16 +64,17 @@ class ParameterGroupItem(
   name: String,
   type: PropertyType,
   value: String?,
+  section: PropertySection,
   viewId: Long,
   lookup: ViewNodeAndResourceLookup,
   rootId: Long,
   index: Int,
   var reference: ParameterReference?,
   override var children: MutableList<ParameterItem>
-) : ParameterItem(name, type, value, viewId, lookup, rootId, index), PTableGroupItem {
+) : ParameterItem(name, type, value, section, viewId, lookup, rootId, index), PTableGroupItem {
 
   override fun clone(): ParameterGroupItem =
-    ParameterGroupItem(name, type, value, viewId, lookup, rootId, index, reference, mutableListOf()).apply {
+    ParameterGroupItem(name, type, value, section, viewId, lookup, rootId, index, reference, mutableListOf()).apply {
       addClonedChildrenFrom(this@ParameterGroupItem.children)
     }
 
@@ -138,6 +156,24 @@ class ParameterGroupItem(
  */
 class ParameterReference(
   val nodeId: Long,
+  val kind: ParameterKind,
   val parameterIndex: Int,
   val indices: IntArray
 )
+
+/**
+ * The parameter kind a [ParameterReference] points to.
+ */
+enum class ParameterKind {
+  Unknown,
+  Normal,
+  MergedSemantics,
+  UnmergedSemantics;
+
+  fun convert(): LayoutInspectorComposeProtocol.ParameterReference.Kind = when (this) {
+    Normal -> LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
+    MergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.MERGED_SEMANTICS
+    UnmergedSemantics -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNMERGED_SEMANTICS
+    else -> LayoutInspectorComposeProtocol.ParameterReference.Kind.UNSPECIFIED
+  }
+}

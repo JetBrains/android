@@ -52,8 +52,8 @@ open class InspectorPropertyItem(
   /** The value of the attribute when the snapshot was taken */
   val initialValue: String?,
 
-  /** Which group this attribute belongs to */
-  val group: PropertySection,
+  /** Which section this attribute belongs to in the attributes tool window */
+  val section: PropertySection,
 
   /** A reference to the resource where the value was set e.g. "@layout/my_form.xml" */
   val source: ResourceReference?,

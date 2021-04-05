@@ -244,7 +244,7 @@ class ResolutionElementEditorTest {
     val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
     val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, node.drawId, model, map)
+      ANDROID_URI, item.attrName, item.type, value, null, item.section, item.source, node.drawId, model, map)
     val editors = mutableListOf<ResolutionElementEditor>()
     val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))

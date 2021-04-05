@@ -545,7 +545,7 @@ class TransportPropertiesProviderTest {
     assertThat(property.namespace).isEqualTo(namespace)
     assertThat(property.type).isEqualTo(type.convert())
     assertThat(property.value).isEqualTo(value)
-    assertThat(property.group).isEqualTo(group)
+    assertThat(property.section).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
     assertThat(property.viewId).isEqualTo(view.drawId)
     assertThat(property.lookup).isSameAs(inspectorRule.inspectorModel)
