@@ -37,21 +37,22 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
-public final class DeviceTableCellRenderer implements TableCellRenderer {
+public final class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myConnectedLabel;
   private final @NotNull JLabel myLine2Label;
   private final @NotNull JComponent myPanel;
 
+  private final @NotNull Class<@NotNull D> myValueClass;
   private final @NotNull Function<@NotNull Object, @NotNull Border> myGetBorder;
 
-  public DeviceTableCellRenderer() {
-    this(UIManager::getBorder);
+  public DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
+    this(valueClass, UIManager::getBorder);
   }
 
   @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Function<@NotNull Object, @NotNull Border> getBorder) {
+  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull Function<@NotNull Object, @NotNull Border> getBorder) {
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myConnectedLabel = new JBLabel();
@@ -82,6 +83,7 @@ public final class DeviceTableCellRenderer implements TableCellRenderer {
 
     myPanel.setLayout(layout);
 
+    myValueClass = valueClass;
     myGetBorder = getBorder;
   }
 
@@ -92,23 +94,28 @@ public final class DeviceTableCellRenderer implements TableCellRenderer {
                                                           boolean focused,
                                                           int viewRowIndex,
                                                           int viewColumnIndex) {
+    D device = myValueClass.cast(value);
     Color foreground = getForeground(table, selected);
 
-    myIconLabel.setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+    myIconLabel.setIcon(device.getIcon());
 
     myNameLabel.setForeground(foreground);
-    myNameLabel.setText("Physical Device");
+    myNameLabel.setText(device.getName());
 
-    myConnectedLabel.setIcon(StudioIcons.Common.CIRCLE_RED);
+    myConnectedLabel.setIcon(device.isConnected() ? StudioIcons.Common.CIRCLE_GREEN : StudioIcons.Common.CIRCLE_RED);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
-    myLine2Label.setText("Line 2");
+    myLine2Label.setText(getLine2(device));
 
     myPanel.setBackground(getBackground(table, selected));
     myPanel.setBorder(getBorder(selected, focused));
 
     return myPanel;
+  }
+
+  @NotNull String getLine2(@NotNull D device) {
+    return device.getTarget();
   }
 
   private static @NotNull Color getBackground(@NotNull JTable table, boolean selected) {
@@ -148,8 +155,23 @@ public final class DeviceTableCellRenderer implements TableCellRenderer {
   }
 
   @VisibleForTesting
-  @NotNull Component getNameLabel() {
+  @NotNull JLabel getIconLabel() {
+    return myIconLabel;
+  }
+
+  @VisibleForTesting
+  @NotNull JLabel getNameLabel() {
     return myNameLabel;
+  }
+
+  @VisibleForTesting
+  @NotNull JLabel getConnectedLabel() {
+    return myConnectedLabel;
+  }
+
+  @VisibleForTesting
+  @NotNull JLabel getLine2Label() {
+    return myLine2Label;
   }
 
   @VisibleForTesting

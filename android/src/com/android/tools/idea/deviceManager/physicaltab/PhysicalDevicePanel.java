@@ -16,6 +16,8 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.tools.idea.concurrency.FutureUtils;
+import com.android.tools.idea.deviceManager.Device;
+import com.android.tools.idea.deviceManager.DeviceTableCellRenderer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
@@ -101,6 +103,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
 
     myTable = new JBTable(model);
+    myTable.setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
 
     removeAll();
     add(new JBScrollPane(myTable));
