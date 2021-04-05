@@ -17,10 +17,14 @@ package com.android.tools.idea.run;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
@@ -70,4 +74,21 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
     assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(24)))
       .isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
   }
+
+  public void testCannotRunLibTestsInReleaseBuild() throws Exception {
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY);
+
+    AndroidRunConfigurationBase androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(getProject(), "com.example.projectwithappandlib.lib.ExampleInstrumentedTest");
+    assertNotNull(androidTestRunConfiguration);
+
+    List<ValidationError> errors = androidTestRunConfiguration.validate(null);
+    assertThat(errors).hasSize(0);
+
+    AndroidGradleTestUtilsKt.switchVariant(getProject(), ":app", "basicRelease");
+    errors = androidTestRunConfiguration.validate(null);
+    assertThat(errors).isNotEmpty();
+    assertThat(errors.stream().map(ValidationError::getMessage).collect(Collectors.toList()))
+      .contains("Active build variant \"release\" does not have a test artifact.");
+ }
 }
