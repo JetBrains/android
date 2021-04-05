@@ -33,7 +33,7 @@ class FakeTraceProcessorServiceTest {
     val processList = fakeService.getProcessMetadata(1, fakeIdeProfilerServices)
     Truth.assertThat(processList).hasSize(35)
 
-    val model = fakeService.loadCpuData(1, listOf(processList[0].id), fakeIdeProfilerServices)
+    val model = fakeService.loadCpuData(1, listOf(processList[0].id), "", fakeIdeProfilerServices)
     Truth.assertThat(model.getProcesses()).hasSize(35)
     Truth.assertThat(model.getCpuCores()).hasSize(8)
   }

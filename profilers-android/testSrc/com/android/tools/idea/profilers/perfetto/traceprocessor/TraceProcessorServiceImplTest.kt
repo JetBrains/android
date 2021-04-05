@@ -31,7 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -145,7 +144,7 @@ class TraceProcessorServiceImplTest {
       .addResult(TraceProcessor.QueryResult.newBuilder().setOk(true))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(33, 42), "foo", fakeIdeProfilerServices)
 
     val expectedRequest = TraceProcessor.QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
@@ -157,6 +156,10 @@ class TraceProcessorServiceImplTest {
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setCpuCoreCountersRequest(TraceProcessor.QueryParameters.CpuCoreCountersParameters.getDefaultInstance()))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setAndroidFrameEventsRequest(
+                    TraceProcessor.QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint("foo")))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setTraceEventsRequest(TraceProcessor.QueryParameters.TraceEventsParameters.newBuilder().setProcessId(33)))
@@ -198,7 +201,7 @@ class TraceProcessorServiceImplTest {
                    .setFailureReason(TraceProcessor.QueryResult.QueryFailureReason.TRACE_NOT_FOUND))
       .build()
 
-    ideService.loadCpuData(10, listOf(33, 42), fakeIdeProfilerServices)
+    ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
     // Can't do assertThat(...).isNotNull() because of a problem that assertThat(Any?).isNotNull()
     fakeGrpcService.lastLoadTraceRequest ?: fail("Expected lastLoadTraceRequest to not be null")
 
@@ -222,7 +225,7 @@ class TraceProcessorServiceImplTest {
       .build()
 
     try {
-      ideService.loadCpuData(10, listOf(33, 42), fakeIdeProfilerServices)
+      ideService.loadCpuData(10, listOf(33, 42), "", fakeIdeProfilerServices)
       fail()
     } catch (e: RuntimeException) {
       assertThat(e.message).isEqualTo("TPD Service: Fail to get cpu data for trace 10: Trace 10 needs to be loaded before querying.")

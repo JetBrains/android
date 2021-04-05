@@ -111,4 +111,22 @@ class PerfettoParserTest {
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
   }
+
+  @Test
+  fun parseAndroidFrameLayers() {
+    val services = FakeIdeProfilerServices().apply {
+      enableUseTraceProcessor(true)
+    }
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace")
+
+    val parser = PerfettoParser(MainProcessSelector("android.com.java.profilertester"), services)
+    val capture = parser.parse(traceFile, 1)
+
+    assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
+    val systraceCapture = capture as SystemTraceCpuCapture
+    val androidFrameLayers = systraceCapture.getAndroidFrameLayers()
+    assertThat(androidFrameLayers).hasSize(1)
+    assertThat(androidFrameLayers[0].layerName).startsWith("android.com.java.profilertester")
+    assertThat(androidFrameLayers[0].phaseCount).isEqualTo(4)
+  }
 }

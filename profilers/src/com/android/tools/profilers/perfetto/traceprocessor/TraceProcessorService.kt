@@ -43,9 +43,14 @@ interface TraceProcessorService {
 
   /**
    * Query the Perfetto trace processor for cpu data regarding a set of processes.
-   * For example, a main process plus surfaceflinger one.
+   *
+   * @param processIds set of processes to get CPU data for, e.g. a main process plus surfaceflinger one.
+   * @param selectedProcessName name of the selected application process, useful for retrieving Android frame events.
    */
-  fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter
+  fun loadCpuData(traceId: Long,
+                  processIds: List<Int>,
+                  selectedProcessName: String,
+                  ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter
 
   /**
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
