@@ -25,12 +25,12 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.wireless.android.sdk.stats.*;
-import com.intellij.openapi.module.ModuleManager;
 
 import java.util.List;
 
+import static com.android.tools.idea.model.AndroidModel.UNINITIALIZED_APPLICATION_ID;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
 
 /**
  * Tests for {@link ProjectStructureUsageTracker}.
@@ -62,44 +62,43 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     }
   }
 
-  // b/72260139
-  public void ignore_testProductStructureUsageTrackingBasic() throws Exception {
-    trackGradleProject(PROJECT_WITH_APPAND_LIB);
+  public void testProductStructureUsageTrackingBasic() throws Exception {
+    trackGradleProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
 
-    assertEquals(5, usages.size());
-    LoggedUsage usage = usages.get(4);
+    assertEquals(1,
+                 usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).count());
+    LoggedUsage usage =
+      usages.stream().filter(it -> AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS == it.getStudioEvent().getKind()).findFirst().get();
     assertEquals(0, usage.getTimestamp());
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()
                    .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
                    .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
-                   .setUserEnabledIr(true)
-                   .setModelSupportsIr(true)
-                   .setVariantSupportsIr(true)
                    .addLibraries(GradleLibrary.newBuilder()
-                                   .setJarDependencyCount(3)
-                                   .setAarDependencyCount(10))
+                                   .setJarDependencyCount(11)
+                                   .setAarDependencyCount(45))
                    .addModules(GradleModule.newBuilder()
                                  .setTotalModuleCount(3)
                                  .setAppModuleCount(1)
                                  .setLibModuleCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
-                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("app"))
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("testProductStructureUsageTrackingBasic.app"))
                                         .setIsLibrary(false)
                                         .setBuildTypeCount(2)
                                         .setFlavorCount(2)
                                         .setFlavorDimension(1)
                                         .setSigningConfigCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
-                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("lib"))
+                                        .setModuleName(AnonymizerUtil.anonymizeUtf8("testProductStructureUsageTrackingBasic.lib"))
                                         .setIsLibrary(true)
                                         .setBuildTypeCount(2)
                                         .setFlavorCount(0)
                                         .setFlavorDimension(0)
                                         .setSigningConfigCount(1))
-                   .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
+                   // TODO(b/184422212): .setAppId(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"))
+                   .setAppId(AnonymizerUtil.anonymizeUtf8(UNINITIALIZED_APPLICATION_ID))
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
   }
 
@@ -138,8 +137,5 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
    */
   private void trackGradleProject(String project) throws Exception {
     loadProject(project);
-    ProjectStructureUsageTracker psut = new ProjectStructureUsageTracker(getProject());
-    ModuleManager moduleManager = ModuleManager.getInstance(getProject());
-    psut.trackProjectStructure(moduleManager.getModules());
   }
 }

@@ -37,7 +37,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APP_AND_LIB_DEPENDENCY;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
@@ -64,7 +64,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
 
   // b/68150753
   public void testRenameLibraryAndAddActivity() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
+    loadProject(PROJECT_WITH_APP_AND_LIB_DEPENDENCY);
 
     Project project = myAndroidFacet.getModule().getProject();
     Module libModule = getModule("lib");
