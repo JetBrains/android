@@ -270,6 +270,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composePackageHash = newNode.composePackageHash
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
+        oldNode.composeFlags = newNode.composeFlags
       }
 
       oldNode.children.clear()

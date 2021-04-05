@@ -106,6 +106,7 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val composePackageHash: Int = 0,
                               private val composeOffset: Int = 0,
                               private val composeLineNumber: Int = 0,
+                              private val composeFlags: Int = 0,
                               val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED): InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
@@ -143,19 +144,20 @@ class InspectorViewDescriptor(private val drawId: Long,
               composePackageHash: Int = -1,
               composeOffset: Int = 0,
               composeLineNumber: Int = 0,
+              composeFlags: Int = 0,
               x: Int = 0,
               y: Int = 0,
               width: Int = 0,
               height: Int = 0,
               body: InspectorViewDescriptor.() -> Unit = {}) =
     children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0, null,
-                                         composeFilename, composePackageHash, composeOffset, composeLineNumber).apply(body))
+                                         composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags).apply(body))
 
   fun build(): ViewNode {
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
       else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0,
-                           composeFilename, composePackageHash, composeOffset, composeLineNumber)
+                           composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags)
     ViewNode.writeDrawChildren { drawChildren ->
       children.forEach {
         when (it) {

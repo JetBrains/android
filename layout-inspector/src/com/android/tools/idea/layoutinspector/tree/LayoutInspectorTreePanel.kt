@@ -108,7 +108,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     })
     val commonActionManager = CommonActionsManager.getInstance()
     additionalActions = listOf(
-      FilterNodeAction,
+      FilterGroupAction,
       commonActionManager.createExpandAllHeaderAction(tree),
       commonActionManager.createCollapseAllHeaderAction(tree)
     )

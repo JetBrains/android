@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -24,11 +26,15 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
+import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -87,9 +93,10 @@ class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val transportRule = TransportInspectorRule()
   private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider(), projectRule) { listOf(PROCESS.name) }
+  private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around((EdtRule()))!!
+  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(setFlagRule).around((EdtRule()))!!
 
   private var componentStack: ComponentStack? = null
 
@@ -348,6 +355,82 @@ class LayoutInspectorTreePanelTest {
         }
       }.build()
     assertTreeStructure(root.children.single(), expected)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSemanticTrees() {
+    TreeSettings.hideSystemNodes = false
+
+    val launcher: InspectorClientLauncher = mock()
+    val model = InspectorModel(projectRule.project)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    setToolContext(treePanel, inspector)
+    val window = window(ROOT, ROOT) {
+      compose(2, "App") {
+        compose(3, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)
+        compose(4, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
+          compose(5, "Layout", composeFlags = FLAG_SYSTEM_DEFINED) {
+            compose(6, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+            compose(7, "Box", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+            compose(8, "Button", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+          }
+        }
+      }
+    }
+    model.update(window, listOf(ROOT), 1)
+    val root = treePanel.tree?.model?.root as TreeViewNode
+    assertTreeStructure(root, expected =
+    compose(-1, "root") {
+      view(1, qualifiedName = CLASS_VIEW) {
+        compose(2, "App") {
+          compose(3, "Text")
+          compose(4, "Column") {
+            compose(5, "Layout") {
+              compose(6, "Text")
+              compose(7, "Box")
+              compose(8, "Button")
+            }
+          }
+        }
+      }
+    }.build())
+
+    TreeSettings.mergedSemanticsTree = true
+    treePanel.refresh()
+
+    assertTreeStructure(root, expected =
+    compose(-1, "root") {
+      compose(3, "Text")
+      compose(4, "Column")
+    }.build())
+
+    TreeSettings.mergedSemanticsTree = false
+    TreeSettings.unmergedSemanticsTree = true
+    treePanel.refresh()
+
+    assertTreeStructure(root, expected =
+    compose(-1, "root") {
+      compose(3, "Text")
+      compose(6, "Text")
+      compose(7, "Box")
+      compose(8, "Button")
+    }.build())
+
+    TreeSettings.mergedSemanticsTree = true
+    TreeSettings.unmergedSemanticsTree = true
+    treePanel.refresh()
+
+    assertTreeStructure(root, expected =
+    compose(-1, "root") {
+      compose(3, "Text")
+      compose(4, "Column") {
+        compose(6, "Text")
+        compose(7, "Box")
+        compose(8, "Button")
+      }
+    }.build())
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
