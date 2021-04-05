@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.componenttree.ui.LINES
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.ui.tree.ui.Control
 import icons.StudioIcons
 
 /**

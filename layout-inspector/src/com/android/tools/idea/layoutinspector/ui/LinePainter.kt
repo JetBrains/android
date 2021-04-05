@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.componenttree.ui
+package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.Control
@@ -22,6 +23,7 @@ import com.intellij.ui.treeStructure.Tree
 import java.awt.Component
 import java.awt.Graphics
 import javax.swing.tree.TreeModel
+import javax.swing.tree.TreePath
 
 val LINES: Control.Painter = LinePainter(Control.Painter.DEFAULT)
 
@@ -50,9 +52,9 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
       return
     }
 
-    var node = path.lastPathComponent
+    var node = nodeOf(path)
     var parent = path.parentPath
-    var lastNode = getLastOfMultipleChildren(model, parent.lastPathComponent)
+    var lastNode = getLastOfMultipleChildren(model, nodeOf(parent))
 
     // Horizontal line:
     val indent = getControlOffset(control, 2, false) - getControlOffset(control, 1, false)
@@ -75,16 +77,19 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
         val bottom = if (node === lastNode) y + height / 2 else y + height
         g.drawLine(xMid, y, xMid, bottom)
       }
-      node = parent.lastPathComponent
+      node = nodeOf(parent)
       parent = parent.parentPath
-      lastNode = getLastOfMultipleChildren(model, parent.lastPathComponent)
+      lastNode = getLastOfMultipleChildren(model, nodeOf(parent))
       directChild = false
       lineDepth--
     }
   }
 
-  private fun getLastOfMultipleChildren(model: TreeModel, node: Any): Any? {
-    val count = model.getChildCount(node)
-    return if (count > 1) model.getChild(node, count - 1) else null
+  private fun nodeOf(path: TreePath): TreeViewNode =
+    path.lastPathComponent as TreeViewNode
+
+  private fun getLastOfMultipleChildren(model: TreeModel, node: TreeViewNode): TreeViewNode? {
+    val count = node.view.children.size
+    return if (count > 1) model.getChild(node, node.children.size - 1) as TreeViewNode else null
   }
 }
