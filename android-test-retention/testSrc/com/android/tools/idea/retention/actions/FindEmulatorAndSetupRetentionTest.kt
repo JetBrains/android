@@ -67,7 +67,7 @@ class FindEmulatorAndSetupRetentionTest {
     tempFolder = emulatorRule.root
     snapshotFile = emulatorRule.newPath()
     Files.writeString(snapshotFile, "file content")
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     parentDataContext = DataContext { projectRule.project }
     dataContext = object : DataContext {

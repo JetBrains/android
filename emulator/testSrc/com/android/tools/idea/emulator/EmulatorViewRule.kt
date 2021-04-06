@@ -72,7 +72,7 @@ class EmulatorViewRule : TestRule {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
     val grpcPort = 8554 + counter++
-    val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder), grpcPort)
+    val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
     fakeEmulators[grpcPort] = fakeEmulator
     fakeEmulator.start()
     val emulators = catalog.updateNow().get()
