@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.model;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl;
-import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl;
+import com.android.tools.idea.gradle.model.stubs.AndroidArtifactOutputStub;
 import com.android.testutils.Serialization;
 import java.io.Serializable;
 import org.junit.Before;

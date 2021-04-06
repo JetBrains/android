@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.run
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module

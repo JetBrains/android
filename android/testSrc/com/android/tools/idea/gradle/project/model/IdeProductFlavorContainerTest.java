@@ -20,8 +20,8 @@ import static com.android.testutils.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl;
-import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub;
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl;
+import com.android.tools.idea.gradle.model.stubs.ProductFlavorContainerStub;
 import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;

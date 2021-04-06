@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.gradle.model.IdeVariantHeader
+import com.android.tools.idea.gradle.model.IdeVariantHeader
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule

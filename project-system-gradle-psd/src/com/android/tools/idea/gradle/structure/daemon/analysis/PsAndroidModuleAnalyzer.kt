@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
-import com.android.ide.common.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer

@@ -17,9 +17,9 @@ package com.android.tools.idea.run;
 
 import com.android.annotations.NonNull;
 import com.android.build.OutputFile;
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
-import com.android.ide.common.gradle.model.IdeFilterData;
-import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
+import com.android.tools.idea.gradle.model.IdeFilterData;
+import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import junit.framework.TestCase;

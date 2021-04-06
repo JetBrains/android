@@ -20,7 +20,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.makeAutoIn
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static java.util.Collections.emptyList;
 
-import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl;
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.google.common.collect.ImmutableList;

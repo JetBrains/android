@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider

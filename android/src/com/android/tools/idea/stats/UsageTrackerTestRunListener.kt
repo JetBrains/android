@@ -18,8 +18,8 @@ package com.android.tools.idea.stats
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeTestOptions.Execution
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeTestOptions.Execution
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestRun

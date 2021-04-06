@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeArtifactName
-import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel

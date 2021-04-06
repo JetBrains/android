@@ -20,7 +20,7 @@ import static com.android.tools.idea.tests.gui.instantapp.NewInstantAppTest.veri
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import com.android.ide.common.gradle.model.IdeApiVersion;
+import com.android.tools.idea.gradle.model.IdeApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;

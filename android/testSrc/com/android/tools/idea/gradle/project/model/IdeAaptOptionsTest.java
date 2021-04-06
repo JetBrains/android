@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl;
-import com.android.ide.common.gradle.model.stubs.AaptOptionsStub;
+import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl;
+import com.android.tools.idea.gradle.model.stubs.AaptOptionsStub;
 import com.android.testutils.Serialization;
 import org.junit.Before;
 import org.junit.Test;

@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle.sync
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags

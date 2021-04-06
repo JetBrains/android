@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeSourceProvider
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
-import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil

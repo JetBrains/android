@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel

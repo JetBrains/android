@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.ide.common.blame.Message;
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import org.junit.Test;
 
-import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
-import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_WARNING;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_WARNING;
 import static com.android.tools.idea.project.messages.MessageType.findFromSyncIssue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;

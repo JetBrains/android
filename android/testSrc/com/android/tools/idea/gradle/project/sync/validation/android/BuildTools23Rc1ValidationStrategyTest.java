@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.validation.android.BuildTools23Rc1ValidationStrategy.BuildToolsVersionReader;

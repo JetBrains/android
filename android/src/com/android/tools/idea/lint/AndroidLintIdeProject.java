@@ -18,7 +18,7 @@ package com.android.tools.idea.lint;
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;

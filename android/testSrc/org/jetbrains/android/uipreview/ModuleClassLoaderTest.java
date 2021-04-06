@@ -21,7 +21,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestP
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;

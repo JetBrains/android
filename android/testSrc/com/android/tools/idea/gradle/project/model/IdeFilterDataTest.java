@@ -20,8 +20,8 @@ import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.veri
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.gradle.model.impl.IdeFilterDataImpl;
-import com.android.ide.common.gradle.model.stubs.FilterDataStub;
+import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl;
+import com.android.tools.idea.gradle.model.stubs.FilterDataStub;
 import com.android.testutils.Serialization;
 import java.io.Serializable;
 import org.junit.Before;

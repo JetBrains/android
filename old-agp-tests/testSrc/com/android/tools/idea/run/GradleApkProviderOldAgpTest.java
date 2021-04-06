@@ -36,7 +36,7 @@ import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
+import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

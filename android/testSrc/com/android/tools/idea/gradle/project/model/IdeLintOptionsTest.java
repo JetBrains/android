@@ -21,8 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.LintOptions;
-import com.android.ide.common.gradle.model.IdeLintOptions;
-import com.android.ide.common.gradle.model.stubs.LintOptionsStub;
+import com.android.tools.idea.gradle.model.IdeLintOptions;
+import com.android.tools.idea.gradle.model.stubs.LintOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import org.junit.Before;
 import org.junit.Test;

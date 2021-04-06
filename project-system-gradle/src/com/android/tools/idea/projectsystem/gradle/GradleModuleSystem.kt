@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
@@ -306,8 +306,8 @@ class GradleModuleSystem(
 
   override val codeShrinker: CodeShrinker?
     get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
-      com.android.ide.common.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
-      com.android.ide.common.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
+      com.android.tools.idea.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      com.android.tools.idea.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
       null -> null
     }
 

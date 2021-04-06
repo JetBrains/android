@@ -19,9 +19,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl;
-import com.android.ide.common.gradle.model.stubs.AndroidProjectStub;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
+import com.android.tools.idea.gradle.model.stubs.AndroidProjectStub;
 import com.google.common.collect.ImmutableList;
 import java.util.Objects;
 import org.junit.Before;

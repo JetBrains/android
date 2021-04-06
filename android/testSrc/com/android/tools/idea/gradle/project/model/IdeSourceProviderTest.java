@@ -19,15 +19,15 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.gradle.model.IdeSourceProvider;
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
+import com.android.tools.idea.gradle.model.stubs.SourceProviderStub;
 import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 import org.junit.Before;
 import org.junit.Test;
 
-/** Tests for {@link com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl}. */
+/** Tests for {@link com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl}. */
 public class IdeSourceProviderTest {
     private ModelCacheTesting myModelCache;
 
