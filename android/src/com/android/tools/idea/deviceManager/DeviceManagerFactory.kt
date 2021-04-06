@@ -45,7 +45,7 @@ class DeviceManagerFactory : ToolWindowFactory {
     }
 
     createTab(emulatorTab.content, emulatorTabName)
-    toolWindow.contentManager.addContent(PhysicalTabContent.create(contentFactory, project))
+    toolWindow.contentManager.addContent(PhysicalTabContent(contentFactory, project).content)
 
     if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {
       createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
