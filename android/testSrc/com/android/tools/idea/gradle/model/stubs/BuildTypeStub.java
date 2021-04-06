@@ -87,12 +87,6 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
     }
 
     @Override
-    @Nullable
-    public SigningConfig getSigningConfig() {
-        throw new UnusedModelMethodException("getSigningConfig");
-    }
-
-    @Override
     public boolean isDebuggable() {
         return myDebuggable;
     }
