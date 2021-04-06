@@ -157,17 +157,15 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
     """.trimIndent()
 
-    val file = fixture.configureByText("Test.kt", fileContent)
-    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
+    val model = getPsiPropertyModel(fileContent)
     assertNotNull(model.properties["", "backgroundColor"].colorButton)
-    assertEquals("1.20f", runReadAction { model.properties["", "fontScale"].value })
+    assertEquals("1.2", runReadAction { model.properties["", "fontScale"].value })
     assertEquals("0xFFFF0000", runReadAction { model.properties["", "backgroundColor"].value })
 
     model.properties["", "fontScale"].value = "0.5"
     model.properties["", "backgroundColor"].value = "0x00FF00"
 
-    assertEquals("0.50f", runReadAction { model.properties["", "fontScale"].value })
+    assertEquals("0.5", runReadAction { model.properties["", "fontScale"].value })
     assertEquals("0x0000FF00", runReadAction { model.properties["", "backgroundColor"].value })
   }
 
@@ -185,9 +183,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
       }
     """.trimIndent()
 
-    val file = fixture.configureByText("Test.kt", fileContent)
-    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
-    val model = ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
+    val model = getPsiPropertyModel(fileContent)
     assertEquals("1f", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
@@ -202,6 +198,41 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals(null, model.properties["", "apiLevel"].defaultValue)
     // We don't take the library's default value for color
     assertEquals(null, model.properties["", "backgroundColor"].defaultValue)
+  }
+
+  @RunsInEdt
+  @Test
+  fun fontScaleEditing() {
+    @Language("kotlin")
+    val fileContent = """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview
+      fun PreviewNoParameters() {
+      }
+      """.trimIndent()
+
+    val model = getPsiPropertyModel(fileContent)
+    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
+
+    fun checkFontScaleChange(newValue: String, expectedPropertyValue: String) {
+      val expectedTextValue = expectedPropertyValue + 'f'
+
+      model.properties["", "fontScale"].value = newValue
+      assertEquals(expectedPropertyValue, model.properties["", "fontScale"].value)
+      assertEquals("@Preview(fontScale = $expectedTextValue)", preview.annotationText())
+    }
+
+    checkFontScaleChange("1", "1.0")
+    checkFontScaleChange("2.", "2.0")
+    checkFontScaleChange("3.01", "3.01")
+    checkFontScaleChange("4.0f", "4.0")
+    checkFontScaleChange("5.0d", "5.0")
+    checkFontScaleChange("6f", "6.0")
+    checkFontScaleChange("7d", "7.0")
+    checkFontScaleChange("8.f", "8.0")
   }
 
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
@@ -249,5 +280,11 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("@Preview", noParametersPreview.annotationText())
     // Verify that every modification (setting, overwriting and deleting values) triggered the listener
     assertEquals(0, expectedModificationsCountdown)
+  }
+
+  private fun getPsiPropertyModel(fileContent: String): PsiPropertyModel {
+    val file = fixture.configureByText("Test.kt", fileContent)
+    val preview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
+    return ReadAction.compute<PsiPropertyModel, Throwable> { PsiCallPropertyModel.fromPreviewElement(project, preview) }
   }
 }
