@@ -36,6 +36,8 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.StatusRuntimeException;
@@ -68,9 +70,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
    */
   private final boolean myIsMemoryCaptureOnly;
 
-  private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
-  private final DurationDataModel<CaptureDurationData<CaptureObject>> myAllocationDurations;
-  private final DurationDataModel<CaptureDurationData<CaptureObject>> myNativeAllocationDurations;
+  private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myHeapDumpDurations;
+  private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myAllocationDurations;
+  private final DurationDataModel<CaptureDurationData<? extends CaptureObject>> myNativeAllocationDurations;
   private long myPendingLegacyAllocationStartTimeNs = BaseMemoryProfilerStage.INVALID_START_TIME;
   private boolean myNativeAllocationTracking = false;
 
@@ -162,7 +164,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
   @NotNull
   @Override
-  public List<DurationDataModel<CaptureDurationData<CaptureObject>>> getCaptureSeries() {
+  public List<DurationDataModel<CaptureDurationData<? extends CaptureObject>>> getCaptureSeries() {
     return Arrays.asList(myAllocationDurations, myHeapDumpDurations, myNativeAllocationDurations);
   }
 
@@ -183,7 +185,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   @Override
-  protected void onCaptureToSelect(SeriesData<CaptureDurationData<CaptureObject>> captureToSelect, @NotNull Executor loadJoiner) {
+  protected void onCaptureToSelect(SeriesData<CaptureDurationData<? extends CaptureObject>> captureToSelect, @NotNull Executor loadJoiner) {
     long x = captureToSelect.x;
     if (getHeapDumpSampleDurations().getSeries().getSeriesForRange(getTimeline().getDataRange()).stream().anyMatch(s -> s.x == x)) {
       getAspect().changed(MemoryProfilerAspect.HEAP_DUMP_FINISHED);
@@ -344,7 +346,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     }
   }
 
-  public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
+  public DurationDataModel<CaptureDurationData<? extends CaptureObject>> getHeapDumpSampleDurations() {
     return myHeapDumpDurations;
   }
 
@@ -403,12 +405,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   }
 
   @NotNull
-  public DurationDataModel<CaptureDurationData<CaptureObject>> getAllocationInfosDurations() {
+  public DurationDataModel<CaptureDurationData<? extends CaptureObject>> getAllocationInfosDurations() {
     return myAllocationDurations;
   }
 
   @NotNull
-  public DurationDataModel<CaptureDurationData<CaptureObject>> getNativeAllocationInfosDurations() {
+  public DurationDataModel<CaptureDurationData<? extends CaptureObject>> getNativeAllocationInfosDurations() {
     return myNativeAllocationDurations;
   }
 
@@ -421,7 +423,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                                                          ((AllocationDurationData<?>)durationData).getStart(),
                                                          ((AllocationDurationData<?>)durationData).getEnd()));
     }
-    else if (durationData != null && durationData.isSeparateStageData()) {
+    else if (durationData != null &&
+             (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
+              NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
       profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
     }
     else {

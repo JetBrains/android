@@ -183,7 +183,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
     }
   }
 
-  protected fun makeAllocationRenderer(model: DurationDataModel<CaptureDurationData<CaptureObject>>, tag: String) =
+  protected fun makeAllocationRenderer(model: DurationDataModel<CaptureDurationData<out CaptureObject>>, tag: String) =
     DurationDataRenderer.Builder(model, JBColor.LIGHT_GRAY)
       .setDurationBg(ProfilerColors.MEMORY_ALLOC_BG)
       .setLabelColors(JBColor.DARK_GRAY, JBColor.GRAY, JBColor.LIGHT_GRAY, JBColor.WHITE)

@@ -28,18 +28,18 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
  * This class implements duration data for a finished live allocation recording
  */
 class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: CaptureEntry<T>, val start: Double, val end: Double)
-  : CaptureDurationData<T>(duration, true, false, captureEntry, true) {
+  : CaptureDurationData<T>(duration, true, false, captureEntry) {
 
   companion object {
 
     @JvmStatic
     fun makeModel(viewRange: Range, dataRange: Range,
-                  allocSeries: DataSeries<CaptureDurationData<CaptureObject>>,
+                  allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
                   samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
       DurationDataModel(RangedSeries(viewRange, makeDurationData(dataRange, allocSeries, samplingSeries)))
 
     private fun makeDurationData(dataRange: Range,
-                                 allocSeries: DataSeries<CaptureDurationData<CaptureObject>>,
+                                 allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
                                  samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
       DataSeries { _ ->
         samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().mapNotNull {
@@ -50,7 +50,7 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
             null
           } else {
             val data = AllocationDurationData(durationUs, rawData[0].value.captureEntry, it.min, it.max)
-            SeriesData(startTime, data as CaptureDurationData<CaptureObject>)
+            SeriesData(startTime, data as CaptureDurationData<out CaptureObject>)
           }
         }
       }
