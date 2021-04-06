@@ -73,7 +73,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       val signingConfig = PsBuildType.BuildTypeDescriptors.signingConfig.bind(buildType).getValue()
       // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.bind(buildType).getValue()
-      val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.bind(buildType).getValue()
       val matchingFallbacks = PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).getEditableValues().map { it.getValue() }
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
       val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).getValue()
@@ -107,9 +106,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
       assertThat(versionNameSuffix.resolved.asTestValue(), equalTo("vsuffix"))
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("vsuffix"))
-
-      assertThat(zipAlignEnabled.resolved.asTestValue(), equalTo(true))
-      assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
 
       assertThat(matchingFallbacks.size, equalTo(0))
 
@@ -196,7 +192,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     val renderscriptOptimLevel = PsBuildType.BuildTypeDescriptors.renderscriptOptimLevel.bind(buildType).getValue()
     // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
     val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.bind(buildType).getValue()
-    val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.bind(buildType).getValue()
     val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).getValue()
 
     assertThat(applicationIdSuffix.resolved.asTestValue(), nullValue())
@@ -224,9 +219,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     assertThat(versionNameSuffix.resolved.asTestValue(), nullValue())
     assertThat(versionNameSuffix.parsedValue.asTestValue(), nullValue())
-
-    assertThat(zipAlignEnabled.resolved.asTestValue(), equalTo(true))
-    assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
 
     assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
     assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
@@ -261,7 +253,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     buildType.renderscriptDebuggable = true.asParsed()
     buildType.renderscriptOptimLevel = 3.asParsed()
     buildType.versionNameSuffix = "new_vsuffix".asParsed()
-    buildType.zipAlignEnabled = false.asParsed()
     PsBuildType.BuildTypeDescriptors.signingConfig.bind(buildType).setParsedValue(ParsedValue.NotSet)
     PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).run {
       addItem(0).setParsedValue("debug".asParsed())
@@ -293,7 +284,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       val signingConfig = PsBuildType.BuildTypeDescriptors.signingConfig.bind(buildType).getValue()
       // TODO(b/70501607): Decide on val testCoverageEnabled = PsBuildType.BuildTypeDescriptors.testCoverageEnabled.getValue(buildType)
       val versionNameSuffix = PsBuildType.BuildTypeDescriptors.versionNameSuffix.bind(buildType).getValue()
-      val zipAlignEnabled = PsBuildType.BuildTypeDescriptors.zipAlignEnabled.bind(buildType).getValue()
       val matchingFallbacks = PsBuildType.BuildTypeDescriptors.matchingFallbacks.bind(buildType).getEditableValues().map { it.getValue() }
       val proGuardFiles = PsBuildType.BuildTypeDescriptors.proGuardFiles.bind(buildType).getEditableValues().map { it.getValue() }
       val manifestPlaceholders = PsBuildType.BuildTypeDescriptors.manifestPlaceholders.bind(buildType).getValue()
@@ -307,7 +297,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(3))
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
       assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo("new_vsuffix"))
-      assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(false))
 
       assertThat(matchingFallbacks.map { it.resolved.asTestValue() }, equalTo<List<String?>>(listOf(null)))
       assertThat(matchingFallbacks.map { it.parsedValue.asTestValue() }, equalTo<List<String?>>(listOf("debug")))
@@ -343,7 +332,6 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
         assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(renderscriptOptimLevel.resolved.asTestValue()))
         // TODO(b/79142681) signingConfig resolved value is always null.
         assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
-        assertThat(zipAlignEnabled.parsedValue.asTestValue(), equalTo(zipAlignEnabled.resolved.asTestValue()))
         // Note: Resolved values of matchingFallbacks property are not available.
         // TODO(b/72814329): assertThat(proGuardFiles[1].parsedValue.asTestValue(), equalTo(proGuardFiles[1].resolved.asTestValue()))
         // TODO(b/72814329): assertThat(proGuardFiles[2].parsedValue.asTestValue(), equalTo(proGuardFiles[2].resolved.asTestValue()))
