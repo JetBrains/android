@@ -34,7 +34,7 @@ final class WhatsNewUpdateStableAction implements AssistActionHandler {
   @Override
   public void handleAction(@NotNull ActionData actionData, @NotNull Project project) {
     // TODO: b/126602033 Use methods from UpdateChecker after it's refactored, to avoid showing the extra update info dialog
-    UpdateChecker.updateAndShowResult(project, null);
+    UpdateChecker.updateAndShowResult(project);
     WhatsNewMetricsTracker.getInstance().setUpdateTime(project);
   }
 }
