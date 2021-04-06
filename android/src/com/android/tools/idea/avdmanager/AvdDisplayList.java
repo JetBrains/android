@@ -54,6 +54,8 @@ import java.awt.FlowLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -836,6 +838,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
       addPropertyChangeListener(event -> {
         if (event.getPropertyName().equals("model")) {
+          myPreferredColumnWidths = null;
+        }
+      });
+      addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(@NotNull ComponentEvent e) {
           myPreferredColumnWidths = null;
         }
       });
