@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.intellij.openapi.updateSettings.impl.BuildInfo;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
 import com.intellij.openapi.updateSettings.impl.UpdateData;
 import com.intellij.openapi.updateSettings.impl.UpdateStrategy;
@@ -49,8 +50,7 @@ public final class AndroidStudioUpdateStrategyTest {
     UpdateSettings settings = mock(UpdateSettings.class);
     when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
 
-    assertThat(updateStrategy("AI-182.4505.22.34.5070326", updatesXml, settings)
-      .checkForUpdates().getNewBuild().getNumber().asString())
+    assertThat(createBuild("AI-182.4505.22.34.5070326", updatesXml, settings).getNumber().asString())
       .isEqualTo("AI-183.2153.8.34.5078398");  // not AI-182.4892.20.33.5078385. This scenario is taken directly from b/117996392.
   }
 
@@ -69,8 +69,8 @@ public final class AndroidStudioUpdateStrategyTest {
     UpdateSettings settings = mock(UpdateSettings.class);
     when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
 
-    assertThat(updateStrategy("AI-191.7479.19.36.5721125", updatesXml, settings)
-      .checkForUpdates().getNewBuild()).isNull();  // not AI-191.8026.42.35.5781497. This scenario is taken directly from b/139118534.
+    assertThat(createBuild("AI-191.7479.19.36.5721125", updatesXml, settings))
+      .isNull();  // not AI-191.8026.42.35.5781497. This scenario is taken directly from b/139118534.
   }
 
   // It's not clear this is important, but it's what overriding haveSameMajorVersion still does now that we also override isNewerVersion.
@@ -92,16 +92,17 @@ public final class AndroidStudioUpdateStrategyTest {
     UpdateSettings settings = mock(UpdateSettings.class);
     when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
 
-    assertThat(updateStrategy("AI-191.7479.19.35.5717577", updatesXml, settings)
-      .checkForUpdates().getNewBuild().getNumber().asString())
+    assertThat(createBuild("AI-191.7479.19.35.5717577", updatesXml, settings).getNumber().asString())
       .isEqualTo("AI-191.7479.19.35.5763348");  // not AI-191.7479.19.36.5721125
   }
 
-  private static UpdateStrategy updateStrategy(String version, String updatesXml, UpdateSettings settings) throws Exception {
+  private static BuildInfo createBuild(String version, String updatesXml, UpdateSettings settings) throws Exception {
     return new UpdateStrategy(
       BuildNumber.fromString(version),
-      UpdateData.parseUpdateData(JDOMUtil.load(updatesXml), "AI"),
+      UpdateData.parseUpdateData(updatesXml, "AI"),
       settings,
-      new AndroidStudioUpdateStrategyCustomization());
+      new AndroidStudioUpdateStrategyCustomization())
+      .checkForUpdates()
+      .getNewBuild();
   }
 }
