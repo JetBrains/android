@@ -371,7 +371,7 @@ public class SdkComponentSourceTest {
       }
     };
 
-    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(settings, progress);
+    Collection<ExternalUpdate> updates = UpdateChecker.getExternalPluginUpdates(settings, progress).getExternalUpdates();
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -387,10 +387,9 @@ public class SdkComponentSourceTest {
     ExtensionTestUtil
       .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
-    UpdateSettings settings = new UpdateSettings();
-
-    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(settings, progress);
+    Collection<ExternalUpdate> updates =
+      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null))
+        .getExternalUpdates();
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
@@ -411,10 +410,9 @@ public class SdkComponentSourceTest {
     ExtensionTestUtil
       .maskExtensions(ExternalComponentSource.EP_NAME, Collections.singletonList(myTestComponentSource), myDisposableRule.getDisposable());
 
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
-    UpdateSettings settings = new UpdateSettings();
-
-    Collection<ExternalUpdate> updates = UpdateChecker.findExternalUpdates(settings, progress);
+    Collection<ExternalUpdate> updates =
+      UpdateChecker.getExternalPluginUpdates(new UpdateSettings(), new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null))
+        .getExternalUpdates();
     assertEquals(1, updates.size());
     ExternalUpdate update = updates.iterator().next();
     Iterator<UpdatableExternalComponent> iter = update.getComponents().iterator();
