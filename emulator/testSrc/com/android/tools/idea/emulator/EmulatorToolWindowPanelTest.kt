@@ -517,7 +517,7 @@ class EmulatorToolWindowPanelTest {
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
     emulator.start()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)

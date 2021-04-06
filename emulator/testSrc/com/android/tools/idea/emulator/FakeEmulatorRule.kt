@@ -31,6 +31,7 @@ import java.nio.file.Path
  */
 class FakeEmulatorRule : TestRule {
   private val emulators = mutableListOf<FakeEmulator>()
+  private var availableGrpcPort = 8554
   private var registrationDirectory: Path? = null
   private val savedUserHome = System.getProperty("user.home")
   private val tempDirectory = TemporaryDirectoryRule()
@@ -73,9 +74,9 @@ class FakeEmulatorRule : TestRule {
 
   fun newPath(): Path = tempDirectory.newPath()
 
-  fun newEmulator(avdFolder: Path, grpcPort: Int, standalone: Boolean = false): FakeEmulator {
+  fun newEmulator(avdFolder: Path, standalone: Boolean = false): FakeEmulator {
     val dir = registrationDirectory ?: throw IllegalStateException()
-    val emulator = FakeEmulator(avdFolder, grpcPort, dir, standalone)
+    val emulator = FakeEmulator(avdFolder, availableGrpcPort++, dir, standalone)
     emulators.add(emulator)
     return emulator
   }

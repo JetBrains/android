@@ -84,9 +84,9 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), standalone = true)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
@@ -165,7 +165,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
 
     toolWindow.show()
 
@@ -195,7 +195,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
 
     toolWindow.show()
 
