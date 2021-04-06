@@ -37,7 +37,7 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
-public final class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
+public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myConnectedLabel;
@@ -114,7 +114,7 @@ public final class DeviceTableCellRenderer<D extends Device> implements TableCel
     return myPanel;
   }
 
-  @NotNull String getLine2(@NotNull D device) {
+  protected @NotNull String getLine2(@NotNull D device) {
     return device.getTarget();
   }
 
@@ -155,27 +155,27 @@ public final class DeviceTableCellRenderer<D extends Device> implements TableCel
   }
 
   @VisibleForTesting
-  @NotNull JLabel getIconLabel() {
+  final @NotNull JLabel getIconLabel() {
     return myIconLabel;
   }
 
   @VisibleForTesting
-  @NotNull JLabel getNameLabel() {
+  final @NotNull JLabel getNameLabel() {
     return myNameLabel;
   }
 
   @VisibleForTesting
-  @NotNull JLabel getConnectedLabel() {
+  final @NotNull JLabel getConnectedLabel() {
     return myConnectedLabel;
   }
 
   @VisibleForTesting
-  @NotNull JLabel getLine2Label() {
+  final @NotNull JLabel getLine2Label() {
     return myLine2Label;
   }
 
   @VisibleForTesting
-  @NotNull JComponent getPanel() {
+  final @NotNull JComponent getPanel() {
     return myPanel;
   }
 }
