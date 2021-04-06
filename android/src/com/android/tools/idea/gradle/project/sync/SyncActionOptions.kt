@@ -54,12 +54,5 @@ class AdditionalClassifierArtifactsActionOptions(
 data class GradleSyncStudioFlags(
   val studioFlagParallelSyncEnabled: Boolean,
   val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
-) : Serializable {
-  companion object {
-    fun create(): GradleSyncStudioFlags = GradleSyncStudioFlags(
-      studioFlagParallelSyncEnabled = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get(),
-      studioFlagParallelSyncPrefetchVariantsEnabled = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get(),
-    )
-  }
-}
+) : Serializable
 

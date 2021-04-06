@@ -16,9 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_ANDROID_TEST;
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_UNIT_TEST;
 import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
@@ -57,8 +54,8 @@ import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
@@ -93,7 +90,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule;
 import com.android.tools.idea.gradle.project.sync.idea.svs.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels;
 import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidNativeVariantsModels;
@@ -1009,6 +1005,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     GradleExecutionSettings gradleExecutionSettings = resolverCtx.getSettings();
     ProjectResolutionMode projectResolutionMode = getRequestedSyncMode(gradleExecutionSettings);
     SyncActionOptions syncOptions;
+
+    boolean parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get();
+    boolean parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get();
+    GradleSyncStudioFlags studioFlags = new GradleSyncStudioFlags(parallelSync, parallelSyncPrefetchVariants);
+
     if (projectResolutionMode == ProjectResolutionMode.SyncProjectMode.INSTANCE) {
       // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them
       // to decide which models to request from Gradle.
@@ -1026,21 +1027,20 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         String moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
         project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
         syncOptions = new SingleVariantSyncActionOptions(
-          GradleSyncStudioFlags.Companion.create(),
+          studioFlags,
           selectedVariants,
           moduleWithVariantSwitched,
           additionalClassifierArtifactsAction
         );
       }
       else {
-        syncOptions = new FullSyncActionOptions(GradleSyncStudioFlags.Companion.create(),
-                                                additionalClassifierArtifactsAction);
+        syncOptions = new FullSyncActionOptions(studioFlags, additionalClassifierArtifactsAction);
       }
     }
     else if (projectResolutionMode instanceof ProjectResolutionMode.FetchNativeVariantsMode) {
       ProjectResolutionMode.FetchNativeVariantsMode fetchNativeVariantsMode =
         (ProjectResolutionMode.FetchNativeVariantsMode)projectResolutionMode;
-      syncOptions = new NativeVariantsSyncActionOptions(GradleSyncStudioFlags.Companion.create(),
+      syncOptions = new NativeVariantsSyncActionOptions(studioFlags,
                                                         fetchNativeVariantsMode.getModuleVariants(),
                                                         fetchNativeVariantsMode.getRequestedAbis());
     }
