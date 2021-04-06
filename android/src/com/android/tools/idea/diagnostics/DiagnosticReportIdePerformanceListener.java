@@ -71,13 +71,14 @@ final class DiagnosticReportIdePerformanceListener implements IdePerformanceList
   }
 
   @Override
-  public void uiFreezeStarted() {
+  public void uiFreezeStarted(@NotNull File reportDir) {
     LOG.info("uiFreezeStarted");
     if (myBuilder != null) {
       return;
     }
     final ReportContext context = new ReportContext();
     myContext = context;
+    // TODO: probably could initialize myThreadDumpPath from the reportDir here
 
     // Unfortunately, current API does not give us exact value how long the UI was frozen before uiFreezeStarted()
     // event is triggered. This is the best approximation of that value.
