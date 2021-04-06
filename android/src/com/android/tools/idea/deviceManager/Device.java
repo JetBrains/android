@@ -52,7 +52,7 @@ public abstract class Device {
     return myConnected;
   }
 
-  final @NotNull String getTarget() {
+  public final @NotNull String getTarget() {
     return myTarget;
   }
 }
