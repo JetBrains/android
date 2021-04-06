@@ -27,7 +27,9 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -36,6 +38,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTreeEvent
 import com.android.tools.idea.layoutinspector.util.CheckUtil
@@ -44,6 +47,7 @@ import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -65,12 +69,16 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JTree
+
+private const val SYSTEM_PKG = -1
+private const val USER_PKG = 123
 
 private val PROCESS = MODERN_DEVICE.createProcess()
 
@@ -88,9 +96,9 @@ class LayoutInspectorTreePanelTest {
   @Before
   fun setUp() {
     val fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    Mockito.`when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
-    Mockito.`when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    `when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
+    `when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    `when`(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack = ComponentStack(inspectorRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
 
@@ -117,11 +125,11 @@ class LayoutInspectorTreePanelTest {
 
     val fileManager = FileEditorManager.getInstance(inspectorRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
 
     val focusManager = Mockito.mock(KeyboardFocusManager::class.java)
-    Mockito.`when`(focusManager.focusOwner).thenReturn(tree.component)
+    `when`(focusManager.focusOwner).thenReturn(tree.component)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
 
     val dispatcher = IdeKeyEventDispatcher(null)
@@ -305,11 +313,58 @@ class LayoutInspectorTreePanelTest {
     verify(callbacks).startFiltering("T")
   }
 
+  @RunsInEdt
+  @Test
+  fun testSystemNodeWithMultipleChildren() {
+    TreeSettings.hideSystemNodes = true
+    TreeSettings.composeAsCallstack = true
+
+    val launcher: InspectorClientLauncher = mock()
+    val model = InspectorModel(projectRule.project)
+    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    setToolContext(treePanel, inspector)
+    val window = window(ROOT, ROOT) {
+      compose(2, "App", composePackageHash = USER_PKG) {
+        compose(3, "Column", composePackageHash = USER_PKG) {
+          compose(4, "Layout", composePackageHash = SYSTEM_PKG) {
+            compose(5, "Text", composePackageHash = USER_PKG)
+            compose(6, "Box", composePackageHash = USER_PKG)
+            compose(7, "Button", composePackageHash = USER_PKG)
+          }
+        }
+      }
+    }
+    model.update(window, listOf(ROOT), 1)
+
+    // Verify that "Layout" is omitted from the component tree, and that "Column" has 3 children:
+    val root = treePanel.tree?.model?.root as TreeViewNode
+    val expected =
+      compose(2, "App", composePackageHash = USER_PKG) {
+        compose(3, "Column", composePackageHash = USER_PKG) {
+          compose(5, "Text", composePackageHash = USER_PKG)
+          compose(6, "Box", composePackageHash = USER_PKG)
+          compose(7, "Button", composePackageHash = USER_PKG)
+        }
+      }.build()
+    assertTreeStructure(root.children.single(), expected)
+  }
+
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
     tree.setToolContext(inspector)
     // Normally the tree would have received structural changes when the mode was loaded.
     // Mimic that here:
     val model = inspector.layoutInspectorModel
     model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, true) } }
+  }
+
+  private fun assertTreeStructure(node: TreeViewNode, expected: ViewNode) {
+    val current = node.view
+    assertThat(current.drawId).isEqualTo(expected.drawId)
+    assertThat(current.qualifiedName).isEqualTo(expected.qualifiedName)
+    assertThat(node.children.size).isEqualTo(expected.children.size)
+    for (index in node.children.indices) {
+      assertTreeStructure(node.children[index], expected.children[index])
+    }
   }
 }
