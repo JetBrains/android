@@ -66,10 +66,9 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
    * Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise.
    */
   private fun updateAvailable(toolWindow: ToolWindow) {
-    val psiManager = PsiManager.getInstance(project)
-    val openedFiles = FileEditorManager.getInstance(project).selectedEditors.mapNotNull { it.file }
-    val hasLayoutEditor = openedFiles.mapNotNull { psiManager.findFile(it) }.any { getFolderType(it) == ResourceFolderType.LAYOUT }
-    toolWindow.isAvailable = hasLayoutEditor
+    toolWindow.isAvailable = FileEditorManager.getInstance(project).selectedEditors
+      .mapNotNull { it.file }
+      .any { getFolderType(it) == ResourceFolderType.LAYOUT }
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
