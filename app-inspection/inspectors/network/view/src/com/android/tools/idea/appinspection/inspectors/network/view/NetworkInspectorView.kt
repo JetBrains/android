@@ -67,6 +67,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtilities
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Cursor
@@ -110,8 +111,10 @@ class NetworkInspectorView(val model: NetworkInspectorModel,
    * A common component for showing the current selection range.
    */
   private val selectionTimeLabel = createSelectionTimeLabel()
-  private val connectionsView = ConnectionsView(model, parentPane)
-  private val connectionDetails = ConnectionDetailsView(this)
+  @VisibleForTesting
+  val connectionsView = ConnectionsView(model, parentPane)
+  @VisibleForTesting
+  val connectionDetails = ConnectionDetailsView(this)
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 

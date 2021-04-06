@@ -20,12 +20,13 @@ import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 
 /**
  * Tab which shows a stack trace to where a network request was created.
  */
-class CallStackTabContent(private val stackTraceView: StackTraceView) : TabContent() {
+class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) : TabContent() {
   override val title = "Call Stack"
 
   override fun createComponent(): JComponent {

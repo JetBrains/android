@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 
@@ -31,7 +32,11 @@ private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(
 /**
  * The model class for [NetworkInspectorView].
  */
-class NetworkInspectorModel(val services: NetworkInspectorServices, dataSource: NetworkInspectorDataSource) {
+class NetworkInspectorModel(
+  val services: NetworkInspectorServices,
+  dataSource: NetworkInspectorDataSource,
+  val connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource)
+) {
 
   val name = "NETWORK"
 
@@ -44,7 +49,6 @@ class NetworkInspectorModel(val services: NetworkInspectorServices, dataSource: 
   val legends = LegendsModel(networkUsage, services.timeline.dataRange, false)
   val tooltipLegends = LegendsModel(networkUsage, services.timeline.tooltipRange, true)
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
-  val connectionsModel = HttpDataModelImpl(dataSource)
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(services.timeline.selectionRange, services.timeline.viewRange)
   val httpDataFetcher = HttpDataFetcher(connectionsModel, services.timeline.selectionRange)
