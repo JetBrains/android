@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.util.ui.JBUI
@@ -53,7 +54,9 @@ data class SurfaceLayoutManagerOption(val displayName: String,
  * [DropDownAction] that allows switching the layout manager in the surface.
  */
 class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
-                                       layoutManagers: List<SurfaceLayoutManagerOption>) : DropDownAction(
+                                       private val layoutManagers: List<SurfaceLayoutManagerOption>,
+                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true }
+) : DropDownAction(
   "Switch Layout",
   "Changes the layout of the preview elements.",
   AllIcons.Debugger.RestoreLayout) {
@@ -77,4 +80,9 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = isActionEnabled(e)
+  }
 }
