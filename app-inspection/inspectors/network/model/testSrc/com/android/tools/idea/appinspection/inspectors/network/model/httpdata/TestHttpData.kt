@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.idea.protobuf.ByteString
+import java.util.concurrent.TimeUnit
 
 
 const val FAKE_RESPONSE_CODE = 302
@@ -67,3 +68,10 @@ fun createFakeHttpData(
   id, requestStartTimeUs, requestCompleteTimeUs, responseStartTimeUs, responseCompleteTimeUs, connectionEndTimeUs, threads,
   url, method, trace, requestFields, requestPayload, responseFields, responsePayload
 )
+
+fun createFakeHttpData(
+  id: Long,
+  startS: Long,
+  endS: Long
+) = createFakeHttpData(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS),
+                       TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS))

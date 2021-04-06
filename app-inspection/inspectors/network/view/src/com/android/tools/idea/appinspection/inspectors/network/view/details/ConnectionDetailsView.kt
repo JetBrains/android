@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspe
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JPanel
@@ -32,7 +33,8 @@ import javax.swing.JPanel
  */
 class ConnectionDetailsView(private val inspectorView: NetworkInspectorView) : JPanel(BorderLayout()) {
   private val tabsPanel: CommonTabbedPane
-  private val tabs = mutableListOf<TabContent>()
+  @VisibleForTesting
+  val tabs = mutableListOf<TabContent>()
 
   init {
     // Create 2x2 pane

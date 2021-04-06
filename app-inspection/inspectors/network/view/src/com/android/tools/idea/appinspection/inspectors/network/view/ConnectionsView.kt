@@ -84,12 +84,12 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
         return data.responseHeader.statusCode
       }
     },
-    TIME(0.25 / 4, Long::class.java) {
+    TIME(0.25 / 4, java.lang.Long::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return data.connectionEndTimeUs - data.requestStartTimeUs
       }
     },
-    TIMELINE(0.5, Long::class.java) {
+    TIMELINE(0.5, java.lang.Long::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return data.requestStartTimeUs
       }
