@@ -78,20 +78,20 @@ public final class AllocationInfosDataSeriesTest {
                                                                                            ProfilersTestData.SESSION_DATA.getPid(),
                                                                                            info2).build());
 
-    DataSeries<CaptureDurationData<CaptureObject>> series =
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
       CaptureDataSeries.ofAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                           myIdeProfilerServices.getFeatureTracker(), myStage);
-    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
-    SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
+    SeriesData<CaptureDurationData<? extends CaptureObject>> data1 = dataList.get(0);
     assertEquals(startTimeUs1, data1.x);
     assertEquals(endTimeUs1 - startTimeUs1, data1.value.getDurationUs());
     CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(startTimeUs1), capture1.getStartTimeNs());
     assertEquals(TimeUnit.MICROSECONDS.toNanos(endTimeUs1), capture1.getEndTimeNs());
 
-    SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
+    SeriesData<CaptureDurationData<? extends CaptureObject>> data2 = dataList.get(1);
     assertEquals(startTimeUs2, data2.x);
     assertEquals(Long.MAX_VALUE, data2.value.getDurationUs());
     CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();

@@ -50,19 +50,19 @@ object CaptureDataSeries {
     of({ getHeapDumpsForSession(client, session, it, stage.studioProfilers.ideServices) },
        { it.startTime }, { it.endTime },
        { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, true)})
+       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, HeapDumpCaptureObject::class.java)})
 
   @JvmStatic
   fun ofNativeAllocationSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
     of({ getNativeHeapSamplesForSession(client, session, it) },
        { it.startTime }, { it.endTime },
        { NativeAllocationSampleCaptureObject(client, session, it, stage) },
-       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, true)})
+       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java)})
 
-  private fun<T> of(getSamples: (Range) -> List<T>,
-                    startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
-                    makeCapture: (T) -> CaptureObject,
-                    makeDurationData: (Long, T, CaptureEntry<CaptureObject>) -> CaptureDurationData<CaptureObject>) = DataSeries { range ->
+  private fun<C: CaptureObject,T> of(getSamples: (Range) -> List<T>,
+                                     startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
+                                     makeCapture: (T) -> C,
+                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) = DataSeries { range ->
       getSamples(range).map {
         val startNs = startTimeNs(it)
         val endNs = endTimeNs(it)

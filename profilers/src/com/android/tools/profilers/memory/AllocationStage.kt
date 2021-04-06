@@ -52,7 +52,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     }
   }
 
-  override fun onCaptureToSelect(captureToSelect: SeriesData<CaptureDurationData<CaptureObject>>, loadJoiner: Executor) =
+  override fun onCaptureToSelect(captureToSelect: SeriesData<CaptureDurationData<out CaptureObject>>, loadJoiner: Executor) =
     doSelectCaptureDuration(captureToSelect.value, loadJoiner)
 
   fun selectAll() = timeline.selectionRange.set(minTrackingTimeUs, min(maxTrackingTimeUs, timeline.dataRange.max))

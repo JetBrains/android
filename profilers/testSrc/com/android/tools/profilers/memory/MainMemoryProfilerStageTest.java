@@ -769,10 +769,10 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
                                           .setPid(ProfilersTestData.SESSION_DATA.getPid())
                                           .build());
 
-    DataSeries<CaptureDurationData<CaptureObject>> series =
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
       CaptureDataSeries.ofHeapDumpSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                           myIdeProfilerServices.getFeatureTracker(), myStage);
-    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     myStage.selectCaptureDuration(dataList.get(0).value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(HeapDumpStage.class);
