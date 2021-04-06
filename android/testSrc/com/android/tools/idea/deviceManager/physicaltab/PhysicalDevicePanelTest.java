@@ -35,6 +35,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
   private PhysicalDevicePanel myPanel;
+  private Disposable myParent;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
 
@@ -42,6 +43,11 @@ public final class PhysicalDevicePanelTest {
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private Executor myExecutor;
+
+  @Before
+  public void mockParent() {
+    myParent = Mockito.mock(Disposable.class);
+  }
 
   @Before
   public void initComponent() {
@@ -71,14 +77,14 @@ public final class PhysicalDevicePanelTest {
   }
 
   @After
-  public void disposeOfPanel() {
-    Disposer.dispose(myPanel);
+  public void disposeOfParent() {
+    Disposer.dispose(myParent);
   }
 
   @Test
   public void newPhysicalDevicePanel() {
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
     assertEquals(Collections.singletonList(Arrays.asList(myConnectedPixel3, "API", "Type", "Actions")), myPanel.getData());
@@ -94,7 +100,7 @@ public final class PhysicalDevicePanelTest {
     myComponent.set(Collections.singletonList(disconnectedPixel5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
     Object data = Arrays.asList(
