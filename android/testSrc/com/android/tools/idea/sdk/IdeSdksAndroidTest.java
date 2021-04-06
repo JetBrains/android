@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -90,7 +91,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   public void testIsUsingJavaHomeJdkCallsGetJdk() {
     IdeSdks spyIdeSdks = spy(myIdeSdks);
     spyIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */);
-    verify(spyIdeSdks).getJdkPath();
+    verify(spyIdeSdks).doGetJdk(eq(true));
   }
 
   /**
