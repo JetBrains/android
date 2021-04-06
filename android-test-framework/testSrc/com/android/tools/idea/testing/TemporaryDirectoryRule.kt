@@ -126,25 +126,25 @@ class TemporaryDirectoryRule : ExternalResource() {
         return
       }
       catch (e: FileSystemException) {
-        if (SystemInfoRt.isWindows) {
-          // Examples of exceptions that are being retried here:
-          //   AccessDeniedException, DirectoryNotEmptyException, NoSuchFileException,
-          //   FileSystemException("The process cannot access the file because it is being used by another process.")
-          if (++attemptCount == maxAttemptCount) {
+        if (!SystemInfoRt.isWindows) {
+          throw e
+        }
+        // Deletion of files and directories on Windows is affected by open file handles and may trigger
+        // various exceptions, but in most cases would succeed after one or more retries.
+        // Examples of exceptions that are being retried here:
+        //   AccessDeniedException, DirectoryNotEmptyException, NoSuchFileException,
+        //   FileSystemException("The process cannot access the file because it is being used by another process.")
+        if (++attemptCount == maxAttemptCount) {
+          throw e
+        }
+
+        if (e !is NoSuchFileException) {
+          try {
+            Thread.sleep(10)
+          }
+          catch (ignored: InterruptedException) {
             throw e
           }
-
-          if (e !is NoSuchFileException) {
-            try {
-              Thread.sleep(10)
-            }
-            catch (ignored: InterruptedException) {
-              throw e
-            }
-          }
-        }
-        else {
-          throw e
         }
       }
     }
