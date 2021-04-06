@@ -31,10 +31,9 @@ class StopAnimationInspectorAction: AnActionButton(message("action.stop.animatio
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    e.presentation.isEnabled = true
-    e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      it.animationInspectionPreviewElementInstance != null
-    }
+    val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
+    e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
+    e.presentation.isVisible = composePreviewManagers.any { it.animationInspectionPreviewElementInstance != null }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

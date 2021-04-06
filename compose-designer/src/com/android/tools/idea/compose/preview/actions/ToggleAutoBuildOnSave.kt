@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
@@ -28,5 +29,10 @@ internal class ToggleAutoBuildOnSave :
 
   override fun setSelected(e: AnActionEvent, enabled: Boolean) {
     findComposePreviewManagersForContext(e.dataContext).forEach { it.isBuildOnSaveEnabled = enabled }
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
   }
 }

@@ -46,7 +46,8 @@ internal class AnimationInteractiveSwitchAction :
     super.update(e)
     with(e.presentation) {
       isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
-        it.animationInspectionPreviewElementInstance?.hasAnimations == true || it.interactivePreviewElementInstance?.hasAnimations == true
+        !it.status().isRefreshing && (it.animationInspectionPreviewElementInstance?.hasAnimations == true
+                                      || it.interactivePreviewElementInstance?.hasAnimations == true)
       }
       isVisible = findComposePreviewManagersForContext(e.dataContext).any {
         it.animationInspectionPreviewElementInstance != null || it.interactivePreviewElementInstance != null

@@ -35,8 +35,10 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
 
   override fun updateButton(e: AnActionEvent) {
     e.presentation.isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
-      it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY ||
-      StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null
+      // The action should be disabled when refreshing.
+      !it.status().isRefreshing &&
+      (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY ||
+       StudioFlags.COMPOSE_INTERACTIVE_ANIMATION_SWITCH.ifEnabled { it.animationInspectionPreviewElementInstance } != null)
     }
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
       it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED ||
