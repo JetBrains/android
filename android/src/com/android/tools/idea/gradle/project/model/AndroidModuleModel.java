@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.model.Namespacing;
+import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -609,6 +610,25 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       }
 
       return artifacts.getApplicationId();
+    }
+  }
+
+  @Override
+  public @Nullable TestExecutionOption getTestExecutionOption() {
+    IdeAndroidArtifact testArtifact = getSelectedVariant().getAndroidTestArtifact();
+    if (testArtifact == null) return null;
+
+    IdeTestOptions testOptions = testArtifact.getTestOptions();
+    if (testOptions == null) return null;
+
+    IdeTestOptions.Execution execution = testOptions.getExecution();
+    if (execution == null) return null;
+
+    switch (execution) {
+      case ANDROID_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROID_TEST_ORCHESTRATOR;
+      case ANDROIDX_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR;
+      case HOST: return TestExecutionOption.HOST;
+      default: throw new IllegalStateException("Unknown option: " + execution);
     }
   }
 }

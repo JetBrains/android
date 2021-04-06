@@ -154,7 +154,7 @@ public class AndroidRunState implements RunProfileState {
     }
     AndroidTestRunConfiguration testRunConfiguration = (AndroidTestRunConfiguration) runProfile;
     return OrchestratorUtilsKt.getMAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME().getOrDefault(
-      testRunConfiguration.getTestExecution(AndroidFacet.getInstance(myModule)),
+      testRunConfiguration.getTestExecutionOption(AndroidFacet.getInstance(myModule)),
       getApplicationId());
   }
 }
