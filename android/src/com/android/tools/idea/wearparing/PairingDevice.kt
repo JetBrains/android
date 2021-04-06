@@ -26,7 +26,8 @@ enum class ConnectionState {
 data class PairingDevice(
   val deviceID: String,
   val displayName: String,
-  val versionName: String,
+  val apiLevel: Int,
+  val isEmulator: Boolean,
   val isWearDevice: Boolean,
   val hasPlayStore: Boolean,
   val state: ConnectionState,

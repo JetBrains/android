@@ -55,10 +55,10 @@ class WearDevicePairingWizard {
 
     wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
       .setProject(project)
-      .setHelpUrl(URL("https://developer.android.com/training/wearables/apps/creating#pair-phone-with-avd"))
+      .setHelpUrl(URL(WEAR_DOCS_LINK))
       .setModalityType(DialogWrapper.IdeModalityType.MODELESS)
       .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL)
-      .setPreferredSize(JBUI.size(500, 350))
+      .setPreferredSize(JBUI.size(500, 450))
       .setMinimumSize(JBUI.size(400, 250))
       .build(SimpleStudioWizardLayout())
 

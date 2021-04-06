@@ -31,20 +31,30 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import java.awt.Component
+import java.awt.Container
 import java.awt.Dimension
+import java.awt.Point
+import java.awt.event.MouseEvent
+import javax.swing.JMenuItem
+import javax.swing.Popup
+import javax.swing.PopupFactory
+
 
 class DeviceListStepTest : LightPlatform4TestCase() {
   @get:Rule
   val restoreFlagRule = RestoreFlagRule(WEAR_DEVICE_PAIRING_ENABLED) // reset flag after test
 
+  private var defaultPopupFactory: PopupFactory = PopupFactory.getSharedInstance()
   private val invokeStrategy = TestInvokeStrategy()
   private val model = WearDevicePairingModel()
   private val phoneDevice = PairingDevice(
-    deviceID = "id1", displayName = "My Phone", versionName = "API 28", isWearDevice = false, hasPlayStore = true,
+    deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
     state = ONLINE, isPaired = false
   )
   private val wearDevice = PairingDevice(
-    deviceID = "id2", displayName = "Round Watch", versionName = "API 28", isWearDevice = true, hasPlayStore = true,
+    deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
     state = ONLINE, isPaired = false
   )
 
@@ -57,6 +67,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
   override fun tearDown() {
     try {
+      PopupFactory.setSharedInstance(defaultPopupFactory)
       BatchInvoker.clearOverrideStrategy()
     }
     finally {
@@ -146,10 +157,16 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun disconnectedListItemDevicesShouldNotBeSelectable() {
     val fakeUi = createDeviceListStepUi()
-    val phoneDevice2 = phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED)
-    val phoneDevice3 = phoneDevice.copy(deviceID = "id3", displayName = "My Phone3")
 
-    model.deviceList.set(listOf(phoneDevice, phoneDevice2, phoneDevice3))
+    model.deviceList.set(listOf(
+      phoneDevice,
+      phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED),
+      phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"),
+      phoneDevice.copy(deviceID = "id4", displayName = "My Phone4", apiLevel = 29),
+      phoneDevice.copy(deviceID = "id5", displayName = "My Phone5", isEmulator = true, hasPlayStore = false),
+      phoneDevice.copy(deviceID = "id6", displayName = "My Phone6", isPaired = true, state = DISCONNECTED),
+      phoneDevice.copy(deviceID = "id7", displayName = "My Phone7"),
+    ))
 
     fakeUi.getPhoneList().apply {
       assertThat(selectedIndex).isEqualTo(-1) // Nothing should be selected at the start
@@ -158,11 +175,67 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(selectedIndex).isEqualTo(0) // Selecting 0 is OK
 
       selectedIndex = 1
-      assertThat(selectedIndex).isEqualTo(0) // Selecting 1 should be rejected
+      assertThat(selectedIndex).isEqualTo(0) // Selecting 1 should be rejected (Disconnected)
 
       selectedIndex = 2
       assertThat(selectedIndex).isEqualTo(2) // Selecting 2 is OK too
+
+      selectedIndex = 3
+      assertThat(selectedIndex).isEqualTo(2) // Selecting 3 should be rejected (api level < 30)
+
+      selectedIndex = 4
+      assertThat(selectedIndex).isEqualTo(2) // Selecting 4 should be rejected (no play store)
+
+      selectedIndex = 5
+      assertThat(selectedIndex).isEqualTo(2) // Selecting 5 should be rejected (paired but disconnected)
+
+      selectedIndex = 6
+      assertThat(selectedIndex).isEqualTo(6) // Selecting 6 is OK
     }
+  }
+
+  @Test
+  fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
+    val fakeUi = createDeviceListStepUi()
+
+    WearPairingManager.setKeepForwardAlive(phoneDevice, wearDevice)
+    model.deviceList.set(listOf(
+      phoneDevice.copy(isPaired = true),
+    ))
+
+    val phoneList = Mockito.spy(fakeUi.getPhoneList())
+    Mockito.doReturn(Point(0, 0)).`when`(phoneList).locationOnScreen // Work around for headless UI
+
+    val cellRect = phoneList.getCellBounds(0, 0)
+
+    val popupFactory = TestPopupFactory().install()
+    FakeUi(phoneList).mouse.rightClick(cellRect.width / 2, cellRect.height / 2)
+
+    assertThat(popupFactory.getMenuItemAndHide(0)).isEqualTo("Forget Round Watch connection")
+  }
+
+  @Test
+  fun showTooltipIfDeviceNotAllowed() {
+    val fakeUi = createDeviceListStepUi()
+
+    model.deviceList.set(listOf(
+      phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", apiLevel = 29),
+      phoneDevice.copy(deviceID = "id3", displayName = "My Phone3", hasPlayStore = false),
+      phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
+    ))
+
+    val phoneList = fakeUi.getPhoneList()
+
+    fun getListItemTooltip(index: Int): String? {
+      val cellRect = phoneList.getCellBounds(index, index)
+      val p = Point(cellRect.width / 2, cellRect.y + cellRect.height / 2)
+      val mouseEvent = MouseEvent(phoneList, MouseEvent.MOUSE_ENTERED, 0, 0, p.x, p.y, 0, false, 0)
+      return phoneList.getToolTipText(mouseEvent)
+    }
+
+    assertThat(getListItemTooltip(0)).contains("Wear paring requires API level >= 30")
+    assertThat(getListItemTooltip(1)).contains("Wear pairing requires Google Play")
+    assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
   }
 
   private fun createDeviceListStepUi(emptyListClickedAction: () -> Unit = {}): FakeUi {
@@ -175,9 +248,28 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     return FakeUi(modelWizard.contentPanel)
   }
 
-  private fun FakeUi.getPhoneList(): JBList<PairingDevice> = findComponent<JBList<PairingDevice>> { it.name == "phoneList" }!!
+  private fun FakeUi.getPhoneList(): JBList<PairingDevice> = findComponent { it.name == "phoneList" }!!
 
-  private fun FakeUi.getWearList(): JBList<PairingDevice> = findComponent<JBList<PairingDevice>> { it.name == "wearList" }!!
+  private fun FakeUi.getWearList(): JBList<PairingDevice> = findComponent { it.name == "wearList" }!!
 
-  private fun FakeUi.getLabelWithText(text: String): JBLabel? = findComponent<JBLabel> { it.text == text }
+  private fun FakeUi.getLabelWithText(text: String): JBLabel? = findComponent { it.text == text }
+
+  private class TestPopupFactory : PopupFactory() {
+    var popupContents: Component? = null
+
+    override fun getPopup(owner: Component?, contents: Component?, x: Int, y: Int): Popup {
+      popupContents = contents
+      return super.getPopup(owner, contents, x, y, false)
+    }
+
+    fun install(): TestPopupFactory {
+      setSharedInstance(this)
+      return this
+    }
+
+    fun getMenuItemAndHide(index: Int): String {
+      popupContents?.isVisible = false // Needs to hide, otherwise leaks a Timer
+      return ((popupContents as Container).components[index] as JMenuItem).text
+    }
+  }
 }
