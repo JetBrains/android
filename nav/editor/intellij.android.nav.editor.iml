@@ -22,7 +22,13 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module-library">
       <library name="eclipse-layout-kernel" type="repository">
-        <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0" />
+        <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0">
+          <exclude>
+            <dependency maven-id="com.google.guava:guava" />
+            <dependency maven-id="org.eclipse.elk:org.eclipse.elk.alg.common.compaction" />
+            <dependency maven-id="org.eclipse.emf:org.eclipse.emf.ecore.xmi" />
+          </exclude>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0/org.eclipse.elk.alg.layered-0.3.0.jar!/" />
           <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/elk/org.eclipse.elk.core/0.3.0/org.eclipse.elk.core-0.3.0.jar!/" />

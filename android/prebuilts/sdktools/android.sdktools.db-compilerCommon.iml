@@ -43,7 +43,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jetifier-core" type="repository">
-        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar!/" />
         </CLASSES>
