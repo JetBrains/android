@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.analytics.CommonNopTracker
 import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.Issue
@@ -135,6 +136,29 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
     assertTrue(tracker.expanded.contains(issue))
+  }
+
+  @Test
+  fun trackIgnoreButtonClicked() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val issue = ScannerTestHelper.createTestIssueBuilder().build()
+    tracker.trackIgnoreButtonClicked(issue)
+
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertEquals(LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT, usageTracker.lastTrackedEvent)
+  }
+
+  @Test
+  fun trackApplyFixButtonClicked() {
+    val tracker = NlLayoutScannerMetricTracker(mockSurface)
+    val fixDescription = "Set this item's android:textColor to #FFFFFF"
+    val viewAttribute = ValidatorData.ViewAttribute(SdkConstants.ANDROID_URI, "android", "textColor")
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, "#FFFFFF", fixDescription)
+    val issue = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
+    tracker.trackApplyFixButtonClicked(issue)
+
+    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
+    assertEquals(LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX, usageTracker.lastTrackedEvent)
   }
 
   @Test

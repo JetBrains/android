@@ -74,14 +74,17 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
    * Creates a single issue/lint that matches given parameters. Must call [populateLints]
    * in order for issues to be visible.
    */
-  fun createIssue(result: ValidatorData.Issue, component: NlComponent) {
+  fun createIssue(
+    result: ValidatorData.Issue,
+    component: NlComponent,
+    eventListener: NlAtfIssue.EventListener? = null) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
       if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
         return
       }
     }
 
-    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component)))
+    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), eventListener))
   }
 
   /** Handles case where we have ATF issues and include tags. */
@@ -95,7 +98,9 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 }
 
 /**  Issue created for <include> */
-class NlATFIncludeIssue(private val include: NlComponent, private val surface: NlDesignSurface): Issue() {
+class NlATFIncludeIssue(
+  private val include: NlComponent,
+  private val surface: NlDesignSurface): Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
   override val description: String
@@ -136,8 +141,19 @@ class NlATFIncludeIssue(private val include: NlComponent, private val surface: N
 
 /**  Issue created by [ValidatorData.Issue] */
 class NlAtfIssue(
-  private val result: ValidatorData.Issue,
-  issueSource: IssueSource): Issue() {
+  val result: ValidatorData.Issue,
+  issueSource: IssueSource,
+  private val eventListener: EventListener? = null): Issue() {
+
+  /** Event listeners for the ATF issue */
+  interface EventListener {
+
+    /** Called when the fix button is clicked by user */
+    fun onApplyFixButtonClicked(issue: ValidatorData.Issue)
+
+    /** Called when the ignore button is clicked by user */
+    fun onIgnoreButtonClicked(issue: ValidatorData.Issue)
+  }
 
   companion object {
     private const val CONTENT_LABELING = "CONTENT_LABELING"
@@ -178,10 +194,11 @@ class NlAtfIssue(
   override val fixes: Stream<Fix>
     get() {
       if (source is NlAttributesHolder) {
-        val fixes:MutableList<Fix> = mutableListOf();
+        val fixes:MutableList<Fix> = mutableListOf()
         result.mFix?.let {
           val fix = Fix("Fix", it.description) {
             applyFixWrapper(it)
+            eventListener?.onApplyFixButtonClicked(result)
           }
           fixes.add(fix)
         }
@@ -196,6 +213,7 @@ class NlAtfIssue(
 
           // Set attr automatically refreshes the surface.
           source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+          eventListener?.onIgnoreButtonClicked(result)
         }
         fixes.add(ignore)
         return fixes.stream()

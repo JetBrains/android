@@ -75,6 +75,16 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
 
   }
 
+  private val atfIssueEventListener = object: NlAtfIssue.EventListener {
+    override fun onApplyFixButtonClicked(issue: ValidatorData.Issue) {
+      metricTracker.trackApplyFixButtonClicked(issue)
+    }
+
+    override fun onIgnoreButtonClicked(issue: ValidatorData.Issue) {
+      metricTracker.trackIgnoreButtonClicked(issue)
+    }
+  }
+
   init {
     Disposer.register(parent, this)
     surface.issuePanel.addEventListener(issuePanelListener)
@@ -138,7 +148,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
           if (component == null) {
             issuesWithoutSources++
           } else {
-            lintIntegrator.createIssue(it, component)
+            lintIntegrator.createIssue(it, component, atfIssueEventListener)
           }
         }
         // TODO: b/180069618 revisit metrics. Should log each issue.
