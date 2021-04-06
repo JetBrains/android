@@ -255,7 +255,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {
     temp.children.clear()
-    updateHierarchy(window.root, temp)
+    updateHierarchy(window.root, temp, temp)
     temp.children.forEach { it.parent = root }
     val changedNode = temp.children.singleOrNull()
     val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
@@ -282,15 +282,16 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.hierarchyChanged(root)
   }
 
-  private fun updateHierarchy(node: ViewNode, parent: TreeViewNode) {
-    val nextParent = if (!node.isInComponentTree) parent else {
+  private fun updateHierarchy(node: ViewNode, previous: TreeViewNode, parent: TreeViewNode) {
+    val current = if (!node.isInComponentTree) previous else {
       val treeNode = node.treeNode
       parent.children.add(treeNode)
       treeNode.parent = parent
       treeNode.children.clear()
-      if (node.isSingleCall) parent else treeNode
+      treeNode
     }
-    node.children.forEach { updateHierarchy(it, nextParent) }
+    val nextParent = if (node.isSingleCall) parent else current
+    node.children.forEach { updateHierarchy(it, current, nextParent) }
   }
 
   @Suppress("UNUSED_PARAMETER")
