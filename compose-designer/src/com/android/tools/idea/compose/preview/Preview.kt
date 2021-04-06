@@ -686,7 +686,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       filePreviewElements.find { element ->
-        element.previewBodyPsi?.psiRange.containsOffset(offset) || element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
+        element.previewElementDefinitionPsi?.psiRange.containsOffset(offset)
       }?.let { selectedPreviewElement ->
         surface.models.find { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) == selectedPreviewElement }
       }?.let {
