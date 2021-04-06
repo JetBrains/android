@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -799,6 +800,13 @@ public class IdeSdks {
     // b/161405154  If STUDIO_GRADLE_JDK is valid and selected then return the corresponding Sdk
     if (myEnvVariableSettings.isUseJdkEnvVariable()) {
       return myEnvVariableSettings.getSdk();
+    }
+    if ((myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) && (StudioFlags.ALLOW_JDK_PER_PROJECT.get())) {
+      // Try to get default JDK
+      Sdk jdk = ProjectJdkTable.getInstance().findJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JavaSdk.getInstance().getName());
+      if (jdk != null) {
+        return jdk;
+      }
     }
     JavaSdkVersion preferredVersion = getRunningVersionOrDefault();
     Sdk existingJdk = getExistingJdk(preferredVersion);
