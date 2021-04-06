@@ -25,10 +25,8 @@ internal class FloatPsiCallParameter(project: Project,
                                                                                            initialValue
 ) {
   override var value: String?
-    get() = argumentExpression?.constantValueOrNull(argumentExpression?.analyze())?.value?.let {
-      "%.2f".format(it) + "f"
-    } ?: super.value
+    get() = argumentExpression?.constantValueOrNull(argumentExpression?.analyze())?.value?.toString() ?: super.value
     set(newValue) {
-      super.value = newValue
+      super.value = newValue?.toFloatOrNull()?.let { "${it}f" } ?: newValue
     }
 }
