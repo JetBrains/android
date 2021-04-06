@@ -21,8 +21,6 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.NullOutputReceiver
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -246,7 +244,8 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
   return PairingDevice(
     deviceID = deviceID,
     displayName = avdDevice?.displayName ?: getDeviceName(name),
-    versionName = avdDevice?.versionName ?: getDisplayVersionName(version),
+    apiLevel = avdDevice?.apiLevel ?: version.featureLevel,
+    isEmulator = isEmulator,
     isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(IDevice.HardwareFeature.WATCH),
     state = if (isOnline) ONLINE else OFFLINE,
     hasPlayStore = avdDevice?.hasPlayStore ?: false,
@@ -260,7 +259,8 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
   return PairingDevice(
     deviceID = deviceID,
     displayName = displayName,
-    versionName = getDisplayVersionName(androidVersion),
+    apiLevel = androidVersion.featureLevel,
+    isEmulator = true,
     isWearDevice = SystemImage.WEAR_TAG == tag,
     state = OFFLINE,
     hasPlayStore = hasPlayStore(),
@@ -281,8 +281,4 @@ private fun IDevice.getDeviceID(): String {
     isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
     else -> name
   }
-}
-
-private fun getDisplayVersionName(androidVersion: AndroidVersion): String {
-  return SdkVersionInfo.getAndroidName(androidVersion.featureLevel)
 }
