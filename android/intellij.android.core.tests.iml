@@ -131,6 +131,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
     <orderEntry type="module" module-name="utp" scope="TEST" />
   </component>
