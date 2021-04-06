@@ -25,9 +25,25 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.util.containers.isEmpty
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mock
+import org.mockito.Mockito.verify
+import org.mockito.MockitoAnnotations
 
+@RunWith(JUnit4::class)
 class NlAtfIssueTest : LayoutTestCase() {
 
+  @Mock
+  lateinit var mockEventListener:NlAtfIssue.EventListener
+  @Before
+  fun setup() {
+    MockitoAnnotations.openMocks(this)
+  }
+
+  @Test
   fun testCreate() {
     val category = "category"
     val msg = "msg"
@@ -55,6 +71,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertEquals(srcClass, atfIssue.srcClass)
   }
 
+  @Test
   fun testHyperlinkListener() {
     val helpfulLink = "www.google.com"
     val msg = "msg"
@@ -75,6 +92,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertNotNull(atfIssue.hyperlinkListener)
   }
 
+  @Test
   fun testIgnoreButton() {
     val result = ScannerTestHelper.createTestIssueBuilder().build()
 
@@ -86,13 +104,14 @@ class NlAtfIssueTest : LayoutTestCase() {
     }
   }
 
+  @Test
   fun testIgnoreClicked() {
     val testSrc = TestSource()
     val srcClass = "SrcClass"
     val result = ScannerTestHelper.createTestIssueBuilder()
       .setSourceClass(srcClass)
       .build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
 
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
@@ -102,9 +121,11 @@ class NlAtfIssueTest : LayoutTestCase() {
       assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
       assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
       assertEquals(srcClass, testSrc.setAttrArgCaptor.value)
+      verify(mockEventListener).onIgnoreButtonClicked(result)
     }
   }
 
+  @Test
   fun testIgnoreClickedIgnoreAlreadyExist() {
     val testSrc = TestSource()
     val getAttrResult = "hardcodedText,someOtherLintToIgnore,test"
@@ -128,6 +149,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     }
   }
 
+  @Test
   fun testFixClickedWithSetViewAttributeFix() {
     val testSrc = TestSource()
     val attributeName = "textColor"
@@ -137,12 +159,19 @@ class NlAtfIssueTest : LayoutTestCase() {
     val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
+    atfIssue.fixes.filter{it.buttonText == "Fix"}.forEach {  fix ->
+      // Simulate fix button click
+      fix.runnable.run()
+
+      verify(mockEventListener).onApplyFixButtonClicked(result)
+    }
   }
 
+  @Test
   fun testFixClickedWithRemoveViewAttributeFix() {
     val testSrc = TestSource()
     val attributeName = "contentDescription"
@@ -157,6 +186,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     assertEquals(2, atfIssue.fixes.count())
   }
 
+  @Test
   fun testFixClickedWithCompoundFix() {
     val testSrc = TestSource()
     val setAttributeName = "textColor"
@@ -166,7 +196,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val removeAttributeName = "contentDescription"
     val removeViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", removeAttributeName)
     val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(removeViewAttribute, "")
-    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's andrid:textColor to #FFFFFF."
+    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
     val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
@@ -182,7 +212,7 @@ class NlAtfIssueTest : LayoutTestCase() {
       get() = TODO("Not yet implemented")
 
     var getAttrResult = ""
-    override fun getAttribute(namespace: String?, attribute: String): String? {
+    override fun getAttribute(namespace: String?, attribute: String): String{
       return getAttrResult
     }
 
