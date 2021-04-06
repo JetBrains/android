@@ -154,4 +154,7 @@ public interface AndroidModel {
   default Map<String, DynamicResourceValue> getResValues() {
     return Collections.emptyMap();
   }
+
+  @Nullable
+  default TestExecutionOption getTestExecutionOption() { return null; }
 }
