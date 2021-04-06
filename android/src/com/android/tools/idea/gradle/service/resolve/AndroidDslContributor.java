@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;

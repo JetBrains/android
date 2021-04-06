@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.utils.ImmutableCollectors;

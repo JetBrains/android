@@ -16,7 +16,7 @@
 @file:JvmName("SourceProviderUtil")
 package org.jetbrains.android.facet
 
-import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ScopeType

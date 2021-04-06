@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.ConsolePrinter
 import com.google.common.truth.Truth.assertThat

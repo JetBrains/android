@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.run
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.project.sync.GradleSyncState

@@ -3,7 +3,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfiguration;

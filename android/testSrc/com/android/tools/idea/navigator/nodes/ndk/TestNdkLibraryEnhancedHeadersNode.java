@@ -17,7 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;

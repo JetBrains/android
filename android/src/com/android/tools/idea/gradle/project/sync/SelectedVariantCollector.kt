@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.gradle.model.IdeVariantHeader
+import com.android.tools.idea.gradle.model.IdeVariantHeader
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel

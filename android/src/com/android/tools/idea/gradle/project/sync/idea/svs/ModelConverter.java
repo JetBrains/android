@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs;
 
-import com.android.ide.common.gradle.model.impl.BuildFolderPaths;
+import com.android.tools.idea.gradle.model.impl.BuildFolderPaths;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.tooling.BuildController;

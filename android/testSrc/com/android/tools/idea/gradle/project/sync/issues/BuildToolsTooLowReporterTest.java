@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;

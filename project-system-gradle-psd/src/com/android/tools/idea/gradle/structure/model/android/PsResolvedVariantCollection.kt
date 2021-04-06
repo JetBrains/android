@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariant
 
 internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, PsVariantKey, PsAndroidModule>(parent) {
   init {

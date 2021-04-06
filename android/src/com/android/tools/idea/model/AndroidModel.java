@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.builder.model.AaptOptions;
-import com.android.ide.common.gradle.model.IdeAaptOptions;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.lint.detector.api.Desugaring;

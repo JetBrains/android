@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
-import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import java.io.Serializable

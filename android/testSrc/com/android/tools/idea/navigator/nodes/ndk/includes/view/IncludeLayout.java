@@ -20,10 +20,9 @@ import static com.google.common.base.Verify.verifyNotNull;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.NativeFile;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;

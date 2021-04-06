@@ -21,8 +21,8 @@ import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
+import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;

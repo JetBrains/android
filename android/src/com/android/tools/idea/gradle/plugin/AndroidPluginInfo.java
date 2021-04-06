@@ -20,7 +20,7 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;

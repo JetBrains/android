@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
-import com.android.ide.common.gradle.model.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeJavaLibrary;
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;

@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager

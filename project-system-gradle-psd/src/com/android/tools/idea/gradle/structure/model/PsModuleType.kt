@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.structure.model.meta.asString
 

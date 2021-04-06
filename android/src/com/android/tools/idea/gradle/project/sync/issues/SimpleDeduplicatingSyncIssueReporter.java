@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
-import com.android.ide.common.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.IdeVariant
 
 /**
  * Container used to group [IdeVariant]s and [IdeNativeVariantAbi]s for a module.

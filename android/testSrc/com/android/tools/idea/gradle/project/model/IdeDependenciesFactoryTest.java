@@ -25,11 +25,11 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.Dependencies.ProjectIdentifier;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.stubs.BaseArtifactStub;
-import com.android.ide.common.gradle.model.stubs.DependenciesStub;
-import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.stubs.BaseArtifactStub;
+import com.android.tools.idea.gradle.model.stubs.DependenciesStub;
+import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 
-/** Tests for {@link com.android.ide.common.gradle.model.impl.IdeDependenciesFactory}. */
+/** Tests for {@link com.android.tools.idea.gradle.model.impl.IdeDependenciesFactory}. */
 public class IdeDependenciesFactoryTest {
     private ModelCacheTesting myModelCache;
 
@@ -50,7 +50,7 @@ public class IdeDependenciesFactoryTest {
     @Test
     public void createFromDependencies() {
         JavaLibrary javaLibraryA =
-                new com.android.ide.common.gradle.model.stubs.JavaLibraryStub() {
+                new com.android.tools.idea.gradle.model.stubs.JavaLibraryStub() {
                     @Override
                     @Nullable
                     public String getProject() {
@@ -64,7 +64,7 @@ public class IdeDependenciesFactoryTest {
                     }
                 };
         JavaLibrary javaLibraryB =
-                new com.android.ide.common.gradle.model.stubs.JavaLibraryStub() {
+                new com.android.tools.idea.gradle.model.stubs.JavaLibraryStub() {
                     @Override
                     @Nullable
                     public String getProject() {
@@ -187,7 +187,7 @@ public class IdeDependenciesFactoryTest {
 
     @NonNull
     private static JavaLibrary createJavaLibrary(@NonNull String version) {
-        return new com.android.ide.common.gradle.model.stubs.JavaLibraryStub() {
+        return new com.android.tools.idea.gradle.model.stubs.JavaLibraryStub() {
             @Override
             @Nullable
             public String getProject() {

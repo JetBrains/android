@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
-import com.android.ide.common.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

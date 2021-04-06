@@ -21,8 +21,8 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask

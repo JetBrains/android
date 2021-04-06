@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.IdeJavaLibrary
-import com.android.ide.common.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.ExternalLibrary

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType

@@ -19,9 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.Client;
-import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
@@ -55,7 +53,6 @@ import com.intellij.xdebugger.XDebugSession;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;

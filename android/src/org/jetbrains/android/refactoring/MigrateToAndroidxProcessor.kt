@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.ide.common.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.repository.io.FileOpUtils
 import com.android.support.AndroidxNameUtils
