@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,13 +29,11 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -57,14 +54,6 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
   protected ConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                 @NotNull AndroidDebugger debugger,
                                 @NotNull Project project,
-                                boolean monitorRemoteProcess) {
-    this(applicationIdProvider, debugger, project, monitorRemoteProcess, false);
-  }
-
-  protected ConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                @NotNull AndroidDebugger debugger,
-                                @NotNull Project project,
-                                boolean monitorRemoteProcess,
                                 boolean attachToRunningProcess) {
     myDebugger = debugger;
     myProject = project;
