@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
@@ -22,6 +23,11 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Device
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportWithConstantData
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.FontScale
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
@@ -50,6 +56,13 @@ interface PsiPropertyItem : NewPropertyItem
  */
 abstract class PsiPropertyModel : PropertiesModel<PsiPropertyItem> {
   private val listeners = ListenerCollection.createWithDirectExecutor<PropertiesModelListener<PsiPropertyItem>>()
+
+  /**
+   * Provider used by [EnumSupport] instances to retrieve values in their executing thread.
+   *
+   * @see [PsiEnumProvider]
+   */
+  open val enumSupportValuesProvider: EnumSupportValuesProvider = EnumSupportValuesProvider.EMPTY
 
   override fun addListener(listener: PropertiesModelListener<PsiPropertyItem>) {
     // For now, the properties are always generated at load time, so we can always make this call when the listener is added.
@@ -83,48 +96,47 @@ private class PsiPropertiesInspectorBuilder(private val editorProvider: EditorPr
  * A [PropertiesView] for editing [PsiPropertyModel]s.
  */
 internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiPropertyItem>(PSI_PROPERTIES_VIEW_NAME, model) {
-  object PsiEnumProvider : EnumSupportProvider<PsiPropertyItem> {
-
-    override fun invoke(property: PsiPropertyItem): EnumSupport? =
-      when (property.name) {
-        PARAMETER_UI_MODE -> object : EnumSupport {
-          override val values: List<EnumValue> = UiMode.values().toList()
-          override fun createValue(stringValue: String): EnumValue =
-            UiMode.values().firstOrNull { stringValue == it.resolvedValue.toString() } ?: UiMode.NORMAL
-        }
-        PARAMETER_DEVICE -> object : EnumSupport {
-          override val values: List<EnumValue> = Device.values().toList()
-          override fun createValue(stringValue: String): EnumValue =
-            Device.values().firstOrNull { stringValue == it.resolvedValue } ?: Device.DEFAULT
-        }
-        PARAMETER_FONT_SCALE -> object : EnumSupport {
-          override val values: List<EnumValue> = FontScale.values().toList()
-        }
-        else -> null
-      }
-  }
-
-  /**
-   * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
-   */
-  inner class PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
-    override fun invoke(property: PsiPropertyItem): ControlType =
-      when (property.name) {
-        PARAMETER_UI_MODE -> ControlType.DROPDOWN
-        PARAMETER_DEVICE -> ControlType.DROPDOWN
-        PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
-        PARAMETER_SHOW_DECORATION,
-        PARAMETER_SHOW_SYSTEM_UI,
-        PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
-        PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
-        else -> ControlType.TEXT_EDITOR
-      }
-  }
 
   init {
     addTab("").apply {
       builders.add(PsiPropertiesInspectorBuilder(
-        EditorProvider.create(PsiEnumProvider, PsiPropertyItemControlTypeProvider())))
+        EditorProvider.create(PsiEnumProvider(model.enumSupportValuesProvider), PsiPropertyItemControlTypeProvider)))
     }
   }
+}
+
+class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesProvider) : EnumSupportProvider<PsiPropertyItem> {
+
+  override fun invoke(property: PsiPropertyItem): EnumSupport? =
+    when (property.name) {
+      PARAMETER_UI_MODE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
+        UiMode.values().firstOrNull { stringValue == it.resolvedValue } ?: UiMode.NORMAL
+      }
+      PARAMETER_DEVICE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
+        Device.values().firstOrNull { stringValue == it.resolvedValue } ?: Device.DEFAULT
+      }
+      PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
+      PARAMETER_FONT_SCALE -> object : EnumSupport {
+        override val values: List<EnumValue> = FontScale.values().toList()
+      }
+      else -> null
+    }
+}
+
+/**
+ * [ControlTypeProvider] for [PsiPropertyItem]s that provides a text editor for every property.
+ */
+object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem> {
+  override fun invoke(property: PsiPropertyItem): ControlType =
+    when (property.name) {
+      PARAMETER_UI_MODE -> ControlType.DROPDOWN
+      PARAMETER_DEVICE -> ControlType.DROPDOWN
+      PARAMETER_BACKGROUND_COLOR -> ControlType.COLOR_EDITOR
+      PARAMETER_SHOW_DECORATION,
+      PARAMETER_SHOW_SYSTEM_UI,
+      PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
+      PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
+      PARAMETER_API_LEVEL -> ControlType.COMBO_BOX
+      else -> ControlType.TEXT_EDITOR
+    }
 }

@@ -69,6 +69,9 @@ enum class ComposeLibraryNamespace(val packageName: String) {
 
   /** FqName of @Composable function that loads a string resource. **/
   val stringResourceFunctionFqName = "$packageName.res.stringResource"
+
+  /** FqName of the Devices class for its corresponding `@Preview` parameter. */
+  val composeDevicesClassName = "$previewPackage.Devices"
 }
 
 /** Only composables with this annotations will be rendered to the surface. */
