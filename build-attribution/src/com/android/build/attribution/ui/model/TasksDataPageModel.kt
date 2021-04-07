@@ -368,7 +368,11 @@ class PluginDetailsNodeDescriptor(
 
 private fun TimeWithPercentage.toRightAlignedNodeDurationText(): String {
   val timeString = if (timeMs < 100) "<0.1s" else "%2.1fs".format(timeS)
-  val percentageString = if (percentage < 0.1) "<0.1%" else "%4.1f%%".format(percentage)
+  val percentageString = when {
+    percentage < 0.1 -> "<0.1%"
+    percentage > 99.9 -> ">99.9%"
+    else -> "%4.1f%%".format(percentage)
+  }
   return "%s %5s".format(timeString, percentageString)
 }
 
