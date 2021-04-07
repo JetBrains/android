@@ -40,7 +40,7 @@ import org.junit.Test
 import java.util.function.Supplier
 import javax.swing.JLabel
 
-class HeapDumpStageViewTest {
+class MemoryCaptureStageViewTest {
 
   private lateinit var profilers: StudioProfilers
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -76,7 +76,7 @@ class HeapDumpStageViewTest {
     // Load a fake capture
     val fakeCapture = makeFakeCapture()
     val stage = createStageWithCaptureLoaded(fakeCapture)
-    val view = HeapDumpStageView(profilersView, stage)
+    val view = MemoryCaptureStageView(profilersView, stage)
     val walker = TreeWalker(view.toolbar)
     val label = walker.descendantStream().filter { c -> c is JLabel }.findFirst().get() as JLabel
     assertThat(label.text).startsWith(fakeCapture.name)
@@ -96,7 +96,7 @@ class HeapDumpStageViewTest {
     assertThat(createStageWithCaptureLoaded(capture).captureSelection.selectedCapture).isEqualTo(capture)
   }
 
-  private fun createStageWithCaptureLoaded(capture: CaptureObject) = HeapDumpStage(
+  private fun createStageWithCaptureLoaded(capture: CaptureObject) = MemoryCaptureStage(
     profilers,
     mockLoader,
     CaptureDurationData(1, false, false, CaptureEntry(Any(), Supplier { capture })),

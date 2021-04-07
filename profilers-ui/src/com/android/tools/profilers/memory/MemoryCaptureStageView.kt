@@ -32,8 +32,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 
-class HeapDumpStageView(profilersView: StudioProfilersView, stage: HeapDumpStage)
-      : BaseMemoryProfilerStageView<HeapDumpStage>(profilersView, stage) {
+class MemoryCaptureStageView(profilersView: StudioProfilersView, stage: MemoryCaptureStage)
+      : BaseMemoryProfilerStageView<MemoryCaptureStage>(profilersView, stage) {
 
   private val capturePanel = CapturePanel(profilersView,
                                           stage.captureSelection,

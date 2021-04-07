@@ -22,10 +22,10 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCapture
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.*
 import java.util.concurrent.Executor
 
-class HeapDumpStage(profilers: StudioProfilers,
-                    loader: CaptureObjectLoader,
-                    private val durationData: CaptureDurationData<out CaptureObject?>?,
-                    private val joiner: Executor?)
+class MemoryCaptureStage(profilers: StudioProfilers,
+                         loader: CaptureObjectLoader,
+                         private val durationData: CaptureDurationData<out CaptureObject?>?,
+                         private val joiner: Executor?)
       : BaseMemoryProfilerStage(profilers, loader) {
 
   override fun enter() {

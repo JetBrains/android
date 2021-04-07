@@ -426,7 +426,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     else if (durationData != null &&
              (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
               NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
-      profilers.setStage(new HeapDumpStage(profilers, getLoader(), durationData, joiner));
+      profilers.setStage(new MemoryCaptureStage(profilers, getLoader(), durationData, joiner));
     }
     else {
       doSelectCaptureDuration(durationData, joiner);
