@@ -56,6 +56,7 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.nio.ByteBuffer;
@@ -776,6 +777,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureDuration(dataList.get(0).value, null);
     assertThat(myProfilers.getStage()).isInstanceOf(HeapDumpStage.class);
+    assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE);
   }
 
   @Test
