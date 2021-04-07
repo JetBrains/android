@@ -21,7 +21,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.JEditorPane
 
 
@@ -29,7 +28,11 @@ fun TimeWithPercentage.durationString() = durationString(timeMs)
 
 fun TimeWithPercentage.durationStringHtml() = durationStringHtml(timeMs)
 
-fun TimeWithPercentage.percentageString() = if (percentage >= 0.1) "%.1f%%".format(percentage) else "<0.1%"
+fun TimeWithPercentage.percentageString() = when {
+  percentage < 0.1 -> "<0.1%"
+  percentage > 99.9 -> ">99.9%"
+  else -> "%.1f%%".format(percentage)
+}
 
 fun TimeWithPercentage.percentageStringHtml() = StringUtil.escapeXmlEntities(percentageString())
 
