@@ -25,13 +25,13 @@ import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
-import icons.AndroidIcons
+import icons.StudioIllustrations
 
 private val logger = Logger.getInstance(TemplateIcon::class.java)
 
 fun getTemplateIcon(template: Template): TemplateIcon? {
   if (template == Template.NoActivity) {
-    return TemplateIcon(AndroidIcons.Wizards.NoActivity)
+    return TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
   }
 
   return try {
@@ -41,7 +41,7 @@ fun getTemplateIcon(template: Template): TemplateIcon? {
     logger.warn(e)
     // Return the icon for No Activity to prevent other templates from not being rendered even if an exception is thrown.
     // For example if a template has a wrong path name for its thumbnail, template.thumb() throws IllegalArgumentException
-    TemplateIcon(AndroidIcons.Wizards.NoActivity)
+    TemplateIcon(StudioIllustrations.Wizards.NO_ACTIVITY)
   }
 }
 

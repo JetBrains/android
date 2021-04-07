@@ -12,9 +12,6 @@ public class AndroidIcons {
 
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.svg"); // 64x64
-    // Template thumbnails
-    public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
-    public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256
   }
 
   public static class DeviceExplorer {
