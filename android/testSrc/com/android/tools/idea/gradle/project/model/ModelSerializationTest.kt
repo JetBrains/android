@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration

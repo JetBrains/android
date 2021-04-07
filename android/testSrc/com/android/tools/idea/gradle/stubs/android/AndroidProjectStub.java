@@ -39,7 +39,7 @@ import com.android.builder.model.ViewBindingOptions;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
-import com.android.tools.idea.gradle.project.model.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
 import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
 import com.android.tools.idea.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.tools.idea.gradle.model.stubs.ViewBindingOptionsStub;

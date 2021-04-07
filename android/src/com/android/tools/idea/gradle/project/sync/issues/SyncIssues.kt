@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE
+import com.android.tools.idea.gradle.project.sync.idea.svs.SyncIssueData
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -31,15 +32,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findProjec
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.Serializable
-
-data class SyncIssueData(
-  val message: String,
-  val data: String?,
-  val multiLineMessage: List<String>?,
-  val severity: Int,
-  val type: Int
-): Serializable
 
 class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> by issues {
   companion object {

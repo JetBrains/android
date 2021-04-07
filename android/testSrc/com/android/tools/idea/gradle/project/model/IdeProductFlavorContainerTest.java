@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl;
 import com.android.tools.idea.gradle.model.stubs.ProductFlavorContainerStub;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;

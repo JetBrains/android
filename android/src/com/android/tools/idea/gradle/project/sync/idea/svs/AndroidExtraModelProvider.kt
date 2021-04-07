@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.ide.gradle.model.GradlePluginModel
-import com.android.tools.idea.gradle.project.sync.SyncActionOptions
-import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild

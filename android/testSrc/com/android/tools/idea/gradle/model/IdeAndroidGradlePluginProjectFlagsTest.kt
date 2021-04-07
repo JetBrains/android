@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.model
 
 import com.android.builder.model.AndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.project.model.ModelCache
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
 import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
 import com.google.common.truth.Truth
 import org.junit.Test

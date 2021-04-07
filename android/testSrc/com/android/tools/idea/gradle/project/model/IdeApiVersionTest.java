@@ -22,6 +22,8 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl;
 import com.android.tools.idea.gradle.model.stubs.ApiVersionStub;
 import com.android.testutils.Serialization;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;
