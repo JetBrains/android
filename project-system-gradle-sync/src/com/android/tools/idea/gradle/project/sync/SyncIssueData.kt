@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
-/**
- * Marker interface for all exceptions that are triggered via Android specific errors in project import.
- */
-open class AndroidSyncException : RuntimeException {
-  constructor(message: String) : super(message)
-  constructor() : super()
-}
+import java.io.Serializable
+
+data class SyncIssueData(
+  val message: String,
+  val data: String?,
+  val multiLineMessage: List<String>?,
+  val severity: Int,
+  val type: Int
+): Serializable

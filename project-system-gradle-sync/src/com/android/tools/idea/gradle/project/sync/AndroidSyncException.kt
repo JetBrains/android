@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
-import java.io.Serializable
-
-data class SelectedVariants(
-  /**
-   * Dimension name to selected variant name map.
-   */
-  val selectedVariants: Map<String, SelectedVariant>
-) : Serializable {
-  fun getSelectedVariant(moduleId: String): String? = selectedVariants[moduleId]?.variantName
-  fun getSelectedAbi(moduleId: String): String? = selectedVariants[moduleId]?.abiName
+/**
+ * Marker interface for all exceptions that are triggered via Android specific errors in project import.
+ */
+open class AndroidSyncException : RuntimeException {
+  constructor(message: String) : super(message)
+  constructor() : super()
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.model
 
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.DynamicResourceValue

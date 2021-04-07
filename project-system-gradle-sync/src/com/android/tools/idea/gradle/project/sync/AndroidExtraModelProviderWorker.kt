@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.ModelBuilderParameter
@@ -49,7 +49,8 @@ internal class AndroidExtraModelProviderWorker(
   private val consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
   private val androidModulesById: MutableMap<String, AndroidModule> = HashMap()
-  private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(controller)
+  private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(
+    controller)
   private val actionRunner = createActionRunner(controller, syncOptions.flags)
   private val modelCache = ModelCache.create(buildFolderPaths)
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
 /**
  * Marks a given CLASS or FUNCTION to indicate that it is used in a Gradle tooling API BuildAction.

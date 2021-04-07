@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl;
 import com.android.tools.idea.gradle.model.stubs.AaptOptionsStub;
 import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import org.junit.Before;
 import org.junit.Test;
 

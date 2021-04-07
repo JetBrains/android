@@ -18,11 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.Modules
-import com.android.tools.idea.gradle.project.sync.idea.svs.SelectedVariant
-import com.android.tools.idea.gradle.project.sync.idea.svs.SelectedVariants
-import com.android.tools.idea.gradle.project.sync.idea.svs.VariantDetails
-import com.android.tools.idea.gradle.project.sync.idea.svs.createVariantDetailsFrom
 import com.android.tools.idea.gradle.util.getGradleProjectPath
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.diagnostic.Logger
