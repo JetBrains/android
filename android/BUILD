@@ -97,6 +97,7 @@ iml_module(
         "//tools/adt/idea/android:libandroid-core-proto",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -371,6 +372,7 @@ iml_module(
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
         "//tools/adt/idea/utp[module, test]",
     ],
 )
