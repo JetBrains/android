@@ -56,11 +56,11 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
 
       PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
-        .setLastConnectionTime(ConnectionTimeService.getInstance().get(serialNumber))
-        .setConnected(true)
+        .setLastOnlineTime(OnlineTimeService.getInstance().get(serialNumber))
+        .setOnline(true)
         .build();
 
-      myModel.handleConnectedDevice(physicalDevice);
+      myModel.handleOnlineDevice(physicalDevice);
     });
   }
 
@@ -75,10 +75,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
 
       PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
-        .setLastConnectionTime(ConnectionTimeService.getInstance().remove(serialNumber))
+        .setLastOnlineTime(OnlineTimeService.getInstance().remove(serialNumber))
         .build();
 
-      myModel.handleDisconnectedDevice(physicalDevice);
+      myModel.handleOfflineDevice(physicalDevice);
     });
   }
 

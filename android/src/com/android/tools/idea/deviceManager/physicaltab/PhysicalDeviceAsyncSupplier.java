@@ -44,14 +44,14 @@ final class PhysicalDeviceAsyncSupplier {
   private final @NotNull ListeningExecutorService myService;
   private final @NotNull Function<@Nullable Project, @NotNull Path> myGetAdb;
   private final @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> myGetDebugBridge;
-  private final @NotNull Supplier<@NotNull ConnectionTimeService> myConnectionTimeServiceGetInstance;
+  private final @NotNull Supplier<@NotNull OnlineTimeService> myOnlineTimeServiceGetInstance;
 
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
     this(project,
          MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
          PhysicalDeviceAsyncSupplier::getAdb,
          PhysicalDeviceAsyncSupplier::getDebugBridge,
-         ConnectionTimeService::getInstance);
+         OnlineTimeService::getInstance);
   }
 
   @VisibleForTesting
@@ -59,12 +59,12 @@ final class PhysicalDeviceAsyncSupplier {
                               @NotNull ListeningExecutorService service,
                               @NotNull Function<@Nullable Project, @NotNull Path> getAdb,
                               @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge,
-                              @NotNull Supplier<@NotNull ConnectionTimeService> connectionTimeServiceGetInstance) {
+                              @NotNull Supplier<@NotNull OnlineTimeService> onlineTimeServiceGetInstance) {
     myProject = project;
     myService = service;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
-    myConnectionTimeServiceGetInstance = connectionTimeServiceGetInstance;
+    myOnlineTimeServiceGetInstance = onlineTimeServiceGetInstance;
   }
 
   /**
@@ -126,8 +126,8 @@ final class PhysicalDeviceAsyncSupplier {
   private @NotNull PhysicalDevice buildPhysicalDevice(@NotNull String serialNumber) {
     return new PhysicalDevice.Builder()
       .setSerialNumber(serialNumber)
-      .setLastConnectionTime(myConnectionTimeServiceGetInstance.get().get(serialNumber))
-      .setConnected(true)
+      .setLastOnlineTime(myOnlineTimeServiceGetInstance.get().get(serialNumber))
+      .setOnline(true)
       .build();
   }
 }

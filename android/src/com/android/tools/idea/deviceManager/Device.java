@@ -21,12 +21,12 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class Device {
   protected final @NotNull String myName;
-  protected final boolean myConnected;
+  protected final boolean myOnline;
   protected final @NotNull String myTarget;
 
   protected static abstract class Builder {
     protected @Nullable String myName;
-    protected boolean myConnected;
+    protected boolean myOnline;
     protected @Nullable String myTarget;
 
     protected abstract @NotNull Device build();
@@ -36,7 +36,7 @@ public abstract class Device {
     assert builder.myName != null;
     myName = builder.myName;
 
-    myConnected = builder.myConnected;
+    myOnline = builder.myOnline;
 
     assert builder.myTarget != null;
     myTarget = builder.myTarget;
@@ -48,8 +48,8 @@ public abstract class Device {
     return myName;
   }
 
-  public final boolean isConnected() {
-    return myConnected;
+  public final boolean isOnline() {
+    return myOnline;
   }
 
   public final @NotNull String getTarget() {

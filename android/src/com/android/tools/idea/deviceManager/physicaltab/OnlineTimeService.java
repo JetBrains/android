@@ -26,30 +26,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Service
-final class ConnectionTimeService {
-  private final @NotNull Map<@NotNull String, @Nullable Instant> mySerialNumberToConnectionTimeMap;
+final class OnlineTimeService {
+  private final @NotNull Map<@NotNull String, @Nullable Instant> mySerialNumberToOnlineTimeMap;
   private final @NotNull Clock myClock;
 
   @SuppressWarnings("unused")
-  private ConnectionTimeService() {
+  private OnlineTimeService() {
     this(Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
-  ConnectionTimeService(@NotNull Clock clock) {
-    mySerialNumberToConnectionTimeMap = new HashMap<>();
+  OnlineTimeService(@NotNull Clock clock) {
+    mySerialNumberToOnlineTimeMap = new HashMap<>();
     myClock = clock;
   }
 
-  static @NotNull ConnectionTimeService getInstance() {
-    return ServiceManager.getService(ConnectionTimeService.class);
+  static @NotNull OnlineTimeService getInstance() {
+    return ServiceManager.getService(OnlineTimeService.class);
   }
 
   @NotNull Instant get(@NotNull String serialNumber) {
-    return mySerialNumberToConnectionTimeMap.computeIfAbsent(serialNumber, s -> myClock.instant());
+    return mySerialNumberToOnlineTimeMap.computeIfAbsent(serialNumber, s -> myClock.instant());
   }
 
   @Nullable Instant remove(@NotNull String serialNumber) {
-    return mySerialNumberToConnectionTimeMap.remove(serialNumber);
+    return mySerialNumberToOnlineTimeMap.remove(serialNumber);
   }
 }

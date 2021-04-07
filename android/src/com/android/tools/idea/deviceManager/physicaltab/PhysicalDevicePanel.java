@@ -77,7 +77,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> {
       @Override
       public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
         assert devices != null;
-        addNewTable(addDisconnectedDevices(devices));
+        addNewTable(addOfflineDevices(devices));
       }
 
       @Override
@@ -87,14 +87,14 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> {
     });
   }
 
-  private @NotNull List<@NotNull PhysicalDevice> addDisconnectedDevices(@NotNull List<@NotNull PhysicalDevice> connectedDevices) {
+  private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
     Collection<PhysicalDevice> persistedDevices = myPhysicalTabPersistentStateComponentGetInstance.get().get();
 
-    List<PhysicalDevice> devices = new ArrayList<>(connectedDevices.size() + persistedDevices.size());
-    devices.addAll(connectedDevices);
+    List<PhysicalDevice> devices = new ArrayList<>(onlineDevices.size() + persistedDevices.size());
+    devices.addAll(onlineDevices);
 
     persistedDevices.stream()
-      .filter(persistedDevice -> PhysicalDevices.indexOf(connectedDevices, persistedDevice) == -1)
+      .filter(persistedDevice -> PhysicalDevices.indexOf(onlineDevices, persistedDevice) == -1)
       .forEach(devices::add);
 
     return devices;

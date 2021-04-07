@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
   private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
-  private final @NotNull JLabel myConnectedLabel;
+  private final @NotNull JLabel myOnlineLabel;
   private final @NotNull JLabel myLine2Label;
   private final @NotNull JComponent myPanel;
 
@@ -55,7 +55,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull Function<@NotNull Object, @NotNull Border> getBorder) {
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
-    myConnectedLabel = new JBLabel();
+    myOnlineLabel = new JBLabel();
     myLine2Label = new JBLabel();
 
     myPanel = new JBPanel<>(null);
@@ -68,14 +68,14 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
                   .addGroup(layout.createSequentialGroup()
                               .addComponent(myNameLabel)
                               .addPreferredGap(ComponentPlacement.RELATED)
-                              .addComponent(myConnectedLabel))
+                              .addComponent(myOnlineLabel))
                   .addComponent(myLine2Label));
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGroup(layout.createParallelGroup(Alignment.CENTER)
                   .addComponent(myIconLabel)
                   .addComponent(myNameLabel)
-                  .addComponent(myConnectedLabel))
+                  .addComponent(myOnlineLabel))
       .addComponent(myLine2Label);
 
     layout.setHorizontalGroup(horizontalGroup);
@@ -102,7 +102,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myNameLabel.setForeground(foreground);
     myNameLabel.setText(device.getName());
 
-    myConnectedLabel.setIcon(device.isConnected() ? StudioIcons.Common.CIRCLE_GREEN : StudioIcons.Common.CIRCLE_RED);
+    myOnlineLabel.setIcon(device.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : StudioIcons.Common.CIRCLE_RED);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
@@ -165,8 +165,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   }
 
   @VisibleForTesting
-  final @NotNull JLabel getConnectedLabel() {
-    return myConnectedLabel;
+  final @NotNull JLabel getOnlineLabel() {
+    return myOnlineLabel;
   }
 
   @VisibleForTesting

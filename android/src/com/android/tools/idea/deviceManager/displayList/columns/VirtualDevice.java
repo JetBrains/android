@@ -37,8 +37,8 @@ final class VirtualDevice extends Device {
       return this;
     }
 
-    @NotNull Builder setConnected(boolean connected) {
-      myConnected = connected;
+    @NotNull Builder setOnline(boolean online) {
+      myOnline = online;
       return this;
     }
 
