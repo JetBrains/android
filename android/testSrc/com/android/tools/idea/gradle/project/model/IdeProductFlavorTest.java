@@ -90,7 +90,6 @@ public class IdeProductFlavorTest {
                                 getTestInstrumentationRunner(),
                                 getTestHandleProfiling(),
                                 getTestFunctionalTest(),
-                                getSigningConfig(),
                                 getWearAppUnbundled());
                     }
                 };

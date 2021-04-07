@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.SigningConfig;
 import com.android.builder.model.VectorDrawablesOptions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -46,7 +45,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
     @Nullable private final String myTestInstrumentationRunner;
     @Nullable private final Boolean myTestHandleProfiling;
     @Nullable private final Boolean myTestFunctionalTest;
-    @Nullable private final SigningConfig mySigningConfig;
     @Nullable private final Boolean myWearAppUnbundled;
 
     public ProductFlavorStub() {
@@ -71,7 +69,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
                 "testInstrumentationRunner",
                 true,
                 true,
-                new SigningConfigStub(),
                 true);
     }
 
@@ -94,7 +91,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
             @Nullable String testInstrumentationRunner,
             @Nullable Boolean testHandleProfiling,
             @Nullable Boolean testFunctionalTest,
-            @Nullable SigningConfig signingConfig,
             @Nullable Boolean wearAppUnbundled) {
         myTestInstrumentationRunnerArguments = testInstrumentationRunnerArguments;
         myResourceConfigurations = resourceConfigurations;
@@ -114,7 +110,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
         myTestInstrumentationRunner = testInstrumentationRunner;
         myTestHandleProfiling = testHandleProfiling;
         myTestFunctionalTest = testFunctionalTest;
-        mySigningConfig = signingConfig;
         myWearAppUnbundled = wearAppUnbundled;
     }
 
@@ -228,12 +223,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
 
     @Override
     @Nullable
-    public SigningConfig getSigningConfig() {
-        return mySigningConfig;
-    }
-
-    @Override
-    @Nullable
     public Boolean getWearAppUnbundled() {
         return myWearAppUnbundled;
     }
@@ -275,7 +264,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
                         getTestInstrumentationRunner(), that.getTestInstrumentationRunner())
                 && equals(that, ProductFlavor::getTestHandleProfiling)
                 && equals(that, ProductFlavor::getTestFunctionalTest)
-                && Objects.equals(getSigningConfig(), that.getSigningConfig())
                 && equals(that, ProductFlavor::getWearAppUnbundled);
     }
 
@@ -307,7 +295,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
                 getTestInstrumentationRunner(),
                 getTestHandleProfiling(),
                 getTestFunctionalTest(),
-                getSigningConfig(),
                 getWearAppUnbundled());
     }
 
@@ -355,8 +342,6 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
                 + myTestHandleProfiling
                 + ", myTestFunctionalTest="
                 + myTestFunctionalTest
-                + ", mySigningConfig="
-                + mySigningConfig
                 + ", myWearAppUnbundled="
                 + myWearAppUnbundled
                 + "} "
