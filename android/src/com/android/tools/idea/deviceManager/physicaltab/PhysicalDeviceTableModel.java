@@ -42,47 +42,47 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myDevices = devices;
   }
 
-  void handleConnectedDevice(@NotNull PhysicalDevice connectedDevice) {
-    assert connectedDevice.isConnected();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, connectedDevice);
+  void handleOnlineDevice(@NotNull PhysicalDevice onlineDevice) {
+    assert onlineDevice.isOnline();
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, onlineDevice);
 
     if (modelRowIndex == -1) {
-      myDevices.add(connectedDevice);
+      myDevices.add(onlineDevice);
     }
     else {
       PhysicalDevice device = myDevices.get(modelRowIndex);
 
-      if (device.isConnected()) {
-        Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
+      if (device.isOnline()) {
+        Logger.getInstance(PhysicalDeviceTableModel.class).warn("An online device went online" + System.lineSeparator()
                                                                 + device.toDebugString());
       }
 
-      myDevices.set(modelRowIndex, connectedDevice);
+      myDevices.set(modelRowIndex, onlineDevice);
     }
 
     myDevices.sort(null);
     fireTableDataChanged();
   }
 
-  void handleDisconnectedDevice(@NotNull PhysicalDevice disconnectedDevice) {
-    assert !disconnectedDevice.isConnected();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, disconnectedDevice);
+  void handleOfflineDevice(@NotNull PhysicalDevice offlineDevice) {
+    assert !offlineDevice.isOnline();
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, offlineDevice);
 
     if (modelRowIndex == -1) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting an unknown device" + System.lineSeparator()
-                                                              + disconnectedDevice.toDebugString());
+      Logger.getInstance(PhysicalDeviceTableModel.class).warn("An unknown device went offline" + System.lineSeparator()
+                                                              + offlineDevice.toDebugString());
 
       return;
     }
 
     PhysicalDevice device = myDevices.get(modelRowIndex);
 
-    if (!device.isConnected()) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting a disconnected device" + System.lineSeparator()
+    if (!device.isOnline()) {
+      Logger.getInstance(PhysicalDeviceTableModel.class).warn("An offline device went offline" + System.lineSeparator()
                                                               + device.toDebugString());
     }
 
-    myDevices.set(modelRowIndex, disconnectedDevice);
+    myDevices.set(modelRowIndex, offlineDevice);
     myDevices.sort(null);
 
     fireTableDataChanged();

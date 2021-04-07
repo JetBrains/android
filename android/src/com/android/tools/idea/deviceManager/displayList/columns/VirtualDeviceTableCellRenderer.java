@@ -40,7 +40,7 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
     Object virtualDevice = new VirtualDevice.Builder()
       .setCpuArchitecture(avdInfo.getCpuArch())
       .setName(avdInfo.getDisplayName())
-      .setConnected(AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo))
+      .setOnline(AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo))
       .setTarget(EmulatorDisplayList.Companion.getTargetString(avdInfo.getAndroidVersion(), avdInfo.getTag()))
       .build();
 

@@ -49,9 +49,9 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Mockito.when(bridge.isConnected()).thenReturn(true);
     Mockito.when(bridge.getDevices()).thenReturn(new IDevice[]{device});
 
-    Instant connectionTime = Instant.parse("2021-03-24T22:38:05.890570Z");
+    Instant onlineTime = Instant.parse("2021-03-24T22:38:05.890570Z");
 
-    ConnectionTimeService service = new ConnectionTimeService(Clock.fixed(connectionTime, ZoneId.of("America/Los_Angeles")));
+    OnlineTimeService service = new OnlineTimeService(Clock.fixed(onlineTime, ZoneId.of("America/Los_Angeles")));
 
     PhysicalDeviceAsyncSupplier supplier = new PhysicalDeviceAsyncSupplier(null,
                                                                            MoreExecutors.newDirectExecutorService(),
@@ -65,8 +65,8 @@ public final class PhysicalDeviceAsyncSupplierTest {
     // Assert
     Object physicalDevice = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
-      .setLastConnectionTime(connectionTime)
-      .setConnected(true)
+      .setLastOnlineTime(onlineTime)
+      .setOnline(true)
       .build();
 
     assertEquals(Collections.singletonList(physicalDevice), future.get());

@@ -26,15 +26,15 @@ import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
   private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
-    Comparator.<PhysicalDevice, Boolean>comparing(Device::isConnected, Comparator.reverseOrder())
-      .thenComparing(PhysicalDevice::getLastConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
+    Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
+      .thenComparing(PhysicalDevice::getLastOnlineTime, Comparator.nullsLast(Comparator.reverseOrder()));
 
   private final @NotNull String mySerialNumber;
-  private final @Nullable Instant myLastConnectionTime;
+  private final @Nullable Instant myLastOnlineTime;
 
   public static final class Builder extends Device.Builder {
     private @Nullable String mySerialNumber;
-    private @Nullable Instant myLastConnectionTime;
+    private @Nullable Instant myLastOnlineTime;
 
     // TODO Initialize myName and myTarget properly
     public Builder() {
@@ -47,8 +47,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
-    @NotNull Builder setLastConnectionTime(@Nullable Instant lastConnectionTime) {
-      myLastConnectionTime = lastConnectionTime;
+    @NotNull Builder setLastOnlineTime(@Nullable Instant lastOnlineTime) {
+      myLastOnlineTime = lastOnlineTime;
       return this;
     }
 
@@ -57,8 +57,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
-    public @NotNull Builder setConnected(@SuppressWarnings("SameParameterValue") boolean connected) {
-      myConnected = connected;
+    public @NotNull Builder setOnline(@SuppressWarnings("SameParameterValue") boolean online) {
+      myOnline = online;
       return this;
     }
 
@@ -79,24 +79,24 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     assert builder.mySerialNumber != null;
     mySerialNumber = builder.mySerialNumber;
 
-    myLastConnectionTime = builder.myLastConnectionTime;
+    myLastOnlineTime = builder.myLastOnlineTime;
   }
 
   @NotNull String getSerialNumber() {
     return mySerialNumber;
   }
 
-  @Nullable Instant getLastConnectionTime() {
-    return myLastConnectionTime;
+  @Nullable Instant getLastOnlineTime() {
+    return myLastOnlineTime;
   }
 
   @NotNull String toDebugString() {
     String separator = System.lineSeparator();
 
     return "serialNumber = " + mySerialNumber + separator
-           + "lastConnectionTime = " + myLastConnectionTime + separator
+           + "lastOnlineTime = " + myLastOnlineTime + separator
            + "name = " + myName + separator
-           + "connected = " + myConnected + separator
+           + "online = " + myOnline + separator
            + "target = " + myTarget + separator;
   }
 
@@ -109,9 +109,9 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   public int hashCode() {
     int hashCode = mySerialNumber.hashCode();
 
-    hashCode = 31 * hashCode + Objects.hashCode(myLastConnectionTime);
+    hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
     hashCode = 31 * hashCode + myName.hashCode();
-    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
+    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
 
     return hashCode;
@@ -126,9 +126,9 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     PhysicalDevice device = (PhysicalDevice)object;
 
     return mySerialNumber.equals(device.mySerialNumber) &&
-           Objects.equals(myLastConnectionTime, device.myLastConnectionTime) &&
+           Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
            myName.equals(device.myName) &&
-           myConnected == device.myConnected &&
+           myOnline == device.myOnline &&
            myTarget.equals(device.myTarget);
   }
 

@@ -33,24 +33,24 @@ public final class PhysicalDeviceTest {
 
     Object device1 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber1")
-      .setLastConnectionTime(time1)
-      .setConnected(true)
+      .setLastOnlineTime(time1)
+      .setOnline(true)
       .build();
 
     Object device2 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber2")
-      .setLastConnectionTime(time2)
-      .setConnected(true)
+      .setLastOnlineTime(time2)
+      .setOnline(true)
       .build();
 
     Object device3 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber3")
-      .setLastConnectionTime(time1)
+      .setLastOnlineTime(time1)
       .build();
 
     Object device4 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber4")
-      .setLastConnectionTime(time2)
+      .setLastOnlineTime(time2)
       .build();
 
     Object device5 = new PhysicalDevice.Builder()

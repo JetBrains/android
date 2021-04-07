@@ -37,14 +37,14 @@ public final class DeviceTableCellRendererTest {
   private final JTable myTable = new JBTable();
 
   @Test
-  public void getTableCellRendererComponentDeviceIsConnected() {
+  public void getTableCellRendererComponentDeviceIsOnline() {
     // Arrange
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
     Device device = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
-      .setConnected(true)
+      .setOnline(true)
       .build();
 
     // Act
@@ -53,7 +53,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(device.getName(), renderer.getNameLabel().getText());
-    assertEquals(StudioIcons.Common.CIRCLE_GREEN, renderer.getConnectedLabel().getIcon());
+    assertEquals(StudioIcons.Common.CIRCLE_GREEN, renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
   }
 
@@ -73,7 +73,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(device.getName(), renderer.getNameLabel().getText());
-    assertEquals(StudioIcons.Common.CIRCLE_RED, renderer.getConnectedLabel().getIcon());
+    assertEquals(StudioIcons.Common.CIRCLE_RED, renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
   }
 

@@ -39,7 +39,7 @@ public final class PhysicalDevicePanelTest {
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
 
-  private PhysicalDevice myConnectedPixel3;
+  private PhysicalDevice myOnlinePixel3;
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private Executor myExecutor;
@@ -61,14 +61,14 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    myConnectedPixel3 = new PhysicalDevice.Builder()
+    myOnlinePixel3 = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
-      .setLastConnectionTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
-      .setConnected(true)
+      .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
+      .setOnline(true)
       .build();
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
-    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myConnectedPixel3)));
+    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myOnlinePixel3)));
   }
 
   @Before
@@ -87,25 +87,25 @@ public final class PhysicalDevicePanelTest {
     myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
-    assertEquals(Collections.singletonList(Arrays.asList(myConnectedPixel3, "API", "Type", "Actions")), myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "API", "Type", "Actions")), myPanel.getData());
   }
 
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = new PhysicalDevice.Builder()
+    PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
       .setSerialNumber("0A071FDD4003ZG")
       .build();
 
-    myComponent.set(Collections.singletonList(disconnectedPixel5));
+    myComponent.set(Collections.singletonList(offlinePixel5));
 
     // Act
     myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
     Object data = Arrays.asList(
-      Arrays.asList(myConnectedPixel3, "API", "Type", "Actions"),
-      Arrays.asList(disconnectedPixel5, "API", "Type", "Actions"));
+      Arrays.asList(myOnlinePixel3, "API", "Type", "Actions"),
+      Arrays.asList(offlinePixel5, "API", "Type", "Actions"));
 
     assertEquals(data, myPanel.getData());
   }
