@@ -31,7 +31,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.IncorrectOperationException;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -129,7 +129,7 @@ public abstract class AbstractAidlDeclarationImpl extends AidlPsiCompositeElemen
       @NotNull
       @Override
       public Icon getIcon(boolean unused) {
-        return AndroidIcons.Android;
+        return StudioIcons.Common.ANDROID_HEAD;
       }
     };
   }

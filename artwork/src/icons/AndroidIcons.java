@@ -8,8 +8,6 @@ public class AndroidIcons {
     return IconLoader.getIcon(path, AndroidIcons.class);
   }
 
-  public static final Icon Android = load("/icons/android.svg"); // 16x16
-
   public static final Icon Activity = load("/icons/activity.png"); // 16x16
 
   public static class Wizards {

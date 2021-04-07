@@ -37,7 +37,7 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModifiableRootModel
-import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.Icon
 
@@ -64,7 +64,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
   override fun getDescription(): String = AndroidBundle.message("android.wizard.module.description")
 
-  override fun getNodeIcon(): Icon = AndroidIcons.Android
+  override fun getNodeIcon(): Icon = StudioIcons.Common.ANDROID_HEAD
   override fun getParentGroup(): String = JavaModuleType.JAVA_GROUP
   override fun getModuleType(): ModuleType<*> = JavaModuleType.getModuleType()
   override fun modifyProjectTypeStep(settingsStep: SettingsStep): ModuleWizardStep? = null // Stubbed out. See class header.

@@ -28,7 +28,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.awt.Dimension;
 import java.net.URL;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AndroidAssetStudioAction extends AnAction {
 
   protected AndroidAssetStudioAction(@Nullable String text, @Nullable String description) {
-    super(text, description, AndroidIcons.Android);
+    super(text, description, StudioIcons.Common.ANDROID_HEAD);
   }
 
   protected static boolean isAvailable(@NotNull DataContext dataContext) {

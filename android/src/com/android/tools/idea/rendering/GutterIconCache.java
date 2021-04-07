@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
-  private static final Icon NONE = AndroidIcons.Android; // placeholder
+  private static final Icon NONE = StudioIcons.Common.ANDROID_HEAD; // placeholder
 
   @VisibleForTesting static final int MAX_WIDTH = JBUI.scale(16);
   @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
