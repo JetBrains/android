@@ -17,7 +17,6 @@ package com.android.tools.idea.model
 
 import com.android.SdkConstants
 import com.android.ide.common.util.PathString
-import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isManifestFile
@@ -45,6 +44,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 
