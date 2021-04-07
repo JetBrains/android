@@ -28,6 +28,7 @@ import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
@@ -39,8 +40,8 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
 
-  var projectSyncIssues: List<SyncIssueData>? = null; private set
-  fun setSyncIssues(issues: List<SyncIssueData>) {
+  var projectSyncIssues: List<IdeSyncIssue>? = null; private set
+  fun setSyncIssues(issues: List<IdeSyncIssue>) {
     projectSyncIssues = issues
   }
 

@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync
+package com.android.tools.idea.gradle.model.impl
 
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import java.io.Serializable
 
-data class SyncIssueData(
-  val message: String,
-  val data: String?,
-  val multiLineMessage: List<String>?,
-  val severity: Int,
-  val type: Int
-): Serializable
+data class IdeSyncIssueImpl(
+  override val severity: Int,
+  override val type: Int,
+  override val data: String?,
+  override val message: String,
+  override val multiLineMessage: List<String>?
+): Serializable, IdeSyncIssue
