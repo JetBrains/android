@@ -365,9 +365,9 @@ public final class StudioFlags {
     "Include resource directories from AARs found through project system.",
     false);
 
-  public static final Flag<Boolean> NELE_TABLET_SUPPORT = Flag.create(
-    NELE, "tablet.support", "Enable tablet support tools",
-    "Enable all the various tools related to better support for tablets and other form factors.",
+  public static final Flag<Boolean> NELE_VISUAL_LINT = Flag.create(
+    NELE, "visual.lint", "Enable visual linting for layouts",
+    "Enable all the various tools related to visual linting of layouts.",
     false);
 
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(

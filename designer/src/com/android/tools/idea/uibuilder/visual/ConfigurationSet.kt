@@ -72,7 +72,7 @@ interface ConfigurationSet {
     override val id = "tablets"
     override val name = "Tablets"
     override fun createModelsProvider(listener: ConfigurationSetListener) = TabletModelsProvider
-    override val visible = StudioFlags.NELE_TABLET_SUPPORT.get()
+    override val visible = StudioFlags.NELE_VISUAL_LINT.get()
   }
 }
 
