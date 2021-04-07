@@ -44,10 +44,7 @@ public final class TranslationsEditorGradleTest {
   public void removeLocale() throws IOException {
     // Arrange.
     myRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
-    myRule.load("stringsEditor/MyApplication", null, null, issue -> {
-      // ignore missing manifest errors
-      return issue.getType() == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST;
-    });
+    myRule.load("stringsEditor/MyApplication", null, null);
 
     String projectBasePath = myRule.getProject().getBasePath();
     Path mainRes = Paths.get(projectBasePath, "app", "src", "main", "res");

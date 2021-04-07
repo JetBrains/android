@@ -39,7 +39,7 @@ class AndroidManifestPlaceholderDomTest: AndroidGradleTestCase() {
     prepareProjectForImport(TestProjectPaths.BASIC)
 
     modifyGradleFiles("[hostName:\"www.example.com\"]")
-    importProject(null)
+    importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
   }

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.FAILURE
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult.SUCCESS
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
@@ -27,7 +26,7 @@ import java.io.File
 
 class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
   fun testUpgradeBasic40() {
-    loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72", null)
+    loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72")
 
     val appModule = ModuleManager.getInstance(project).modules.first { it.name == "Basic40.app" }
     assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
