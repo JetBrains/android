@@ -17,6 +17,9 @@ package com.android.tools.profilers.memory
 
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
+import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.*
 import java.util.concurrent.Executor
 
 class HeapDumpStage(profilers: StudioProfilers,
@@ -37,4 +40,11 @@ class HeapDumpStage(profilers: StudioProfilers,
   override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
   override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
   override fun isInteractingWithTimeline() = false
+  override fun getStageType() = durationData?.captureObjectType?.let {
+    when {
+      HeapDumpCaptureObject::class.java.isAssignableFrom(it) -> MEMORY_HEAP_DUMP_STAGE
+      NativeAllocationSampleCaptureObject::class.java.isAssignableFrom(it) -> MEMORY_NATIVE_RECORDING_STAGE
+      else -> super.getStageType()
+    }
+  } ?: super.getStageType()
 }
