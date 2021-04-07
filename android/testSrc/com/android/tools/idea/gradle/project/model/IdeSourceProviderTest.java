@@ -21,6 +21,8 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.model.IdeSourceProvider;
 import com.android.tools.idea.gradle.model.stubs.SourceProviderStub;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import java.io.File;
 import java.util.Collection;
 import java.util.Objects;

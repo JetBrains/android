@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea
+package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
-import com.android.tools.idea.gradle.project.sync.idea.svs.GradleInjectedSyncActionRunner
 import org.gradle.tooling.BuildController
 
 @UsedInBuildAction

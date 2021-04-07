@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
+import com.android.tools.idea.gradle.project.sync.idea.svs.SyncIssueData;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;

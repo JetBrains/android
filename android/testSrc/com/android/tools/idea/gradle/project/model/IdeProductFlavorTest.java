@@ -24,6 +24,8 @@ import com.android.builder.model.VectorDrawablesOptions;
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl;
 import com.android.tools.idea.gradle.model.stubs.ProductFlavorStub;
 import com.android.testutils.Serialization;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import java.io.Serializable;
 import java.util.Objects;
 import org.junit.Before;

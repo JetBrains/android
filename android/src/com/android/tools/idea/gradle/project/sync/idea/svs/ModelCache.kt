@@ -15,7 +15,7 @@
  */
 @file:Suppress("DEPRECATION")
 
-package com.android.tools.idea.gradle.project.model
+package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
@@ -122,7 +122,7 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.gradle.project.model.ModelCache.Companion.LOCAL_AARS
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache.Companion.LOCAL_AARS
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static com.android.tools.idea.gradle.project.sync.idea.svs.Modules.createUniqueModuleId;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.intellij.serialization.PropertyMapping;

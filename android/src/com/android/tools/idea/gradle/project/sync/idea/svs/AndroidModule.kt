@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.svs
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.model.ModelCache.Companion.safeGet
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache.Companion.safeGet
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
@@ -27,10 +27,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
-import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.project.sync.idea.svs.Modules.createUniqueModuleId
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel

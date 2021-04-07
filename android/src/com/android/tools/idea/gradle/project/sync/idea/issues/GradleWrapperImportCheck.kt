@@ -18,23 +18,20 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
+import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidSyncException
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums
 import com.android.tools.idea.util.PropertiesFiles
-import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_DISTRIBUTIONSHA256SUM_REMOVED_FROM_WRAPPER
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.issue.quickfix.OpenFileQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.pom.Navigatable
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData

@@ -21,6 +21,8 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl;
 import com.android.tools.idea.gradle.model.stubs.SourceProviderContainerStub;
 import com.android.testutils.Serialization;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;

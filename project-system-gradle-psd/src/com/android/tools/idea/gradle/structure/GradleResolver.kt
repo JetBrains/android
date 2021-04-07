@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.google.common.util.concurrent.ListenableFuture

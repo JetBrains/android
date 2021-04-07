@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 

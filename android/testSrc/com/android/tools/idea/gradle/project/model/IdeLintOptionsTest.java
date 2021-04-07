@@ -24,6 +24,8 @@ import com.android.builder.model.LintOptions;
 import com.android.tools.idea.gradle.model.IdeLintOptions;
 import com.android.tools.idea.gradle.model.stubs.LintOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting;
 import org.junit.Before;
 import org.junit.Test;
 
