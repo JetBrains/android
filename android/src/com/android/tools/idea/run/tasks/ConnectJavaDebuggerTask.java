@@ -61,7 +61,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.time.ZoneId;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
