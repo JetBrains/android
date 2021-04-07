@@ -161,12 +161,6 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  @Nullable
-  public SigningConfig getSigningConfig() {
-    return null;
-  }
-
-  @Override
   @NotNull
   public VectorDrawablesOptions getVectorDrawables() {
     return mock(VectorDrawablesOptions.class);
