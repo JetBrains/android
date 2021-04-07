@@ -36,7 +36,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.CollectionQuery;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.Collections;
 import java.util.Comparator;
@@ -151,13 +150,13 @@ public class NlPaletteModelTest {
     registerJavaClasses();
     registerFakeBaseViewHandler();
     Palette palette = getPaletteWhenAdditionalComponentsReady(model);
-    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
                                                   CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
                                                   getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"),
                                                   Collections.emptyList());
     ViewHandler handler1 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
 
-    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
                                                   CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
                                                   getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"),
                                                   Collections.emptyList());
@@ -172,13 +171,13 @@ public class NlPaletteModelTest {
     registerJavaClasses();
     registerFakeBaseViewHandler();
     Palette palette = getPaletteWhenAdditionalComponentsReady(model);
-    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+    boolean added1 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
                                                   CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
                                                   getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"),
                                                   Collections.emptyList());
     ViewHandler handler1 = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_GROUP_CLASS);
 
-    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, AndroidIcons.Android,
+    boolean added2 = model.addAdditionalComponent(LayoutFileType.INSTANCE, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
                                                   CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
                                                   getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"),
                                                   Collections.emptyList());

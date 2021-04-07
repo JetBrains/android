@@ -24,7 +24,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -79,7 +79,7 @@ public class NdkSourceNode extends ProjectViewNode<File> {
 
   @Override
   protected void update(@NotNull PresentationData presentation) {
-    presentation.setIcon(AndroidIcons.Android);
+    presentation.setIcon(StudioIcons.Common.ANDROID_HEAD);
     presentation.addText("NDK ", REGULAR_ATTRIBUTES);
     presentation.addText(myNdkPath.getPath(), GRAY_ATTRIBUTES);
   }

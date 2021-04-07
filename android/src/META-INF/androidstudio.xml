@@ -51,7 +51,7 @@
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
 
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" icon="AndroidIcons.Android" popup="false" keep-content="true" overrides="true"/>
+    <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" popup="false" keep-content="true" overrides="true"/>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />

@@ -113,7 +113,7 @@
             icon="StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN"
             text="Wear OS emulator pairing assistant"
             description="Opens the Wear OS emulator pairing assistant" />
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="true">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager"
               class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"

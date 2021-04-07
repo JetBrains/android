@@ -82,7 +82,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ThreeState;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -142,13 +142,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Nullable
   @Override
   public Icon getTaskIcon(MakeBeforeRunTask task) {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Override

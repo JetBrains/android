@@ -25,8 +25,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import icons.AndroidIcons;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
 
   @Override
   public FileTemplateGroupDescriptor getFileTemplatesDescriptor() {
-    final FileTemplateGroupDescriptor group = new FileTemplateGroupDescriptor("Android", AndroidIcons.Android);
+    final FileTemplateGroupDescriptor group = new FileTemplateGroupDescriptor("Android", StudioIcons.Common.ANDROID_HEAD);
     group.addTemplate(new FileTemplateDescriptor(ANDROID_MANIFEST_TEMPLATE, XmlFileType.INSTANCE.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(VALUE_RESOURCE_FILE_TEMPLATE, XmlFileType.INSTANCE.getIcon()));
     group.addTemplate(new FileTemplateDescriptor(RESOURCE_FILE_TEMPLATE, XmlFileType.INSTANCE.getIcon()));

@@ -47,7 +47,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
-import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
 
@@ -219,7 +219,7 @@ class TemplateManager private constructor() {
 
     private fun setPresentation(category: Category, categoryGroup: AnAction) {
       categoryGroup.templatePresentation.apply {
-        icon = AndroidIcons.Android
+        icon = StudioIcons.Common.ANDROID_HEAD
         text = category.name
       }
     }

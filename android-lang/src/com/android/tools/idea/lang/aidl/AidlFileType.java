@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.aidl;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +52,7 @@ public class AidlFileType extends LanguageFileType {
   @Override
   @Nullable
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @Override

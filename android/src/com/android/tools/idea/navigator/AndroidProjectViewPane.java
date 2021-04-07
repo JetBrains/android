@@ -70,7 +70,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +143,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @NotNull
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Android;
+    return StudioIcons.Common.ANDROID_HEAD;
   }
 
   @NotNull
