@@ -267,6 +267,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         setPendingCaptureStartTime(status.getStartTime());
         setTrackingAllocations(true);
         myPendingLegacyAllocationStartTimeNs = status.getStartTime();
+        getTimeline().setStreaming(true);
         break;
       case IN_PROGRESS:
         myNativeAllocationTracking = true;
