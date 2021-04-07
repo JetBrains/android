@@ -33,7 +33,7 @@ import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.model.stubs.AndroidArtifactOutputStub;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;

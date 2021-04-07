@@ -37,7 +37,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.utils.FileUtils
 import java.io.File
 

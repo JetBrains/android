@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
-import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums

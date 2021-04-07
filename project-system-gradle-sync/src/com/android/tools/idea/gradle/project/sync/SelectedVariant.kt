@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
 import java.io.Serializable
 
-data class SyncIssueData(
-  val message: String,
-  val data: String?,
-  val multiLineMessage: List<String>?,
-  val severity: Int,
-  val type: Int
-): Serializable
+data class SelectedVariant(
+  /**
+   * The id of the module in the form returned by [Modules.createUniqueModuleId].
+   */
+  val moduleId: String,
+
+  val variantName: String,
+
+  val abiName: String?,
+
+  /**
+   * An instance of [VariantDetails] which describes [variantName]. `null` if no models were available when constructing this instance.
+   */
+  val details: VariantDetails?
+) : Serializable

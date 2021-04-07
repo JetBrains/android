@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.V1NdkModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidNativeVariantsModels
+import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 
 class IdeAndroidNativeVariantsModelsWrapper(val moduleId: String, val variants: IdeAndroidNativeVariantsModels) {
   fun mergeInto(ndkFacet: NdkFacet) {

@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

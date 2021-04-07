@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.android.configure
 
-import com.android.tools.idea.gradle.project.sync.idea.svs.IdeAndroidModels
+import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData

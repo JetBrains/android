@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.AndroidProject
 import org.gradle.tooling.BuildAction

@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.model.stubs.AndroidLibraryStub
 import com.android.tools.idea.gradle.model.stubs.JavaLibraryStub
 import com.android.tools.idea.gradle.model.stubs.LibraryStub
 import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCacheTesting
+import com.android.tools.idea.gradle.project.sync.ModelCache
+import com.android.tools.idea.gradle.project.sync.ModelCacheTesting
 import com.google.common.truth.Truth
 import org.junit.Assert
 import org.junit.Before

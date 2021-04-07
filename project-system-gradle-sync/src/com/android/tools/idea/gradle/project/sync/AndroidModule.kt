@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.idea.svs
+package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.project.sync.idea.svs.ModelCache.Companion.safeGet
+import com.android.tools.idea.gradle.project.sync.ModelCache.Companion.safeGet
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
@@ -27,7 +27,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.tools.idea.gradle.project.sync.idea.svs.Modules.createUniqueModuleId
+import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel

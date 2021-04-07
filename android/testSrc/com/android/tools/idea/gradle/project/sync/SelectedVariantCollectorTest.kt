@@ -16,11 +16,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeVariantHeader
-import com.android.tools.idea.gradle.project.sync.idea.svs.VariantDetails
-import com.android.tools.idea.gradle.project.sync.idea.svs.VariantSelectionChange
-import com.android.tools.idea.gradle.project.sync.idea.svs.applyChange
-import com.android.tools.idea.gradle.project.sync.idea.svs.buildVariantName
-import com.android.tools.idea.gradle.project.sync.idea.svs.createVariantDetailsFrom
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
