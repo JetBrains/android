@@ -28,10 +28,12 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.PanZoomListener;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -180,8 +182,16 @@ public class VisualizationForm
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
 
+    JComponent mainComponent;
+    if (StudioFlags.NELE_VISUAL_LINT.get()) {
+      mainComponent = new IssuePanelSplitter(mySurface, myWorkBench);
+    }
+    else {
+      mainComponent = myWorkBench;
+    }
+
     myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
-    myRoot.add(myWorkBench, BorderLayout.CENTER);
+    myRoot.add(mainComponent, BorderLayout.CENTER);
     myRoot.setFocusCycleRoot(true);
     myRoot.setFocusTraversalPolicy(new VisualizationTraversalPolicy(mySurface));
   }
