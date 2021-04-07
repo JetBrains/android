@@ -47,9 +47,9 @@ import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -125,14 +125,14 @@ public class AndroidGradleTests {
    */
   public static class SyncIssuesPresentError extends AssertionError {
     @NotNull
-    private List<SyncIssueData> issues;
-    public SyncIssuesPresentError(@NotNull String message, @NotNull List<SyncIssueData> issues) {
+    private List<IdeSyncIssue> issues;
+    public SyncIssuesPresentError(@NotNull String message, @NotNull List<IdeSyncIssue> issues) {
       super(message);
       this.issues = issues;
     }
 
     @NotNull
-    public List<SyncIssueData> getIssues() {
+    public List<IdeSyncIssue> getIssues() {
       return issues;
     }
   }
@@ -578,9 +578,9 @@ public class AndroidGradleTests {
       TestCase.fail(cause);
     }
     // Also fail the test if SyncIssues with type errors are present.
-    List<SyncIssueData> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
+    List<IdeSyncIssue> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
       .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
-    String errorMessage = errors.stream().map(SyncIssueData::toString).collect(Collectors.joining("\n"));
+    String errorMessage = errors.stream().map(IdeSyncIssue::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }

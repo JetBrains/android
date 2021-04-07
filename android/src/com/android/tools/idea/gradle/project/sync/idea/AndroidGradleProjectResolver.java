@@ -64,6 +64,7 @@ import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.LibraryFilePaths.ArtifactPaths;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
@@ -94,7 +95,6 @@ import com.android.tools.idea.gradle.project.sync.CachedVariants;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels;
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError;
-import com.android.tools.idea.gradle.project.sync.SyncIssueData;
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -343,7 +343,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     JavaModuleModel javaModuleModel = null;
     NdkModuleModel ndkModuleModel = null;
     GradleModuleModel gradleModel = null;
-    Collection<SyncIssueData> issueData = null;
+    Collection<IdeSyncIssue> issueData = null;
 
     if (androidModels != null) {
       androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidModels, cachedVariants);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -27,7 +28,7 @@ class IdeAndroidModels(
   val fetchedVariants: List<IdeVariant>,
   val selectedVariantName: String,
   val selectedAbiName: String?,
-  val syncIssues: List<SyncIssueData>,
+  val syncIssues: List<IdeSyncIssue>,
   val v2NativeModule: IdeNativeModule?,
   val v1NativeProject: IdeNativeAndroidProject?,
   val v1NativeVariantAbi: IdeNativeVariantAbi?
@@ -35,7 +36,7 @@ class IdeAndroidModels(
 
 class IdeAndroidNativeVariantsModels(
   val v1NativeVariantAbis: List<IdeNativeVariantAbi>?, // null if v2.
-  val syncIssues: List<SyncIssueData>
+  val syncIssues: List<IdeSyncIssue>
 ) : Serializable
 
 /**

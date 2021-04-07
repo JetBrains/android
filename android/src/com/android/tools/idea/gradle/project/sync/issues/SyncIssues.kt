@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE
-import com.android.tools.idea.gradle.project.sync.SyncIssueData
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -31,9 +30,10 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findProjectData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.NotNull
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
-class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> by issues {
+class SyncIssues(private val issues: List<IdeSyncIssue>) : List<IdeSyncIssue> by issues {
   companion object {
     @JvmField
     val EMPTY = SyncIssues(emptyList())
@@ -51,28 +51,20 @@ class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> 
   }
 }
 
-class SyncIssueDataService : AbstractProjectDataService<SyncIssueData, Void>() {
-  override fun importData(toImport: Collection<DataNode<SyncIssueData>>,
+class SyncIssueDataService : AbstractProjectDataService<IdeSyncIssue, Void>() {
+  override fun importData(toImport: Collection<DataNode<IdeSyncIssue>>,
                           projectData: ProjectData?,
                           project: Project,
                           modelsProvider: IdeModifiableModelsProvider) {
     val moduleToSyncIssueMap: MutableMap<Module, List<IdeSyncIssue>> = mutableMapOf()
     ExternalSystemApiUtil.groupBy(toImport, ModuleData::class.java).entrySet().forEach { (moduleNode, syncIssues) ->
       val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach
-      // TODO: Make the reporter handle SyncIssueData instead, but for now to just use an adapter.
-      val mappedSyncIssues : List<IdeSyncIssue> = syncIssues.map { node -> object : IdeSyncIssue {
-        override val severity: Int = node.data.severity
-        override val type: Int = node.data.type
-        override val data: String? = node.data.data
-        override val message: String = node.data.message
-        override val multiLineMessage: List<String>? = node.data.multiLineMessage
-      }}
-      moduleToSyncIssueMap[module] = mappedSyncIssues
+      moduleToSyncIssueMap[module] = syncIssues.map { it.data }
     }
     SyncIssuesReporter.getInstance().report(moduleToSyncIssueMap)
   }
 
-  override fun getTargetDataKey(): Key<SyncIssueData> {
+  override fun getTargetDataKey(): Key<IdeSyncIssue> {
     return SYNC_ISSUE
   }
 }

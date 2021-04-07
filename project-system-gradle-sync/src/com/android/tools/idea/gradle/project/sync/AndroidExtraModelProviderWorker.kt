@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -567,9 +569,9 @@ internal class AndroidExtraModelProviderWorker(
 private val List<GradleBuild>.projects: Sequence<BasicGradleProject> get() = asSequence().flatMap { it.projects.asSequence() }
 private val androidArtifactSuffixes = listOf("", "unitTest", "androidTest")
 
-private fun Collection<SyncIssue>.toSyncIssueData(): List<SyncIssueData> {
+private fun Collection<SyncIssue>.toSyncIssueData(): List<IdeSyncIssue> {
   return map { syncIssue ->
-    SyncIssueData(
+    IdeSyncIssueImpl(
       message = syncIssue.message,
       data = syncIssue.data,
       multiLineMessage = ModelCache.safeGet(syncIssue::multiLineMessage, null)?.toList(),
