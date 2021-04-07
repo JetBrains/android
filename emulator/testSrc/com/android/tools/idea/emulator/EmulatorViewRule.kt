@@ -43,7 +43,6 @@ class EmulatorViewRule : TestRule {
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private val fakeEmulators = Int2ObjectOpenHashMap<FakeEmulator>()
-  private var counter = 0
   private val flagOverrides = object : ExternalResource() {
     override fun before() {
       StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.override(true)
@@ -71,12 +70,11 @@ class EmulatorViewRule : TestRule {
   fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) } ): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
-    val grpcPort = 8554 + counter++
     val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
-    fakeEmulators[grpcPort] = fakeEmulator
+    fakeEmulators[fakeEmulator.grpcPort] = fakeEmulator
     fakeEmulator.start()
     val emulators = catalog.updateNow().get()
-    val emulatorController = emulators.find { it.emulatorId.grpcPort == grpcPort }!!
+    val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
     val view = EmulatorView(testRootDisposable, emulatorController, PRIMARY_DISPLAY_ID, null, true)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return view
