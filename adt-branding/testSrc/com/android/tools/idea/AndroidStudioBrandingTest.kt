@@ -17,9 +17,14 @@ package com.android.tools.idea
 
 import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.updateSettings.UpdateStrategyCustomization
+import com.intellij.util.PlatformUtils
 import org.apache.commons.imaging.ImageFormats
 import org.apache.commons.imaging.Imaging
 import org.jdom.input.SAXBuilder
+import org.junit.Assume.assumeTrue
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 import java.io.InputStream
@@ -34,6 +39,9 @@ import java.nio.file.StandardCopyOption
  * unusable Windows builds (“This app can't run on your PC.”).
  */
 class AndroidStudioBrandingTest {
+  @Before
+  fun studioOnly() =
+    assumeTrue("AndroidStudio" == PlatformUtils.getPlatformPrefix())
 
   @Test
   fun splashScreen() {
@@ -77,5 +85,11 @@ class AndroidStudioBrandingTest {
       assertThat(studioIcon.height).isEqualTo(canonicalIcon.height)
       assertThat(studioIcon.colorModel).isEqualTo(canonicalIcon.colorModel)
     }
+  }
+
+  @Test
+  fun customizationStrategy() {
+    assumeTrue(ApplicationManager.getApplication() != null)
+    assertThat(UpdateStrategyCustomization.getInstance()).isInstanceOf(AndroidStudioUpdateStrategyCustomization::class.java)
   }
 }
