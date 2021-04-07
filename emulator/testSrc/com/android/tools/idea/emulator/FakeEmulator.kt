@@ -73,7 +73,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
-import junit.framework.Assert
+import org.junit.Assert
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -99,14 +99,13 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Predicate
 import javax.imageio.ImageIO
-import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -170,7 +169,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
-  private val grpcLock = ReentrantLock()
+  private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
 
   init {
     val embeddedFlags = if (standalone) {
@@ -309,11 +308,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   fun pauseGrpc() {
-    grpcLock.lock()
+    grpcSemaphore.drainPermits()
   }
 
   fun resumeGrpc() {
-    grpcLock.unlock()
+    grpcSemaphore.release(Int.MAX_VALUE)
   }
 
   private fun createGrpcServer(): Server {
@@ -462,6 +461,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
     val event = if (cameraActive) EventType.VIRTUAL_SCENE_CAMERA_ACTIVE else EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
     return Notification.newBuilder().setEvent(event).build()
+  }
+
+  private inline fun <T> Semaphore.withPermit(action: () -> T): T {
+    acquire()
+    try {
+      return action()
+    } finally {
+      release()
+    }
   }
 
   private inner class EmulatorControllerService(
@@ -703,7 +711,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
-          grpcLock.withLock {
+          grpcSemaphore.withPermit {
             callRecord.responseMessageCounter.add(Unit)
             super.sendMessage(response)
           }
@@ -711,7 +719,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
-          grpcLock.withLock {
+          grpcSemaphore.withPermit {
             callRecord.request = request as MessageOrBuilder
             grpcCallLog.add(callRecord)
             super.onMessage(request)
