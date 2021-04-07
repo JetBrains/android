@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.project.sync.idea.svs.SyncIssueData;
 import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -70,10 +71,13 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -208,7 +212,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       }
       finally {
         //noinspection ThrowFromFinallyBlock
-        super.tearDown();
+        // Added more logging because of http://b/184293946
+          try {
+            super.tearDown();
+          } catch (DirectoryNotEmptyException ex) {
+            String allPaths = Joiner.on(",").join(Files.walk(Paths.get(ex.getFile())).collect(Collectors.toList()));
+            System.err.println("Failed to delete dir as it contains files: " + allPaths);
+            throw ex;
+          }
       }
     }
   }
