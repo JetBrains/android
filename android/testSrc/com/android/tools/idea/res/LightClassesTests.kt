@@ -1735,7 +1735,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     modifyGradleFiles(projectRoot)
-    importProject(null)
+    importProject()
     prepareProjectForTest(project, null)
     myFixture.allowTreeAccessForAllFiles()
   }

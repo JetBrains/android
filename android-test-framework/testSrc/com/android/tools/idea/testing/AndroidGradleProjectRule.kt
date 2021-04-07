@@ -86,19 +86,18 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
     projectPath: String,
     kotlinVersion: String? = null,
     gradleVersion: String? = null,
-    issueFilter: AndroidGradleTests.SyncIssueFilter? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, null, kotlinVersion)
 
       preLoad(rootFile)
-      delegateTestCase.importProject(issueFilter)
+      delegateTestCase.importProject()
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
       delegateTestCase.loadProject(
-        projectPath, null, gradleVersion, null, kotlinVersion, issueFilter)
+        projectPath, null, gradleVersion, null, kotlinVersion)
     }
   }
 
@@ -112,17 +111,17 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    */
   @JvmOverloads
   fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, null)
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
   }
 
   @JvmOverloads
-  fun requestSyncAndWait(issueFilter: AndroidGradleTests.SyncIssueFilter? = null) {
-    delegateTestCase.requestSyncAndWait(issueFilter)
+  fun requestSyncAndWait() {
+    delegateTestCase.requestSyncAndWait()
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(project, syncListener, null)
+    AndroidGradleTests.checkSyncStatus(project, syncListener)
   }
 
   fun generateSources() {

@@ -241,23 +241,18 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected final void loadProject(@NotNull String relativePath) throws Exception {
-    loadProject(relativePath, null, null, null, null);
+    loadProject(relativePath, null, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName) throws Exception {
-    loadProject(relativePath, chosenModuleName, null, null, null);
-  }
-
-  protected final void loadProject(@NotNull String relativePath, @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    loadProject(relativePath, null, null, null, issueFilter);
+    loadProject(relativePath, chosenModuleName, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion
-                                   ) throws Exception {
+                                   @Nullable String gradlePluginVersion) throws Exception {
     loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null);
   }
 
@@ -265,18 +260,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
-                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, issueFilter);
-  }
-
-  protected final void loadProject(@NotNull String relativePath,
-                                   @Nullable String chosenModuleName,
-                                   @Nullable String gradleVersion,
-                                   @Nullable String gradlePluginVersion,
-                                   @Nullable String kotlinVersion,
-                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
+                                   @Nullable String kotlinVersion) throws Exception {
     prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
-    importProject(issueFilter);
+    importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
   }
@@ -408,12 +394,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   }
 
   protected void importProject() throws Exception {
-    importProject(null);
-  }
-
-  protected void importProject(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
     Project project = getProject();
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(), issueFilter);
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest());
   }
 
   @NotNull
@@ -448,17 +430,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener, null);
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
   protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
-    AndroidGradleTests.SyncIssueFilter issueFilter = null;
-    requestSyncAndWait(issueFilter);
-  }
-
-  protected void requestSyncAndWait(@Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws SyncIssuesPresentError, Exception {
     TestGradleSyncListener syncListener = requestSync(GradleSyncInvoker.Request.testRequest());
-    AndroidGradleTests.checkSyncStatus(getProject(), syncListener, issueFilter);
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
   @NotNull
