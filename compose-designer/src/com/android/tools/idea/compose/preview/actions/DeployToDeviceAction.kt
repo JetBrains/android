@@ -78,7 +78,6 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       setModule(module)
     }
 
-    // TODO(b/152186687): select the configuration in the run configurations combobox.
     val configurationAndSettings = RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
                                    ?: RunManager.getInstance(project).createConfiguration(composePreviewRunConfiguration, factory).apply {
                                      isTemporary = true
@@ -87,8 +86,6 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
                                    }
     (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
       .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
-    // TODO(b/152185907): consider stopping all the ComposePreviewRunConfiguration before running this one.
-    RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 
