@@ -13,5 +13,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
+        "//tools/base/bazel/repolinker:studio.android.sdktools.base.bazel.repolinker[module, test]",
     ],
 )
