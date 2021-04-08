@@ -41,8 +41,9 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   }
 
   @Nls
+  @NotNull
   @Override
-  public @NotNull String getDisplayName() {
+  public String getDisplayName() {
     return "Android Profiler Memory capture (.hprof)";
   }
 
