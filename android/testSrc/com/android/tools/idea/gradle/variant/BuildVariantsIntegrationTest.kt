@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.variant
 
 import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
@@ -25,10 +26,13 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
+import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -38,6 +42,7 @@ import java.io.File
 import java.nio.file.Files
 
 @RunWith(JUnit4::class)
+@RunsInEdt
 class BuildVariantsIntegrationTest : GradleIntegrationTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
@@ -52,8 +57,34 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      val debugSnapshot = project.saveAndDump()
+
       switchVariant(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app", "release")
+
+      switchVariant(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+    }
+  }
+
+  @Test
+  fun testSwitchVariants_Kapt() {
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      // TODO(b/184824343): val debugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+
+      switchVariant(project, ":app", "debug")
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      // TODO(b/184824343): Switching variants from cache does not work properly for Kapt.
+      //                    expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
 
@@ -122,6 +153,46 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       switchVariant(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
+    }
+  }
+
+  @Test
+  fun `sync after switching variants`() {
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      val releaseSnapshot = project.saveAndDump()
+
+      project.requestSyncAndWait()
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+    }
+  }
+
+  @Test
+  fun `switch reopen and switch back`() {
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      val debugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      debugSnapshot to project.saveAndDump()
+    }
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      // TODO(b/184826517): expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+
+      switchVariant(project, ":app", "debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
 
