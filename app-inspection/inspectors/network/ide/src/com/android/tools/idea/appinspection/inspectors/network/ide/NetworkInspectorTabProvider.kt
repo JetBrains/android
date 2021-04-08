@@ -39,7 +39,8 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
   override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
     AppInspectorJar("network-inspector.jar",
-                    developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network")
+                    developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
+                    releaseDirectory = "plugins/android/resources/app-inspection/")
   )
 
   override fun isApplicable(): Boolean {
