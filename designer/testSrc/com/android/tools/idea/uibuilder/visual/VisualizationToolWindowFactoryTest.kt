@@ -92,6 +92,26 @@ class VisualizationToolWindowFactoryTest {
     }
     assertFalse(toolWindow.isAvailable)
   }
+
+  @Test
+  fun testAvailableWhenClosingFile() {
+    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+    val factory = VisualizationToolWindowFactory()
+    factory.isApplicable(projectRule.project)
+
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
+      factory.init(toolWindow)
+    }
+    assertTrue(toolWindow.isAvailable)
+
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
+    }
+    assertFalse(toolWindow.isAvailable)
+  }
 }
 
 @Language("kotlin")

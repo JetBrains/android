@@ -51,24 +51,25 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   override fun init(toolWindow: ToolWindow) {
     project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
       object : FileEditorManagerListener {
-        override fun fileOpened(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow)
+        override fun fileOpened(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow, file)
 
-        override fun fileClosed(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow)
+        override fun fileClosed(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow, null)
 
-        override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow)
+        override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow, event.newFile)
       }
     )
+
     // Set up initial availability.
-    updateAvailable(toolWindow)
+    toolWindow.isAvailable = FileEditorManager.getInstance(project).selectedEditors
+      .mapNotNull { it.file }
+      .any { getFolderType(it) == ResourceFolderType.LAYOUT }
   }
 
   /**
    * Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise.
    */
-  private fun updateAvailable(toolWindow: ToolWindow) {
-    toolWindow.isAvailable = FileEditorManager.getInstance(project).selectedEditors
-      .mapNotNull { it.file }
-      .any { getFolderType(it) == ResourceFolderType.LAYOUT }
+  private fun updateAvailable(toolWindow: ToolWindow, file: VirtualFile?) {
+    toolWindow.isAvailable = file?.let { getFolderType(it) == ResourceFolderType.LAYOUT } ?: false
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
