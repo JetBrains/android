@@ -16,18 +16,17 @@
 package com.android.tools.idea.logcat;
 
 import com.intellij.diagnostic.logging.LogConsoleBase;
-import com.intellij.util.Alarm;
 import org.jetbrains.annotations.NotNull;
 
 final class ViewListener extends FormattedLogcatReceiver {
   private final AndroidLogcatView myView;
-  private final Alarm myAlarm;
+  private final SafeAlarm myAlarm;
 
   ViewListener(@NotNull AndroidLogcatFormatter formatter, @NotNull AndroidLogcatView view) {
     super(formatter);
 
     myView = view;
-    myAlarm = new Alarm(view.parentDisposable);
+    myAlarm = new SafeAlarm(view.parentDisposable);
   }
 
   @Override
