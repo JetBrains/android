@@ -34,7 +34,11 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
 
     return panel {
       row {
-        checkBox(message("live.literals.configurable.enable.live.literals"), literalsSettings::isEnabled)
+        checkBox(
+          message("live.literals.configurable.enable.live.literals"),
+          literalsSettings::isEnabled,
+          message("live.literals.configurable.enable.live.literals.comment")
+        )
       }
     }
   }
