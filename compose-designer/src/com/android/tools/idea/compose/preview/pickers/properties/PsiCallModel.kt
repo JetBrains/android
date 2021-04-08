@@ -26,6 +26,8 @@ import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
@@ -113,6 +115,13 @@ private fun parserResolvedCallToPsiPropertyItems(project: Project,
       when (descriptor.name.asString()) {
         PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_WIDTH,
+        PARAMETER_WIDTH_DP,
+        PARAMETER_HEIGHT,
+        PARAMETER_HEIGHT_DP -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
+                                                            IntegerNormalValidator)
+        PARAMETER_API_LEVEL -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
+                                                            IntegerStrictValidator)
         else -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
       }
     }
