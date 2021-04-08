@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -57,7 +57,7 @@ public final class AvdListDialog extends FrameWrapper implements AvdUiAction.Avd
     JPanel root = new JPanel(new BorderLayout());
     setComponent(root);
     JPanel northPanel = WizardStepHeaderPanel
-      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, AndroidIcons.Wizards.StudioProductIcon,
+      .create(this, WizardConstants.ANDROID_NPW_HEADER_COLOR, StudioIllustrations.Common.PRODUCT_ICON,
               null, "Your Virtual Devices", "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
