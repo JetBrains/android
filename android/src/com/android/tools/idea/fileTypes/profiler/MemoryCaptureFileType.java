@@ -45,7 +45,7 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file";
+    return "Android Profiler Memory capture file (.hprof)";
   }
 
   @NotNull
