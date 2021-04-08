@@ -37,6 +37,11 @@ public class BundleFileType implements FileType {
     return "AAB";
   }
 
+  @Override
+  public @NotNull String getDisplayName() {
+    return "Android App Bundle";
+  }
+
   @NotNull
   @Override
   public String getDescription() {
