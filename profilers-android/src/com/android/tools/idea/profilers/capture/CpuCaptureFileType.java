@@ -35,8 +35,9 @@ public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
   }
 
   @Nls
+  @NotNull
   @Override
-  public @NotNull String getDisplayName() {
+  public String getDisplayName() {
     return "Android Profiler CPU capture";
   }
 
