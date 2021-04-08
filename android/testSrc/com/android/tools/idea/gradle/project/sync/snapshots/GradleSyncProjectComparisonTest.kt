@@ -56,6 +56,7 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertAbout
@@ -541,10 +542,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
   protected fun Project.syncAndDumpProject(): String {
     requestSyncAndWait()
     return this.saveAndDump()
-  }
-
-  protected fun Project.requestSyncAndWait() {
-    AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
   }
 
   protected fun <T> withJdkNamed18(body: () -> T): T {

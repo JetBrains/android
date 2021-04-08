@@ -66,6 +66,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -1280,4 +1281,8 @@ private fun Project.verifyModelsAttached() {
     module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
     module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
+}
+
+fun Project.requestSyncAndWait() {
+  AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
 }
