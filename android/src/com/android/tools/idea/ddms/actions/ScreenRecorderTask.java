@@ -24,6 +24,7 @@ import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -49,6 +51,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ScreenRecorderTask implements Runnable {
+  private static final String SAVE_PATH_KEY = "ScreenRecorderTask.SavePath";
   private static final CharSequence MEDIA_UNSUPPORTED_ERROR = "-1010";
   private static final long MAX_RECORDING_TIME_MILLIS = TimeUnit.MINUTES.toMillis(3);
 
@@ -212,10 +215,17 @@ final class ScreenRecorderTask implements Runnable {
   }
 
   private @Nullable VirtualFileWrapper getTargetFile(@NotNull String extension) {
+    PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
     FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "", extension);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-    VirtualFile baseDir = VfsUtil.getUserHomeDir();
-    return saveFileDialog.save(baseDir, getDefaultFileName(extension));
+    String lastPath = properties.getValue(SAVE_PATH_KEY);
+    VirtualFile baseDir = lastPath != null ? LocalFileSystem.getInstance().findFileByPath(lastPath) : VfsUtil.getUserHomeDir();
+    VirtualFileWrapper saveFileWrapper = saveFileDialog.save(baseDir, getDefaultFileName(extension));
+    if (saveFileWrapper != null) {
+      File saveFile = saveFileWrapper.getFile();
+      properties.setValue(SAVE_PATH_KEY, saveFile.getPath());
+    }
+    return saveFileWrapper;
   }
 
   @UiThread
