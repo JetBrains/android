@@ -38,7 +38,7 @@ public class HeapProfdMemoryCaptureFileType extends AndroidProfilerCaptureFileTy
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file";
+    return "Android Profiler Memory capture file (.heapprofd)";
   }
 
   @NotNull
