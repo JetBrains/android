@@ -607,6 +607,7 @@ java_test(
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "ui_test",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
