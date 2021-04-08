@@ -1020,6 +1020,20 @@
     <option name="testing" hit="Testing" />
   </configurable>
   <configurable id="android.live.literals" configurable_name="Live Literals">
+    <option name="" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="after" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="building" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="can" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="enabling" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="feature" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="is" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="literals" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="live" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="properly" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="required" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="so" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="the" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="work" hit="   Building is required after enabling live literals so the feature can work properly.   " />
     <option name="enable" hit="Enable Live Literals" />
     <option name="literals" hit="Enable Live Literals" />
     <option name="live" hit="Enable Live Literals" />
