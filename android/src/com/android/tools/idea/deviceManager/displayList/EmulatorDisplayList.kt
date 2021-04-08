@@ -50,7 +50,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.layout.panel
-import com.intellij.ui.table.TableView
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.ColumnInfo
@@ -93,10 +92,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
   private val model = ListTableModel<AvdInfo>().apply {
     isSortable = true
   }
-  private val table: TableView<AvdInfo> = TableView<AvdInfo>().apply {
-    setModelAndUpdateColumns(this@EmulatorDisplayList.model)
-    setDefaultRenderer(Any::class.java, NoBorderCellRenderer(this.getDefaultRenderer(Any::class.java)))
-  }
+  private val table: VirtualTableView
   private val listeners: MutableSet<AvdSelectionListener> = Sets.newHashSet()
   private val logger: Logger get() = logger<EmulatorDisplayList>()
 
@@ -106,6 +102,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
 
   init {
     layout = BorderLayout()
+    table = VirtualTableView(model)
     val nonemptyPanel = JPanel(BorderLayout()).apply {
       add(ScrollPaneFactory.createScrollPane(table), BorderLayout.CENTER)
       add(notificationPanel, BorderLayout.NORTH)
@@ -218,6 +215,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
         updateSearchResults(null)
         (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
         refreshErrorCheck()
+        table.setWidths()
       }
     }
   }
@@ -330,7 +328,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
       //SizeOnDiskColumn(table, JBUI.scale(30)),
       SizeOnDiskColumn(table),
 
-      AvdActionsColumnInfo("actions", 3, this)
+      AvdActionsColumnInfo("Actions", 3, this)
     )
   }
 
