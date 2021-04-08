@@ -30,7 +30,7 @@ public final class SafeArgsTestSuite extends IdeaTestSuiteBase {
 
   static {
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
-    unzipIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
   }
 }
