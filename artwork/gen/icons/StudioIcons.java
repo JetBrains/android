@@ -743,6 +743,7 @@ public class StudioIcons {
 
   public static class Shell {
     public static class Filetree {
+      public static final Icon ACTIVITY = load("/studio/icons/shell/filetree/activity.svg"); // 16x16
       public static final Icon ANDROID_FILE = load("/studio/icons/shell/filetree/android-file.svg"); // 16x16
       public static final Icon ANDROID_MODULE = load("/studio/icons/shell/filetree/android-module.svg"); // 16x16
       public static final Icon ANDROID_PROJECT = load("/studio/icons/shell/filetree/android-project.svg"); // 16x16
