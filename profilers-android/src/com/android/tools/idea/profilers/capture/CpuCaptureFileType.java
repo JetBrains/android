@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.capture;
 
 import com.intellij.openapi.fileTypes.FileType;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -31,6 +32,12 @@ public class CpuCaptureFileType extends AndroidProfilerCaptureFileType {
   @Override
   public String getName() {
     return "AndroidProfilerCpuCapture";
+  }
+
+  @Nls
+  @Override
+  public @NotNull String getDisplayName() {
+    return "Android Profiler CPU capture";
   }
 
   @NotNull
