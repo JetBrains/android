@@ -26,6 +26,7 @@ import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
@@ -164,8 +165,8 @@ public class ImportApkActionTest extends PlatformTestCase {
     }
 
     @Override
-    public boolean reopenLastProjectsOnStart() {
-      return false;
+    public CompletableFuture<Boolean> reopenLastProjectsOnStart() {
+      return CompletableFuture.completedFuture(false);
     }
 
     @NotNull
