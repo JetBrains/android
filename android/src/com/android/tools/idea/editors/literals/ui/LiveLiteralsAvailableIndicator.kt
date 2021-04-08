@@ -36,6 +36,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.CustomStatusBarWidget
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
@@ -65,8 +66,6 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   private val literalsService = LiveLiteralsService.getInstance(project)
   private val deployReportingService = LiveLiteralsDeploymentReportService.getInstance(project)
   private var statusBar: StatusBar? = null
-  /** Will be set to true the first time this indicator receives a notification from a device being available. */
-  private var hasEverBeenActive = false
 
   init {
     isVisible = false
@@ -78,7 +77,7 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     }.installOn(this, false)
     deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
-        hasEverBeenActive = true
+        LiveLiteralsAvailableIndicatorFactory.indicatorActivated()
         LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       }
 
@@ -126,7 +125,8 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   }
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> = when {
-    !isComposeProject() || !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
+    // No device has ever reported having literals
+    !isComposeProject() || !LiveLiteralsAvailableIndicatorFactory.hasEverBeenActive -> message("live.literals.is.disabled") to null
     !literalsService.isAvailable -> message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
     deployReportingService.hasProblems -> message("live.literals.is.enabled") to ERROR_ICON
     else -> message("live.literals.is.enabled") to AVAILABLE_ICON
@@ -164,11 +164,19 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
   override fun getId(): String = "LiveLiteralsAvailableWidget"
   override fun getDisplayName(): String = message("live.literals.tracking.display.name")
   override fun isAvailable(project: Project): Boolean = LiveLiteralsService.getInstance(project).isEnabled
-  override fun createWidget(project: Project): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
-  override fun disposeWidget(widget: StatusBarWidget) {}
+  override fun createWidget(project: Project): StatusBarWidget = LiveLiteralsAvailableIndicator(project).also {
+    DumbService.getInstance(project).runWhenSmart { it.updateWidget() }
+  }
+  override fun disposeWidget(widget: StatusBarWidget) {
+    Disposer.dispose(widget)
+  }
   override fun canBeEnabledOn(statusBar: StatusBar): Boolean = true
 
   companion object {
+    /** Will be set to true the first time an indicator created by this factory receives a notification from a device being available. */
+    var hasEverBeenActive = false
+      private set
+
     private fun findLiveLiteralsIndicator(project: Project): LiveLiteralsAvailableIndicator? =
       WindowManager.getInstance()?.getStatusBar(project)?.getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator
 
@@ -183,6 +191,10 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
     fun updateAllWidgets() {
       ProjectManager.getInstance().openProjects
         .forEach { updateWidget(it) }
+    }
+
+    fun indicatorActivated() {
+      hasEverBeenActive = true
     }
   }
 }
