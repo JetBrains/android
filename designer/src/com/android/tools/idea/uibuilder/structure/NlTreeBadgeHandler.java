@@ -156,7 +156,7 @@ public class NlTreeBadgeHandler {
       max = myIssueModel.getHighestSeverityIssue(component);
     }
     if (max != null) {
-      return max.getDescription();
+      return "<html>" + max.getSummary() + "<br>Click the badge for detail.</html>";
     }
     return null;
   }
