@@ -162,8 +162,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       try {
         launchContext.setLaunchApp(shouldTaskLaunchApp());
         Deployer.Result result = perform(device, deployer, apkInfo);
-        addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
-        logAgentFailures(metrics.getAgentFailures());
+
         if (result.skippedInstall) {
           idsSkippedInstall.add(apkInfo.getApplicationId());
         }
@@ -178,6 +177,9 @@ public abstract class AbstractDeployTask implements LaunchTask {
         return toLaunchResult(executor, e, printer);
       }
     }
+
+    addSubTaskDetails(metrics.getDeployMetrics(), vmClockStartNs, wallClockStartMs);
+    logAgentFailures(metrics.getAgentFailures());
 
     stopwatch.stop();
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
