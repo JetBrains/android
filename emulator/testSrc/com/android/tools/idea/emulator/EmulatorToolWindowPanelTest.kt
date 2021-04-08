@@ -39,7 +39,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
-import com.android.utils.FlightRecorder
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
@@ -55,7 +55,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import org.jetbrains.android.sdk.AndroidSdkUtils.ADB_PATH_PROPERTY
@@ -397,8 +396,61 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testDnD() {
-    FlightRecorder.initialize(100)
+  fun testDragToInstallApp() {
+    val target = createDropTarget()
+    val device = createMockDevice()
+
+    // Check APK installation.
+    val apkFileList = listOf(File("/some_folder/myapp.apk"))
+    val event = createDragEvent(apkFileList)
+
+    // Simulate drag.
+    target.update(event)
+
+    verify(event).isDropPossible = true
+
+    val installPackagesCalled = CountDownLatch(1)
+    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
+    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
+    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
+      installPackagesCalled.countDown()
+    }
+
+    // Simulate drop.
+    target.drop(event)
+
+    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
+  }
+
+  @Test
+  fun testDragToPushFiles() {
+    val target = createDropTarget()
+    val device = createMockDevice()
+
+    // Check file copying.
+    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
+    val event = createDragEvent(fileList)
+
+    // Simulate drag.
+    target.update(event)
+
+    verify(event).isDropPossible = true
+
+    val pushCalled = CountDownLatch(1)
+    val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
+    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
+    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
+
+    // Simulate drop.
+    target.drop(event)
+
+    assertThat(pushCalled.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(firstArgCaptor.value).isEqualTo(fileList.map(File::getAbsolutePath).toTypedArray())
+    assertThat(secondArgCaptor.value).isEqualTo("/sdcard/Download")
+  }
+
+  private fun createDropTarget(): DnDTarget {
     val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
@@ -407,18 +459,21 @@ class EmulatorToolWindowPanelTest {
     System.setProperty(ADB_PATH_PROPERTY, adb.toString())
 
     var nullableTarget: DnDTarget? = null
-    val mockDnDManager = mock<DnDManager>()
-    `when`(mockDnDManager.registerTarget(any(), any())).then {
+    val mockDndManager = mock<DnDManager>()
+    `when`(mockDndManager.registerTarget(any(), any())).then {
       it.apply { nullableTarget = getArgument<DnDTarget>(0) }
     }
-    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDnDManager, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
 
     val panel = createWindowPanel()
     panel.createContent(false)
+    Disposer.register(testRootDisposable) { panel.destroyContent() }
 
-    val target = nullableTarget as DnDTarget
+    return nullableTarget as DnDTarget
+  }
+
+  private fun createMockDevice(): IDevice {
     val device = mock<IDevice>()
-    FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: device: $device")
     `when`(device.isEmulator).thenReturn(true)
     `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
@@ -426,72 +481,17 @@ class EmulatorToolWindowPanelTest {
     `when`(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
-    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
-
-    // Check APK installation.
-    val apkFileList = listOf(File("/some_folder/myapp.apk"))
-    val dnDEvent1 = createDnDEvent(apkFileList)
-
-    // Simulate drag.
-    target.update(dnDEvent1)
-
-    verify(dnDEvent1).isDropPossible = true
-
-    val installPackagesCalled = CountDownLatch(1)
-    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
-    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
-      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: app installed")
-      installPackagesCalled.countDown()
-    }
-
-    // Simulate drop.
-    target.drop(dnDEvent1)
-
-    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
-    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
-
-    // Check file copying.
-    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
-    val dnDEvent2 = createDnDEvent(fileList)
-
-    // Simulate drag.
-    target.update(dnDEvent2)
-
-    verify(dnDEvent2).isDropPossible = true
-
-    val pushCalled = CountDownLatch(1)
-    val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
-    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
-      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: files pushed")
-      pushCalled.countDown()
-    }
-
-    // Simulate drop.
-    target.drop(dnDEvent2)
-
-    try {
-      assertThat(pushCalled.await(5, TimeUnit.SECONDS)).isTrue()
-      assertThat(firstArgCaptor.value).isEqualTo(fileList.map(File::getAbsolutePath).toTypedArray())
-      assertThat(secondArgCaptor.value).isEqualTo("/sdcard/Download")
-      FlightRecorder.print()
-    }
-    catch (t: Throwable) {
-      FlightRecorder.print()
-      throw t
-    }
-
-    panel.destroyContent()
+    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
+    return device
   }
 
-  private fun createDnDEvent(files: List<File>): DnDEvent {
+  private fun createDragEvent(files: List<File>): DnDEvent {
     val transferableWrapper = mock<TransferableWrapper>()
     `when`(transferableWrapper.asFileList()).thenReturn(files)
-    val dnDEvent = mock<DnDEvent>()
-    `when`(dnDEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    `when`(dnDEvent.attachedObject).thenReturn(transferableWrapper)
-    return dnDEvent
+    val event = mock<DnDEvent>()
+    `when`(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    `when`(event.attachedObject).thenReturn(transferableWrapper)
+    return event
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
