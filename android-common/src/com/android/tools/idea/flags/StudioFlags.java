@@ -1123,7 +1123,7 @@ public final class StudioFlags {
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",
     "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
