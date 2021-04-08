@@ -114,9 +114,9 @@ class AppInspectionView @VisibleForTesting constructor(
   val tabsChangedFlow: Flow<Unit> =
     callbackFlow {
       tabsChangedListener = {
-        sendBlocking(Unit)
+        offer(Unit)
       }
-      awaitClose { }
+      awaitClose { tabsChangedListener = null }
     }
 
   @VisibleForTesting
@@ -286,7 +286,11 @@ class AppInspectionView @VisibleForTesting constructor(
         tabShell.putUserData(TAB_KEY, tab)
       }
       launch {
-        if (!client.awaitForDisposal()) { // If here, this client was disposed due to crashing
+        val exitNormally = client.awaitForDisposal()
+        if (exitNormally) {
+          stopInspectors()
+        }
+        else { // If here, this client was disposed due to crashing
           AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
           // Wait until AFTER we're disposed before showing the notification. This ensures if
           // the user hits restart, which requests launching a new inspector, it won't reuse

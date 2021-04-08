@@ -40,11 +40,8 @@ import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
 import com.google.common.annotations.VisibleForTesting
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
@@ -86,64 +83,40 @@ internal class DefaultAppInspectionTarget(
 ) : AppInspectionTarget() {
   private val scope = parentScope.createChildScope(true)
 
-  private val messengers = ConcurrentHashMap<String, Deferred<AppInspectorMessenger>>()
-
-  /**
-   * Used exclusively in tests. Allows tests to wait until after inspector client is removed from internal cache.
-   */
-  @VisibleForTesting
-  internal val inspectorDisposableJobs = ConcurrentHashMap<String, Job>()
-
   override suspend fun launchInspector(
     params: LaunchParameters
   ): AppInspectorMessenger {
-    val messengerDeferred = messengers.computeIfAbsent(params.inspectorId) {
-      scope.async {
-        val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
-        val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
-          .setLaunchedByName(params.projectName)
-          .setForce(params.force)
-        params.libraryCoordinate?.let {
-          launchMetadata.setMinLibrary(it.toArtifactCoordinateProto()).build()
-        }
-        val createInspectorCommand = CreateInspectorCommand.newBuilder()
-          .setDexPath(fileDevicePath)
-          .setLaunchMetadata(launchMetadata)
-          .build()
-        val commandId = AppInspectionTransport.generateNextCommandId()
-        val appInspectionCommand = AppInspectionCommand.newBuilder()
-          .setInspectorId(params.inspectorId)
-          .setCreateInspectorCommand(createInspectorCommand)
-          .setCommandId(commandId)
-          .build()
-        val eventQuery = transport.createStreamEventQuery(
-          eventKind = APP_INSPECTION_RESPONSE,
-          filter = { it.appInspectionResponse.commandId == commandId }
-        )
-        val event = transport.executeCommand(appInspectionCommand, eventQuery)
-        if (event.appInspectionResponse.createInspectorResponse.status == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
-          val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-          inspectorDisposableJobs[params.inspectorId] = scope.launch {
-            connection.awaitForDisposal()
-            messengers.remove(params.inspectorId)
-            inspectorDisposableJobs.remove(params.inspectorId)
-          }
-          connection
-        }
-        else {
-          throw event.appInspectionResponse.getException(params.inspectorId)
-        }
+    val fileDevicePath = jarCopier.copyFileToDevice(params.inspectorJar).first()
+    val launchMetadata = AppInspection.LaunchMetadata.newBuilder()
+      .setLaunchedByName(params.projectName)
+      .setForce(params.force)
+    params.libraryCoordinate?.let {
+      launchMetadata.setMinLibrary(it.toArtifactCoordinateProto()).build()
+    }
+    val createInspectorCommand = CreateInspectorCommand.newBuilder()
+      .setDexPath(fileDevicePath)
+      .setLaunchMetadata(launchMetadata)
+      .build()
+    val commandId = AppInspectionTransport.generateNextCommandId()
+    val appInspectionCommand = AppInspectionCommand.newBuilder()
+      .setInspectorId(params.inspectorId)
+      .setCreateInspectorCommand(createInspectorCommand)
+      .setCommandId(commandId)
+      .build()
+    val eventQuery = transport.createStreamEventQuery(
+      eventKind = APP_INSPECTION_RESPONSE,
+      filter = { it.appInspectionResponse.commandId == commandId }
+    )
+    val event = transport.executeCommand(appInspectionCommand, eventQuery)
+    if (event.appInspectionResponse.createInspectorResponse.status == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
+      val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
+      scope.launch {
+        connection.awaitForDisposal()
       }
+      return connection
     }
-    try {
-      return messengerDeferred.await()
-    }
-    catch (e: CancellationException) {
-      throw e
-    }
-    catch (t: Throwable) {
-      messengers.remove(params.inspectorId)
-      throw t
+    else {
+      throw event.appInspectionResponse.getException(params.inspectorId)
     }
   }
 
@@ -152,7 +125,6 @@ internal class DefaultAppInspectionTarget(
    */
   override suspend fun dispose() {
     scope.cancel()
-    messengers.clear()
   }
 
   override suspend fun getLibraryVersions(libraryCoordinates: List<ArtifactCoordinate>): List<LibraryCompatbilityInfo> {
