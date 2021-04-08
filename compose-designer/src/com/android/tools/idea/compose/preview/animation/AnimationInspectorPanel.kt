@@ -456,6 +456,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         }
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
         updateAnimationStartAndEndStates()
+        updateProperties()
       })
       endStateComboBox.addActionListener(ActionListener {
         if (!isSwappingStates) {
@@ -463,6 +464,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
         }
         updateAnimationStartAndEndStates()
+        updateProperties()
       })
     }
 
@@ -496,7 +498,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        val animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
         animatedPropertiesPanel.updateProperties(animatedPropKeys)
       }
       catch (e: Exception) {
