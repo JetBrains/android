@@ -11,6 +11,8 @@ import java.awt.Component
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JTable
@@ -77,6 +79,8 @@ class WorksTableView(tab: WorkManagerInspectorTab,
   init {
     autoCreateRowSorter = true
 
+    resetDefaultFocusTraversalKeys()
+    isStriped = true
     columnModel.getColumn(WorksTableModel.Column.ORDER.ordinal).cellRenderer = DefaultTableCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.CLASS_NAME.ordinal).cellRenderer = DefaultTableCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.STATE.ordinal).cellRenderer = WorksTableStateCellRenderer()
@@ -116,6 +120,15 @@ class WorksTableView(tab: WorkManagerInspectorTab,
     addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (rowAtPoint(e.point) in 0 until rowCount) {
+          tab.isDetailsViewVisible = true
+          client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
+        }
+      }
+    })
+
+    addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (e.keyCode == KeyEvent.VK_SPACE && selectedRow != -1) {
           tab.isDetailsViewVisible = true
           client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
         }
