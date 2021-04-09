@@ -49,7 +49,6 @@ class FakeEmulatorRule : TestRule {
     }
 
     override fun after() {
-      println("${currentTime()} FakeEmulatorRule.after:")
       for (emulator in emulators) {
         emulator.stop()
       }
@@ -58,7 +57,6 @@ class FakeEmulatorRule : TestRule {
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       emulatorCatalog.overrideRegistrationDirectory(null)
       RuntimeConfigurationOverrider.clearOverride()
-      println("${currentTime()} FakeEmulatorRule.after: finished")
     }
   }
 
