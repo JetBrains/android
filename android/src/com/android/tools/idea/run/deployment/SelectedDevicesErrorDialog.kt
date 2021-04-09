@@ -77,8 +77,7 @@ class SelectedDevicesErrorDialog(private val project: Project, private val devic
 
       devices.map {
         row {
-          label("$it: ")
-          label(it.launchCompatibility.reason!!)
+          label("${it.launchCompatibility.reason} on device $it")
         }
       }
     }
