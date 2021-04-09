@@ -1,9 +1,9 @@
 package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
-import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo.State
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.toChainInfo
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
@@ -56,6 +56,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       val id = workSelectionModel.selectedWork?.id ?: return
       client.cancelWorkById(id)
       client.tracker.trackWorkCancelled()
+      tableView.requestFocusInWindow()
     }
   }
 
@@ -112,6 +113,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       if (contentMode == Mode.GRAPH) {
         contentMode = Mode.TABLE
         workSelectionModel.setSelectedWork(workSelectionModel.selectedWork, WorkSelectionModel.Context.TOOLBAR)
+        tableView.requestFocusInWindow()
       }
     }
 
@@ -129,6 +131,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       if (contentMode == Mode.TABLE && selectedWork != null) {
         contentMode = Mode.GRAPH
         workSelectionModel.setSelectedWork(workSelectionModel.selectedWork, WorkSelectionModel.Context.TOOLBAR)
+        graphView.requestFocusInWindow()
       }
     }
 
@@ -213,6 +216,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       add(TagsDropDownAction())
     }
     val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
     if (ENABLE_WORK_MANAGER_GRAPH_VIEW.get()) {
@@ -221,6 +225,7 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
         add(GraphViewAction())
       }
       val rightToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
+      ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
       toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
     }
 
