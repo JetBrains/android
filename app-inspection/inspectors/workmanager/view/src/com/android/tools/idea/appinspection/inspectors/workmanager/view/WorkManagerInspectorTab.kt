@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkMan
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.intellij.ui.JBSplitter
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
 import javax.swing.JComponent
 
 /**
@@ -29,11 +30,12 @@ import javax.swing.JComponent
  * The [component] of tab view is essentially a [JBSplitter] with [WorksContentView]
  * on the left and [WorkInfoDetailsView] on the right.
  */
-class WorkManagerInspectorTab(private val client: WorkManagerInspectorClient,
-                              private val ideServices: AppInspectionIdeServices,
-                              private val scope: CoroutineScope
+class WorkManagerInspectorTab(client: WorkManagerInspectorClient,
+                              ideServices: AppInspectionIdeServices,
+                              scope: CoroutineScope
 ) {
-  private val workSelectionModel = WorkSelectionModel()
+  @TestOnly
+  val workSelectionModel = WorkSelectionModel()
 
   /**
    * Returns true if the [WorkInfoDetailsView] is visible.

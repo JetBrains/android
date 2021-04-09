@@ -56,7 +56,12 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       val id = workSelectionModel.selectedWork?.id ?: return
       client.cancelWorkById(id)
       client.tracker.trackWorkCancelled()
-      tableView.requestFocusInWindow()
+      if (contentMode == Mode.TABLE) {
+        tableView.requestFocusInWindow()
+      }
+      else {
+        graphView.requestFocusInWindow()
+      }
     }
   }
 
