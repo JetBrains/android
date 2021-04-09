@@ -55,6 +55,9 @@ import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Tests for {@link ProjectResourceRepository}.
+ */
 public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
   private static final String VALUES = "resourceRepository/values.xml";
@@ -68,7 +71,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   }
 
   /**
-   * Like {@link ModuleResourceRepository#testOverlayUpdates1}, but rather than testing changes to layout
+   * Like {@link ModuleResourceRepositoryTest#testOverlayUpdates1}, but rather than testing changes to layout
    * resources (file-based resource) perform document edits in value-documents.
    * <p>
    * Ensure that we invalidate the id cache when the file is rescanned but ids don't change.
@@ -108,7 +111,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.isScanPending(layoutPsiFile));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, layoutPsiFile));
     ApplicationManager.getApplication().invokeLater(() -> {
       assertTrue(generation < resources.getModificationCount());
       // Should still be defined:
@@ -315,10 +318,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);
 
-    assertFalse(lib1Resources.isScanPending(sharedLibValues));
-    assertFalse(lib1Resources.isScanPending(lib2Values));
-    assertFalse(lib2Resources.isScanPending(sharedLibValues));
-    assertFalse(lib2Resources.isScanPending(lib2Values));
+    assertFalse(ResourcesTestsUtil.isScanPending(lib1Resources, sharedLibValues));
+    assertFalse(ResourcesTestsUtil.isScanPending(lib1Resources, lib2Values));
+    assertFalse(ResourcesTestsUtil.isScanPending(lib2Resources, sharedLibValues));
+    assertFalse(ResourcesTestsUtil.isScanPending(lib2Resources, lib2Values));
 
     assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
     assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.STRING, "ellipsis"));

@@ -51,6 +51,9 @@ import java.util.function.BiFunction;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Tests for {@link AppResourceRepository}.
+ */
 public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
   private static final String VALUES = "resourceRepository/values.xml";
@@ -142,7 +145,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
 
-    assertTrue(moduleRepository.isScanPending(layoutPsiFile));
+    assertTrue(ResourcesTestsUtil.isScanPending(moduleRepository, layoutPsiFile));
     ApplicationManager.getApplication().invokeLater(() -> {
       assertTrue(generation < moduleRepository.getModificationCount());
       assertTrue(projectGeneration < projectResources.getModificationCount());
