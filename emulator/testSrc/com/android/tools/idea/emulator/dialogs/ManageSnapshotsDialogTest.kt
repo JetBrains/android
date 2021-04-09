@@ -73,7 +73,7 @@ class ManageSnapshotsDialogTest {
   private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(DebugLoggerRule()).around(emulatorViewRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(emulatorViewRule).around(EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
