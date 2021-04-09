@@ -245,9 +245,12 @@ fun addBinaryAarDependency(module: Module) {
 }
 
 /**
- * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
+ * Exposes the package-private method [LocalResourceRepository.isScanPending] for usage in tests.
  */
-fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)
+fun LocalResourceRepository.isScanPending(psiFile: PsiFile): Boolean {
+  val file = psiFile.virtualFile ?: return false
+  return isScanPending(file)
+}
 
 fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
@@ -261,7 +264,7 @@ fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: 
   var found: ResourceItem? = null
   for (item in list) {
     if (filter.test(item)) {
-      assertThat(found).isNull();
+      assertThat(found).isNull()
       found = item
     }
   }

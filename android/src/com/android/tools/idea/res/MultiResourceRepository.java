@@ -41,7 +41,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.util.SmartList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
@@ -457,11 +456,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @Override
-  boolean isScanPending(@NotNull PsiFile psiFile) {
+  final boolean isScanPending(@NotNull VirtualFile file) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
       for (LocalResourceRepository child : myLocalResources) {
-        if (child.isScanPending(psiFile)) {
+        if (child.isScanPending(file)) {
           return true;
         }
       }

@@ -31,6 +31,7 @@ import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForReso
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
+import static java.lang.Thread.currentThread;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.SdkConstants;
@@ -74,6 +75,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.AbstractFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -135,6 +138,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -215,7 +219,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
   @NotNull private final Object scanLock = new Object();
+  @GuardedBy("scanLock")
   @NotNull private final Set<VirtualFile> myPendingScans = new HashSet<>();
+  @GuardedBy("scanLock")
+  @NotNull private final HashMap<VirtualFile, Future<Void>> myRunningScans = new HashMap<>();
 
   @VisibleForTesting static int ourFullRescans;
   @VisibleForTesting static int ourLayoutlibCacheFlushes;
@@ -612,11 +619,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   @Override
-  boolean isScanPending(@NotNull PsiFile psiFile) {
-    return isScanPending(psiFile.getVirtualFile());
-  }
-
-  boolean isScanPending(@NotNull VirtualFile virtualFile) {
+  final boolean isScanPending(@NotNull VirtualFile virtualFile) {
     synchronized (scanLock) {
       return myPendingScans.contains(virtualFile);
     }
@@ -646,13 +649,80 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
 
       ApplicationManager.getApplication().runWriteAction(() -> {
-        if (isScanPending(virtualFile)) {
+        SettableFuture<Void> runHandle;
+        synchronized (scanLock) {
+          if (!myPendingScans.remove(virtualFile)) {
+            return;
+          }
+          runHandle = SettableFuture.create();
+          Future<Void> oldRunHandle = myRunningScans.replace(virtualFile, runHandle);
+          if (oldRunHandle != null) {
+            oldRunHandle.cancel(true);
+          }
+        }
+
+        try {
           scan(psiFile, folderType);
+        }
+        finally {
           synchronized (scanLock) {
-            myPendingScans.remove(virtualFile);
+            runHandle.set(null);
+            myRunningScans.remove(virtualFile, runHandle);
           }
         }
       });
+    });
+  }
+
+  @UiThread
+  @Override
+  public void sync() {
+    super.sync();
+
+    List<VirtualFile> files;
+    NonCancellableFuture<Void> runHandle;
+    synchronized (scanLock) {
+      if (myPendingScans.isEmpty() && myRunningScans.isEmpty()) {
+        return;
+      }
+      runHandle = new NonCancellableFuture<>();
+      files = new ArrayList<>(myRunningScans.size() + myPendingScans.size());
+      for (VirtualFile file : myRunningScans.keySet()) {
+        files.add(file);
+        Future<Void> oldRunHandle = myRunningScans.replace(file, runHandle);
+        if (oldRunHandle != null) {
+          oldRunHandle.cancel(true);
+        }
+      }
+      for (VirtualFile file : myPendingScans) {
+        files.add(file);
+        myRunningScans.put(file, runHandle);
+      }
+      myPendingScans.clear();
+    }
+
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        for (VirtualFile virtualFile : files) {
+          if (virtualFile.isValid()) {
+            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+            if (folderType != null) {
+              PsiFile psiFile = findPsiFile(virtualFile);
+              if (psiFile != null) {
+                scan(psiFile, folderType);
+              }
+            }
+          }
+        }
+      }
+      finally {
+        synchronized (scanLock) {
+          runHandle.set(null);
+          for (VirtualFile file : files) {
+            myRunningScans.remove(file, runHandle);
+          }
+        }
+      }
     });
   }
 
@@ -663,38 +733,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
     catch (AlreadyDisposedException e) {
       return null;
-    }
-  }
-
-  @UiThread
-  @Override
-  public void sync() {
-    super.sync();
-
-    List<VirtualFile> files;
-    synchronized (scanLock) {
-      if (myPendingScans.isEmpty()) {
-        return;
-      }
-      files = new ArrayList<>(myPendingScans);
-    }
-
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      for (VirtualFile virtualFile : files) {
-        if (virtualFile.isValid()) {
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
-          if (folderType != null) {
-            PsiFile psiFile = findPsiFile(virtualFile);
-            if (psiFile != null) {
-              scan(psiFile, folderType);
-            }
-          }
-        }
-      }
-    });
-
-    synchronized (scanLock) {
-      myPendingScans.clear();
     }
   }
 
@@ -728,6 +766,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       return;
     }
 
+    checkIfInterrupted();
     if (psiFile.getProject().isDisposed()) return;
 
     if (LOG.isDebugEnabled()) {
@@ -759,6 +798,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         if (fileParent != null) {
           FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
           if (folderConfiguration != null) {
+            checkIfInterrupted();
             added = scanValueFileAsPsi(result, file, folderConfiguration);
           }
         }
@@ -823,6 +863,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           List<PsiResourceItem> idItems = new ArrayList<>();
           file = ensureValid(file);
           if (file != null) {
+            checkIfInterrupted();
             addIds(result, idItems, file);
           }
           if (!idItems.isEmpty()) {
@@ -851,6 +892,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         ResourceType type = FolderTypeRelationship.getNonIdRelatedResourceType(folderType);
         boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
+        checkIfInterrupted();
         clearLayoutlibCaches(file.getVirtualFile(), folderType);
 
         file = ensureValid(file);
@@ -860,6 +902,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
               boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == XmlFileType.INSTANCE;
+              checkIfInterrupted();
               scanFileResourceFileAsPsi(result, folderType, folderConfiguration, type, idGeneratingFile, file);
             }
           }
@@ -870,6 +913,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     commitToRepository(result);
+  }
+
+  /**
+   * Throws a {@link ProcessCanceledException} if the thread is interrupted.
+   */
+  private void checkIfInterrupted() {
+    if (currentThread().isInterrupted()) {
+      throw new ProcessCanceledException();
+    }
   }
 
   private void scan(@NotNull VirtualFile file) {
@@ -1033,9 +1085,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       PsiFile psiFile = event.getFile();
       if (psiFile != null && isRelevantFile(psiFile)) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (isScanPending(virtualFile)) {
+        // If the file is currently being scanned, schedule a new scan to avoid a race condition
+        // between the incremental update and the running scan.
+        if (rescheduleScanIfRunning(virtualFile)) {
           return;
         }
+
         // Some child was added within a file.
         ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
         if (folderType != null && isResourceFile(psiFile)) {
@@ -1178,9 +1233,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       PsiFile psiFile = event.getFile();
       if (psiFile != null && isRelevantFile(psiFile)) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (isScanPending(virtualFile)) {
+        // If the file is currently being scanned, schedule a new scan to avoid a race condition
+        // between the incremental update and the running scan.
+        if (rescheduleScanIfRunning(virtualFile)) {
           return;
         }
+
         // Some child was removed within a file.
         ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
         if (folderType != null && isResourceFile(virtualFile)) {
@@ -1289,9 +1347,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       PsiFile psiFile = event.getFile();
       if (psiFile != null) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (isScanPending(virtualFile)) {
+        // If the file is currently being scanned, schedule a new scan to avoid a race condition
+        // between the incremental update and the running scan.
+        if (rescheduleScanIfRunning(virtualFile)) {
           return;
         }
+
         // This method is called when you edit within a file.
         if (isRelevantFile(virtualFile)) {
           // First determine if the edit is non-consequential.
@@ -1574,6 +1635,25 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
 
     /**
+     * If the given resource file is currently being scanned, reschedules the ongoing scan.
+     *
+     * @param virtualFile the resource file to check
+     * @return true if the scan is pending or has been rescheduled, false otherwise
+     */
+    private boolean rescheduleScanIfRunning(@NotNull VirtualFile virtualFile) {
+      synchronized (scanLock) {
+        if (myPendingScans.contains(virtualFile)) {
+          return true;
+        }
+        if (myRunningScans.containsKey(virtualFile)) {
+          scheduleScan(virtualFile);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
      * Tries to handle changes to attributes that contain "@+id" incrementally.
      *
      * <p>To correctly handle multiple ids declared in the same tag, this means deleting all existing ID resources associated with {@code
@@ -1581,8 +1661,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
      *
      * @return true if incremental change succeeded, false otherwise (i.e. a rescan is necessary).
      */
-    private boolean handleIdsChange(@NotNull ResourceItemSource<? extends ResourceItem> resFile,
-                                    @NotNull XmlTag xmlTag) {
+    private boolean handleIdsChange(@NotNull ResourceItemSource<? extends ResourceItem> resFile, @NotNull XmlTag xmlTag) {
       if (!(resFile instanceof PsiResourceFile)) {
         return false;
       }
@@ -1678,8 +1757,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           return;
         }
       }
-      else if (event instanceof PsiTreeChangeEventImpl && (((PsiTreeChangeEventImpl)event).isGenericChange())) {
-          return;
+      else if (event instanceof PsiTreeChangeEventImpl && ((PsiTreeChangeEventImpl)event).isGenericChange()) {
+        return;
       }
 
       // Avoid the next check for files. If they have not been loaded, getFirstChild will trigger a file load
@@ -1786,9 +1865,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (resFile != null) {
         assert resFile instanceof PsiResourceFile;
         PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-        for (ResourceItem item : resourceFile) {
-          PsiResourceItem pri = (PsiResourceItem)item;
-          if (pri.wasTag(tag)) {
+        for (PsiResourceItem item : resourceFile) {
+          if (item.wasTag(tag)) {
             return item;
           }
         }
@@ -1857,6 +1935,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   // For debugging only
   @Override
+  @NotNull
   public String toString() {
     return getClass().getSimpleName() + " for " + myResourceDir + ": @" + Integer.toHexString(System.identityHashCode(this));
   }
@@ -2050,7 +2129,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         mySources.clear();
         myFileResources.clear();
 
-        LOG.warn("Failed to load resources from cache file " + myCachingData.getCacheFile().toString(), e);
+        LOG.warn("Failed to load resources from cache file " + myCachingData.getCacheFile(), e);
       }
     }
 
@@ -2123,7 +2202,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         throw e;
       }
       catch (Exception e) {
-        LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
+        LOG.error("Failed to load resources from " + myResourceDirectoryOrFile, e);
       }
 
       super.finishLoading(myRepository);
@@ -2304,6 +2383,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private static class ParsingException extends RuntimeException {
     ParsingException(Throwable cause) {
       super(cause);
+    }
+  }
+
+  private static class NonCancellableFuture<T> extends AbstractFuture<T> {
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+      return false;
+    }
+
+    @Override
+    public boolean set(T value) {
+      return super.set(value);
     }
   }
 }

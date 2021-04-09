@@ -28,7 +28,6 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -218,7 +217,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     myGeneration = count;
   }
 
-  boolean isScanPending(@NotNull PsiFile psiFile) {
+  boolean isScanPending(@NotNull VirtualFile file) {
     return false;
   }
 
