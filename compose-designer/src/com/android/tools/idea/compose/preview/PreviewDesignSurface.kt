@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.util.asLogString
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
@@ -88,6 +89,8 @@ internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.fir
  */
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 
+private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+
 /**
  * Creates a [NlDesignSurface] setup for the Compose preview.
  */
@@ -114,6 +117,7 @@ internal fun createPreviewDesignSurface(
     .setSelectionModel(NopSelectionModel)
     .setZoomControlsPolicy(zoomControlsPolicy)
     .disableZoomOnConfigurationChange() // Do not zoom to fit when the configurations change
+    .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .build()
     .apply {
       setScreenViewProvider(NlScreenViewProvider.COMPOSE, false)

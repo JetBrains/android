@@ -25,6 +25,7 @@ import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -93,6 +94,9 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }
 }
+
+private val CUSTOM_VIEW_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
+
 /**
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
@@ -182,7 +186,8 @@ class CustomViewPreviewRepresentation(
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         setShrinkRendering(true)
       }
-    }.build().apply {
+    }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+    .build().apply {
       setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
     }
 

@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceMenuAction
 import com.android.tools.idea.uibuilder.editor.NlActionManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -29,6 +33,12 @@ abstract class SwitchDeviceAction: AnAction() {
       e.presentation.isEnabled = false
       return
     }
+
+    if (!e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_DEVICE)) {
+      e.presentation.isEnabled = false
+      return
+    }
+
     val surface = e.getData(NlActionManager.LAYOUT_EDITOR)
     if (surface != null) {
       val config = surface.configurations.firstOrNull()
