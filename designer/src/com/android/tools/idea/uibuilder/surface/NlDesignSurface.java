@@ -85,6 +85,7 @@ import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -143,6 +144,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
     private boolean myZoomOnConfigurationChange = true;
+    @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -324,6 +326,20 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
+     * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
+     * By default, the builder assumes there is no supported {@link NlSupportedActions}.
+     *
+     * Be award the {@link com.intellij.openapi.actionSystem.AnAction}s registered by code are not effected.
+     * TODO(b/183243031): These mechanism should be integrated into {@link ActionManager}.
+     */
+    @NotNull
+    public Builder setSupportedActions(@NotNull Set<NlSupportedActions> supportedActions) {
+      mySupportedActions = supportedActions;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -347,7 +363,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myDelegateDataProvider,
                                  mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
                                  myZoomControlsPolicy,
-                                 myZoomOnConfigurationChange);
+                                 myZoomOnConfigurationChange,
+                                 mySupportedActions);
     }
   }
 
@@ -410,6 +427,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private final Dimension myScrollableViewMinSize = new Dimension();
   @Nullable private LayoutScannerControl myScannerControl;
 
+  @NotNull private final Set<NlSupportedActions> mySupportedActions;
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -427,7 +446,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
-                          boolean zoomOnConfigurationChange) {
+                          boolean zoomOnConfigurationChange,
+                          @NotNull Set<NlSupportedActions> supportedActions) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
@@ -441,6 +461,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
+    mySupportedActions = supportedActions;
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
@@ -1033,6 +1054,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     return super.getData(dataId);
+  }
+
+  @NotNull
+  public Set<NlSupportedActions> getSupportedActions() {
+    return mySupportedActions;
   }
 
   @Override

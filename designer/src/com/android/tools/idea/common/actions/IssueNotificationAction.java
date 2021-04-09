@@ -19,6 +19,8 @@ import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -61,8 +63,10 @@ public class IssueNotificationAction extends ToggleAction {
     super.update(event);
     DesignSurface surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
     Presentation presentation = event.getPresentation();
-    if (surface == null) {
+
+    if (surface == null || !NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.TOGGLE_ISSUE_PANEL)) {
       event.getPresentation().setEnabled(false);
+      presentation.setText(SHOW_ISSUE);
       presentation.setDescription(DEFAULT_TOOLTIP);
       presentation.setIcon(DISABLED_ICON);
     }

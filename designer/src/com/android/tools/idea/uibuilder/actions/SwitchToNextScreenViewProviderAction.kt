@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.common.actions.isActionEventFromJTextField
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,7 +42,7 @@ class SwitchToNextScreenViewProviderAction : AnAction() {
       e.presentation.isEnabled = false
       return
     }
-    e.presentation.isEnabled = e.getData(NlActionManager.LAYOUT_EDITOR) != null
+    e.presentation.isEnabled = e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_DESIGN_MODE)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

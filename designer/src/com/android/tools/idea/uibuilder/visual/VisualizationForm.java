@@ -35,6 +35,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -50,6 +51,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -103,6 +105,9 @@ public class VisualizationForm
   implements VisualizationContent, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
+
+  private static final Set<NlSupportedActions> VISUALIZATION_SUPPORTED_ACTIONS =
+    StudioFlags.NELE_VISUAL_LINT.get() ? ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL) : ImmutableSet.of();
 
   /**
    * horizontal gap between different previews
@@ -183,6 +188,7 @@ public class VisualizationForm
                                                      false))
       .setMinScale(0.10)
       .setMaxScale(4)
+      .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
       .build();
     mySurface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT);
     mySurface.addPanZoomListener(this);
