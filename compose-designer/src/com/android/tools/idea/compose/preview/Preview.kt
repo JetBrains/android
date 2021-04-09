@@ -978,7 +978,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
-        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"))
+        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"), project)
         refreshProgressIndicator.processFinish()
       }
     }
