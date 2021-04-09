@@ -105,8 +105,9 @@ private fun parserResolvedCallToPsiPropertyItems(project: Project,
                                                  resolvedCall: ResolvedCall<*>,
                                                  defaultValues: Map<String, String?>): Collection<PsiPropertyItem> =
   ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
-    // TODO(b/184684183): Always return a fixed order of properties
-    return@compute resolvedCall.valueArguments.map { (descriptor, resolved) ->
+    return@compute resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
+      descriptor.index
+    }.map { (descriptor, resolved) ->
       val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
       val defaultValue = defaultValues[descriptor.name.asString()]
       when (descriptor.name.asString()) {
