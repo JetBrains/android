@@ -19,6 +19,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
+import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.DEFAULT_WORK_BORDER_COLOR
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.GRAPH_LABEL_BACKGROUND_COLOR
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorColors.SELECTED_WORK_BORDER_COLOR
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.WorkManagerInspectorEvent
@@ -122,7 +123,7 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
     label.background = GRAPH_LABEL_BACKGROUND_COLOR
     label.isOpaque = true
 
-    val defaultBorder = EmptyBorder(JBUI.scale(10), JBUI.scale(10), JBUI.scale(10), JBUI.scale(10))
+    val defaultBorder = EmptyBorder(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
     label.border = if (work == workSelectionModel.selectedWork) {
       BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), SELECTED_WORK_BORDER_COLOR),
@@ -130,7 +131,13 @@ class WorkDependencyGraphView(private val tab: WorkManagerInspectorTab,
       )
     }
     else {
-      defaultBorder
+      BorderFactory.createCompoundBorder(
+        BorderFactory.createMatteBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), DEFAULT_WORK_BORDER_COLOR),
+        BorderFactory.createCompoundBorder(
+          EmptyBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
+          defaultBorder
+        ),
+      )
     }
 
     label.addMouseListener(object : MouseAdapter() {

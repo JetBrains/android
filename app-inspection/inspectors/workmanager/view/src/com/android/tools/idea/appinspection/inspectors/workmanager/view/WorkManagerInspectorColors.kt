@@ -26,6 +26,10 @@ object WorkManagerInspectorColors {
   val EMPTY_CONTENT_COLOR = JBColor(0x787878, 0xC8C8C8)
 
   // Dependency Graph
-  val SELECTED_WORK_BORDER_COLOR = JBColor(0xB2E5FF, 0xB2E5FF)
-  val GRAPH_LABEL_BACKGROUND_COLOR = JBColor(0xECF2FA, 0x323940)
+  val DEFAULT_WORK_BORDER_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
+  val SELECTED_WORK_BORDER_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.focusedBorderColor", JBColor(0x1886f7, 0x9ccdff))
+  val GRAPH_LABEL_BACKGROUND_COLOR = JBColor.namedColor(
+    "AppInspector.GraphNode.background", JBColor(0xfdfdfd, 0x515658))
 }
