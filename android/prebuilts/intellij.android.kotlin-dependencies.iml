@@ -568,18 +568,7 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlinc.android-extensions-compiler-plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:android-extensions-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/android-extensions-compiler-plugin-for-ide/1.4.32-release-371/android-extensions-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/android-extensions-compiler-plugin-for-ide/1.4.32-release-371/android-extensions-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.android-extensions-compiler-plugin" level="project" />
     <orderEntry type="module-library" exported="" scope="PROVIDED">
       <library name="parcelize-compiler-plugin-for-ide" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:parcelize-compiler-plugin-for-ide:1.4.32-release-371" />
