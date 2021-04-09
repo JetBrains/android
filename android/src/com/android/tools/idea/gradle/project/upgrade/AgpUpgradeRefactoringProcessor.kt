@@ -84,6 +84,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.Property
+import com.intellij.lang.properties.psi.PropertyKeyValueFormat
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
@@ -1100,7 +1101,7 @@ class GradleVersionUsageInfo(
   }
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl)
+    ((element as? WrappedPsiElement)?.realElement as? Property)?.setValue(updatedUrl.escapeColons(), PropertyKeyValueFormat.FILE)
     // TODO(xof): if we brought properties files into the build model, this would not be necessary here, but the buildModel applyChanges()
     //  does all that is necessary to save files, so we do that here to mimic that.  Should we do that in
     //  performPsiSpoilingBuildModelRefactoring instead, to mimic the time applyChanges() would do that more precisely?
@@ -1114,6 +1115,8 @@ class GradleVersionUsageInfo(
       documentManager.commitDocument(document)
     }
   }
+
+  fun String.escapeColons() = this.replace(":", "\\:")
 }
 
 class WellKnownGradlePluginUsageInfo(
