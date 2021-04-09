@@ -235,6 +235,31 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     checkFontScaleChange("8.f", "8.0")
   }
 
+  @Test
+  fun `original order is preserved`() {
+    @Language("kotlin")
+    val fileContent = """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview(fontScale = 1.0f, name = "MyPreview", apiLevel = 1)
+      fun PreviewWithParameters() {
+      }
+      """.trimIndent()
+
+    val model = getPsiPropertyModel(fileContent)
+
+    val properties = model.properties.values.iterator()
+    assertEquals("name", properties.next().name)
+    assertEquals("group", properties.next().name)
+    assertEquals("apiLevel", properties.next().name)
+    assertEquals("theme", properties.next().name)
+    assertEquals("widthDp", properties.next().name)
+    assertEquals("heightDp", properties.next().name)
+    assertEquals("fontScale", properties.next().name)
+  }
+
   private fun assertUpdatingModelUpdatesPsiCorrectly(fileContent: String) {
     val file = fixture.configureByText("Test.kt", fileContent)
     val noParametersPreview = AnnotationFilePreviewElementFinder.findPreviewMethods(fixture.project, file.virtualFile).first()
