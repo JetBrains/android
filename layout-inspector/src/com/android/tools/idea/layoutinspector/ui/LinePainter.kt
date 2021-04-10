@@ -20,12 +20,13 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Graphics
 import javax.swing.tree.TreeModel
 import javax.swing.tree.TreePath
 
-val LINES: Control.Painter = LinePainter(Control.Painter.DEFAULT)
+val LINES = LinePainter(Control.Painter.DEFAULT)
 
 class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePainter {
 
@@ -88,8 +89,17 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
   private fun nodeOf(path: TreePath): TreeViewNode =
     path.lastPathComponent as TreeViewNode
 
-  private fun getLastOfMultipleChildren(model: TreeModel, node: TreeViewNode): TreeViewNode? {
-    val count = node.view.children.size
-    return if (count > 1) model.getChild(node, node.children.size - 1) as TreeViewNode else null
+  /**
+   * Return the last of the children if support lines are to be drawn, otherwise null.
+   *
+   * This gets a little tricky around:
+   * - callstack view: here we do NOT want to show support lines when multiple calls are shown as children under this [node].
+   * - filtered views: if a [node] has multiple children as a result of one of its children were filtered out, we DO want support lines.
+   */
+  @VisibleForTesting
+  fun getLastOfMultipleChildren(model: TreeModel, node: TreeViewNode): TreeViewNode? {
+    val count = node.children.size
+    val last = if (count > 1) model.getChild(node, count - 1) as TreeViewNode else return null
+    return if (last.view.parent?.findClosestUnfilteredNode()?.treeNode === node) last else null
   }
 }
