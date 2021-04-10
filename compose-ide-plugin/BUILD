@@ -37,7 +37,6 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:licenses",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/compose-ide-plugin/testData",
     ],
     test_srcs = ["testSrc"],
