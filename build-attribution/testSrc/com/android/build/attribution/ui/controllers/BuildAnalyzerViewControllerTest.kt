@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
 import com.android.build.attribution.ui.model.TaskDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksPageId
@@ -325,6 +326,24 @@ class BuildAnalyzerViewControllerTest {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
       assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOpenConfigurationCacheWarnings() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.openConfigurationCacheWarnings()
+
+    // Verify
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
+    assertThat(model.warningsPageModel.selectedNode?.descriptor).isInstanceOf(ConfigurationCachingRootNodeDescriptor::class.java)
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CONFIGURATION_CACHE_ROOT)
     }
   }
 

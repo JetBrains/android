@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
@@ -183,15 +184,8 @@ class BuildAnalyzerViewController(
 
   override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {
     val duration = runAndMeasureDuration {
-      val buildModel = ProjectBuildModel.get(project)
-      val rootBuildModel = buildModel.projectBuildModel
-      val psiToOpen = findPluginDeclarationPsi(rootBuildModel, pluginWarningData)
-      val openFile = if (psiToOpen != null) {
-        OpenFileDescriptor(project, psiToOpen.containingFile.virtualFile, psiToOpen.textOffset)
-      }
-      else {
-        rootBuildModel?.virtualFile?.let { OpenFileDescriptor(project, it, -1) }
-      }
+      val openFile = PluginVersionDeclarationFinder(project)
+        .findFileToOpen(pluginWarningData.pluginInfo.pluginArtifact, pluginWarningData.plugin.displayNames())
       if (openFile?.canNavigate() == true) {
         openFile.navigate(true)
       }
@@ -199,11 +193,36 @@ class BuildAnalyzerViewController(
     analytics.updatePluginButtonClicked(duration)
   }
 
-  private fun findPluginDeclarationPsi(projectBuildModel: GradleBuildModel?, pluginWarningData: IncompatiblePluginWarning): PsiElement?{
+  private fun runAndMeasureDuration(action: () -> Unit): Duration {
+    val watch = Stopwatch.createStarted()
+    action()
+    return watch.elapsed()
+  }
+}
+
+class PluginVersionDeclarationFinder(val project: Project) {
+
+  fun findFileToOpen(pluginArtifact: GradlePluginsData.DependencyCoordinates?, pluginDisplayNames: Set<String>): OpenFileDescriptor? {
+    val buildModel = ProjectBuildModel.get(project)
+    val rootBuildModel = buildModel.projectBuildModel
+    val psiToOpen = findPluginDeclarationPsi(rootBuildModel, pluginArtifact, pluginDisplayNames)
+    return if (psiToOpen != null) {
+      OpenFileDescriptor(project, psiToOpen.containingFile.virtualFile, psiToOpen.textOffset)
+    }
+    else {
+      rootBuildModel?.virtualFile?.let { OpenFileDescriptor(project, it, -1) }
+    }
+  }
+
+  private fun findPluginDeclarationPsi(
+    projectBuildModel: GradleBuildModel?,
+    pluginArtifact: GradlePluginsData.DependencyCoordinates?,
+    pluginDisplayNames: Set<String>
+  ): PsiElement?{
     if (projectBuildModel == null) return null
     // Examine dependencies block
     val buildScriptDependenciesBlock = projectBuildModel.buildscript().dependencies()
-    pluginWarningData.pluginInfo.pluginArtifact?.run {
+    pluginArtifact?.run {
       buildScriptDependenciesBlock.artifacts(CommonConfigurationNames.CLASSPATH)
         .firstOrNull { name == it.name().forceString() && group == it.group().toString() }
         ?.psiElement?.let { return it }
@@ -212,18 +231,12 @@ class BuildAnalyzerViewController(
     // Examine plugins for plugin Dsl declarations.
     projectBuildModel.plugins().firstOrNull { plugin ->
       plugin.version().valueType == GradlePropertyModel.ValueType.STRING
-      && pluginWarningData.plugin.displayNames().contains(plugin.name().toString())
+      && pluginDisplayNames.contains(plugin.name().toString())
     }
       ?.psiElement?.let { return it }
 
     // TODO Support Plugin management case
 
     return buildScriptDependenciesBlock.psiElement
-  }
-
-  private fun runAndMeasureDuration(action: () -> Unit): Duration {
-    val watch = Stopwatch.createStarted()
-    action()
-    return watch.elapsed()
   }
 }
