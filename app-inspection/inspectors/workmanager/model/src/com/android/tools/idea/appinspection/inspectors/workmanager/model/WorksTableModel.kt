@@ -27,12 +27,12 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
    * Columns of work info data.
    */
   enum class Column(val widthPercentage: Double, val type: Class<*>, private val myDisplayName: String) {
-    ORDER(0.01, Long::class.java, "#") {
+    ORDER(0.02, Long::class.java, "#") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return Any()
       }
     },
-    CLASS_NAME(0.36, Long::class.java, "Class Name") {
+    CLASS_NAME(0.35, Long::class.java, "Class Name") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.workerClassName.substringAfterLast('.')
       }
