@@ -60,7 +60,9 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
 
 internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
 internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
-internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
+internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) =
+  if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
+  else emptyList()
 
 internal fun AndroidModuleModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
 internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)

@@ -51,8 +51,7 @@ PROJECT                       : testSwitchingVariants_simpleApplication
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -76,7 +75,6 @@ PROJECT                       : testSwitchingVariants_simpleApplication
             ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
@@ -96,23 +94,6 @@ PROJECT                       : testSwitchingVariants_simpleApplication
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/release [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/aidl [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/ml [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/rs [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/shaders [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
