@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
