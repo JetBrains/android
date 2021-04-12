@@ -96,6 +96,10 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, private val editor
         LOG.debug("buildFinished $result")
         if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           fileChangeDetector.markFileAsUpToDate(editorFile)
+          if (status is Ready) {
+            // After a clean build, we mark the preview as out of date to indicate we need a build to be available.
+            status = OutOfDate
+          }
           return
         }
         status = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
