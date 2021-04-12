@@ -247,7 +247,7 @@
     </action>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
             text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
-      <add-to-group group-id="RefactoringMenu"/>
+      <add-to-group group-id="ToolsMenu"/>
     </action>
 
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
