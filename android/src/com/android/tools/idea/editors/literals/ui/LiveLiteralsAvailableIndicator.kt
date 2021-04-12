@@ -27,6 +27,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.application.subscribe
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
@@ -52,6 +53,7 @@ import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Point
 import java.awt.event.MouseEvent
+import java.net.URL
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -132,10 +134,18 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     else -> message("live.literals.is.enabled") to AVAILABLE_ICON
   }
 
-  override fun getToolTipText(): String = getIconAndTextForCurrentState().first
-
   fun updateWidget() {
-    icon = getIconAndTextForCurrentState().second
+    val state = getIconAndTextForCurrentState()
+    icon = state.second
+    val title = state.first
+
+    HelpTooltip.dispose(this)
+    HelpTooltip()
+      .setTitle(title)
+      .setDescription(message("live.literals.tooltip.description"))
+      .setBrowserLink(message("live.literals.tooltip.url.label"), URL("https://developer.android.com/jetpack/compose/tooling#live-literals"))
+      .installOn(this)
+
     isVisible = icon != null
     revalidate()
     repaint()
