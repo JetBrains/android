@@ -597,13 +597,13 @@ PROJECT                       : testWithBuildSrc
             IsExported                    : false
             Name                          : Gradle: gradle-api-<GRADLE_VERSION> [=]
             *CLASSES                      : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY                       : Gradle: gradle-installation-beacon-7.0
+        LIBRARY                       : Gradle: gradle-installation-beacon-<GRADLE_VERSION>
             LibraryLevel                  : project
             IsModuleLevel                 : false
             Scope                         : Compile
             IsExported                    : false
-            Name                          : Gradle: gradle-installation-beacon-7.0 [=]
-            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-7.0.jar!/
+            Name                          : Gradle: gradle-installation-beacon-<GRADLE_VERSION> [=]
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         LIBRARY                       : Gradle: groovy-3.0.7
             LibraryLevel                  : project
             IsModuleLevel                 : false
@@ -701,7 +701,7 @@ PROJECT                       : testWithBuildSrc
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: javaparser-core-3.17.0 [=]
-            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.1<GRADLE_VERSION>.jar!/
         LIBRARY                       : Gradle: kotlin-reflect-<KOTLIN_VERSION>
             LibraryLevel                  : project
             IsModuleLevel                 : false
