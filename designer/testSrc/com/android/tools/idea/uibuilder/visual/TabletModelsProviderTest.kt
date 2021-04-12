@@ -16,13 +16,17 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.resources.ScreenOrientation
+import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.intellij.openapi.util.Disposer
 import org.intellij.lang.annotations.Language
+import org.junit.Test
+import kotlin.test.assertEquals
 
 class TabletModelsProviderTest : LayoutTestCase() {
 
@@ -74,6 +78,36 @@ class TabletModelsProviderTest : LayoutTestCase() {
     assertTrue(modelsProvider.deviceCaches.containsKey(manager))
     Disposer.dispose(manager)
     assertFalse(modelsProvider.deviceCaches.containsKey(manager))
+  }
+}
+
+class TabletModelLayoutManagerTest {
+
+  @Test
+  fun testLayout() {
+    val viewDelta = 100
+    val layoutManager = TabletModelLayoutManager(0, 0, viewDelta, viewDelta, centralizeContent = false)
+
+    val contents = mutableListOf<PositionableContent>()
+    repeat(10) {
+      contents.add(TestPositionableContent(width = 1080, height = 1920))
+      contents.add(TestPositionableContent(width = 1920, height = 1080))
+    }
+
+    layoutManager.layout(contents, 5000, 30000)
+
+    var expectedY = 0
+    repeat(10) { repeatTime ->
+      val firstColumn = contents[2 * repeatTime]
+      assertEquals(0, firstColumn.x)
+      assertEquals(expectedY, firstColumn.y)
+
+      val secondColumn = contents[2 * repeatTime + 1]
+      assertEquals(firstColumn.contentSize.width + viewDelta, secondColumn.x)
+      assertEquals(expectedY, secondColumn.y)
+
+      expectedY = maxOf(firstColumn.y + firstColumn.contentSize.height, secondColumn.y + secondColumn.contentSize.height) + viewDelta
+    }
   }
 }
 
