@@ -47,6 +47,8 @@ class AllocationSessionArtifact(private val profilers: StudioProfilers,
     profilers.stage = AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = startUs, maxTrackingTimeUs = endUs)
   }
 
+  override fun canExport() = false
+
   companion object {
     @JvmStatic
     fun getSessionArtifacts(profilers: StudioProfilers,
