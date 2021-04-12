@@ -41,13 +41,13 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -605,7 +605,7 @@ public class VisualizationForm
               if (result != null) {
                 Collection<RenderErrorModel.Issue> issues = VisualLintAnalysisKt.analyze(result);
                 NlModel model = manager.getModel();
-                IssueProvider provider = new RenderIssueProvider(model, new RenderErrorModel(issues));
+                IssueProvider provider = new VisualLintIssueProvider(model, new RenderErrorModel(issues));
                 myIssueProviders.put(model, provider);
                 issueModel.addIssueProvider(provider);
               }
