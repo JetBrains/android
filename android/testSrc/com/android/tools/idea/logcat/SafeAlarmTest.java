@@ -16,17 +16,48 @@
 package com.android.tools.idea.logcat;
 
 
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtRule;
+import java.util.concurrent.CountDownLatch;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class SafeAlarmTest {
+
+  @Rule public EdtRule myEdtRule = new EdtRule();
+  @Rule public MockitoRule myMockitoRule = MockitoJUnit.rule();
+
+  @Mock Runnable myMockRequest;
+
   @Test
-  public void addRequest_afterDispose_doesNotCrash() {
+  public void addRequestIfNotEmpty_afterDispose_doesNotCrash() {
     Disposable disposable = () -> {};
-    SafeAlarm safeAlarm = new SafeAlarm(disposable);
+    ViewListener.SafeAlarm safeAlarm = new ViewListener.SafeAlarm(disposable, SWING_THREAD);
 
     Disposer.dispose(disposable);
-    safeAlarm.addRequest(() -> {}, 0);
+    safeAlarm.addRequestIfNotEmpty(() -> {}, 0);
+  }
+
+  @Test
+  public void addRequestIfNotEmpty() throws Exception {
+    Disposable disposable = () -> {};
+    ViewListener.SafeAlarm safeAlarm = new ViewListener.SafeAlarm(disposable, SWING_THREAD);
+
+    safeAlarm.addRequestIfNotEmpty(myMockRequest, 500);
+    safeAlarm.addRequestIfNotEmpty(myMockRequest, 500);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    safeAlarm.addRequest(latch::countDown, 500);
+    latch.await();
+    verify(myMockRequest, times(1)).run();
+    Disposer.dispose(disposable);
   }
 }

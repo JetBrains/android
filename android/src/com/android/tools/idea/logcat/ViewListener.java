@@ -15,10 +15,29 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.intellij.diagnostic.logging.LogConsoleBase;
-import org.jetbrains.annotations.NotNull;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.diagnostic.logging.LogConsoleBase;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.Alarm;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
+
+/**
+ * A logcat receiver that adds lines to an {@link AndroidLogcatView}.
+ * <p>
+ * As each line is received, it also updates the toolbar actions state. This is needed because the
+ * IDEA framework will only update the actions state as long as the UI is being interacted with.
+ * But the nature of the Logcat window is that users will typically just watch it and wait for
+ * something to be logged. See https://issuetracker.google.com/71689829.
+ * <p>
+ * The update is posted to the Event Dispatch Thread (EDT) using an {@link com.intellij.util.Alarm}
+ * no more frequently than every 500ms which is the normal refresh rate.
+ */
 final class ViewListener extends FormattedLogcatReceiver {
+  private static final int DELAY_MS = 500;
   private final AndroidLogcatView myView;
   private final SafeAlarm myAlarm;
 
@@ -26,15 +45,17 @@ final class ViewListener extends FormattedLogcatReceiver {
     super(formatter);
 
     myView = view;
-    myAlarm = new SafeAlarm(view.parentDisposable);
+    // It seems that updateActionsImmediately() needs to run on the EDT.
+    myAlarm = new SafeAlarm(view.parentDisposable, SWING_THREAD);
   }
 
   @Override
   void receiveFormattedLogLine(@NotNull String line) {
     myView.getLogConsole().addLogLine(line);
 
-    myAlarm.cancelAllRequests();
-    myAlarm.addRequest(myView.getToolbar()::updateActionsImmediately, 50);
+    // If we already added a request, we just let it run. This is better than canceling it and
+    // scheduling another one which can result in starvation.
+    myAlarm.addRequestIfNotEmpty(myView.getToolbar()::updateActionsImmediately, DELAY_MS);
   }
 
   @Override
@@ -47,5 +68,38 @@ final class ViewListener extends FormattedLogcatReceiver {
     }
 
     console.clear();
+  }
+
+  /**
+   * Delegates to an Alarm but synchronizes on disposal so we don't try to execute a request after it's disposed.
+   */
+  @VisibleForTesting
+  static final class SafeAlarm implements Disposable {
+    private final @NotNull Alarm myAlarm;
+
+    SafeAlarm(Disposable parentDisposable, Alarm.ThreadToUse threadToUse) {
+      myAlarm = new Alarm(threadToUse, this);
+      Disposer.register(parentDisposable, this);
+    }
+
+    @Override
+    public synchronized void dispose() {
+      myAlarm.dispose();
+    }
+
+    synchronized void addRequestIfNotEmpty(@NotNull Runnable request, long delayMillis) {
+      if (!myAlarm.isEmpty() || myAlarm.isDisposed()) {
+        return;
+      }
+      myAlarm.addRequest(request, delayMillis);
+    }
+
+    /**
+     * Add for test that needs to post a request bypassing addRequestIfNotEmpty
+     */
+    @TestOnly
+    void addRequest(@NotNull Runnable request, long delayMillis) {
+      myAlarm.addRequest(request, delayMillis);
+    }
   }
 }
