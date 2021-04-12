@@ -48,9 +48,28 @@ private fun forEachNonDisposedBuildListener(project: Project, method: (BuildList
 }
 
 interface BuildListener {
+  /**
+   * Called when a build has completed except for clean builds.
+   */
   fun buildSucceeded()
+
+  /**
+   * Called when a build has failed.
+   */
   fun buildFailed() {}
+
+  /**
+   * Called when a build is started, except for clean builds.
+   */
   fun buildStarted() {}
+
+  /**
+   * Called when a clean build completes.
+   */
+  fun buildCleaned() {
+    // By default, we assume that a cleaned build means destroying the state we had and we treat it as a failed build.
+    buildFailed()
+  }
 }
 
 /**
@@ -97,15 +116,23 @@ fun setupBuildListener(
 
         override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
           // We do not call refresh if the build was not successful or if it was simply a clean build.
-          if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS && result.mode != ProjectSystemBuildManager.BuildMode.CLEAN) {
+          val isCleanBuild = result.mode == ProjectSystemBuildManager.BuildMode.CLEAN
+          if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS && !isCleanBuild) {
             forEachNonDisposedBuildListener(
               project,
               BuildListener::buildSucceeded)
           }
           else {
-            forEachNonDisposedBuildListener(
-              project,
-              BuildListener::buildFailed)
+            if (isCleanBuild) {
+              forEachNonDisposedBuildListener(
+                project,
+                BuildListener::buildCleaned)
+            }
+            else {
+              forEachNonDisposedBuildListener(
+                project,
+                BuildListener::buildFailed)
+            }
           }
         }
       })

@@ -420,7 +420,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override var hasLiveLiterals: Boolean = false
     private set(value) {
       field = value
-      LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+      if (value) LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(previewDeviceId, LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
 
   override val isLiveLiteralsEnabled: Boolean
@@ -563,6 +563,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         composeWorkBench.updateVisibilityAndNotifications()
         // Force updating toolbar icons after build
         ActivityTracker.getInstance().inc()
+      }
+
+      override fun buildCleaned() {
+        LOG.debug("buildCleaned")
+        // After a clean build, we can not re-load the classes so we need to invalidate the Live Literals.
+        LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
+        buildFailed()
       }
 
       override fun buildStarted() {
