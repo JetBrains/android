@@ -27,10 +27,8 @@ import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AbstractExpandableItemsHandler
-import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.ExpandableItemsHandlerFactory
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.TableCell
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
 import org.junit.After
@@ -46,8 +44,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import javax.swing.Icon
-import javax.swing.JList
-import javax.swing.JTable
+import javax.swing.JComponent
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 
@@ -327,16 +324,9 @@ class ViewTreeCellRendererTest {
   }
 
   private class TestExpandableItemsHandlerFactory : ExpandableItemsHandlerFactory() {
-    override fun doInstall(list: JList<*>): ExpandableItemsHandler<Int>? {
-      return null
-    }
-
-    override fun doInstall(tree: JTree): ExpandableItemsHandler<Int>? {
-      return TestTreeExpansionHandler(tree)
-    }
-
-    override fun doInstall(table: JTable): ExpandableItemsHandler<TableCell>? {
-      return null
+    override fun doInstall(component: JComponent) = when (component) {
+      is JTree -> TestTreeExpansionHandler(component)
+      else -> null
     }
   }
 }
