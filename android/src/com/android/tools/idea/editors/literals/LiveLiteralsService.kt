@@ -185,8 +185,11 @@ class LiveLiteralsService private constructor(private val project: Project,
     private fun clearAll() {
       if (Disposer.isDisposed(project)) return
       val highlightManager = HighlightManager.getInstance(project)
-      outHighlighters.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+      val highlightersToRemove = outHighlighters.toSet()
       outHighlighters.clear()
+      UIUtil.invokeLaterIfNeeded {
+        highlightersToRemove.forEach { highlightManager.removeSegmentHighlighter(editor, it) }
+      }
     }
 
     fun showHighlights() {
