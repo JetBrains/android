@@ -169,7 +169,7 @@ public class GradleSyncExecutor {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(GradleSettings.getInstance(project));
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, project, new File(externalProjectPath).toPath());
     GradleJvmResolutionUtil.setupGradleJvm(project, projectSettings, projectSettings.resolveGradleVersion());
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
