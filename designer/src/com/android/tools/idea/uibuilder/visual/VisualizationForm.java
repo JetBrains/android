@@ -43,9 +43,11 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
@@ -80,7 +82,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -112,7 +113,12 @@ public class VisualizationForm
   /**
    * horizontal gap between different previews
    */
-  @SwingCoordinate private static final int HORIZONTAL_SCREEN_DELTA = 100;
+  @SwingCoordinate private static final int GRID_HORIZONTAL_SCREEN_DELTA = 100;
+
+  /**
+   * custom horizontal gap between different previews for {@link TabletModelsProvider}.
+   */
+  @SwingCoordinate private static final int TABLET_HORIZONTAL_SCREEN_DELTA = 20;
 
   /**
    * vertical gap between different previews
@@ -147,6 +153,20 @@ public class VisualizationForm
   @NotNull private ConfigurationSet myCurrentConfigurationSet;
   @NotNull private VisualizationModelsProvider myCurrentModelsProvider;
 
+  @NotNull private NlDesignSurfacePositionableContentLayoutManager myLayoutManager;
+
+  private final TabletModelLayoutManager myTwoGridLayoutManager = new TabletModelLayoutManager(DEFAULT_SCREEN_OFFSET_X,
+                                                                                               DEFAULT_SCREEN_OFFSET_Y,
+                                                                                               TABLET_HORIZONTAL_SCREEN_DELTA,
+                                                                                               VERTICAL_SCREEN_DELTA,
+                                                                                               false);
+
+  private final GridSurfaceLayoutManager myGridSurfaceLayoutManager = new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
+                                                                                                   DEFAULT_SCREEN_OFFSET_Y,
+                                                                                                   GRID_HORIZONTAL_SCREEN_DELTA,
+                                                                                                   VERTICAL_SCREEN_DELTA,
+                                                                                                   false);
+
   /**
    * {@link CompletableFuture} of the next model load. This is kept so the load can be cancelled.
    */
@@ -160,6 +180,9 @@ public class VisualizationForm
     myProject = project;
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this);
+
+    SurfaceLayoutManager surfaceLayoutManager = myCurrentConfigurationSet == ConfigurationSet.Tablets.INSTANCE ?
+                                                myTwoGridLayoutManager : myGridSurfaceLayoutManager;
 
     mySurface = NlDesignSurface.builder(myProject, VisualizationForm.this)
       .showModelNames()
@@ -181,11 +204,7 @@ public class VisualizationForm
       })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface)surface, () -> myCurrentModelsProvider))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider))
-      .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
-                                                     DEFAULT_SCREEN_OFFSET_Y,
-                                                     HORIZONTAL_SCREEN_DELTA,
-                                                     VERTICAL_SCREEN_DELTA,
-                                                     false))
+      .setLayoutManager(surfaceLayoutManager)
       .setMinScale(0.10)
       .setMaxScale(4)
       .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
@@ -208,6 +227,8 @@ public class VisualizationForm
     else {
       mainComponent = myWorkBench;
     }
+
+    myLayoutManager = (NlDesignSurfacePositionableContentLayoutManager)mySurface.getSceneViewLayoutManager();
 
     myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
     myRoot.add(mainComponent, BorderLayout.CENTER);
@@ -703,6 +724,14 @@ public class VisualizationForm
       MultiViewMetricTrackerKt.trackOpenConfigSet(mySurface, myCurrentConfigurationSet);
       VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
       myCurrentModelsProvider = newConfigurationSet.createModelsProvider(this);
+
+      if (myCurrentConfigurationSet == ConfigurationSet.Tablets.INSTANCE) {
+        myLayoutManager.setLayoutManager(myTwoGridLayoutManager, DesignSurface.SceneViewAlignment.LEFT);
+      }
+      else {
+        myLayoutManager.setLayoutManager(myGridSurfaceLayoutManager, DesignSurface.SceneViewAlignment.LEFT);
+      }
+
       refresh();
     }
   }

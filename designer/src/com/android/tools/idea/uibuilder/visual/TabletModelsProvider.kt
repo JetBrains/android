@@ -22,9 +22,12 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -73,19 +76,59 @@ object TabletModelsProvider: VisualizationModelsProvider {
         val config = defaultConfig.clone()
         config.setDevice(device, false)
         config.deviceState = device.getState(orientation.shortDisplayValue)
-        var label = device.displayName
+        var label: String? = null
         val size = device.getScreenSize(orientation)
-        if (size != null) {
-          label = label + " (" + size.width + " x " + size.height + ")"
+        if (orientations.firstOrNull() == orientation) {
+          label = device.displayName
+          if (size != null) {
+            label = label + " (" + size.width + " x " + size.height + ")"
+          }
         }
         val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
-        models.add(NlModel.builder(facet, betterFile, config)
-                     .withParentDisposable(parentDisposable)
-                     .withModelDisplayName(label)
-                     .withComponentRegistrar { NlComponentHelper.registerComponent(it) }
-                     .build())
+        val builder = NlModel.builder(facet, betterFile, config).apply {
+          withParentDisposable(parentDisposable)
+          if (label != null) {
+            withModelDisplayName(label)
+          }
+          withComponentRegistrar { NlComponentHelper.registerComponent(it) }
+        }
+        models.add(builder.build())
       }
     }
     return models
+  }
+}
+
+/**
+ * A custom layout used by [TabletModelLayoutManager].
+ */
+class TabletModelLayoutManager(horizontalPadding: Int,
+                               verticalPadding: Int,
+                               horizontalViewDelta: Int,
+                               verticalViewDelta: Int,
+                               centralizeContent: Boolean = true)
+  : GridSurfaceLayoutManager(horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta, centralizeContent) {
+  override fun layoutGrid(content: Collection<PositionableContent>,
+                          availableWidth: Int,
+                          widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
+    if (content.isEmpty()) {
+      return listOf(emptyList())
+    }
+
+    val gridList = mutableListOf<List<PositionableContent>>()
+    var columnList = mutableListOf<PositionableContent>()
+    // Logically, every two contents are a pair of PORTRAIT and LANDSCAPE. A pair is a row in this Layout.
+    for (view in content) {
+      columnList.add(view)
+      if (columnList.size == 2) {
+        gridList.add(columnList)
+        columnList = mutableListOf()
+      }
+    }
+    if (columnList.isNotEmpty()) {
+      Logger.getInstance(TabletModelsProvider.javaClass).error("The tablet orientation is not paired")
+      gridList.add(columnList)
+    }
+    return gridList
   }
 }

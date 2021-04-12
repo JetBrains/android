@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * the different {@link PositionableContent}s.
  * The {@link SurfaceLayoutManager} can be switch at runtime.
  */
-class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager implements LayoutManagerSwitcher {
+public class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager implements LayoutManagerSwitcher {
   @NotNull private final NlDesignSurface myDesignSurface;
   @NotNull private SurfaceLayoutManager myLayoutManager;
 

@@ -27,11 +27,11 @@ import kotlin.math.max
  * The [horizontalViewDelta] and [verticalViewDelta] are the gaps between different [PositionableContent]s.
  * The [centralizeContent] decides if the content should be placed at the center when the content is smaller then the surface size.
  */
-class GridSurfaceLayoutManager(private val horizontalPadding: Int,
-                               private val verticalPadding: Int,
-                               private val horizontalViewDelta: Int,
-                               private val verticalViewDelta: Int,
-                               private val centralizeContent: Boolean = true)
+open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
+                                    private val verticalPadding: Int,
+                                    private val horizontalViewDelta: Int,
+                                    private val verticalViewDelta: Int,
+                                    private val centralizeContent: Boolean = true)
   : SurfaceLayoutManager {
 
   private var previousHorizontalPadding = 0
@@ -78,9 +78,9 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
    * Arrange [PositionableContent]s into a 2-dimension list which represent a list of row of [PositionableContent].
    * The [widthFunc] is for getting the preferred widths of [PositionableContent]s when filling the horizontal spaces.
    */
-  private fun layoutGrid(content: Collection<PositionableContent>,
-                         availableWidth: Int,
-                         widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
+  protected open fun layoutGrid(content: Collection<PositionableContent>,
+                                availableWidth: Int,
+                                widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
     if (content.isEmpty()) {
       return listOf(emptyList())
     }
