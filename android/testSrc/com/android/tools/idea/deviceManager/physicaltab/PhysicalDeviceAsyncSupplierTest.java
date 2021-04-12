@@ -43,6 +43,8 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Path adb = Jimfs.newFileSystem(Configuration.unix()).getPath("/home/user/Android/Sdk/platform-tools/adb");
 
     IDevice device = Mockito.mock(IDevice.class);
+    Mockito.when(device.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 3"));
+    Mockito.when(device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
     Mockito.when(device.getSerialNumber()).thenReturn("86UX00F4R");
 
     AndroidDebugBridge bridge = Mockito.mock(AndroidDebugBridge.class);
@@ -66,6 +68,7 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Object physicalDevice = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
       .setLastOnlineTime(onlineTime)
+      .setName("Google Pixel 3")
       .setOnline(true)
       .build();
 
