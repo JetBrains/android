@@ -80,7 +80,6 @@ PROJECT                       : MainActivity
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4
-                coroutinesState               : default
                 languageVersion               : 1.4
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -98,13 +97,11 @@ PROJECT                       : MainActivity
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
-            CoroutineSupport              : ENABLED_WITH_WARNING
             IsTestModule                  : false
             Kind                          : DEFAULT
             LanguageLevel                 : 1.4
             MergedCompilerArguments
                 apiVersion                    : 1.4
-                coroutinesState               : default
                 languageVersion               : 1.4
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -389,7 +386,6 @@ PROJECT                       : MainActivity
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4
-                coroutinesState               : default
                 languageVersion               : 1.4
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
@@ -407,13 +403,11 @@ PROJECT                       : MainActivity
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
-            CoroutineSupport              : ENABLED_WITH_WARNING
             IsTestModule                  : false
             Kind                          : DEFAULT
             LanguageLevel                 : 1.4
             MergedCompilerArguments
                 apiVersion                    : 1.4
-                coroutinesState               : default
                 languageVersion               : 1.4
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
