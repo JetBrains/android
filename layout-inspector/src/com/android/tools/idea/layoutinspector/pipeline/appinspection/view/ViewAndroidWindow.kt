@@ -120,8 +120,7 @@ class ViewAndroidWindow(
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logInitialRender(ImageType.SKP)
       ViewNode.writeDrawChildren { drawChildren ->
-        rootView.flatten().forEach { it.drawChildren().clear() }
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(rootView)
       }
     }
   }

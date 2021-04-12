@@ -126,7 +126,7 @@ open class ViewNode(
     get() = generateSequence(this) { it.parent }
 
   // Views and images that will be drawn.
-  // TODO: Figure out whether order of child nodes here and in [children] will always be the same.
+  // The order here and in children can be different at least due to how compose->view transitions are grafted in.
   private val drawChildren = mutableListOf<DrawViewNode>()
 
   var tag: XmlTag?
@@ -143,6 +143,10 @@ open class ViewNode(
 
   fun flatten(): Sequence<ViewNode> {
     return children.asSequence().flatMap { it.flatten() }.plus(this)
+  }
+
+  fun preOrderFlatten(): Sequence<ViewNode> {
+    return sequenceOf(this).plus(children.asSequence().flatMap { it.flatten() })
   }
 
   companion object {

@@ -55,7 +55,7 @@ object CheckUtil {
 
   private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode) {
     if (expected is DrawViewChild && actual is DrawViewChild) {
-      assertDrawTreesEqual(expected.owner!!, actual.owner!!)
+      assertDrawTreesEqual(expected.unfilteredOwner, actual.unfilteredOwner)
     }
     else if (expected is DrawViewImage && actual is DrawViewImage) {
       if (expected.image !is BufferedImage) {
