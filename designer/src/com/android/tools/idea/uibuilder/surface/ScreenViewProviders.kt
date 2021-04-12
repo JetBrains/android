@@ -179,6 +179,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         // Always has border in visualization tool.
         add(BorderLayer(it))
         add(ScreenViewLayer(it))
+        add(WarningLayer(it))
       }.build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
