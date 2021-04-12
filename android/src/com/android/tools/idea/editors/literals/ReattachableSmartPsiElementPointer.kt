@@ -24,6 +24,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentsOfType
+import com.intellij.serviceContainer.AlreadyDisposedException
 import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.idea.core.util.start
 
@@ -52,14 +53,19 @@ class ReattachableSmartPsiElementPointer(originalElement: PsiElement): SmartPsiE
     else {
       // Try to reattach. Now we use a simple heuristic where, we get the element at the same offset. If it's from the same type (class),
       // then we re-attach the pointer to that one.
-      ReadAction.run<Throwable> {
-        elementPointer.containingFile
-          ?.findElementAt(originalStartOffset)
-          ?.parentsOfType(originalElementClass, true)
-          ?.firstOrNull { it.range.start == originalStartOffset }
-          ?.let {
-            elementPointer = SmartPointerManager.createPointer(it)
-          }
+      try {
+        ReadAction.run<Throwable> {
+          elementPointer.containingFile
+            ?.findElementAt(originalStartOffset)
+            ?.parentsOfType(originalElementClass, true)
+            ?.firstOrNull { it.range.start == originalStartOffset }
+            ?.let {
+              elementPointer = SmartPointerManager.createPointer(it)
+            }
+        }
+      }
+      catch (_: AlreadyDisposedException) {
+        // The project was probably disposed while waiting for the read lock
       }
       elementPointer
     }
