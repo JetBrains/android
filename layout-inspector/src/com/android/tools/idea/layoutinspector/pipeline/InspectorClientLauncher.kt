@@ -47,7 +47,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
                               private val processes: ProcessesModel,
                               private val clientCreators: List<(Params) -> InspectorClient?>,
                               private val parentDisposable: Disposable,
-                              @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
+                              @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
 
     /**
@@ -162,7 +162,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
       if (field != value) {
         field = value
         if (!activeClient.isConnected && value) {
-          handleProcess(processes.selectedProcess)
+          executor.execute { handleProcess(processes.selectedProcess) }
         }
       }
     }
