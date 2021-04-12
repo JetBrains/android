@@ -86,6 +86,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -985,7 +986,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       finally {
         refreshCallsCount.decrementAndGet()
         composeWorkBench.updateVisibilityAndNotifications()
-        Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"), project)
+        UIUtil.invokeLaterIfNeeded {
+          if (!(composeWorkBench as ComposePreviewViewImpl).isMessageVisible) {
+            // Only notify the preview refresh time if there are previews to show.
+            Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"), project)
+          }
+        }
         refreshProgressIndicator.processFinish()
       }
     }
