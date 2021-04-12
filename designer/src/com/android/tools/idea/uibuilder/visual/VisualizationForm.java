@@ -243,6 +243,15 @@ public class VisualizationForm
     actionToolbar.updateActionsImmediately();
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
+
+    if (StudioFlags.NELE_VISUAL_LINT.get()) {
+      DefaultActionGroup lintGroup = new DefaultActionGroup();
+      lintGroup.add(new IssuePanelToggleAction(mySurface));
+      ActionToolbar lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true);
+      lintToolbar.updateActionsImmediately();
+      ActionToolbarUtil.makeToolbarNavigable(lintToolbar);
+      myActionToolbarPanel.add(lintToolbar.getComponent(), BorderLayout.EAST);
+    }
   }
 
   private void createContentPanel() {
