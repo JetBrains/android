@@ -68,7 +68,7 @@ class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
     // dependency
 
     projectRule.loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT) // project not using AndroidX
-    assertBuildGradle(projectRule) { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
+    assertBuildGradle(projectRule.project) { !it.contains("com.android.support:recyclerview-v7:") } // not already using recyclerview
 
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
@@ -95,7 +95,7 @@ class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
       action.perform(projectRule.project, projectRule.fixture.editor, element, true)
     }
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'com.android.support:recyclerview-v7:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'com.android.support:recyclerview-v7:") }
 
     // Also make sure the action doesn't apply elsewhere, such as on the "MainActivity2" identifier:
     assertThat(
@@ -123,7 +123,7 @@ class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
   fun unresolvedSymbolInJava() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
     projectRule.loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)
-    assertBuildGradle(projectRule) { !it.contains("com.android.support:recyclerview-v7:") }
+    assertBuildGradle(projectRule.project) { !it.contains("com.android.support:recyclerview-v7:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -142,7 +142,7 @@ class AndroidMavenImportIntentionActionSuggestedImportDisabledTest {
       action.perform(projectRule.project, projectRule.fixture.editor, element, true)
     }
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'com.android.support:recyclerview-v7:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'com.android.support:recyclerview-v7:") }
 
     // Make sure we've imported the RecyclerView correctly as well
     val newSource = projectRule.fixture.editor.document.text

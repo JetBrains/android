@@ -72,7 +72,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
     // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       val view = RecyclerView() // Here RecyclerView is an unresolvable symbol
@@ -88,7 +88,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
 
     // Make sure we've imported the RecyclerView correctly as well, including transforming to AndroidX package name
     val newSource = projectRule.fixture.editor.document.text
@@ -113,7 +113,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // is tricky to set up so we call the import utility directly and in that case it's up to us
     // to ensure that it's not done redundantly)
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       import androidx.recyclerview.widget.RecyclerView
@@ -130,7 +130,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
 
     // Make sure we've haven't added a second import statement; the source code should not have changed
     val newSource = projectRule.fixture.editor.document.text
@@ -144,7 +144,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // unresolvable package segment. In this case, we have to search a little harder to
     // find the real corresponding library to import.
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -162,7 +162,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
 
     // Make sure we haven't modified the source to add a new import statement since the
     // reference is already fully qualified
@@ -176,7 +176,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
     // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       val view = androidx.recyclerview.widget.RecyclerView() // Here RecyclerView is an unresolvable symbol
@@ -192,7 +192,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
 
     // Make sure we haven't added an import statement since the reference is already fully qualified
     val newSource = projectRule.fixture.editor.document.text
@@ -203,7 +203,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
   fun testKtx() {
     // Make sure that if we import a symbol from Kotlin and a ktx library is available, we pick it
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.palette:palette:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.palette:palette-ktx:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
       val palette = Palette() // Here "Palette" is an unresolvable symbol
@@ -219,7 +219,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.palette:palette-ktx:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.palette:palette-ktx:") }
 
     // Make sure we've imported the RecyclerView correctly as well
     val newSource = projectRule.fixture.editor.document.text
@@ -240,7 +240,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
   fun testNotKtx() {
     // Make sure that if we import a symbol from Java and a ktx library is available, we don't pick the ktx version
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.palette:palette:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.palette:palette:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -257,14 +257,14 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.palette:palette:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.palette:palette:") }
   }
 
   @Test
   fun testAnnotationProcessor() {
     // Ensure that if an annotation processor is available, we also add it
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) { !it.contains("androidx.palette:palette-v7:") }
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.room:room-runtime:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -281,7 +281,7 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     // in the test prebuilts right now
     performWithoutSync(projectRule, action, element)
 
-    assertBuildGradle(projectRule) { it.contains("implementation 'androidx.room:room-runtime:") }
-    assertBuildGradle(projectRule) { it.contains("annotationProcessor 'androidx.room:room-compiler:") }
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.room:room-runtime:") }
+    assertBuildGradle(projectRule.project) { it.contains("annotationProcessor 'androidx.room:room-compiler:") }
   }
 }
