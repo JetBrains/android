@@ -1267,12 +1267,21 @@ public class LayoutlibSceneManager extends SceneManager {
    *
    * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
+  @NotNull
   public CompletableFuture<Void> updateModel() {
+    return updateModelAndProcessResults(result -> null);
+  }
+
+  /**
+   * Asynchronously update the model and apply the provided processing to the {@link RenderResult}.
+   */
+  @NotNull
+  public CompletableFuture<Void> updateModelAndProcessResults(Function<? super RenderResult, Void> resultProcessing) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
     return inflate(true)
-      .thenApply(result -> null);
+      .thenApply(resultProcessing);
   }
 
   protected void notifyListenersModelLayoutComplete(boolean animate) {

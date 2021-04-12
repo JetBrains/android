@@ -28,21 +28,26 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.PanZoomListener;
+import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -73,8 +78,12 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -139,6 +148,7 @@ public class VisualizationForm
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
+  @NotNull private final Map<NlModel, IssueProvider> myIssueProviders = new HashMap<>();
 
   public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
@@ -298,6 +308,10 @@ public class VisualizationForm
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
     for (NlModel model : models) {
+      IssueProvider provider = myIssueProviders.remove(model);
+      if (provider != null) {
+        mySurface.getIssueModel().removeIssueProvider(provider);
+      }
       mySurface.removeModel(model);
       Disposer.dispose(model);
     }
@@ -573,6 +587,11 @@ public class VisualizationForm
       myCancelRenderingTaskLock.unlock();
     }
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    IssueModel issueModel = mySurface.getIssueModel();
+    for (IssueProvider provider : myIssueProviders.values()) {
+      issueModel.removeIssueProvider(provider);
+    }
+    myIssueProviders.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
@@ -580,7 +599,22 @@ public class VisualizationForm
           return CompletableFuture.completedFuture(null);
         }
         else {
-          CompletableFuture<Void> modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
+          CompletableFuture<Void> modelUpdateFuture;
+          if (StudioFlags.NELE_VISUAL_LINT.get()) {
+            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModelAndProcessResults(result -> {
+              if (result != null) {
+                Collection<RenderErrorModel.Issue> issues = VisualLintAnalysisKt.analyze(result);
+                NlModel model = manager.getModel();
+                IssueProvider provider = new RenderIssueProvider(model, new RenderErrorModel(issues));
+                myIssueProviders.put(model, provider);
+                issueModel.addIssueProvider(provider);
+              }
+              return null;
+            });
+          }
+          else {
+            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
+          }
           if (isRenderingCanceled.get()) {
             return CompletableFuture.completedFuture(null);
           }
