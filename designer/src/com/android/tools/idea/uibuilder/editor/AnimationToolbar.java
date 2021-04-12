@@ -111,7 +111,8 @@ public class AnimationToolbar extends JPanel implements Disposable {
     myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP,
                                      AnimationToolbarAction.PAUSE, this::onPause);
     myPauseButton.setEnabled(true);
-    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", DEFAULT_STOP_TOOLTIP,
+    // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
+    myStopButton = newControlButton(StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
                                     AnimationToolbarAction.STOP, this::onStop);
     myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", DEFAULT_FRAME_FORWARD_TOOLTIP,
                                         AnimationToolbarAction.FRAME_FORWARD, this::onFrameFwd);
