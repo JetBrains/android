@@ -303,7 +303,7 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
 class ContentManager(val project: Project) {
   init {
     ToolWindowManager.getInstance(project).registerToolWindow(
-      RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.GradleFile))
+      RegisterToolWindowTask.closable("Upgrade Assistant", icons.GradleIcons.ToolWindowGradle))
   }
 
   fun showContent() {
