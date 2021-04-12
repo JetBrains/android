@@ -144,7 +144,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
     ViewNode.readDrawChildren { drawChildren ->
-      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
+      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, levelLists.size, drawChildren) }
     }
     maxDepth = levelLists.size
 
@@ -179,6 +179,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
   private fun buildLevelLists(node: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int,
+                              previousLevel: Int,
                               drawChildren: ViewNode.() -> List<DrawViewNode>) {
     var newLevelIndex = minLevel
     val owner = node.owner
@@ -194,7 +195,9 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
       var shouldDraw = true
       var isCollapsed = false
       // If we can collapse, merge into the layer we found if it's the same as our parent node's layer
-      if (node.canCollapse && newLevelIndex <= 0) {
+      if (node.canCollapse && newLevelIndex <= previousLevel &&
+          (levelListCollector.getOrNull(previousLevel)?.any { it.node.owner == node.owner } == true ||
+           (newLevelIndex == -1 && node.owner == null))) {
         isCollapsed = true
         shouldDraw = node.drawWhenCollapsed
         if (newLevelIndex == -1) {
@@ -217,15 +220,17 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
       }
     }
     for (drawChild in node.children(drawChildren)) {
-      buildLevelLists(drawChild, levelListCollector, newLevelIndex, drawChildren)
+      buildLevelLists(drawChild, levelListCollector, 0, newLevelIndex, drawChildren)
     }
   }
 
-  private fun rebuildRectsForLevel(transform: AffineTransform,
-                                   magnitude: Double,
-                                   angle: Double,
-                                   allLevels: List<List<LevelListItem>>,
-                                   newHitRects: MutableList<ViewDrawInfo>) {
+  private fun rebuildRectsForLevel(
+    transform: AffineTransform,
+    magnitude: Double,
+    angle: Double,
+    allLevels: List<List<LevelListItem>>,
+    newHitRects: MutableList<ViewDrawInfo>
+  ) {
     val ownerToLevel = mutableMapOf<ViewNode?, Int>()
 
     allLevels.forEachIndexed { level, levelList ->
