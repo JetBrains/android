@@ -61,7 +61,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   fun testUnresolvedSymbol_nonAndroidX() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
     projectRule.loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)
-    assertBuildGradle(projectRule) { !it.contains("com.android.support:recyclerview-v7:") }
+    assertBuildGradle(projectRule.project) { !it.contains("com.android.support:recyclerview-v7:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -78,8 +78,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   @Test
   fun doNotSuggestIfAnyIsAlreadyDepended() {
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) {
-      !it.contains("androidx.palette:palette:") &&
+    assertBuildGradle(projectRule.project) {
       !it.contains("androidx.palette:palette-ktx:") &&
       !it.contains("androidx.room:room-runtime:")
     }
@@ -102,8 +101,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
     performWithoutSync(projectRule, action, element)
 
     // The deterministic order of suggestions are ensured, so the first option `androidx.palette:palette` is applied.
-    assertBuildGradle(projectRule) {
-      it.contains("implementation 'androidx.palette:palette:") &&
+    assertBuildGradle(projectRule.project) {
       it.contains("implementation 'androidx.palette:palette-ktx:")
     }
 

@@ -21,12 +21,15 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.lint.detector.api.isKotlin
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.undo.GlobalUndoableAction
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -137,13 +140,50 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     importSymbol: String?,
     sync: Boolean
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    var future: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
+    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
+
+    var syncFuture: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
     WriteCommandAction.runWriteCommandAction(project) {
-      future = performWithLock(project, element, artifact, importSymbol, sync)
+      if (sync) {
+        syncFuture = performWithLockAndSync(project, module, element, artifact, importSymbol)
+      }
+      else {
+        performWithLock(project, module, element, artifact, importSymbol)
+      }
     }
 
     trackSuggestedImport(artifact)
-    return future
+    return syncFuture
+  }
+
+  private fun performWithLockAndSync(
+    project: Project,
+    module: Module,
+    element: PsiElement,
+    artifact: String,
+    importSymbol: String?
+  ): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
+    // Register sync action for undo.
+    UndoManager.getInstance(project).undoableActionPerformed(object : GlobalUndoableAction() {
+      override fun undo() {
+        project.requestSync()
+      }
+
+      override fun redo() {}
+    })
+
+    performWithLock(project, module, element, artifact, importSymbol)
+
+    // Register sync action for redo.
+    UndoManager.getInstance(project).undoableActionPerformed(object : GlobalUndoableAction() {
+      override fun undo() {}
+
+      override fun redo() {
+        project.requestSync()
+      }
+    })
+
+    return project.getProjectSystem().getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
   }
 
   /**
@@ -153,13 +193,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
    */
   private fun performWithLock(
     project: Project,
+    module: Module,
     element: PsiElement,
     artifact: String,
-    importSymbol: String?,
-    sync: Boolean
-  ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
-    val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
-
+    importSymbol: String?
+  ) {
     // Import the class as well (if possible); otherwise it might be confusing that you have to invoke two
     // separate intention actions in order to get your symbol resolved
     if (importSymbol != null) {
@@ -180,15 +218,6 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
         addDependency(module, annotationProcessor, DependencyType.ANNOTATION_PROCESSOR)
       }
-    }
-
-    return if (sync) {
-      val projectSystem = project.getProjectSystem()
-      val syncManager = projectSystem.getSyncManager()
-      syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
-    }
-    else {
-      null
     }
   }
 
@@ -217,6 +246,20 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
 
     return true
+  }
+
+  private fun Project.requestSync() {
+    val syncManager = getProjectSystem().getSyncManager()
+    if (syncManager.isSyncInProgress()) {
+      listenUntilNextSync(this, object : ProjectSystemSyncManager.SyncResultListener {
+        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+          syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+        }
+      })
+    }
+    else {
+      syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
+    }
   }
 
   private fun addDependency(module: Module, artifact: String, type: DependencyType = DependencyType.IMPLEMENTATION) {
