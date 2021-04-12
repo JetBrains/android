@@ -336,7 +336,6 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
       head("CompilerSettings") { null }
       dump(compilerSettings)
     }
-    prop("CoroutineSupport") { coroutineSupport?.toString() }
     prop("ExternalProjectId") { externalProjectId.nullize() }
     implementedModuleNames.forEach { prop("- ImplementedModuleName") { it } }
     prop("IsTestModule") { isTestModule.toString() }
@@ -363,7 +362,6 @@ private fun ProjectDumper.dump(compilerArguments: CommonCompilerArguments) {
     prop("autoAdvanceApiVersion") { compilerArguments.autoAdvanceApiVersion.takeIf { it }?.toString() }
     prop("autoAdvanceLanguageVersion") { compilerArguments.autoAdvanceLanguageVersion.takeIf { it }?.toString() }
     compilerArguments.commonSources?.forEach { prop("- commonSources") { it } }
-    prop("coroutinesState") { compilerArguments.coroutinesState }
     compilerArguments.disablePhases?.forEach { prop("- disablePhases") { it } }
     prop("dumpPerf") { compilerArguments.dumpPerf }
     prop("effectSystem") { compilerArguments.effectSystem.takeIf { it }?.toString() }
