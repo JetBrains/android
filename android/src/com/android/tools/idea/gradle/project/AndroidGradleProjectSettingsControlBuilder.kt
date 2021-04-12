@@ -304,7 +304,7 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
     val externalProjectPath = myInitialSettings.externalProjectPath
     val projectSdk = comboBox.model.sdksModel.projectSdk
     val gradleJvm = comboBox.getSelectedGradleJvmReference(sdkLookupProvider)
-    return sdkLookupProvider.nonblockingResolveGradleJvmInfo(projectSdk, externalProjectPath, gradleJvm)
+    return sdkLookupProvider.nonblockingResolveGradleJvmInfo(comboBox.model.project, projectSdk, externalProjectPath, gradleJvm)
   }
 
   private fun wrapExceptions(runnable: ThrowableRunnable<Throwable>) {
