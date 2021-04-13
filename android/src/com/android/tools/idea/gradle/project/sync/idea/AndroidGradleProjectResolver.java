@@ -701,7 +701,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
         androidModuleModelNode.getData()
       );
     } else {
-      ContentRootUtilKt.setupAndroidContentEntries(ideModule);
+      ContentRootUtilKt.setupAndroidContentEntries(ideModule, null);
     }
   }
 
