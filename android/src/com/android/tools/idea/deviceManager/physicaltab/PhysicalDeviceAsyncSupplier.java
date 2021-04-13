@@ -18,15 +18,11 @@ package com.android.tools.idea.deviceManager.physicaltab;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellEnabledDevice;
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FluentFuture;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.JdkFutureAdapters;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -38,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -51,14 +46,14 @@ final class PhysicalDeviceAsyncSupplier {
   private final @NotNull ListeningExecutorService myService;
   private final @NotNull Function<@Nullable Project, @NotNull Path> myGetAdb;
   private final @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> myGetDebugBridge;
-  private final @NotNull Supplier<@NotNull OnlineTimeService> myOnlineTimeServiceGetInstance;
+  private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
 
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
     this(project,
          MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
          PhysicalDeviceAsyncSupplier::getAdb,
          PhysicalDeviceAsyncSupplier::getDebugBridge,
-         OnlineTimeService::getInstance);
+         BuilderService::getInstance);
   }
 
   @VisibleForTesting
@@ -66,12 +61,12 @@ final class PhysicalDeviceAsyncSupplier {
                               @NotNull ListeningExecutorService service,
                               @NotNull Function<@Nullable Project, @NotNull Path> getAdb,
                               @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge,
-                              @NotNull Supplier<@NotNull OnlineTimeService> onlineTimeServiceGetInstance) {
+                              @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance) {
     myProject = project;
     myService = service;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
-    myOnlineTimeServiceGetInstance = onlineTimeServiceGetInstance;
+    myBuilderServiceGetInstance = builderServiceGetInstance;
   }
 
   /**
@@ -119,52 +114,15 @@ final class PhysicalDeviceAsyncSupplier {
    */
   @WorkerThread
   private @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+    BuilderService service = myBuilderServiceGetInstance.get();
+
     Iterable<ListenableFuture<PhysicalDevice>> futures = devices.stream()
       .filter(device -> !device.isEmulator())
-      .map(this::buildPhysicalDevice)
+      .map(service::build)
       .collect(Collectors.toList());
 
     // noinspection UnstableApiUsage
     return FluentFuture.from(Futures.successfulAsList(futures)).transform(PhysicalDeviceAsyncSupplier::filterSuccessful, myService);
-  }
-
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
-  private @NotNull ListenableFuture<@NotNull PhysicalDevice> buildPhysicalDevice(@NotNull IDevice device) {
-    ListenableFuture<String> modelFuture = getSystemProperty(device, IDevice.PROP_DEVICE_MODEL);
-    ListenableFuture<String> manufacturerFuture = getSystemProperty(device, IDevice.PROP_DEVICE_MANUFACTURER);
-
-    // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(modelFuture, manufacturerFuture)
-      .call(() -> buildPhysicalDevice(device, modelFuture, manufacturerFuture), myService);
-  }
-
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
-  private @NotNull ListenableFuture<@NotNull String> getSystemProperty(@NotNull IShellEnabledDevice device, @NotNull String property) {
-    // noinspection UnstableApiUsage
-    return JdkFutureAdapters.listenInPoolThread(device.getSystemProperty(property), myService);
-  }
-
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
-  private @NotNull PhysicalDevice buildPhysicalDevice(@NotNull IDevice device,
-                                                      @NotNull Future<@NotNull String> modelFuture,
-                                                      @NotNull Future<@NotNull String> manufacturerFuture) {
-    String serialNumber = device.getSerialNumber();
-
-    return new PhysicalDevice.Builder()
-      .setSerialNumber(serialNumber)
-      .setLastOnlineTime(myOnlineTimeServiceGetInstance.get().get(serialNumber))
-      .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
-      .setOnline(true)
-      .build();
   }
 
   /**
