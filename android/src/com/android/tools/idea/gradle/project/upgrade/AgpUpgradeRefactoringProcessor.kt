@@ -1074,7 +1074,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             }
             psiElement?.let {
               val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
-              usages.add(WellKnownGradlePluginUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
+              usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
             }
           }
         }
@@ -1223,7 +1223,7 @@ class GradleVersionUsageInfo(
   fun String.escapeColons() = this.replace(":", "\\:")
 }
 
-class WellKnownGradlePluginUsageInfo(
+class WellKnownGradlePluginDependencyUsageInfo(
   element: WrappedPsiElement,
   val dependency: ArtifactDependencyModel,
   val resultModel: GradlePropertyModel,
