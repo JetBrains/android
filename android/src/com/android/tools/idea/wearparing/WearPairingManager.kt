@@ -28,12 +28,14 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.project.AndroidNotification
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.wearparing.ConnectionState.OFFLINE
 import com.android.tools.idea.wearparing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -43,21 +45,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.android.util.AndroidBundle.message
+
+private val LOG get() = logger<WearPairingManager>()
 
 object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
-  private val LOG get() = logger<WearPairingManager>()
   private val updateDevicesChannel = Channel<Unit>(1)
 
   private var runningJob: Job? = null
   private var listHolder: ObjectValueProperty<List<PairingDevice>> = ObjectValueProperty(emptyList())
+  private var linkClickedAction: (Boolean) -> Unit = {}
 
-  private var keepAlivePhoneIsOnline = false
-  private var keepAlivePhone: PairingDevice? = null
-  private var keepAliveWear: PairingDevice? = null
+  private var pairedDevicesAreOnline = false
+  private var pairedPhoneDevice: PairingDevice? = null
+  private var pairedWearDevice: PairingDevice? = null
 
   @Synchronized
-  fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>) {
+  fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>, linkClickedAction: (Boolean) -> Unit) {
     this.listHolder = listHolder
+    this.linkClickedAction = linkClickedAction
 
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
@@ -77,22 +83,22 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   @Synchronized
   fun setKeepForwardAlive(phone: PairingDevice, wear: PairingDevice) {
-    keepAlivePhone = phone.disconnectedCopy(isPaired = true)
-    keepAliveWear = wear.disconnectedCopy(isPaired = true)
-    keepAlivePhoneIsOnline = phone.isOnline()
+    pairedPhoneDevice = phone.disconnectedCopy(isPaired = true)
+    pairedWearDevice = wear.disconnectedCopy(isPaired = true)
+    pairedDevicesAreOnline = phone.isOnline() && wear.isOnline()
     updateDevicesChannel.offer(Unit)
   }
 
   @Synchronized
   fun getKeepForwardAlive(): Pair<PairingDevice?, PairingDevice?> {
-    return Pair(keepAlivePhone, keepAliveWear)
+    return Pair(pairedPhoneDevice, pairedWearDevice)
   }
 
   @Synchronized
   fun removeKeepForwardAlive() {
     GlobalScope.launch(Dispatchers.IO) {
       try {
-        val phoneDeviceID = keepAlivePhone?.deviceID ?: return@launch
+        val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return@launch
         getConnectedDevices()[phoneDeviceID]?.apply {
           LOG.warn("REMOVE AUTO-forward $name")
           runCatching { removeForward(5601, 5601) }
@@ -102,8 +108,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         LOG.warn(ex)
       }
 
-      keepAlivePhone = null
-      keepAliveWear = null
+      pairedPhoneDevice = null
+      pairedWearDevice = null
       updateDevicesChannel.offer(Unit)
     }
   }
@@ -140,10 +146,10 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     }
 
     // Add "keep alive phone/wear" (if not added already), so they will be should as "disconnected"
-    keepAlivePhone?.apply {
+    pairedPhoneDevice?.apply {
       deviceTable.putIfAbsent(deviceID, this)
     }
-    keepAliveWear?.apply {
+    pairedWearDevice?.apply {
       deviceTable.putIfAbsent(deviceID, this)
     }
 
@@ -162,37 +168,31 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private suspend fun updateForwardState(onlineDevices: Map<String, IDevice>) {
-    val keepAlivePhoneId = keepAlivePhone?.deviceID ?: return
-    val keepAlivePhoneDisplayName = keepAlivePhone?.displayName ?: return
+    val keepAlivePhone = this.pairedPhoneDevice ?: return
+    val keepAliveWear = this.pairedWearDevice ?: return
+    val onlinePhone = onlineDevices[keepAlivePhone.deviceID]
+    val onlineWear = onlineDevices[keepAliveWear.deviceID]
+    val bothDeviceOnline = onlinePhone != null && onlineWear != null
     try {
-      onlineDevices[keepAlivePhoneId]?.apply {
-        if (!keepAlivePhoneIsOnline) {
-          runCatching { createForward(5601, 5601) }
-
-          val notificationText = "Added adb port forward to $keepAlivePhoneDisplayName"
-
-          LOG.warn(notificationText)
-          ProjectManager.getInstance().openProjects.forEach {
-            AndroidNotification.getInstance(it).showBalloon("Wear OS Emulator Pairing Assistant", notificationText, INFORMATION)
-          }
-
-          val keepAliveWearId = keepAliveWear?.deviceID ?: ""
-          val keepAliveWearDisplayName = keepAliveWear?.displayName ?: ""
-          onlineDevices[keepAliveWearId]?.apply {
-            LOG.warn("Restarting Wear Process for $keepAliveWearDisplayName")
-            restartGmsCore(this)
-          }
-        }
+      if (bothDeviceOnline && !pairedDevicesAreOnline) {
+        // Both device are online, and before one (or both) were offline. Time to bridge
+        createDeviceBridge(onlinePhone!!, onlineWear!!)
+        showReconnectMessageBalloon(keepAlivePhone.displayName, keepAliveWear.displayName, linkClickedAction)
+      }
+      else if (!bothDeviceOnline && pairedDevicesAreOnline) {
+        // One (or both) devices are offline, and before were online. Show "connection dropped" message
+        val offlineName = if (onlinePhone == null) keepAlivePhone.displayName else keepAliveWear.displayName
+        showConnectionDroppedBalloon(offlineName, keepAlivePhone.displayName, keepAliveWear.displayName, linkClickedAction)
       }
     }
     catch (ex: Throwable) {
       LOG.warn(ex)
     }
 
-    keepAlivePhoneIsOnline = onlineDevices[keepAlivePhoneId]?.isOnline ?: false
+    pairedDevicesAreOnline = bothDeviceOnline
   }
 
-  private fun isPaired(deviceID: String): Boolean = (deviceID == keepAlivePhone?.deviceID || deviceID == keepAliveWear?.deviceID)
+  private fun isPaired(deviceID: String): Boolean = (deviceID == pairedPhoneDevice?.deviceID || deviceID == pairedWearDevice?.deviceID)
 }
 
 private const val GMS_PACKAGE = "com.google.android.gms"
@@ -226,6 +226,7 @@ suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
 }
 
 private suspend fun restartGmsCore(device: IDevice) {
+  LOG.warn("Restarting Wear Process for ${device.name}")
   device.executeShellCommand("am force-stop $GMS_PACKAGE") // Kill wear gms core service
 
   // Wait for the Wear GMS Core process to start.
@@ -278,5 +279,32 @@ private fun IDevice.getDeviceID(): String {
     avdName != null -> avdName!!
     isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
     else -> name
+  }
+}
+
+private fun showReconnectMessageBalloon(phoneName: String, wearName: String, linkAction: (Boolean) -> Unit) =
+  showMessageBalloon(
+    message("wear.assistant.device.connection.reconnected.title"),
+    message("wear.assistant.device.connection.reconnected.message", wearName, phoneName),
+    linkAction
+  )
+
+private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String, wearName: String, linkAction: (Boolean) -> Unit) =
+  showMessageBalloon(
+    message("wear.assistant.device.connection.dropped.title"),
+    message("wear.assistant.device.connection.dropped.message", offlineName, wearName, phoneName),
+    linkAction
+  )
+
+private fun showMessageBalloon(title: String, text: String, linkAction: (Boolean) -> Unit) {
+  val hyperlink = object: NotificationHyperlink("launchAssistant", message("wear.assistant.device.connection.balloon.link")) {
+    override fun execute(project: Project) {
+      linkAction(true)
+    }
+  }
+
+  LOG.warn(text)
+  ProjectManager.getInstance().openProjects.forEach {
+    AndroidNotification.getInstance(it).showBalloon(title, "$text<br/>", INFORMATION, hyperlink)
   }
 }
