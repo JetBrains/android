@@ -24,3 +24,28 @@ iml_module(
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
     ],
 )
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.app-inspection.inspectors.network.ide.tests",
+    iml_files = ["intellij.android.app-inspection.inspectors.network.ide.tests.iml"],
+    test_class = "com.android.tools.idea.appinspection.inspectors.network.ide.NetworkIdeTestSuite",
+    test_data = glob(["testData/**"]),
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module, test]",
+        "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/network/ide:intellij.android.app-inspection.inspectors.network.ide[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/network/view:intellij.android.app-inspection.inspectors.network.view[module, test]",
+        "//tools/adt/idea/app-inspection/inspectors/network/model:intellij.android.app-inspection.inspectors.network.model[module, test]",
+        "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide[module, test]",
+    ],
+)
