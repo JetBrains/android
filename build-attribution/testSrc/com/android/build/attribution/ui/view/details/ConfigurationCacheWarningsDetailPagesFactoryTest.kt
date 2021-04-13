@@ -62,9 +62,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val page = factory.createDetailsPage(nodeDescriptor)
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
-      Truth.assertThat(pageHtml).contains("Android Gradle plugin update required to make configuration cache available")
+      Truth.assertThat(pageHtml).contains("Android Gradle plugin update required to make Configuration cache available")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Android Gradle plugin supports configuration cache from 7.0.0")
+      Truth.assertThat(pageHtml).contains("Android Gradle plugin supports Configuration cache from 7.0.0")
       Truth.assertThat(pageHtml).contains("Current version is 4.2.0")
       // Assert have applied plugins list
       Truth.assertThat(pageHtml).contains("com.android.build.gradle.AppPlugin")
@@ -98,9 +98,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val page = factory.createDetailsPage(nodeDescriptor)
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
-      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with configuration cache")
+      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with Configuration cache")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.")
+      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.")
       Truth.assertThat(pageHtml).contains("2 plugins can be updated to the compatible version.")
       Truth.assertThat(pageHtml).doesNotContain("not known to have a compatible version yet, please contact plugin providers for details.")
       Truth.assertThat(pageHtml).contains("You can find details on each plugin on corresponding sub-pages.")
@@ -129,9 +129,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val page = factory.createDetailsPage(nodeDescriptor)
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
-      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with configuration cache")
+      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with Configuration cache")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.")
+      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.")
       Truth.assertThat(pageHtml).contains("2 plugins are not known to have a compatible version yet,")
       Truth.assertThat(pageHtml).doesNotContain("can be updated to the compatible version.")
       Truth.assertThat(pageHtml).contains("You can find details on each plugin on corresponding sub-pages.")
@@ -162,9 +162,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val page = factory.createDetailsPage(nodeDescriptor)
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
-      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with configuration cache")
+      Truth.assertThat(pageHtml).contains("Some plugins are not compatible with Configuration cache")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.")
+      Truth.assertThat(pageHtml).contains("Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.")
       Truth.assertThat(pageHtml).contains("1 plugin is not known to have a compatible version yet,")
       Truth.assertThat(pageHtml).contains("1 plugin can be updated to the compatible version.")
       Truth.assertThat(pageHtml).contains("You can find details on each plugin on corresponding sub-pages.")
@@ -182,13 +182,13 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { htmlPanes ->
       Truth.assertThat(htmlPanes).hasSize(3)
       htmlPanes[0].text.clearHtml().let { pageHtml ->
-        Truth.assertThat(pageHtml).contains("Try to turn configuration cache on")
+        Truth.assertThat(pageHtml).contains("Try to turn Configuration cache on")
         Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-        Truth.assertThat(pageHtml).contains("The known plugins applied in this build are compatible with configuration cache.")
+        Truth.assertThat(pageHtml).contains("The known plugins applied in this build are compatible with Configuration cache.")
       }
       htmlPanes[1].text.clearHtml().let { pageHtml ->
-        Truth.assertThat(pageHtml).contains("Note: There could be unknown plugins that aren't compatible and will be discovered after\n" +
-                                            "you build with the Configuration Cache turned on.")
+        Truth.assertThat(pageHtml).contains("Note: There could be unknown plugins that aren't compatible and are discovered after\n" +
+                                            "you build with Configuration cache turned on.")
       }
       htmlPanes[2].text.clearHtml().let { pageHtml ->
         Truth.assertThat(pageHtml).contains("<b>List of applied plugins we were not able to recognise:</b>")
@@ -196,7 +196,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       }
     }
     TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
-      Truth.assertThat(button.text).isEqualTo("Run build with configuration cache")
+      Truth.assertThat(button.text).isEqualTo("Try Configuration cache in a build")
     }
   }
 
@@ -217,7 +217,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
       Truth.assertThat(pageHtml).contains("<b>my.org.gradle.PluginA: update required</b>")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Update this plugin to 0.2.0 or higher to make configuration cache available.")
+      Truth.assertThat(pageHtml).contains("Update this plugin to 0.2.0 or higher to make Configuration cache available.")
       Truth.assertThat(pageHtml).contains("Plugin version: 0.1.0")
       Truth.assertThat(pageHtml).contains("Plugin dependency: my.org:pluginA-jar")
     }
