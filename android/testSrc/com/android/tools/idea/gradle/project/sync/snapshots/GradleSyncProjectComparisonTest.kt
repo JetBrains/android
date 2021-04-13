@@ -362,7 +362,7 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
         assertAreEqualToSnapshots(
           debugBefore to ".debug.before",
           release to ".release",
-          debugAfter to ".debug.after"
+          debugAfter to ".debug.before"
         )
       }
     }

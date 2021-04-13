@@ -188,12 +188,14 @@ public class BuildVariantUpdater {
       setVariantSwitchedProperty(project, moduleName);
       requestFullGradleSync(project, invokeVariantSelectionChangeListeners);
     }
-    else if (!variantToUpdateExists) {
+    // TODO(b/184824343): Re-enable cached variant switching when fixed.
+    else /*if (!variantToUpdateExists)*/ {
       // Build file is not changed, the cached variants should be cached and reused.
       project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
       requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
+    /*
     else {
       // For now we need to update every facet to ensure content entries are accurate.
       // TODO: Remove this once content entries use DataNodes.
@@ -206,6 +208,7 @@ public class BuildVariantUpdater {
       }
       setupCachedVariant(project, allAndroidFacets, invokeVariantSelectionChangeListeners);
     }
+    */
     return true;
   }
 
