@@ -45,15 +45,6 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
       }
     }
 
-  /**
-   * If true, the first time literals become available, a notification popup will show with instructions on how they work.
-   */
-  var showAvailablePopup
-    get() = state.showAvailablePopup
-    set(value) {
-      state.showAvailablePopup = value
-    }
-
   companion object {
     fun getInstance(): LiveLiteralsApplicationConfiguration = ApplicationManager.getApplication().getService(LiveLiteralsApplicationConfiguration::class.java)
   }

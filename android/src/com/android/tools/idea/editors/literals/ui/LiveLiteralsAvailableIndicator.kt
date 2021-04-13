@@ -79,6 +79,9 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     }.installOn(this, false)
     deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
+        if (!LiveLiteralsAvailableIndicatorFactory.hasEverBeenActive) {
+          LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
+        }
         LiveLiteralsAvailableIndicatorFactory.indicatorActivated()
         LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       }
