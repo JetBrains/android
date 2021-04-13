@@ -24,7 +24,7 @@ import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
 import com.intellij.openapi.project.Project
 
-class DefaultUiComponentsProvider(private val myProject: Project) : UiComponentsProvider {
+class DefaultUiComponentsProvider(private val project: Project) : UiComponentsProvider {
   override fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style): DataViewer {
     return when {
       contentType.isSupportedImageType -> {
@@ -34,7 +34,7 @@ class DefaultUiComponentsProvider(private val myProject: Project) : UiComponents
         if (contentType.isSupportedTextType) IntellijDataViewer.createRawTextViewer(bytes) else IntellijDataViewer.createInvalidViewer()
       }
       styleHint == DataViewer.Style.PRETTY -> {
-        IntellijDataViewer.createPrettyViewerIfPossible(myProject, bytes, contentType.fileType)
+        IntellijDataViewer.createPrettyViewerIfPossible(project, bytes, contentType.fileType)
       }
       else -> {
         // This shouldn't ever happen.
@@ -44,6 +44,6 @@ class DefaultUiComponentsProvider(private val myProject: Project) : UiComponents
   }
 
   override fun createStackGroup(): StackTraceGroup {
-    return IntelliJStackTraceGroup(myProject)
+    return IntelliJStackTraceGroup(project)
   }
 }
