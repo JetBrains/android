@@ -47,8 +47,21 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<TEMP>
+        CONENT_ENTRY                  : file://<TEMP>/res
             JavaResource                  : file://<TEMP>/res
+        CONENT_ENTRY                  : file://<TEMP>/src
             JavaSource                    : file://<TEMP>/src
+        CONENT_ENTRY                  : file://<TEMP>/src/debug [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/aidl [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/java [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/kotlin [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/ml [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/renderscript [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/res [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/resources [-]
+        CONENT_ENTRY                  : file://<TEMP>/src/debug/shaders [-]
+        CONENT_ENTRY                  : file://<TEMP>/srcKotlin [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
         WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]

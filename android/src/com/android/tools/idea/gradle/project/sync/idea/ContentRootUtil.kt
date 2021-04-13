@@ -53,15 +53,13 @@ import java.io.File
  * If no [variant] is provided that this method will operate solely on the information contained within the [DataNode] tree.
  * This method should have no effects outside of manipulating the [DataNode] tree from the [ModuleData] node downwards.
  */
-@JvmOverloads
-fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null) {
+fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant?) {
   // 1 - Extract all of the information (models) we need from the nodes
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
   val selectedVariant = variant ?: androidModel.selectedVariant
 
   // 2 - Compute all of the content roots that this module requires from the models we obtained above.
-  val existingContentRoots = findAll(this, ProjectKeys.CONTENT_ROOT)
-  val contentRoots = collectContentRootData(selectedVariant, androidModel, existingContentRoots)
+  val contentRoots = collectContentRootData(selectedVariant, androidModel)
 
   // 3 - Add the ContentRootData nodes to the module.
   contentRoots.forEach { contentRootData ->
@@ -80,27 +78,20 @@ fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null)
  */
 private fun collectContentRootData(
   variant: IdeVariant,
-  androidModel: AndroidModuleModel,
-  existingContentRoots: Collection<DataNode<ContentRootData>>?
+  androidModel: AndroidModuleModel
 ): Collection<ContentRootData> {
+  val buildDir: File = androidModel.androidProject.buildFolder
   val moduleRootPath = androidModel.rootDirPath.absolutePath
 
-  // Attempt to reuse the main content root, we do this to reduce the work later when merging content roots in idea,
-  // as apposed to creating a new data node for each path. We assume most of the paths will likely be under this
-  // content root. To reduce the complexity of this code, for any paths outside the main content root we let
-  // intellijs merging handle them by creating them all in a separate data node.
-  val existingMainContentRoot = existingContentRoots?.firstOrNull {
-    it.data.rootPath == moduleRootPath
-  }
-
   val newContentRoots = mutableListOf<ContentRootData>()
-  val mainContentRootData = existingMainContentRoot?.data ?: ContentRootData(GradleConstants.SYSTEM_ID, moduleRootPath).also {
+  val mainContentRootData = ContentRootData(GradleConstants.SYSTEM_ID, moduleRootPath).also {
     newContentRoots.add(it)
   }
 
+  val handleBuildDir = FileUtil.isAncestor(moduleRootPath, buildDir.path, false)
   // Function passed in to the methods below to register each source path with a ContentRootData object.
   fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
-    if (FileUtil.isAncestor(mainContentRootData.rootPath, path, false)) {
+    if (handleBuildDir && FileUtil.isAncestor(buildDir.path, path, false)) {
       if (sourceType != null) {
         mainContentRootData.storePath(sourceType, path)
       }

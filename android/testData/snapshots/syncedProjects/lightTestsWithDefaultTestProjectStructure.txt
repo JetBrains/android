@@ -48,6 +48,19 @@ PROJECT                       : LightSyncBasedTestsWithDefaultTestProjectStructu
             ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>
+        CONENT_ENTRY                  : file://<PROJECT>/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/srcKotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/res [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/src/debug/aidl [-]
