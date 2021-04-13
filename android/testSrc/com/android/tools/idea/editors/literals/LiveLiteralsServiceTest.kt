@@ -32,11 +32,9 @@ internal class LiveLiteralsServiceTest {
   private var isAvailable = false
 
   private fun getTestLiveLiteralsService(): LiveLiteralsService =
-    LiveLiteralsService.getInstanceForTest(project, rootDisposable, object : LiveLiteralsService.LiteralsAvailableListener {
-      override fun onAvailable() {
-        isAvailable = true
-      }
-    })
+    LiveLiteralsService.getInstanceForTest(project, rootDisposable).also {
+      it.addAvailabilityListener(rootDisposable) { available -> isAvailable = available }
+    }
 
   @Before
   fun setup() {
@@ -97,7 +95,7 @@ internal class LiveLiteralsServiceTest {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    assertFalse("Live Literals should not be available since there are no constants", isAvailable)
+    assertTrue(isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     assertEquals(9, liveLiteralsService.allConstants().size)
@@ -153,7 +151,7 @@ internal class LiveLiteralsServiceTest {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    assertFalse("Live Literals should not be available since there are no constants", isAvailable)
+    assertTrue(isAvailable)
     assertEquals(0, changeListenerCalls)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -162,6 +160,7 @@ internal class LiveLiteralsServiceTest {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
     }
+    assertFalse(isAvailable)
     assertEquals(0, changeListenerCalls)
   }
 }

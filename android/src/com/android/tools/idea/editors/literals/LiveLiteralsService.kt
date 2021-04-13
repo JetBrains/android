@@ -39,6 +39,7 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -114,37 +115,32 @@ interface LiveLiteralsMonitorHandler {
  * and will notify listeners.
  *
  * @param project the project this service is attached to.
- * @param availableListener listener to be called when the service becomes available.
  * @param listenerExecutor executor to run the listener calls on.
  */
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
-                                              private val availableListener: LiteralsAvailableListener,
                                               listenerExecutor: Executor,
                                               private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
-  /**
-   * Interface for listeners that want to be notified when Live Literals becomes available. For example
-   * when the preview or the emulator find that the current project supports them.
-   */
-  interface LiteralsAvailableListener {
-    /**
-     * Called when Live Literals becomes available. This might be called multiple times.
-     */
-    fun onAvailable()
-  }
-
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
+      private var wasActive = AtomicBoolean(false)
+
       override fun onMonitorStarted(deviceId: String) {
         DumbService.getInstance(project).runWhenSmart {
           if (deploymentReportService.hasActiveDevices) {
             activateTracking()
+            if (!wasActive.getAndSet(true)) {
+              fireOnLiteralsAvailability(true)
+            }
           }
         }
       }
 
       override fun onMonitorStopped(deviceId: String) {
         if (!deploymentReportService.hasActiveDevices) {
+          if (wasActive.getAndSet(false)) {
+            fireOnLiteralsAvailability(false)
+          }
           deactivateTracking()
         }
       }
@@ -153,20 +149,7 @@ class LiveLiteralsService private constructor(private val project: Project,
     })
   }
 
-  constructor(project: Project) : this(project, object : LiteralsAvailableListener {
-    /**
-     * If true, the first time literals are available for this project, a popup will show explaining the basics to the user.
-     */
-    private var showIsAvailablePopup = LiveLiteralsApplicationConfiguration.getInstance().showAvailablePopup
-
-    override fun onAvailable() {
-      if (showIsAvailablePopup) {
-        // Once shown, do not show in this session for now.
-        showIsAvailablePopup = false
-        LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
-      }
-    }
-  }, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1),
+  constructor(project: Project) : this(project, AppExecutorUtil.createBoundedApplicationPoolExecutor("Document changed listeners executor", 1),
                                        LiveLiteralsDeploymentReportService.getInstance(project))
 
   /**
@@ -234,16 +217,11 @@ class LiveLiteralsService private constructor(private val project: Project,
     @JvmStatic
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
 
-    object NopListener : LiteralsAvailableListener {
-      override fun onAvailable() {}
-    }
-
     @TestOnly
     fun getInstanceForTest(project: Project,
                            parentDisposable: Disposable,
-                           availableListener: LiteralsAvailableListener = NopListener,
                            listenerExecutor: Executor = MoreExecutors.directExecutor()): LiveLiteralsService =
-      LiveLiteralsService(project, availableListener, listenerExecutor,
+      LiveLiteralsService(project, listenerExecutor,
                           LiveLiteralsDeploymentReportService.getInstanceForTesting(project, listenerExecutor)).also {
         Disposer.register(parentDisposable, it)
       }
@@ -272,6 +250,11 @@ class LiveLiteralsService private constructor(private val project: Project,
    * [ListenerCollection] for all the listeners that need to be notified when any live literal has changed value.
    */
   private val onLiteralsChangedListeners = ListenerCollection.createWithExecutor<(List<LiteralReference>) -> Unit>(listenerExecutor)
+
+  /**
+   * [ListenerCollection] for all the listeners that need to be notified when literals become available or disabled.
+   */
+  private val onLiteralsAvailabilityChangedListeners = ListenerCollection.createWithExecutor<(Boolean) -> Unit>(listenerExecutor)
 
   private val literalsManager = LiteralsManager()
   /** Lock that guards the activation/deactivation of this service. */
@@ -303,7 +286,7 @@ class LiveLiteralsService private constructor(private val project: Project,
    * current project has not any Live Literals yet.
    */
   val isAvailable: Boolean
-    get() = deploymentReportService.hasActiveDevices
+    get() = isEnabled && deploymentReportService.hasActiveDevices
 
   /**
    * Returns all the [Editor]s that have a [Document] with a cached [LiteralReferenceSnapshot].
@@ -326,6 +309,13 @@ class LiveLiteralsService private constructor(private val project: Project,
   }
 
   /**
+   * Method called to notify the listeners than a constant has changed.
+   */
+  private fun fireOnLiteralsAvailability(available: Boolean) = onLiteralsAvailabilityChangedListeners.forEach {
+    it(available)
+  }
+
+  /**
    * Adds a new listener to be notified when the literals change.
    *
    * @param parentDisposable [Disposable] to control the lifespan of the listener. If the parentDisposable is disposed
@@ -337,6 +327,14 @@ class LiveLiteralsService private constructor(private val project: Project,
     val listenerWeakRef = WeakReference(listener)
     Disposer.register(parentDisposable) {
       onLiteralsChangedListeners.remove(listenerWeakRef.get() ?: return@register)
+    }
+  }
+
+  fun addAvailabilityListener(parentDisposable: Disposable, listener: (Boolean) -> Unit) {
+    onLiteralsAvailabilityChangedListeners.add(listener = listener)
+    val listenerWeakRef = WeakReference(listener)
+    Disposer.register(parentDisposable) {
+      onLiteralsAvailabilityChangedListeners.remove(listenerWeakRef.get() ?: return@register)
     }
   }
 
@@ -366,8 +364,6 @@ class LiveLiteralsService private constructor(private val project: Project,
     val fileSnapshot = literalsManager.findLiterals(file)
 
     if (fileSnapshot.all.isNotEmpty()) {
-      availableListener.onAvailable()
-
       document.putCachedDocumentSnapshot(fileSnapshot)
     }
 
