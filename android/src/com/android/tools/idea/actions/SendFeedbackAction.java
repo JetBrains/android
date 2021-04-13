@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_CMAKE;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
+import static java.nio.file.Files.readAllBytes;
+
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
@@ -24,9 +28,11 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.FileUtils;
 import com.intellij.execution.ExecutionException;
@@ -44,13 +50,12 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EnvironmentUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -59,10 +64,8 @@ import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_CMAKE;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
-import static java.nio.file.Files.readAllBytes;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This one is inspired by on com.intellij.ide.actions.SendFeedbackAction, however in addition to the basic
@@ -106,11 +109,12 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
-      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(() -> getKotlinPluginDetails())));
+      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
       if (project != null) {
         sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
         sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
       }
+      sb.append(String.format("Gradle JDK: %1$s; ", safeCall(() -> getJdkDetails(project))));
       sb.append(String.format("NDK: %1$s; ", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
       sb.append(String.format("LLDB: %1$s; ", safeCall(() -> getLldbDetails(sdkHandler, progress))));
       sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
@@ -340,6 +344,41 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       return "(package not found)";
     }
     return String.format("%1$s (revision: %2$s)", p.getDisplayName() , p.getVersion());
+  }
+
+  private static String getJdkDetails(@Nullable Project project) {
+    if (project == null) {
+      return getDefaultJdkDetails();
+    }
+    return getProjectJdkDetails(project);
+  }
+
+  private static String getDefaultJdkDetails() {
+    Sdk jdk = IdeSdks.getInstance().getJdk();
+    if (jdk == null) {
+      return "(default jdk is not defined)";
+    }
+    return "(default) " + getJdkVersion(jdk.getHomePath());
+  }
+
+  private static String getProjectJdkDetails(@NotNull Project project) {
+    String basePath = project.getBasePath();
+    if (basePath == null) {
+      return "(cannot find project base path)";
+    }
+    return getJdkVersion(AndroidStudioGradleInstallationManager.getInstance().getGradleJvmPath(project, basePath));
+  }
+
+  private static String getJdkVersion(String jdkPath) {
+    if (jdkPath == null) {
+      return "(jdk path not defined)";
+    }
+    JavaSdk sdkType = JavaSdk.getInstance();
+    String version = sdkType.getVersionString(jdkPath);
+    if (version == null) {
+      return "(jdk version not found)";
+    }
+    return version;
   }
 
   @Override
