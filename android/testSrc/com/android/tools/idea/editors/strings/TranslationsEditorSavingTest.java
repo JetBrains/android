@@ -28,20 +28,21 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-@Ignore("b/182839521")
 public class TranslationsEditorSavingTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
@@ -51,6 +52,7 @@ public class TranslationsEditorSavingTest {
   private StringResourceEditor myEditor;
   private StringResourceViewPanel myPanel;
   private FrozenColumnTable myTable;
+  private final List<Path> myFilesToRemove = new ArrayList<>();
 
   @Before
   public void setUp() throws Exception {
@@ -65,13 +67,17 @@ public class TranslationsEditorSavingTest {
                       "    <string name=\"key_2\">key_2_default</string>\n" +
                       "    <string name=\"key_3\">key_3_default</string>\n" +
                       "</resources>\n";
-    TestFileUtils.writeFileAndRefreshVfs(myRes.resolve(Paths.get("values", "strings.xml")), contents);
+    Path path = myRes.resolve(Paths.get("values", "strings.xml"));
+    myFilesToRemove.add(path);
+    TestFileUtils.writeFileAndRefreshVfs(path, contents);
 
     @Language("XML")
     String translatedContents = "<resources>\n" +
                                 "    <string name=\"key_1\">key_1_translated</string>\n" +
                                 "</resources>\n";
-    TestFileUtils.writeFileAndRefreshVfs(myRes.resolve(Paths.get("values-zh-v11", "strings.xml")), translatedContents);
+    path = myRes.resolve(Paths.get("values-zh-v11", "strings.xml"));
+    myFilesToRemove.add(path);
+    TestFileUtils.writeFileAndRefreshVfs(path, translatedContents);
 
     myEditor = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module));
     myPanel = myEditor.getPanel();
@@ -79,7 +85,11 @@ public class TranslationsEditorSavingTest {
   }
 
   @After
-  public void tearDown() {
+  public void tearDown() throws Exception {
+    for (Path path : myFilesToRemove) {
+      Files.delete(path);
+    }
+    LocalFileSystem.getInstance().refresh(false);
     Disposer.dispose(myEditor);
   }
 
