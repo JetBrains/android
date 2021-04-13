@@ -173,6 +173,12 @@
 
       <add-to-group group-id="Internal.Android"/>
     </group>
+    <group id="Android.Diagnostics">
+      <separator/>
+      <action class="com.android.tools.idea.res.ToggleResourceUpdateTracingAction"/>
+      <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
+    </group>
+
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
