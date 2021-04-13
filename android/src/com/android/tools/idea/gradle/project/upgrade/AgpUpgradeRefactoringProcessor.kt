@@ -105,6 +105,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
@@ -450,12 +451,19 @@ class AgpUpgradeRefactoringProcessor(
 
     val presentation = createPresentation(viewDescriptor, usages)
     if (usageView == null) {
-      usageView = viewManager.showUsages(targets, usages, presentation, factory)
-      customizeUsagesView(viewDescriptor, usageView!!)
+      usageView = viewManager.showUsages(targets, usages, presentation, factory).apply {
+        Disposer.register(this, { usageView = null })
+        customizeUsagesView(viewDescriptor, this)
+      }
     }
     else {
-      usageView?.run { removeUsagesBulk(this.usages) }
-      (usageView as UsageViewImpl).appendUsagesInBulk(Arrays.asList(*usages))
+      (usageView as? UsageViewImpl)?.run {
+        removeUsagesBulk(this.usages)
+        appendUsagesInBulk(Arrays.asList(*usages))
+        // TODO(xof): switch to Find tab with our existing usageView in it (but it's more complicated than that
+        //  because the user might have detached the usageView and it might be visible, floating in a window
+        //  somewhere, or arbitrarily minimized).
+      }
     }
     // TODO(xof): investigate whether UnloadedModules are a thing we support / understand
     //val unloadedModules = computeUnloadedModulesFromUseScope(viewDescriptor)
