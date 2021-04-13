@@ -251,6 +251,10 @@
     <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
+    <option name="enable" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="resource" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="tracing" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="update" path="ActionManager" hit="Enable Resource Update Tracing" />
     <option name="disable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
     <option name="enable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
     <option name="mode" path="ActionManager" hit="Enable or disable the Night mode of preview" />

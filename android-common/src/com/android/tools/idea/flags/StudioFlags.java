@@ -399,6 +399,14 @@ public final class StudioFlags {
     true);
   //endregion
 
+  //region Resource Repository
+  private static final FlagGroup RESOURCE_REPOSITORY = new FlagGroup(FLAGS, "resource.repository", "Resource Repository");
+  public static final Flag<Boolean> RESOURCE_REPOSITORY_TRACE_UPDATES = Flag.create(
+    RESOURCE_REPOSITORY, "trace.updates", "Enable Tracing of Resource Repository Updates",
+    "Enables tracing of resource repository updates",
+    false);
+  //endregion
+
   //region Run/Debug
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
