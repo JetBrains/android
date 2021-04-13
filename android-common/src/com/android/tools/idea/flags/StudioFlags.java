@@ -729,7 +729,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
-    "If enabled, show the action in the refactoring menu", true);
+    "If enabled, show the action in the refactoring menu", false);
   //endregion
 
   //region IoT
