@@ -37,9 +37,8 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
     toolWindow.stripeTitle = EMULATOR_TOOL_WINDOW_TITLE
   }
 
-  // Only show in Android projects.
   override fun shouldBeAvailable(project: Project): Boolean {
-    val available = hasAndroidFacets(project) && canLaunchEmulator()
+    val available = canLaunchEmulator()
     if (available) {
       EmulatorToolWindowManager.initializeForProject(project)
     }
