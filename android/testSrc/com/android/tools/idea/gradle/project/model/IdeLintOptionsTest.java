@@ -15,44 +15,49 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.testutils.Serialization.deserialize;
-import static com.android.testutils.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.LintOptions;
 import com.android.tools.idea.gradle.model.IdeLintOptions;
+import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl;
 import com.android.tools.idea.gradle.model.stubs.LintOptionsStub;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeLintOptions}. */
 public class IdeLintOptionsTest {
-    private ModelCacheTesting myModelCache;
-    private GradleVersion myModelVersion;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-        myModelVersion = GradleVersion.parse("2.4.0");
-    }
 
     @Test
-    public void serialization() throws Exception {
-        IdeLintOptions lintOptions =
-                myModelCache.lintOptionsFrom(new LintOptionsStub(), myModelVersion);
-        byte[] bytes = serialize(lintOptions);
-        Object o = deserialize(bytes);
-        assertEquals(lintOptions, o);
-    }
-
-    @Test
-    public void constructor() throws Throwable {
+    public void constructor() {
         LintOptions original = new LintOptionsStub();
-        IdeLintOptions copy = myModelCache.lintOptionsFrom(original, myModelVersion);
+        IdeLintOptions copy = new IdeLintOptionsImpl(
+          original.getBaselineFile(),
+          original.getLintConfig(),
+          original.getSeverityOverrides(),
+          false,
+          false,
+          original.getDisable(),
+          original.getEnable(),
+          original.getCheck(),
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          true,
+          true,
+          false,
+          false,
+          original.getTextOutput(),
+          true,
+          original.getHtmlOutput(),
+          true,
+          original.getXmlOutput(),
+          false,
+          null);
         assertThat(copy.getBaselineFile()).isEqualTo(original.getBaselineFile());
         assertThat(copy.getLintConfig()).isEqualTo(original.getLintConfig());
         assertThat(copy.getSeverityOverrides()).isEqualTo(original.getSeverityOverrides());

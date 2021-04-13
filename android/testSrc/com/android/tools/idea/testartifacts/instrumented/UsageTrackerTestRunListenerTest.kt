@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.builder.model.AndroidProject
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.gradle.stubs.FileStructure
-import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.stats.toProtoValue
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.PlatformTestCase
+import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import kotlin.test.assertNotEquals
@@ -44,11 +47,17 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
     try {
-      val listener = UsageTrackerTestRunListener(
-        ModelCache.createForTesting().androidArtifactFrom(
-          AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, "stubFolder", "debug", FileStructure("rootFolder")),
-          null
-        ),
+      setupTestProjectFromAndroidModel(
+        project,
+        Projects.getBaseDirPath(project),
+        true,
+        AndroidModuleModelBuilder(":moduleName", "debug", AndroidProjectBuilder())
+      )
+
+      val module = project.gradleModule(":moduleName")
+      TestCase.assertNotNull(module)
+
+      val listener = UsageTrackerTestRunListener(AndroidModuleModel.get(module!!)?.mainArtifact,
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }
@@ -59,7 +68,7 @@ class UsageTrackerTestRunListenerTest : PlatformTestCase() {
         done()
       }
 
-      block.invoke(tracker.usages.single().studioEvent)
+      block.invoke(tracker.usages.last().studioEvent)
     } finally {
       UsageTracker.cleanAfterTesting()
     }

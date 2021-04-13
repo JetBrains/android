@@ -15,103 +15,40 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.stubs.android.AndroidProjectStub.toIdeAndroidProject;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
-import com.android.tools.idea.gradle.model.stubs.AndroidProjectStub;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.project.sync.ModelCacheKt;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
-import java.util.Objects;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeAndroidProjectImpl}. */
-public class IdeAndroidProjectImplTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
+public class IdeAndroidProjectImplTest extends AndroidGradleTestCase {
 
     @Test
-    public void model1_dot_5() {
-        AndroidProjectStub original =
-                new AndroidProjectStub("1.5.0") {
-                    @Override
-                    @NonNull
-                    public String getBuildToolsVersion() {
-                        throw new UnsupportedOperationException(
-                                "Unsupported method: AndroidProject.getBuildToolsVersion()");
-                    }
-
-                    @Override
-                    public int getPluginGeneration() {
-                        throw new UnsupportedOperationException(
-                                "Unsupported method: AndroidProject.getPluginGeneration()");
-                    }
-
-                    @Override
-                    public int hashCode() {
-                        return Objects.hash(
-                                getModelVersion(),
-                                getName(),
-                                getDefaultConfig(),
-                                getBuildTypes(),
-                                getProductFlavors(),
-                                getSyncIssues(),
-                                getVariants(),
-                                getFlavorDimensions(),
-                                getCompileTarget(),
-                                getBootClasspath(),
-                                getNativeToolchains(),
-                                getSigningConfigs(),
-                                getLintOptions(),
-                                getUnresolvedDependencies(),
-                                getJavaCompileOptions(),
-                                getBuildFolder(),
-                                getResourcePrefix(),
-                                getApiVersion(),
-                                isLibrary(),
-                                getProjectType(),
-                                isBaseSplit(),
-                                getViewBindingOptions());
-                    }
-                };
-        IdeAndroidProject androidProject = myModelCache.androidProjectFrom(original);
-        assertThat(androidProject.getBuildToolsVersion()).isNull();
-    }
-
-    @Test
-    public void constructor() throws Throwable {
-        AndroidProject original = new AndroidProjectStub("2.4.0");
-        IdeAndroidProjectImpl copy = myModelCache.androidProjectFrom(original);
-    }
-
-    @Test
-    public void defaultVariantHeuristicTest_allVariantsRemoved() {
+    public void testDefaultVariantHeuristicTest_allVariantsRemoved() {
         assertThat(ModelCacheKt.getDefaultVariant(ImmutableList.of())).isNull();
     }
 
     @Test
-    public void defaultVariantHeuristicTest_picksDebug() {
+    public void testDefaultVariantHeuristicTest_picksDebug() {
       assertThat(ModelCacheKt.getDefaultVariant(ImmutableList.of("a", "z", "debug", "release")))
                 .isEqualTo("debug");
     }
 
     @Test
-    public void defaultVariantHeuristicTest_picksDebugWithFlavors() {
+    public void testDefaultVariantHeuristicTest_picksDebugWithFlavors() {
       assertThat(ModelCacheKt.getDefaultVariant(ImmutableList.of("aRelease", "bRelease", "bDebug", "cDebug")))
                 .isEqualTo("bDebug");
     }
 
     @Test
-    public void defaultVariantHeuristicTest_alphabeticalFallback() {
+    public void testDefaultVariantHeuristicTest_alphabeticalFallback() {
         assertThat(ModelCacheKt.getDefaultVariant(ImmutableList.of("a", "b"))).isEqualTo("a");
     }
 }

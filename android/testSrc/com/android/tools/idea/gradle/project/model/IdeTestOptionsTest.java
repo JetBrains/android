@@ -17,25 +17,14 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl;
 import com.android.tools.idea.gradle.model.stubs.TestOptionsStub;
-import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
-import org.junit.Before;
 import org.junit.Test;
 
 public class IdeTestOptionsTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void serializable() {
@@ -43,17 +32,12 @@ public class IdeTestOptionsTest {
     }
 
     @Test
-    public void serialization() throws Exception {
-        IdeTestOptionsImpl testOptions = myModelCache.testOptionsFrom(new TestOptionsStub());
-        byte[] bytes = Serialization.serialize(testOptions);
-        Object o = Serialization.deserialize(bytes);
-        assertEquals(testOptions, o);
-    }
-
-    @Test
     public void constructor() throws Throwable {
         TestOptions original = new TestOptionsStub();
-        IdeTestOptionsImpl copy = myModelCache.testOptionsFrom(original);
+        IdeTestOptionsImpl copy = new IdeTestOptionsImpl(
+          original.getAnimationsDisabled(),
+          null
+        );
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

@@ -17,26 +17,15 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.TestedTargetVariant;
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl;
 import com.android.tools.idea.gradle.model.stubs.TestedTargetVariantStub;
-import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeTestedTargetVariantImpl}. */
 public class IdeTestedTargetVariantTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void serializable() {
@@ -44,18 +33,9 @@ public class IdeTestedTargetVariantTest {
     }
 
     @Test
-    public void serialization() throws Exception {
-        IdeTestedTargetVariantImpl targetVariant =
-                myModelCache.testedTargetVariantFrom(new TestedTargetVariantStub());
-        byte[] bytes = Serialization.serialize(targetVariant);
-        Object o = Serialization.deserialize(bytes);
-        assertEquals(targetVariant, o);
-    }
-
-    @Test
     public void constructor() throws Throwable {
         TestedTargetVariant original = new TestedTargetVariantStub();
-        IdeTestedTargetVariantImpl copy = myModelCache.testedTargetVariantFrom(original);
+        IdeTestedTargetVariantImpl copy = new IdeTestedTargetVariantImpl(original.getTargetProjectPath(), original.getTargetVariant());
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

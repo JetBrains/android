@@ -18,25 +18,14 @@ package com.android.tools.idea.gradle.project.model;
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.assertEqualsOrSimilar;
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl;
 import com.android.tools.idea.gradle.model.stubs.FilterDataStub;
-import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeFilterDataImpl}. */
 public class IdeFilterDataTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void serializable() {
@@ -44,17 +33,9 @@ public class IdeFilterDataTest {
     }
 
     @Test
-    public void serialization() throws Exception {
-        IdeFilterDataImpl filterData = myModelCache.filterDataFrom(new FilterDataStub());
-        byte[] bytes = Serialization.serialize(filterData);
-        Object o = Serialization.deserialize(bytes);
-        assertEquals(filterData, o);
-    }
-
-    @Test
     public void constructor() throws Throwable {
         FilterDataStub original = new FilterDataStub();
-        IdeFilterDataImpl copy = myModelCache.filterDataFrom(original);
+        IdeFilterDataImpl copy = new IdeFilterDataImpl(original.getIdentifier(), original.getFilterType());
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

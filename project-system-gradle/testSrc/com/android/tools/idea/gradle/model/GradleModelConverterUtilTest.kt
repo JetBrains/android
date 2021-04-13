@@ -24,6 +24,7 @@ import com.android.ide.common.util.toPathString
 import com.android.projectmodel.DynamicResourceValue
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.resources.ResourceType
+import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
 import com.android.tools.idea.gradle.project.model.classFieldsToDynamicResourceValues
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -36,16 +37,14 @@ import java.io.File
  */
 class GradleModelConverterUtilTest {
 
-    val modelCache = ModelCache.createForTesting()
-
     @get:Rule
     val expect = Expect.createAndEnableStackTrace();
 
     @Test
     fun testClassFieldsToDynamicResourceValues() {
         val input = mapOf(
-            "foo" to modelCache.classFieldFrom(ClassFieldStub(ResourceType.STRING.getName(), "foo", "baz")),
-            "foo2" to modelCache.classFieldFrom(ClassFieldStub(ResourceType.INTEGER.getName(), "foo2", "123")))
+            "foo" to IdeClassFieldImpl(type = ResourceType.STRING.getName(), name = "foo", value = "baz"),
+            "foo2" to IdeClassFieldImpl(type = ResourceType.INTEGER.getName(), name = "foo2", value = "123"))
         val output = classFieldsToDynamicResourceValues(input)
 
         val expectedOutput = mapOf(

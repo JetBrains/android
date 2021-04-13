@@ -16,26 +16,15 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl;
 import com.android.tools.idea.gradle.model.stubs.ApiVersionStub;
-import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeApiVersionImpl}. */
 public class IdeApiVersionTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void serializable() {
@@ -43,17 +32,9 @@ public class IdeApiVersionTest {
     }
 
     @Test
-    public void serialization() throws Exception {
-        IdeApiVersionImpl apiVersion = myModelCache.apiVersionFrom(new ApiVersionStub());
-        byte[] bytes = Serialization.serialize(apiVersion);
-        Object o = Serialization.deserialize(bytes);
-        assertEquals(apiVersion, o);
-    }
-
-    @Test
     public void constructor() throws Throwable {
         ApiVersion original = new ApiVersionStub();
-        IdeApiVersionImpl copy = myModelCache.apiVersionFrom(original);
+        IdeApiVersionImpl copy = new IdeApiVersionImpl(original.getApiLevel(), original.getCodename(), original.getApiString());
         IdeModelTestUtils.assertEqualsOrSimilar(original, copy);
         IdeModelTestUtils.verifyUsageOfImmutableCollections(copy);
     }
