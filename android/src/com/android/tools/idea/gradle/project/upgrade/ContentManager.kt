@@ -451,11 +451,11 @@ class ContentManager(val project: Project) {
       setUpAsHtmlLabel(label)
       when (selectedStep) {
         is AgpUpgradeComponentNecessity -> {
-          label.text = "<h4><b>${selectedStep.treeText()}</b></h4><p>${selectedStep.description().replace("\n", "<br>")}</p>"
+          label.text = "<div><b>${selectedStep.treeText()}</b></div><p>${selectedStep.description().replace("\n", "<br>")}</p>"
           detailsPanel.add(label)
         }
         is ToolWindowModel.StepUiPresentation -> {
-          val text = StringBuilder("<h4><b>${selectedStep.pageHeader}</b></h4>")
+          val text = StringBuilder("<div><b>${selectedStep.pageHeader}</b></div>")
           val paragraph = selectedStep.helpLinkUrl != null || selectedStep.shortDescription != null
           if (paragraph) text.append("<p>")
           selectedStep.shortDescription?.let { description ->
