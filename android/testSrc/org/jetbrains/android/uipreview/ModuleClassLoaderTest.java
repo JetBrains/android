@@ -229,6 +229,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
+    // Recompile and check ClassLoader is out of date.
+    assertTrue(loader.isUserCodeUpToDate());
+    javac.run(null, null, null, modifiedSrc.getPath());
+    assertFalse(loader.isUserCodeUpToDate());
+
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
@@ -291,7 +296,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     Module appModule = gradleModule(getProject(), ":app");
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(appModule), this);
     // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
-    assertTrue(loader.isUpToDate());
+    assertTrue(loader.areDependenciesUpToDate());
 
     ModuleModelBuilder updatedAppModuleBuilder =
       new AndroidModuleModelBuilder(
@@ -310,7 +315,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     // Module has not changed
     assertEquals(gradleModule(getProject(), ":app"), appModule);
 
-    assertFalse(loader.isUpToDate());
+    assertFalse(loader.areDependenciesUpToDate());
 
     ModuleClassLoaderManager.get().release(loader, this);
   }

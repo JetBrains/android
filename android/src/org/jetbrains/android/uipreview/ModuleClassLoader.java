@@ -617,10 +617,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
    */
-  public boolean isUpToDate() {
-    // We check the dependencies first since it does not require disk access.
-    if (!areDependenciesUpToDate()) return false;
-
+  boolean isUserCodeUpToDate() {
     for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
       VirtualFile classFile = entry.getValue();
       if (!classFile.isValid()) {
