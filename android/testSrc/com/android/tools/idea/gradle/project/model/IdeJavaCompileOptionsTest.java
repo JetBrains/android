@@ -17,26 +17,15 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.JavaCompileOptions;
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl;
 import com.android.tools.idea.gradle.model.stubs.JavaCompileOptionsStub;
-import com.android.testutils.Serialization;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Tests for {@link IdeJavaCompileOptionsImpl}. */
 public class IdeJavaCompileOptionsTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void serializable() {
@@ -44,18 +33,10 @@ public class IdeJavaCompileOptionsTest {
     }
 
     @Test
-    public void serialization() throws Exception {
-        IdeJavaCompileOptionsImpl compileOptions =
-                myModelCache.javaCompileOptionsFrom(new JavaCompileOptionsStub());
-        byte[] bytes = Serialization.serialize(compileOptions);
-        Object o = Serialization.deserialize(bytes);
-        assertEquals(compileOptions, o);
-    }
-
-    @Test
     public void constructor() throws Throwable {
         JavaCompileOptions original = new JavaCompileOptionsStub();
-        IdeJavaCompileOptionsImpl copy = myModelCache.javaCompileOptionsFrom(original);
+        IdeJavaCompileOptionsImpl copy = new IdeJavaCompileOptionsImpl(
+          original.getEncoding(), original.getSourceCompatibility(), original.getTargetCompatibility(), false);
         assertEqualsOrSimilar(original, copy);
         verifyUsageOfImmutableCollections(copy);
     }

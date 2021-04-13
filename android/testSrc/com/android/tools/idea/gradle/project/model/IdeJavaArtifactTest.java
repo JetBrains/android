@@ -17,27 +17,50 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.assertEqualsOrSimilar;
 
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.JavaArtifact;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl;
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl;
 import com.android.tools.idea.gradle.model.stubs.JavaArtifactStub;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
-import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
-import org.junit.Before;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Test;
 
 /** Tests for {@link IdeJavaArtifact}. */
 public class IdeJavaArtifactTest {
-    private ModelCacheTesting myModelCache;
-
-    @Before
-    public void setUp() throws Exception {
-        myModelCache = ModelCache.createForTesting();
-    }
 
     @Test
     public void constructor() throws Throwable {
         JavaArtifact original = new JavaArtifactStub();
-        IdeJavaArtifact copy = myModelCache.javaArtifactFrom(original);
+        IdeJavaArtifact copy = new IdeJavaArtifactImpl(
+          convertArtifactName(original.getName()),
+          original.getCompileTaskName(),
+          original.getAssembleTaskName(),
+          original.getClassesFolder(),
+          original.getAdditionalClassesFolders(),
+          original.getJavaResourcesFolder(),
+          null,
+          null,
+          original.getIdeSetupTaskNames(),
+          (List)original.getGeneratedSourceFolders(),
+          false,
+          new IdeDependenciesImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()),
+          original.getMockablePlatformJar()
+    );
         assertEqualsOrSimilar(original, copy);
     }
+
+  private IdeArtifactName convertArtifactName(String name) {
+      switch (name) {
+        case AndroidProject.ARTIFACT_MAIN:
+          return IdeArtifactName.MAIN;
+        case AndroidProject.ARTIFACT_ANDROID_TEST:
+          return IdeArtifactName.ANDROID_TEST;
+        case AndroidProject.ARTIFACT_UNIT_TEST:
+          return IdeArtifactName.UNIT_TEST;
+      }
+      return null;
+  }
 }
