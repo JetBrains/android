@@ -298,7 +298,7 @@ public abstract class RenderClassLoader extends ClassLoader implements PseudoCla
     return defineClass(name, b, offset, len);
   }
 
-  protected boolean areDependenciesUpToDate() {
+  public boolean areDependenciesUpToDate() {
     List<URL> updatedDependencies = getExternalJars();
     List<URL> currentDependencies;
     synchronized (myJarClassLoaderLock) {

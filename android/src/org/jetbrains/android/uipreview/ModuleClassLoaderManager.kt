@@ -152,6 +152,34 @@ private class Preloader(
 private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
 
 /**
+ * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
+ * up-to-date because it does not check the state of user project files. Compatibility means that the [ModuleClassLoader] can be used if it
+ * did not load any classes from the user source code. This allows for pre-loading the classes from dependencies (which are usually more
+ * stable than user code) and speeding up the preview update when user changes the source code (but not dependencies).
+ */
+fun ModuleClassLoader.isCompatible(
+  parent: ClassLoader?,
+  projectTransformations: ClassTransform,
+  nonProjectTransformations: ClassTransform) = when {
+  parent != null && this.parent != parent -> {
+    ModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
+    false
+  }
+  !this.areTransformationsUpToDate(projectTransformations, nonProjectTransformations) -> {
+    ModuleClassLoaderManager.LOG.debug("Transformations have changed, discarding ModuleClassLoader")
+    false
+  }
+  !this.areDependenciesUpToDate() -> {
+    ModuleClassLoaderManager.LOG.debug("Files have changed, discarding ModuleClassLoader")
+    false
+  }
+  else -> {
+    ModuleClassLoaderManager.LOG.debug("ModuleClassLoader is up to date")
+    true
+  }
+}
+
+/**
  * A [ClassLoader] for the [Module] dependencies.
  */
 class ModuleClassLoaderManager {
@@ -182,24 +210,9 @@ class ModuleClassLoaderManager {
 
     var oldClassLoader: ModuleClassLoader? = null
     if (moduleClassLoader != null) {
-      val invalidate = when {
-        parent != null && moduleClassLoader.parent != parent -> {
-          LOG.debug("Parent has changed, discarding ModuleClassLoader")
-          true
-        }
-        !moduleClassLoader.isUpToDate -> {
-          LOG.debug("Files have changed, discarding ModuleClassLoader")
-          true
-        }
-        !moduleClassLoader.areTransformationsUpToDate(combinedProjectTransformations, combinedNonProjectTransformations) -> {
-          LOG.debug("Transformations have changed, discarding ModuleClassLoader")
-          true
-        }
-        else -> {
-          LOG.debug("ModuleClassLoader is up to date")
-          false
-        }
-      }
+      val invalidate =
+        !moduleClassLoader.isCompatible(parent, combinedProjectTransformations, combinedNonProjectTransformations) ||
+        !moduleClassLoader.isUserCodeUpToDate
 
       if (invalidate) {
         oldClassLoader = moduleClassLoader
@@ -327,7 +340,7 @@ class ModuleClassLoaderManager {
 
   companion object {
     @JvmStatic
-    private val LOG = Logger.getInstance(ModuleClassLoaderManager::class.java)
+    val LOG = Logger.getInstance(ModuleClassLoaderManager::class.java)
 
     @JvmStatic
     fun get(): ModuleClassLoaderManager =
