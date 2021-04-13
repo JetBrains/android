@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
  * This deliberately drops the custom pattern behaviour of LogFilterModel, replacing it with a new version that allows regex support.
  */
-public abstract class AndroidLogFilterModel extends LogFilterModel {
+final class AndroidLogFilterModel extends LogFilterModel {
 
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -66,16 +66,18 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
 
   @Nullable private AndroidLogcatFilter myConfiguredFilter;
 
-  private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
-  private final AndroidLogcatFormatter myFormatter;
+  @NotNull private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
+  @NotNull private final AndroidLogcatFormatter myFormatter;
+  @NotNull private final AndroidLogcatPreferences myPreferences;
 
-  AndroidLogFilterModel(@NotNull AndroidLogcatFormatter formatter) {
+  AndroidLogFilterModel(@NotNull AndroidLogcatFormatter formatter, @NotNull AndroidLogcatPreferences preferences) {
     ImmutableList.Builder<AndroidLogLevelFilter> builder = ImmutableList.builder();
     for (Log.LogLevel logLevel : Log.LogLevel.values()) {
       builder.add(new AndroidLogLevelFilter(logLevel));
     }
     myLogLevelFilters = builder.build();
     myFormatter = formatter;
+    myPreferences = preferences;
   }
 
   // Implemented because it is abstract in the parent, but the functionality is no longer used.
@@ -94,14 +96,10 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   }
 
   public final void updateLogcatFilter(@Nullable AndroidLogcatFilter filter) {
-    saveConfiguredFilterName(filter != null ? filter.getName() : "");
+    myPreferences.TOOL_WINDOW_CONFIGURED_FILTER = filter != null ? filter.getName() : "";
     myConfiguredFilter = filter;
     fireTextFilterChange();
   }
-
-  protected abstract void saveConfiguredFilterName(String filterName);
-
-  protected abstract void saveLogLevel(String logLevelName);
 
   @Override
   public final void addFilterListener(LogFilterListener listener) {
@@ -116,11 +114,11 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   /**
    * Once called, any logcat messages processed with a timestamp older than our most recent one
    * will be filtered out from now on.
-   *
+   * <p>
    * This is useful as a way to mark a time where you don't care about older messages. For example,
    * if you change your active filter and replay all logcat messages from the beginning, we will
    * skip over any that were originally reported before we called this method.
-   *
+   * <p>
    * This can also act as a lightweight clear, in case clearing the logcat buffer on the device
    * fails for some reason (which does happen). If you call this method, clear the console text
    * even without clearing the device's logcat buffer, and reprocess all messages, old messages
@@ -188,11 +186,9 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
     }
   }
 
-  public abstract String getSelectedLogLevelName();
-
   @Nullable
   private LogFilter getSelectedLogLevelFilter() {
-    final String filterName = getSelectedLogLevelName();
+    final String filterName = myPreferences.TOOL_WINDOW_LOG_LEVEL;
     if (filterName != null) {
       for (AndroidLogLevelFilter logFilter : myLogLevelFilters) {
         if (filterName.equals(logFilter.myLogLevel.getStringValue())) {
@@ -214,8 +210,8 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return;
     }
     String newFilterName = ((AndroidLogLevelFilter)filter).myLogLevel.getStringValue();
-    if (!Objects.equals(newFilterName, getSelectedLogLevelName())) {
-      saveLogLevel(newFilterName);
+    if (!Objects.equals(newFilterName, myPreferences.TOOL_WINDOW_LOG_LEVEL)) {
+      myPreferences.TOOL_WINDOW_LOG_LEVEL = newFilterName;
       fireFilterChange(filter);
     }
   }
