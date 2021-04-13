@@ -64,8 +64,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
       Truth.assertThat(pageHtml).contains("Android Gradle plugin update required to make Configuration cache available")
       Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
-      Truth.assertThat(pageHtml).contains("Android Gradle plugin supports Configuration cache from 7.0.0")
-      Truth.assertThat(pageHtml).contains("Current version is 4.2.0")
+      Truth.assertThat(pageHtml).contains("Android Gradle plugin supports Configuration cache from 7.0.0. Current version is 4.2.0.")
       // Assert have applied plugins list
       Truth.assertThat(pageHtml).contains("com.android.build.gradle.AppPlugin")
     }

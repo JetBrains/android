@@ -205,15 +205,15 @@ class WarningsViewDetailPagesFactory(
 
   private fun JPanel.createAGPUpdateRequiredPanel(uiData: AGPUpdateRequired, projectConfigurationTime: TimeWithPercentage) {
     val appliedAGPPluginsList = uiData.appliedPlugins.joinToString(
-      prefix = "<h4>Android Gradle plugins applied in this build:</h4><ul>",
+      prefix = "Android Gradle plugins applied in this build:<ul>",
       postfix = "</ul>",
       separator = ""
     ) { "<li>${it.displayName}</li>" }
     val contentHtml = """
         <b>Android Gradle plugin update required to make Configuration cache available</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        Android Gradle plugin supports Configuration cache from ${uiData.recommendedVersion}.
-        Current version is ${uiData.currentVersion}.
+        Android Gradle plugin supports Configuration cache from ${uiData.recommendedVersion}. Current version is ${uiData.currentVersion}.
+        
         $appliedAGPPluginsList
       """.trimIndent().insertBRTags()
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
