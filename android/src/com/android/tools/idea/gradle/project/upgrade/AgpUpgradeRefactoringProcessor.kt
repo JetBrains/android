@@ -1079,6 +1079,21 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
           }
         }
       }
+      model.plugins().forEach plugin@{ plugin ->
+        if (plugin.version().valueType == STRING) {
+          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@plugin
+          if (GradleVersion(0,0) >= version) return@plugin
+          WELL_KNOWN_GRADLE_PLUGIN_TABLE[plugin.name().toString()]?.let { info ->
+            val minVersion = info(compatibleGradleVersion)
+            if (minVersion <= version) return@plugin
+            val resultModel = plugin.version().resultModel
+            val element = resultModel.rawElement
+            val psiElement = element?.psiElement ?: return@plugin
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+            usages.add(WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, plugin, resultModel, minVersion.toString()))
+          }
+        }
+      }
     }
     return usages.toTypedArray()
   }
@@ -1171,12 +1186,26 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
       }
 
+    /**
+     * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
+     * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
+     * plugins Dsl).
+     */
     val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
       "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "org.jetbrains.kotlin.android" to ::`kotlin-gradle-plugin-compatibility-info`,
+
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+      "androidx.navigation.safeargs" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+      "androidx.navigation.safeargs.kotlin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+
       "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
+      "de.mannodermaus.android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
+
       "com.google.firebase:firebase-crashlytics-gradle" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
-    )
+      "com.google.firebase.crashlytics" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
+
+      )
   }
 }
 
@@ -1236,6 +1265,21 @@ class WellKnownGradlePluginDependencyUsageInfo(
   override fun getDiscriminatingValues() = listOf(dependency.group().toString(), dependency.name().toString(), version)
 
   override fun getTooltipText() = "Update version of ${dependency.group()}:${dependency.name()} to $version"
+}
+
+class WellKnownGradlePluginDslUsageInfo(
+  element: WrappedPsiElement,
+  val plugin: PluginModel,
+  val resultModel: GradlePropertyModel,
+  val version: String
+): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(version)
+  }
+
+  override fun getDiscriminatingValues() = listOf(plugin.name().toString(), version)
+
+  override fun getTooltipText() = "Update version of ${plugin.name().toString()} to $version"
 }
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
