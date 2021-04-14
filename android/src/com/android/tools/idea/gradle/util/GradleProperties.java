@@ -44,7 +44,7 @@ public class GradleProperties {
   private final Properties myProperties;
 
   public GradleProperties(@NotNull Project project) throws IOException {
-    this(new File(Projects.getBaseDirPath(project), "gradle.properties"));
+    this(getGradlePropertiesFile(project));
   }
 
   public GradleProperties(@NotNull File path) throws IOException {
@@ -128,6 +128,11 @@ public class GradleProperties {
   @NotNull
   public File getPath() {
     return myPath;
+  }
+
+  @NotNull
+  public static File getGradlePropertiesFile(@NotNull Project project) {
+    return new File(Projects.getBaseDirPath(project), "gradle.properties");
   }
 
   @NotNull
