@@ -2856,9 +2856,6 @@ Android Studio Preview.app/Contents/plugins/junit/lib/idea-junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/resources_en.jar
-Android Studio Preview.app/Contents/plugins/lombok/lib/lombok-generated.jar
-Android Studio Preview.app/Contents/plugins/lombok/lib/lombok.jar
-Android Studio Preview.app/Contents/plugins/lombok/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/platform-images.jar
 Android Studio Preview.app/Contents/plugins/platform-images/lib/resources_en.jar

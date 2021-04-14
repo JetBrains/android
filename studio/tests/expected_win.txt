@@ -2394,9 +2394,6 @@ android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/junit/lib/resources_en.jar
-android-studio/plugins/lombok/lib/lombok-generated.jar
-android-studio/plugins/lombok/lib/lombok.jar
-android-studio/plugins/lombok/lib/resources_en.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-images/lib/resources_en.jar
