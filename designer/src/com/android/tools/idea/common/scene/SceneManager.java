@@ -196,7 +196,19 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     }
     else {
       root = new SceneComponent(scene, rootComponent, scene.getSceneManager().getHitProvider(rootComponent));
-      hierarchy.forEach(root::addChild);
+      int minX = Integer.MAX_VALUE;
+      int minY = Integer.MAX_VALUE;
+      int maxX = 0;
+      int maxY = 0;
+      for (SceneComponent child: hierarchy) {
+        minX = Math.min(minX, child.getDrawX());
+        minY = Math.min(minY, child.getDrawY());
+        maxX = Math.max(maxX, child.getDrawX() + child.getDrawWidth());
+        maxY = Math.max(maxY, child.getDrawY() + child.getDrawHeight());
+        root.addChild(child);
+      }
+      root.setPosition(minX, minY);
+      root.setSize(maxX - minX, maxY - minY);
     }
     scene.setRoot(root);
     if (root != null) {
