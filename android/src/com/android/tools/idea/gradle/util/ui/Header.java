@@ -221,7 +221,7 @@ public class Header extends JPanel {
       InputEvent inputEvent = e.getSource() instanceof InputEvent ? (InputEvent)e.getSource() : null;
       AnActionEvent event = AnActionEvent.createFromAnAction(myAction, inputEvent, UNKNOWN, dataContext);
       actionManager.fireBeforeActionPerformed(myAction, dataContext, event);
-      ActionUtil.performAction(myAction, dataContext, event);
+      ActionUtil.performAction(myAction, event);
     }
   }
 
