@@ -221,7 +221,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       Truth.assertThat(pageHtml).contains("Plugin dependency: my.org:pluginA-jar")
     }
     TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
-      Truth.assertThat(button.text).isEqualTo("Update plugin")
+      Truth.assertThat(button.text).isEqualTo("Go to plugin version declaration")
     }
   }
 
