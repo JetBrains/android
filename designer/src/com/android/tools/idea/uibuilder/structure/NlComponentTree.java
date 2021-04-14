@@ -617,6 +617,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             NlComponentTree.this, myModel);
           mySurface.getSelectionModel().setHighlightSelection(
             selected.getReferenced(), selected.getComponents());
+          mySurface.repaint();
         }
       }
       finally {

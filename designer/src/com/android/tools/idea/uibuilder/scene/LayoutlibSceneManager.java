@@ -771,9 +771,7 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       updateTargets();
-      Scene scene = getScene();
-      scene.needsRebuildList();
-      scene.repaint();
+      getScene().needsRebuildList();
     }
   }
 
