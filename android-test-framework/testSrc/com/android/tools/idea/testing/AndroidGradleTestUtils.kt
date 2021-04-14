@@ -68,6 +68,7 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
@@ -813,6 +814,28 @@ fun setupTestProjectFromAndroidModel(
   }
 
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants)
+}
+
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun updateTestProjectFromAndroidModel(
+  project: Project,
+  basePath: File,
+  vararg moduleBuilders: ModuleModelBuilder
+) {
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false)
+  getInstance(project).syncSkipped(null)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
+
+private fun setupTestProjectFromAndroidModelCore(
+  project: Project,
+  basePath: File,
+  moduleBuilders: Array<out ModuleModelBuilder>,
+  setupAllVariants: Boolean
+) {
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val gradlePlugins = listOf(
