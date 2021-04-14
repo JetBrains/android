@@ -57,10 +57,12 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   val listeners = HashSet<Listener>()
 
   /** Tracks metric related to atf */
+  @VisibleForTesting
   private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
   /** Listener for issue panel open/close */
-  private val issuePanelListener = object : IssuePanel.EventListener {
+  @VisibleForTesting
+  val issuePanelListener = object : IssuePanel.EventListener {
     override fun onPanelExpanded(isExpanded: Boolean) {
       if (isExpanded) {
         metricTracker.trackIssues(issues, renderMetric)
