@@ -23,14 +23,23 @@ import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.android.tools.idea.testing.AndroidGradleTests.syncProject
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
+import com.android.tools.idea.testing.fileUnderGradleRoot
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.saveAndDump
+import com.android.tools.idea.testing.switchVariant
 import com.android.tools.idea.testing.verifySyncSkipped
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestUtil
+import org.junit.Test
 
 class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest {
   override fun tearDown() {
@@ -123,4 +132,25 @@ class OpenProjectIntegrationTest : GradleSyncIntegrationTestCase(), GradleIntegr
       ))
     }
   }
+
+    fun testReopenAndResync() {
+      prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION, "project")
+      val debugBefore = openPreparedProject("project") { project: Project ->
+        runWriteAction {
+          // Modify the project build file to ensure the project is synced when opened.
+          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
+            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
+          }
+        }
+        project.saveAndDump()
+      }
+      val reopenedDebug = openPreparedProject("project") { project ->
+        // TODO(b/146535390): Uncomment when sync required status survives restarts.
+        //  assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+        project.saveAndDump()
+      }
+      assertThat(reopenedDebug).isEqualTo(debugBefore)
+    }
+
+
 }
