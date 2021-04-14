@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.compiler;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.CONTINUE_BUILD_OPTION;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 
@@ -24,21 +27,36 @@ import java.util.Collection;
  * Tests for {@link AndroidGradleBuildConfiguration}.
  */
 public class AndroidGradleBuildConfigurationTest extends TestCase {
-  private AndroidGradleBuildConfiguration myConfiguration;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myConfiguration = new AndroidGradleBuildConfiguration();
+  public void testGetCommandLineOptionsDefaultHasContinue() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all";
+    assertThat(configuration.CONTINUE_FAILED_BUILD).isTrue();
+    Collection<String> options = Lists.newArrayList(configuration.getCommandLineOptions());
+    assertThat(options).containsExactly("--stacktrace", "--offline", "--debug", "--all", CONTINUE_BUILD_OPTION);
   }
 
-  public void testGetCommandLineOptions() {
-    myConfiguration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all";
-    Collection<String> options = Lists.newArrayList(myConfiguration.getCommandLineOptions());
-    assertEquals(4, options.size());
-    assertTrue(options.contains("--stacktrace"));
-    assertTrue(options.contains("--offline"));
-    assertTrue(options.contains("--debug"));
-    assertTrue(options.contains("--all"));
+  public void testGetCommandLineOptionsNoContinue() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all";
+    configuration.CONTINUE_FAILED_BUILD = false;
+    Collection<String> options = Lists.newArrayList(configuration.getCommandLineOptions());
+    assertThat(options).containsExactly("--stacktrace", "--offline", "--debug", "--all");
+  }
+
+  public void testGetCommandLineOptionsContinueAlreadyThere() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all --continue";
+    configuration.CONTINUE_FAILED_BUILD = false;
+    Collection<String> options = Lists.newArrayList(configuration.getCommandLineOptions());
+    assertThat(options).containsExactly("--stacktrace", "--offline", "--debug", "--all", CONTINUE_BUILD_OPTION);
+  }
+
+  public void testGetCommandLineOptionsContinueOnlyOnce() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace   --offline  --debug --all --continue";
+    configuration.CONTINUE_FAILED_BUILD = true;
+    Collection<String> options = Lists.newArrayList(configuration.getCommandLineOptions());
+    assertThat(options).containsExactly("--stacktrace", "--offline", "--debug", "--all", CONTINUE_BUILD_OPTION);
+    assertThat(options).containsNoDuplicates();
   }
 }

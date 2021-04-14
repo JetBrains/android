@@ -1316,6 +1316,11 @@
     <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="compiler" hit="Compiler" />
+    <option name="after" hit="Continue the build after failures" />
+    <option name="build" hit="Continue the build after failures" />
+    <option name="continue" hit="Continue the build after failures" />
+    <option name="failures" hit="Continue the build after failures" />
+    <option name="the" hit="Continue the build after failures" />
     <option name="automatically" hit="Make project automatically (only works while not running / debugging)" />
     <option name="debugging" hit="Make project automatically (only works while not running / debugging)" />
     <option name="make" hit="Make project automatically (only works while not running / debugging)" />
