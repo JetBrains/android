@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
-import com.intellij.lang.annotation.AnnotationSession
+import com.intellij.codeInsight.daemon.LineMarkerProvider
+import com.intellij.codeInsight.daemon.LineMarkerProviders
+import com.intellij.codeInsight.daemon.impl.LineMarkersPass
+import com.intellij.lang.LanguageExtensionPoint
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionPoint
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -30,15 +35,17 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.apache.commons.lang.StringUtils
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-
-private const val PREVIEW_ANNOT_TEXT = "@Preview"
+import kotlin.test.assertEquals
 
 @RunWith(Parameterized::class)
 class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
@@ -63,6 +70,7 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    registerPreviewPickerAnnotator()
 
     rule.fixture.addFileToProjectAndInvalidate(
       FILE_PATH,
@@ -92,30 +100,35 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
   @Test
   fun gutterIconActionOnPreview() {
     runInEdtAndWait {
-      checkPreviewAnnotation(1, false)
-      checkPreviewAnnotation(2, true)
+      val psiFile = rule.findPsiFile(FILE_PATH)
+      val previewLineMarkerInfos = LineMarkersPass.queryLineMarkers(psiFile, psiFile.viewProvider.document!!).filter { lineMarkerInfo ->
+        lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
+      }
+      assertEquals(1, previewLineMarkerInfos.size)
+      val previewLineMarkerInfo = previewLineMarkerInfos.first()
+      assertEquals("Preview Picker", previewLineMarkerInfo.createGutterRenderer().clickAction!!.templateText)
+
+      val validAnnotation = psiFile.findValidPreviewAnnotation()
+      assertEquals(validAnnotation.startOffset, previewLineMarkerInfo.startOffset)
+      assertEquals(validAnnotation.endOffset, previewLineMarkerInfo.endOffset)
+      assertEquals(COMPOSE_PREVIEW_ANNOTATION_NAME, previewLineMarkerInfo.element!!.text)
     }
   }
 
-  /**
-   * Asserts that the [ComposePreviewPickerAnnotator] annotates the given [occurrenceInFile] of the @Preview annotation.
-   */
-  private fun checkPreviewAnnotation(occurrenceInFile: Int, expectAnnotation: Boolean) {
-    require(occurrenceInFile > 0)
-    val psiFile = rule.findPsiFile(FILE_PATH)
-    val annotator = ComposePreviewPickerAnnotator()
-    val annotationHolder = AnnotationHolderImpl(AnnotationSession(psiFile))
-    annotationHolder.runAnnotatorWithContext(psiFile.findNthPreviewAnnotation(occurrenceInFile), annotator)
-    assert(annotationHolder.hasAnnotations() == expectAnnotation)
+  private fun registerPreviewPickerAnnotator() {
+    val pickerAnnotatorEp: LanguageExtensionPoint<LineMarkerProvider> =
+      LanguageExtensionPoint(KotlinLanguage.INSTANCE.id, ComposePreviewPickerAnnotator())
+    val extensionPoint: ExtensionPoint<LanguageExtensionPoint<LineMarkerProvider>> =
+      ApplicationManager.getApplication().extensionArea.getExtensionPoint(LineMarkerProviders.EP_NAME)
+
+    extensionPoint.registerExtension(pickerAnnotatorEp, rule.fixture.testRootDisposable)
   }
 }
 
-/**
- * Returns the nth [occurrence] of the @Preview annotation as [PsiElement]
- */
-private fun PsiFile.findNthPreviewAnnotation(occurrence: Int): PsiElement =
+private fun PsiFile.findValidPreviewAnnotation(): PsiElement =
   runInEdtAndGet {
-    val indexOfElement = StringUtils.ordinalIndexOf(text, PREVIEW_ANNOT_TEXT, occurrence)
+    // The second @Preview annotation has the correct syntax
+    val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", 2)
     checkNotNull(PsiTreeUtil.findElementOfClassAtOffset(this, indexOfElement, KtAnnotationEntry::class.java, true))
   }
 

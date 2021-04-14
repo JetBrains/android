@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.annotator
 
+import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
@@ -23,78 +24,75 @@ import com.android.tools.idea.compose.preview.toPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
+import com.intellij.codeInsight.daemon.NavigateAction
 import com.intellij.icons.AllIcons
-import com.intellij.lang.annotation.AnnotationHolder
-import com.intellij.lang.annotation.Annotator
-import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.parentOfType
+import com.intellij.ui.awt.RelativePoint
+import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
-import java.awt.MouseInfo
 import javax.swing.Icon
 
 /**
- * Annotator for the @Preview annotation for Compose.
+ * LineMarkerProvider for the @Preview annotation for Compose.
  *
- * Returns a [GutterIconRenderer] that brings up a properties panel to edit the annotation.
+ * Returns a [LineMarkerInfo] that brings up a properties panel to edit the annotation.
  */
-class ComposePreviewPickerAnnotator : Annotator {
-  override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) return
-    if (!StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()) return
-    if (element.getModuleSystem()?.usesCompose != true) return
-
-    if (element is KtAnnotationEntry) {
-      val uElement = (element.toUElement() as? UAnnotation) ?: return
-
-      if (uElement.isPreviewAnnotation()) {
-        uElement.toPreviewElement()?.let {
-          holder.newSilentAnnotation(HighlightSeverity.INFORMATION).gutterIconRenderer(
-            ComposePreviewPickerRenderer(element.project, it)).create()
-        }
-      }
-    }
-  }
-}
-
-/**
- * [GutterIconRenderer] for the @Preview annotator.
- */
-private class ComposePreviewPickerRenderer(private val project: Project,
-                                           private val previewElement: PreviewElement) : GutterIconRenderer() {
-  private val psiPickerAction = object : AnAction() {
-    override fun actionPerformed(e: AnActionEvent) {
-      val model = PsiCallPropertyModel.fromPreviewElement(project, previewElement)
-      PsiPickerManager.show(MouseInfo.getPointerInfo().location, model)
-    }
-  }
+class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
+  override fun getName(): String = message("picker.preview.annotator.name")
 
   override fun getIcon(): Icon = AllIcons.Actions.InlayGear
 
-  override fun getClickAction() = psiPickerAction
+  override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+    if (element !is LeafPsiElement) return null
+    if (element.tokenType != KtTokens.IDENTIFIER) return null
+    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) return null
+    if (!StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()) return null
+    if (element.getModuleSystem()?.usesCompose != true) return null
+    if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 
-  override fun getTooltipText() = message("picker.preview.tooltip")
+    val parentElement = element.parentOfType<KtAnnotationEntry>() ?: return null
+    val uElement = (parentElement.toUElement() as? UAnnotation) ?: return null
 
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-
-    other as ComposePreviewPickerRenderer
-
-    if (project != other.project) return false
-    if (previewElement != other.previewElement) return false
-
-    return true
+    if (uElement.isPreviewAnnotation()) {
+      uElement.toPreviewElement()?.let {
+        val info = createInfo(element, parentElement.textRange, parentElement.project, it)
+        NavigateAction.setNavigateAction(info, message("picker.preview.annotator.action.title"), null, icon)
+        return info
+      }
+    }
+    return null
   }
 
-  override fun hashCode(): Int {
-    var result = project.hashCode()
-    result = 31 * result + previewElement.hashCode()
-    return result
-  }
+  /**
+   * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the @Preview annotation, this [LineMarkerInfo]
+   * should be available for the entire annotation entry, including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should
+   * also show the @Preview picker option.
+   */
+  private fun createInfo(
+    element: PsiElement,
+    textRange: TextRange,
+    project: Project,
+    previewElement: PreviewElement
+  ) = LineMarkerInfo<PsiElement>(
+    element,
+    textRange,
+    AllIcons.Actions.InlayGear,
+    { message("picker.preview.annotator.tooltip") },
+    { mouseEvent, _ ->
+      val model = PsiCallPropertyModel.fromPreviewElement(project, previewElement)
+      PsiPickerManager.show(RelativePoint(mouseEvent.component, mouseEvent.point).screenPoint, model)
+    },
+    GutterIconRenderer.Alignment.LEFT,
+    { message("picker.preview.annotator.tooltip") }
+  )
 }
