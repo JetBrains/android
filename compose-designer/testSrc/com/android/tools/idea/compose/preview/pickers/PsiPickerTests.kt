@@ -284,9 +284,9 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("32", model.properties["", "widthDp"].value)
     assertEquals("@Preview(name = \"Hello\", group = \"Group2\", widthDp = 32)", noParametersPreview.annotationText())
 
-    // Set back to the default value
+    // Clear values
     model.properties["", "group"].value = null
-    model.properties["", "widthDp"].value = null
+    model.properties["", "widthDp"].value = "    " // Blank value is the same as null value
     assertEquals("@Preview(name = \"Hello\")", noParametersPreview.annotationText())
 
     model.properties["", "name"].value = null
