@@ -3,6 +3,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
@@ -333,6 +334,8 @@ class ContentManager(val project: Project) {
       selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
       addCheckboxTreeListener(this@View.model.checkboxTreeStateUpdater)
       addTreeSelectionListener { e -> refreshDetailsPanel() }
+      background = primaryContentBackground
+      isOpaque = true
     }
 
     val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
