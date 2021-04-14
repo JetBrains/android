@@ -27,6 +27,7 @@ public final class GradleBuilds {
 
   @NonNls public static final String OFFLINE_MODE_OPTION = "--offline";
   @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
+  @NonNls public static final String CONTINUE_BUILD_OPTION = "--continue";
 
   @NonNls public static final String BUILD_SRC_FOLDER_NAME = "buildSrc";
 
