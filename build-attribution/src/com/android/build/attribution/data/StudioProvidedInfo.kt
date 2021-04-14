@@ -18,7 +18,9 @@ package com.android.build.attribution.data
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.util.GradleProperties
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtil
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
@@ -37,7 +39,9 @@ data class StudioProvidedInfo(
         properties.setProperty("org.gradle.unsafe.configuration-cache", "true")
         save()
       }
-      //TODO should we open file?
+      VfsUtil.findFileByIoFile(GradleProperties.getGradlePropertiesFile(project), true)?.let {
+        OpenFileDescriptor(project, it).navigate(true)
+      }
     }
   }
 }
