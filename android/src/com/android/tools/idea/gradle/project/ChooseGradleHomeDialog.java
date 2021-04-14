@@ -90,7 +90,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     myGradleHomePathField.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(@NotNull DocumentEvent e) {
-          String fixedPath = myInstallationManager.suggestBetterGradleHomePath(null, myGradleHomePathField.getText());
+          String fixedPath = myInstallationManager.suggestBetterGradleHomePath(myGradleHomePathField.getText());
           if (fixedPath != null) {
             ApplicationManager.getApplication().invokeLater(()-> {
               myGradleHomePathField.setText(fixedPath);
@@ -135,7 +135,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
       return LocationSettingType.UNKNOWN;
     }
     File gradleHomePath = getGradleHomePath(gradleHome);
-    return myInstallationManager.isGradleSdkHome(null, gradleHomePath) ? EXPLICIT_CORRECT : EXPLICIT_INCORRECT;
+    return myInstallationManager.isGradleSdkHome(gradleHomePath) ? EXPLICIT_CORRECT : EXPLICIT_INCORRECT;
   }
 
   @Nullable
