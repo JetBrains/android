@@ -64,6 +64,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -104,6 +105,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
                      StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
 
+    private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
+
     init {
       addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
       addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
@@ -123,7 +126,13 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+      val shouldEnableAction = !isAnyPreviewRefreshing(e.dataContext)
+      e.presentation.isEnabled = shouldEnableAction
+      // Since this is an ActionGroup, IntelliJ will set the button icon to enabled even though it is disabled. Only when clicking on the
+      // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
+      // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
+      // action is disabled.
+      e.presentation.icon = if (shouldEnableAction) StudioIcons.LayoutEditor.Toolbar.VIEW_MODE else disabledIcon
     }
   }
 }
