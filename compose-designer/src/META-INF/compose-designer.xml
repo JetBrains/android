@@ -95,9 +95,9 @@
     <runLineMarkerContributor
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
-    <annotator
-      language="kotlin"
-      implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
+    <codeInsight.lineMarkerProvider
+        language="kotlin"
+        implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
 
     <notificationGroup id="Compose Preview Notification" displayType="NONE"/>
   </extensions>
