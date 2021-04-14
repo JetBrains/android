@@ -82,7 +82,7 @@ public final class PsiResourceItem implements ResourceItem {
   @NotNull private final String myName;
   @NotNull private final ResourceType myType;
 
-  @NotNull private ResourceFolderRepository myOwner;
+  @NotNull private final ResourceFolderRepository myOwner;
   @Nullable private ResourceValue myResourceValue;
   @Nullable private PsiResourceFile mySourceFile;
   /**
