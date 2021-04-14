@@ -17,33 +17,97 @@ package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.internal.DeviceMonitor;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+/**
+ * Notifies the physical device table when physical devices are connected, disconnected, and when they become online. The
+ * {@link DeviceMonitor#start device list monitor} thread passes IDevices to the IDeviceChangeListener methods of this class. Those methods
+ * convert them to PhysicalDevices and notify the table model on the event dispatch thread.
+ */
 final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeListener {
   private final @NotNull PhysicalDeviceTableModel myModel;
+  private final @NotNull AndroidDebugBridge myBridge;
+  private final @NotNull ListeningExecutorService myExecutorService;
+  private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
+  private final @NotNull PhysicalDeviceFutureCallbackSupplier myNewFutureCallback;
 
-  /**
-   * Called by the event dispatch thread
-   */
-  @UiThread
-  PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
-    myModel = model;
-    AndroidDebugBridge.addDeviceChangeListener(this);
+  @VisibleForTesting
+  static class PhysicalDeviceFutureCallback implements FutureCallback<PhysicalDevice> {
+    private final @NotNull Consumer<@NotNull PhysicalDevice> myOnSuccess;
+
+    /**
+     * Called by the device list monitor thread
+     */
+    @WorkerThread
+    @VisibleForTesting
+    PhysicalDeviceFutureCallback(@NotNull Consumer<@NotNull PhysicalDevice> onSuccess) {
+      myOnSuccess = onSuccess;
+    }
+
+    @UiThread
+    @Override
+    public void onSuccess(@Nullable PhysicalDevice device) {
+      assert device != null;
+      myOnSuccess.accept(device);
+    }
+
+    @UiThread
+    @Override
+    public final void onFailure(@NotNull Throwable throwable) {
+      // TODO Handle the exception in a user visible way
+      Logger.getInstance(PhysicalDeviceChangeListener.class).warn(throwable);
+    }
   }
 
-  /**
-   * Called by the event dispatch thread
-   */
+  @VisibleForTesting
+  @FunctionalInterface
+  interface PhysicalDeviceFutureCallbackSupplier {
+    @NotNull FutureCallback<@NotNull PhysicalDevice> get(@NotNull Consumer<@NotNull PhysicalDevice> onSuccess);
+  }
+
+  @UiThread
+  PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model) {
+    this(model, new AndroidDebugBridge(), BuilderService::getInstance, PhysicalDeviceFutureCallback::new);
+  }
+
+  @UiThread
+  @VisibleForTesting
+  PhysicalDeviceChangeListener(@NotNull PhysicalDeviceTableModel model,
+                               @NotNull AndroidDebugBridge bridge,
+                               @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance,
+                               @NotNull PhysicalDeviceFutureCallbackSupplier newFutureCallback) {
+    myModel = model;
+    myBridge = bridge;
+    myExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+    myBuilderServiceGetInstance = builderServiceGetInstance;
+    myNewFutureCallback = newFutureCallback;
+
+    bridge.addDeviceChangeListener(this);
+  }
+
   @UiThread
   @Override
   public void dispose() {
-    AndroidDebugBridge.removeDeviceChangeListener(this);
+    myBridge.removeDeviceChangeListener(this);
   }
+
+  // TODO Throttle the notifications from the device list monitor thread
 
   /**
    * Called by the device list monitor thread
@@ -51,17 +115,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceConnected(@NotNull IDevice device) {
-    EdtExecutorService.getInstance().execute(() -> {
-      String serialNumber = device.getSerialNumber();
-
-      PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-        .setSerialNumber(serialNumber)
-        .setLastOnlineTime(OnlineTimeService.getInstance().get(serialNumber))
-        .setOnline(true)
-        .build();
-
-      myModel.handleOnlineDevice(physicalDevice);
-    });
+    buildPhysicalDevice(device, myModel::deviceConnected);
   }
 
   /**
@@ -70,16 +124,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
-    EdtExecutorService.getInstance().execute(() -> {
-      String serialNumber = device.getSerialNumber();
-
-      PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-        .setSerialNumber(serialNumber)
-        .setLastOnlineTime(OnlineTimeService.getInstance().remove(serialNumber))
-        .build();
-
-      myModel.handleOfflineDevice(physicalDevice);
-    });
+    buildPhysicalDevice(device, myModel::deviceDisconnected);
   }
 
   /**
@@ -88,5 +133,21 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceChanged(@NotNull IDevice device, int mask) {
+    if ((mask & IDevice.CHANGE_STATE) == 0) {
+      return;
+    }
+
+    buildPhysicalDevice(device, myModel::deviceChanged);
+  }
+
+  /**
+   * Called by the device list monitor thread
+   */
+  @WorkerThread
+  private void buildPhysicalDevice(@NotNull IDevice device, @NotNull Consumer<@NotNull PhysicalDevice> onSuccess) {
+    // noinspection UnstableApiUsage
+    FluentFuture.from(myExecutorService.submit(myBuilderServiceGetInstance::get))
+      .transformAsync(builderService -> Objects.requireNonNull(builderService).build(device), myExecutorService)
+      .addCallback(myNewFutureCallback.get(onSuccess), EdtExecutorService.getInstance());
   }
 }

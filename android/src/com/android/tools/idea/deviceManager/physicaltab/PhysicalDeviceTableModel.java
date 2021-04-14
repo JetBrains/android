@@ -17,7 +17,6 @@ package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.deviceManager.Device;
-import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -42,50 +41,13 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myDevices = devices;
   }
 
-  void handleOnlineDevice(@NotNull PhysicalDevice onlineDevice) {
-    assert onlineDevice.isOnline();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, onlineDevice);
-
-    if (modelRowIndex == -1) {
-      myDevices.add(onlineDevice);
-    }
-    else {
-      PhysicalDevice device = myDevices.get(modelRowIndex);
-
-      if (device.isOnline()) {
-        Logger.getInstance(PhysicalDeviceTableModel.class).warn("An online device went online" + System.lineSeparator()
-                                                                + device.toDebugString());
-      }
-
-      myDevices.set(modelRowIndex, onlineDevice);
-    }
-
-    myDevices.sort(null);
-    fireTableDataChanged();
+  void deviceConnected(@NotNull PhysicalDevice device) {
   }
 
-  void handleOfflineDevice(@NotNull PhysicalDevice offlineDevice) {
-    assert !offlineDevice.isOnline();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, offlineDevice);
+  void deviceDisconnected(@NotNull PhysicalDevice device) {
+  }
 
-    if (modelRowIndex == -1) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("An unknown device went offline" + System.lineSeparator()
-                                                              + offlineDevice.toDebugString());
-
-      return;
-    }
-
-    PhysicalDevice device = myDevices.get(modelRowIndex);
-
-    if (!device.isOnline()) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("An offline device went offline" + System.lineSeparator()
-                                                              + device.toDebugString());
-    }
-
-    myDevices.set(modelRowIndex, offlineDevice);
-    myDevices.sort(null);
-
-    fireTableDataChanged();
+  void deviceChanged(@NotNull PhysicalDevice device) {
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
