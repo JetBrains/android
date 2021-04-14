@@ -72,6 +72,13 @@ class ScenerManagerTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  private fun SceneComponent.withBounds(x: Int, y: Int, width: Int, height: Int): SceneComponent {
+    setPosition(x, y)
+    setSize(width, height)
+
+    return this
+  }
+
   /**
    * Checks that when multiple top level components are provided, this is handled correctly by the SceneManager.
    */
@@ -90,10 +97,10 @@ class ScenerManagerTest {
     val sceneManager = TestSceneManager(model, surface, object: SceneManager.SceneComponentHierarchyProvider {
       override fun createHierarchy(manager: SceneManager, component: NlComponent): MutableList<SceneComponent> =
         mutableListOf(
-          SceneComponent(scene, rootNlComponent, hitProvider),
-          SceneComponent(scene, rootNlComponent, hitProvider),
-          SceneComponent(scene, rootNlComponent, hitProvider),
-          SceneComponent(scene, rootNlComponent, hitProvider)
+          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 30, 60, 60)
         )
 
       override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
@@ -102,6 +109,10 @@ class ScenerManagerTest {
     sceneManager.updateSceneView()
     sceneManager.update()
     assertEquals(4, sceneManager.scene.root!!.childCount)
+    assertEquals(20, sceneManager.scene.root!!.drawX)
+    assertEquals(20, sceneManager.scene.root!!.drawY)
+    assertEquals(60, sceneManager.scene.root!!.drawWidth)
+    assertEquals(70, sceneManager.scene.root!!.drawHeight)
     Disposer.dispose(sceneManager)
     Disposer.dispose(model)
   }
