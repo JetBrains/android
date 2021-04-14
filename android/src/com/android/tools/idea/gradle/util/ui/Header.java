@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.util.ui;
 
+import static com.intellij.ide.ui.UISettings.setupAntialiasing;
+import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
+import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
+import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
+import static com.intellij.util.ui.UIUtil.drawHeader;
+import static com.intellij.util.ui.UIUtil.drawImage;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -33,21 +40,17 @@ import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.EventListener;
 import java.util.List;
-
-import static com.intellij.ide.ui.UISettings.setupAntialiasing;
-import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
-import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
-import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
-import static com.intellij.util.ui.UIUtil.drawHeader;
-import static com.intellij.util.ui.UIUtil.drawImage;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Adapted from {@link com.intellij.openapi.wm.impl.ToolWindowHeader}.
@@ -223,7 +226,7 @@ public class Header extends JPanel {
       InputEvent inputEvent = e.getSource() instanceof InputEvent ? (InputEvent)e.getSource() : null;
       AnActionEvent event = AnActionEvent.createFromAnAction(myAction, inputEvent, UNKNOWN, dataContext);
       actionManager.fireBeforeActionPerformed(myAction, dataContext, event);
-      ActionUtil.performAction(myAction, dataContext, event);
+      ActionUtil.performAction(myAction, event);
     }
   }
 
