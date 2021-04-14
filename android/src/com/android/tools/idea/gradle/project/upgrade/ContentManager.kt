@@ -511,8 +511,14 @@ class ContentManager(val project: Project) {
               if (it.userObject == MANDATORY_CODEPENDENT) {
                 myCheckbox.isVisible = false
                 textRenderer.append("")
-                val xoffset = myCheckbox.width + myCheckbox.margin.left + myCheckbox.margin.right
-                textRenderer.appendTextPadding(xoffset)
+                val totalXoffset = myCheckbox.width + myCheckbox.margin.left + myCheckbox.margin.right
+                val firstXoffset = 2 * myCheckbox.width / 5 // approximate padding needed to put the bullet centrally in the space
+                textRenderer.appendTextPadding(firstXoffset)
+                textRenderer.append("\u2022", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, true)
+                // Although this looks wrong (one might expect e.g. `totalXoffset - firstXoffset`), it does seem to be the case that
+                // SimpleColoredComponent interprets padding from the start of the extent, rather than from the previous end.  Of course this
+                // might be a bug, and if the behaviour of SimpleColoredComponent is changed this will break alignment of the Upgrade steps.
+                textRenderer.appendTextPadding(totalXoffset)
               }
             }
             textRenderer.append(o.treeText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
