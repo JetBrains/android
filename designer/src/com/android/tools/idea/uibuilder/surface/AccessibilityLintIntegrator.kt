@@ -247,7 +247,8 @@ class NlAtfIssue(
     }
   }
 
-  private fun applyFixImpl(fix: ValidatorData.Fix, component: NlComponent) {
+  @VisibleForTesting
+  fun applyFixImpl(fix: ValidatorData.Fix, component: NlComponent) {
     when (fix) {
       is ValidatorData.RemoveViewAttributeFix ->
         component.removeAttribute(fix.mViewAttribute.mNamespaceUri,

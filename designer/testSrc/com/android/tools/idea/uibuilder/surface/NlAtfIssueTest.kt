@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_IGNORE
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
@@ -30,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
@@ -95,7 +97,6 @@ class NlAtfIssueTest : LayoutTestCase() {
   @Test
   fun testIgnoreButton() {
     val result = ScannerTestHelper.createTestIssueBuilder().build()
-
     val atfIssue = NlAtfIssue(result, TestSource())
 
     assertEquals(1, atfIssue.fixes.count())
@@ -172,6 +173,25 @@ class NlAtfIssueTest : LayoutTestCase() {
   }
 
   @Test
+  fun applySetViewAttributeFix() {
+    val testSrc = TestSource()
+    val attributeName = "textColor"
+    val suggestedValue = "#FFFFFF"
+    val fixDescription = "Set this item's android:textColor to #FFFFFF"
+    val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", attributeName)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
+
+    val component = Mockito.mock(NlComponent::class.java)
+    atfIssue.applyFixImpl(setAttributeFix, component)
+
+    verify(component).setAttribute(ANDROID_URI, attributeName, suggestedValue)
+  }
+
+
+  @Test
   fun testFixClickedWithRemoveViewAttributeFix() {
     val testSrc = TestSource()
     val attributeName = "contentDescription"
@@ -184,6 +204,23 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
+  }
+
+  @Test
+  fun applyRemoveViewAttributeFix() {
+    val testSrc = TestSource()
+    val attributeName = "contentDescription"
+    val fixDescription = "Remove this item's android:textColor to #FFFFFF"
+    val viewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", attributeName)
+    val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(viewAttribute, fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(removeAttributeFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    val component = Mockito.mock(NlComponent::class.java)
+    atfIssue.applyFixImpl(removeAttributeFix, component)
+
+    verify(component).removeAttribute(ANDROID_URI, attributeName)
   }
 
   @Test
@@ -204,6 +241,29 @@ class NlAtfIssueTest : LayoutTestCase() {
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
+  }
+
+  @Test
+  fun applyCompoundFix() {
+    val testSrc = TestSource()
+    val setAttributeName = "textColor"
+    val suggestedValue = "#FFFFFF"
+    val setViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", setAttributeName)
+    val setAttributeFix = ValidatorData.SetViewAttributeFix(setViewAttribute, suggestedValue, "")
+    val removeAttributeName = "contentDescription"
+    val removeViewAttribute = ValidatorData.ViewAttribute(ANDROID_URI,"android", removeAttributeName)
+    val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(removeViewAttribute, "")
+    val fixDescription = "Set this item's android:textColor to #FFFFFF. Remove this item's android:textColor to #FFFFFF."
+    val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
+
+    val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
+    val atfIssue = NlAtfIssue(result, testSrc)
+
+    val component = Mockito.mock(NlComponent::class.java)
+    atfIssue.applyFixImpl(compoundFix, component)
+
+    verify(component).setAttribute(ANDROID_URI, setAttributeName, suggestedValue)
+    verify(component).removeAttribute(ANDROID_URI, removeAttributeName)
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
