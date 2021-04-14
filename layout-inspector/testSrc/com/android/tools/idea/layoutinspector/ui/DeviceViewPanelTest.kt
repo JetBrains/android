@@ -111,7 +111,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
   }
 
   @Test
@@ -125,7 +127,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
   }
 
   @Test
@@ -183,7 +187,9 @@ class DeviceViewPanelWithFullInspectorTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isFalse()
@@ -208,7 +214,9 @@ class DeviceViewPanelWithFullInspectorTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isTrue()

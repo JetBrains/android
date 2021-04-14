@@ -451,18 +451,16 @@ class DeviceViewPanel(
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
-      val isLiveInspector = currentClient.isConnected && currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
+      val isLiveInspector = !currentClient.isConnected || currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
       val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {
-        !currentClient.isConnected -> null
         isLowerThenApi29 -> "Live updates not available for devices below API 29"
         !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
         else -> "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device " +
                 "resources and might impact runtime performance."
       }
-      event.presentation.text = if (currentClient.isConnected) "Live Updates" else null
     }
 
     override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
