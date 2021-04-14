@@ -104,6 +104,11 @@ class GradleTestResultAdapter(device: IDevice,
   }
 
   override fun onTestSuiteFinished(testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+    if (!this::myTestSuite.isInitialized) {
+      // Initialize test suite if it hasn't initialized yet.
+      // This may happen if UTP fails in setup phase before it starts test task.
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.getDefaultInstance())
+    }
     myTestSuite.result = testSuiteResult.testStatus.toAndroidTestSuiteResult()
     listener.onTestSuiteFinished(device, myTestSuite)
   }

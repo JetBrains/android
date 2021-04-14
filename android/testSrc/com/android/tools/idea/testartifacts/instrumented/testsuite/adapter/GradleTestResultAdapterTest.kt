@@ -300,4 +300,17 @@ class GradleTestResultAdapterTest {
       })
     }
   }
+
+  @Test
+  fun onTestSuiteFinishedIsCalledBeforeTestSuiteEvenStarts() {
+    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+      onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.getDefaultInstance())
+    }
+
+    inOrder(mockListener).apply {
+      verify(mockListener).onTestSuiteScheduled(any())
+      verify(mockListener).onTestSuiteStarted(any(), any())
+      verify(mockListener).onTestSuiteFinished(any(), any())
+    }
+  }
 }
