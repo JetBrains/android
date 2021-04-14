@@ -81,6 +81,8 @@ internal fun isBroken(templateName: String): Boolean {
     if ("Native C++" == templateName) return true // b/158067606
   }
 
+  if ("Empty Compose Activity" == templateName) return true // b/182477583
+
   return false
 }
 
