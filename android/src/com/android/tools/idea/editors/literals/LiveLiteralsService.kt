@@ -330,6 +330,15 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
+  /**
+   * Adds a new listener to be notified when the status of Live Literals availability changes.
+   *
+   * This can be used to get notified back if Live Literals become unavailable or if they become available at any point.
+   *
+   * @param parentDisposable [Disposable] to control the lifespan of the listener. If the parentDisposable is disposed
+   *  the listener will automatically be unregistered.
+   * @param listener the code to be called when the literals availability change. This will run in a background thread.
+   */
   fun addAvailabilityListener(parentDisposable: Disposable, listener: (Boolean) -> Unit) {
     onLiteralsAvailabilityChangedListeners.add(listener = listener)
     val listenerWeakRef = WeakReference(listener)
