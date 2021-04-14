@@ -251,6 +251,9 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
+        "wear.pairing.assistant": {
+            "test_filter": "com.android.tools.idea.wearparing",
+        },
         "other": {
             "shard_count": 10,
             # TODO(b/167611852) remove after reducing its run time.
