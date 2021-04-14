@@ -171,7 +171,40 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
   }
 
   @Test
-  fun doNotImportWhenAlreadyFullyQualifiedKotlin() {
+  fun doNotImportWhenAlreadyFullyQualifiedJava_nestedClass() {
+    // If there is a fully qualified reference, we shouldn't import the symbol. And more
+    // importantly, the unresolved symbol is typically not the final name, but the first
+    // unresolvable package segment. In this case, we have to search a little harder to
+    // find the real corresponding library to import.
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
+    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
+      package test.pkg.imports;
+      public class Test {
+          private androidx.recyclerview.widget.RecyclerView.FakeNestedClass view; // recyclerview(package segment) is an unresolvable symbol
+      }
+      """.trimIndent())
+    val source = projectRule.fixture.editor.document.text
+
+    val action = AndroidMavenImportIntentionAction()
+    val element = projectRule.fixture.moveCaret("recyc|lerview")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview and import")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+
+    // Make sure we haven't modified the source to add a new import statement since the
+    // reference is already fully qualified
+    val newSource = projectRule.fixture.editor.document.text
+    assertThat(source).isEqualTo(newSource)
+  }
+
+  @Test
+  fun doNotImportWhenAlreadyFullyQualifiedKotlin_dotQualifiedExpressionCase() {
     // Like testDoNotImportWhenAlreadyFullyQualifiedJava, but for Kotlin
     // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
     // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
@@ -179,7 +212,36 @@ class AndroidMavenImportIntentionActionTest(private val autoImportEnabled: Boole
     assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
       package test.pkg.imports
-      val view = androidx.recyclerview.widget.RecyclerView() // Here RecyclerView is an unresolvable symbol
+      val view = androidx.recyclerview.widget.RecyclerView() // Here recyclerview(package segment) is an unresolvable symbol
+      """.trimIndent())
+    val source = projectRule.fixture.editor.document.text
+
+    val action = AndroidMavenImportIntentionAction()
+    val element = projectRule.fixture.moveCaret("recyc|lerview")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.recyclerview:recyclerview and import")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+
+    // Make sure we haven't added an import statement since the reference is already fully qualified
+    val newSource = projectRule.fixture.editor.document.text
+    assertThat(source).isEqualTo(newSource)
+  }
+
+  @Test
+  fun doNotImportWhenAlreadyFQKotlin_dotQualifiedExpressionCase_nestedClass() {
+    // Like testDoNotImportWhenAlreadyFullyQualifiedJava, but for Kotlin
+    // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
+    // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.recyclerview:recyclerview:") }
+    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val view = androidx.recyclerview.widget.RecyclerView.FakeNestedClass() // Here recyclerview(package segment) is an unresolvable symbol
       """.trimIndent())
     val source = projectRule.fixture.editor.document.text
 
