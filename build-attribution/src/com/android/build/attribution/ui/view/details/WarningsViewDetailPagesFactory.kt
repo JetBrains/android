@@ -301,7 +301,7 @@ class WarningsViewDetailPagesFactory(
       """.trimIndent().insertBRTags()
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     if (data.requiredVersion != null) {
-      add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
+      add(JButton("Go to plugin version declaration").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
     }
   }
 
