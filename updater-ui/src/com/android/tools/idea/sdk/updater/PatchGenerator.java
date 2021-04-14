@@ -49,7 +49,7 @@ public class PatchGenerator {
                                             @NotNull File outputJar,
                                             @NotNull String oldDescription,
                                             @NotNull String description,
-                                            @NotNull ProgressIndicator progress) {
+                                            @NotNull ProgressIndicator progress) throws IOException {
     Digester digester = new Digester("md5");
 
     Runner.initLogger();
