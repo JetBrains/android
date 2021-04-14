@@ -76,7 +76,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
     openPreparedProject("project") { project ->
       expect.thatModuleVariantIs(project, ":app", "debug")
-      // TODO(b/184824343): val debugSnapshot = project.saveAndDump()
+      val debugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app", "release")
@@ -85,8 +85,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
       expect.thatModuleVariantIs(project, ":app", "debug")
       // TODO(b/184824343): Re-enable when fixed.
       // expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
-      // TODO(b/184824343): Switching variants from cache does not work properly for Kapt.
-      //                    expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
 
@@ -189,7 +188,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.thatModuleVariantIs(project, ":app", "release")
-      // TODO(b/184826517): expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
 
       switchVariant(project, ":app", "debug")
       // TODO(b/184824343): Re-enable when fixed.
