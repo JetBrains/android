@@ -117,6 +117,14 @@ class AndroidProcessMonitorManager(
   fun isAssociated(device: IDevice) = myMonitors.contains(device)
 
   /**
+   * Returns true if there is no devices being monitored.
+   */
+  @AnyThread
+  fun isEmpty(): Boolean {
+    return myMonitors.isEmpty()
+  }
+
+  /**
    * Removes a [device] and notifies [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the very last one.
    */
   @WorkerThread

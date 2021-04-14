@@ -136,6 +136,14 @@ class AndroidProcessHandler @JvmOverloads constructor(
   }
 
   /**
+   * Returns true if there is no devices being monitored.
+   */
+  @AnyThread
+  fun isEmpty(): Boolean {
+    return myMonitorManager.isEmpty()
+  }
+
+  /**
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
   @AnyThread

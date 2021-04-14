@@ -16,19 +16,27 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.util.LaunchStatus
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.process.ProcessHandler
-import org.junit.Before
+import com.google.common.util.concurrent.MoreExecutors
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.MockitoAnnotations
+import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
+import java.util.concurrent.ExecutorService
 
 /**
  * Unit tests for [AndroidTestApplicationLaunchTask].
@@ -36,14 +44,16 @@ import org.mockito.MockitoAnnotations
 @RunWith(JUnit4::class)
 class AndroidTestApplicationLaunchTaskTest {
 
-  @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
-  @Mock lateinit var mockProcessHandler: ProcessHandler
-  @Mock lateinit var mockPrinter: ConsolePrinter
+  @get:Rule val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
-  @Before
-  fun setup() {
-    MockitoAnnotations.initMocks(this)
-  }
+  @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
+  @Mock lateinit var mockProcessHandler: AndroidProcessHandler
+  @Mock lateinit var mockPrinter: ConsolePrinter
+  @Mock lateinit var mockITestRunListener: ITestRunListener
+  @Mock lateinit var mockLaunchContext: LaunchContext
+  @Mock lateinit var mockLaunchStatus: LaunchStatus
+
+  private val directExecutor: ExecutorService = MoreExecutors.newDirectExecutorService()
 
   private fun createMockDevice(version: AndroidVersion): IDevice {
     val mockDevice = mock(IDevice::class.java)
@@ -51,19 +61,21 @@ class AndroidTestApplicationLaunchTaskTest {
     return mockDevice
   }
 
+  private fun createLaunchTask(): AndroidTestApplicationLaunchTask {
+    return AndroidTestApplicationLaunchTask(
+      "instrumentationTestRunner",
+      "testApplicationId",
+      mockAndroidArtifact,
+      /*waitForDebugger=*/ false,
+      "instrumentationOptions",
+      listOf(mockITestRunListener),
+      myBackgroundTaskExecutor = directExecutor::submit) {}
+  }
+
   @Test
   fun statusReporterModeRawTextShouldBeUsedInApiLevel25() {
     val mockDevice = createMockDevice(AndroidVersion(25))
-    val launchTask = AndroidTestApplicationLaunchTask.allInPackageTest(
-      "instrumentationTestRunner",
-      "testApplicationId",
-      /*waitForDebugger=*/ false,
-      "instrumentationOptions",
-      mockAndroidArtifact,
-      mockProcessHandler,
-      mockPrinter,
-      mockDevice,
-      "packageName")
+    val launchTask = createLaunchTask()
 
     val runner = launchTask.createRemoteAndroidTestRunner(mockDevice)
 
@@ -74,20 +86,39 @@ class AndroidTestApplicationLaunchTaskTest {
   @Test
   fun statusReporterModeProtoStdShouldBeUsedInApiLevel26() {
     val mockDevice = createMockDevice(AndroidVersion(26))
-    val launchTask = AndroidTestApplicationLaunchTask.allInPackageTest(
-      "instrumentationTestRunner",
-      "testApplicationId",
-      /*waitForDebugger=*/ false,
-      "instrumentationOptions",
-      mockAndroidArtifact,
-      mockProcessHandler,
-      mockPrinter,
-      mockDevice,
-      "packageName")
+    val launchTask = createLaunchTask()
 
     val runner = launchTask.createRemoteAndroidTestRunner(mockDevice)
 
     assertThat(runner.amInstrumentCommand).contains("-m")
     assertThat(runner.amInstrumentCommand).doesNotContain("-r")
+  }
+
+  @Test
+  fun run() {
+    val mockDevice = createMockDevice(AndroidVersion(26))
+    `when`(mockLaunchContext.device).thenReturn(mockDevice)
+    `when`(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
+    `when`(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
+    `when`(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
+    `when`(mockProcessHandler.isEmpty()).thenReturn(true)
+
+    val launchTask = AndroidTestApplicationLaunchTask(
+      "instrumentationTestRunner",
+      "testApplicationId",
+      mockAndroidArtifact,
+      /*waitForDebugger=*/ false,
+      "instrumentationOptions",
+      listOf(mockITestRunListener),
+      myBackgroundTaskExecutor = directExecutor::submit) {}
+
+    val result = launchTask.run(mockLaunchContext)
+
+    requireNotNull(result)
+    assertThat(result.success).isTrue()
+
+    verify(mockPrinter).stdout(eq("Running tests\n"))
+    verify(mockProcessHandler).detachDevice(eq(mockDevice))
+    verify(mockProcessHandler).detachProcess()
   }
 }
