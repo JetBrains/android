@@ -381,8 +381,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   }
 
   override fun reset() {
-    val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
-    try {
+    HeavyProcessLatch.INSTANCE.performOperation(HeavyProcessLatch.Type.Processing, "Resetting Project Structure") {
       val configurables = myConfigurables.keys
 
       for (each in configurables) {
@@ -403,9 +402,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       if (myUiState.proportion > 0) {
         mySplitter!!.proportion = myUiState.proportion
       }
-    }
-    finally {
-      token.finish()
     }
   }
 
