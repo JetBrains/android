@@ -10,11 +10,10 @@ PROJECT                       : MultiFlavor
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/MultiFlavor.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/MultiFlavor.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -33,11 +32,10 @@ PROJECT                       : MultiFlavor
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/MultiFlavor.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : firstAbcSecondAbcDebug
             AssembleTaskName              : assembleFirstAbcSecondAbcDebug
             CompileJavaTaskName           : compileFirstAbcSecondAbcDebugSources
@@ -83,7 +81,6 @@ PROJECT                       : MultiFlavor
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java

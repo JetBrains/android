@@ -14,7 +14,6 @@ PROJECT                       : MainActivity
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -37,7 +36,6 @@ PROJECT                       : MainActivity
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -75,11 +73,9 @@ PROJECT                       : MainActivity
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4
@@ -433,7 +429,6 @@ PROJECT                       : MainActivity
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -471,11 +466,9 @@ PROJECT                       : MainActivity
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4

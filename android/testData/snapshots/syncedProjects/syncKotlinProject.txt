@@ -10,11 +10,10 @@ PROJECT                       : testSyncKotlinProject
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testSyncKotlinProject.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -33,11 +32,10 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -75,11 +73,9 @@ PROJECT                       : testSyncKotlinProject
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4
@@ -662,11 +658,10 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -704,11 +699,9 @@ PROJECT                       : testSyncKotlinProject
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :awesomeandroidlibrary
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4
@@ -1239,19 +1232,16 @@ PROJECT                       : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/contentLib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :contentLib
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
             ApiLevel                      : 1.4
             CompilerArguments
                 apiVersion                    : 1.4

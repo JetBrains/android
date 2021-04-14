@@ -10,11 +10,10 @@ PROJECT                       : testPsdSampleRenamingModule
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testPsdSampleRenamingModule.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testPsdSampleRenamingModule.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -33,11 +32,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdSampleRenamingModule.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdSampleRenamingModule.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : basicBarDebug
             AssembleTaskName              : assembleBasicBarDebug
             CompileJavaTaskName           : compileBasicBarDebugSources
@@ -83,7 +81,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             JavaSource                    : file://<PROJECT>/app/src/main/java
@@ -703,11 +700,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testPsdSampleRenamingModule.dyn_feature.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testPsdSampleRenamingModule.dyn_feature.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -745,7 +741,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :dyn_feature
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/.gradle [-]
@@ -847,15 +842,13 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testPsdSampleRenamingModule.jav.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jav
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jav
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/.gradle [-]
@@ -878,11 +871,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testPsdSampleRenamingModule.lib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testPsdSampleRenamingModule.lib.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -920,7 +912,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             JavaSource                    : file://<PROJECT>/lib/src/main/java
@@ -1292,11 +1283,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testPsdSampleRenamingModule.nested1.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testPsdSampleRenamingModule.nested1.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1334,7 +1324,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested1
         CONENT_ENTRY                  : file://<PROJECT>/nested1
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/.gradle [-]
@@ -1436,11 +1425,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testPsdSampleRenamingModule.nested1.deep.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testPsdSampleRenamingModule.nested1.deep.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1478,7 +1466,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested1:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/.gradle [-]
@@ -1580,11 +1567,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testPsdSampleRenamingModule.nested2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testPsdSampleRenamingModule.nested2.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : basicDebug
             AssembleTaskName              : assembleBasicDebug
             CompileJavaTaskName           : compileBasicDebugSources
@@ -1626,7 +1612,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2
         CONENT_ENTRY                  : file://<PROJECT>/nested2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/.gradle [-]
@@ -1782,11 +1767,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testPsdSampleRenamingModule.nested2.deep.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testPsdSampleRenamingModule.nested2.deep.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1824,7 +1808,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/.gradle [-]
@@ -1924,15 +1907,13 @@ PROJECT                       : testPsdSampleRenamingModule
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testPsdSampleRenamingModule.nested2.trans.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testPsdSampleRenamingModule.nested2.trans.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:trans
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/.gradle [-]
@@ -1951,11 +1932,10 @@ PROJECT                       : testPsdSampleRenamingModule
             compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testPsdSampleRenamingModule.nested2.trans.deep2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testPsdSampleRenamingModule.nested2.trans.deep2.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1993,7 +1973,6 @@ PROJECT                       : testPsdSampleRenamingModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:trans:deep2
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/.gradle [-]

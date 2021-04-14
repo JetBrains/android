@@ -250,7 +250,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   head("FACET") { facet.name }
   nest {
     prop("TypeId") { facet.typeId.toString() }
-    prop("ExternalSource") { facet.externalSource?.id }
+//TODO(b/184826517):    prop("ExternalSource") { facet.externalSource?.id }
     val configuration = facet.configuration
     when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)

@@ -12,11 +12,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testModulePerSourceSet.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testModulePerSourceSet.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -35,11 +34,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -60,7 +58,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/aidl_source_output_dir/basicBarDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
@@ -544,11 +542,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : basicBarDebug
             AssembleTaskName              : assembleBasicBarDebug
             CompileJavaTaskName           : compileBasicBarDebugSources
@@ -1004,7 +1001,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.app.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testModulePerSourceSet.app.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
@@ -1382,11 +1379,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :dyn_feature
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature
             EXCLUDE_FOLDER                : file://<PROJECT>/dyn_feature/.gradle [-]
@@ -1407,7 +1403,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1464,11 +1460,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1558,7 +1553,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.dyn_feature.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/dyn_feature/testModulePerSourceSet.dyn_feature.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/dyn_feature/src/test [-]
@@ -1601,15 +1596,13 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jav
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jav
             EXCLUDE_FOLDER                : file://<PROJECT>/jav/.gradle [-]
@@ -1628,7 +1621,7 @@ PROJECT                       : testModulePerSourceSet
             compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.main.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jav/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/jav/src/main/java [-]
@@ -1647,7 +1640,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.test.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jav/testModulePerSourceSet.jav.test.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/jav/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/jav/src/test/java [-]
@@ -1667,11 +1660,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
@@ -1692,7 +1684,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2019,11 +2011,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2383,7 +2374,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.lib.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testModulePerSourceSet.lib.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
@@ -2696,11 +2687,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested1
         CONENT_ENTRY                  : file://<PROJECT>/nested1
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/.gradle [-]
@@ -2721,7 +2711,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2779,11 +2769,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested1:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested1/deep/.gradle [-]
@@ -2804,7 +2793,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2861,11 +2850,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2955,7 +2943,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.deep.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/deep/testModulePerSourceSet.nested1.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/deep/src/test [-]
@@ -2997,11 +2985,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -3091,7 +3078,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested1.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested1/testModulePerSourceSet.nested1.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested1/src/test [-]
@@ -3134,11 +3121,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2
         CONENT_ENTRY                  : file://<PROJECT>/nested2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/.gradle [-]
@@ -3159,7 +3145,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/aidl_source_output_dir/basicDebugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
@@ -3237,11 +3223,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:deep
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/deep/.gradle [-]
@@ -3262,7 +3247,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -3319,11 +3304,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -3413,7 +3397,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.deep.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/deep/testModulePerSourceSet.nested2.deep.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/deep/src/test [-]
@@ -3455,11 +3439,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : basicDebug
             AssembleTaskName              : assembleBasicDebug
             CompileJavaTaskName           : compileBasicDebugSources
@@ -3574,15 +3557,13 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testModulePerSourceSet.nested2.trans.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/testModulePerSourceSet.nested2.trans.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:trans
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/.gradle [-]
@@ -3601,11 +3582,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :nested2:trans:deep2
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2
             EXCLUDE_FOLDER                : file://<PROJECT>/nested2/trans/deep2/.gradle [-]
@@ -3626,7 +3606,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.androidTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.androidTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.androidTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -3683,11 +3663,10 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.main [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.main.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -3777,7 +3756,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.trans.deep2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/trans/deep2/testModulePerSourceSet.nested2.trans.deep2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/trans/deep2/src/test [-]
@@ -3819,7 +3798,7 @@ PROJECT                       : testModulePerSourceSet
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testModulePerSourceSet.nested2.unitTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.unitTest.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/nested2/testModulePerSourceSet.nested2.unitTest.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/nested2/src/test [-]

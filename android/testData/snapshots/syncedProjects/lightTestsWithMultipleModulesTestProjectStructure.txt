@@ -12,7 +12,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         ORDER_ENTRY                   : <Module source>
     MODULE                        : app
@@ -26,7 +25,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -60,7 +58,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
         CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
@@ -157,7 +154,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -191,7 +187,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
         CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
