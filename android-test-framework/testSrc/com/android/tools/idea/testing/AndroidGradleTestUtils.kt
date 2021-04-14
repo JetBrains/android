@@ -103,6 +103,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -1182,26 +1183,36 @@ fun <T> GradleIntegrationTest.openPreparedProject(
 private fun <T> openPreparedProject(
   projectPath: File,
   verifyOpened: (Project) -> Unit,
-  action: (Project) -> T): T {
-  val project = runInEdtAndGet {
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
-    // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
-    emulateStartupActivityForTest(project)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    project
-  }
-  try {
-    verifyOpened(project)
-    return action(project)
-  }
-  finally {
-    runInEdtAndWait {
-      PlatformTestUtil.saveProject(project, true)
-      ProjectUtil.closeAndDispose(project)
+  action: (Project) -> T
+): T {
+
+  fun body(): T {
+    val project = runInEdtAndGet {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+      // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
+      emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      project
+    }
+    try {
+      verifyOpened(project)
+      return action(project)
+    }
+    finally {
+      runInEdtAndWait {
+        PlatformTestUtil.saveProject(project, true)
+        ProjectUtil.closeAndDispose(project)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
     }
   }
+
+  var result: Result<T> = Result.failure(IllegalStateException())
+  doNotEnableExternalStorageByDefaultInTests {
+    result = Result.success(body())
+  }
+  return result.getOrThrow()
 }
 
 private fun GradleIntegrationTest.nameToPath(name: String) =

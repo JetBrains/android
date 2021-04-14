@@ -10,11 +10,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testPsdDependencyUpgradeLibraryModule.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testPsdDependencyUpgradeLibraryModule.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -33,11 +32,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyUpgradeLibraryModule.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testPsdDependencyUpgradeLibraryModule.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName              : assembleFreeDebug
             CompileJavaTaskName           : compileFreeDebugSources
@@ -79,7 +77,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -505,15 +502,13 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyUpgradeLibraryModule.jModuleK.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jModuleK
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleK
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleK/.gradle [-]
@@ -586,15 +581,13 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyUpgradeLibraryModule.jModuleL.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jModuleL
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleL
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleL/.gradle [-]
@@ -631,15 +624,13 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyUpgradeLibraryModule.jModuleM.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jModuleM
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleM
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleM/.gradle [-]
@@ -676,15 +667,13 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jModuleZ
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/.gradle [-]
@@ -773,15 +762,13 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyUpgradeLibraryModule.jModuleZ.nestedZ.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jModuleZ:nestedZ
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jModuleZ/nestedZ
             EXCLUDE_FOLDER                : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
@@ -811,11 +798,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/mainModule/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyUpgradeLibraryModule.mainModule.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/mainModule/testPsdDependencyUpgradeLibraryModule.mainModule.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName              : assembleFreeDebug
             CompileJavaTaskName           : compileFreeDebugSources
@@ -857,7 +843,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :mainModule
         CONENT_ENTRY                  : file://<PROJECT>/mainModule
             EXCLUDE_FOLDER                : file://<PROJECT>/mainModule/.gradle [-]
@@ -1314,11 +1299,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/moduleA/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyUpgradeLibraryModule.moduleA.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/moduleA/testPsdDependencyUpgradeLibraryModule.moduleA.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1356,7 +1340,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :moduleA
         CONENT_ENTRY                  : file://<PROJECT>/moduleA
             EXCLUDE_FOLDER                : file://<PROJECT>/moduleA/.gradle [-]
@@ -1741,11 +1724,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/moduleB/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyUpgradeLibraryModule.moduleB.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/moduleB/testPsdDependencyUpgradeLibraryModule.moduleB.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -1783,7 +1765,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :moduleB
         CONENT_ENTRY                  : file://<PROJECT>/moduleB
             EXCLUDE_FOLDER                : file://<PROJECT>/moduleB/.gradle [-]
@@ -2162,11 +2143,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/moduleC/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyUpgradeLibraryModule.moduleC.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/moduleC/testPsdDependencyUpgradeLibraryModule.moduleC.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2204,7 +2184,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :moduleC
         CONENT_ENTRY                  : file://<PROJECT>/moduleC
             EXCLUDE_FOLDER                : file://<PROJECT>/moduleC/.gradle [-]
@@ -2575,11 +2554,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/moduleFlavor/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyUpgradeLibraryModule.moduleFlavor.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyUpgradeLibraryModule.moduleFlavor.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName              : assembleFreeDebug
             CompileJavaTaskName           : compileFreeDebugSources
@@ -2621,7 +2599,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :moduleFlavor
         CONENT_ENTRY                  : file://<PROJECT>/moduleFlavor
             EXCLUDE_FOLDER                : file://<PROJECT>/moduleFlavor/.gradle [-]
@@ -2777,11 +2754,10 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             compilerTestOutputPath        : file://<PROJECT>/modulePlus/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyUpgradeLibraryModule.modulePlus.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyUpgradeLibraryModule.modulePlus.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -2819,7 +2795,6 @@ PROJECT                       : testPsdDependencyUpgradeLibraryModule
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :modulePlus
         CONENT_ENTRY                  : file://<PROJECT>/modulePlus
             EXCLUDE_FOLDER                : file://<PROJECT>/modulePlus/.gradle [-]
