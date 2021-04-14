@@ -97,6 +97,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
@@ -732,6 +733,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
+  /** Cached previous [ComposePreviewManager.Status] used to trigger notifications if there's been a change. */
+  private val previousStatusRef: AtomicReference<ComposePreviewManager.Status?> = AtomicReference(null)
+
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing = (refreshCallsCount.get() > 0 ||
                         DumbService.isDumb(project) ||
@@ -739,12 +743,23 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the preview
     // is out of date.
-    return ComposePreviewManager.Status(
+    val newStatus = ComposePreviewManager.Status(
       !isRefreshing && hasErrorsAndNeedsBuild(),
       !isRefreshing && hasSyntaxErrors(),
       !isRefreshing && projectBuildStatusManager.status == OutOfDate,
       isRefreshing,
       interactiveMode)
+
+    // This allows us to display notifications synchronized with any other change detection. The moment we detect a difference,
+    // we immediately ask the editor to refresh the notifications.
+    // For example, IntelliJ will periodically update the toolbar. If one of the actions checks the state and changes its UI, this will
+    // allow for notifications to be refreshed at the same time.
+    val previousStatus = previousStatusRef.getAndSet(newStatus)
+    if (newStatus != previousStatus) {
+      EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile!!)
+    }
+
+    return newStatus
   }
 
   /**
