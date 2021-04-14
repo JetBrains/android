@@ -351,6 +351,8 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private boolean useImagePool = true;
 
+  private boolean myLogRenderErrors = true;
+
   /**
    * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
    */
@@ -957,6 +959,10 @@ public class LayoutlibSceneManager extends SceneManager {
     this.quality = quality;
   }
 
+  public void setLogRenderErrors(boolean enabled) {
+    myLogRenderErrors = enabled;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayout(boolean animate) {
@@ -1119,7 +1125,7 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = RenderService.getInstance(getModel().getProject());
-    RenderLogger logger = renderService.createLogger(facet);
+    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet) : renderService.getNopLogger();
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
