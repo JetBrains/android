@@ -415,54 +415,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
     }
 
     @Test
-    fun testSwitchingVariantsWithReopen_simpleApplication() {
-      prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val debugBefore = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val release = openPreparedProject("project") { project ->
-        switchVariant(project, ":app", "release")
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-        project.saveAndDump()
-      }
-      val reopenedRelease = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        debugBefore to ".debug",
-        release to ".release",
-//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
-      )
-    }
-
-    @Test
-    fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
-      prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val debugBefore = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val release = openPreparedProject("project") { project ->
-        switchVariant(project, ":app", "release")
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-        runWriteAction {
-          // Modify the project build file to ensure the project is synced when opened.
-          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
-            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
-          }
-        }
-        project.saveAndDump()
-      }
-      val reopenedRelease = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        debugBefore to ".debug",
-        release to ".release",
-//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
-      )
-    }
-
-    @Test
     fun testSwitchingVariants_variantSpecificDependencies() {
       importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES) { project ->
         val freeDebugBefore = project.saveAndDump()
