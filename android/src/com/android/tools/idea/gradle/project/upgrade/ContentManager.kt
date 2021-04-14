@@ -43,6 +43,7 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBPanel
@@ -506,7 +507,15 @@ class ContentManager(val project: Project) {
         when (val o = value.userObject) {
           is AgpUpgradeComponentNecessity -> textRenderer.append(o.treeText())
           is ToolWindowModel.StepUiPresentation -> {
-            textRenderer.append(o.treeText)
+            (value.parent as? DefaultMutableTreeNode)?.let {
+              if (it.userObject == MANDATORY_CODEPENDENT) {
+                myCheckbox.isVisible = false
+                textRenderer.append("")
+                val xoffset = myCheckbox.width + myCheckbox.margin.left + myCheckbox.margin.right
+                textRenderer.appendTextPadding(xoffset)
+              }
+            }
+            textRenderer.append(o.treeText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
             if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
               textRenderer.icon = AllIcons.Actions.Edit
               textRenderer.isIconOnTheRight = true
