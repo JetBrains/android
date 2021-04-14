@@ -82,10 +82,12 @@ class AndroidProcessMonitorManagerTest {
 
     assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
     assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+    assertThat(monitorManager.isEmpty()).isFalse()
 
     stateChangeListener.onStateChanged(mockSingleDeviceAndroidProcessMonitors.getValue(device), PROCESS_FINISHED)
 
     assertThat(monitorManager.getMonitor(device)).isNull()
+    assertThat(monitorManager.isEmpty()).isTrue()
     verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
   }
 
