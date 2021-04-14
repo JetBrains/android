@@ -113,6 +113,15 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
               },
               {
                 "groupId": "androidx.camera",
+                "artifactId": "camera-core",
+                "version": "1.1.0-alpha03",
+                "fqcns": [
+                  "androidx.camera.core.ExtendableBuilder",
+                  "androidx.camera.core.ImageCapture"
+                ]
+              },
+              {
+                "groupId": "androidx.camera",
                 "artifactId": "camera-view",
                 "version": "1.0.0-alpha22",
                 "fqcns": [
