@@ -169,6 +169,9 @@ public class VisualizationForm
         sceneManager.setUseImagePool(false);
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
         sceneManager.setQuality(0.0f);
+        if (StudioFlags.NELE_VISUAL_LINT.get()) {
+          sceneManager.setLogRenderErrors(false);
+        }
         return sceneManager;
       })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface)surface, () -> myCurrentModelsProvider))

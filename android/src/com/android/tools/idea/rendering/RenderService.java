@@ -189,6 +189,11 @@ public class RenderService implements Disposable {
     return new RenderLogger(module.getName(), module, myCredential);
   }
 
+  @NotNull
+  public RenderLogger getNopLogger() {
+    return RenderLogger.NOP_RENDER_LOGGER;
+  }
+
   /**
    * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
    */
