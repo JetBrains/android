@@ -27,11 +27,13 @@ import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.android.utils.usLocaleCapitalize
+import com.google.common.base.Throwables
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -40,6 +42,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
+import java.lang.Exception
 import java.util.concurrent.Future
 
 /**
@@ -126,6 +129,12 @@ class GradleConnectedAndroidTestInvoker(
         } else {
           processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
         }
+      }
+
+      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+        super.onFailure(id, e)
+        Logger.getInstance(GradleConnectedAndroidTestInvoker::class.java).error(e)
+        processHandler.notifyTextAvailable(Throwables.getStackTraceAsString(e), ProcessOutputTypes.STDERR)
       }
 
       override fun onEnd(id: ExternalSystemTaskId) {
