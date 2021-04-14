@@ -20,6 +20,7 @@ import com.android.tools.adtui.ui.SVGScaledImageProvider
 import com.android.tools.adtui.ui.ScalingImagePanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -79,6 +80,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private lateinit var wizardFacade: ModelWizard.Facade
   private val canGoForward = BoolValueProperty()
   private val deviceStateListener = ListenerManager()
+  private val bindings = BindingsManager()
   private val mainPanel = JBPanel<JBPanel<*>>(null).apply {
     border = JBUI.Borders.empty(24, 24, 0, 24)
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -89,7 +91,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   override fun onEntering() {
-    canGoForward.set(false)
     dispose() // Cancel any previous jobs and error listeners
 
     runningJob = GlobalScope.launch(ioThread) {
@@ -118,9 +119,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   override fun canGoForward(): ObservableBool = canGoForward
 
+  override fun canGoBack(): Boolean = false
+
   override fun dispose() {
     runningJob?.cancel(null)
     deviceStateListener.releaseAll()
+    bindings.releaseAll()
   }
 
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
@@ -131,10 +135,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
     if (phoneDevice.isCompanionAppInstalled()) {
       // Companion App already installed, go to the next step
-      canGoForward.set(true)
-      ApplicationManager.getApplication().invokeLater {
-        wizardFacade.goForward()
-      }
+      showUiInstallCompanionAppSuccess(phoneDevice)
+      goToNextStep()
     }
     else {
       showInstallCompanionAppPhase(phoneDevice)
@@ -409,6 +411,19 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
       showUI(header = currentUiHeader, description = currentUiDescription, body = body)
     }
+  }
+
+  private fun goToNextStep() {
+    // The "Next" button changes asynchronously. Create a temporary property that will change state at the same time.
+    val doGoForward = BoolValueProperty()
+    bindings.bind(doGoForward, canGoForward)
+    deviceStateListener.listen(doGoForward) {
+      ApplicationManager.getApplication().invokeLater {
+        wizardFacade.goForward()
+      }
+    }
+
+    canGoForward.set(true)
   }
 }
 
