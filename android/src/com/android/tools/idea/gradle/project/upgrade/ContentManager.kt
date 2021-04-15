@@ -543,7 +543,7 @@ class ContentManager(val project: Project) {
             if (o is ToolWindowModel.StepUiWithComboSelectorPresentation) {
               textRenderer.icon = AllIcons.Actions.Edit
               textRenderer.isIconOnTheRight = true
-              textRenderer.iconTextGap =  10
+              textRenderer.iconTextGap = 10
             }
           }
         }
