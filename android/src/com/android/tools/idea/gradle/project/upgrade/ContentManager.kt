@@ -505,10 +505,14 @@ class ContentManager(val project: Project) {
                                    hasFocus: Boolean) {
       if (value is DefaultMutableTreeNode) {
         when (val o = value.userObject) {
-          is AgpUpgradeComponentNecessity -> textRenderer.append(o.treeText())
+          is AgpUpgradeComponentNecessity -> {
+            textRenderer.append(o.treeText())
+            myCheckbox.let { toolTipText = o.checkboxToolTipText(it.isEnabled, it.isSelected) }
+          }
           is ToolWindowModel.StepUiPresentation -> {
-            (value.parent as? DefaultMutableTreeNode)?.let {
-              if (it.userObject == MANDATORY_CODEPENDENT) {
+            (value.parent as? DefaultMutableTreeNode)?.let { parent ->
+              if (parent.userObject == MANDATORY_CODEPENDENT) {
+                toolTipText = null
                 myCheckbox.isVisible = false
                 textRenderer.append("")
                 val totalXoffset = myCheckbox.width + myCheckbox.margin.left + myCheckbox.margin.right
@@ -519,6 +523,13 @@ class ContentManager(val project: Project) {
                 // SimpleColoredComponent interprets padding from the start of the extent, rather than from the previous end.  Of course this
                 // might be a bug, and if the behaviour of SimpleColoredComponent is changed this will break alignment of the Upgrade steps.
                 textRenderer.appendTextPadding(totalXoffset)
+              }
+              else {
+                myCheckbox.let {
+                  toolTipText = (parent.userObject as? AgpUpgradeComponentNecessity)?.let { n ->
+                    n.checkboxToolTipText(it.isEnabled, it.isSelected)
+                  }
+                }
               }
             }
             textRenderer.append(o.treeText, SimpleTextAttributes.REGULAR_ATTRIBUTES, true)
@@ -547,6 +558,16 @@ fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   OPTIONAL_INDEPENDENT -> "Optional steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
 }
+
+fun AgpUpgradeComponentNecessity.checkboxToolTipText(enabled: Boolean, selected: Boolean) =
+  if (enabled) null
+  else when (this to selected) {
+    MANDATORY_INDEPENDENT to true -> "Cannot be deselected while ${MANDATORY_CODEPENDENT.treeText()} is selected"
+    MANDATORY_CODEPENDENT to false -> "Cannot be selected while ${MANDATORY_INDEPENDENT.treeText()} is unselected"
+    MANDATORY_CODEPENDENT to true -> "Cannot be deselected while ${OPTIONAL_CODEPENDENT.treeText()} is selected"
+    OPTIONAL_CODEPENDENT to false -> "Cannot be selected while ${MANDATORY_CODEPENDENT.treeText()} is unselected"
+    else -> null // TODO(xof): log this -- should never happen
+  }
 
 fun AgpUpgradeComponentNecessity.description() = when (this) {
   MANDATORY_INDEPENDENT ->
