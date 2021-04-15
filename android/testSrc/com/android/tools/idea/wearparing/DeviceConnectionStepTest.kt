@@ -92,9 +92,9 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     fakeUi.waitForHeader("Starting devices")
     assertThat(launched).isTrue()
 
-    val (keepAlivePhone, keepAliveWear) = WearPairingManager.getKeepForwardAlive()
-    assertThat(keepAlivePhone?.deviceID).isEqualTo(phoneDevice.deviceID)
-    assertThat(keepAliveWear?.deviceID).isEqualTo(wearDevice.deviceID)
+    val (pairedPhoneDevice, pairedWearDevice) = WearPairingManager.getPairedDevices()
+    assertThat(pairedPhoneDevice?.deviceID).isEqualTo(phoneDevice.deviceID)
+    assertThat(pairedWearDevice?.deviceID).isEqualTo(wearDevice.deviceID)
   }
 
   @Test

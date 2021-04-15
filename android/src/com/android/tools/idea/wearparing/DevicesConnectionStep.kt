@@ -130,7 +130,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
-    WearPairingManager.setKeepForwardAlive(phonePairingDevice, wearPairingDevice)
+    WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
     createDeviceBridge(phoneDevice, wearDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {

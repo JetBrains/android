@@ -37,7 +37,7 @@ class NewConnectionAlertStep(
 ) : ModelWizardStep<WearDevicePairingModel>(model, "") {
 
   override fun shouldShow(): Boolean {
-    val (pairedPhone, pairedWear) = WearPairingManager.getKeepForwardAlive()
+    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
     val selectedPhone = model.phoneDevice.valueOrNull
     val selectedWear = model.wearDevice.valueOrNull
     return pairedPhone != null && pairedWear != null && selectedPhone != null && selectedWear != null &&
@@ -48,7 +48,7 @@ class NewConnectionAlertStep(
     layout = GridBagLayout()
     border = empty(24)
 
-    val (pairedPhone, pairedWear) = WearPairingManager.getKeepForwardAlive()
+    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
     val selectedPhone = model.phoneDevice.value
     val selectedWear = model.wearDevice.value
 
