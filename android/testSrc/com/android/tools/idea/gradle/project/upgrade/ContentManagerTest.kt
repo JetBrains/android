@@ -308,6 +308,18 @@ class ContentManagerTest {
   }
 
   @Test
+  fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion) { setOf<GradleVersion>() }
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
+    assertThat(view.versionTextField.model.size).isEqualTo(2)
+    assertThat(view.versionTextField.model.getElementAt(0)).isEqualTo(latestAgpVersion)
+    assertThat(view.versionTextField.model.getElementAt(1)).isEqualTo(currentAgpVersion)
+  }
+
+  @Test
   fun testRunProcessor() {
     val psiFile = addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)

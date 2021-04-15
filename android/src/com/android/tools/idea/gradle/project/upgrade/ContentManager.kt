@@ -63,7 +63,11 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 // "Model" here loosely in the sense of Model-View-Controller
-class ToolWindowModel(val project: Project, var current: GradleVersion?) {
+class ToolWindowModel(
+  val project: Project,
+  var current: GradleVersion?,
+  val knownVersionsRequester: () -> Set<GradleVersion> = { IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle") }
+) {
 
   val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
   val selectedVersion = OptionalValueProperty<GradleVersion>(latestKnownVersion)
@@ -125,10 +129,13 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = refresh(true)
     })
 
+    // Initialize known versions (e.g. in case of offline work with no cache)
+    knownVersions.value = suggestedVersionsList(setOf())
+
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
-        val gMavenVersions = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+        val gMavenVersions = knownVersionsRequester()
         val knownVersionsList = suggestedVersionsList(gMavenVersions)
         invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
       }
@@ -136,8 +143,8 @@ class ToolWindowModel(val project: Project, var current: GradleVersion?) {
   }
 
   fun suggestedVersionsList(gMavenVersions: Set<GradleVersion>): List<GradleVersion> = gMavenVersions
-    // Make sure the latestKnownVersion is present, whether it's been published or not
-    .union(listOf(latestKnownVersion))
+    // Make sure the current (if known) and latest known versions are present, whether published or not
+    .union(listOfNotNull(current, latestKnownVersion))
     // Keep only versions that are later than or equal to current
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support
