@@ -31,7 +31,6 @@ import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForReso
 import static com.android.tools.idea.resources.base.RepositoryLoader.portableFileName;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
-import static java.lang.Thread.currentThread;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.SdkConstants;
@@ -78,8 +77,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.AbstractFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -89,7 +86,11 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -141,7 +142,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -227,7 +227,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @GuardedBy("scanLock")
   @NotNull private final Set<VirtualFile> myPendingScans = new HashSet<>();
   @GuardedBy("scanLock")
-  @NotNull private final HashMap<VirtualFile, Future<Void>> myRunningScans = new HashMap<>();
+  @NotNull private final HashMap<VirtualFile, ProgressIndicator> myRunningScans = new HashMap<>();
 
   @VisibleForTesting static int ourFullRescans;
   @VisibleForTesting static int ourLayoutlibCacheFlushes;
@@ -670,25 +670,24 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
 
       ApplicationManager.getApplication().runWriteAction(() -> {
-        SettableFuture<Void> runHandle;
+        ProgressIndicator runHandle;
         synchronized (scanLock) {
           if (!myPendingScans.remove(virtualFile)) {
             TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " scanned already");
             return;
           }
-          runHandle = SettableFuture.create();
-          Future<Void> oldRunHandle = myRunningScans.replace(virtualFile, runHandle);
+          runHandle = new EmptyProgressIndicator();
+          ProgressIndicator oldRunHandle = myRunningScans.replace(virtualFile, runHandle);
           if (oldRunHandle != null) {
-            oldRunHandle.cancel(true);
+            oldRunHandle.cancel();
           }
         }
 
         try {
-          scan(psiFile, folderType);
+          ProgressManager.getInstance().runProcess(() -> scan(psiFile, folderType), runHandle);
         }
         finally {
           synchronized (scanLock) {
-            runHandle.set(null);
             myRunningScans.remove(virtualFile, runHandle);
             TRACER.log(() -> "ResourceFolderRepository.scheduleScan " + virtualFile + " finished scanning");
           }
@@ -704,18 +703,18 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     TRACER.log(() -> "ResourceFolderRepository.sync");
     List<VirtualFile> files;
-    NonCancellableFuture<Void> runHandle;
+    NonCancellableIndicator runHandle;
     synchronized (scanLock) {
       if (myPendingScans.isEmpty() && myRunningScans.isEmpty()) {
         return;
       }
-      runHandle = new NonCancellableFuture<>();
+      runHandle = new NonCancellableIndicator();
       files = new ArrayList<>(myRunningScans.size() + myPendingScans.size());
       for (VirtualFile file : myRunningScans.keySet()) {
         files.add(file);
-        Future<Void> oldRunHandle = myRunningScans.replace(file, runHandle);
+        ProgressIndicator oldRunHandle = myRunningScans.replace(file, runHandle);
         if (oldRunHandle != null) {
-          oldRunHandle.cancel(true);
+          oldRunHandle.cancel();
         }
       }
       for (VirtualFile file : myPendingScans) {
@@ -741,7 +740,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
       finally {
         synchronized (scanLock) {
-          runHandle.set(null);
           for (VirtualFile file : files) {
             myRunningScans.remove(file, runHandle);
           }
@@ -793,7 +791,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     TRACER.log(() -> "ResourceFolderRepository.scan " + psiFile.getVirtualFile());
 
-    checkIfInterrupted();
+    ProgressManager.checkCanceled();
     if (psiFile.getProject().isDisposed()) return;
 
     if (LOG.isDebugEnabled()) {
@@ -825,7 +823,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         if (fileParent != null) {
           FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
           if (folderConfiguration != null) {
-            checkIfInterrupted();
+            ProgressManager.checkCanceled();
             added = scanValueFileAsPsi(result, file, folderConfiguration);
           }
         }
@@ -890,7 +888,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           List<PsiResourceItem> idItems = new ArrayList<>();
           file = ensureValid(file);
           if (file != null) {
-            checkIfInterrupted();
+            ProgressManager.checkCanceled();
             addIds(result, idItems, file);
           }
           if (!idItems.isEmpty()) {
@@ -919,7 +917,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         ResourceType type = FolderTypeRelationship.getNonIdRelatedResourceType(folderType);
         boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
-        checkIfInterrupted();
+        ProgressManager.checkCanceled();
         clearLayoutlibCaches(file.getVirtualFile(), folderType);
 
         file = ensureValid(file);
@@ -929,7 +927,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(fileParent.getName());
             if (folderConfiguration != null) {
               boolean idGeneratingFile = idGeneratingFolder && file.getFileType() == XmlFileType.INSTANCE;
-              checkIfInterrupted();
+              ProgressManager.checkCanceled();
               scanFileResourceFileAsPsi(result, folderType, folderConfiguration, type, idGeneratingFile, file);
             }
           }
@@ -941,16 +939,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
     commitToRepository(result);
     TRACER.log(() -> "ResourceFolderRepository.scan " + psiFile.getVirtualFile() + " end");
-  }
-
-  /**
-   * Throws a {@link ProcessCanceledException} if the thread is interrupted.
-   */
-  private void checkIfInterrupted() {
-    if (currentThread().isInterrupted()) {
-      TRACER.log(() -> "ResourceFolderRepository.checkIfInterrupted throwing ProcessCanceledException");
-      throw new ProcessCanceledException();
-    }
   }
 
   private void scan(@NotNull VirtualFile file) {
@@ -2505,15 +2493,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
-  private static class NonCancellableFuture<T> extends AbstractFuture<T> {
+  private static class NonCancellableIndicator extends AbstractProgressIndicatorExBase {
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-      return false;
+    public void cancel() {
     }
 
     @Override
-    public boolean set(T value) {
-      return super.set(value);
+    public boolean isCanceled() {
+      return false;
     }
   }
 
