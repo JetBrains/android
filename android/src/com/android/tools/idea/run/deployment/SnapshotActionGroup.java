@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +31,10 @@ final class SnapshotActionGroup extends ActionGroup {
 
     myDevice = device;
     myComboBoxAction = comboBoxAction;
+  }
+
+  @NotNull Device getDevice() {
+    return myDevice;
   }
 
   @Override
@@ -48,9 +50,6 @@ final class SnapshotActionGroup extends ActionGroup {
 
     presentation.setIcon(myDevice.getIcon());
     presentation.setText(Devices.getText(myDevice), false);
-    if (!myDevice.getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK)) {
-      presentation.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, Devices.getErrorFormattedText(myDevice.getLaunchCompatibility()));
-    }
   }
 
   @Override
