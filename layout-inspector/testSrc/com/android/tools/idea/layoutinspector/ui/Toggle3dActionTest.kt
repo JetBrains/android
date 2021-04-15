@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.PropertySetterRule
+import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -24,10 +26,13 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.SKP
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.property.testing.ApplicationRule
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,11 +43,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import java.util.concurrent.TimeUnit
 
 class Toggle3dActionTest {
 
   @get:Rule
   val appRule = ApplicationRule()
+
+  private val scheduler = VirtualTimeScheduler()
+
+  @get:Rule
+  val setExecutorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
 
   private val inspectorModel = model {
     view(1) {
@@ -137,5 +148,29 @@ class Toggle3dActionTest {
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = false
     verify(presentation).text = "Error while rendering device image, rotation not available"
+  }
+
+  @Test
+  fun testRotationAnimation() {
+    Toggle3dAction.actionPerformed(event)
+    assertThat(viewModel.xOff).isEqualTo(0.0)
+    assertThat(viewModel.yOff).isEqualTo(0.0)
+    scheduler.advanceBy(30, TimeUnit.MILLISECONDS)
+    // imageType is bitmap, so we shouldn't rotate yet
+    assertThat(viewModel.xOff).isEqualTo(0.0)
+    assertThat(viewModel.yOff).isEqualTo(0.0)
+
+    // Update to be SKP, now we can rotate
+    inspectorModel.windows.values.first().skpLoadingComplete()
+    scheduler.advanceBy(15, TimeUnit.MILLISECONDS)
+    assertThat(viewModel.xOff).isEqualTo(0.0225)
+    assertThat(viewModel.yOff).isEqualTo(0.003)
+    scheduler.advanceBy(15, TimeUnit.MILLISECONDS)
+    assertThat(viewModel.xOff).isEqualTo(0.045)
+    assertThat(viewModel.yOff).isEqualTo(0.006)
+    // Advance a lot, we should be at the final state
+    scheduler.advanceBy(500, TimeUnit.MILLISECONDS)
+    assertThat(viewModel.xOff).isEqualTo(0.45)
+    assertThat(viewModel.yOff).isEqualTo(0.06)
   }
 }

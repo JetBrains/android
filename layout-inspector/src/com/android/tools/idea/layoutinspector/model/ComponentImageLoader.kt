@@ -31,7 +31,12 @@ class ComponentImageLoader(
   private val skiaNodes = LinkedList(skiaRoot.flatten().filter { it.image != null }.toList())
   val checkedTreeIds = mutableSetOf<Long>()
 
-  fun loadImages(viewRoot: ViewNode) {
+  fun loadImages(window: AndroidWindow) {
+    loadImages(window.root)
+    window.skpLoadingComplete()
+  }
+
+  private fun loadImages(viewRoot: ViewNode) {
     viewRoot.drawChildren().clear()
     addImages(viewRoot)
     var firstImage = skiaNodes.peek()

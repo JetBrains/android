@@ -193,7 +193,8 @@ class DeviceViewContentPanel(
       // SKP is needed if the view is rotated or if anything is hidden. We have to check on each update, since previously-hidden nodes
       // may have been removed.
       val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
-      if (inspectorModel.pictureType == AndroidWindow.ImageType.SKP &&
+      if ((inspectorModel.pictureType == AndroidWindow.ImageType.SKP ||
+           inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
           client?.isCapturing == true &&
           !model.isRotated && !inspectorModel.hasHiddenNodes()) {
         // We know for sure there's not a hidden descendant now, so update the field in case it was out of date.

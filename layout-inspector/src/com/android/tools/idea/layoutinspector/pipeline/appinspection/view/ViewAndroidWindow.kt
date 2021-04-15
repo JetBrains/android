@@ -81,8 +81,8 @@ class ViewAndroidWindow(
     if (bytes.isNotEmpty()) {
       try {
         when (imageType) {
-          ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes, root)
-          ImageType.SKP -> processSkp(bytes, skiaParser, project, root, scale)
+          ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes)
+          ImageType.SKP, ImageType.SKP_PENDING -> processSkp(bytes, skiaParser, project, scale)
           else -> logInitialRender(ImageType.UNKNOWN) // Shouldn't happen
         }
       }
@@ -97,12 +97,11 @@ class ViewAndroidWindow(
     bytes: ByteArray,
     skiaParser: SkiaParser,
     project: Project,
-    rootView: ViewNode,
     scale: Double
   ) {
-    val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
-    val surfaceOriginX = rootView.x - event.rootOffset.x
-    val surfaceOriginY = rootView.y - event.rootOffset.y
+    val allNodes = root.flatten().asSequence().filter { it.drawId != 0L }
+    val surfaceOriginX = root.x - event.rootOffset.x
+    val surfaceOriginY = root.y - event.rootOffset.y
     val requestedNodeInfo = allNodes.mapNotNull {
       val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
       if (bounds.isEmpty) null
@@ -120,12 +119,12 @@ class ViewAndroidWindow(
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logInitialRender(ImageType.SKP)
       ViewNode.writeDrawChildren { drawChildren ->
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(rootView)
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(this)
       }
     }
   }
 
-  private fun processBitmap(bytes: ByteArray, rootView: ViewNode) {
+  private fun processBitmap(bytes: ByteArray) {
     val inf = Inflater().also { it.setInput(bytes) }
     val baos = ByteArrayOutputStream()
     val buffer = ByteArray(4096)
@@ -144,9 +143,9 @@ class ViewAndroidWindow(
     val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(inflatedBytes, 8, inflatedBytes.size - 8), width, height)
 
     ViewNode.writeDrawChildren { drawChildren ->
-      rootView.flatten().forEach { it.drawChildren().clear() }
-      rootView.drawChildren().add(DrawViewImage(image, rootView))
-      rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+      root.flatten().forEach { it.drawChildren().clear() }
+      root.drawChildren().add(DrawViewImage(image, root))
+      root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
     }
     logInitialRender(ImageType.BITMAP_AS_REQUESTED)
   }
