@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearparing
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -44,7 +45,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import icons.StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
@@ -151,21 +151,33 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val re
   private fun createList(listName: String, emptyTextTitle: String): JBList<PairingDevice> {
     return TooltipList<PairingDevice>().apply {
       name = listName
-      setCellRenderer { _, value, _, isSelected, cellHasFocus ->
+      setCellRenderer { _, value, _, isSelected, _ ->
 
         JPanel().apply {
           layout = GridBagLayout()
-          add(JBLabel(getDeviceIcon(value)))
+          add(JBLabel(getDeviceIcon(value, isSelected)))
           add(
             JPanel().apply {
               layout = BoxLayout(this, BoxLayout.Y_AXIS)
               border = JBUI.Borders.emptyLeft(8)
               isOpaque = false
               add(JBLabel(value.displayName).apply {
-                icon = if (!value.isWearDevice && value.hasPlayStore) StudioIcons.Avd.DEVICE_PLAY_STORE else null
+                icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
+                foreground = when {
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                  else -> UIUtil.getLabelForeground()
+                }
                 horizontalTextPosition = SwingConstants.LEFT
               })
-              add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)))
+              add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)).apply {
+                foreground = when {
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                  else -> UIUtil.getContextHelpForeground()
+                }
+                font = JBFont.label().lessOn(2f)
+              })
             },
             GridBagConstraints().apply {
               fill = GridBagConstraints.HORIZONTAL
@@ -174,13 +186,11 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val re
             }
           )
           if (value.isPaired) {
-            add(JBLabel(INSERT_HORIZ_CHAIN))
+            add(JBLabel(getIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN, isSelected)))
           }
 
           isOpaque = true
-          background = UIUtil.getListBackground(isSelected, cellHasFocus)
-          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
-          UIUtil.setEnabled(this, !value.isDisabled(), true)
+          background = UIUtil.getListBackground(isSelected, isSelected)
           toolTipText = value.getTooltip()?.let {
             val learnMore = message("wear.assistant.device.list.tooltip.learn.more")
             """<html>$it<br><a href="$WEAR_DOCS_LINK">$learnMore</a>"""
@@ -229,9 +239,19 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val re
     updateGoForward()
   }
 
-  private fun getDeviceIcon(device: PairingDevice): Icon {
-    val baseIcon = if (device.isWearDevice) StudioIcons.Avd.DEVICE_WEAR else StudioIcons.Avd.DEVICE_PHONE
+  private fun getDeviceIcon(device: PairingDevice, isSelected: Boolean): Icon {
+    val baseIcon = when {
+      device.isWearDevice -> getIcon(StudioIcons.Avd.DEVICE_WEAR, isSelected)
+      else -> getIcon(StudioIcons.Avd.DEVICE_PHONE, isSelected)
+    }
     return if (device.isOnline()) ExecutionUtil.getLiveIndicator(baseIcon) else baseIcon
+  }
+
+  // Cache generated white icons, so we don't keep creating new ones
+  private val whiteIconsCache = hashMapOf<Icon, Icon>()
+  private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
+    isSelected -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+    else -> icon
   }
 
   private fun JBList<PairingDevice>.addRightClickAction() {

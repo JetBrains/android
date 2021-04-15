@@ -63,7 +63,7 @@ class WearDevicePairingWizard {
       .setHelpUrl(URL(WEAR_DOCS_LINK))
       .setModalityType(DialogWrapper.IdeModalityType.MODELESS)
       .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL)
-      .setPreferredSize(JBUI.size(500, 450))
+      .setPreferredSize(JBUI.size(560, 420))
       .setMinimumSize(JBUI.size(400, 250))
       .build(SimpleStudioWizardLayout())
 
