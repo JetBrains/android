@@ -39,24 +39,27 @@ class WearDevicePairingWizard {
       return
     }
 
-    val restartPairingAction = { restart: Boolean ->
-      wizardDialog?.close(CANCEL_EXIT_CODE)
-      if (restart) {
-        show(project)
-      }
-      else {
+    val wizardAction = object : WizardAction {
+      override fun closeAndStartAvd(project: Project) {
+        wizardDialog?.close(CANCEL_EXIT_CODE)
         (ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID) as RunAndroidAvdManagerAction).openAvdManager(project)
       }
+
+      override fun restart(project: Project) {
+        wizardDialog?.close(CANCEL_EXIT_CODE)
+        show(project)
+      }
     }
+
     val model = WearDevicePairingModel()
     val modelWizard = ModelWizard.Builder()
-      .addStep(DeviceListStep(model, project, restartPairingAction))
+      .addStep(DeviceListStep(model, project, wizardAction))
       .build()
 
     // Remove the dialog reference when the dialog is disposed (closed).
     Disposer.register(modelWizard) { wizardDialog = null }
 
-    WearPairingManager.setWearPairingListener(model.deviceList, restartPairingAction)
+    WearPairingManager.setWearPairingListener(model.deviceList, wizardAction)
 
     wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
       .setProject(project)

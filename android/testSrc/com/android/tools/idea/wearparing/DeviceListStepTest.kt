@@ -77,10 +77,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
   @Test
   fun stepShouldShowTwoEmptyListsWhenNoDevicesAvailable() {
-    var emptyListActionWasCalled = false
-    val fakeUi = createDeviceListStepUi {
-      emptyListActionWasCalled = true
-    }
+    val wizardTest = WizardActionTest()
+    val fakeUi = createDeviceListStepUi(wizardTest)
 
     fakeUi.getPhoneList().apply {
       assertThat(isEmpty).isTrue()
@@ -94,9 +92,9 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       assertThat(emptyText.secondaryComponent.getCharSequence(true)).isEqualTo("available. Create a Wear OS")
     }
 
-    assertThat(emptyListActionWasCalled).isFalse()
+    assertThat(wizardTest.closeCalled).isFalse()
     fakeUi.mouse.click(150, 260)
-    assertThat(emptyListActionWasCalled).isTrue()
+    assertThat(wizardTest.closeCalled).isTrue()
   }
 
   @Test
@@ -241,8 +239,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
   }
 
-  private fun createDeviceListStepUi(emptyListClickedAction: (Boolean) -> Unit = {}): FakeUi {
-    val deviceListStep = DeviceListStep(model, project, emptyListClickedAction)
+  private fun createDeviceListStepUi(wizardAction: WizardAction = WizardActionTest()): FakeUi {
+    val deviceListStep = DeviceListStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceListStep).build()
     Disposer.register(testRootDisposable, modelWizard)
     invokeStrategy.updateAllSteps()
