@@ -43,6 +43,7 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeHelper
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
@@ -54,10 +55,13 @@ import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.util.EventListener
+import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.event.DocumentEvent
 import javax.swing.event.TreeModelEvent
+import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
@@ -76,6 +80,7 @@ class ToolWindowModel(
   //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
   val runTooltip = StringValueProperty()
+  val message = OptionalValueProperty<Pair<Icon, String>>()
   val runEnabled = BoolValueProperty(true)
 
   val knownVersions = OptionalValueProperty<List<GradleVersion>>()
@@ -156,9 +161,8 @@ class ToolWindowModel(
 
   fun refresh(refindPlugin: Boolean = false) {
     showLoadingState.set(true)
-    // First clear state
+    // First clear some state
     runEnabled.set(false)
-    runTooltip.clear()
     val root = (treeModel.root as CheckedTreeNode)
     root.removeAllChildren()
     treeModel.nodeStructureChanged(root)
@@ -174,9 +178,12 @@ class ToolWindowModel(
     processor = newProcessor
 
     if (newProcessor == null) {
+      // Preserve existing message and tooltip from newVersion validation.
       showLoadingState.set(false)
     }
     else {
+      runTooltip.clear()
+      message.clear()
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         parseAndSetEnabled(newProcessor)
@@ -205,6 +212,7 @@ class ToolWindowModel(
       runTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
                      "you should commit or revert changes to the build files so that changes from the upgrade process " +
                      "can be handled separately.")
+      message.value = AllIcons.General.Error to "Uncommitted changes in build files."
     }
     else if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
@@ -213,6 +221,7 @@ class ToolWindowModel(
                      "possibly because the project's build files use features not currently support by the " +
                      "Upgrade Assistant (for example: using constants defined in buildSrc)."
       )
+      message.value = AllIcons.General.Error to "Cannot find AGP version in build files."
     }
     else {
       runEnabled.set(true)
@@ -376,18 +385,54 @@ class ContentManager(val project: Project) {
           }
         }
       }).apply {
+      (editor.editorComponent as? JTextComponent)?.document?.addDocumentListener(
+        object: DocumentAdapter() {
+          override fun textChanged(e: DocumentEvent) {
+            val status = model.editingSupport.validation(editor.item.toString())
+            if (status.first == EditingErrorCategory.ERROR) {
+              messageLabel.text = status.second
+              messageLabel.icon = AllIcons.General.Error
+              previewButton.isEnabled = false
+              previewButton.toolTipText = status.second
+              okButton.isEnabled = false
+              okButton.toolTipText = status.second
+            }
+            else {
+              val info = this@View.model.message.valueOrNull
+              messageLabel.icon = info?.first
+              messageLabel.text = info?.second
+              previewButton.isEnabled = this@View.model.runEnabled.get()
+              previewButton.toolTipText = this@View.model.runTooltip.get()
+              okButton.isEnabled = this@View.model.runEnabled.get()
+              okButton.toolTipText = this@View.model.runTooltip.get()
+            }
+          }
+        }
+      )
       addActionListener {
         this@View.model.selectedVersion.setNullableValue(
-          if (model.editingSupport.validation(model.text).first == EditingErrorCategory.ERROR)
-            null
-          else
-            when (val selected = selectedItem) {
-              is GradleVersion -> selected
-              is String ->
-                if (model.editingSupport.validation(selected).first == EditingErrorCategory.ERROR) null
-                else GradleVersion.tryParseAndroidGradlePluginVersion(selected)
-              else -> null
+          model.editingSupport.validation(model.text).let { modelTextValidation ->
+            if (modelTextValidation.first == EditingErrorCategory.ERROR) {
+              this@View.model.message.value = AllIcons.General.Error to modelTextValidation.second
+              this@View.model.runEnabled.set(false)
+              null
             }
+            else {
+              when (val selected = selectedItem) {
+                is GradleVersion -> selected
+                is String ->
+                  model.editingSupport.validation(selected).let { stringValidation ->
+                    if (stringValidation.first == EditingErrorCategory.ERROR) {
+                      this@View.model.message.value = AllIcons.General.Error to stringValidation.second
+                      this@View.model.runEnabled.set(false)
+                      null
+                    }
+                    else GradleVersion.tryParseAndroidGradlePluginVersion(selected)
+                  }
+                else -> null
+              }
+            }
+          }
         )
       }
     }
@@ -402,6 +447,13 @@ class ContentManager(val project: Project) {
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
       myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
+    }
+    val messageLabel = JBLabel().apply {
+      myListeners.listen(this@View.model.message) {
+        val info = this@View.model.message.valueOrNull
+        icon = info?.first
+        text = info?.second
+      }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
@@ -453,6 +505,7 @@ class ContentManager(val project: Project) {
       // TODO(xof): make this look like a default button
       add(okButton)
       add(previewButton)
+      add(messageLabel)
     }
 
     private fun refreshDetailsPanel() {
