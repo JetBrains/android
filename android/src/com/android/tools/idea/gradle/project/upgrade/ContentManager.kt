@@ -207,14 +207,7 @@ class ToolWindowModel(
 
   private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
     refreshTree(newProcessor)
-    if (!projectFilesClean) {
-      runEnabled.set(false)
-      runTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                     "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                     "can be handled separately.")
-      message.value = AllIcons.General.Error to "Uncommitted changes in build files."
-    }
-    else if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
+    if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
       runEnabled.set(false)
       runTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
@@ -222,6 +215,13 @@ class ToolWindowModel(
                      "Upgrade Assistant (for example: using constants defined in buildSrc)."
       )
       message.value = AllIcons.General.Error to "Cannot find AGP version in build files."
+    }
+    else if (!projectFilesClean) {
+      runEnabled.set(true)
+      runTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                     "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                     "can be handled separately.")
+      message.value = AllIcons.General.Warning to "Uncommitted changes in build files."
     }
     else {
       runEnabled.set(true)
