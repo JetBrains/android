@@ -167,6 +167,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
         windows[newWindow.id] = newWindow
         structuralChange = true
+        if (oldWindow == null) {
+          // build draw tree on initial load of the window, so we can scale and scroll correctly.
+          // We only want to do this on initial load since otherwise there'll be flickering between when the tree is updated and when
+          // the images are loaded.
+          ViewNode.writeDrawChildren { drawChildren -> buildDrawTree(newWindow.root, drawChildren) }
+        }
       }
       else {
         oldWindow.copyFrom(newWindow)
@@ -188,6 +194,15 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     hiddenNodes.removeIf { !allNodes.contains(it) }
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
+  }
+
+  private fun buildDrawTree(node: ViewNode, drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
+    if (node.drawChildren().isEmpty()) {
+      node.children.forEach {
+        node.drawChildren().add(DrawViewChild(it))
+        buildDrawTree(it, drawChildren)
+      }
+    }
   }
 
   fun notifyModified() =
