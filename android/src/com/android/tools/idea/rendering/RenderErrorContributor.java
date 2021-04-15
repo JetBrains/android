@@ -683,6 +683,17 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
+  /**
+   * Adds a build call action to the given {@link HtmlBuilder}.
+   */
+  private void addBuildAction(@NotNull HtmlBuilder builder) {
+    builder.newlineIfNecessary()
+      .newline()
+      .addIcon(HtmlBuilderHelper.getRefreshIconPath())
+      .addLink(null, "Build", " the project.",
+               myLinkManager.createBuildProjectUrl()).newline();
+  }
+
   private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
     ApplicationManager.getApplication().runReadAction(() -> {
       Project project = logger.getProject();
@@ -782,6 +793,15 @@ public class RenderErrorContributor {
     }
   }
 
+  /**
+   * Returns true if the {@link Throwable} represents a failure to instantiate a Preview Composable. This means that the user probably
+   * added one or more previews and a build is needed.
+   */
+  private static boolean isComposeNotFoundThrowable(@Nullable Throwable throwable) {
+    return throwable instanceof NoSuchMethodException &&
+           "invokeComposableViaReflection".equals(throwable.getStackTrace()[1].getMethodName());
+  }
+
   private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
@@ -798,32 +818,46 @@ public class RenderErrorContributor {
       seenTags.add(tag);
 
       if (tag != null) {
-        if (ILayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
-          reportTagResourceFormat(myResult, message);
-          continue;
-        }
-        else if (ILayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
-          reportRtlNotEnabled(logger);
-          continue;
-        }
-        else if (ILayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
-          addIssue()
-            .setSeverity(HighlightSeverity.ERROR)
-            .setSummary("RTL support requires API level >= 17")
-            .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
-            .build();
-          continue;
-        }
-        else if (ILayoutLog.TAG_THREAD_CREATION.equals(tag)) {
-          Throwable throwable = message.getThrowable();
-          HtmlBuilder builder = new HtmlBuilder();
-          reportThrowable(builder, throwable, false);
-          addIssue()
-            .setSeverity(HighlightSeverity.WARNING)
-            .setSummary(message.getHtml())
-            .setHtmlContent(builder)
-            .build();
-          continue;
+        switch (tag) {
+          case ILayoutLog.TAG_RESOURCES_FORMAT:
+            reportTagResourceFormat(myResult, message);
+            continue;
+          case ILayoutLog.TAG_RTL_NOT_ENABLED:
+            reportRtlNotEnabled(logger);
+            continue;
+          case ILayoutLog.TAG_RTL_NOT_SUPPORTED:
+            addIssue()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("RTL support requires API level >= 17")
+              .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
+              .build();
+            continue;
+          case ILayoutLog.TAG_THREAD_CREATION: {
+            Throwable throwable = message.getThrowable();
+            HtmlBuilder builder = new HtmlBuilder();
+            reportThrowable(builder, throwable, false);
+            addIssue()
+              .setSeverity(HighlightSeverity.WARNING)
+              .setSummary(message.getHtml())
+              .setHtmlContent(builder)
+              .build();
+            continue;
+          }
+          case ILayoutLog.TAG_INFLATE: {
+            Throwable throwable = message.getThrowable();
+            if (isComposeNotFoundThrowable(throwable)) {
+              HtmlBuilder builder = new HtmlBuilder().add("The preview will display after rebuilding the project.");
+              addBuildAction(builder);
+              // This is a Compose not found error. This is not a high severity error so transform to a warning.
+              addIssue()
+                .setSeverity(HighlightSeverity.WARNING)
+                .setSummary("Unable to find @Preview '" + throwable.getMessage() + "'")
+                .setHtmlContent(builder)
+                .build();
+              continue;
+            }
+            break;
+          }
         }
       }
 
@@ -835,6 +869,7 @@ public class RenderErrorContributor {
       String summary = "Render problem";
       if (throwable != null) {
         if (!reportSandboxError(throwable, false, true)) {
+          if (isComposeNotFoundThrowable(throwable)) continue; // This is handled as a warning above.
           if (reportThrowable(builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
             // The error was hidden.
             if (!html.isEmpty()) {
