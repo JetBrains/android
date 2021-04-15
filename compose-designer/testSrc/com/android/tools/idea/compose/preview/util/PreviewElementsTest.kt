@@ -57,7 +57,7 @@ class PreviewElementsTest {
                                    null, null,
                                    PreviewConfiguration.cleanAndGet(null, null, null, null, null)))
 
-    val factory = DocumentBuilderFactory.newInstance()
+    val factory = DocumentBuilderFactory.newDefaultInstance()
     val documentBuilder = factory.newDocumentBuilder()
 
     previewsToCheck

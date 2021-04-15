@@ -55,7 +55,7 @@ private val SUPPORTED_DRAWABLE_TAG = arrayOf(
  */
 class DrawableAssetRenderer : DesignAssetRenderer {
 
-  private val documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+  private val documentBuilder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder()
 
   private fun createRenderer(module: Module, contextFile: VirtualFile?): CompletableFuture<DrawableRenderer> {
     val facet = AndroidFacet.getInstance(module)
