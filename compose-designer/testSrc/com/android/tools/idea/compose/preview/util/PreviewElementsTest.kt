@@ -75,7 +75,7 @@ class PreviewElementsTest(private val namespace: ComposeLibraryNamespace) {
                                    PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null),
                                    namespace))
 
-    val factory = DocumentBuilderFactory.newInstance()
+    val factory = DocumentBuilderFactory.newDefaultInstance()
     val documentBuilder = factory.newDocumentBuilder()
 
     previewsToCheck

@@ -289,7 +289,7 @@ public class InstantAppUrlFinderTest {
                        "          xmlns:instant=\"http://schemas.android.com/instantapps\">" +
                        innerXML +
                        "</manifest>";
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
     DocumentBuilder builder;
     factory.setNamespaceAware(true);
     builder = factory.newDocumentBuilder();
