@@ -1994,7 +1994,7 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
-                            LintJars                      : <ROOT>/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug

@@ -300,7 +300,7 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:library::debug [-]
-                            LintJars                      : <ROOT>/library/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :library
                             Variant                       : debug
