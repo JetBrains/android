@@ -96,12 +96,6 @@ public class ScreenView extends ScreenViewBase {
     }
 
     @Override
-    public boolean hasContentSize(@NotNull ScreenView screenView) {
-      RenderResult result = screenView.getSceneManager().getRenderResult();
-      return result != null && !isErrorResult(result) && !result.getSystemRootViews().isEmpty();
-    }
-
-    @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
       if (result != null && result.getSystemRootViews().size() == 1) {
