@@ -50,7 +50,7 @@ public class AndroidLogcatFormatterTest {
 
     LogCatHeader header2 = message.getHeader();
 
-    assertEquals(header.getTimestampInstant(), header2.getTimestampInstant());
+    assertEquals(header.getTimestamp(), header2.getTimestamp());
     assertEquals(header.getLogLevel(), header2.getLogLevel());
     assertEquals(header.getPid(), header2.getPid());
     assertEquals(header.getTid(), header2.getTid());

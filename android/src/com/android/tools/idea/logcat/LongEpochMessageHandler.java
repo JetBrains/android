@@ -32,7 +32,11 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class LongEpochMessageFormatter implements MessageFormatter {
+/**
+ * An {@link MessageParser} dedicated to the long epoch logcat header format that also supports a {@link #format} method for display
+ * purposes.
+ */
+final class LongEpochMessageHandler implements MessageParser {
   private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
     .append(DateTimeFormatter.ISO_LOCAL_DATE)
     .appendLiteral(' ')
@@ -81,20 +85,18 @@ final class LongEpochMessageFormatter implements MessageFormatter {
   private final AndroidLogcatPreferences myPreferences;
   private final ZoneId myTimeZone;
 
-  LongEpochMessageFormatter(@NotNull AndroidLogcatPreferences preferences, @NotNull ZoneId timeZone) {
+  LongEpochMessageHandler(@NotNull AndroidLogcatPreferences preferences, @NotNull ZoneId timeZone) {
     myPreferences = preferences;
     myTimeZone = timeZone;
   }
 
   @NotNull
-  @Override
   public String format(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    Instant timestampInstant = header.getTimestampInstant();
-    assert timestampInstant != null;
+    Instant timestamp = header.getTimestamp();
 
     Object timestampString = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH
-                             ? LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.format(timestampInstant)
-                             : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestampInstant, myTimeZone));
+                             ? LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.format(timestamp)
+                             : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, myTimeZone));
 
     Object processIdThreadId = header.getPid() + "-" + header.getTid();
     Object priority = header.getLogLevel().getPriorityLetter();

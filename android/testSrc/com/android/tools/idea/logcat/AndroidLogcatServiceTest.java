@@ -18,8 +18,11 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -35,36 +38,38 @@ import static org.mockito.Mockito.*;
 
 public class AndroidLogcatServiceTest {
   private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
-    private final String[] EXPECTED_LOGS = {
+
+    private static final List<String> EXPECTED_LOGS = ImmutableList.of(
       "1534635551.439: W/DummyFirst(1493): First Line1",
       "1534635551.439: W/DummyFirst(1493): First Line2",
       "1534635551.439: W/DummyFirst(1493): First Line3",
-      "1537486751.439: W/DummySecond(1493): Second Line1"};
+      "1537486751.439: W/DummySecond(1493): Second Line1");
 
-    private int myCurrentIndex = 0;
+    private final List<String> myReceivedMessages = new ArrayList<String>();
     private boolean myCleared;
 
     @Override
     public void onLogLineReceived(@NotNull LogCatMessage line) {
-      assertEquals(EXPECTED_LOGS[myCurrentIndex++], line.toString());
+      myReceivedMessages.add(line.toString());
     }
 
     @Override
     public void onCleared() {
       myCleared = true;
+      myReceivedMessages.clear();
     }
 
     public void reset() {
-      myCurrentIndex = 0;
       myCleared = false;
+      myReceivedMessages.clear();
     }
 
     public void assertAllReceived() {
-      assertEquals(EXPECTED_LOGS.length, myCurrentIndex);
+      assertEquals(EXPECTED_LOGS, myReceivedMessages);
     }
 
     public void assertNothingReceived() {
-      assertEquals(0, myCurrentIndex);
+      assertEquals(0, myReceivedMessages.size());
     }
 
     private void assertCleared() {
