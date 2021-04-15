@@ -36,13 +36,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
-import org.apache.commons.io.FileSystem
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.tree.TreePath
 
 @RunsInEdt
 class ContentManagerTest {
