@@ -17,12 +17,14 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.DeviceManager
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.property.panel.api.EnumValue
@@ -32,8 +34,10 @@ import com.intellij.openapi.roots.impl.LibraryScopeCache
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 /**
  * [EnumSupportValuesProvider] that uses a backing map to return the provider functions.
@@ -70,6 +74,9 @@ class PsiCallEnumSupportValuesProvider private constructor(
 
 private fun createDeviceEnumProvider(module: Module, devicesClassName: String): EnumValuesProvider =
   deviceProvider@{
+    val existingDevicesId = mutableSetOf("") // Empty String for DEFAULT device
+
+    // Fetch devices from the Library class
     val devicesClass = findClass(module, devicesClassName) ?: return@deviceProvider emptyList()
     val devicesValues = devicesClass.fields.mapNotNull { device ->
       (device.computeConstantValue() as? String)?.takeIf { it.startsWith("id:") || it.startsWith("name:") }?.let { resolvedValue ->
@@ -79,10 +86,30 @@ private fun createDeviceEnumProvider(module: Module, devicesClassName: String): 
         ClassEnumValueParams(device.name, displayName, resolvedValue)
       }
     }.sortedWith(DevicesComparator).map { uiModeParams ->
-      DeviceEnumValueImpl(uiModeParams.className, uiModeParams.displayName, uiModeParams.resolvedValue, devicesClassName)
+      existingDevicesId.add(uiModeParams.resolvedValue)
+      DeviceEnumValueImpl(uiModeParams.value, uiModeParams.displayName, uiModeParams.resolvedValue, devicesClassName)
     }
-    // TODO(b/184789272): Add devices from DeviceManager
-    return@deviceProvider listOf(DeviceEnumValueImpl("DEFAULT", "Default", "", devicesClassName), *devicesValues.toTypedArray())
+
+    // Fetch devices from Device Manager
+    val studioDevices = AndroidPlatform.getInstance(module)?.sdkData?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)
+    val studioDevicesValues = studioDevices?.filter { device ->
+      val deviceId = "id:${device.id}"
+      val deviceName = "name:${device.id}"
+      (existingDevicesId.contains(deviceId) || existingDevicesId.contains(deviceName)).not()
+    }?.map { device ->
+      EnumValue.indented("id:${device.id}", device.displayName)
+    } ?: emptyList()
+
+    return@deviceProvider listOf(
+      EnumValue.header(message("picker.preview.device.header.library")),
+      DeviceEnumValueImpl("DEFAULT", "Default", "", devicesClassName),
+      *devicesValues.toTypedArray()
+    ).plus(
+      // Add Device Manager header if the list is not empty
+      studioDevicesValues.ifNotEmpty studioDevices@{
+        listOf(EnumValue.header(message("picker.preview.device.header.manager")), *this@studioDevices.toTypedArray())
+      } ?: emptyList()
+    )
   }
 
 /**
@@ -115,7 +142,7 @@ private object DevicesComparator : Comparator<ClassEnumValueParams> {
 private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
   uiModeProvider@{
     val configurationClass = findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
-    val uiModeValues = configurationClass.fields.filter {
+    val uiModeValueParams = configurationClass.fields.filter {
       it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK")
     }.mapNotNull { uiMode ->
       (uiMode.computeConstantValue() as? Int)?.let {
@@ -131,10 +158,31 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
       UiMode.NORMAL.resolvedValue != params.resolvedValue
     }.sortedBy { params ->
       params.resolvedValue
-    }.map { uiModeParams ->
-      UiModeEnumValueImpl(uiModeParams.className, uiModeParams.displayName, uiModeParams.resolvedValue)
     }
-    return@uiModeProvider listOf(UiMode.NORMAL, *uiModeValues.toTypedArray())
+
+    val uiModeNoNightValues = uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+
+    val uiModeNightValues = uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+    return@uiModeProvider listOf(
+      EnumValue.header(message("picker.preview.uimode.header.notnight")),
+      UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
+      *uiModeNoNightValues.toTypedArray(),
+      EnumValue.header(message("picker.preview.uimode.header.night")),
+      UiModeWithNightMaskEnumValue.NormalNightEnumValue,
+      *uiModeNightValues.toTypedArray(),
+    )
   }
 
 /**
@@ -161,7 +209,7 @@ private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile)
   }
 
 private data class ClassEnumValueParams(
-  val className: String,
+  val value: String,
   val displayName: String,
   val resolvedValue: String
 )
