@@ -59,8 +59,9 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
-                               && previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    e.presentation.isVisible = isNoLibraryAndroidModule
+    e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
