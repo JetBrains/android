@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import java.io.File;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -83,11 +84,10 @@ public class DependenciesExtractor {
   @NotNull
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull IdeAndroidLibrary library) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
-    binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
-    binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
-    for (String localJar : library.getLocalJars()) {
-      binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
+    for (String file : library.getCompileJarFiles()) {
+      binaryPaths.add(FilePaths.toSystemDependentPath(file));
     }
+    binaryPaths.add(FilePaths.toSystemDependentPath(library.getResFolder()));
     return LibraryDependency.create(library.getArtifact(), binaryPaths.build());
   }
 

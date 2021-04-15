@@ -133,7 +133,7 @@ class LintModelFactory : LintModelModuleLoader {
           artifactAddress = library.getMavenArtifactAddress(),
           manifest = File(library.manifest),
           // TODO - expose compile jar vs impl jar?
-          jarFiles = (library.localJars + library.jarFile).map { File(it) },
+          jarFiles = library.runtimeJarFiles.map { File(it) },
           folder = library.folder!!, // Needed for workaround for b/66166521
           resFolder = File(library.resFolder),
           assetsFolder = File(library.assetsFolder),
