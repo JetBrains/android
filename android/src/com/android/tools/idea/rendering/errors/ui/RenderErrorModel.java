@@ -148,7 +148,7 @@ public class RenderErrorModel {
 
     @Override
     public int hashCode() {
-      return Objects.hash(mySeverity, mySummary, myHtmlContent);
+      return Objects.hash(mySeverity, mySummary, getPlainContent());
     }
 
     @Override
