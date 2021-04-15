@@ -20,13 +20,14 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   public UseEmbeddedJdkHyperlink() {
-    super("useEmbeddedJdk", "Use embedded JDK");
+    super("useEmbeddedJdk", "Use Embedded JDK (" + IdeSdks.getInstance().getEmbeddedJdkPath() + ")");
   }
 
   @Override

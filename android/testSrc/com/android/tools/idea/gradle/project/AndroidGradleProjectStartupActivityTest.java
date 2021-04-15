@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.times;
@@ -23,17 +24,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Collections;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
-public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
+public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCase {
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
@@ -41,9 +43,12 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
-    mySyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
-    myGradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    Project project = getProject();
+    mySyncInvoker = mock(GradleSyncInvoker.class);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, project);
+    myGradleProjectInfo = mock(GradleProjectInfo.class);
+    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, project);
+
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
@@ -87,7 +92,6 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
     verify(mySyncInvoker, times(1)).requestProjectSync(project, request);
   }
-
 
   public void testRunActivityWithNonGradleProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
