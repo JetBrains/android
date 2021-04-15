@@ -1433,14 +1433,14 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
@@ -5466,7 +5466,7 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
@@ -9397,21 +9397,21 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>:lib::debug [-]
-                            LintJars                      : <ROOT>/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
-                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
-                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug

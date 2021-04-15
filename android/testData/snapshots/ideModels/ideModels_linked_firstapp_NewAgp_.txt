@@ -1416,7 +1416,7 @@ MODULE                        : My_First_App.app
                     ModuleDependencies
                         ModuleDependency
                             ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/merged_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
+                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
