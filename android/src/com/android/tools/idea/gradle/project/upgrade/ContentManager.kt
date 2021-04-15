@@ -75,7 +75,7 @@ class ToolWindowModel(
 
   //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
-  val runDisabledTooltip = StringValueProperty()
+  val runTooltip = StringValueProperty()
   val runEnabled = BoolValueProperty(true)
 
   val knownVersions = OptionalValueProperty<List<GradleVersion>>()
@@ -158,7 +158,7 @@ class ToolWindowModel(
     showLoadingState.set(true)
     // First clear state
     runEnabled.set(false)
-    runDisabledTooltip.clear()
+    runTooltip.clear()
     val root = (treeModel.root as CheckedTreeNode)
     root.removeAllChildren()
     treeModel.nodeStructureChanged(root)
@@ -202,16 +202,16 @@ class ToolWindowModel(
     refreshTree(newProcessor)
     if (!projectFilesClean) {
       runEnabled.set(false)
-      runDisabledTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                             "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                             "can be handled separately.")
+      runTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
+                     "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                     "can be handled separately.")
     }
     else if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
       runEnabled.set(false)
-      runDisabledTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
-                             "possibly because the project's build files use features not currently support by the " +
-                             "Upgrade Assistant (for example: using constants defined in buildSrc)."
+      runTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
+                     "possibly because the project's build files use features not currently support by the " +
+                     "Upgrade Assistant (for example: using constants defined in buildSrc)."
       )
     }
     else {
@@ -397,11 +397,11 @@ class ContentManager(val project: Project) {
     }
     val okButton = JButton("Run selected steps").apply {
       addActionListener { this@View.model.runUpgrade(false) }
-      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
+      myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
     }
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
-      myListeners.listen(this@View.model.runDisabledTooltip) { toolTipText = this@View.model.runDisabledTooltip.get() }
+      myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {

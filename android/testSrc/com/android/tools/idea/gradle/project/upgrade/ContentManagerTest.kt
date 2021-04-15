@@ -103,14 +103,14 @@ class ContentManagerTest {
     addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     assertThat(toolWindowModel.runEnabled.get()).isTrue()
-    assertThat(toolWindowModel.runDisabledTooltip.get()).isEmpty()
+    assertThat(toolWindowModel.runTooltip.get()).isEmpty()
   }
 
   @Test
   fun testToolWindowModelStartsDisabledWithNoFiles() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     assertThat(toolWindowModel.runEnabled.get()).isFalse()
-    assertThat(toolWindowModel.runDisabledTooltip.get()).contains("buildSrc")
+    assertThat(toolWindowModel.runTooltip.get()).contains("buildSrc")
   }
 
   @Test
@@ -127,7 +127,7 @@ class ContentManagerTest {
     )
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     assertThat(toolWindowModel.runEnabled.get()).isFalse()
-    assertThat(toolWindowModel.runDisabledTooltip.get()).contains("buildSrc")
+    assertThat(toolWindowModel.runTooltip.get()).contains("buildSrc")
   }
 
   @Test
