@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
@@ -135,15 +134,16 @@ class SerializedTraceProcessorModelForTestsVerifier {
   @Test
   @Ignore("To be invoked manually to regenerate _process_list and _tpd_model for perfetto traces in testData")
   fun `regen TPD model files`() {
-    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
-    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"))
+    // Use different trace IDs to keep one from overwriting another in TPD. These IDs don't persist outside of this method.
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 1)
+    produceAndWriteModelsFor(CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), 2)
   }
 
-  private fun produceAndWriteModelsFor(traceFile: File) {
-    val loadOk = service.loadTrace(1, traceFile, fakeIdeProfilerServices)
+  private fun produceAndWriteModelsFor(traceFile: File, traceId: Long) {
+    val loadOk = service.loadTrace(traceId, traceFile, fakeIdeProfilerServices)
     assertThat(loadOk).isTrue()
 
-    val processList = service.getProcessMetadata(1, fakeIdeProfilerServices)
+    val processList = service.getProcessMetadata(traceId, fakeIdeProfilerServices)
 
     val sfProcessId = processList.find {
       it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
@@ -155,7 +155,7 @@ class SerializedTraceProcessorModelForTestsVerifier {
       val pidsToQuery = mutableListOf(pid)
       sfProcessId?.let { pidsToQuery.add(it.id) }
 
-      val model = service.loadCpuData(1, pidsToQuery, fakeIdeProfilerServices)
+      val model = service.loadCpuData(traceId, pidsToQuery, fakeIdeProfilerServices)
       modelMapBuilder.put(pid, model)
     }
 
