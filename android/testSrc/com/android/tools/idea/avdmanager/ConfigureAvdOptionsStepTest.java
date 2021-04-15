@@ -21,7 +21,8 @@ import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
@@ -175,7 +176,8 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
   public void testIsGoogleApiTag() {
     assertThat(isGoogleApiTag(GOOGLE_APIS_TAG)).isTrue();
-    assertThat(isGoogleApiTag(TV_TAG)).isTrue();
+    assertThat(isGoogleApiTag(ANDROID_TV_TAG)).isTrue();
+    assertThat(isGoogleApiTag(GOOGLE_TV_TAG)).isTrue();
     assertThat(isGoogleApiTag(WEAR_TAG)).isTrue();
 
     assertThat(isGoogleApiTag(DEFAULT_TAG)).isFalse();

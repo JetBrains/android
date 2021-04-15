@@ -492,7 +492,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   static
   boolean isGoogleApiTag(IdDisplay tag) {
     return SystemImage.WEAR_TAG.equals(tag) ||
-           SystemImage.TV_TAG.equals(tag) ||
+           SystemImage.ANDROID_TV_TAG.equals(tag) ||
+           SystemImage.GOOGLE_TV_TAG.equals(tag) ||
            SystemImage.GOOGLE_APIS_TAG.equals(tag);
   }
 

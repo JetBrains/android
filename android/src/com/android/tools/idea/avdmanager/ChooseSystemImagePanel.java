@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+
 import com.android.repository.Revision;
-import com.android.tools.analytics.CommonMetricsData;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.ProductDetails;
 import com.intellij.icons.AllIcons;
@@ -36,23 +43,18 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Consumer;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ListTableModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
-
-import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
-import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.RowFilter;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * UI panel that presents the user with a list of {@link SystemImageDescription}s to choose from.
@@ -248,9 +250,16 @@ public class ChooseSystemImagePanel extends JPanel
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG) &&
-          !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
+      return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
+             !imageTag.equals(SystemImage.WEAR_TAG) &&
+             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
     }
+
+    // Android TV / Google TV and vice versa
+    if (deviceTagId.equals(SystemImage.ANDROID_TV_TAG.getId()) || deviceTagId.equals(SystemImage.GOOGLE_TV_TAG.getId())) {
+      return imageTag.equals(SystemImage.ANDROID_TV_TAG) || imageTag.equals(SystemImage.GOOGLE_TV_TAG);
+    }
+
     return deviceTagId.equals(imageTag.getId());
   }
 

@@ -26,8 +26,9 @@ import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 
 import com.android.annotations.concurrency.Slow;
@@ -57,8 +58,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -128,9 +127,11 @@ public class AvdWizardUtils {
   public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG, AUTOMOTIVE_TAG);
+  public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+                                                                         CHROMEOS_TAG, AUTOMOTIVE_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
-                                                                              PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG,
+                                                                              PLAY_STORE_TAG, ANDROID_TV_TAG, GOOGLE_TV_TAG,
+                                                                              WEAR_TAG, CHROMEOS_TAG,
                                                                               AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";

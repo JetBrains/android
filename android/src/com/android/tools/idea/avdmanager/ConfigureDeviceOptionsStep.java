@@ -170,7 +170,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
          * }
          */
         getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
-        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.TV_TAG));
+        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.ANDROID_TV_TAG)
+                                              || selectedType.equals(SystemImage.GOOGLE_TV_TAG));
         myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
         myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
       }
