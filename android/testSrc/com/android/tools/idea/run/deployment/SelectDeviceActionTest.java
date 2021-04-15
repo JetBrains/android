@@ -28,7 +28,6 @@ import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import javax.swing.JComponent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -153,28 +152,5 @@ public final class SelectDeviceActionTest {
 
     // Assert
     Mockito.verify(myComboBoxAction).setTargetSelectedWithComboBox(myProject, new QuickBootTarget(key));
-  }
-
-  @Test
-  public void tooltipProperty() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel_4_API_30")
-      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
-      .build();
-
-    Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Collections.singletonList(device)));
-
-    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
-
-    // Act
-    action.update(myEvent);
-
-    // Assert
-    assertEquals("<html><font size=+1>Error</font><br><font color=#999999>Missing system image</font></html>",
-                 myPresentation.getClientProperty(JComponent.TOOL_TIP_TEXT_KEY));
   }
 }
