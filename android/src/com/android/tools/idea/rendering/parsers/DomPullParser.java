@@ -380,7 +380,7 @@ public class DomPullParser extends LayoutPullParser {
    */
   @Nullable
   private static DocumentBuilder createNewDocumentBuilder() {
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
     factory.setNamespaceAware(true);
     factory.setValidating(false);
     factory.setIgnoringComments(true);
