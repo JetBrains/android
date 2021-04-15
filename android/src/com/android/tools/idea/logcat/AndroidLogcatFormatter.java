@@ -48,14 +48,14 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
 
   public static final CharSequence CONTINUATION_INDENT = "    ";
 
-  private final MessageFormatter myLongEpochFormatter;
-  private final MessageFormatter myLongFormatter;
+  @NotNull private final LongEpochMessageHandler myLongEpochHandler;
+  @NotNull private final LongMessageParser myLongFormatterParser;
 
   private final AndroidLogcatPreferences myPreferences;
 
   public AndroidLogcatFormatter(@NotNull ZoneId timeZone, @NotNull AndroidLogcatPreferences preferences) {
-    myLongEpochFormatter = new LongEpochMessageFormatter(preferences, timeZone);
-    myLongFormatter = new LongMessageFormatter();
+    myLongEpochHandler = new LongEpochMessageHandler(preferences, timeZone);
+    myLongFormatterParser = new LongMessageParser();
 
     myPreferences = preferences;
   }
@@ -111,16 +111,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
 
   @NotNull
   public String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    // noinspection deprecation
-    if (header.getTimestamp() == null) {
-      return myLongEpochFormatter.format(format, header, message);
-    }
-
-    if (header.getTimestampInstant() == null) {
-      return myLongFormatter.format(format, header, message);
-    }
-
-    throw new AssertionError(header);
+    return myLongEpochHandler.format(format, header, message);
   }
 
   /**
@@ -142,19 +133,15 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    */
   @Nullable
   LogCatMessage tryParseMessage(@NotNull String message) {
-    LogCatMessage logcatMessage = myLongEpochFormatter.tryParse(message);
+    LogCatMessage logcatMessage = myLongEpochHandler.tryParse(message);
 
     if (logcatMessage != null) {
       return logcatMessage;
     }
 
-    logcatMessage = myLongFormatter.tryParse(message);
+    logcatMessage = myLongFormatterParser.tryParse(message);
 
-    if (logcatMessage != null) {
-      return logcatMessage;
-    }
-
-    return null;
+    return logcatMessage;
   }
 
   /**

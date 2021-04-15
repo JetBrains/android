@@ -249,7 +249,7 @@ final class AndroidLogFilterModel extends LogFilterModel {
 
     boolean isApplicable = myCustomApplicable && myConfiguredApplicable;
     if (isApplicable && myRejectBeforeHeader != null) {
-      isApplicable = !myPrevHeader.isBefore(myRejectBeforeHeader);
+      isApplicable = !myPrevHeader.getTimestamp().isBefore(myRejectBeforeHeader.getTimestamp());
     }
 
     if (!isApplicable) {
