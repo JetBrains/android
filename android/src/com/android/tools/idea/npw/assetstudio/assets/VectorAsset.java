@@ -286,7 +286,7 @@ public final class VectorAsset extends BaseAsset {
   @Nullable
   public static Document parseXml(@NotNull String xmlFileContent, @com.android.annotations.Nullable StringBuilder errorLog) {
     try {
-      DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      DocumentBuilder builder = DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder();
       return builder.parse(new InputSource(new StringReader(xmlFileContent)));
     }
     catch (Exception e) {

@@ -15,29 +15,28 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.utils.XmlUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParserException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.AUTO_URI;
 
 /**
  * Simple wrapper around an XML document which provides its contents as a pull parser.
@@ -380,7 +379,7 @@ public class DomPullParser extends LayoutPullParser {
    */
   @Nullable
   private static DocumentBuilder createNewDocumentBuilder() {
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
     factory.setNamespaceAware(true);
     factory.setValidating(false);
     factory.setIgnoringComments(true);

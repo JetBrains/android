@@ -15,7 +15,20 @@
  */
 package com.android.tools.idea.instantapp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.google.common.collect.ImmutableList;
+import java.io.StringReader;
+import java.util.Collection;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -29,16 +42,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.Collection;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 public class InstantAppUrlFinderTest {
 
@@ -289,7 +292,7 @@ public class InstantAppUrlFinderTest {
                        "          xmlns:instant=\"http://schemas.android.com/instantapps\">" +
                        innerXML +
                        "</manifest>";
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
     DocumentBuilder builder;
     factory.setNamespaceAware(true);
     builder = factory.newDocumentBuilder();
