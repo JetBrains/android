@@ -73,7 +73,7 @@ private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
 class DevicesConnectionStep(model: WearDevicePairingModel,
                             val project: Project,
                             val showFirstStage: Boolean,
-                            val restartPairingAction: (Boolean) -> Unit) : ModelWizardStep<WearDevicePairingModel>(model, "") {
+                            val wizardAction: WizardAction) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private var runningJob: Job? = null
   private var currentUiHeader = ""
   private var currentUiDescription = ""
@@ -405,7 +405,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           gridConstraint(x = 1, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL)
         )
         add(
-          LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> restartPairingAction(true) },
+          LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> wizardAction.restart(project) },
           gridConstraint(x = 1, y = 1, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.HORIZONTAL)
         )
       }

@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.IdeTooltipManager
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
@@ -45,6 +46,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
@@ -68,7 +70,7 @@ import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating"
 
-class DeviceListStep(model: WearDevicePairingModel, val project: Project, val restartPairingAction: (Boolean) -> Unit) :
+class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
   private val phoneList = createList(
@@ -95,8 +97,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val re
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
       NewConnectionAlertStep(model, project),
-      DevicesConnectionStep(model, project, true, restartPairingAction),
-      DevicesConnectionStep(model, project, false, restartPairingAction)
+      DevicesConnectionStep(model, project, true, wizardAction),
+      DevicesConnectionStep(model, project, false, wizardAction)
     )
   }
 
@@ -204,7 +206,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val re
         emptyText.appendLine(it)
       }
       emptyText.appendLine(message("wear.assistant.device.list.open.avd"), LINK_PLAIN_ATTRIBUTES) {
-        restartPairingAction(false)
+        wizardAction.closeAndStartAvd(project)
       }
 
       addListSelectionListener {

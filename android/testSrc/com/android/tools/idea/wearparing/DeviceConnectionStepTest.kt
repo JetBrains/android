@@ -25,6 +25,7 @@ import com.android.tools.idea.wearparing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
@@ -127,7 +128,6 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   @Test
   fun shouldShowRestartPairingIfConnectionIsDrop() {
     var launchedCalled = false
-    var restartLinkCalled = false
 
     phoneDevice.launch = {
       launchedCalled = true
@@ -135,25 +135,24 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     }
     wearDevice.launch = phoneDevice.launch
 
-    val (fakeUi, _) = createDeviceConnectionStepUi {
-      restartLinkCalled = true
-    }
+    val wizardAction = WizardActionTest()
+    val (fakeUi, _) = createDeviceConnectionStepUi(wizardAction)
 
-    waitForCondition(5, TimeUnit.SECONDS) {
-      fakeUi.findComponent<JLabel> {  it.text == "Restart pairing" } != null
+    waitForCondition(15, TimeUnit.SECONDS) {
+      fakeUi.findComponent<JLabel> { it.text == "Restart pairing" } != null
     }
 
     fakeUi.layoutAndDispatchEvents()
-    fakeUi.findComponent<LinkLabel<Any>> {  it.text == "Restart pairing" }!!.apply {
+    fakeUi.findComponent<LinkLabel<Any>> { it.text == "Restart pairing" }!!.apply {
       this.doClick()
     }
 
     assertThat(launchedCalled).isTrue()
-    assertThat(restartLinkCalled).isTrue()
+    assertThat(wizardAction.restartCalled).isTrue()
   }
 
-  private fun createDeviceConnectionStepUi(restartParingAction: (Boolean) -> Unit = {}): Pair<FakeUi, ModelWizard> {
-    val deviceConnectionStep = DevicesConnectionStep(model, project, true, restartParingAction)
+  private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
+    val deviceConnectionStep = DevicesConnectionStep(model, project, true, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()
     Disposer.register(testRootDisposable, modelWizard)
     invokeStrategy.updateAllSteps()
@@ -190,5 +189,18 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       receiver.addOutput(byteArray, 0, byteArray.size)
     }
     return iDevice
+  }
+}
+
+internal class WizardActionTest : WizardAction {
+  var closeCalled = false
+  var restartCalled = false
+
+  override fun closeAndStartAvd(project: Project) {
+    closeCalled = true
+  }
+
+  override fun restart(project: Project) {
+    restartCalled = true
   }
 }

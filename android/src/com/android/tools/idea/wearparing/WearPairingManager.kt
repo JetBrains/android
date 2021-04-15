@@ -54,16 +54,16 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
   private var runningJob: Job? = null
   private var listHolder: ObjectValueProperty<List<PairingDevice>> = ObjectValueProperty(emptyList())
-  private var linkClickedAction: (Boolean) -> Unit = {}
+  private var wizardAction: WizardAction? = null
 
   private var pairedDevicesAreOnline = false
   private var pairedPhoneDevice: PairingDevice? = null
   private var pairedWearDevice: PairingDevice? = null
 
   @Synchronized
-  fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>, linkClickedAction: (Boolean) -> Unit) {
+  fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>, wizardAction: WizardAction) {
     this.listHolder = listHolder
-    this.linkClickedAction = linkClickedAction
+    this.wizardAction = wizardAction
 
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
@@ -177,12 +177,12 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       if (bothDeviceOnline && !pairedDevicesAreOnline) {
         // Both device are online, and before one (or both) were offline. Time to bridge
         createDeviceBridge(onlinePhone!!, onlineWear!!)
-        showReconnectMessageBalloon(keepAlivePhone.displayName, keepAliveWear.displayName, linkClickedAction)
+        showReconnectMessageBalloon(keepAlivePhone.displayName, keepAliveWear.displayName, wizardAction)
       }
       else if (!bothDeviceOnline && pairedDevicesAreOnline) {
         // One (or both) devices are offline, and before were online. Show "connection dropped" message
         val offlineName = if (onlinePhone == null) keepAlivePhone.displayName else keepAliveWear.displayName
-        showConnectionDroppedBalloon(offlineName, keepAlivePhone.displayName, keepAliveWear.displayName, linkClickedAction)
+        showConnectionDroppedBalloon(offlineName, keepAlivePhone.displayName, keepAliveWear.displayName, wizardAction)
       }
     }
     catch (ex: Throwable) {
@@ -271,7 +271,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
 
 private fun IDevice.getDeviceName(unknown: String): String {
   val deviceName = "${getManufacturer(this, "")} ${getModel(this, "")}"
-  return if (deviceName.isBlank()) unknown else deviceName
+  return deviceName.ifBlank { unknown }
 }
 
 private fun IDevice.getDeviceID(): String {
@@ -282,24 +282,24 @@ private fun IDevice.getDeviceID(): String {
   }
 }
 
-private fun showReconnectMessageBalloon(phoneName: String, wearName: String, linkAction: (Boolean) -> Unit) =
+private fun showReconnectMessageBalloon(phoneName: String, wearName: String, wizardAction: WizardAction?) =
   showMessageBalloon(
     message("wear.assistant.device.connection.reconnected.title"),
     message("wear.assistant.device.connection.reconnected.message", wearName, phoneName),
-    linkAction
+    wizardAction
   )
 
-private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String, wearName: String, linkAction: (Boolean) -> Unit) =
+private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String, wearName: String, wizardAction: WizardAction?) =
   showMessageBalloon(
     message("wear.assistant.device.connection.dropped.title"),
     message("wear.assistant.device.connection.dropped.message", offlineName, wearName, phoneName),
-    linkAction
+    wizardAction
   )
 
-private fun showMessageBalloon(title: String, text: String, linkAction: (Boolean) -> Unit) {
+private fun showMessageBalloon(title: String, text: String, wizardAction: WizardAction?) {
   val hyperlink = object: NotificationHyperlink("launchAssistant", message("wear.assistant.device.connection.balloon.link")) {
     override fun execute(project: Project) {
-      linkAction(true)
+      wizardAction?.restart(project)
     }
   }
 
