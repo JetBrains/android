@@ -23,6 +23,7 @@ import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -132,11 +133,23 @@ class SkinDefinitionTest {
   }
 
   @Test
+  fun testVeryTinyScale() {
+    val folder = getSkinFolder("pixel_4_xl")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+
+    // Check the createScaledLayout method with scaling.
+    val layout = skin.createScaledLayout(8, 16, SkinRotation.PORTRAIT)
+    assertThat(layout.displaySize).isEqualTo(Dimension(8, 16))
+    assertThat(layout.frameRectangle).isEqualTo(Rectangle(-0, -1, 8, 18))
+    assertSkinAppearance(layout, "tiny_pixel_4_xl")
+  }
+
+  @Test
   fun testPixel_4() {
     val folder = getSkinFolder("pixel_4")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
-    // Check the skin layout and consistency of the images.
+    // Check the skin layout and consistency of its images.
     val layout = skin.layout
     assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2280))
     assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1178, 2498))
@@ -149,7 +162,7 @@ class SkinDefinitionTest {
     val folder = getSkinFolder("pixel_4_xl")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
-    // Check the skin layout and consistency of the images.
+    // Check the skin layout and consistency of its images.
     val layout = skin.layout
     assertThat(layout.displaySize).isEqualTo(Dimension(1440, 3040))
     assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1571, 3332))
@@ -157,16 +170,32 @@ class SkinDefinitionTest {
     assertThat(layout.maskImages).hasSize(4) // Four round corners.
   }
 
+  @Ignore("Enable when the pixel_4a skin is fixed (b/171274996)")
   @Test
-  fun testVeryTinyScale() {
-    val folder = getSkinFolder("pixel_4_xl")
+  fun testPixel_4a() {
+    val folder = getSkinFolder("pixel_4a")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
-    // Check the createScaledLayout method with scaling.
-    val layout = skin.createScaledLayout(8, 16, SkinRotation.PORTRAIT)
-    assertThat(layout.displaySize).isEqualTo(Dimension(8, 16))
-    assertThat(layout.frameRectangle).isEqualTo(Rectangle(-0, -1, 8, 18))
-    assertSkinAppearance(layout, "tiny_pixel_4_xl")
+    // Check the skin layout and consistency of its images.
+    val layout = skin.layout
+    assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2340))
+    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1195, 2473))
+    assertThat(layout.frameImages).hasSize(8)
+    assertThat(layout.maskImages).hasSize(4) // Four round corners, one with a camera hole.
+  }
+
+  @Ignore("Enable when the pixel_5 skin is fixed (b/171274996)")
+  @Test
+  fun testPixel_5() {
+    val folder = getSkinFolder("pixel_5")
+    val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
+
+    // Check the skin layout and consistency of its images.
+    val layout = skin.layout
+    assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2340))
+    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1196, 2441))
+    assertThat(layout.frameImages).hasSize(8)
+    assertThat(layout.maskImages).hasSize(4) // Four round corners, one with a camera hole.
   }
 
   @Test
