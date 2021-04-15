@@ -59,15 +59,16 @@ interface IdeAndroidLibrary: IdeLibrary {
   val manifest: String
 
   /**
-   * Returns the location of the jar file to use for compiling and packaging. The path may not point to an existing file.
+   * The list of jar files for compilation.
    */
-  val jarFile: String
+  val compileJarFiles: List<String>
 
   /**
-   * Returns the location of the jar file to use for compilation. The path may not point to an existing file.
+   * The list of jar files for runtime/packaging.
+   * This corresponds the the AAR main jar file and the localJars.
    */
+  val runtimeJarFiles: List<String>
 
-  val compileJarFile: String
   /**
    * Returns the location of the res folder. The file may not point to an existing folder.
    */
@@ -85,11 +86,6 @@ interface IdeAndroidLibrary: IdeLibrary {
    * Returns the location of the assets folder. The file may not point to an existing folder.
    */
   val assetsFolder: String
-
-  /**
-   * Returns the list of local Jar files that are included in the dependency.
-   */
-  val localJars: Collection<String>
 
   /**
    * Returns the location of the jni libraries folder. The file may not point to an existing folder.

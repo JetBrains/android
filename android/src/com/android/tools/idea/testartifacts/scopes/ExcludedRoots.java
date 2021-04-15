@@ -209,7 +209,8 @@ class ExcludedRoots {
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
-      for (String path : library.getLocalJars()) {
+      // This loop relies on the implementation details of compileJarFiles, and the code is expected to be removed soon anyway.
+      for (String path : library.getCompileJarFiles().stream().skip(1).collect(Collectors.toList())) {
         File file = new File(path);
         if (!isAlreadyIncluded(file)) {
           myExcludedRoots.add(file);
@@ -234,7 +235,9 @@ class ExcludedRoots {
   private void removeLibraryPaths(@NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
-      for (String path : library.getLocalJars()) {
+      for (String path : library.getCompileJarFiles().stream().filter(
+        it -> (it.lastIndexOf('/') + 1 < it.length()) && !it.substring(it.lastIndexOf('/') + 1).equals("api.jar"))
+        .collect(Collectors.toList())) {
         myExcludedRoots.remove(new File(path));
       }
     });

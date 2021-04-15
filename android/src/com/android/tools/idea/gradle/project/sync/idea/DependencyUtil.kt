@@ -328,13 +328,12 @@ private class AndroidDependenciesSetupContext(
 
   private inner class AndroidLibraryWorkItem(library: IdeAndroidLibrary) : LibraryWorkItem<IdeAndroidLibrary>(library) {
     override fun setupTarget() {
-      libraryData.addPath(BINARY, library.compileJarFile)
+      library.compileJarFiles.forEach { compileJar ->
+        libraryData.addPath(BINARY, compileJar)
+      }
       libraryData.addPath(BINARY, library.resFolder)
       // TODO: Should this be binary? Do we need the platform to allow custom types here?
       libraryData.addPath(BINARY, library.manifest)
-      library.localJars.forEach { localJar ->
-        libraryData.addPath(BINARY, localJar)
-      }
       setupAnnotationsFrom(libraryData, libraryName, library)
       setupSourcesAndJavaDocsFrom(libraryData, libraryName, library)
     }
@@ -428,7 +427,7 @@ private class AndroidDependenciesSetupContext(
     // Add external annotations.
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!
-    (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
+    (library.compileJarFiles + library.resFolder).distinct().mapNotNull {
       FilePaths.toSystemDependentPath(it)?.path
     }.forEach { binaryPath ->
       if (binaryPath.endsWith(separatorChar + FD_RES)) {

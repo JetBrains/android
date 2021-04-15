@@ -32,12 +32,11 @@ data class IdeAndroidLibraryImpl(
     artifactAddress: String,
     folder: File,
     manifest: String,
-    jarFile: String,
-    compileJarFile: String,
+    compileJarFiles: List<String>,
+    runtimeJarFiles: List<String>,
     resFolder: String,
     resStaticLibrary: File?,
     assetsFolder: String,
-    localJars: Collection<String>,
     jniFolder: String,
     aidlFolder: String,
     renderscriptFolder: String,
@@ -53,12 +52,11 @@ data class IdeAndroidLibraryImpl(
       artifactAddress,
       folder,
       manifest,
-      jarFile,
-      compileJarFile,
+      compileJarFiles,
+      runtimeJarFiles,
       resFolder,
       resStaticLibrary,
       assetsFolder,
-      localJars,
       jniFolder,
       aidlFolder,
       renderscriptFolder,
@@ -78,12 +76,11 @@ data class IdeAndroidLibraryCore(
   override val artifactAddress: String,
   override val folder: File,
   private val _manifest: String,
-  private val _jarFile: String,
-  private val _compileJarFile: String,
+  private val _compileJarFiles: List<String>,
+  private val _runtimeJarFiles: List<String>,
   private val _resFolder: String,
   private val _resStaticLibrary: String?,
   private val _assetsFolder: String,
-  private val _localJars: Collection<String>,
   private val _jniFolder: String,
   private val _aidlFolder: String,
   private val _renderscriptFolder: String,
@@ -100,12 +97,11 @@ data class IdeAndroidLibraryCore(
     artifactAddress = "",
     folder = File(""),
     _manifest = "",
-    _jarFile = "",
-    _compileJarFile = "",
+    _compileJarFiles = mutableListOf(),
+    _runtimeJarFiles = mutableListOf(),
     _resFolder = "",
     _resStaticLibrary = null,
     _assetsFolder = "",
-    _localJars = mutableListOf(),
     _jniFolder = "",
     _aidlFolder = "",
     _renderscriptFolder = "",
@@ -120,12 +116,11 @@ data class IdeAndroidLibraryCore(
   private fun String.translate(): String = folder.resolve(this).normalize().path
 
   override val manifest: String get() = _manifest.translate()
-  override val jarFile: String get() = _jarFile.translate()
-  override val compileJarFile: String get() = _compileJarFile.translate()
+  override val compileJarFiles: List<String> get() = _compileJarFiles.map { it.translate() }
+  override val runtimeJarFiles: List<String> get() = _runtimeJarFiles.map { it.translate() }
   override val resFolder: String get() = _resFolder.translate()
   override val resStaticLibrary: File? get() = _resStaticLibrary?.translate()?.let(::File)
   override val assetsFolder: String get() = _assetsFolder.translate()
-  override val localJars: Collection<String> get() = _localJars.map { it.translate() }
   override val jniFolder: String get() = _jniFolder.translate()
   override val aidlFolder: String get() = _aidlFolder.translate()
   override val renderscriptFolder: String get() = _renderscriptFolder.translate()
@@ -144,12 +139,11 @@ data class IdeAndroidLibraryCore(
       artifactAddress: String,
       folder: File,
       manifest: String,
-      jarFile: String,
-      compileJarFile: String,
+      compileJarFiles: List<String>,
+      runtimeJarFiles: List<String>,
       resFolder: String,
       resStaticLibrary: File?,
       assetsFolder: String,
-      localJars: Collection<String>,
       jniFolder: String,
       aidlFolder: String,
       renderscriptFolder: String,
@@ -168,12 +162,11 @@ data class IdeAndroidLibraryCore(
         artifactAddress = artifactAddress,
         folder = folder,
         _manifest = manifest.makeRelative(),
-        _jarFile = jarFile.makeRelative(),
-        _compileJarFile = compileJarFile.makeRelative(),
+        _compileJarFiles = compileJarFiles.map { it.makeRelative() },
+        _runtimeJarFiles = runtimeJarFiles.map{ it.makeRelative() },
         _resFolder = resFolder.makeRelative(),
         _resStaticLibrary = resStaticLibrary?.makeRelative(),
         _assetsFolder = assetsFolder.makeRelative(),
-        _localJars = localJars.map { it.makeRelative() },
         _jniFolder = jniFolder.makeRelative(),
         _aidlFolder = aidlFolder.makeRelative(),
         _renderscriptFolder = renderscriptFolder.makeRelative(),

@@ -186,8 +186,8 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
   dump(androidLibrary as IdeLibrary)
   prop("Folder") { androidLibrary.folder?.path?.toPrintablePath() }
   prop("Manifest") { androidLibrary.manifest.toPrintablePath() }
-  prop("JarFile") { androidLibrary.jarFile.toPrintablePath() }
-  prop("CompileJarFile") { androidLibrary.compileJarFile.toPrintablePath() }
+  androidLibrary.compileJarFiles.forEach { prop("CompileJarFiles") { it.toPrintablePath() } }
+  androidLibrary.runtimeJarFiles.forEach { prop("RuntimeJarFiles") { it.toPrintablePath() } }
   prop("ResFolder") { androidLibrary.resFolder.toPrintablePath() }
   prop("ResStaticLibrary") { androidLibrary.resStaticLibrary?.path?.toPrintablePath() }
   prop("AssetFolder") { androidLibrary.assetsFolder.toPrintablePath() }
@@ -198,7 +198,6 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
   prop("ExternalAnnotations") { androidLibrary.externalAnnotations.toPrintablePath() }
   prop("PublicResources") { androidLibrary.publicResources.toPrintablePath() }
   prop("SymbolFile") { androidLibrary.symbolFile.toPrintablePath() }
-  androidLibrary.localJars.forEach { prop("LocalJars") { it.toPrintablePath() } }
 }
 
 private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
