@@ -82,7 +82,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun setKeepForwardAlive(phone: PairingDevice, wear: PairingDevice) {
+  fun setPairedDevices(phone: PairingDevice, wear: PairingDevice) {
     pairedPhoneDevice = phone.disconnectedCopy(isPaired = true)
     pairedWearDevice = wear.disconnectedCopy(isPaired = true)
     pairedDevicesAreOnline = phone.isOnline() && wear.isOnline()
@@ -90,12 +90,12 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun getKeepForwardAlive(): Pair<PairingDevice?, PairingDevice?> {
+  fun getPairedDevices(): Pair<PairingDevice?, PairingDevice?> {
     return Pair(pairedPhoneDevice, pairedWearDevice)
   }
 
   @Synchronized
-  fun removeKeepForwardAlive() {
+  fun removePairedDevices() {
     GlobalScope.launch(Dispatchers.IO) {
       try {
         val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return@launch
@@ -145,7 +145,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = deviceTable[deviceID])
     }
 
-    // Add "keep alive phone/wear" (if not added already), so they will be should as "disconnected"
+    // Add "paired phone/wear" (if not added already), so they will be shown as "disconnected"
     pairedPhoneDevice?.apply {
       deviceTable.putIfAbsent(deviceID, this)
     }
@@ -168,21 +168,21 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private suspend fun updateForwardState(onlineDevices: Map<String, IDevice>) {
-    val keepAlivePhone = this.pairedPhoneDevice ?: return
-    val keepAliveWear = this.pairedWearDevice ?: return
-    val onlinePhone = onlineDevices[keepAlivePhone.deviceID]
-    val onlineWear = onlineDevices[keepAliveWear.deviceID]
+    val pairedPhoneDevice = this.pairedPhoneDevice ?: return
+    val pairedWearDevice = this.pairedWearDevice ?: return
+    val onlinePhone = onlineDevices[pairedPhoneDevice.deviceID]
+    val onlineWear = onlineDevices[pairedWearDevice.deviceID]
     val bothDeviceOnline = onlinePhone != null && onlineWear != null
     try {
       if (bothDeviceOnline && !pairedDevicesAreOnline) {
         // Both device are online, and before one (or both) were offline. Time to bridge
         createDeviceBridge(onlinePhone!!, onlineWear!!)
-        showReconnectMessageBalloon(keepAlivePhone.displayName, keepAliveWear.displayName, wizardAction)
+        showReconnectMessageBalloon(pairedPhoneDevice.displayName, pairedWearDevice.displayName, wizardAction)
       }
       else if (!bothDeviceOnline && pairedDevicesAreOnline) {
         // One (or both) devices are offline, and before were online. Show "connection dropped" message
-        val offlineName = if (onlinePhone == null) keepAlivePhone.displayName else keepAliveWear.displayName
-        showConnectionDroppedBalloon(offlineName, keepAlivePhone.displayName, keepAliveWear.displayName, wizardAction)
+        val offlineName = if (onlinePhone == null) pairedPhoneDevice.displayName else pairedWearDevice.displayName
+        showConnectionDroppedBalloon(offlineName, pairedPhoneDevice.displayName, pairedWearDevice.displayName, wizardAction)
       }
     }
     catch (ex: Throwable) {

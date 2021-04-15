@@ -198,7 +198,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     phoneDevice.launch = { throw RuntimeException("Can't launch on tests") } // launch fields needs some value, so it can be copied
     wearDevice.launch = phoneDevice.launch
-    WearPairingManager.setKeepForwardAlive(phoneDevice, wearDevice)
+    WearPairingManager.setPairedDevices(phoneDevice, wearDevice)
 
     model.deviceList.set(listOf(
       phoneDevice.copy(isPaired = true),

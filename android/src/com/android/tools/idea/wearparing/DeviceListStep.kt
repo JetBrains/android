@@ -262,12 +262,12 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          val (pairedPhone, pairedWear) = WearPairingManager.getKeepForwardAlive()
+          val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
           if (listDevice.isPaired && pairedPhone != null && pairedWear != null) {
             val peerDevice = if (pairedPhone.deviceID == listDevice.deviceID) pairedWear else pairedPhone
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
-              WearPairingManager.removeKeepForwardAlive()
+              WearPairingManager.removePairedDevices()
             }
             val menu = JBPopupMenu()
             menu.add(item)
