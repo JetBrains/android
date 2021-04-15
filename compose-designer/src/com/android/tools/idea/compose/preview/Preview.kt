@@ -61,7 +61,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.application.subscribe
 import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -615,9 +614,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       refresh()
     })
 
-    DumbService.DUMB_MODE.subscribe(this, object : DumbService.DumbModeListener {
+    project.messageBus.connect(this).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
       override fun exitDumbMode() {
-        refresh()
+        if (!DumbService.getInstance(project).isDumb) refresh()
       }
     })
 
