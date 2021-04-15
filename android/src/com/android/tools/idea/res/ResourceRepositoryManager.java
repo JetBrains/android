@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -104,7 +104,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
-  private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
+  private Map<ExternalAndroidLibrary, AarResourceRepository> myLibraryResourceMap;
 
   private final Object myLibraryLock = new Object();
 
@@ -637,7 +637,7 @@ public final class ResourceRepositoryManager implements Disposable {
         projectResources.updateRoots();
       }
 
-      Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
+      Map<ExternalAndroidLibrary, AarResourceRepository> oldLibraryResourceMap;
       synchronized (myLibraryLock) {
         // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
         oldLibraryResourceMap = myLibraryResourceMap;
@@ -730,7 +730,7 @@ public final class ResourceRepositoryManager implements Disposable {
    * @return the corresponding resource repository, or null if not found
    */
   @Nullable
-  public AarResourceRepository findLibraryResources(@NotNull ExternalLibrary library) {
+  public AarResourceRepository findLibraryResources(@NotNull ExternalAndroidLibrary library) {
     return getLibraryResourceMap().get(library);
   }
 
@@ -747,7 +747,7 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarResourceRepository> getLibraryResourceMap() {
+  private Map<ExternalAndroidLibrary, AarResourceRepository> getLibraryResourceMap() {
     synchronized (myLibraryLock) {
       if (myLibraryResourceMap == null) {
         myLibraryResourceMap = computeLibraryResourceMap();
@@ -757,25 +757,25 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  private Map<ExternalLibrary, AarResourceRepository> computeLibraryResourceMap() {
-    Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
+  private Map<ExternalAndroidLibrary, AarResourceRepository> computeLibraryResourceMap() {
+    Collection<ExternalAndroidLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule()).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
-    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
-                                                               aarResourceRepositoryCache::getSourceRepository :
-                                                               aarResourceRepositoryCache::getProtoRepository;
+    Function<ExternalAndroidLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
+                                                                      aarResourceRepositoryCache::getSourceRepository :
+                                                                      aarResourceRepositoryCache::getProtoRepository;
 
     ExecutorService executor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
 
     // Construct the repositories in parallel.
-    Map<ExternalLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
-    for (ExternalLibrary library : libraries) {
+    Map<ExternalAndroidLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
+    for (ExternalAndroidLibrary library : libraries) {
       futures.put(library, executor.submit(() -> factory.apply(library)));
     }
 
     // Gather all the results.
-    ImmutableMap.Builder<ExternalLibrary, AarResourceRepository> map = ImmutableMap.builder();
-    for (Map.Entry<ExternalLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
+    ImmutableMap.Builder<ExternalAndroidLibrary, AarResourceRepository> map = ImmutableMap.builder();
+    for (Map.Entry<ExternalAndroidLibrary, Future<AarResourceRepository>> entry : futures.entrySet()) {
       try {
         map.put(entry.getKey(), entry.getValue().get());
       }

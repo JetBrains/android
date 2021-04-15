@@ -15,7 +15,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -524,14 +524,14 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
+    for (ExternalAndroidLibrary library : moduleSystem.getAndroidLibraryDependencies()) {
       if (library.getHasResources()) {
         registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
   }
 
-  private static void registerLibraryResources(@NotNull ExternalLibrary library,
+  private static void registerLibraryResources(@NotNull ExternalAndroidLibrary library,
                                                @NotNull ResourceRepositoryManager repositoryManager,
                                                @NotNull ResourceClassRegistry classRegistry,
                                                @NotNull ResourceIdManager idManager) {
@@ -564,7 +564,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   }
 
   @Nullable
-  private static String getPackageName(@NotNull ExternalLibrary library) {
+  private static String getPackageName(@NotNull ExternalAndroidLibrary library) {
     if (library.getPackageName() != null) {
       return library.getPackageName();
     }

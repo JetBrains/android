@@ -85,8 +85,6 @@ class GradleModelConverterUtilTest {
       expect.that(result.address).isEqualTo(artifactAddress)
       expect.that(result.location).isEqualTo(artifact.toPathString())
       expect.that(result.manifestFile).isEqualTo(PathString(manifest))
-      expect.that(result.classJars).isEqualTo(listOf(PathString(jarFile)))
-      expect.that(result.dependencyJars).isEqualTo(localJars.map(::PathString))
       expect.that(result.resFolder).isEqualTo(RecursiveResourceFolder(PathString(resFolder)))
       expect.that(result.symbolFile).isEqualTo(PathString(symbolFile))
       expect.that(result.resApkFile).isEqualTo(resStaticLibrary?.let(::PathString))

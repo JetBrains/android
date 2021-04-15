@@ -53,7 +53,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
     _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub)
-    assertThat(gradleModuleSystem.getResolvedLibraryDependencies()).isEmpty()
+    assertThat(gradleModuleSystem.getAndroidLibraryDependencies()).isEmpty()
   }
 
   override fun tearDown() {

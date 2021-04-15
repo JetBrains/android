@@ -21,7 +21,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidManifestIndex
@@ -159,8 +159,8 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary> {
-    val libraries = mutableListOf<ExternalLibrary>()
+  override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
+    val libraries = mutableListOf<ExternalAndroidLibrary>()
 
     ModuleRootManager.getInstance(module)
       .orderEntries()
@@ -191,7 +191,6 @@ class DefaultModuleSystem(override val module: Module) :
         libraries.add(ExternalLibraryImpl(
           address = libraryName,
           manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
-          classJars = if (classesJar == null) emptyList() else listOf(classesJar),
           resFolder = RecursiveResourceFolder(resFolder),
           symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
           resApkFile = resApk

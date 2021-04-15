@@ -19,7 +19,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.intellij.openapi.module.Module
@@ -155,8 +155,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
   @JvmDefault
-  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> = getResolvedLibraryDependencies(DependencyScopeType.MAIN)
-  fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary>
+  fun getAndroidLibraryDependencies(): Collection<ExternalAndroidLibrary> = getAndroidLibraryDependencies(DependencyScopeType.MAIN)
+  fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary>
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
