@@ -46,21 +46,33 @@ internal class ClassPsiCallParameter(
 ) {
 
   /**
-   * Set a new value using their fully qualified class. Will try to add the import statement for the class, if it fails, it will default to
-   * set the fully qualified name of the value.
+   * Imports the class defined by [fqClass], sets the property value from [newValue].
+   *
+   * [fqValue] is a fallback for [newValue] if the importing of [fqClass] fails. It's recommended for that string to include fully qualified
+   * references of the desired imported class.
+   *
+   * E.g:
+   *
+   * fqClass -> android.content.res.Configuration
+   *
+   * newValue -> Configuration.UI_MODE_TYPE_NORMAL
+   *
+   * fqValue -> android.content.res.Configuration.UI_MODE_TYPE_NORMAL
    */
-  fun setFqValue(fqClass: String, className: String, newValue: String) {
-    val importResult = model.ktFile.resolveImportReference(FqName(fqClass)).firstOrNull()?.let { importDescriptor ->
-      WriteCommandAction.runWriteCommandAction<ImportDescriptorResult>(project) {
-        ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
-      }
-    }
+  fun importAndSetValue(fqClass: String, newValue: String, fqValue: String) {
+    val importResult = importClass(fqClass)
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
-      writeNewValue("$className.$newValue", true)
+      writeNewValue(newValue, true)
     }
     else {
-      writeNewValue("$fqClass.$newValue", true)
+      writeNewValue(fqValue, true)
+    }
+  }
+
+  private fun importClass(fqClass: String) = model.ktFile.resolveImportReference(FqName(fqClass)).firstOrNull()?.let { importDescriptor ->
+    WriteCommandAction.runWriteCommandAction<ImportDescriptorResult>(project) {
+      ImportInsertHelper.getInstance(project).importDescriptor(model.ktFile, importDescriptor)
     }
   }
 }
