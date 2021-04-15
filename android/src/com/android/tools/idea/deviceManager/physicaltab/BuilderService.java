@@ -17,12 +17,10 @@ package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellEnabledDevice;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.JdkFutureAdapters;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
@@ -63,8 +61,8 @@ final class BuilderService {
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {
-    ListenableFuture<String> modelFuture = getSystemProperty(device, IDevice.PROP_DEVICE_MODEL);
-    ListenableFuture<String> manufacturerFuture = getSystemProperty(device, IDevice.PROP_DEVICE_MANUFACTURER);
+    ListenableFuture<String> modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
+    ListenableFuture<String> manufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
 
     Executor executor = AppExecutorUtil.getAppExecutorService();
 
@@ -92,10 +90,5 @@ final class BuilderService {
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
       .setOnline(online)
       .build();
-  }
-
-  private @NotNull ListenableFuture<@NotNull String> getSystemProperty(@NotNull IShellEnabledDevice device, @NotNull String property) {
-    // noinspection UnstableApiUsage
-    return JdkFutureAdapters.listenInPoolThread(device.getSystemProperty(property), AppExecutorUtil.getAppExecutorService());
   }
 }
