@@ -69,12 +69,17 @@ class MavenClassRegistryFromRepository(private val indexRepository: GMavenIndexR
 
   @Throws(IOException::class)
   private fun readIndicesFromJsonFile(inputStream: InputStream): Map<String, List<Library>> {
-    return JsonReader(InputStreamReader(inputStream)).use {
-      it.beginObject()
-      if (it.nextName() != "Index") throw MalformedIndexException("\"Index\" key is missing($it).")
+    return JsonReader(InputStreamReader(inputStream)).use { reader ->
+      var map: Map<String, List<Library>> = emptyMap()
+      reader.beginObject()
+      while (reader.hasNext()) {
+        when (reader.nextName()) {
+          "Index" -> map = readIndexArray(reader)
+          else -> reader.skipValue()
+        }
+      }
 
-      val map = readIndexArray(it)
-      it.endObject()
+      reader.endObject()
       map
     }
   }

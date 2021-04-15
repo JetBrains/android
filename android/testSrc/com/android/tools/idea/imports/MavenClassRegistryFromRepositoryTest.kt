@@ -208,4 +208,88 @@ class MavenClassRegistryFromRepositoryTest {
 
     assertThat(mavenClassRegistry.lookup).isEmpty()
   }
+
+  @Test
+  fun parseJsonFile_skipUnknownKey() {
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+      """
+        {
+          "UnKnown1": [],
+          "UnKnown2": [
+            {
+              "a": "",
+              "b": ""
+            }
+          ],
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
+              "version": "1.1.0",
+              "unKnown3": "unknown content",
+              "fqcns": [
+                "androidx.activity.ComponentActivity",
+                "androidx.activity.Fake"
+              ]
+            },
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-ktx",
+              "version": "1.1.0",
+              "unKnown4": [
+                "a",
+                "b"
+              ],
+              "fqcns": []
+            },
+            {
+              "groupId": "androidx.annotation",
+              "artifactId": "annotation",
+              "version": "1.1.0",
+              "unKnown5": [],
+              "fqcns": [
+                "androidx.annotation.AnimRes",
+                "androidx.annotation.Fake"
+              ]
+            }
+          ],
+          "UnKnown6": "unknown content"
+        }
+      """.trimIndent().byteInputStream(UTF_8)
+    )
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
+
+    assertThat(mavenClassRegistry.lookup).containsExactlyEntriesIn(
+      mapOf(
+        "ComponentActivity" to listOf(
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.activity:activity",
+            packageName = "androidx.activity",
+            version = "1.1.0"
+          )
+        ),
+        "Fake" to listOf(
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.activity:activity",
+            packageName = "androidx.activity",
+            version = "1.1.0"
+          ),
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.annotation:annotation",
+            packageName = "androidx.annotation",
+            version = "1.1.0"
+          )
+        ),
+        "AnimRes" to listOf(
+          MavenClassRegistryBase.Library(
+            artifact = "androidx.annotation:annotation",
+            packageName = "androidx.annotation",
+            version = "1.1.0"
+          )
+        )
+      )
+    )
+  }
 }
