@@ -27,6 +27,7 @@ import com.android.utils.TraceUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
@@ -834,6 +835,22 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       issues.get(0));
   }
 
+  /**
+   * Duplicate errors are ignored.
+   */
+  public void testNoDuplicateIssues() {
+      LogOperation operation = (logger, render) -> {
+        // MANUALLY register errors
+        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
+      };
+
+      List<RenderErrorModel.Issue> issues =
+        getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+      assertSize(2, issues);
+  }
 
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
