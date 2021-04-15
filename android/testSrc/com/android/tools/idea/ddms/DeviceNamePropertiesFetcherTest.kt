@@ -20,6 +20,8 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher.DefaultCallback
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -30,7 +32,6 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
@@ -69,10 +70,10 @@ internal class DeviceNamePropertiesFetcherTest {
     })
   }
 
-  private fun createDevice(manufacturer: Future<String>,
-                           model: Future<String>,
-                           buildVersion: Future<String>,
-                           apiLevel: Future<String>): IDevice {
+  private fun createDevice(manufacturer: ListenableFuture<String>,
+                           model: ListenableFuture<String>,
+                           buildVersion: ListenableFuture<String>,
+                           apiLevel: ListenableFuture<String>): IDevice {
     val d = Mockito.mock(IDevice::class.java)
     Mockito.`when`(d.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer)
     Mockito.`when`(d.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(model)
@@ -126,11 +127,15 @@ internal class DeviceNamePropertiesFetcherTest {
   @Test
   fun getDefaultValueUntilValueAvailable() {
     val virtualTimeScheduler = VirtualTimeScheduler()
+    val scheduledExecutorService = MoreExecutors.listeningDecorator(virtualTimeScheduler)
+
+    @Suppress("UnstableApiUsage")
     val d = createDevice(
-      virtualTimeScheduler.schedule(Callable { manufacturer }, 5, TimeUnit.SECONDS),
-      virtualTimeScheduler.schedule(Callable { model }, 5, TimeUnit.SECONDS),
-      virtualTimeScheduler.schedule(Callable { buildVersion }, 5, TimeUnit.SECONDS),
-      virtualTimeScheduler.schedule(Callable { apiLevel }, 5, TimeUnit.SECONDS))
+      scheduledExecutorService.schedule(Callable { manufacturer }, 5, TimeUnit.SECONDS),
+      scheduledExecutorService.schedule(Callable { model }, 5, TimeUnit.SECONDS),
+      scheduledExecutorService.schedule(Callable { buildVersion }, 5, TimeUnit.SECONDS),
+      scheduledExecutorService.schedule(Callable { apiLevel }, 5, TimeUnit.SECONDS))
+
     val result = AtomicReference<ResultType>()
     val countDownLatch = CountDownLatch(1)
     val deviceNamePropertiesProvider = createDeviceNamePropertiesProvider(result, listOf(countDownLatch))
