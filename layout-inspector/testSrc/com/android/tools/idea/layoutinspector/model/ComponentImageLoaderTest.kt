@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -43,7 +44,7 @@ class ComponentImageLoaderTest {
       ))
     ))
 
-    val root = view(1L) {
+    val window = window(1, 1L) {
       view(2L) {
         view(5L)
       }
@@ -51,10 +52,11 @@ class ComponentImageLoaderTest {
         view(4L)
       }
     }
+    val root = window.root
     // The model builder adds the draw children automatically, which we don't want to be populated yet in this case.
     ViewNode.writeDrawChildren { drawChildren ->
       root.flatten().forEach { it.drawChildren().clear() }
-      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(root)
+      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(window)
     }
 
     val expected = view(1L) {
@@ -102,7 +104,7 @@ class ComponentImageLoaderTest {
         )))
     ))
 
-    val root = view(1) {
+    val window = window(1, 1) {
         view(2)
         view(3) {
           view(4)
@@ -110,10 +112,11 @@ class ComponentImageLoaderTest {
           view(6)
         }
       }
+    val root = window.root
 
     ViewNode.writeDrawChildren { drawChildren ->
       root.flatten().forEach { it.drawChildren().clear() }
-      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(root)
+      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(window)
     }
 
     ViewNode.readDrawChildren { drawChildren ->

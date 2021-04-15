@@ -81,7 +81,7 @@ class InspectorMemoryProbe(
     val size = probe.check(model.root)
     val elapsed = System.currentTimeMillis() - startTime
     if (!probe.wasCancelled) {
-      val hasSkiaImages = model.windows.values.any { it.imageType == ImageType.SKP }
+      val hasSkiaImages = model.windows.values.any { it.imageType == ImageType.SKP || it.imageType == ImageType.SKP_PENDING }
       stats.recordModelSize(hasSkiaImages, size, elapsed)
       Logger.getInstance(InspectorMemoryProbe::class.java).debug("Layout Inspector Memory Use: ${size / 1024 / 1024}mb time: ${elapsed}ms")
     }

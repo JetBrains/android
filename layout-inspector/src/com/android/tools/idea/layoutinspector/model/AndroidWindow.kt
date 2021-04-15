@@ -41,7 +41,12 @@ abstract class AndroidWindow(
     UNKNOWN(LayoutInspectorViewProtocol.Screenshot.Type.UNKNOWN),
 
     /**
-     * The image associated with this window is a SKIA picture
+     * We received a SKP with this window but haven't parsed it yet
+     */
+    SKP_PENDING(LayoutInspectorViewProtocol.Screenshot.Type.SKP),
+
+    /**
+     * The SKP associated with this window has been parsed and the images merged in.
      */
     SKP(LayoutInspectorViewProtocol.Screenshot.Type.SKP),
 
@@ -62,7 +67,12 @@ abstract class AndroidWindow(
 
   @OverridingMethodsMustInvokeSuper
   open fun copyFrom(other: AndroidWindow) {
-    imageType = other.imageType
+    if (other.imageType == ImageType.SKP_PENDING && imageType == ImageType.SKP) {
+      // we already have an skp merged in, don't go back to pending when we get a new one
+    }
+    else {
+      imageType = other.imageType
+    }
   }
 
   /**
@@ -74,4 +84,7 @@ abstract class AndroidWindow(
    */
   abstract fun refreshImages(scale: Double)
 
+  fun skpLoadingComplete() {
+    imageType = ImageType.SKP
+  }
 }

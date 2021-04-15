@@ -108,7 +108,7 @@ class TransportAndroidWindow(
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ViewNode.writeDrawChildren { drawChildren ->
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(rootView)
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(this)
       }
     }
   }
