@@ -24,7 +24,7 @@
 
 package com.android.tools.idea
 
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -34,10 +34,10 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Returns information about all [ExternalLibrary] dependencies that contribute resources in the project, indexed by
- * [ExternalLibrary.address] which is unique within a project.
+ * Returns information about all [ExternalAndroidLibrary] dependencies that contribute resources in the project, indexed by
+ * [ExternalAndroidLibrary.address] which is unique within a project.
  */
-fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
+fun findAllLibrariesWithResources(project: Project): Map<String, ExternalAndroidLibrary> {
   return ModuleManager.getInstance(project)
     .modules
     .asSequence()
@@ -49,12 +49,12 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary
 }
 
 /**
- * Returns information about all [ExternalLibrary] dependencies that contribute resources in a given module, indexed by
- * [ExternalLibrary.address] which is unique within a project.
+ * Returns information about all [ExternalAndroidLibrary] dependencies that contribute resources in a given module, indexed by
+ * [ExternalAndroidLibrary.address] which is unique within a project.
  */
-fun findDependenciesWithResources(module: Module): Map<String, ExternalLibrary> {
+fun findDependenciesWithResources(module: Module): Map<String, ExternalAndroidLibrary> {
   return module.getModuleSystem()
-    .getResolvedLibraryDependencies()
+    .getAndroidLibraryDependencies()
     .filter { it.hasResources }
     .associateBy { library -> library.address }
 }

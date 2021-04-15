@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ResourceFolder
 import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.resources.aar.AarProtoResourceRepository
@@ -53,7 +53,7 @@ class AarResourceRepositoryCache private constructor() {
    * @throws IllegalArgumentException if `library` doesn't contain resources or its resource folder doesn't point
    *     to a local file system directory
    */
-  fun getSourceRepository(library: ExternalLibrary): AarSourceResourceRepository {
+  fun getSourceRepository(library: ExternalAndroidLibrary): AarSourceResourceRepository {
     val libraryName = library.location?.fileName ?: library.address
     val resFolder = library.resFolder ?: throw IllegalArgumentException("No resources for $libraryName")
 
@@ -72,7 +72,7 @@ class AarResourceRepositoryCache private constructor() {
    * @return the resource repository
    * @throws IllegalArgumentException if `library` doesn't contain res.apk or its res.apk isn't a file on the local file system
    */
-  fun getProtoRepository(library: ExternalLibrary): AarProtoResourceRepository {
+  fun getProtoRepository(library: ExternalAndroidLibrary): AarProtoResourceRepository {
     val libraryName = library.location?.fileName ?: library.address
     val resApkPath = library.resApkFile ?: throw IllegalArgumentException("No res.apk for $libraryName")
 
@@ -94,7 +94,7 @@ class AarResourceRepositoryCache private constructor() {
     mySourceRepositories.invalidateAll()
   }
 
-  private fun createCachingData(library: ExternalLibrary): CachingData? {
+  private fun createCachingData(library: ExternalAndroidLibrary): CachingData? {
     val resFolder = library.resFolder
     if (resFolder == null || resFolder.resources != null) {
       return null // No caching if the library contains no resources or the list of resource files is specified explicitly.

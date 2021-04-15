@@ -16,7 +16,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.android.projectmodel.ExternalLibrary
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -32,16 +31,9 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     val moduleSystem = project
       .getProjectSystem()
       .getModuleSystem(getModule("app"))
-    val libraries = moduleSystem.getResolvedLibraryDependencies()
-
-    // There are many aars and jars in the loaded application. Here we just confirm that a few known ones are present
-    val guava = libraries
-      .filterIsInstance<ExternalLibrary>()
-      .first { library -> library.address.startsWith("com.google.guava") }
-    assertThat(guava.classJars.first().fileName).matches("guava-[\\.\\d]+.jar")
+    val libraries = moduleSystem.getAndroidLibraryDependencies()
 
     val appcompat = libraries
-      .filterIsInstance<com.android.projectmodel.ExternalLibrary>()
       .first { library -> library.address.startsWith("com.android.support:support-compat") }
 
     assertThat(appcompat.address).matches("com.android.support:support-compat:[\\.\\d]+@aar")

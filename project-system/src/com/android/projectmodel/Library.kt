@@ -23,9 +23,9 @@ import com.android.ide.common.util.PathString
  * libraries are normally packaged in an AAR file, the actual dependency is on the folder where the
  * AAR would have been extracted by the build system rather than the AAR file itself. If the library
  * came from an AAR file, the build system would extract it somewhere and then provide an instance
- * of [ExternalLibrary] describing the contents and location of the extracted folder.
+ * of [ExternalAndroidLibrary] describing the contents and location of the extracted folder.
  */
-interface ExternalLibrary {
+interface ExternalAndroidLibrary {
     val address: String
 
     /**
@@ -33,7 +33,7 @@ interface ExternalLibrary {
      *
      * The IDE doesn't work with AAR files and instead relies on the build system to extract
      * necessary files to disk. Location of the original AAR files is not always known, and some
-     * [ExternalLibrary] instances point to folders that never came from an AAR. In such cases, this
+     * [ExternalAndroidLibrary] instances point to folders that never came from an AAR. In such cases, this
      * attribute is null.
      */
     val location: PathString?
@@ -57,20 +57,6 @@ interface ExternalLibrary {
     val packageName: String?
 
     /**
-     * Path to .jar file(s) containing the library classes. This list will be empty if the library
-     * does not include any java classes.
-     */
-    val classJars: List<PathString>
-
-    /**
-     * Paths to jars that were packaged inside the AAR and are dependencies of it.
-     *
-     * This used by Gradle when a library depends on a local jar file that has no Maven coordinates,
-     * so needs to be packaged together with the AAR to be accessible to client apps.
-     */
-    val dependencyJars: List<PathString>
-
-    /**
      * Path to the folder containing unzipped, plain-text, non-namespaced resources. Or null
      * for libraries that contain no resources.
      */
@@ -90,7 +76,7 @@ interface ExternalLibrary {
     val resApkFile: PathString?
 
     /**
-     * Returns true if this [ExternalLibrary] contributes any resources. Resources may be packaged
+     * Returns true if this [ExternalAndroidLibrary] contributes any resources. Resources may be packaged
      * as either a res.apk file or a res folder.
      */
     val hasResources : Boolean
@@ -102,7 +88,7 @@ interface ExternalLibrary {
  * libraries are normally packaged in an AAR file, the actual dependency is on the folder where the
  * AAR would have been extracted by the build system rather than the AAR file itself. If the library
  * came from an AAR file, the build system would extract it somewhere and then provide an instance
- * of [ExternalLibrary] describing the contents and location of the extracted folder.
+ * of [ExternalAndroidLibrary] describing the contents and location of the extracted folder.
  */
 data class ExternalLibraryImpl(
   override val address: String,
@@ -112,7 +98,7 @@ data class ExternalLibraryImpl(
      *
      * The IDE doesn't work with AAR files and instead relies on the build system to extract
      * necessary files to disk. Location of the original AAR files is not always known, and some
-     * [ExternalLibrary] instances point to folders that never came from an AAR. In such cases, this
+     * [ExternalAndroidLibrary] instances point to folders that never came from an AAR. In such cases, this
      * attribute is null.
      */
     override val location: PathString? = null,
@@ -136,20 +122,6 @@ data class ExternalLibraryImpl(
     override val packageName: String? = null,
 
   /**
-     * Path to .jar file(s) containing the library classes. This list will be empty if the library
-     * does not include any java classes.
-     */
-    override val classJars: List<PathString> = emptyList(),
-
-  /**
-     * Paths to jars that were packaged inside the AAR and are dependencies of it.
-     *
-     * This used by Gradle when a library depends on a local jar file that has no Maven coordinates,
-     * so needs to be packaged together with the AAR to be accessible to client apps.
-     */
-    override val dependencyJars: List<PathString> = emptyList(),
-
-  /**
      * Path to the folder containing unzipped, plain-text, non-namespaced resources. Or null
      * for libraries that contain no resources.
      */
@@ -167,15 +139,15 @@ data class ExternalLibraryImpl(
      * This is only known for "AARv2" files, built from namespaced sources.
      */
     override val resApkFile: PathString? = null
-): ExternalLibrary {
+): ExternalAndroidLibrary {
     /**
-     * Constructs a new [ExternalLibrary] with the given address and all other values set to their defaults. Intended to
+     * Constructs a new [ExternalAndroidLibrary] with the given address and all other values set to their defaults. Intended to
      * simplify construction from Java.
      */
     constructor(address: String) : this(address, null)
 
     /**
-     * Returns true if this [ExternalLibrary] contributes any resources. Resources may be packaged
+     * Returns true if this [ExternalAndroidLibrary] contributes any resources. Resources may be packaged
      * as either a res.apk file or a res folder.
      */
     override val hasResources get() = resApkFile != null || resFolder != null
@@ -184,11 +156,6 @@ data class ExternalLibraryImpl(
      * Returns a copy of the receiver with the given manifest file. Intended to simplify construction from Java.
      */
     fun withManifestFile(path: PathString?) = copy(manifestFile = path)
-
-    /**
-     * Returns a copy of the receiver with the given list of java class jars. Intended to simplify construction from Java.
-     */
-    fun withClassJars(paths: List<PathString>) = copy(classJars = paths)
 
     /**
      * Returns a copy of the receiver with the given res folder. Intended to simplify construction from Java.
