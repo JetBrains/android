@@ -229,7 +229,8 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
     List<String> requestedPackages = Lists.newArrayListWithCapacity(3);
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), DEFAULT_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), WEAR_TAG, Abi.X86.toString()));
-    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), TV_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), ANDROID_TV_TAG, Abi.X86.toString()));
+    requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), GOOGLE_TV_TAG, Abi.X86.toString()));
     requestedPackages.add(DetailsTypes.getSysImgPath(null, new AndroidVersion(apiLevel, null), AUTOMOTIVE_TAG, Abi.X86.toString()));
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(this, requestedPackages, false);
     if (dialog != null) {
