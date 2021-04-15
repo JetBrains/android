@@ -144,7 +144,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     model.deviceList.set(listOf(phoneDevice))
 
     val phoneList = fakeUi.getPhoneList()
-    val cellList = phoneList.cellRenderer.getListCellRendererComponent(phoneList, phoneList.model.getElementAt(0), 0, true, true)
+    val cellList = phoneList.cellRenderer.getListCellRendererComponent(phoneList, phoneList.model.getElementAt(0), 0, false, false)
     val cellListFakeUi = FakeUi(cellList)
 
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
