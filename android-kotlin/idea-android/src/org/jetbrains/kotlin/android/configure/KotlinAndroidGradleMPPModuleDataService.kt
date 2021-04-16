@@ -163,7 +163,7 @@ class KotlinAndroidGradleMPPModuleDataService : AbstractProjectDataService<Modul
             val scope = if (testScope) DependencyScope.TEST.name else DependencyScope.COMPILE.name
             return javaModel
                 .javaModuleDependencies
-                .filter { scope == it.scope ?: DependencyScope.COMPILE.name }
+                .filter { scope == (it.scope ?: DependencyScope.COMPILE.name) }
                 .map { it.moduleName }
                 .distinct()
                 .mapNotNull { indexedModules.byIdeName[it] }
