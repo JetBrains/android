@@ -101,7 +101,7 @@ public class LayoutLibraryLoader {
   @NotNull
   private static String getPlatformName() {
     if (SystemInfo.isWindows) return "win";
-    else if (SystemInfo.isMac) return "mac";
+    else if (SystemInfo.isMac) return SystemInfo.isArm64 ? "mac-arm" : "mac";
     else if (SystemInfo.isLinux) return "linux";
     else return "";
   }
