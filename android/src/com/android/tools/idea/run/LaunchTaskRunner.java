@@ -164,7 +164,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
       myLaunchTasksProvider.fillStats(myStats);
 
-      // Perform launch tasks for each device in parallel.
+      // Create launch tasks for each device.
       Map<IDevice, List<LaunchTask>> launchTaskMap = new HashMap<>(devices.size());
       for (IDevice device : devices) {
         try {
@@ -189,26 +189,38 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         .mapToInt(launchTasks -> getTotalDuration(launchTasks, debugSessionTask))
         .sum();
 
+      // A list of devices that we have launched application successfully.
+      List<IDevice> launchedDevices = new ArrayList<>();
+
       for (Map.Entry<IDevice, List<LaunchTask>> entry : launchTaskMap.entrySet()) {
-        try {
-          boolean isSucceeded = runLaunchTasks(
-            entry.getValue(),
-            indicator,
-            new LaunchContext(myProject, myLaunchInfo.executor, entry.getKey(), launchStatus, consolePrinter, myProcessHandler),
-            destroyProcessOnCancellation,
-            completedStepsCount,
-            totalScheduledStepsCount);
-          if (!isSucceeded) {
-            return;
-          }
-        } catch (CancellationException e) {
-          launchStatus.terminateLaunch(e.getMessage(), !isSwap());
-          return;
+        IDevice device = entry.getKey();
+        boolean isSucceeded = runLaunchTasks(
+          entry.getValue(),
+          indicator,
+          new LaunchContext(myProject, myLaunchInfo.executor, device, launchStatus, consolePrinter, myProcessHandler),
+          destroyProcessOnCancellation,
+          completedStepsCount,
+          totalScheduledStepsCount
+        );
+        if (isSucceeded) {
+          launchedDevices.add(device);
+        } else {
+          // Manually detach a device here because devices may not be detached automatically when
+          // AndroidProcessHandler is instantiated with autoTerminate = false. For example,
+          // AndroidTestRunConfiguration sets autoTerminate false because the target application
+          // process may be killed and re-spawned for each test cases with Android test orchestrator
+          // enabled. Please also see documentation in AndroidProcessHandler for more details.
+          detachDevice(device);
         }
       }
 
+      if (launchedDevices.isEmpty()) {
+        launchStatus.terminateLaunch("Failed to launch an application on all devices", destroyProcessOnCancellation);
+        return;
+      }
+
       // A debug session task should be performed sequentially at the end.
-      for (IDevice device : devices) {
+      for (IDevice device : launchedDevices) {
         if (debugSessionTask != null) {
           indicator.setText(debugSessionTask.getDescription());
           debugSessionTask.perform(myLaunchInfo, device, launchStatus, consolePrinter);
@@ -253,7 +265,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         if (!success) {
           myErrorNotificationListener = result.getNotificationListener();
           myError = result.getError();
-          launchStatus.terminateLaunch(result.getConsoleError(), !isSwap());
+          launchContext.getConsolePrinter().stderr(result.getConsoleError());
 
           // Append a footer hyperlink, if one was provided.
           if (result.getConsoleHyperlinkInfo() != null) {
@@ -285,6 +297,13 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       .setImportant(false).notify(myProject);
 
     return true;
+  }
+
+  private void detachDevice(IDevice device) {
+    if (!isSwap() && myProcessHandler instanceof AndroidProcessHandler) {
+      AndroidProcessHandler androidProcessHandler = (AndroidProcessHandler) myProcessHandler;
+      androidProcessHandler.detachDevice(device);
+    }
   }
 
   private void printLaunchTaskStartedMessage(ConsolePrinter consolePrinter) {
