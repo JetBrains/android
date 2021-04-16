@@ -127,7 +127,7 @@ fun formatLanguageLevel(value: LanguageLevel): String = value.toJavaVersion().to
 fun formatAny(value: Any): String {
   if (value !is String) return value.toString()
   val text = value.toString()
-  return if (text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() != null)
+  return if ((text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull()) != null)
     "\"$text\""
   else text
 }

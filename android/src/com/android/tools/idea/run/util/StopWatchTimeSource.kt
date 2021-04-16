@@ -21,7 +21,7 @@ object StopWatchTimeSource {
   private var myOverride: StopWatchTimeSourceOverride? = null
 
   val currentTimeMillis: Long
-    get() = myOverride?.currentTimeMillis ?: System.nanoTime() / 1_000_000
+    get() = myOverride?.currentTimeMillis ?: (System.nanoTime() / 1_000_000)
 
   @TestOnly
   fun overrideDefault(timeSource: StopWatchTimeSourceOverride) {

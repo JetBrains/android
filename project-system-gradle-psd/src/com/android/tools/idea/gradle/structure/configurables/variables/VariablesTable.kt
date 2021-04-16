@@ -580,7 +580,7 @@ class VariablesTable private constructor(
       }
 
     override fun setValueAt(aValue: Any?, node: Any?, column: Int) {
-      if (getValueAt(node, column) == (aValue as? Annotated<*>)?.value ?: aValue) return
+      if (getValueAt(node, column) == ((aValue as? Annotated<*>)?.value ?: aValue)) return
 
       when (aValue) {
         is String -> when {
