@@ -165,8 +165,8 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       ) {
         // If we already have package prefix there is no need to additional code complete,
         // we get completion from ProguardR8JavaClassReferenceProvider.
-        if ((parameters.position.parentOfType<ProguardR8QualifiedName>()?.node as? CompositeElement)?.countChildren(
-            JAVA_IDENTIFIER_TOKENS) ?: 0 > 1) {
+        if (((parameters.position.parentOfType<ProguardR8QualifiedName>()?.node as? CompositeElement)?.countChildren(
+            JAVA_IDENTIFIER_TOKENS) ?: 0) > 1) {
           return
         }
         // filterByScope parameter is false because otherwise we will suggest only classes with PsiUtil.ACCESS_LEVEL_PUBLIC
