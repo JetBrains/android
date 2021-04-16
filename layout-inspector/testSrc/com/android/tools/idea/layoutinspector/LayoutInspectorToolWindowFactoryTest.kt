@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
@@ -24,9 +25,11 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
 import org.junit.Test
 
+private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
+private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
-class LayoutInspectorToolWindowManagerListenerTest {
+class LayoutInspectorToolWindowFactoryTest {
   private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) : ToolWindowHeadlessManagerImpl(project) {
     var notificationText = ""
 
@@ -128,5 +131,20 @@ class LayoutInspectorToolWindowManagerListenerTest {
 
     inspectorRule.processNotifier.fireDisconnected(LEGACY_PROCESS)
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+  }
+
+  @Test
+  fun testCreateProcessesModel() {
+    val factory = LayoutInspectorToolWindowFactory()
+    val model = factory.createProcessesModel(inspectorRule.project, inspectorRule.processNotifier, MoreExecutors.directExecutor())
+    // Verify that devices older than M will not be included in the processes model:
+    inspectorRule.processNotifier.fireConnected(OLDER_LEGACY_PROCESS)
+    assertThat(model.processes).isEmpty()
+    // But an M device will:
+    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
+    assertThat(model.processes.size).isEqualTo(1)
+    // And newer devices as well:
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    assertThat(model.processes.size).isEqualTo(2)
   }
 }

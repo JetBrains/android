@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.appinspection.api.process.ProcessNotifier
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -48,6 +51,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.BorderLayout
+import java.util.concurrent.Executor
 import javax.swing.JPanel
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
@@ -60,6 +64,16 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
 @VisibleForTesting
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewPanel: DataProvider): DataProvider =
   DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
+
+/**
+ * Return true if the process it represents is inspectable in the Layout Inspector.
+ *
+ * Currently, a process is deemed inspectable if the device it's running on is M+ and if it's debuggable. The latter condition is
+ * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
+ */
+private fun ProcessDescriptor.isInspectableInLayoutInspector(): Boolean {
+  return this.device.apiLevel >= AndroidVersion.VersionCodes.M
+}
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -92,11 +106,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       edtExecutor.execute {
         workbench.hideLoading()
 
-        val processes = ProcessesModel(edtExecutor, AppInspectionDiscoveryService.instance.apiServices.processNotifier) {
-          ModuleManager.getInstance(project).modules
-            .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
-            .toList()
-        }
+        val processes = createProcessesModel(project, AppInspectionDiscoveryService.instance.apiServices.processNotifier, edtExecutor)
         Disposer.register(workbench, processes)
         val model = InspectorModel(project)
         model.setProcessModel(processes)
@@ -119,6 +129,18 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       }
     }
   }
+
+  @VisibleForTesting
+  fun createProcessesModel(project: Project, processNotifier: ProcessNotifier, executor: Executor) = ProcessesModel(
+    executor = executor,
+    processNotifier = processNotifier,
+    acceptProcess = { it.isInspectableInLayoutInspector() },
+    getPreferredProcessNames = {
+      ModuleManager.getInstance(project).modules
+        .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+        .toList()
+    }
+  )
 }
 
 /**
