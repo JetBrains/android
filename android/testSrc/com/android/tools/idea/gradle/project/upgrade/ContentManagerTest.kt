@@ -414,8 +414,23 @@ class ContentManagerTest {
     assertThat(view.editingValidation("").first).isEqualTo(EditingErrorCategory.ERROR)
     assertThat(view.editingValidation("").second).isEqualTo("Invalid AGP version format.")
     assertThat(view.editingValidation("2.0.0").first).isEqualTo(EditingErrorCategory.ERROR)
-    assertThat(view.editingValidation("2.0.0").second).isEqualTo("Selected version too low.")
+    assertThat(view.editingValidation("2.0.0").second).isEqualTo("Cannot downgrade AGP version.")
     assertThat(view.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     assertThat(view.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
+    latestAgpVersion.run {
+      val newMajorVersion = GradleVersion(major+1, minor, micro)
+      assertThat(view.editingValidation(newMajorVersion.toString()).first).isEqualTo(EditingErrorCategory.ERROR)
+      assertThat(view.editingValidation(newMajorVersion.toString()).second).isEqualTo("Target AGP version is unsupported.")
+    }
+    latestAgpVersion.run {
+      val newMinorVersion = GradleVersion(major, minor+1, micro)
+      assertThat(view.editingValidation(newMinorVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
+      assertThat(view.editingValidation(newMinorVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
+    }
+    latestAgpVersion.run {
+      val newPointVersion = GradleVersion(major, minor, micro+1)
+      assertThat(view.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
+      assertThat(view.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
+    }
   }
 }
