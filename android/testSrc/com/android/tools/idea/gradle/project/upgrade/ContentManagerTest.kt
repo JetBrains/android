@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -402,5 +403,19 @@ class ContentManagerTest {
     val knownVersions = listOf("4.1.0", "4.2.0-alpha01", "4.2.0").map { GradleVersion.parse(it) }.toSet()
     val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion))
+  }
+
+  @Test
+  fun testAgpVersionEditingValidation() {
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    assertThat(view.editingValidation("").first).isEqualTo(EditingErrorCategory.ERROR)
+    assertThat(view.editingValidation("").second).isEqualTo("Invalid AGP version format.")
+    assertThat(view.editingValidation("2.0.0").first).isEqualTo(EditingErrorCategory.ERROR)
+    assertThat(view.editingValidation("2.0.0").second).isEqualTo("Selected version too low.")
+    assertThat(view.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
+    assertThat(view.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
   }
 }
