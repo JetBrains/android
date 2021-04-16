@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -905,7 +906,9 @@ public class BuildVariantView {
       if (value instanceof Module) {
         Module module = (Module)value;
         if (!module.isDisposed()) {
-          moduleName = module.getName();
+          String modulePath = GradleProjects.getGradleModulePath(module);
+          // Note: modulePath should never be null here.
+          moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = GradleUtil.getModuleIcon(module);
           isAndriodGradleModule = AndroidModuleModel.get(module) != null;
         }
