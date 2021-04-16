@@ -87,6 +87,7 @@ class ToolWindowModel(
   val runTooltip = StringValueProperty()
   val message = OptionalValueProperty<Pair<Icon, String>>()
   val runEnabled = BoolValueProperty(true)
+  val showFinishedMessage = BoolValueProperty(false)
 
   val knownVersions = OptionalValueProperty<List<GradleVersion>>()
 
@@ -170,6 +171,7 @@ class ToolWindowModel(
     runEnabled.set(false)
     val root = (treeModel.root as CheckedTreeNode)
     root.removeAllChildren()
+    showFinishedMessage.set(false)
     treeModel.nodeStructureChanged(root)
 
     if (refindPlugin) { current = AndroidPluginInfo.find(project)?.pluginVersion }
@@ -228,6 +230,11 @@ class ToolWindowModel(
                      "can be handled separately.")
       message.value = AllIcons.General.Warning to "Uncommitted changes in build files."
     }
+    else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
+      runEnabled.set(false)
+      runTooltip.set("Nothing to do for this upgrade.")
+      showFinishedMessage.set(true)
+    }
     else {
       runEnabled.set(true)
     }
@@ -236,7 +243,11 @@ class ToolWindowModel(
 
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
     val root = treeModel.root as CheckedTreeNode
-    root.removeAllChildren()
+    if (root.childCount > 0) {
+      LOG.error("Tree not empty in refreshTree()")
+      root.removeAllChildren()
+      showFinishedMessage.set(false)
+    }
     fun <T : DefaultMutableTreeNode> populateNecessity(
       necessity: AgpUpgradeComponentNecessity,
       constructor: (Any) -> (T)
@@ -480,7 +491,9 @@ class ContentManager(val project: Project) {
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
       layout = VerticalLayout(0, SwingConstants.LEFT)
       border = JBUI.Borders.empty(10)
+      myListeners.listen(this@View.model.showFinishedMessage) { it -> if (it) refreshDetailsPanel() }
     }
+
     val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
       val controlsPanel = makeTopComponent()
       add(controlsPanel, BorderLayout.NORTH)
@@ -534,12 +547,24 @@ class ContentManager(val project: Project) {
       val selectedStep = (tree.selectionPath?.lastPathComponent as? DefaultMutableTreeNode)?.userObject
       val label = HtmlLabel().apply { name = "content" }
       setUpAsHtmlLabel(label)
-      when (selectedStep) {
-        is AgpUpgradeComponentNecessity -> {
+      when {
+        this@View.model.showFinishedMessage.get() -> {
+          val sb = StringBuilder()
+          sb.append("<div><b>Nothing to do</b></div>")
+          sb.append("<p>Project build files are up-to-date for Android Gradle Plugin version ${this@View.model.current}.")
+          if (this@View.model.current?.let { it < this@View.model.latestKnownVersion } == true) {
+            sb.append("<br>Upgrades to newer versions of Android Gradle Plugin (up to ${this@View.model.latestKnownVersion}) can be")
+            sb.append("<br>performed by selecting those versions from the dropdown.")
+          }
+          sb.append("</p>")
+          label.text = sb.toString()
+          detailsPanel.add(label)
+        }
+        selectedStep is AgpUpgradeComponentNecessity -> {
           label.text = "<div><b>${selectedStep.treeText()}</b></div><p>${selectedStep.description().replace("\n", "<br>")}</p>"
           detailsPanel.add(label)
         }
-        is ToolWindowModel.StepUiPresentation -> {
+        selectedStep is ToolWindowModel.StepUiPresentation -> {
           val text = StringBuilder("<div><b>${selectedStep.pageHeader}</b></div>")
           val paragraph = selectedStep.helpLinkUrl != null || selectedStep.shortDescription != null
           if (paragraph) text.append("<p>")
