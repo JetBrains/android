@@ -64,6 +64,13 @@ val LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
   override val version = "M"
 }
 
+val OLDER_LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
+  override val model = "Older Legacy Model"
+  override val serial = "12"
+  override val apiLevel = AndroidVersion.VersionCodes.LOLLIPOP
+  override val version = "L"
+}
+
 fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp", pid: Int = 1, streamId: Long = 13579): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
