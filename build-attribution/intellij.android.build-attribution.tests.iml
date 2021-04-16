@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
   </component>
 </module>

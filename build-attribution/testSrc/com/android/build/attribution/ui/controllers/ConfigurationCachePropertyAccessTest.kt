@@ -18,13 +18,12 @@ package com.android.build.attribution.ui.controllers
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.refactoring.getProjectProperties
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -34,7 +33,7 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ConfigurationCachePropertyAccessTest {
 
-  protected val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
@@ -77,7 +76,8 @@ class ConfigurationCachePropertyAccessTest {
 
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project)
 
-    Truth.assertThat(runReadAction { VfsUtilCore.loadText(gradlePropertiesFile) }).contains("org.gradle.unsafe.configuration-cache=true")
+    val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
+    Truth.assertThat(propertiesText).contains("org.gradle.unsafe.configuration-cache=true")
   }
 
   @Test
@@ -86,7 +86,7 @@ class ConfigurationCachePropertyAccessTest {
 
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project)
 
-    val propertiesText = runReadAction { VfsUtilCore.loadText(gradlePropertiesFile) }
+    val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
     Truth.assertThat(propertiesText).contains("org.gradle.unsafe.configuration-cache=true")
     Truth.assertThat(propertiesText).doesNotContain("org.gradle.unsafe.configuration-cache=false")
   }
@@ -97,6 +97,7 @@ class ConfigurationCachePropertyAccessTest {
 
     StudioProvidedInfo.turnOnConfigurationCacheInProperties(projectRule.project)
 
-    Truth.assertThat(runReadAction { VfsUtilCore.loadText(gradlePropertiesFile) }).contains("org.gradle.unsafe.configuration-cache=true")
+    val propertiesText = projectRule.project.getProjectProperties(createIfNotExists = true)?.text
+    Truth.assertThat(propertiesText).contains("org.gradle.unsafe.configuration-cache=true")
   }
 }

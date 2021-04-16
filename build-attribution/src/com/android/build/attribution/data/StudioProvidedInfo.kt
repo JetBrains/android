@@ -17,10 +17,11 @@ package com.android.build.attribution.data
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.util.GradleProperties
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.android.refactoring.getProjectProperties
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
@@ -31,16 +32,18 @@ data class StudioProvidedInfo(
 
     fun fromProject(project: Project) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
-      configurationCachingGradlePropertyState = GradleProperties(project).properties.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+      configurationCachingGradlePropertyState = runReadAction {
+        project.getProjectProperties(createIfNotExists = true)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+      }
     )
 
     fun turnOnConfigurationCacheInProperties(project: Project) {
-      GradleProperties(project).apply {
-        properties.setProperty("org.gradle.unsafe.configuration-cache", "true")
-        save()
-      }
-      VfsUtil.findFileByIoFile(GradleProperties.getGradlePropertiesFile(project), true)?.let {
-        OpenFileDescriptor(project, it).navigate(true)
+      project.getProjectProperties(createIfNotExists = true)?.apply {
+        WriteCommandAction.writeCommandAction(project, this.containingFile).run<Throwable> {
+          findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.setValue("true") ?: addProperty(CONFIGURATION_CACHE_PROPERTY_NAME, "true")
+        }
+        val propertyOffset = findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.psiElement?.textOffset ?: -1
+        OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
       }
     }
   }
