@@ -43,6 +43,10 @@ which will generate a set of artifacts in `tools/idea/out/studio/dist`. To updat
 $SRC/tools/adt/idea/studio/update_sdk.py --path $SRC/tools/idea/out/studio/dist
 ```
 
+Note: `build_studio.sh` does a clean build by default. You can do an incremental
+build instead by specifying `-Dintellij.build.incremental.compilation=true`
+in the `BUILD_PROPERTIES` array within `build_studio.sh`.
+
 ### Isolated builds
 
 Note that in `go/ab` the prebuilts are built on a separate checkout to ensure that the `ant` build only has access to a few git repos.
