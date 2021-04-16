@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
   </component>
 </module>
