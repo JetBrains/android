@@ -135,6 +135,7 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
       prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
       prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
       prop("TestApplicationId") { ideVariant.testApplicationId }
+      prop("DeprecatedPreMergedApplicationId") { ideVariant.deprecatedPreMergedApplicationId }
       ideVariant.resourceConfigurations.forEach { prop("ResourceConfigurations") { it } }
       ideVariant.productFlavors.forEach { prop("ProductFlavors") { it } }
       prop("TestInstrumentationRunner") { ideVariant.testInstrumentationRunner }

@@ -249,6 +249,7 @@ MODULE                        : project.app
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.app
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -588,6 +589,7 @@ MODULE                        : project.library
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -905,6 +907,7 @@ MODULE                        : project.library-remote
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
