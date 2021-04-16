@@ -37,6 +37,8 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.ComponentValidator
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -178,7 +180,7 @@ class ToolWindowModel(
     processor = newProcessor
 
     if (newProcessor == null) {
-      // Preserve existing message and tooltip from newVersion validation.
+      // Preserve existing message and run button tooltips from newVersion validation.
       showLoadingState.set(false)
     }
     else {
@@ -357,6 +359,17 @@ class ContentManager(val project: Project) {
 
     val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
+    fun editingValidation(value: String?): Pair<EditingErrorCategory, String> {
+      val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+      val current = model.current
+      return when {
+        current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version")
+        parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
+        parsed < current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
+        else -> EDITOR_NO_ERROR
+      }
+    }
+
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       object : DefaultCommonComboBoxModel<GradleVersion>(
         model.selectedVersion.valueOrNull?.toString() ?: "",
@@ -372,35 +385,34 @@ class ContentManager(val project: Project) {
           placeHolderValue = "Select new version"
         }
 
+        // Given the ComponentValidator installation below, one might expect this not to be necessary, but although the
+        // ComponentValidator provides the tooltip it appears not to provide the outline highlighting.
         override val editingSupport = object : EditingSupport {
-          override val validation: EditingValidation = { value ->
-            val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
-            val current = model.current
-            when {
-              current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version")
-              parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
-              parsed < current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
-              else -> EDITOR_NO_ERROR
-            }
-          }
+          override val validation: EditingValidation = ::editingValidation
         }
-      }).apply {
+      }
+    ).apply {
+      ComponentValidator(this@View.model.connection).withValidator { ->
+        val text = editor.item.toString()
+        val validation = editingValidation(text)
+        when (validation.first) {
+          EditingErrorCategory.ERROR -> ValidationInfo(validation.second, this)
+          EditingErrorCategory.WARNING -> ValidationInfo(validation.second, this).asWarning()
+          else -> null
+        }
+      }.installOn(this)
       (editor.editorComponent as? JTextComponent)?.document?.addDocumentListener(
         object: DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
-            val status = model.editingSupport.validation(editor.item.toString())
+            ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
+            val status = editingValidation(editor.item.toString())
             if (status.first == EditingErrorCategory.ERROR) {
-              messageLabel.text = status.second
-              messageLabel.icon = AllIcons.General.Error
               previewButton.isEnabled = false
               previewButton.toolTipText = status.second
               okButton.isEnabled = false
               okButton.toolTipText = status.second
             }
             else {
-              val info = this@View.model.message.valueOrNull
-              messageLabel.icon = info?.first
-              messageLabel.text = info?.second
               previewButton.isEnabled = this@View.model.runEnabled.get()
               previewButton.toolTipText = this@View.model.runTooltip.get()
               okButton.isEnabled = this@View.model.runEnabled.get()
@@ -411,7 +423,7 @@ class ContentManager(val project: Project) {
       )
       addActionListener {
         this@View.model.selectedVersion.setNullableValue(
-          model.editingSupport.validation(model.text).let { modelTextValidation ->
+          editingValidation(model.text).let { modelTextValidation ->
             if (modelTextValidation.first == EditingErrorCategory.ERROR) {
               this@View.model.message.value = AllIcons.General.Error to modelTextValidation.second
               this@View.model.runEnabled.set(false)
@@ -421,7 +433,7 @@ class ContentManager(val project: Project) {
               when (val selected = selectedItem) {
                 is GradleVersion -> selected
                 is String ->
-                  model.editingSupport.validation(selected).let { stringValidation ->
+                  editingValidation(selected).let { stringValidation ->
                     if (stringValidation.first == EditingErrorCategory.ERROR) {
                       this@View.model.message.value = AllIcons.General.Error to stringValidation.second
                       this@View.model.runEnabled.set(false)
