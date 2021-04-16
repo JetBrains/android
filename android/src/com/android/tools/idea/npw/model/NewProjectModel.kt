@@ -238,13 +238,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          val gradleDistFile = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION)
-          if (gradleDistFile == null) {
-            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
-          }
-          else {
-            GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(gradleDistFile)
-          }
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
         }
         catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
