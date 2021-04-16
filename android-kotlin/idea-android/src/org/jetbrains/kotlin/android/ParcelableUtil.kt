@@ -62,11 +62,11 @@ fun KtClass.canAddParcelable(): Boolean =
 fun KtClass.canRedoParcelable(): Boolean = canRemoveParcelable()
 
 fun KtClass.canRemoveParcelable(): Boolean =
-        findParcelableSupertype()?.takeIf { it.typeReference?.isParcelableReference() ?: false }
-        ?: findCreator()
-        ?: findConstructorFromParcel()
-        ?: findWriteToParcel()
-        ?: findDescribeContents() != null
+    (findParcelableSupertype()?.takeIf { it.typeReference?.isParcelableReference() ?: false }
+     ?: findCreator()
+     ?: findConstructorFromParcel()
+     ?: findWriteToParcel()
+     ?: findDescribeContents()) != null
 
 fun KtClass.implementParcelable() {
     val factory = KtPsiFactory(this)

@@ -62,7 +62,7 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
 
     selectedIndex = (0 until itemCount).firstOrNull {
       getItemAt(it)!!.minApiLevelStr == savedApiLevel
-    } ?: itemCount - 1 // If the savedApiLevel is not available, just pick the last target in the list (-1 if the list is empty)
+    } ?: (itemCount - 1) // If the savedApiLevel is not available, just pick the last target in the list (-1 if the list is empty)
   }
 
   private fun saveSelectedApi(e: ItemEvent) {

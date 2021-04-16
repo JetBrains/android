@@ -291,7 +291,7 @@ class LegacyProcessManager(
      */
     fun isUpToDate(newClient: Client): Boolean =
       client == newClient &&
-      process.abiCpuArch == client.clientData.abi ?: "" &&
+      process.abiCpuArch == (client.clientData.abi ?: "") &&
       process.name == client.clientData.packageName &&
       process.pid == client.clientData.pid
 
