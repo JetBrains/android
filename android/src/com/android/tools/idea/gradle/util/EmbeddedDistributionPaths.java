@@ -99,6 +99,10 @@ public class EmbeddedDistributionPaths {
     }
   }
 
+  /**
+   * @return the directory in the source repository that contains the checked-in Gradle distributions. In Android Studio production builds,
+   * it returns null.
+   */
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
     //noinspection IfStatementWithIdenticalBranches
@@ -111,33 +115,18 @@ public class EmbeddedDistributionPaths {
         return distributionPath;
       }
 
-      // Development build.
-      String localDistributionPath = System.getProperty("local.gradle.distribution.path");
-      if (localDistributionPath != null) {
-        distributionPath = new File(toCanonicalPath(localDistributionPath));
-        if (distributionPath.isDirectory()) {
-          return distributionPath;
-        }
-      }
-
       return null;
     } else {
-      // Release build
-      Logger log = getLog();
-      File distributionPath = getDefaultRootDirPath();
-      if (distributionPath == null) {
-        File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
-        log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
-        if (embeddedPath.isDirectory()) {
-          log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
-          return embeddedPath;
-        }
-      }
-      log.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
+      // Release build.
       return null;
     }
   }
 
+  /**
+   * @param gradleVersion the version of Gradle to search for
+   * @return The archive file for the requested Gradle distribution, if exists, that is checked into the source repository. In Android
+   * Studio production builds, this method always returns null.
+   */
   @Nullable
   public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
     File distributionPath = findEmbeddedGradleDistributionPath();
