@@ -164,9 +164,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILEABLE = Flag.create(
     PROFILER, "profileable", "Support profileable processes on S+",
     "Show profileable processes on S and later",
-    false
-  );
-  //endregion
+    false);
+
+  // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
+  public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
+    PROFILER, "profileable.qr", "Support profileable processes on Q & R",
+    "Show profileable processes on Q and R",
+    PROFILEABLE.get() && false);
+    //endregion
 
   //region ML
   private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");
