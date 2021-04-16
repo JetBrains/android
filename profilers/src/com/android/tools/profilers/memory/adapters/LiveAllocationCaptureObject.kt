@@ -126,19 +126,12 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   override fun saveToFile(outputStream: OutputStream) = throw UnsupportedOperationException()
 
   override fun getClassifierAttributes() =
-    if (stage.studioProfilers.ideServices.featureConfig.isMemorySnapshotEnabled)
-      listOf(ClassifierAttribute.LABEL,
-             ClassifierAttribute.ALLOCATIONS,
-             ClassifierAttribute.DEALLOCATIONS,
-             ClassifierAttribute.TOTAL_COUNT,
-             ClassifierAttribute.SHALLOW_SIZE,
-             ClassifierAttribute.SHALLOW_DIFFERENCE)
-    else
-      listOf(ClassifierAttribute.LABEL,
-             ClassifierAttribute.ALLOCATIONS,
-             ClassifierAttribute.DEALLOCATIONS,
-             ClassifierAttribute.SHALLOW_SIZE,
-             ClassifierAttribute.SHALLOW_DIFFERENCE)
+    listOf(ClassifierAttribute.LABEL,
+           ClassifierAttribute.ALLOCATIONS,
+           ClassifierAttribute.DEALLOCATIONS,
+           ClassifierAttribute.TOTAL_COUNT,
+           ClassifierAttribute.SHALLOW_SIZE,
+           ClassifierAttribute.SHALLOW_DIFFERENCE)
 
   override fun getInstanceAttributes() = listOf(LABEL, ALLOCATION_TIME, DEALLOCATION_TIME, SHALLOW_SIZE)
   override fun getInfoMessage() = infoMessage
@@ -301,10 +294,8 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
             if (clear) {
               heapSets.forEach { it.clearClassifierSets() }
             }
-            if (stage.studioProfilers.ideServices.featureConfig.isMemorySnapshotEnabled) {
-              snapshotList.forEach { heapSets[it.heapId].addSnapshotInstanceObject(it) }
-              resetSnapshotList.forEach { heapSets[it.heapId].removeSnapshotInstanceObject(it) }
-            }
+            snapshotList.forEach { heapSets[it.heapId].addSnapshotInstanceObject(it) }
+            resetSnapshotList.forEach { heapSets[it.heapId].removeSnapshotInstanceObject(it) }
             deltaAllocationList.forEach { heapSets[it.heapId].addDeltaInstanceObject(it) }
             deltaFreeList.forEach { heapSets[it.heapId].freeDeltaInstanceObject(it) }
             resetDeltaAllocationList.forEach { heapSets[it.heapId].removeAddedDeltaInstanceObject(it) }

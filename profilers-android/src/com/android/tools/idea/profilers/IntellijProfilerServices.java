@@ -410,11 +410,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isMemorySnapshotEnabled() {
-      return StudioFlags.PROFILER_MEMORY_SNAPSHOT.get();
-    }
-
-    @Override
     public boolean isPerformanceMonitoringEnabled() {
       return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
     }

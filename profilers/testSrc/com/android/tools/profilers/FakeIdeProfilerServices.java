@@ -102,11 +102,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLiveTrackingEnabled = false;
 
   /**
-   * Toggle for faking memory snapshot support in tests.
-   */
-  private boolean myMemorySnapshotEnabled = true;
-
-  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
@@ -287,11 +282,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
-
-      @Override
-      public boolean isMemorySnapshotEnabled() {
-        return myMemorySnapshotEnabled;
-      }
 
       @Override
       public boolean isPerformanceMonitoringEnabled() {
