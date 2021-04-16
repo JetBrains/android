@@ -26,6 +26,7 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
+import com.android.tools.idea.transport.faketransport.commands.DiscoverProfileable;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
@@ -121,6 +122,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   private void initializeCommandHandlers() {
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
+    setCommandHandler(Command.CommandType.DISCOVER_PROFILEABLE, new DiscoverProfileable(myTimer));
     setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
     setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
@@ -347,6 +349,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
 
   public boolean getAgentAttachCalled() {
     return ((BeginSession)myCommandHandlers.get(Command.CommandType.BEGIN_SESSION)).getAgentAttachCalled();
+  }
+
+  public List<Long> getDiscoveringProfileableStreamIds() {
+    return ((DiscoverProfileable)myCommandHandlers.get(Command.CommandType.DISCOVER_PROFILEABLE)).getCommandCalledStreamIds();
   }
 
   public CommandHandler getRegisteredCommand(Command.CommandType commandType) {
