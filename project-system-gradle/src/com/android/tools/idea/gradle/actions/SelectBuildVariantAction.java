@@ -36,24 +36,24 @@ public class SelectBuildVariantAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
-    e.getPresentation().setEnabled(getSelectedAndroidModule(e) != null);
+     e.getPresentation().setEnabled(isGradleProject(e));
   }
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull final Project project) {
     final Module module = getSelectedAndroidModule(e);
-    if (module != null) {
-      ToolWindowManager manager = ToolWindowManager.getInstance(project);
-      ToolWindow toolWindow = manager.getToolWindow(BuildVariantToolWindowFactory.ID);
-      if (toolWindow != null) {
-        toolWindow.activate(new Runnable() {
-          @Override
-          public void run() {
-            BuildVariantView view = BuildVariantView.getInstance(project);
+    ToolWindowManager manager = ToolWindowManager.getInstance(project);
+    ToolWindow toolWindow = manager.getToolWindow(BuildVariantToolWindowFactory.ID);
+    if (toolWindow != null) {
+      toolWindow.activate(new Runnable() {
+        @Override
+        public void run() {
+          BuildVariantView view = BuildVariantView.getInstance(project);
+          if (module != null) {
             view.findAndSelectVariantEditor(module);
           }
-        });
-      }
+        }
+      });
     }
   }
 }
