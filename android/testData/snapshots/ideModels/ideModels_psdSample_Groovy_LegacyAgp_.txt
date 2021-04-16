@@ -593,6 +593,7 @@ MODULE                        : project.app
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             MaxSdkVersion                 : 26
             TestApplicationId             : com.example.psd.sample.app.default.test
+            DeprecatedPreMergedApplicationId        : com.example.psd.sample.app.defaultSuffix.barSuffix
             ProductFlavors                : basic
             ProductFlavors                : bar
             MainArtifact
@@ -2781,6 +2782,7 @@ MODULE                        : project.dyn_feature
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.dyn_feature
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -3079,6 +3081,7 @@ MODULE                        : project.lib
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.projectwithappandlib.lib
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -4923,6 +4926,7 @@ MODULE                        : project.nested1
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.nested1
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -5218,6 +5222,7 @@ MODULE                        : project.nested1.deep
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.nested1.deep
             ResourceConfigurations        : en
             ResourceConfigurations        : fr
             MainArtifact
@@ -5616,6 +5621,7 @@ MODULE                        : project.nested2
             BuildType                     : debug
             DisplayName                   : basic-debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.nested2
             ProductFlavors                : basic
             MainArtifact
                 Name                          : MAIN
@@ -5945,6 +5951,7 @@ MODULE                        : project.nested2.deep
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.nested2.deep
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
@@ -6238,6 +6245,7 @@ MODULE                        : project.nested2.trans.deep2
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
+            DeprecatedPreMergedApplicationId        : com.example.nested2.trans.deep2
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources

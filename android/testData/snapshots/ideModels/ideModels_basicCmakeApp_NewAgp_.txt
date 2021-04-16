@@ -252,6 +252,7 @@ MODULE                        : project.app
             InstantAppCompatible          : false
             MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
+            DeprecatedPreMergedApplicationId        : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
             MainArtifact
                 Name                          : MAIN
                 CompileTaskName               : compileDebugSources
