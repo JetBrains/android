@@ -57,8 +57,11 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   @Override
   public void apply(@NotNull AdbOptionsService settings) throws ConfigurationException {
-    settings.setAdbConfigs(myUseLibusbBackendCheckbox.isSelected(), myUseExistingManuallyManagedServerRadioButton.isSelected(),
-                           getUserManagedAdbPortNumber());
+    settings.getOptionsUpdater()
+      .setUseLibusb(myUseLibusbBackendCheckbox.isSelected())
+      .setUseUserManagedAdb(myUseExistingManuallyManagedServerRadioButton.isSelected())
+      .setUserManagedAdbPort(getUserManagedAdbPortNumber())
+      .commit();
   }
 
   public static boolean hasComponents() {

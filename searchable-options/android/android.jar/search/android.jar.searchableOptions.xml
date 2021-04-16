@@ -1344,6 +1344,10 @@
     <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
+    <option name="adb" hit="Android Debug Bridge (adb)" />
+    <option name="android" hit="Android Debug Bridge (adb)" />
+    <option name="bridge" hit="Android Debug Bridge (adb)" />
+    <option name="debug" hit="Android Debug Bridge (adb)" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
@@ -1358,6 +1362,12 @@
     <option name="inspector" hit="Enable Live Layout Inspector" />
     <option name="layout" hit="Enable Live Layout Inspector" />
     <option name="live" hit="Enable Live Layout Inspector" />
+    <option name="adb" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="debugging" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="enable" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="for" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="mdns" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="wireless" hit="Enable adb mDNS for Wireless Debugging" />
     <option name="experimental" hit="Experimental" />
     <option name="gradle" hit="Gradle" />
     <option name="editor" hit="Layout Editor" />
