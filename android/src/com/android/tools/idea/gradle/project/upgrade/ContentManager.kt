@@ -363,9 +363,15 @@ class ContentManager(val project: Project) {
       val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
       val current = model.current
       return when {
-        current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version")
+        current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version.")
         parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
-        parsed < current -> Pair(EditingErrorCategory.ERROR, "Selected version too low.")
+        parsed < current -> Pair(EditingErrorCategory.ERROR, "Cannot downgrade AGP version.")
+        parsed > model.latestKnownVersion ->
+          if (parsed.major > model.latestKnownVersion.major)
+            Pair(EditingErrorCategory.ERROR, "Target AGP version is unsupported.")
+          else
+            Pair(EditingErrorCategory.WARNING, "Upgrade to target AGP version is unverified.")
+
         else -> EDITOR_NO_ERROR
       }
     }
