@@ -58,9 +58,17 @@ class WiFiPairingServiceImpl(private val randomProvider: RandomProvider,
         }
         // See https://android-review.googlesource.com/c/platform/system/core/+/1274009/5/adb/client/transport_mdns.cpp#553
         result.stdout.any { it.contains("mdns daemon version") } -> {
+          LOG.info("`adb mdns check` result:")
+          result.stdout.take(3).forEach {
+            LOG.info("    $it")
+          }
           MdnsSupportState.Supported
         }
         else -> {
+          LOG.warn("`adb mdns check` result:")
+          result.stdout.take(3).forEach {
+            LOG.warn("    $it")
+          }
           MdnsSupportState.NotSupported
         }
       }
