@@ -42,8 +42,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       // In the legacy pipeline we set the device ID to the stream ID of a Session.
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
-                  "EndTime INTEGER", "StartTimeEpochMs INTEGER", "Name TEXT", "ProcessAbi TEXT", "JvmtiEnabled INTEGER",
-                  "LiveAllocationEnabled INTEGER", "TypeId INTEGER");
+                  "EndTime INTEGER", "StartTimeEpochMs INTEGER", "Name TEXT", "ProcessAbi TEXT", "JvmtiEnabled INTEGER", "TypeId INTEGER");
       createUniqueIndex("Profiler_Sessions", "SessionId");
     }
     catch (SQLException ex) {
@@ -56,9 +55,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
     try {
       createStatement(ProfilerStatements.INSERT_SESSION,
                       "INSERT OR REPLACE INTO Profiler_Sessions " +
-                      "(SessionId, DeviceId, ProcessId, StartTime, EndTime, StartTimeEpochMs, Name, ProcessAbi, JvmtiEnabled, " +
-                      "LiveAllocationEnabled, TypeId) " +
-                      "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                      "(SessionId, DeviceId, ProcessId, StartTime, EndTime, StartTimeEpochMs, Name, ProcessAbi, JvmtiEnabled, TypeId) " +
+                      "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
       createStatement(ProfilerStatements.UPDATE_SESSION,
                       "UPDATE Profiler_Sessions Set EndTime = ? WHERE SessionId = ?");
       createStatement(ProfilerStatements.SELECT_SESSIONS,
@@ -113,8 +111,8 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
           Common.SessionMetaData
             .newBuilder().setSessionId(results.getLong(1)).setStartTimestampEpochMs(results.getLong(6))
             .setSessionName(results.getString(7)).setProcessAbi(results.getString(8))
-            .setJvmtiEnabled(results.getBoolean(9)).setLiveAllocationEnabled(results.getBoolean(10))
-            .setType(Common.SessionMetaData.SessionType.forNumber(results.getInt(11)))
+            .setJvmtiEnabled(results.getBoolean(9))
+            .setType(Common.SessionMetaData.SessionType.forNumber(results.getInt(10)))
             .build());
       }
     }
@@ -160,12 +158,11 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                                     long startTimeUtc,
                                     String processAbi,
                                     boolean jvmtiEnabled,
-                                    boolean liveAllocationEnabled,
                                     Common.SessionMetaData.SessionType sessionType) {
     // Note - this is not being called from multiple threads at the moment.
     // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
     execute(ProfilerStatements.INSERT_SESSION, session.getSessionId(), session.getStreamId(), session.getPid(),
-            session.getStartTimestamp(), session.getEndTimestamp(), startTimeUtc, name, processAbi, jvmtiEnabled, liveAllocationEnabled,
+            session.getStartTimestamp(), session.getEndTimestamp(), startTimeUtc, name, processAbi, jvmtiEnabled,
             sessionType.getNumber());
   }
 

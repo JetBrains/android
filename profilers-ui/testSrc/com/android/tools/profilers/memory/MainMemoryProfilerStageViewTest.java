@@ -697,7 +697,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testToolbarForNativeAllocations() {
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     // Test toolbar configuration for pre-Q (FAKE_DEVICE is O by default).
@@ -718,8 +717,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testToolbar() {
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
-
     // Test toolbar configuration for pre-O.
     startWithNewDevice("PreO", AndroidVersion.VersionCodes.N);
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);

@@ -20,8 +20,10 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
@@ -60,25 +62,34 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final ByteBuffer FAKE_ALLOC_BUFFER = AllocationsParserTest.putAllocationInfo(
     ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, new int[0][], new short[0][][]
   );
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
-  @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  @NotNull private final FakeTransportService myTransportService;
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
+  public final FakeGrpcChannel myGrpcChannel;
+
+  public MainMemoryProfilerStageTest(int featureLevel) {
+    super();
+    myTransportService = new FakeTransportService(myTimer, true, featureLevel);
+    myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
+  }
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
@@ -113,6 +124,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testToggleAllocationTracking() {
+    assumePreO(true);
     // Enable the auto capture selection mechanism.
     myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
 
@@ -188,6 +200,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAllocationTrackingStateOnTransition() {
+    assumePreO(true);
     myStage.enter();
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
@@ -518,6 +531,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAllocatedLegendChangesBasedOnSamplingMode() {
+    assumePreO(false);
     long time = TimeUnit.MICROSECONDS.toNanos(2);
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
     MemoryData memoryData = MemoryData.getDefaultInstance();
@@ -602,6 +616,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testSelectLatestCaptureEnabled() {
+    assumePreO(true);
     myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
     myMockLoader.setReturnImmediateFuture(true);
     assertThat(myStage.getCaptureSelection().getSelectedCapture()).isNull();
@@ -787,5 +802,14 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     AllocationDurationData<CaptureObject> data = new AllocationDurationData<>(0, entry, 0.0, 1.0);
     myStage.selectCaptureDuration(data, null);
     assertThat(myProfilers.getStage()).isInstanceOf(AllocationStage.class);
+  }
+
+  private void assumePreO(boolean assumedPreO) {
+    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
+  }
+
+  @Parameterized.Parameters
+  public static List<Integer> configs() {
+    return Arrays.asList(AndroidVersion.VersionCodes.N, AndroidVersion.VersionCodes.O);
   }
 }

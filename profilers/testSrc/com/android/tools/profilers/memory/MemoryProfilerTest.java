@@ -91,7 +91,6 @@ public final class MemoryProfilerTest {
 
   @Test
   public void testLiveAllocationTrackingOnAgentAttach() {
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
     MemoryAllocTracking allocTrackingHandler =
@@ -124,7 +123,6 @@ public final class MemoryProfilerTest {
 
   @Test
   public void liveAllocationTrackingDidNotStartIfAgentIsNotAttached() {
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);

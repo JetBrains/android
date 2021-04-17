@@ -390,11 +390,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isLiveAllocationsEnabled() {
-      return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
-    }
-
-    @Override
     public boolean isMemoryCSVExportEnabled() {
       return StudioFlags.PROFILER_MEMORY_CSV_EXPORT.get();
     }

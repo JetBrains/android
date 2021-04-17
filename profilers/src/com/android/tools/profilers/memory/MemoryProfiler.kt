@@ -95,8 +95,6 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
     when {
       // Early return if the session is not valid/alive.
       Common.Session.getDefaultInstance() == session || session.endTimestamp != Long.MAX_VALUE -> {}
-      // Early return if live allocation is not enabled for the session.
-      !sessionsManager.selectedSessionMetaData.liveAllocationEnabled -> {}
       // Early return if JVMTI agent is not attached.
       !myProfilers.isAgentAttached -> {}
       else -> try {

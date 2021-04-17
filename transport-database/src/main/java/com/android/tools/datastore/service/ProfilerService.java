@@ -75,7 +75,6 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
                                     request.getRequestTimeEpochMs(),
                                     request.getProcessAbi(),
                                     request.getJvmtiConfig().getAttachAgent(),
-                                    request.getJvmtiConfig().getLiveAllocationEnabled(),
                                     Common.SessionMetaData.SessionType.FULL);
       responseObserver.onNext(response);
     }
@@ -125,7 +124,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
-    myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), request.getStartTimestampEpochMs(), "", false, false,
+    myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), request.getStartTimestampEpochMs(), "", false,
                                   request.getSessionType());
     responseObserver.onNext(ImportSessionResponse.newBuilder().build());
     responseObserver.onCompleted();

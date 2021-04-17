@@ -97,11 +97,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsJniReferenceTrackingEnabled = false;
 
   /**
-   * Toggle for faking live allocation tracking support in tests.
-   */
-  private boolean myLiveTrackingEnabled = false;
-
-  /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
    */
   private boolean myNativeProfilingConfigurationPreferred = false;
@@ -254,11 +249,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
-
-      @Override
-      public boolean isLiveAllocationsEnabled() {
-        return myLiveTrackingEnabled;
-      }
 
       @Override
       public boolean isMemoryCSVExportEnabled() {
@@ -442,10 +432,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
-
-  public void enableLiveAllocationTracking(boolean enabled) {
-    myLiveTrackingEnabled = enabled;
-  }
 
   public void enableStartupCpuProfiling(boolean enabled) {
     myStartupCpuProfilingEnabled = enabled;

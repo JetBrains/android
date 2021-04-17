@@ -83,7 +83,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
     // Register profiler-specific command handlers (memory GC, pre-O CPU recording, etc.).
     IDevice device = proxy.getDevice();
     proxy.registerProxyCommandHandler(Commands.Command.CommandType.GC, new GcCommandHandler(device));
-    if (!StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get() || device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+    if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
       LegacyAllocationCommandHandler trackAllocationHandler =
         new LegacyAllocationCommandHandler(device,
                                            proxy.getEventQueue(),
@@ -141,7 +141,6 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
       .setMem(
         Agent.AgentConfig.MemoryConfig.newBuilder()
-          .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
           .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
           .setSamplingRate(

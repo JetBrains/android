@@ -320,7 +320,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setProcessAbi(sessionData.getProcessAbi())
       .setJvmtiEnabled(sessionData.getJvmtiEnabled())
       .setSessionName(sessionData.getSessionName())
-      .setLiveAllocationEnabled(sessionData.getLiveAllocationEnabled())
       .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
@@ -407,7 +406,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
             .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
             // TODO remove hard-coded path by sharing what's used in TransportFileManager
             .setAgentConfigPath("/data/local/tmp/perfd/agent.config")
-            .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }
 
@@ -436,7 +434,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
             .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
             // TODO remove hard-coded path by sharing what's used in TransportFileManager
             .setAgentConfigPath("/data/local/tmp/perfd/agent.config")
-            .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
             .build());
       }
 
