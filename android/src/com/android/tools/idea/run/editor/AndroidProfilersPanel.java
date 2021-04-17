@@ -129,11 +129,6 @@ public class AndroidProfilersPanel implements HyperlinkListener {
                                                                       .toArray(new CpuProfilerConfig[0])));
     myStartupCpuConfigsComboBox.setRenderer(SimpleListCellRenderer.create("", CpuProfilerConfig::getName));
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
-
-    if (!StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get()) {
-      myMemoryRecordingRadio.setVisible(false);
-      myNativeMemoryProfilerSampleRate.setVisible(false);
-    }
   }
 
   /**

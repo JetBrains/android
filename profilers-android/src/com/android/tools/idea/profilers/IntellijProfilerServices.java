@@ -375,11 +375,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isNativeMemorySampleEnabled() {
-      return StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get();
-    }
-
-    @Override
     public boolean isCpuNewRecordingWorkflowEnabled() {
       return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
     }

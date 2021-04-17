@@ -142,11 +142,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
-   * Whether native memory sampling via heapprofd is enabled.
-   */
-  private boolean myNativeMemorySampleEnabled = false;
-
-  /**
    * Whether we use TraceProcessor to parse Perfetto traces.
    */
   private boolean myUseTraceProcessor = true;
@@ -279,9 +274,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isMemoryCSVExportEnabled() {
         return false;
       }
-
-      @Override
-      public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
 
       @Override
       public boolean isPerformanceMonitoringEnabled() {
@@ -479,10 +471,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLiveAllocationsSampling(boolean enabled) {
     myLiveAllocationsSamplingEnabled = enabled;
-  }
-
-  public void enableNativeMemorySampling(boolean enabled) {
-    myNativeMemorySampleEnabled = enabled;
   }
 
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
