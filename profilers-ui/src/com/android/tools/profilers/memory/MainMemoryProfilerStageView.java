@@ -155,8 +155,7 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
     panel.add(toolbar, BorderLayout.WEST);
     toolbar.removeAll();
     toolbar.add(myForceGarbageCollectionButton);
-    if (getStage().isLiveAllocationTrackingSupported() &&
-        getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
+    if (getStage().isLiveAllocationTrackingSupported()) {
       if (getStage().isNativeAllocationSamplingEnabled()) {
         toolbar.add(getCaptureElapsedTimeLabel());
       }

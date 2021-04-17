@@ -395,11 +395,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isLiveAllocationsSamplingEnabled() {
-      return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
-    }
-
-    @Override
     public boolean isMemoryCSVExportEnabled() {
       return StudioFlags.PROFILER_MEMORY_CSV_EXPORT.get();
     }
