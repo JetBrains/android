@@ -2045,7 +2045,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.2.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio Preview.app/Contents/plugins/android/lib/core-3.4.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/core-proto-0.0.8-alpha02.jar
+Android Studio Preview.app/Contents/plugins/android/lib/core-proto-0.0.8-alpha03.jar
 Android Studio Preview.app/Contents/plugins/android/lib/data-binding.jar
 Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.2.4.jar
