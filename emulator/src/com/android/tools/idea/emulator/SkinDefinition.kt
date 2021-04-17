@@ -102,7 +102,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @JvmStatic
     fun create(skinFolder: Path): SkinDefinition? {
       try {
-        val layoutFile = skinFolder.resolve("layout") ?: return null
+        val layoutFile = skinFolder.resolve("layout")
         val contents = Files.readAllBytes(layoutFile).toString(UTF_8)
         val skin = SkinLayoutDefinition.parseString(contents)
         var displayWidth = 0
