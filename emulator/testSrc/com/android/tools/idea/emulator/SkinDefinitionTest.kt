@@ -194,7 +194,6 @@ class SkinDefinitionTest {
     assertThat(layout.maskImages).hasSize(4) // Four round corners, one with a camera hole.
   }
 
-  @Ignore("Enable when the pixel_5 skin is fixed (b/171274996)")
   @Test
   fun testPixel_5() {
     val folder = getSkinFolder("pixel_5")
@@ -204,7 +203,6 @@ class SkinDefinitionTest {
     val layout = skin.layout
     validateLayoutConsistency(layout, folder)
     assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2340))
-    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1211, 2474))
     assertThat(layout.frameImages).hasSize(8)
     assertThat(layout.maskImages).hasSize(4) // Four round corners, one with a camera hole.
   }
