@@ -135,6 +135,22 @@ class AndroidProcessMonitorManagerTest {
   }
 
   @Test
+  fun processDetachedByManager() {
+    val device = createMockDevice(28)
+    monitorManager.add(device)
+
+    assertThat(monitorManager.getMonitor(device)).isNotNull()
+
+    assertThat(mockSingleDeviceAndroidProcessMonitors).containsKey(device)
+    assertThat(mockSingleDeviceAndroidProcessMonitors).hasSize(1)
+
+    monitorManager.detachDevice(device)
+
+    assertThat(monitorManager.getMonitor(device)).isNull()
+    verify(mockMonitorManagerListener).onAllTargetProcessesTerminated()
+  }
+
+  @Test
   fun processFinishesOnTwoDevices() {
     val device1 = createMockDevice(28)
     val device2 = createMockDevice(29)

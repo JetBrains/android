@@ -105,6 +105,15 @@ class AndroidProcessMonitorManager(
   }
 
   /**
+   * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
+   */
+  @WorkerThread
+  fun detachDevice(device: IDevice) {
+    getMonitor(device)?.detachAndClose()
+    remove(device)
+  }
+
+  /**
    * Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned.
    */
   @WorkerThread

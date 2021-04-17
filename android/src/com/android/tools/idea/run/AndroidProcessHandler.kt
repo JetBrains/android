@@ -132,7 +132,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
    */
   @WorkerThread
   fun detachDevice(device: IDevice) {
-    myMonitorManager.getMonitor(device)?.detachAndClose()
+    myMonitorManager.detachDevice(device)
   }
 
   /**
