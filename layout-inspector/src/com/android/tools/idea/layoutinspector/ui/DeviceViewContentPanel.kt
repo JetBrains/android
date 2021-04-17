@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
@@ -69,7 +70,10 @@ private val HQ_RENDERING_HINTS = mapOf(
 )
 
 class DeviceViewContentPanel(
-  val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, disposableParent: Disposable
+  val inspectorModel: InspectorModel,
+  val stats: SessionStatistics,
+  val viewSettings: DeviceViewSettings,
+  disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
   @VisibleForTesting
@@ -78,7 +82,7 @@ class DeviceViewContentPanel(
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
+  val model = DeviceViewPanelModel(inspectorModel, stats) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
 
   val rootLocation: Point?
     get() {
@@ -162,7 +166,7 @@ class DeviceViewContentPanel(
         if (e.isConsumed) return
         val view = nodeAtPoint(e)
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
-        inspectorModel.stats.selectionMadeFromImage(view)
+        stats.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {

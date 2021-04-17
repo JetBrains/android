@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -40,6 +41,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
@@ -120,7 +122,7 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 30)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     assertEquals(Dimension(376, 394), panel.preferredSize)
 
     settings.scalePercent = 100
@@ -151,7 +153,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.paint(graphics)
@@ -216,7 +218,6 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-
     TreeSettings.hideSystemNodes = true
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
@@ -224,7 +225,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.paint(graphics)
@@ -263,7 +264,7 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
-    val panel = DeviceViewContentPanel(model, DeviceViewSettings(), disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), DeviceViewSettings(), disposable.disposable)
     panel.setSize(10, 15)
     panel.model.rotate(-1.0, -1.0)
 
@@ -290,7 +291,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.model.overlay = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/overlay.png").toFile())
@@ -319,7 +320,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
@@ -369,7 +370,7 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -400,7 +401,7 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.hoveredNode).isNull()
@@ -433,7 +434,7 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -461,7 +462,9 @@ class DeviceViewContentPanelTest {
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
     val model = model {}
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val launcher: InspectorClientLauncher = mock()
+    `when`(launcher.activeClient).thenReturn(mock())
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     val selectProcessAction = mock<SelectProcessAction>()
     panel.selectProcessAction = selectProcessAction
     `when`(selectProcessAction.templatePresentation).thenReturn(mock())
@@ -515,7 +518,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -557,7 +560,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(200, 300)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -595,7 +598,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -673,7 +676,7 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(1200, 1400, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val panel = DeviceViewContentPanel(model, DeviceViewSettings(scalePercent = 400), disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), DeviceViewSettings(scalePercent = 400), disposable.disposable)
     panel.setSize(1200, 1400)
 
     panel.paint(graphics)
@@ -712,7 +715,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -755,7 +758,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(400, 600)
 
     panel.paint(graphics)
@@ -814,7 +817,7 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 75)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     panel.setSize(200, 200)
 
     panel.paint(graphics)
@@ -834,7 +837,8 @@ class DeviceViewContentPanelTest {
   fun testPaintEmpty() {
     IconLoader.activate()
     setPortableUiFont(2.0f)
-    val panel = DeviceViewContentPanel(model {}, DeviceViewSettings(), disposable.disposable)
+    val model = model {}
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), DeviceViewSettings(), disposable.disposable)
     panel.setSize(800, 400)
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
@@ -857,7 +861,7 @@ class DeviceViewContentPanelTest {
     }
     val view1 = model[VIEW1]
     val settings = DeviceViewSettings(scalePercent = 200)
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model), settings, disposable.disposable)
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 400, 400)

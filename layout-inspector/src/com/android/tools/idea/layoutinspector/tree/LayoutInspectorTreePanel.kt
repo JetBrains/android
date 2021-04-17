@@ -95,7 +95,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       layoutInspector?.layoutInspectorModel?.apply {
         val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
-        stats.selectionMadeFromComponentTree(view)
+        layoutInspector?.stats?.selectionMadeFromComponentTree(view)
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
@@ -199,7 +199,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
         layoutInspector?.layoutInspectorModel?.apply {
           setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
-          stats.selectionMadeFromComponentTree(node.view)
+          layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
         }
       }
       return true

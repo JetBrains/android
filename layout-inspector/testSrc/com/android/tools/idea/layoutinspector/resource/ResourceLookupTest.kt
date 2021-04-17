@@ -46,7 +46,6 @@ class ResourceLookupTest {
       override val resourceLookup = ResourceLookup(projectRule.project)
       override fun get(id: Long): ViewNode? = title
       override val selection: ViewNode? = null
-      override val stats: SessionStatistics = MockitoKt.mock()
     }
     val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "#CC0000",
                                          PropertySection.DECLARED, null, title.drawId, context)

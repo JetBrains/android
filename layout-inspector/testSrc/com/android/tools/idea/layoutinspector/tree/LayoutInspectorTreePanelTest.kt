@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
@@ -333,7 +334,7 @@ class LayoutInspectorTreePanelTest {
 
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor ())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {
@@ -369,7 +370,7 @@ class LayoutInspectorTreePanelTest {
 
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -56,7 +57,7 @@ class LinePainterTest {
   fun testSystemNodeWithMultipleChildren() {
     val launcher: InspectorClientLauncher = MockitoKt.mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val treeModel = treePanel.tree!!.model
     treePanel.setToolContext(inspector)

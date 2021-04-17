@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
@@ -187,8 +188,7 @@ class DeviceViewPanelModelTest {
         }
       }
     }
-
-    val panelModel = DeviceViewPanelModel(model)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
     panelModel.rotate(0.1, 0.2)
     assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
                  panelModel.hitRects[0].transform)
@@ -203,12 +203,11 @@ class DeviceViewPanelModelTest {
     val model = model {
       view(ROOT)
     }
-
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(capabilities)
 
-    val panelModel = DeviceViewPanelModel(model) { client }
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model)) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
@@ -241,7 +240,7 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 50, 50, 20, 20)
       }
     }
-    var panelModel = DeviceViewPanelModel(model)
+    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
     assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
@@ -255,7 +254,7 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = DeviceViewPanelModel(model)
+    panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
   }
 
@@ -286,7 +285,7 @@ class DeviceViewPanelModelTest {
                          yOff: Double,
                          expectedTransforms: Map<Long, ComparingTransform>,
                          rectMap: Map<Long, Rectangle>) {
-    val panelModel = DeviceViewPanelModel(model)
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.owner?.drawId to it.transform }

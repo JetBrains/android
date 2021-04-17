@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.property.panel.api.LinkPropertyItem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -71,7 +72,7 @@ class LambdaPropertyItem(
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
-            lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
+            LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
             if (location.source.endsWith(":unknown")) {
               showBalloonError("Could not determine exact source location", event)
             }

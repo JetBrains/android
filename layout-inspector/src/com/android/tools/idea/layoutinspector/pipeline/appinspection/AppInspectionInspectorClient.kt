@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -57,6 +58,7 @@ class AppInspectionInspectorClient(
   adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
+  stats: SessionStatistics,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
 ) : AbstractInspectorClient(process) {
@@ -75,7 +77,7 @@ class AppInspectionInspectorClient(
 
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
 
-  private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
+  private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
 
   override val capabilities =
     EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,

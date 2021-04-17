@@ -55,7 +55,6 @@ class InspectorPropertiesViewTest {
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup: ResourceLookup = mock()
       override val selection: ViewNode? = null
-      override val stats: SessionStatistics = mock()
       override fun get(id: Long): ViewNode? = null
     }
     val id = 3L
@@ -77,7 +76,6 @@ class InspectorPropertiesViewTest {
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup: ResourceLookup = mock()
       override val selection: ViewNode? = null
-      override val stats: SessionStatistics = mock()
       override fun get(id: Long): ViewNode? = null
     }
     val id = 3L
