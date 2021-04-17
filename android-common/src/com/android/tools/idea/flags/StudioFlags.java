@@ -113,11 +113,6 @@ public final class StudioFlags {
     "Record a method trace on startup by enabling it in the Profiler tab of Run/Debug configuration.",
     true);
 
-  public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
-    PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
-    "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
-    true);
-
   public static final Flag<Boolean> PROFILER_MEMORY_CSV_EXPORT = Flag.create(
     PROFILER, "memory.csv", "Allow exporting entries in memory profiler",
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",

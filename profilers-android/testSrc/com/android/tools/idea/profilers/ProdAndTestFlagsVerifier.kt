@@ -41,7 +41,6 @@ class ProdAndTestFlagsVerifier(val method: Method, val name: String) {
       "isCpuNewRecordingWorkflowEnabled" to "b/162493668",
       "isEnergyProfilerEnabled" to "b/162495674",
       "isJniReferenceTrackingEnabled" to "b/162493669",
-      "isLiveAllocationsEnabled" to "b/162493670",
       "isStartupCpuProfilingEnabled" to "b/162493986",
       "isUnifiedPipelineEnabled" to "b/162494995")
   }

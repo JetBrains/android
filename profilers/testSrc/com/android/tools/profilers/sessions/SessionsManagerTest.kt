@@ -133,7 +133,6 @@ class SessionsManagerTest {
   fun testValidSessionMetadata() {
     val streamId = 1L
     val processId = 10
-    ideProfilerServices.enableLiveAllocationTracking(true)
     val device = Common.Device.newBuilder().apply {
       deviceId = streamId
       state = Common.Device.State.ONLINE
@@ -153,7 +152,6 @@ class SessionsManagerTest {
     assertThat(sessionMetadata.type).isEqualTo(Common.SessionMetaData.SessionType.FULL)
     assertThat(sessionMetadata.processAbi).isEqualTo("arm64")
     assertThat(sessionMetadata.jvmtiEnabled).isTrue()
-    assertThat(sessionMetadata.liveAllocationEnabled).isTrue()
   }
 
   @Test

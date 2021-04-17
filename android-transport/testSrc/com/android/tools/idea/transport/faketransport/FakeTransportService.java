@@ -101,6 +101,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * Creates a fake profiler service. If connected is true there will be a device with a process already present.
    */
   public FakeTransportService(@NotNull FakeTimer timer, boolean connected) {
+    this(timer, connected, AndroidVersion.VersionCodes.O);
+  }
+
+  public FakeTransportService(@NotNull FakeTimer timer, boolean connected, int featureLevel) {
     myDevices = new HashMap<>();
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
@@ -109,9 +113,12 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myEventPositionMarkMap = new HashMap<>();
     myStreamServerMap = new HashMap<>();
     myTimer = timer;
+    Common.Device device = featureLevel == FAKE_DEVICE.getFeatureLevel()
+                           ? FAKE_DEVICE
+                           : FAKE_DEVICE.toBuilder().setFeatureLevel(featureLevel).build();
     if (connected) {
-      addDevice(FAKE_DEVICE);
-      addProcess(FAKE_DEVICE, FAKE_PROCESS);
+      addDevice(device);
+      addProcess(device, FAKE_PROCESS);
     }
     initializeCommandHandlers();
   }

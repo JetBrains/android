@@ -44,7 +44,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       .add((table) -> assertThat(table.getSessionMetaData(-1)).isEqualTo(Profiler.GetSessionMetaDataResponse.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getSessions()).isEqualTo(GetSessionsResponse.getDefaultInstance()));
     methodCalls.add((table) -> table
-      .insertOrUpdateSession(Common.Session.getDefaultInstance(), "Name", 0, "x86", false, false,
+      .insertOrUpdateSession(Common.Session.getDefaultInstance(), "Name", 0, "x86", false,
                              Common.SessionMetaData.SessionType.UNSPECIFIED));
     methodCalls.add((table) -> table.updateSessionEndTime(0, 0));
     methodCalls.add((table) -> table.deleteSession(-1));
@@ -66,7 +66,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
@@ -104,7 +104,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
@@ -131,7 +131,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
         .setEndTimestamp(Long.MAX_VALUE)
         .build();
 
-      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, false, Common.SessionMetaData.SessionType.FULL);
+      getTable().insertOrUpdateSession(session, sessionName, startTime, "x86", true, Common.SessionMetaData.SessionType.FULL);
       sessions.add(session);
     }
 
@@ -153,7 +153,6 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       long sessionId = 10 + i;
       long startTime = 40 + i;
       boolean useJvmti = rand.nextBoolean();
-      boolean useLiveAllocation = rand.nextBoolean();
       String sessionName = Integer.toString(60 + i);
       Common.Session session = Common.Session.newBuilder().setSessionId(sessionId).build();
       Common.SessionMetaData metaData = Common.SessionMetaData
@@ -163,12 +162,11 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
         .setSessionName(sessionName)
         .setProcessAbi("x86")
         .setJvmtiEnabled(useJvmti)
-        .setLiveAllocationEnabled(useLiveAllocation)
         .setType(Common.SessionMetaData.SessionType.FULL)
         .build();
 
       getTable()
-        .insertOrUpdateSession(session, sessionName, startTime, "x86", useJvmti, useLiveAllocation,
+        .insertOrUpdateSession(session, sessionName, startTime, "x86", useJvmti,
                                Common.SessionMetaData.SessionType.FULL);
       metaDatas.add(metaData);
     }

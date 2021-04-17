@@ -124,9 +124,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
   val isLiveAllocationTrackingSupported
-    get() = getDeviceForSelectedSession()?.let { device ->
-      studioProfilers.ideServices.featureConfig.isLiveAllocationsEnabled && device.featureLevel >= AndroidVersion.VersionCodes.O
-    } ?: false
+    get() = with(getDeviceForSelectedSession()) { this != null && featureLevel >= AndroidVersion.VersionCodes.O }
 
   init {
     gcStatsModel.apply {

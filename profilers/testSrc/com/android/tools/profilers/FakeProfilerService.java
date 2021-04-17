@@ -79,7 +79,6 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .setStartTimestampEpochMs(request.getRequestTimeEpochMs())
       .setProcessAbi(request.getProcessAbi())
       .setJvmtiEnabled(request.getJvmtiConfig().getAttachAgent())
-      .setLiveAllocationEnabled(request.getJvmtiConfig().getLiveAllocationEnabled())
       .setType(Common.SessionMetaData.SessionType.FULL)
       .build();
     mySessions.put(sessionId, session);
@@ -100,7 +99,6 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .setSessionId(sessionId)
       .setSessionName(request.getSessionName())
       .setJvmtiEnabled(false)
-      .setLiveAllocationEnabled(false)
       .setType(request.getSessionType())
       .build();
     mySessionMetaDatas.put(sessionId, metadata);
