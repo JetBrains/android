@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
@@ -38,12 +37,9 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /** Callback taking (oldWindow, newWindow, isStructuralChange */
   val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  override val stats = SessionStatistics()
   var lastGeneration = 0
   var updating = false
 
-  @Suppress("unused")
-  private val memoryProbe = InspectorMemoryProbe(this)
   private val idLookup = mutableMapOf<Long, ViewNode>()
 
   override var selection: ViewNode? = null
@@ -144,19 +140,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
     updateConnectionNotification(client)
-    updateStats(client)
   }
 
   private fun updateConnectionNotification(client: InspectorClient) {
     if (client.isConnected && !client.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE) && client.process.device.apiLevel >= 29) {
       InspectorBannerService.getInstance(project).notification = StatusNotificationImpl(
         AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
-    }
-  }
-
-  private fun updateStats(client: InspectorClient) {
-    if (client.isConnected) {
-      stats.start(client.isCapturing)
     }
   }
 

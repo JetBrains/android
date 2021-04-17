@@ -19,14 +19,15 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.project.AndroidNotification
@@ -77,6 +78,7 @@ class TransportInspectorClient(
   private val adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   model: InspectorModel,
+  private val stats: SessionStatistics,
   private val transportComponents: TransportComponents
 ) : AbstractInspectorClient(process) {
 
@@ -111,7 +113,6 @@ class TransportInspectorClient(
   }
 
   private val project = model.project
-  private val stats = model.stats
   private val metrics = LayoutInspectorMetrics.create(project, process, stats)
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
@@ -136,7 +137,7 @@ class TransportInspectorClient(
 
   override val treeLoader = TransportTreeLoader(project, this, skiaParser)
 
-  private val composeDependencyChecker = ComposeDependencyChecker(model)
+  private val composeDependencyChecker = ComposeDependencyChecker(project, stats)
 
   @Suppress("unused") // Need to keep a reference to receive notifications
   private val lowMemoryWatcher = LowMemoryWatcher.register(

@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -94,15 +95,15 @@ fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp",
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
 interface InspectorClientProvider {
-  fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient
+  fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient
 }
 
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
 class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = null) : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
-    return LegacyClient(params.adb, params.process, model, treeLoaderOverride)
+  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+    return LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, treeLoaderOverride)
   }
 }
 
@@ -249,7 +250,7 @@ class LayoutInspectorRule(
     inspectorModel = InspectorModel(projectRule.project)
     launcher = InspectorClientLauncher(adbRule.bridge,
                                        processes,
-                                       listOf { params -> clientProvider.create(params, inspectorModel) },
+                                       listOf { params -> clientProvider.create(params, inspector) },
                                        launcherDisposable,
                                        MoreExecutors.directExecutor())
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
@@ -266,7 +267,7 @@ class LayoutInspectorRule(
     }
 
     // This factory will be triggered when LayoutInspector is created
-    inspector = LayoutInspector(launcher, inspectorModel, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel), MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it
     }

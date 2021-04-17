@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics {
+class SessionStatistics(model: InspectorModel) {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
-  val memory = MemoryStatistics()
+  val memory = MemoryStatistics(model)
   val compose = ComposeStatistics()
   val system = SystemViewToggleStatistics()
 

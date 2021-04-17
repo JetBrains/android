@@ -24,7 +24,7 @@ import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createResponse
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
@@ -52,11 +52,11 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtoc
 class AppInspectionClientProvider(private val getApiServices: () -> AppInspectionApiServices,
                                   private val getScope: () -> CoroutineScope)
   : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
+  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
     val apiServices = getApiServices()
     val scope = getScope()
 
-    return AppInspectionInspectorClient(params.adb, params.process, model, apiServices, scope)
+    return AppInspectionInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, apiServices, scope)
   }
 }
 

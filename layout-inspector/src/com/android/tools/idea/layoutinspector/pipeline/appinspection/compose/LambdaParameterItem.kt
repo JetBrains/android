@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -77,7 +78,7 @@ class LambdaParameterItem(
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
-            lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
+            LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
             if (location.source.endsWith(":unknown")) {
               showBalloonError("Could not determine exact source location", event)
             }

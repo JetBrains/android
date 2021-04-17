@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterGroupItem
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ParameterReference
@@ -40,11 +39,6 @@ interface ViewNodeAndResourceLookup {
    * The current selected node
    */
   val selection: ViewNode?
-
-  /**
-   * Provide access to statistics
-   */
-  val stats: SessionStatistics
 
   /**
    * Perform a lookup of a compose parameter item given a parameter reference

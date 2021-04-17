@@ -37,6 +37,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -70,7 +71,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
@@ -177,7 +177,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testTurnOnSnapshotModeWhenDisconnected() {
     installCommandHandlers()
 
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -202,7 +202,7 @@ class DeviceViewPanelWithFullInspectorTest {
     installCommandHandlers()
     InspectorClientSettings.isCapturingModeOn = false
 
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -226,7 +226,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testTurnOnSnapshotMode() {
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
     latch = CountDownLatch(2)
 
@@ -253,7 +253,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testTurnOnLiveMode() {
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
     latch = CountDownLatch(2)
 
@@ -371,7 +371,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -410,7 +410,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -445,7 +445,7 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -497,7 +497,7 @@ class DeviceViewPanelTest {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
     val toolbar = getToolbar(panel)
@@ -536,7 +536,7 @@ class DeviceViewPanelTest {
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     `when`(launcher.activeClient).thenReturn(client)
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
     val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 

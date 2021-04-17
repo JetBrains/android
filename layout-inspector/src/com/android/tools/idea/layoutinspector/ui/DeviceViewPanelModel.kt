@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -45,7 +46,11 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
-class DeviceViewPanelModel(private val model: InspectorModel, private val client: (() -> InspectorClient?)? = null) {
+class DeviceViewPanelModel(
+  private val model: InspectorModel,
+  private val stats: SessionStatistics,
+  private val client: (() -> InspectorClient?)? = null
+) {
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting
@@ -127,10 +132,10 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
 
   fun refresh() {
     if (xOff == 0.0 && yOff == 0.0) {
-      model.stats.rotation.toggledTo2D()
+      stats.rotation.toggledTo2D()
     }
     else {
-      model.stats.rotation.toggledTo3D()
+      stats.rotation.toggledTo3D()
     }
     if (model.isEmpty) {
       rootBounds = Rectangle()

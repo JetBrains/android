@@ -29,7 +29,7 @@ object RefreshAction : AnAction({ "Refresh layout" }, StudioIcons.LayoutEditor.T
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }
-    inspector.layoutInspectorModel.stats.live.refreshButtonClicked()
+    inspector.stats.live.refreshButtonClicked()
   }
 
   override fun update(event: AnActionEvent) {

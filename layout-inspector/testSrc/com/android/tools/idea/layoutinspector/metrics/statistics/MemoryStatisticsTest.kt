@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.layoutinspector.model
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorMemory
 import org.junit.Test
@@ -23,7 +24,7 @@ class MemoryStatisticsTest {
 
   @Test
   fun testStart() {
-    val memory = MemoryStatistics()
+    val memory = MemoryStatistics(model {})
     memory.recordModelSize(true, 1000L * ONE_MB, 1000L)
     memory.start()
     val data = DynamicLayoutInspectorMemory.newBuilder()
@@ -38,7 +39,7 @@ class MemoryStatisticsTest {
 
   @Test
   fun testKeepLargestMemorySize() {
-    val memory = MemoryStatistics()
+    val memory = MemoryStatistics(model {})
     memory.recordModelSize(true, 1000L * ONE_MB, 1000L)
     memory.recordModelSize(false, 10000L * ONE_MB, 500L)
     memory.recordModelSize(true, 100L * ONE_MB, 10000L)

@@ -304,7 +304,6 @@ class ResourceLookupResolverTest {
     val context = object : ViewNodeAndResourceLookup {
       override val resourceLookup: ResourceLookup = mock()
       override val selection: ViewNode? = null
-      override val stats: SessionStatistics = mock()
 
       override fun get(id: Long): ViewNode? =
         when (id) {

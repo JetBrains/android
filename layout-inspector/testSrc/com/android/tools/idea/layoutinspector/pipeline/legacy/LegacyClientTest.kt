@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
@@ -37,10 +38,10 @@ import org.mockito.Mockito.verify
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = object : InspectorClientProvider {
-    override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
+    override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
       val loader = mock(LegacyTreeLoader::class.java)
       `when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
-      return LegacyClientProvider(loader).create(params, model) as LegacyClient
+      return LegacyClientProvider(loader).create(params, inspector) as LegacyClient
     }
   }
 

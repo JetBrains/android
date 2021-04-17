@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -53,10 +54,13 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
     /**
      * Convenience method for creating a launcher with useful client creation rules used in production
      */
-    fun createDefaultLauncher(adb: AndroidDebugBridge,
-                              processes: ProcessesModel,
-                              model: InspectorModel,
-                              parentDisposable: Disposable): InspectorClientLauncher {
+    fun createDefaultLauncher(
+      adb: AndroidDebugBridge,
+      processes: ProcessesModel,
+      model: InspectorModel,
+      stats: SessionStatistics,
+      parentDisposable: Disposable
+    ): InspectorClientLauncher {
       val transportComponents = TransportInspectorClient.TransportComponents()
       Disposer.register(parentDisposable, transportComponents)
 
@@ -67,17 +71,17 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
               if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION.get()) {
-                AppInspectionInspectorClient(params.adb, params.process, model)
+                AppInspectionInspectorClient(params.adb, params.process, model, stats)
               }
               else {
-                TransportInspectorClient(params.adb, params.process, model, transportComponents)
+                TransportInspectorClient(params.adb, params.process, model, stats, transportComponents)
               }
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.adb, params.process, model) }
+          { params -> LegacyClient(params.adb, params.process, model, stats) }
         ),
         parentDisposable)
     }

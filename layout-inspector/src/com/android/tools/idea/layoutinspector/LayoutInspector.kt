@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -45,7 +46,9 @@ const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 class LayoutInspector(
   private val launcher: InspectorClientLauncher,
   val layoutInspectorModel: InspectorModel,
-  @TestOnly private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
+  val stats: SessionStatistics,
+  @TestOnly private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+) {
 
   val currentClient: InspectorClient get() = launcher.activeClient
 
@@ -62,6 +65,7 @@ class LayoutInspector(
       client.registerErrorCallback(::logError)
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
+      stats.start(client.isCapturing)
     }
     else {
       // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
