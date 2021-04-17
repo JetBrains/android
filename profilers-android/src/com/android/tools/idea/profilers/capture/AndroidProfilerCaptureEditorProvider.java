@@ -40,7 +40,7 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
             fileType instanceof MemoryAllocationFileType ||
             fileType instanceof MemoryCaptureFileType ||
             PerfettoCaptureFileType.EXTENSIONS.contains(extension) ||
-           (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && fileType instanceof HeapProfdMemoryCaptureFileType));
+            fileType instanceof HeapProfdMemoryCaptureFileType);
   }
 
   @NotNull

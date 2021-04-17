@@ -400,9 +400,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
   public boolean isNativeAllocationSamplingEnabled() {
     Common.Device device = getDeviceForSelectedSession();
-    return getStudioProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled() &&
-           device != null &&
-           device.getFeatureLevel() >= AndroidVersion.VersionCodes.Q;
+    return device != null && device.getFeatureLevel() >= AndroidVersion.VersionCodes.Q;
   }
 
   @NotNull

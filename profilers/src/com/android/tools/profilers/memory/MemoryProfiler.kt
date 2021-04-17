@@ -63,9 +63,7 @@ class MemoryProfiler(profilers: StudioProfilers) : StudioProfiler(profilers) {
     myProfilers.addDependency(myAspectObserver).onChange(ProfilerAspect.AGENT, ::agentStatusChanged)
     sessionsManager.registerImportHandler("hprof", Consumer(::importHprof))
     sessionsManager.registerImportHandler("alloc", Consumer(::importLegacyAllocations))
-    if (profilers.ideServices.featureConfig.isNativeMemorySampleEnabled) {
-      sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
-    }
+    sessionsManager.registerImportHandler("heapprofd", Consumer(::importHeapprofd))
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
       val stage = MainMemoryProfilerStage(myProfilers)
       myProfilers.stage = stage

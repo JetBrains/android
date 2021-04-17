@@ -382,9 +382,7 @@ public class SessionsView extends AspectObserver {
     supportedExtensions.add("perfetto-trace");
     supportedExtensions.add("alloc");
     supportedExtensions.add("hprof");
-    if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
-      supportedExtensions.add("heapprofd");
-    }
+    supportedExtensions.add("heapprofd");
     loadAction.setAction(
       () -> myIdeProfilerComponents.createImportDialog().open(
         () -> "Open", supportedExtensions,

@@ -631,7 +631,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testNativeAllocationContextMenu() {
-    myIdeProfilerServices.enableNativeMemorySampling(true);
     // Setup Q Device.
     Common.Device device = makeDevice("Test", AndroidVersion.VersionCodes.Q);
     myTransportService.addDevice(device);
@@ -663,7 +662,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testNativeAllocationTooltipForX86() {
-    myIdeProfilerServices.enableNativeMemorySampling(true);
     // Test toolbar configuration for O+;
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
     myTransportService.addEventToStream(
@@ -684,7 +682,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void testWhenSessionDiesRecordingOptionsViewIsDisabled() {
-    myIdeProfilerServices.enableNativeMemorySampling(true);
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     RecordingOptionsView view = new MainMemoryProfilerStageView(myProfilersView, myStage).getRecordingOptionsView();
     myStage.toggleNativeAllocationTracking();
@@ -701,7 +698,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Test
   public void testToolbarForNativeAllocations() {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
-    myIdeProfilerServices.enableNativeMemorySampling(true);
     MainMemoryProfilerStageView view1 = new MainMemoryProfilerStageView(myProfilersView, myStage);
     JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
     // Test toolbar configuration for pre-Q (FAKE_DEVICE is O by default).
@@ -883,7 +879,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Test
   public void uiInSyncWithStartupNativeRecording() {
-    myIdeProfilerServices.enableNativeMemorySampling(true);
     startWithNewDevice("Test", AndroidVersion.VersionCodes.Q);
     assertThat(myStage.isNativeAllocationSamplingEnabled()).isTrue();
     myStage.nativeAllocationTrackingStart(Memory.MemoryNativeTrackingData.newBuilder()

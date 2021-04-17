@@ -344,7 +344,6 @@ class SessionsManagerTest {
    */
   @Test
   fun testNativeHeapArtifacts() {
-    ideProfilerServices.enableNativeMemorySampling(true)
     val profiler = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,

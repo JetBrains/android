@@ -157,9 +157,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
-    if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
-      myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
-    }
+    myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(AllocationSessionArtifact::getSessionArtifacts);
   }
 
