@@ -49,9 +49,8 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
       gcDurationDataRenderer,
       // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
       when {
-        !stage.isLiveAllocationTrackingReady -> makeLegacyAllocationRenderer()
-        stage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled -> makePastAllocationRenderer()
-        else -> null
+        stage.isLiveAllocationTrackingReady -> makePastAllocationRenderer()
+        else -> makeLegacyAllocationRenderer()
       },
       // Order matters so native allocation tracking goes to the top of the stack. This means when a native allocation recording is captured
       // the capture appears on top of the other renderers.

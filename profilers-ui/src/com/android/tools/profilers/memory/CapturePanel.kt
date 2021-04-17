@@ -183,9 +183,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
   private fun toolbarCore() = mutableListOf<Component>().apply {
     add(instanceFilterMenu.component)
     add(filterComponent)
-    if (selection.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
-      add(captureInfoMessage)
-    }
+    add(captureInfoMessage)
   }
 
   private fun buildToolbarPanel(toolbar: JPanel) = JPanel(BorderLayout()).apply {

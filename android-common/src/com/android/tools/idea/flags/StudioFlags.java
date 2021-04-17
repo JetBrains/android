@@ -118,11 +118,6 @@ public final class StudioFlags {
     "Allow exporting entries in the views for heap dump and native/JVM recordings in CSV format.",
     false);
 
-  public static final Flag<Boolean> PROFILER_SAMPLE_LIVE_ALLOCATIONS = Flag.create(
-    PROFILER, "memory.livealloc.sampled", "Enable Sampled Live Allocation Tracking",
-    "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
-    true);
-
   public static final Flag<Boolean> PROFILER_TRACK_JNI_REFS = Flag.create(
     PROFILER, "jni", "Enable JVMTI-based JNI reference tracking.",
     "For Android O or newer, JNI references are tracked in Memory Profiler and shown in JNI heap.",
