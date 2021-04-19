@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.tree.TreeSettingsImpl
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -119,9 +120,10 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
           InspectorBannerService.getInstance(project).notification = null
         }
 
-        val stats = SessionStatistics(model)
+        val treeSettings = TreeSettingsImpl()
+        val stats = SessionStatistics(model, treeSettings)
         val launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, stats, workbench)
-        val layoutInspector = LayoutInspector(launcher, model, stats)
+        val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)
         val deviceViewPanel = DeviceViewPanel(processes, layoutInspector, viewSettings, workbench)
         DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
         workbench.init(deviceViewPanel, layoutInspector, listOf(

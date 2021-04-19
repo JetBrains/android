@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
@@ -94,19 +95,15 @@ open class ViewNode(
    * - the closest ancestor that is not filtered out of the component tree
    * - null
    */
-  fun findClosestUnfilteredNode(): ViewNode? =
-    if (TreeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
+  fun findClosestUnfilteredNode(treeSettings: TreeSettings): ViewNode? =
+    if (treeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
 
   /** Returns true if the node appears in the component tree. False if it currently filtered out */
-  val isInComponentTree: Boolean
-    get() = !(TreeSettings.hideSystemNodes && isSystemNode) &&
-            ((!TreeSettings.mergedSemanticsTree && !TreeSettings.unmergedSemanticsTree) ||
-             (TreeSettings.mergedSemanticsTree && hasMergedSemantics) ||
-             (TreeSettings.unmergedSemanticsTree && hasUnmergedSemantics))
+  fun isInComponentTree(treeSettings: TreeSettings): Boolean =
+    treeSettings.isInComponentTree(this)
 
   /** Returns true if the node represents a call from a parent node with a single call and it itself is making a single call */
-  open val isSingleCall: Boolean
-    get() = false
+  open fun isSingleCall(treeSettings: TreeSettings): Boolean = false
 
   private var _transformedBounds = bounds
 

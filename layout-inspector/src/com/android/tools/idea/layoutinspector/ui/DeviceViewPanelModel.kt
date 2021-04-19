@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Image
@@ -49,6 +50,7 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
 class DeviceViewPanelModel(
   private val model: InspectorModel,
   private val stats: SessionStatistics,
+  val treeSettings: TreeSettings,
   private val client: (() -> InspectorClient?)? = null
 ) {
   @VisibleForTesting
@@ -119,7 +121,7 @@ class DeviceViewPanelModel(
       .asSequence()
       .filter { it.bounds.contains(x, y) }
       .sortedByDescending { it.hitLevel }
-      .mapNotNull { it.node.owner }
+      .mapNotNull { it.node.findFilteredOwner(treeSettings) }
       .distinct()
 
   fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
@@ -187,7 +189,7 @@ class DeviceViewPanelModel(
                               previousLevel: Int,
                               drawChildren: ViewNode.() -> List<DrawViewNode>) {
     var newLevelIndex = minLevel
-    val owner = node.owner
+    val owner = node.findFilteredOwner(treeSettings)
     if (owner == null || model.isVisible(owner)) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
       // in the next level above that (that is, the last level, starting from the top, where there's space).
@@ -200,9 +202,10 @@ class DeviceViewPanelModel(
       var shouldDraw = true
       var isCollapsed = false
       // If we can collapse, merge into the layer we found if it's the same as our parent node's layer
-      if (node.canCollapse && newLevelIndex <= previousLevel &&
-          (levelListCollector.getOrNull(previousLevel)?.any { it.node.owner == node.owner } == true ||
-           (newLevelIndex == -1 && node.owner == null))) {
+      if (node.canCollapse(treeSettings) && newLevelIndex <= previousLevel &&
+          (levelListCollector.getOrNull(previousLevel)?.any {
+            it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
+          } == true || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))) {
         isCollapsed = true
         shouldDraw = node.drawWhenCollapsed
         if (newLevelIndex == -1) {
@@ -240,7 +243,7 @@ class DeviceViewPanelModel(
 
     allLevels.forEachIndexed { level, levelList ->
       levelList.forEach { (view, isCollapsed) ->
-        val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
+        val hitLevel = ownerToLevel.getOrPut(view.findFilteredOwner(treeSettings)) { level }
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1

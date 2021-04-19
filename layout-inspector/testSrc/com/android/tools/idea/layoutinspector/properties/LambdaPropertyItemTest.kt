@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -62,8 +61,7 @@ class LambdaPropertyItemTest {
     val link = property.link
     val selection = property.lookup.selection
     val balloon = mockBalloonBuilder()
-    val stats: SessionStatistics = mock()
-    val inspector = LayoutInspector(mock(), model {}, stats = stats)
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
@@ -83,8 +81,7 @@ class LambdaPropertyItemTest {
     val property = createProperty(location)
     val link = property.link
     val balloon = mockBalloonBuilder()
-    val stats: SessionStatistics = mock()
-    val inspector = LayoutInspector(mock(), model {}, stats = stats)
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
@@ -105,8 +102,7 @@ class LambdaPropertyItemTest {
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
     val balloon = mockBalloonBuilder()
-    val stats: SessionStatistics = mock()
-    val inspector = LayoutInspector(mock(), model {}, stats = stats)
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 

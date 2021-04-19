@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -72,6 +73,7 @@ private val HQ_RENDERING_HINTS = mapOf(
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
   val stats: SessionStatistics,
+  val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
@@ -82,7 +84,7 @@ class DeviceViewContentPanel(
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel, stats) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
+  val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
 
   val rootLocation: Point?
     get() {
@@ -247,7 +249,7 @@ class DeviceViewContentPanel(
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
     if (origin != SelectionOrigin.INTERNAL && selection != null) {
-      val hits = model.hitRects.filter { it.node.owner == selection }
+      val hits = model.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }
       val bounds = Rectangle()
       hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
@@ -275,14 +277,14 @@ class DeviceViewContentPanel(
     val hoveredNode = inspectorModel.hoveredNode
 
     val drawView = drawInfo.node
-    val view = drawView.owner
+    val view = drawView.findFilteredOwner(treeSettings)
     val selection = inspectorModel.selection
 
     if (!drawInfo.isCollapsed &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings)
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings, treeSettings)
     }
   }
 

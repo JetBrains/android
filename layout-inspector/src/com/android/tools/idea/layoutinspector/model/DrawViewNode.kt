@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.Gray
@@ -63,19 +65,20 @@ const val DRAW_NODE_LABEL_HEIGHT = LABEL_FONT_SIZE * 1.6f + 2 * NORMAL_BORDER_TH
 sealed class DrawViewNode(owner: ViewNode) {
   val unfilteredOwner = owner
 
-  val owner: ViewNode?
-    get() = unfilteredOwner.findClosestUnfilteredNode()
+  fun findFilteredOwner(treeSettings: TreeSettings): ViewNode? =
+    unfilteredOwner.findClosestUnfilteredNode(treeSettings)
 
   val bounds: Shape
     get() = unfilteredOwner.transformedBounds
 
   // Children at the start of the child list that have canCollapse = true will be drawn as part of the parent rather than as separate nodes.
-  abstract val canCollapse: Boolean
+  abstract fun canCollapse(treeSettings: TreeSettings): Boolean
   open val drawWhenCollapsed: Boolean
     get() = true
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
-  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings)
+  abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean,
+                           viewSettings: DeviceViewSettings, treeSettings: TreeSettings)
 
   open fun children(drawChildren: ViewNode.() -> List<DrawViewNode>): Sequence<DrawViewNode> = sequenceOf()
 }
@@ -84,14 +87,20 @@ sealed class DrawViewNode(owner: ViewNode) {
  * A draw view corresponding directly to a ViewNode. Is responsible for painting the border.
  */
 class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
-  override val canCollapse: Boolean
-    get() = !unfilteredOwner.isInComponentTree
+  override fun canCollapse(treeSettings: TreeSettings): Boolean =
+    !unfilteredOwner.isInComponentTree(treeSettings)
   override val drawWhenCollapsed: Boolean
     get() = false
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {}
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
-    val owner = owner ?: return
+  override fun paintBorder(
+    g2: Graphics2D,
+    isSelected: Boolean,
+    isHovered: Boolean,
+    viewSettings: DeviceViewSettings,
+    treeSettings: TreeSettings
+  ) {
+    val owner = findFilteredOwner(treeSettings) ?: return
     // Draw the outline of the border (the white border around the main view border) if necessary.
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
@@ -217,7 +226,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
  * A draw view that paints an image. The [owner] should be the view that does the painting, and is also the "draw parent" of this node.
  */
 class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : DrawViewNode(owner) {
-  override val canCollapse = true
+  override fun canCollapse(treeSettings: TreeSettings) = true
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
     val bounds = bounds.bounds
@@ -227,7 +236,13 @@ class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : Draw
       Rectangle(0, 0, image.getWidth(null), image.getHeight(null)), null)
   }
 
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
+  override fun paintBorder(
+    g2: Graphics2D,
+    isSelected: Boolean,
+    isHovered: Boolean,
+    viewSettings: DeviceViewSettings,
+    treeSettings: TreeSettings
+  ) {
     if (isSelected || isHovered) {
       g2.color = EMPHASIZED_LINE_OUTLINE_COLOR
       g2.stroke = EMPHASIZED_IMAGE_LINE_OUTLINE_STROKE
@@ -256,7 +271,7 @@ class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : Draw
  * a dialog box).
  */
 class Dimmer(val root: ViewNode) : DrawViewNode(root) {
-  override val canCollapse = false
+  override fun canCollapse(treeSettings: TreeSettings) = false
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
     if (root.width > 0 && root.height > 0) {
@@ -267,7 +282,13 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     }
   }
 
-  override fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, viewSettings: DeviceViewSettings) {
+  override fun paintBorder(
+    g2: Graphics2D,
+    isSelected: Boolean,
+    isHovered: Boolean,
+    viewSettings: DeviceViewSettings,
+    treeSettings: TreeSettings
+  ) {
     if (root.width > 0 && root.height > 0) {
       g2.color = NORMAL_LINE_COLOR
       g2.stroke = NORMAL_IMAGE_LINE_STROKE

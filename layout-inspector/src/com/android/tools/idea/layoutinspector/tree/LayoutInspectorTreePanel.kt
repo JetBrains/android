@@ -83,7 +83,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
-      .withPainter { if (TreeSettings.supportLines) LINES else null }
+      .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
 
     val (scrollPane, model, selectionModel) = builder.build()
     componentTree = scrollPane
@@ -283,14 +283,15 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun updateHierarchy(node: ViewNode, previous: TreeViewNode, parent: TreeViewNode) {
-    val current = if (!node.isInComponentTree) previous else {
+    val treeSettings = layoutInspector?.treeSettings ?: return
+    val current = if (!node.isInComponentTree(treeSettings)) previous else {
       val treeNode = node.treeNode
       parent.children.add(treeNode)
       treeNode.parent = parent
       treeNode.children.clear()
       treeNode
     }
-    val nextParent = if (node.isSingleCall) parent else current
+    val nextParent = if (node.isSingleCall(treeSettings)) parent else current
     node.children.forEach { updateHierarchy(it, current, nextParent) }
   }
 

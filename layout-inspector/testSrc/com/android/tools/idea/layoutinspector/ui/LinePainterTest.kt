@@ -15,25 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.testutils.MockitoKt
-import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.find
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -47,17 +42,12 @@ class LinePainterTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around((EdtRule()))!!
 
-  @Before
-  fun before() {
-    projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
-  }
-
   @RunsInEdt
   @Test
   fun testSystemNodeWithMultipleChildren() {
-    val launcher: InspectorClientLauncher = MockitoKt.mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(mock(), model, mock(), treeSettings, MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val treeModel = treePanel.tree!!.model
     treePanel.setToolContext(inspector)
@@ -80,34 +70,34 @@ class LinePainterTest {
       }
     }
     model.update(window, listOf(ROOT), 1)
-    TreeSettings.hideSystemNodes = true
-    TreeSettings.composeAsCallstack = true
+    treeSettings.hideSystemNodes = true
+    treeSettings.composeAsCallstack = true
     treePanel.refresh()
 
     fun node(name: String): TreeViewNode = model.find(name).treeNode
 
     // A callstack should not have support lines:
     assertThat(node("App").children.size).isEqualTo(4)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, node("App"))).isNull()
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("App"))).isNull()
 
     // With hidden system nodes, Column should have 3 children and show support lines:
     assertThat(node("Column").children.size).isEqualTo(3)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, node("Column"))).isSameAs(node("Button"))
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Column"))).isSameAs(node("Button"))
 
     // Now make all system nodes visible in the tree including "Layout":
-    TreeSettings.hideSystemNodes = false
+    treeSettings.hideSystemNodes = false
     treePanel.refresh()
 
     // The callstack should still not have support lines:
     assertThat(node("App").children.size).isEqualTo(5)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, node("App"))).isNull()
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("App"))).isNull()
 
     // Column should not have children and no support lines:
     assertThat(node("Column").children).isEmpty()
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, node("Column"))).isNull()
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Column"))).isNull()
 
     // Layout should have 3 children and show support lines:
     assertThat(node("Layout").children.size).isEqualTo(3)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, node("Layout"))).isSameAs(node("Button"))
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Layout"))).isSameAs(node("Button"))
   }
 }

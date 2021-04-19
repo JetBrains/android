@@ -21,7 +21,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSystemNode
 /**
  * Accumulator of system view toggle (between hidden and visible system views) statistics
  */
-class SystemViewToggleStatistics {
+class SystemViewToggleStatistics(private val treeSettings: TreeSettings) {
   /**
    * How many clicks to select a View node while system nodes are hidden did the user perform
    */
@@ -52,6 +52,6 @@ class SystemViewToggleStatistics {
    * Log that a component was selected.
    */
   fun selectionMade() {
-    if (TreeSettings.hideSystemNodes) hiddenSystemViewClicks++ else visibleSystemViewClicks++
+    if (treeSettings.hideSystemNodes) hiddenSystemViewClicks++ else visibleSystemViewClicks++
   }
 }

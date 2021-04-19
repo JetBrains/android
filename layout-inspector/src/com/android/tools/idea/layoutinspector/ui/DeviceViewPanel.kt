@@ -108,7 +108,9 @@ class DeviceViewPanel(
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, layoutInspector.stats, viewSettings, disposableParent)
+  private val contentPanel = DeviceViewContentPanel(
+    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings, disposableParent
+  )
 
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
     private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||

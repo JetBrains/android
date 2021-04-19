@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.util.PropertiesComponent
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 private val MATERIAL = packageNameHash("androidx.compose.material")
@@ -30,13 +25,6 @@ private val FOUNDATION_TEXT = packageNameHash("androidx.compose.foundation.text"
 private val EXAMPLE = packageNameHash("com.example.myexampleapp")
 
 class ComposeViewNodeTest {
-  @get:Rule
-  val appRule = ApplicationRule()
-
-  @Before
-  fun before() {
-    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
-  }
 
   @Test
   fun testIsSystemNode() {
@@ -61,17 +49,18 @@ class ComposeViewNodeTest {
     assertThat(user1.isSystemNode).isFalse()
     assertThat(user2.isSystemNode).isFalse()
 
-    TreeSettings.hideSystemNodes = true
-    assertThat(system1.isInComponentTree).isFalse()
-    assertThat(system2.isInComponentTree).isFalse()
-    assertThat(user1.isInComponentTree).isTrue()
-    assertThat(user2.isInComponentTree).isTrue()
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = true
+    assertThat(system1.isInComponentTree(treeSettings)).isFalse()
+    assertThat(system2.isInComponentTree(treeSettings)).isFalse()
+    assertThat(user1.isInComponentTree(treeSettings)).isTrue()
+    assertThat(user2.isInComponentTree(treeSettings)).isTrue()
 
-    TreeSettings.hideSystemNodes = false
-    assertThat(system1.isInComponentTree).isTrue()
-    assertThat(system2.isInComponentTree).isTrue()
-    assertThat(user1.isInComponentTree).isTrue()
-    assertThat(user2.isInComponentTree).isTrue()
+    treeSettings.hideSystemNodes = false
+    assertThat(system1.isInComponentTree(treeSettings)).isTrue()
+    assertThat(system2.isInComponentTree(treeSettings)).isTrue()
+    assertThat(user1.isInComponentTree(treeSettings)).isTrue()
+    assertThat(user2.isInComponentTree(treeSettings)).isTrue()
   }
 
   @Test

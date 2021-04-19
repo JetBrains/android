@@ -27,8 +27,10 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
@@ -36,8 +38,8 @@ import java.awt.Shape
 import java.awt.image.BufferedImage
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
-fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
-  InspectorModelDescriptor(project).also(body).build()
+fun model(project: Project = mock(), treeSettings: TreeSettings = FakeTreeSettings(), body: InspectorModelDescriptor.() -> Unit) =
+  InspectorModelDescriptor(project).also(body).build(treeSettings)
 
 fun window(windowId: Any,
            rootViewDrawId: Long,
@@ -214,7 +216,7 @@ class InspectorModelDescriptor(val project: Project) {
     view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, layout,
          imageType, body)
 
-  fun build(): InspectorModel {
+  fun build(treeSettings: TreeSettings): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
     val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) { _, window ->
@@ -225,7 +227,7 @@ class InspectorModelDescriptor(val project: Project) {
           if (drawChildren.any { drawChild -> drawChild is DrawViewImage }) {
             // We can't support changes to the child list when there are also images, currently, since we can't know where in the order
             // of children it should be, or if it should still be there at all.
-            if (drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.owner } == children) {
+            if (drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.findFilteredOwner(treeSettings) } == children) {
               // No changes, great.
             }
             else {
