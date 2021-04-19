@@ -170,106 +170,110 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         indicator.pushState();
         indicator.setIndeterminate(false);
       }
-      int numVisited = 0;
+      try {
+        int numVisited = 0;
 
-      while (!myVisitQueue.isEmpty()) {
-        PsiElement element = myVisitQueue.poll();
-        numVisited++;
+        while (!myVisitQueue.isEmpty()) {
+          PsiElement element = myVisitQueue.poll();
+          numVisited++;
 
-        final AndroidFacet facet = AndroidFacet.getInstance(element);
-        if (facet == null) {
-          continue;
-        }
-        facetSet.add(facet);
-
-        if (indicator != null) {
-          indicator.setText(
-            String.format(Locale.US, "Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
-          indicator.setFraction((double)numVisited / (numVisited + myVisitQueue.size()));
-        }
-
-        if (element instanceof PsiClass) {
-          element.accept(new JavaReferenceVisitor(facet, element));
-
-          // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
-          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, getManifestFiles(facet));
-
-          ReferencesSearch.search(element, manifestScope).forEach(reference -> {
-            PsiElement tag = reference.getElement();
-            tag = PsiTreeUtil.getParentOfType(tag, XmlTag.class);
-
-            if (tag != null) {
-              if (myManifestRefSet.add(tag)) {
-                // Scan the tag because we might have references to other resources.
-                myVisitQueue.offer(tag);
-              }
-
-              myGraphBuilder.markReference(element, tag);
-            }
-          });
-
-          // Scope building: we try to be as precise as possible when computing the enclosing scope. For example we include the (selected)
-          // activity tags in a manifest file but not the entire file, which may contain references to resources we would otherwise move.
-          if (((PsiClass)element).getContainingClass() == null) {
-            fileScope.add(element.getContainingFile().getVirtualFile());
-          }
-          else {
-            elementScope.add(element);
-          }
-        }
-        else {
-          if (element instanceof PsiFile) {
-            fileScope.add(((PsiFile)element).getVirtualFile());
-          } else {
-            elementScope.add(element);
-          }
-
-          element.accept(new XmlResourceReferenceVisitor(facet, element));
-        }
-      }
-
-      GlobalSearchScope globalSearchScope = GlobalSearchScope.EMPTY_SCOPE;
-      for (AndroidFacet facet : facetSet) {
-        globalSearchScope = globalSearchScope.union(facet.getModule().getModuleScope(false));
-      }
-
-      GlobalSearchScope visitedScope = GlobalSearchScope.filesScope(myProject, fileScope)
-        .union(new LocalSearchScope(elementScope.toArray(PsiElement.EMPTY_ARRAY)));
-      globalSearchScope = globalSearchScope.intersectWith(GlobalSearchScope.notScope(visitedScope));
-
-      for (PsiClass clazz : myClassRefSet) {
-        ReferencesSearch.search(clazz, globalSearchScope).forEach(reference -> {
-          myGraphBuilder.markReferencedOutsideScope(clazz);
-          LOGGER.debug(clazz + " referenced from " + reference.getElement().getContainingFile());
-        });
-      }
-
-      Set<ResourceReference> seenResources = new HashSet<>(myResourceRefSet.size());
-      for (ResourceItem item : myResourceRefSet) {
-        ResourceReference ref = item.getReferenceToSelf();
-        if (seenResources.add(ref)) {
-          PsiField[] fields;
-          PsiElement elm = getResourceDefinition(item);
-          if (elm instanceof PsiFile) {
-            fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
-          }
-          else if (elm instanceof XmlTag) {
-            fields = IdeResourcesUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
-          }
-          else {
+          final AndroidFacet facet = AndroidFacet.getInstance(element);
+          if (facet == null) {
             continue;
           }
+          facetSet.add(facet);
 
-          for (PsiField pf : fields) {
-            ReferencesSearch.search(pf, globalSearchScope).forEach(reference -> {
-              myGraphBuilder.markReferencedOutsideScope(elm);
-              LOGGER.debug(item + " referenced from " + reference.getElement().getContainingFile());
+          if (indicator != null) {
+            indicator.setText(
+              String.format(Locale.US, "Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
+            indicator.setFraction((double)numVisited / (numVisited + myVisitQueue.size()));
+          }
+
+          if (element instanceof PsiClass) {
+            element.accept(new JavaReferenceVisitor(facet, element));
+
+            // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
+            GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, getManifestFiles(facet));
+
+            ReferencesSearch.search(element, manifestScope).forEach(reference -> {
+              PsiElement tag = reference.getElement();
+              tag = PsiTreeUtil.getParentOfType(tag, XmlTag.class);
+
+              if (tag != null) {
+                if (myManifestRefSet.add(tag)) {
+                  // Scan the tag because we might have references to other resources.
+                  myVisitQueue.offer(tag);
+                }
+
+                myGraphBuilder.markReference(element, tag);
+              }
             });
+
+            // Scope building: we try to be as precise as possible when computing the enclosing scope. For example we include the (selected)
+            // activity tags in a manifest file but not the entire file, which may contain references to resources we would otherwise move.
+            if (((PsiClass)element).getContainingClass() == null) {
+              fileScope.add(element.getContainingFile().getVirtualFile());
+            }
+            else {
+              elementScope.add(element);
+            }
+          }
+          else {
+            if (element instanceof PsiFile) {
+              fileScope.add(((PsiFile)element).getVirtualFile());
+            } else {
+              elementScope.add(element);
+            }
+
+            element.accept(new XmlResourceReferenceVisitor(facet, element));
+          }
+        }
+
+        GlobalSearchScope globalSearchScope = GlobalSearchScope.EMPTY_SCOPE;
+        for (AndroidFacet facet : facetSet) {
+          globalSearchScope = globalSearchScope.union(facet.getModule().getModuleScope(false));
+        }
+
+        GlobalSearchScope visitedScope = GlobalSearchScope.filesScope(myProject, fileScope)
+          .union(new LocalSearchScope(elementScope.toArray(PsiElement.EMPTY_ARRAY)));
+        globalSearchScope = globalSearchScope.intersectWith(GlobalSearchScope.notScope(visitedScope));
+
+        for (PsiClass clazz : myClassRefSet) {
+          ReferencesSearch.search(clazz, globalSearchScope).forEach(reference -> {
+            myGraphBuilder.markReferencedOutsideScope(clazz);
+            LOGGER.debug(clazz + " referenced from " + reference.getElement().getContainingFile());
+          });
+        }
+
+        Set<ResourceReference> seenResources = new HashSet<>(myResourceRefSet.size());
+        for (ResourceItem item : myResourceRefSet) {
+          ResourceReference ref = item.getReferenceToSelf();
+          if (seenResources.add(ref)) {
+            PsiField[] fields;
+            PsiElement elm = getResourceDefinition(item);
+            if (elm instanceof PsiFile) {
+              fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
+            }
+            else if (elm instanceof XmlTag) {
+              fields = IdeResourcesUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
+            }
+            else {
+              continue;
+            }
+
+            for (PsiField pf : fields) {
+              ReferencesSearch.search(pf, globalSearchScope).forEach(reference -> {
+                myGraphBuilder.markReferencedOutsideScope(elm);
+                LOGGER.debug(item + " referenced from " + reference.getElement().getContainingFile());
+              });
+            }
           }
         }
       }
-      if (indicator != null) {
-        indicator.popState();
+      finally {
+        if (indicator != null) {
+          indicator.popState();
+        }
       }
     }
 
