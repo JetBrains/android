@@ -46,7 +46,9 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import org.jetbrains.android.actions.RunAndroidAvdManagerAction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
@@ -267,7 +269,9 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
             val peerDevice = if (pairedPhone.deviceID == listDevice.deviceID) pairedWear else pairedPhone
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
-              WearPairingManager.removePairedDevices()
+              GlobalScope.launch(Dispatchers.IO) {
+                WearPairingManager.removePairedDevices()
+              }
             }
             val menu = JBPopupMenu()
             menu.add(item)
