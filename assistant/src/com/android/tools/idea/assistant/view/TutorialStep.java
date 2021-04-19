@@ -76,7 +76,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.AbstractBorder;
-import javax.swing.border.EmptyBorder;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -151,6 +151,9 @@ public class TutorialStep extends JPanel {
               return getMinimumSize();
             }
           };
+          final DefaultCaret caret = new DefaultCaret();
+          caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
+          section.setCaret(caret);
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
           section.setDragEnabled(false);
