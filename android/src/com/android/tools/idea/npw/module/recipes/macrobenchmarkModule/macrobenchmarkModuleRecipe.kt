@@ -48,6 +48,10 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   val (buildApi, targetApi, minApi) = moduleData.apis
   val language = projectData.language
 
+  if (this is DefaultRecipeExecutor) {
+    addSigningReference(targetModule)
+  }
+
   val targetPackageName = AndroidModuleInfo.getInstance(targetModule)?.`package` ?: ""
 
   addIncludeToSettings(moduleData.name)
@@ -85,4 +89,14 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   }
 
   addKotlinIfNeeded(projectData, noKtx = true)
+}
+
+private fun addSigningReference(targetModule: Module) {
+  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
+  val androidBuildModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
+  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().first { it.name() == "debug" } ?: return
+  val buildTypeReleaseBuildModel = androidBuildModel.buildTypes().first { it.name() == "release" } ?: return
+
+  buildTypeReleaseBuildModel.signingConfig().setValue(ReferenceTo(debugSignConfigBuildModel))
+  projectBuildModel.applyChanges()
 }
