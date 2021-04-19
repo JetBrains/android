@@ -241,6 +241,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       indicator = new EmptyProgressIndicator();
     }
     customLogger.setIndicator(indicator);
+    indicator.setIndeterminate(false);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 

@@ -165,6 +165,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       Set<PsiElement> elementScope = new HashSet<>();
 
       ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.pushState();
+        indicator.setIndeterminate(false);
+      }
       int numVisited = 0;
 
       while (!myVisitQueue.isEmpty()) {
@@ -262,6 +266,9 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
             });
           }
         }
+      }
+      if (indicator != null) {
+        indicator.popState();
       }
     }
 
