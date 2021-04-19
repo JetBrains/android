@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
