@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.createTraceProfileFile
+import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.findAgentJar
+import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.updateTraceArgsInFile
 import com.android.tools.idea.testing.IdeComponents
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth.assertThat

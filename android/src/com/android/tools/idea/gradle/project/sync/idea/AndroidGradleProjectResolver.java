@@ -172,23 +172,15 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
-public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+public final class AndroidGradleProjectResolver extends AbstractProjectResolverExtension implements AndroidGradleProjectResolverMarker {
+
   public static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse(GRADLE_PLUGIN_MINIMUM_VERSION);
   public static final String BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules";
-  @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
-    new Key<>("module.with.build.variant.switched.from.ui");
-  @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
-    new Key<>("use.variants.from.previous.gradle.syncs");
-  public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
-  // For variant switching we need to store the Kapt model with all the source set information as we only setup one
-  // variant at a time
-  public static final Key<KaptGradleModel> KAPT_GRADLE_MODEL_KEY = Key.create("KAPT_GRADLE_MODEL_KEY");
 
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY");
-  public static final Key<ProjectResolutionMode> REQUESTED_PROJECT_RESOLUTION_MODE_KEY = Key.create("REQUESTED_PROJECT_RESOLUTION_MODE");
-  static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
+  private static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
@@ -404,7 +396,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     // Ensure the kapt module is stored on the datanode so that dependency setup can use it
-    moduleNode.putUserData(KAPT_GRADLE_MODEL_KEY, kaptGradleModel);
+    moduleNode.putUserData(AndroidGradleProjectResolverKeys.KAPT_GRADLE_MODEL_KEY, kaptGradleModel);
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel);
 
     // Populate extra things
@@ -500,7 +492,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                      @NotNull IdeaModule gradleModule,
                                                      @NotNull IdeBaseArtifact artifact) {
     String moduleId = computeModuleIdForArtifact(resolverCtx, gradleModule, artifact);
-    String readableArtifactName = getModuleName(artifact);
+    String readableArtifactName = ModuleUtil.getModuleName(artifact);
     String moduleExternalName = gradleModule.getName() + ":" + readableArtifactName;
     String moduleInternalName =
       parentDataNode.getData().getInternalName() + "." + readableArtifactName;
@@ -515,20 +507,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private static String computeModuleIdForArtifact(@NotNull ProjectResolverContext resolverCtx,
                                                    @NotNull IdeaModule gradleModule,
                                                    @NotNull IdeBaseArtifact baseArtifact) {
-    return getModuleId(resolverCtx, gradleModule) + ":" + getModuleName(baseArtifact);
-  }
-
-  public static String getModuleName(@NotNull IdeBaseArtifact artifact) {
-    switch (artifact.getName()) {
-      case MAIN:
-        return "main";
-      case UNIT_TEST:
-        return "unitTest";
-      case ANDROID_TEST:
-        return "androidTest";
-      default:
-        throw new IllegalStateException("Unknown artifact name: " + artifact.getName());
-    }
+    return getModuleId(resolverCtx, gradleModule) + ":" + ModuleUtil.getModuleName(baseArtifact);
   }
 
   /**
@@ -540,7 +519,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     if (project == null) {
       return CachedVariants.EMPTY;
     }
-    Boolean useCachedVariants = project.getUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS);
+    Boolean useCachedVariants = project.getUserData(AndroidGradleProjectResolverKeys.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS);
     if (useCachedVariants == null || !useCachedVariants) {
       return CachedVariants.EMPTY;
     }
@@ -1024,8 +1003,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       if (isSingleVariantSync) {
         SelectedVariantCollector variantCollector = new SelectedVariantCollector(project);
         SelectedVariants selectedVariants = variantCollector.collectSelectedVariants();
-        String moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
-        project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
+        String moduleWithVariantSwitched = project.getUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
+        project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
         syncOptions = new SingleVariantSyncActionOptions(
           studioFlags,
           selectedVariants,
@@ -1053,7 +1032,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   @NotNull
   private static ProjectResolutionMode getRequestedSyncMode(GradleExecutionSettings gradleExecutionSettings) {
     ProjectResolutionMode projectResolutionMode =
-      gradleExecutionSettings != null ? gradleExecutionSettings.getUserData(REQUESTED_PROJECT_RESOLUTION_MODE_KEY) : null;
+      gradleExecutionSettings != null ? gradleExecutionSettings.getUserData(AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY) : null;
     return projectResolutionMode != null ? projectResolutionMode : ProjectResolutionMode.SyncProjectMode.INSTANCE;
   }
 

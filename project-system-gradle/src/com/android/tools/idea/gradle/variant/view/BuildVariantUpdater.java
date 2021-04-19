@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataServiceKt;
@@ -191,7 +192,7 @@ public class BuildVariantUpdater {
     // TODO(b/184824343): Re-enable cached variant switching when fixed.
     else /*if (!variantToUpdateExists)*/ {
       // Build file is not changed, the cached variants should be cached and reused.
-      project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
+      project.putUserData(AndroidGradleProjectResolverKeys.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
       requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
@@ -220,7 +221,7 @@ public class BuildVariantUpdater {
     }
     String moduleId = AndroidGradleProjectResolver.getModuleIdForModule(moduleToUpdate);
     if (moduleId != null) {
-      project.putUserData(AndroidGradleProjectResolver.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
+      project.putUserData(AndroidGradleProjectResolverKeys.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, moduleId);
     }
   }
 
@@ -456,12 +457,12 @@ public class BuildVariantUpdater {
     return new GradleSyncListener() {
       @Override
       public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
+        project.putUserData(AndroidGradleProjectResolverKeys.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
       }
 
       @Override
       public void syncSucceeded(@NotNull Project project) {
-        project.putUserData(AndroidGradleProjectResolver.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
+        project.putUserData(AndroidGradleProjectResolverKeys.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, null);
         variantSelectionChangeListeners.run();
       }
     };

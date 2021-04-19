@@ -16,9 +16,8 @@
 @file:JvmName("GradleWrapperImportCheck")
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums
@@ -40,6 +39,8 @@ import java.io.IOException
 import java.net.URL
 import java.util.concurrent.CompletableFuture
 
+private val LOG = Logger.getInstance(GradleWrapperImportChecker::class.java)
+
 class InvalidGradleWrapperException(val wrapper: GradleWrapper) : AndroidSyncException()
 
 /**
@@ -59,7 +60,7 @@ fun validateGradleWrapper(projectPath: String) {
     // Perform the validation
     if (validateChecksums(gradleWrapper)) return
   } catch (exception: IOException) {
-    RESOLVER_LOG.warn(exception)
+    LOG.warn(exception)
   }
 
   // We failed, throw an exception to be caught by the issue checker
