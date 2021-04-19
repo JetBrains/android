@@ -41,6 +41,13 @@ public class ChooseBenchmarkModuleTypeStepFixture<W extends AbstractWizardFixtur
   }
 
   @NotNull
+  public ConfigureMacrobenchmarkModuleStepFixture<W> clickNextToMacrobenchmarkModule() {
+    findRadioButtonWithText("Macrobenchmark").select();
+    wizard().clickNext();
+    return new ConfigureMacrobenchmarkModuleStepFixture<>(wizard(), target().getRootPane());
+  }
+
+  @NotNull
   private JRadioButtonFixture findRadioButtonWithText(@NotNull String label) {
     JRadioButton radioButton = robot().finder().find(new GenericTypeMatcher<JRadioButton>(JRadioButton.class, true) {
       @Override
