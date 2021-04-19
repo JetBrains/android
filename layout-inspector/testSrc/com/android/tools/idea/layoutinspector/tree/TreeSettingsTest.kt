@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.Before
 import org.junit.Rule
@@ -28,33 +31,38 @@ class TreeSettingsTest {
   @get:Rule
   val appRule = ApplicationRule()
 
+  private lateinit var inspector: LayoutInspector
+  private lateinit var treeSettings: TreeSettings
+
   @Before
   fun before() {
     appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
+    treeSettings = TreeSettingsImpl()
+    inspector = LayoutInspector(mock(), mock(), mock(), treeSettings, MoreExecutors.directExecutor())
   }
 
   @Test
   fun testDefaultValue() {
-    assertThat(TreeSettings.hideSystemNodes).isTrue()
+    assertThat(treeSettings.hideSystemNodes).isTrue()
   }
 
   @Test
   fun testReadSavedValue() {
     val properties = PropertiesComponent.getInstance()
     properties.setValue(KEY_HIDE_SYSTEM_NODES, false, DEFAULT_HIDE_SYSTEM_NODES)
-    assertThat(TreeSettings.hideSystemNodes).isFalse()
+    assertThat(treeSettings.hideSystemNodes).isFalse()
 
     properties.setValue(KEY_HIDE_SYSTEM_NODES, true, DEFAULT_HIDE_SYSTEM_NODES)
-    assertThat(TreeSettings.hideSystemNodes).isTrue()
+    assertThat(treeSettings.hideSystemNodes).isTrue()
   }
 
   @Test
   fun testSaveValue() {
     val properties = PropertiesComponent.getInstance()
-    TreeSettings.hideSystemNodes = false
+    treeSettings.hideSystemNodes = false
     assertThat(properties.getBoolean(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)).isFalse()
 
-    TreeSettings.hideSystemNodes = true
+    treeSettings.hideSystemNodes = true
     assertThat(properties.getBoolean(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)).isTrue()
     assertThat(properties.getValue(KEY_HIDE_SYSTEM_NODES)).isNull()
   }

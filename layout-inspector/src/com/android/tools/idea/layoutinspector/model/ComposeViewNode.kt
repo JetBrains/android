@@ -85,8 +85,8 @@ class ComposeViewNode(
   override val hasUnmergedSemantics: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_UNMERGED_SEMANTICS)
 
-  override val isSingleCall: Boolean
-    get() = TreeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1
+  override fun isSingleCall(treeSettings: TreeSettings): Boolean =
+    treeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1
 
   @Suppress("NOTHING_TO_INLINE")
   inline fun Int.hasFlag(flag: Int) = flag and this == flag

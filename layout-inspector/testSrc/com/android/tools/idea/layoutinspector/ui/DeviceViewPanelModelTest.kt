@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -31,17 +30,13 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
-import com.android.tools.property.testing.ApplicationRule
 import com.google.common.base.Objects
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.util.PropertiesComponent
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import java.awt.Rectangle
@@ -52,14 +47,6 @@ import kotlin.math.abs
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewPanelModelTest {
-  @get:Rule
-  val appRule = ApplicationRule()
-
-  @Before
-  fun before() {
-    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock(), appRule.testRootDisposable)
-    TreeSettings.hideSystemNodes = false
-  }
 
   @Test
   fun testFlatRects() {
@@ -74,12 +61,11 @@ class DeviceViewPanelModelTest {
 
   @Test
   fun testFlatRectsWithHiddenSystemNodes() {
-    TreeSettings.hideSystemNodes = true
     val expectedTransforms = mapOf(
       VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0),
       VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0))
 
-    checkRects(expectedTransforms, 0.0, 0.0)
+    checkRects(expectedTransforms, 0.0, 0.0, hideSystemNodes = true)
   }
 
   @Test
@@ -95,12 +81,11 @@ class DeviceViewPanelModelTest {
 
   @Test
   fun test1dRectsWithHiddenSystemNodes() {
-    TreeSettings.hideSystemNodes = true
     val expectedTransforms = mapOf(
       VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0),
       VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0))
 
-    checkRects(expectedTransforms, 0.1, 0.0)
+    checkRects(expectedTransforms, 0.1, 0.0, hideSystemNodes = true)
   }
 
   @Test
@@ -188,7 +173,9 @@ class DeviceViewPanelModelTest {
         }
       }
     }
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(0.1, 0.2)
     assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
                  panelModel.hitRects[0].transform)
@@ -203,11 +190,12 @@ class DeviceViewPanelModelTest {
     val model = model {
       view(ROOT)
     }
+    val treeSettings = FakeTreeSettings()
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(capabilities)
 
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model)) { client }
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
@@ -240,7 +228,8 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 50, 50, 20, 20)
       }
     }
-    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
+    val treeSettings = FakeTreeSettings()
+    var panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertEquals(listOf(VIEW2, VIEW1, ROOT), panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList())
     assertEquals(listOf(ROOT), panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList())
@@ -254,11 +243,11 @@ class DeviceViewPanelModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
+    panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     assertEquals(listOf(VIEW3, VIEW2, VIEW1, ROOT), panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
   }
 
-  private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double) {
+  private fun checkRects(expectedTransforms: Map<Long, ComparingTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
     val rectMap = mapOf(
       ROOT to Rectangle(0, 0, 100, 200),
       VIEW1 to Rectangle(0, 0, 50, 60),
@@ -277,21 +266,26 @@ class DeviceViewPanelModelTest {
       }
     }
 
-    checkModel(model, xOff, yOff, expectedTransforms, rectMap)
+    checkModel(model, xOff, yOff, expectedTransforms, rectMap, hideSystemNodes)
   }
 
-  private fun checkModel(model: InspectorModel,
-                         xOff: Double,
-                         yOff: Double,
-                         expectedTransforms: Map<Long, ComparingTransform>,
-                         rectMap: Map<Long, Rectangle>) {
-    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model))
+  private fun checkModel(
+    model: InspectorModel,
+    xOff: Double,
+    yOff: Double,
+    expectedTransforms: Map<Long, ComparingTransform>,
+    rectMap: Map<Long, Rectangle>,
+    hideSystemNodes: Boolean = false
+  ) {
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = hideSystemNodes
+    val panelModel = DeviceViewPanelModel(model, SessionStatistics(model, treeSettings), treeSettings)
     panelModel.rotate(xOff, yOff)
 
-    val actualTransforms = panelModel.hitRects.associate { it.node.owner?.drawId to it.transform }
+    val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
     assertEquals(expectedTransforms, actualTransforms)
 
-    panelModel.hitRects.associateBy { it.node.owner?.drawId }.forEach { (drawId, info) ->
+    panelModel.hitRects.associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }.forEach { (drawId, info) ->
       assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
     }
   }

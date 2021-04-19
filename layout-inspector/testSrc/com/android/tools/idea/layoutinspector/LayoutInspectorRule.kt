@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -267,7 +268,9 @@ class LayoutInspectorRule(
     }
 
     // This factory will be triggered when LayoutInspector is created
-    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val stats = SessionStatistics(inspectorModel, treeSettings)
+    inspector = LayoutInspector(launcher, inspectorModel, stats, treeSettings, MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it
     }

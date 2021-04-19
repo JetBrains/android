@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -72,7 +73,7 @@ class ComposeResolverTest {
   }
 
   private fun createModel(): InspectorModel =
-    model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture) {
+    model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture) {
       view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
         compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
           compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)

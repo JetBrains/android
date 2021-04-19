@@ -40,8 +40,8 @@ import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
@@ -80,7 +80,6 @@ class LegacyTreeLoaderTest {
     val propertiesComponent = PropertiesComponentMock()
     applicationRule.testApplication.registerService(PropertiesComponent::class.java, propertiesComponent)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
-    TreeSettings.hideSystemNodes = false
   }
 
   private val treeSample = """
@@ -106,7 +105,7 @@ DONE.
    */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model {}
-    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model))
+    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model, FakeTreeSettings()))
   }
 
   /**

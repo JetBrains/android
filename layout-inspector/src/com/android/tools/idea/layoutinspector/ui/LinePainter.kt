@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
@@ -44,6 +46,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
     selected: Boolean
   ) {
     val tree = c as Tree
+    val treeSettings = LayoutInspector.get(tree)?.treeSettings
     val path = tree.getClosestPathForLocation(x + width / 2, y + height / 2) ?: return
     basePainter.paint(c, g, x, y, width, height, control, depth, leaf, expanded, selected)
     g.color = JBColor.GRAY
@@ -55,7 +58,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
 
     var node = nodeOf(path)
     var parent = path.parentPath
-    var lastNode = getLastOfMultipleChildren(model, nodeOf(parent))
+    var lastNode = getLastOfMultipleChildren(model, treeSettings, nodeOf(parent))
 
     // Horizontal line:
     val indent = getControlOffset(control, 2, false) - getControlOffset(control, 1, false)
@@ -80,7 +83,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
       }
       node = nodeOf(parent)
       parent = parent.parentPath
-      lastNode = getLastOfMultipleChildren(model, nodeOf(parent))
+      lastNode = getLastOfMultipleChildren(model, treeSettings, nodeOf(parent))
       directChild = false
       lineDepth--
     }
@@ -97,9 +100,9 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
    * - filtered views: if a [node] has multiple children as a result of one of its children were filtered out, we DO want support lines.
    */
   @VisibleForTesting
-  fun getLastOfMultipleChildren(model: TreeModel, node: TreeViewNode): TreeViewNode? {
+  fun getLastOfMultipleChildren(model: TreeModel, treeSettings: TreeSettings?, node: TreeViewNode): TreeViewNode? {
     val count = node.children.size
     val last = if (count > 1) model.getChild(node, count - 1) as TreeViewNode else return null
-    return if (last.view.parent?.findClosestUnfilteredNode()?.treeNode === node) last else null
+    return if (treeSettings?.let { last.view.parent?.findClosestUnfilteredNode(it)?.treeNode } === node) last else null
   }
 }

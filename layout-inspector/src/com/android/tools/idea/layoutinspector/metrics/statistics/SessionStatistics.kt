@@ -17,17 +17,18 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 
 /**
  * Accumulators for various actions of interest.
  */
-class SessionStatistics(model: InspectorModel) {
+class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
   val memory = MemoryStatistics(model)
   val compose = ComposeStatistics()
-  val system = SystemViewToggleStatistics()
+  val system = SystemViewToggleStatistics(treeSettings)
 
   fun start(isCapturing: Boolean) {
     live.start(isCapturing)

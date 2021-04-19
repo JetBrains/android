@@ -32,7 +32,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
@@ -51,6 +50,7 @@ import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTre
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -153,11 +153,11 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testMultiWindowWithVisibleSystemNodes() {
-    TreeSettings.hideSystemNodes = false
     val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     UIUtil.dispatchAllInvocationEvents()
@@ -191,12 +191,12 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testMultiWindowWithHiddenSystemNodes() {
-    TreeSettings.hideSystemNodes = true
     val android = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "simple_screen")
     val demo = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "demo")
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = true
     setToolContext(tree, inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     UIUtil.dispatchAllInvocationEvents()
@@ -232,10 +232,10 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testSelectFromComponentTree() {
-    TreeSettings.hideSystemNodes = false
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val model = inspectorRule.inspectorModel
     val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
     val jtree = tree.tree!!
     UIUtil.dispatchAllInvocationEvents()
@@ -257,10 +257,10 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testFiltering() {
-    TreeSettings.hideSystemNodes = false
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     val model = inspectorRule.inspectorModel
+    inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
     UIUtil.dispatchAllInvocationEvents()
 
@@ -312,9 +312,9 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun keyTypedStartsFiltering() {
-    TreeSettings.hideSystemNodes = false
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
+    inspector.treeSettings.hideSystemNodes = false
     setToolContext(tree, inspector)
     UIUtil.dispatchAllInvocationEvents()
 
@@ -329,13 +329,12 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testSystemNodeWithMultipleChildren() {
-    TreeSettings.hideSystemNodes = true
-    TreeSettings.composeAsCallstack = true
-
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor ())
+    val inspector = LayoutInspector(launcher, model, mock(), FakeTreeSettings(), MoreExecutors.directExecutor ())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    inspector.treeSettings.hideSystemNodes = true
+    inspector.treeSettings.composeAsCallstack = true
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {
       compose(2, "App", composePackageHash = USER_PKG) {
@@ -366,12 +365,11 @@ class LayoutInspectorTreePanelTest {
   @RunsInEdt
   @Test
   fun testSemanticTrees() {
-    TreeSettings.hideSystemNodes = false
-
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(launcher, model, mock(), FakeTreeSettings(), MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    inspector.treeSettings.hideSystemNodes = false
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {
       compose(2, "App") {
@@ -403,7 +401,7 @@ class LayoutInspectorTreePanelTest {
       }
     }.build())
 
-    TreeSettings.mergedSemanticsTree = true
+    inspector.treeSettings.mergedSemanticsTree = true
     treePanel.refresh()
 
     assertTreeStructure(root, expected =
@@ -412,8 +410,8 @@ class LayoutInspectorTreePanelTest {
       compose(4, "Column")
     }.build())
 
-    TreeSettings.mergedSemanticsTree = false
-    TreeSettings.unmergedSemanticsTree = true
+    inspector.treeSettings.mergedSemanticsTree = false
+    inspector.treeSettings.unmergedSemanticsTree = true
     treePanel.refresh()
 
     assertTreeStructure(root, expected =
@@ -424,8 +422,8 @@ class LayoutInspectorTreePanelTest {
       compose(8, "Button")
     }.build())
 
-    TreeSettings.mergedSemanticsTree = true
-    TreeSettings.unmergedSemanticsTree = true
+    inspector.treeSettings.mergedSemanticsTree = true
+    inspector.treeSettings.unmergedSemanticsTree = true
     treePanel.refresh()
 
     assertTreeStructure(root, expected =

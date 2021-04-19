@@ -45,19 +45,21 @@ object FilterGroupAction : DropDownAction("Filter", null, StudioIcons.Common.FIL
  */
 object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.hideSystemNodes
+    LayoutInspector.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.hideSystemNodes = state
+    val inspector = LayoutInspector.get(event) ?: return
+    val treeSettings = inspector.treeSettings
+    treeSettings.hideSystemNodes = state
 
     if (state) {
-      val model = LayoutInspector.get(event)?.layoutInspectorModel
-      val selectedNode = model?.selection
-      if (selectedNode?.isInComponentTree == false) {
-        model.setSelection(selectedNode.findClosestUnfilteredNode(), SelectionOrigin.COMPONENT_TREE)
+      val model = inspector.layoutInspectorModel
+      val selectedNode = model.selection
+      if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
+        model.setSelection(selectedNode.findClosestUnfilteredNode(treeSettings), SelectionOrigin.COMPONENT_TREE)
       }
-      val hoveredNode = model?.hoveredNode
-      if (hoveredNode?.isInComponentTree == false) {
+      val hoveredNode = model.hoveredNode
+      if (hoveredNode != null && !hoveredNode.isInComponentTree(treeSettings)) {
         model.hoveredNode = null
       }
     }
@@ -81,10 +83,10 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
 
 object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.mergedSemanticsTree
+    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree ?: DEFAULT_MERGED_SEMANTICS_TREE
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.mergedSemanticsTree = state
+    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree = state
     event.treePanel()?.refresh()
   }
 
@@ -96,10 +98,10 @@ object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") 
 
 object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tree") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.unmergedSemanticsTree
+    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree ?: DEFAULT_UNMERGED_SEMANTICS_TREE
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.unmergedSemanticsTree = state
+    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree = state
     event.treePanel()?.refresh()
   }
 
@@ -112,20 +114,21 @@ object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tre
 object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.composeAsCallstack
+    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack ?: DEFAULT_COMPOSE_AS_CALLSTACK
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.composeAsCallstack = state
+    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack = state
     event.treePanel()?.refresh()
   }
 }
 
 object SupportLines : ToggleAction("Show Support Lines", null, null) {
 
-  override fun isSelected(event: AnActionEvent): Boolean = TreeSettings.supportLines
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.supportLines ?: DEFAULT_SUPPORT_LINES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.supportLines = state
+    LayoutInspector.get(event)?.treeSettings?.supportLines = state
     event.tree()?.repaint()
   }
 }

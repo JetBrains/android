@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
@@ -57,7 +58,7 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
   @Before
   fun setUp() {
     val project = projectRule.project
-    model = model(project, DemoExample.setUpDemo(projectRule.fixture))
+    model = model(project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
     val fileManager = Mockito.mock(FileEditorManager::class.java)
     Mockito.`when`(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)

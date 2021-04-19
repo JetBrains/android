@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -50,8 +49,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
 import com.android.tools.profiler.proto.Commands
@@ -60,7 +59,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -357,11 +355,9 @@ class DeviceViewPanelTest {
 
   @Before
   fun setup() {
-    ApplicationManager.getApplication().registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
-    TreeSettings.hideSystemNodes = false
   }
 
   @Ignore("b/185809224")
@@ -371,7 +367,9 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, mock(), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -410,7 +408,9 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -445,7 +445,9 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -497,7 +499,9 @@ class DeviceViewPanelTest {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
     val toolbar = getToolbar(panel)
@@ -536,7 +540,9 @@ class DeviceViewPanelTest {
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     `when`(launcher.activeClient).thenReturn(client)
-    val inspector = LayoutInspector(launcher, model, SessionStatistics(model), MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 

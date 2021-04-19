@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -78,7 +80,7 @@ class InspectorModelTest {
     assertEquals(2, model[ROOT]?.x)
     assertEquals(6, model[VIEW3]?.height)
     assertSame(origRoot, newRootReported)
-    assertSingleRoot(model)
+    assertSingleRoot(model, FakeTreeSettings())
   }
 
   @Test
@@ -115,7 +117,7 @@ class InspectorModelTest {
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
     assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3] ?: fail())
-    assertSingleRoot(model)
+    assertSingleRoot(model, FakeTreeSettings())
   }
 
   @Test
@@ -147,7 +149,7 @@ class InspectorModelTest {
     val newNodes = model.root.flatten().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
     assertEquals(true, origNodes[VIEW1]?.children?.isEmpty())
-    assertSingleRoot(model)
+    assertSingleRoot(model, FakeTreeSettings())
   }
 
   @Test
@@ -188,7 +190,7 @@ class InspectorModelTest {
     assertEquals("v4Type", model[VIEW4]?.qualifiedName)
     assertEquals("v3Type", model[VIEW3]?.qualifiedName)
     assertEquals(8, model[VIEW3]?.y)
-    assertSingleRoot(model)
+    assertSingleRoot(model, FakeTreeSettings())
   }
 
   @Test
@@ -239,13 +241,13 @@ class InspectorModelTest {
     model.update(null, listOf<Any>(), 0)
     assertEmpty(model.root.children)
     assertTrue(model.isEmpty)
-    assertSingleRoot(model)
+    assertSingleRoot(model, FakeTreeSettings())
   }
 
   private fun DrawViewNode.flattenDrawChildren(drawChildren: ViewNode.() -> List<DrawViewNode>): List<DrawViewNode> =
     listOf(this).plus(this.unfilteredOwner.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) })
 
-  private fun assertSingleRoot(model: InspectorModel) {
+  private fun assertSingleRoot(model: InspectorModel, treeSettings: TreeSettings) {
     ViewNode.readDrawChildren { drawChildren ->
       val allDrawChildren = model.root.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) }
       // Check that the drawView tree contains exactly the drawChildren of every element of the view tree
@@ -254,7 +256,7 @@ class InspectorModelTest {
       // Check that the unfiltered owners of the drawViews are all in the view tree
       assertThat(model.root.flatten().toList()).containsAllIn(allDrawChildren.map { it.unfilteredOwner })
       // Check that the owners of the drawViews are all in the view tree or null
-      assertThat(model.root.flatten().plus(null).toList()).containsAllIn(allDrawChildren.map { it.owner })
+      assertThat(model.root.flatten().plus(null).toList()).containsAllIn(allDrawChildren.map { it.findFilteredOwner(treeSettings) })
     }
   }
 }

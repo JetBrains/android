@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -47,6 +48,7 @@ class LayoutInspector(
   private val launcher: InspectorClientLauncher,
   val layoutInspectorModel: InspectorModel,
   val stats: SessionStatistics,
+  val treeSettings: TreeSettings,
   @TestOnly private val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
 ) {
 
