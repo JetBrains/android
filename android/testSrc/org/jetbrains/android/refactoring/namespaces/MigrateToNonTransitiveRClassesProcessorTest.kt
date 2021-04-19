@@ -28,6 +28,8 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.MIGRAT
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SKIPPED
+import com.intellij.codeInspection.unusedImport.UnusedImportInspection
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.guessProjectDir
@@ -38,6 +40,8 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.KotlinBundle
+import org.jetbrains.kotlin.idea.inspections.KotlinUnusedImportInspection
 
 class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
@@ -163,6 +167,67 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   
                   // Styleable_Attr has more logic than other ResourceTypes
                   R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+                )
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.enableInspections(KotlinUnusedImportInspection())
+    myFixture.enableInspections(UnusedImportInspection())
+
+    myFixture.addFileToProject(
+      "src/com/other/folder/AppOtherPackageJavaClass.java",
+      // language=java
+      """
+        package com.other.folder;
+
+        import com.example.app.R;
+
+        public class AppOtherPackageJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                };
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "src/com/other/folder/AppOtherPackageKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.other.folder
+
+        import com.example.app.R
+
+        class AppOtherPackageKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
                   R.styleable.styleable_from_lib_Attr_from_lib,
                   R.styleable.styleable_from_sublib_Attr_from_sublib,
                   com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
@@ -320,10 +385,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     assertThat(usages).hasSize(2)
 
     val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
-    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(8)
+    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(12)
 
     val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
-    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(8)
+    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(12)
   }
 
   fun testMiddleModule_Kotlin() {
@@ -533,6 +598,73 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       true
     )
 
+    // Java files have optimized imports. In this case because it's in a different package, and there are no references to resources in the
+    // same module, the import statement has been removed.
+    myFixture.checkResult(
+      "src/com/other/folder/AppOtherPackageJavaClass.java",
+      // language=java
+      """
+        package com.other.folder;
+
+        public class AppOtherPackageJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                };
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+
+    // Kotlin files do not have optimized imports. A unused R class import is left behind if there are no longer references to current
+    // module R class.
+    myFixture.checkResult(
+      "src/com/other/folder/AppOtherPackageKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.other.folder
+
+        import com.example.app.R
+
+        class AppOtherPackageKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
+                )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+    myFixture.openFileInEditor(myFixture.findFileInTempDir("src/com/other/folder/AppOtherPackageKotlinClass.kt"))
+    val highlightInfos = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfos.first().description).isEqualTo(KotlinBundle.message("unused.import.directive"))
+
+
     myFixture.checkResult(
       "${getAdditionalModulePath("lib")}/src/com/example/lib/LibJavaClass.java",
       // language=java
@@ -619,10 +751,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     assertThat(usages).hasSize(3)
 
     val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
-    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(16)
+    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(28)
 
     val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
-    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(16)
+    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(28)
 
     val syncEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
