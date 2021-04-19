@@ -19,7 +19,6 @@ package com.android.tools.idea.assistant.view
 import com.android.tools.idea.assistant.AssistActionState
 import com.intellij.ui.components.JBLabel
 import org.jetbrains.annotations.TestOnly
-import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BorderFactory
@@ -65,11 +64,7 @@ class StatefulButtonMessage @JvmOverloads constructor(title: String, state: Assi
     c.weightx = 0.99
     add(titlePane, c)
     body?.let {
-      val bodyPane = object : JEditorPane() {
-        override fun getPreferredSize(): Dimension {
-          return minimumSize
-        }
-      }
+      val bodyPane = JEditorPane()
       bodyPane.isOpaque = false
       bodyPane.border = BorderFactory.createEmptyBorder()
       bodyPane.dragEnabled = false
