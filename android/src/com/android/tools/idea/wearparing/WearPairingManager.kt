@@ -85,8 +85,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   fun setPairedDevices(phone: PairingDevice, wear: PairingDevice) {
     pairedPhoneDevice = phone.disconnectedCopy(isPaired = true)
     pairedWearDevice = wear.disconnectedCopy(isPaired = true)
-    pairedDevicesAreOnline = phone.isOnline() && wear.isOnline()
-    updateDevicesChannel.offer(Unit)
+    pairedDevicesAreOnline = true
   }
 
   @Synchronized
@@ -95,23 +94,28 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun removePairedDevices() {
-    GlobalScope.launch(Dispatchers.IO) {
-      try {
-        val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return@launch
-        getConnectedDevices()[phoneDeviceID]?.apply {
-          LOG.warn("REMOVE AUTO-forward $name")
-          runCatching { removeForward(5601, 5601) }
-        }
-      }
-      catch (ex: Throwable) {
-        LOG.warn(ex)
-      }
+  suspend fun removePairedDevices() {
+    try {
+      val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return
+      val wearDeviceID = pairedWearDevice?.deviceID ?: return
 
       pairedPhoneDevice = null
       pairedWearDevice = null
-      updateDevicesChannel.offer(Unit)
+
+      val connectedDevices = getConnectedDevices()
+      connectedDevices[phoneDeviceID]?.apply {
+        LOG.warn("[$name] Remove AUTO-forward")
+        runCatching { removeForward(5601, 5601) }
+      }
+      connectedDevices[wearDeviceID]?.apply {
+        killGmsCore(this)
+      }
     }
+    catch (ex: Throwable) {
+      LOG.warn(ex)
+    }
+
+    updateDevicesChannel.offer(Unit)
   }
 
   override fun deviceConnected(device: IDevice) {
@@ -225,18 +229,23 @@ suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
   restartGmsCore(wearDevice)
 }
 
-private suspend fun restartGmsCore(device: IDevice) {
-  LOG.warn("Restarting Wear Process for ${device.name}")
-  device.executeShellCommand("am force-stop $GMS_PACKAGE") // Kill wear gms core service
+private suspend fun killGmsCore(device: IDevice) {
+  LOG.warn("[${device.name}] Killing Wear OS Process")
+  runCatching { device.executeShellCommand("am force-stop $GMS_PACKAGE") }
+}
 
-  // Wait for the Wear GMS Core process to start.
-  withTimeoutOrNull(10_000) {
+private suspend fun restartGmsCore(device: IDevice) {
+  killGmsCore(device)
+
+  LOG.warn("[${device.name}] Wait for Wear OS process re-start")
+  withTimeoutOrNull(30_000) {
     while (device.loadNodeID().isEmpty()) {
       // Restart in case it doesn't restart automatically
       device.executeShellCommand("am broadcast -a $GMS_PACKAGE.INITIALIZE")
       delay(1_000)
     }
   }
+  LOG.warn("[${device.name}] Wear OS Process started")
 }
 
 private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevice: PairingDevice?): PairingDevice {
@@ -297,7 +306,7 @@ private fun showConnectionDroppedBalloon(offlineName: String, phoneName: String,
   )
 
 private fun showMessageBalloon(title: String, text: String, wizardAction: WizardAction?) {
-  val hyperlink = object: NotificationHyperlink("launchAssistant", message("wear.assistant.device.connection.balloon.link")) {
+  val hyperlink = object : NotificationHyperlink("launchAssistant", message("wear.assistant.device.connection.balloon.link")) {
     override fun execute(project: Project) {
       wizardAction?.restart(project)
     }

@@ -78,19 +78,20 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldLaunchDevices() {
-    val iDevice = createTestDevice(companionAppVersion = "") // Simulate no Companion App
-
     var launched = false
     phoneDevice.launch = {
       launched = true
-      Futures.immediateFuture(iDevice)
+      Futures.immediateFuture(createTestDevice(companionAppVersion = ""))
     }
     wearDevice.launch = phoneDevice.launch
 
+    assertThat(model.removePairingOnCancel.get()).isFalse()
+
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
-    fakeUi.waitForHeader("Starting devices")
+    fakeUi.waitForHeader("Install Wear OS Companion Application")
     assertThat(launched).isTrue()
+    assertThat(model.removePairingOnCancel.get()).isTrue()
 
     val (pairedPhoneDevice, pairedWearDevice) = WearPairingManager.getPairedDevices()
     assertThat(pairedPhoneDevice?.deviceID).isEqualTo(phoneDevice.deviceID)

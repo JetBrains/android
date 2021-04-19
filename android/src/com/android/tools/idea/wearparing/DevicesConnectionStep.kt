@@ -92,6 +92,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   override fun onEntering() {
     dispose() // Cancel any previous jobs and error listeners
+    model.removePairingOnCancel.set(true)
 
     runningJob = GlobalScope.launch(ioThread) {
       if (model.phoneDevice.valueOrNull == null || model.wearDevice.valueOrNull == null) {
@@ -130,6 +131,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
+    WearPairingManager.removePairedDevices()
     WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
     createDeviceBridge(phoneDevice, wearDevice)
 
