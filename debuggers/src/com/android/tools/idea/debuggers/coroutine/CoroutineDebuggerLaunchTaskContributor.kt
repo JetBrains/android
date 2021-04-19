@@ -21,18 +21,24 @@ import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.intellij.openapi.module.Module
 
+/**
+ * Responsible for setting the am start options to start the coroutine debugger agent.
+ */
 class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
   override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions): LaunchTask? {
     return null
   }
 
   override fun getAmStartOptions(module: Module, applicationId: String, launchOptions: LaunchOptions, device: IDevice): String {
-    return if (FlagController.isCoroutineDebuggerEnabled) {
-      // TODO(b/182023904)
-      ""
+    if (!FlagController.isCoroutineDebuggerEnabled) {
+      return ""
     }
-    else {
-      ""
+
+    if (!launchOptions.isDebug) {
+      return ""
     }
+
+    // TODO(b/182023182) make a public accessible method in Deployer to expose the sites values
+    return "--attach-agent /data/data/${applicationId}/code_cache/coroutine_debugger_agent.so"
   }
 }

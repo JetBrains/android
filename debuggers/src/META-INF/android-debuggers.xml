@@ -17,4 +17,8 @@
   <extensions defaultExtensionNs="com.android.run">
     <androidLaunchTaskContributor implementation="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerLaunchTaskContributor" />
   </extensions>
+
+  <projectListeners>
+    <listener class="com.android.tools.idea.debuggers.coroutine.CoroutineDebuggerProjectListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
+  </projectListeners>
 </idea-plugin>
