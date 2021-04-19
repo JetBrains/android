@@ -120,10 +120,6 @@ public class TutorialCard extends CardViewPanel {
       redraw();
     }
     super.setVisible(aFlag);
-    initScrollValues();
-  }
-
-  private void initScrollValues() {
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
@@ -242,9 +238,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-    // reset the scroll bars after render see b/77530149
-    ApplicationManager.getApplication().invokeLater(() -> initScrollValues());
   }
 
   private static class TutorialDescription extends JEditorPane {
