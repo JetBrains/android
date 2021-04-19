@@ -61,7 +61,7 @@ class ConnectionsView(private val model: NetworkInspectorModel, private val pare
    * Columns for each connection information
    */
   @VisibleForTesting
-  internal enum class Column(val widthPercentage: Double, val type: Class<*>) {
+  enum class Column(val widthPercentage: Double, val type: Class<*>) {
     NAME(0.25, String::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return getUrlName(data.url)

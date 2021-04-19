@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FpsTimer
+import com.android.tools.adtui.model.StopwatchTimer
 import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.stdui.CommonButton
@@ -43,8 +44,10 @@ import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
@@ -75,13 +78,21 @@ class NetworkInspectorTab(
   private val codeNavigationProvider: CodeNavigationProvider,
   private val dataSource: NetworkInspectorDataSource,
   private val uiDispatcher: CoroutineDispatcher,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
+  private val timer: StopwatchTimer = FpsTimer(UPDATE_RATE)
 ) : AspectObserver(), Disposable {
   private lateinit var inspectorServices: NetworkInspectorServices
-  private lateinit var model: NetworkInspectorModel
+
+  @VisibleForTesting
+  lateinit var model: NetworkInspectorModel
   private lateinit var view: NetworkInspectorView
   val component: TooltipLayeredPane
-  private val timer = FpsTimer(UPDATE_RATE)
+
+  @VisibleForTesting
+  lateinit var actionsToolBar: JPanel
+
+  @VisibleForTesting
+  val launchJob: Job
 
   init {
     Disposer.register(parentDisposable, this)
@@ -95,7 +106,7 @@ class NetworkInspectorTab(
     splitter.lastComponent = parentPanel
 
     component = TooltipLayeredPane(splitter)
-    scope.launch {
+    launchJob = scope.launch {
       val deviceTime = client.getStartTimeStampNs()
       withContext(uiDispatcher) {
         val stagePanel = JPanel(BorderLayout())
@@ -111,9 +122,9 @@ class NetworkInspectorTab(
         view = NetworkInspectorView(model, componentsProvider, component)
         stagePanel.add(view.component)
 
-        val rightToolbar = JPanel(GridBagLayout())
-        toolbar.add(rightToolbar, BorderLayout.EAST)
-        rightToolbar.border = JBEmptyBorder(0, 0, 0, 2)
+        actionsToolBar = JPanel(GridBagLayout())
+        toolbar.add(actionsToolBar, BorderLayout.EAST)
+        actionsToolBar.border = JBEmptyBorder(0, 0, 0, 2)
 
         val zoomOut = CommonButton(AllIcons.General.ZoomOut)
         zoomOut.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomOut)
@@ -128,7 +139,7 @@ class NetworkInspectorTab(
           .build()
 
         zoomOut.toolTipText = zoomOutAction.defaultToolTipText
-        rightToolbar.add(zoomOut)
+        actionsToolBar.add(zoomOut)
 
         val zoomIn = CommonButton(AllIcons.General.ZoomIn)
         zoomIn.disabledIcon = IconLoader.getDisabledIcon(AllIcons.General.ZoomIn)
@@ -142,7 +153,7 @@ class NetworkInspectorTab(
                          KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
                          KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build()
         zoomIn.toolTipText = zoomInAction.defaultToolTipText
-        rightToolbar.add(zoomIn)
+        actionsToolBar.add(zoomIn)
 
         val resetZoom = CommonButton(StudioIcons.Common.RESET_ZOOM)
         resetZoom.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM)
@@ -155,7 +166,7 @@ class NetworkInspectorTab(
           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                          KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build()
         resetZoom.toolTipText = resetZoomAction.defaultToolTipText
-        rightToolbar.add(resetZoom)
+        actionsToolBar.add(resetZoom)
 
         val zoomToSelection = CommonButton(StudioIcons.Common.ZOOM_SELECT)
         zoomToSelection.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT)
@@ -169,7 +180,7 @@ class NetworkInspectorTab(
           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
           .build()
         zoomToSelection.toolTipText = zoomToSelectionAction.defaultToolTipText
-        rightToolbar.add(zoomToSelection)
+        actionsToolBar.add(zoomToSelection)
 
         val goLiveToolbar = JPanel(GridBagLayout())
         goLiveToolbar.add(FlatSeparator())
@@ -212,7 +223,7 @@ class NetworkInspectorTab(
         inspectorServices.timeline.addDependency(this@NetworkInspectorTab).onChange(
           StreamingTimeline.Aspect.STREAMING) { goLive.isSelected = inspectorServices.timeline.isStreaming }
         goLiveToolbar.add(goLive)
-        rightToolbar.add(goLiveToolbar)
+        actionsToolBar.add(goLiveToolbar)
 
 
         zoomOut.isEnabled = true
