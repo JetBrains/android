@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
+import com.android.tools.idea.editors.literals.actions.LiveLiteralsStatusAction
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
@@ -25,7 +31,7 @@ import com.intellij.openapi.project.Project
  * A [TextEditorWithMultiRepresentationPreview] where the preview part is [SourceCodePreview] and therefore it allows to have several
  * representations for a single source code file.
  */
-internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
+internal class SourceCodeEditorWithMultiRepresentationPreview(private val project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
   TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
   override fun getState(level: FileEditorStateLevel): SourceCodeEditorWithMultiRepresentationPreviewState =
     SourceCodeEditorWithMultiRepresentationPreviewState(
@@ -45,4 +51,13 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(project: Project, 
       super.setState(state)
     }
   }
+
+  override fun createRightToolbarActionGroup(): ActionGroup? =
+    textEditor.editor.project?.let {
+      DefaultActionGroup(
+        listOfNotNull(
+          LiveLiteralsStatusAction(it)
+        )
+      )
+    }
 }

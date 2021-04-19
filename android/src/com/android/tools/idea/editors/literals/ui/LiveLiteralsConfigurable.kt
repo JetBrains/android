@@ -16,10 +16,10 @@
 package com.android.tools.idea.editors.literals.ui
 
 import com.android.tools.idea.editors.literals.LiveLiteralsApplicationConfiguration
-import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
@@ -56,7 +56,7 @@ class LiveLiteralsConfigurable : BoundSearchableConfigurable(
           ProjectConstantRemapper.getInstance(it).clearConstants(null)
         }
     }
-    LiveLiteralsAvailableIndicatorFactory.updateAllWidgets()
+    ActivityTracker.getInstance().inc()
   }
 }
 

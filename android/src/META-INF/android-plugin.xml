@@ -713,7 +713,6 @@
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
     <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
-    <statusBarWidgetFactory id="LiveLiterals" implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory"/>
 
     <projectService serviceImplementation="com.android.tools.idea.rendering.classloading.ProjectConstantRemapper"
                     serviceInterface="com.android.tools.idea.rendering.classloading.ConstantRemapper" />
