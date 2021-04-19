@@ -615,7 +615,10 @@ public class VisualizationForm
                 Collection<RenderErrorModel.Issue> issues = VisualLintAnalysisKt.analyze(result);
                 NlModel model = manager.getModel();
                 IssueProvider provider = new VisualLintIssueProvider(model, new RenderErrorModel(issues));
-                myIssueProviders.put(model, provider);
+                IssueProvider oldProvider = myIssueProviders.put(model, provider);
+                if (oldProvider != null) {
+                  issueModel.removeIssueProvider(oldProvider);
+                }
                 issueModel.addIssueProvider(provider);
               }
               return null;
