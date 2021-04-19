@@ -300,6 +300,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     UIUtil.invokeLaterIfNeeded(() -> {
       if (!myIssueModel.hasIssues()) {
         myTitleLabel.setText(TITLE_NO_ISSUES);
+        setSelectedIssue(null);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
         if (myAutoSize) {
@@ -372,6 +373,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       Issue issue = entry.getKey();
       if (!newIssues.contains(issue)) {
         IssueView issueView = entry.getValue();
+        if (mySelectedIssueView == issueView) {
+          setSelectedIssue(null);
+        }
         myErrorListPanel.remove(issueView);
         iterator.remove();
       }
@@ -482,6 +486,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     if (mySelectedIssueView != selectedIssue) {
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(false);
+        mySelectedIssue = null;
       }
       mySelectedIssueView = selectedIssue;
       if (mySelectedIssueView != null) {
