@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncStateKt.PROJECT_SYNC_REQUEST;
-import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REQUESTED_PROJECT_RESOLUTION_MODE_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
@@ -250,7 +250,7 @@ public class GradleSyncExecutor {
     assert projectPath != null;
 
     GradleProjectResolver projectResolver = new GradleProjectResolver();
-    ProjectResolverPolicy projectResolverPolicy = new GradlePartialResolverPolicy(it -> it instanceof AndroidGradleProjectResolver);
+    ProjectResolverPolicy projectResolverPolicy = new GradlePartialResolverPolicy(it -> it instanceof AndroidGradleProjectResolverMarker);
     DataNode<ProjectData> projectDataNode =
       projectResolver.resolveProjectInfo(id, projectPath, false, settings, projectResolverPolicy, NULL_OBJECT);
     if (projectDataNode == null) {

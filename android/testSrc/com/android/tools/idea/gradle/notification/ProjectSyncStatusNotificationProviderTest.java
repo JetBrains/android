@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;

@@ -32,7 +32,6 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.diagnostic.Logger
@@ -68,7 +67,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.io.File.separatorChar
 
-internal val RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
+private val LOG = Logger.getInstance(AndroidDependenciesSetupContext::class.java)
 
 typealias SourcesPath = File?
 typealias JavadocPath = File?
@@ -104,7 +103,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   // completely due to a badly behaved plugin.
   @Suppress("UNCHECKED_CAST") val projectDataNode = parent as? DataNode<ProjectData>
   if (projectDataNode == null) {
-    RESOLVER_LOG.error(
+    LOG.error(
       "Couldn't find project data for module ${data.moduleName}, incorrect tree structure."
     )
     return
@@ -506,7 +505,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   // completely due to a badly behaved plugin.
   @Suppress("UNCHECKED_CAST") val projectDataNode = parent as? DataNode<ProjectData>
   if (projectDataNode == null) {
-    RESOLVER_LOG.error(
+    LOG.error(
       "Couldn't find project data for module ${data.moduleName}, incorrect tree structure."
     )
     return
@@ -561,7 +560,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
 
 fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact) : DataNode<GradleSourceSetData> {
   return ExternalSystemApiUtil.find(this, GradleSourceSetData.KEY) {
-    it.data.externalName.substringAfterLast(":") == getModuleName(ideBaseArtifact)
+    it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact)
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")
 }
 

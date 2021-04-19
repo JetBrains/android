@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -34,7 +34,7 @@ public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true, which
     // would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
-    project.putUserData(AndroidGradleProjectResolver.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+    project.putUserData(AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
     super.doPerform(e, project);
   }
 
