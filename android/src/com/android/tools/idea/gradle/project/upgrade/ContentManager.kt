@@ -89,6 +89,7 @@ class ToolWindowModel(
 
   //TODO introduce single state object describing controls and error instead.
   val showLoadingState = BoolValueProperty(true)
+  val loadingText = StringValueProperty("Loading")
   val runTooltip = StringValueProperty()
   val message = OptionalValueProperty<Pair<Icon, String>>()
   val runEnabled = BoolValueProperty(true)
@@ -140,9 +141,15 @@ class ToolWindowModel(
 
   init {
     refresh()
-    selectedVersion.addListener { refresh() }
+    selectedVersion.addListener {
+      loadingText.set("Loading")
+      refresh()
+    }
     connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) = refresh(true)
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+        loadingText.set("Loading")
+        refresh(true)
+      }
     })
 
     // Initialize known versions (e.g. in case of offline work with no cache)
@@ -459,10 +466,21 @@ class ContentManager(val project: Project) {
     }
 
     val refreshButton = JButton("Refresh").apply {
-      addActionListener { this@View.model.refresh(true) }
+      addActionListener {
+        this@View.model.run {
+          loadingText.set("Loading")
+          refresh(true)
+        }
+      }
     }
     val okButton = JButton("Run selected steps").apply {
-      addActionListener { this@View.model.runUpgrade(false) }
+      addActionListener {
+        this@View.model.run {
+          loadingText.set("Running")
+          showLoadingState.set(true)
+          runUpgrade(false)
+        }
+      }
       myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
     }
     val previewButton = JButton("Run with preview").apply {
@@ -499,6 +517,7 @@ class ContentManager(val project: Project) {
       add(detailsPanel, BorderLayout.CENTER)
 
       fun updateState(loading: Boolean) {
+        setLoadingText(this@View.model.loadingText.get())
         refreshButton.isEnabled = !loading
         if (loading) {
           startLoading()
