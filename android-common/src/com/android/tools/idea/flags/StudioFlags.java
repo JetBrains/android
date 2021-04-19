@@ -1163,6 +1163,13 @@ public final class StudioFlags {
     "If enabled, a user can switch to animation inspection from interactive preview",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_CLASSLOADERS_PRELOADING = Flag.create(
+    COMPOSE, "preview.classloaders.preloading",
+    "Enable background classes preloading",
+    "If enabled, a background classes preloading will happen to speed-up preview ClassLoader warm-up",
+    true
+  );
   //endregion
 
   //region Manifests
