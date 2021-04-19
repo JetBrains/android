@@ -19,7 +19,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.emulator.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -46,15 +45,10 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   override fun createComponent() = panel {
     row {
-      val note1 = if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() && StudioFlags.EMBEDDED_EMULATOR_FOLDING.get()) ""
-                  else " Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles."
-      val note2 = if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) ""
-                  else " The Emulator's extended controls are not available when launched in a tool window."
       launchInToolWindowCheckBox =
           checkBox("Launch in a tool window",
                    comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                             "Otherwise the Android Emulator will launch as a standalone application." +
-                             "$note1$note2").component
+                             "Otherwise Android Emulator will launch as a standalone application.").component
     }
     blockRow {} // Visual separator.
     row {

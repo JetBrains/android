@@ -19,7 +19,6 @@ import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.util.ui.StartupUiUtil
@@ -32,11 +31,6 @@ class EmulatorShowExtendedControlsAction : AbstractEmulatorAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     showExtendedControls(emulatorController)
-  }
-
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isVisible = StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()
   }
 }
 

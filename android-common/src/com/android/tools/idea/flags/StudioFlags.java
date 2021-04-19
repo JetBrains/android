@@ -708,22 +708,6 @@ public final class StudioFlags {
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
-    EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
-    "Enables the extended controls in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA = Flag.create(
-    EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
-    "Enables the virtual scene camera in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
-    EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
-    "Enables configurable multiple displays in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_FOLDING = Flag.create(
-    EMBEDDED_EMULATOR, "folding", "Enable Emulator Folding",
-    "Enables display folding in the Embedded Emulator",
-    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(
     EMBEDDED_EMULATOR, "screenshot.statistics", "Enable Collection of Screenshot Statistics",
     "Captures statistics of received Emulator screenshots",

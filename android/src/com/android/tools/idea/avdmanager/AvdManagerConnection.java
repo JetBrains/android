@@ -37,7 +37,6 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -73,9 +72,7 @@ import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandB
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.emulator.EmulatorSettings;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
@@ -94,7 +91,6 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.icons.AllIcons;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -575,8 +571,6 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(String.format("Error launching emulator %1$s ", avdName), e));
     }
 
-    notifyIfLaunchedStandalone(project, avd);
-
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
     ProgressWindow p = hasQEMU2Installed()
                        ? new BackgroundableProcessIndicator(project, "Launching emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
@@ -626,49 +620,15 @@ public class AvdManagerConnection {
       .setAvdHome(myAvdManager.getBaseAvdFolder().toPath())
       .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
       .setStudioParams(writeParameterFile().orElse(null))
-      .setLaunchInToolWindow(shouldBeLaunchedEmbedded(project, avd))
+      .setLaunchInToolWindow(shouldLaunchInToolWindow(project))
       .addAllStudioEmuParams(params.orElse(Collections.emptyList()))
       .build();
   }
 
   /**
-   * Notifies user if the AVD is launched standalone despite being configured to start in the Emulator tool window.
+   * Checks whether the emulator should launch in a tool window or standalone.
    */
-  private static void notifyIfLaunchedStandalone(@Nullable Project project, @NotNull AvdInfo avd) {
-    if (project == null || !isEmulatorToolWindowAvailable(project) || shouldBeLaunchedEmbedded(project, avd)) {
-      return;
-    }
-
-    EmulatorSettings settings = EmulatorSettings.getInstance();
-    boolean foldable = isFoldable(avd);
-    boolean show =
-      foldable ? settings.getShowLaunchedStandaloneNotificationForFoldable() : settings.getShowLaunchedStandaloneNotification();
-    if (!show) {
-      return; // Notified before.
-    }
-
-    String reason = foldable ? "to support folding" : "to be able to use extended controls";
-    String text = avd.getDisplayName() + " was launched standalone " + reason;
-    AndroidNotification.getInstance(project).showBalloon("AVD Launched Standalone", text, NotificationType.INFORMATION);
-    if (foldable) {
-      settings.setShowLaunchedStandaloneNotificationForFoldable(false);
-    }
-    else {
-      settings.setShowLaunchedStandaloneNotification(false);
-    }
-  }
-
-  private static boolean shouldBeLaunchedEmbedded(@Nullable Project project, @NotNull AvdInfo avd) {
-    // In order for an AVD to be launched in a tool window the corresponding option should be
-    // enabled in Emulator settings and the AVD should not be foldable, TV, or Android Auto.
-    return isEmulatorToolWindowAvailable(project) && // Emulator tool window is available only for Android projects.
-           (StudioFlags.EMBEDDED_EMULATOR_FOLDING.get() || !isFoldable(avd)) &&
-           (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() ||
-            !"android-tv".equals(avd.getProperty(AVD_INI_TAG_ID)) &&
-            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID)));
-  }
-
-  private static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
+  private static boolean shouldLaunchInToolWindow(@Nullable Project project) {
     return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
            project != null && ToolWindowManager.getInstance(project).getToolWindow("Android Emulator") != null;
   }

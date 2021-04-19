@@ -339,15 +339,13 @@ class EmulatorView(
       })
     }
 
-    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
-      val connection = ApplicationManager.getApplication().messageBus.connect(this)
-      connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-        if (connected) {
-          val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-          emulator.setUiTheme(style)
-        }
-      })
-    }
+    val connection = ApplicationManager.getApplication().messageBus.connect(this)
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+      if (connected) {
+        val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+        emulator.setUiTheme(style)
+      }
+    })
 
     updateConnectionState(emulator.connectionState)
   }

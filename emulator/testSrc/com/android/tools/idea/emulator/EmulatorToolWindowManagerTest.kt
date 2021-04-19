@@ -23,11 +23,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.application.ApplicationManager
@@ -183,8 +181,6 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true, projectRule.fixture.testRootDisposable)
-
     val factory = EmulatorToolWindowFactory()
     assertThat(factory.shouldBeAvailable(project)).isTrue()
     factory.createToolWindowContent(project, toolWindow)
