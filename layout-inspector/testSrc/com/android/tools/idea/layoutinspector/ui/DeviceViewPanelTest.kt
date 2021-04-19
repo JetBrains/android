@@ -76,6 +76,7 @@ import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -363,6 +364,7 @@ class DeviceViewPanelTest {
     TreeSettings.hideSystemNodes = false
   }
 
+  @Ignore("b/185809224")
   @Test
   fun testZoomOnConnect() {
     val viewSettings = DeviceViewSettings(scalePercent = 100)
