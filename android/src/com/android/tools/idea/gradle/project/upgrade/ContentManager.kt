@@ -449,21 +449,7 @@ class ContentManager(val project: Project) {
               this@View.model.runEnabled.set(false)
               null
             }
-            else {
-              when (val selected = selectedItem) {
-                is GradleVersion -> selected
-                is String ->
-                  editingValidation(selected).let { stringValidation ->
-                    if (stringValidation.first == EditingErrorCategory.ERROR) {
-                      this@View.model.message.value = AllIcons.General.Error to stringValidation.second
-                      this@View.model.runEnabled.set(false)
-                      null
-                    }
-                    else GradleVersion.tryParseAndroidGradlePluginVersion(selected)
-                  }
-                else -> null
-              }
-            }
+            else GradleVersion.tryParseAndroidGradlePluginVersion(model.text)
           }
         )
       }
