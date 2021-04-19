@@ -34,10 +34,8 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
@@ -298,7 +296,6 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testVirtualSceneCamera() {
-    StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.override(true, testRootDisposable)
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 

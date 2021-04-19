@@ -26,7 +26,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.emulator.actions.showExtendedControls
 import com.android.tools.idea.emulator.actions.showManageSnapshotsDialog
-import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
@@ -248,7 +247,7 @@ class EmulatorToolWindowPanel(
     uiState.manageSnapshotsDialogShown = manageSnapshotsDialog != null
     manageSnapshotsDialog?.close(DialogWrapper.CLOSE_EXIT_CODE)
 
-    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get() && connected) {
+    if (connected) {
       emulator.closeExtendedControls(object: EmptyStreamObserver<ExtendedControlsStatus>() {
         override fun onNext(response: ExtendedControlsStatus) {
           EventQueue.invokeLater {
