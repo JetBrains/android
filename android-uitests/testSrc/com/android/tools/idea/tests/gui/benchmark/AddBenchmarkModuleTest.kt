@@ -40,8 +40,9 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Java as the source language.
-   * 5. Complete the wizard and wait for the build to complete.
+   * 4. Select Microbenchmark module and click next.
+   * 5. Select Java as the source language.
+   * 6. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
@@ -54,13 +55,14 @@ class AddBenchmarkModuleTest {
    */
   @Test
   @Throws(Exception::class)
-  fun addJavaBenchmarkModule() {
+  fun addJavaMicrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToBenchmarkModule()
+      .clickNextToChooseBenchmarkModuleType()
+      .clickNextToMicrobenchmarkModule()
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
@@ -91,8 +93,9 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Kotlin as the source language.
-   * 5. Complete the wizard and wait for the build to complete.
+   * 4. Select Microbenchmark module and click next.
+   * 5. Select Kotlin as the source language.
+   * 6. Complete the wizard and wait for the build to complete.
    * Verify:
    * 1. The new Benchmark Module is shown in the project explorer pane.
    * 2. Open the Benchmark Module manifest and check that "android:debuggable" and
@@ -105,11 +108,12 @@ class AddBenchmarkModuleTest {
    */
   @Test
   @Throws(Exception::class)
-  fun addKotlinBenchmarkModule() {
+  fun addKotlinMicrobenchmarkModule() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToBenchmarkModule()
+      .clickNextToChooseBenchmarkModuleType()
+      .clickNextToMicrobenchmarkModule()
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()

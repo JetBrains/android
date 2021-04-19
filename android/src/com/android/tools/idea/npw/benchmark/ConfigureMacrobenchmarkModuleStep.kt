@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,52 @@
  */
 package com.android.tools.idea.npw.benchmark
 
+import com.android.AndroidProjectTypes
 import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.template.components.ModuleComboProvider
+import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.npw.verticalGap
+import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.project.AndroidProjectInfo
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
+import javax.swing.JComboBox
 
-class ConfigureBenchmarkModuleStep(
-  model: NewBenchmarkModuleModel, title: String, minSdkLevel: Int
+class ConfigureMacrobenchmarkModuleStep(
+  model: NewBenchmarkModuleModel
 ) : ConfigureModuleStep<NewBenchmarkModuleModel>(
-  model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title
+  model = model,
+  formFactor = MOBILE,
+  minSdkLevel = 21,
+  basePackage = getSuggestedProjectPackage(),
+  title = message("android.wizard.module.new.macrobenchmark.module.app")
 ) {
+  private val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
+
+  init {
+    listeners.listenAndFire(model.benchmarkModuleType) {
+      setShouldShow(model.benchmarkModuleType.get() == MACROBENCHMARK)
+    }
+
+    val appModules = AndroidProjectInfo.getInstance(model.project)
+      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
+    appModules.forEach { targetModuleCombo.addItem(it) }
+    if (appModules.isNotEmpty()) {
+      model.targetModule.value = appModules.first()
+    }
+
+    bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
+    validatorPanel.registerValidator(model.targetModule, ModuleSelectedValidator())
+  }
+
   override fun createMainPanel(): DialogPanel = panel {
     row {
       labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
@@ -40,6 +70,11 @@ class ConfigureBenchmarkModuleStep(
     row {
       labelFor("Package name", packageName)
       packageName(pushX)
+    }
+
+    row {
+      labelFor("Target application module", targetModuleCombo, message("android.wizard.module.help.macrobenchmark.target.module"))
+      targetModuleCombo(pushX)
     }
 
     row {

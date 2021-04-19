@@ -1285,6 +1285,21 @@ java_test(
 
 # sanity test
 java_test(
+    name = "AddBenchmarkModuleTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/SimpleAndroidxApplication/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.benchmark.AddBenchmarkModuleTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
     name = "AddInstantModuleTest",
     size = "large",
     data = COMMON_DATA + glob([
