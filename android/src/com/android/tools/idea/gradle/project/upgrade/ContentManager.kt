@@ -10,7 +10,11 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditingValidation
+import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -64,7 +68,6 @@ import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
 import javax.swing.event.TreeModelEvent
-import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
@@ -409,9 +412,15 @@ class ContentManager(val project: Project) {
         // ComponentValidator provides the tooltip it appears not to provide the outline highlighting.
         override val editingSupport = object : EditingSupport {
           override val validation: EditingValidation = ::editingValidation
+          override val completion: EditorCompletion = { model.knownVersions.getValueOr(emptyList()).map { it.toString() }}
         }
       }
     ).apply {
+      // Need to register additional key listeners to the textfield that would hide main combo-box popup.
+      // Otherwise textfield consumes these events without hiding popup making it impossible to do with a keyboard.
+      val textField = editor.editorComponent as CommonTextField<*>
+      textField.registerActionKey({ hidePopup(); textField.enterInLookup() }, KeyStrokes.ENTER, "enter")
+      textField.registerActionKey({ hidePopup(); textField.escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
       ComponentValidator(this@View.model.connection).withValidator { ->
         val text = editor.item.toString()
         val validation = editingValidation(text)
@@ -421,7 +430,7 @@ class ContentManager(val project: Project) {
           else -> null
         }
       }.installOn(this)
-      (editor.editorComponent as? JTextComponent)?.document?.addDocumentListener(
+      textField.document?.addDocumentListener(
         object: DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
             ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
@@ -431,28 +440,20 @@ class ContentManager(val project: Project) {
               previewButton.toolTipText = status.second
               okButton.isEnabled = false
               okButton.toolTipText = status.second
+              this@View.model.message.value = AllIcons.General.Error to status.second
+              this@View.model.runEnabled.set(false)
+              this@View.model.selectedVersion.clear()
             }
             else {
               previewButton.isEnabled = this@View.model.runEnabled.get()
               previewButton.toolTipText = this@View.model.runTooltip.get()
               okButton.isEnabled = this@View.model.runEnabled.get()
               okButton.toolTipText = this@View.model.runTooltip.get()
+              this@View.model.selectedVersion.setNullableValue(GradleVersion.tryParseAndroidGradlePluginVersion(editor.item.toString()))
             }
           }
         }
       )
-      addActionListener {
-        this@View.model.selectedVersion.setNullableValue(
-          editingValidation(model.text).let { modelTextValidation ->
-            if (modelTextValidation.first == EditingErrorCategory.ERROR) {
-              this@View.model.message.value = AllIcons.General.Error to modelTextValidation.second
-              this@View.model.runEnabled.set(false)
-              null
-            }
-            else GradleVersion.tryParseAndroidGradlePluginVersion(model.text)
-          }
-        )
-      }
     }
 
     val refreshButton = JButton("Refresh").apply {
