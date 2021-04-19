@@ -29,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger
 import perfetto.protos.PerfettoTrace
 import java.io.File
 import java.util.Base64
+import java.util.concurrent.TimeUnit
 
 class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
                      private val ideProfilerServices: IdeProfilerServices) : TraceParser {
@@ -78,7 +79,8 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
           val wantedProcessId = uiState.getHighlightProcess().getPid()
           processHint = processList.find { it.id == wantedProcessId }?.getSafeProcessName() ?: mainProcessSelector.nameHint
           if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
-            initialViewRange.set(uiState.timelineStartTs.toDouble(), uiState.timelineEndTs.toDouble());
+            initialViewRange.set(TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
+                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble());
           }
         }
         catch (throwable:Throwable) {

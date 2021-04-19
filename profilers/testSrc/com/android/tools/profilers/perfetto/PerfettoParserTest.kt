@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.util.Base64
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
+import java.util.concurrent.TimeUnit
 
 class PerfettoParserTest {
 
@@ -62,8 +63,8 @@ class PerfettoParserTest {
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
     fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder ()
       .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
-      .setTimelineStartTs(1)
-      .setTimelineEndTs(100)
+      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+      .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
       .build().toByteArray())
     services.enableUseTraceProcessor(true)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
@@ -71,8 +72,8 @@ class PerfettoParserTest {
     val parser = PerfettoParser(MainProcessSelector(), services)
     val capture = parser.parse(traceFile, 1)
     assertThat(capture.mainThreadId).isEqualTo(1001)
-    assertThat(capture.timeline.viewRange.min).isEqualTo(1.0)
-    assertThat(capture.timeline.viewRange.max).isEqualTo(100.0)
+    assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.SECONDS.toMicros(1).toDouble())
+    assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.SECONDS.toMicros(99).toDouble())
   }
 
   @Test
