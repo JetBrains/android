@@ -24,6 +24,7 @@ import java.awt.GridBagLayout
 import javax.swing.BorderFactory
 import javax.swing.JEditorPane
 import javax.swing.JPanel
+import javax.swing.text.DefaultCaret
 
 /**
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
@@ -56,6 +57,9 @@ class StatefulButtonMessage @JvmOverloads constructor(title: String, state: Assi
       c.gridx++
     }
     val titlePane = JEditorPane()
+    val caret = DefaultCaret()
+    caret.updatePolicy = DefaultCaret.NEVER_UPDATE
+    titlePane.caret = caret
     titlePane.isOpaque = false
     titlePane.border = BorderFactory.createEmptyBorder()
     titlePane.dragEnabled = false
@@ -66,6 +70,9 @@ class StatefulButtonMessage @JvmOverloads constructor(title: String, state: Assi
     body?.let {
       val bodyPane = JEditorPane()
       bodyPane.isOpaque = false
+      val caret = DefaultCaret()
+      caret.updatePolicy = DefaultCaret.NEVER_UPDATE
+      bodyPane.caret = caret
       bodyPane.border = BorderFactory.createEmptyBorder()
       bodyPane.dragEnabled = false
       UIUtils.setHtml(bodyPane, it, "body {color: " + UIUtils.getCssColor(state.foreground) + "}")
