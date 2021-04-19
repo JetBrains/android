@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.ClassVisitorUniqueIdProvider
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,16 +28,13 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertNotNull
 
-private class TestClassVisitorWithId(val id: String): ClassVisitor(Opcodes.ASM7, null), ClassVisitorUniqueIdProvider {
-  override val uniqueId: String = id
-}
-
 class ModuleClassLoaderManagerTest {
   @get:Rule
   val project = AndroidProjectRule.inMemory()
 
   @After
   fun testDown() {
+    COMPOSE_CLASSLOADERS_PRELOADING.clearOverride()
     ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
     if (ModuleClassLoaderManager.get().hasAllocatedSharedClassLoaders()) {
       fail("Class loaders were not released correctly by the tests")
@@ -114,6 +109,8 @@ class ModuleClassLoaderManagerTest {
 
   @Test
   fun `ensure stats are not activated accidentally`() {
+    // Disabling the preloading so that getPrivate returns freshly-created ModuleClassLoader that respects diagnostics settings change
+    COMPOSE_CLASSLOADERS_PRELOADING.override(false)
     run {
       val sharedClassLoader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderManagerTest)
       assertTrue(sharedClassLoader.stats is NopModuleClassLoadedDiagnostics)
