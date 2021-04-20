@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
@@ -29,6 +30,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,27 +45,21 @@ import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceAsyncSupplier {
   private final @Nullable Project myProject;
-  private final @NotNull ListeningExecutorService myService;
   private final @NotNull Function<@Nullable Project, @NotNull Path> myGetAdb;
-  private final @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> myGetDebugBridge;
+  private final @NotNull AsyncFunction<@NotNull Path, @NotNull AndroidDebugBridge> myGetDebugBridge;
   private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
 
+  @UiThread
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
-    this(project,
-         MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
-         PhysicalDeviceAsyncSupplier::getAdb,
-         PhysicalDeviceAsyncSupplier::getDebugBridge,
-         BuilderService::getInstance);
+    this(project, PhysicalDeviceAsyncSupplier::getAdb, PhysicalDeviceAsyncSupplier::getDebugBridge, BuilderService::getInstance);
   }
 
   @VisibleForTesting
   PhysicalDeviceAsyncSupplier(@Nullable Project project,
-                              @NotNull ListeningExecutorService service,
                               @NotNull Function<@Nullable Project, @NotNull Path> getAdb,
-                              @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge,
+                              @NotNull AsyncFunction<@NotNull Path, @NotNull AndroidDebugBridge> getDebugBridge,
                               @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance) {
     myProject = project;
-    myService = service;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
     myBuilderServiceGetInstance = builderServiceGetInstance;
@@ -81,27 +77,26 @@ final class PhysicalDeviceAsyncSupplier {
    * Called by an application pool thread
    */
   @WorkerThread
-  private static @NotNull ListenableFuture<@Nullable AndroidDebugBridge> getDebugBridge(@NotNull Path adb) {
+  private static @NotNull ListenableFuture<@NotNull AndroidDebugBridge> getDebugBridge(@NotNull Path adb) {
     return AdbService.getInstance().getDebugBridge(adb.toFile());
   }
 
+  @UiThread
   @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> get() {
+    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+
     // noinspection UnstableApiUsage
-    return FluentFuture.from(myService.submit(() -> myGetAdb.apply(myProject)))
-      .transformAsync(myGetDebugBridge, myService)
-      .transform(PhysicalDeviceAsyncSupplier::getDevices, myService)
-      .transformAsync(this::collectToPhysicalDevices, myService);
+    return FluentFuture.from(service.submit(() -> myGetAdb.apply(myProject)))
+      .transformAsync(myGetDebugBridge, service)
+      .transform(PhysicalDeviceAsyncSupplier::getDevices, service)
+      .transformAsync(this::collectToPhysicalDevices, EdtExecutorService.getInstance());
   }
 
   /**
    * Called by an application pool thread
    */
   @WorkerThread
-  private static @NotNull Collection<@NotNull IDevice> getDevices(@Nullable AndroidDebugBridge bridge) {
-    if (bridge == null) {
-      throw new NullPointerException();
-    }
-
+  private static @NotNull Collection<@NotNull IDevice> getDevices(@NotNull AndroidDebugBridge bridge) {
     if (!bridge.isConnected()) {
       throw new IllegalArgumentException();
     }
@@ -109,10 +104,7 @@ final class PhysicalDeviceAsyncSupplier {
     return Arrays.asList(bridge.getDevices());
   }
 
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
+  @UiThread
   private @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
     BuilderService service = myBuilderServiceGetInstance.get();
 
@@ -122,13 +114,11 @@ final class PhysicalDeviceAsyncSupplier {
       .collect(Collectors.toList());
 
     // noinspection UnstableApiUsage
-    return FluentFuture.from(Futures.successfulAsList(futures)).transform(PhysicalDeviceAsyncSupplier::filterSuccessful, myService);
+    return FluentFuture.from(Futures.successfulAsList(futures))
+      .transform(PhysicalDeviceAsyncSupplier::filterSuccessful, EdtExecutorService.getInstance());
   }
 
-  /**
-   * Called by an application pool thread
-   */
-  @WorkerThread
+  @UiThread
   private static @NotNull List<@NotNull PhysicalDevice> filterSuccessful(@NotNull Collection<@Nullable PhysicalDevice> devices) {
     List<PhysicalDevice> filteredDevices = devices.stream()
       .filter(Objects::nonNull)
