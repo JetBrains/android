@@ -2873,7 +2873,7 @@ Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/stream-debugger/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/stream-debugger/lib/stream-debugger.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/resources_en.jar
-Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar
+Android Studio Preview.app/Contents/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/svn4idea/lib/svn4idea.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/axis-1.4.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/axis-jaxrpc-1.4.jar

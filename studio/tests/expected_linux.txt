@@ -2882,7 +2882,7 @@ android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/stream-debugger/lib/resources_en.jar
 android-studio/plugins/stream-debugger/lib/stream-debugger.jar
 android-studio/plugins/svn4idea/lib/resources_en.jar
-android-studio/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar
+android-studio/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/svn4idea/lib/svn4idea.jar
 android-studio/plugins/tasks/lib/axis-1.4.jar
 android-studio/plugins/tasks/lib/axis-jaxrpc-1.4.jar
