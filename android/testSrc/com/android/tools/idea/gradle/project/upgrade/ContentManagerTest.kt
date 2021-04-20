@@ -328,8 +328,8 @@ class ContentManagerTest {
   fun testNecessityTreeText() {
     assertThat(MANDATORY_INDEPENDENT.treeText()).isEqualTo("Upgrade prerequisites")
     assertThat(MANDATORY_CODEPENDENT.treeText()).isEqualTo("Upgrade")
-    assertThat(OPTIONAL_CODEPENDENT.treeText()).isEqualTo("Post-upgrade steps")
-    assertThat(OPTIONAL_INDEPENDENT.treeText()).isEqualTo("Optional steps")
+    assertThat(OPTIONAL_CODEPENDENT.treeText()).isEqualTo("Recommended post-upgrade steps")
+    assertThat(OPTIONAL_INDEPENDENT.treeText()).isEqualTo("Recommended steps")
   }
 
   @Test
