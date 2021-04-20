@@ -26,7 +26,12 @@ data class VariantDetails(
   /**
    * Dimension name to flavor name pairs in the dimension order. emptyList() if there is no flavors or dimensions defined.
    */
-  val flavors: List<Pair<String, String>>
+  val flavors: List<Pair<String, String>>,
+
+  /**
+   * The abi or null if there is no native code in the module.
+   */
+  val abi: String?
 ) : Serializable
 
 data class VariantSelectionChange(
@@ -38,7 +43,12 @@ data class VariantSelectionChange(
   /**
    * Pairs of the dimension and flavor names which are different in the diffed variant when compared with the base variant.
    */
-  val flavors: Map<String, String> = emptyMap()
+  val flavors: Map<String, String> = emptyMap(),
+
+  /**
+   * The abi if changed.
+   */
+  val abi: String? = null
 ) {
   val isEmpty: Boolean get() = buildType == null && flavors.isEmpty()
 
@@ -55,26 +65,30 @@ data class VariantSelectionChange(
       val otherFlavors = base.flavors.toMap()
       return VariantSelectionChange(
         buildType = from.buildType.takeUnless { it == base.buildType },
-        flavors = from.flavors.filter { (dimension, newFlavor) -> otherFlavors[dimension] != newFlavor }.toMap()
+        flavors = from.flavors.filter { (dimension, newFlavor) -> otherFlavors[dimension] != newFlavor }.toMap(),
+        abi = from.abi.takeUnless { it == base.abi }
       )
     }
   }
 }
 
-fun createVariantDetailsFrom(dimensions: Collection<String>, variant: IdeVariantHeader): VariantDetails =
+fun createVariantDetailsFrom(dimensions: Collection<String>, variant: IdeVariantHeader, abi: String?): VariantDetails =
   VariantDetails(
     variant.name,
     variant.buildType,
-    if (dimensions.size == variant.productFlavors.size) dimensions.zip(variant.productFlavors) else emptyList()
-  )
+    if (dimensions.size == variant.productFlavors.size) dimensions.zip(variant.productFlavors) else emptyList(),
+    abi
+)
 
 fun VariantDetails.applyChange(selectionChange: VariantSelectionChange): VariantDetails {
   val newBuildType = selectionChange.buildType ?: buildType
   val newFlavors = flavors.map { (dimension, flavor) -> dimension to (selectionChange.flavors[dimension] ?: flavor) }
+  val newAbi = selectionChange.abi ?: abi
   return VariantDetails(
     buildVariantName(newBuildType, newFlavors.asSequence().map { it.second }),
     newBuildType,
-    newFlavors
+    newFlavors,
+    newAbi
   )
 }
 
