@@ -33,6 +33,7 @@ import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
@@ -56,10 +57,13 @@ import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
@@ -109,6 +113,11 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
         LOG.error("Unexpected error while setting up SDKs: ", e);
       }
       checkAndSetAndroidSdkSources();
+    }
+
+    // Check JDKs in Android Studio folder since they can be invalid when changing Java versions (b/185562147)
+    if (ConfigImportHelper.isConfigImported()) {
+      cleanProjectJdkTable();
     }
   }
 
@@ -336,5 +345,22 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
+  }
+
+  private static void cleanProjectJdkTable() {
+    Runnable cleanJdkTableAction = () -> {
+      // Recreate remaining JDKs to ensure they are up to date after an update (b/185562147)
+      ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+      JavaSdk javaSdk = JavaSdk.getInstance();
+      for (Sdk jdk : jdkTable.getSdksOfType(javaSdk)) {
+        String jdkPath = jdk.getHomePath();
+        if (jdkPath == null) {
+          continue;
+        }
+        Sdk newJdk = javaSdk.createJdk(jdk.getName(), jdkPath);
+        jdkTable.updateJdk(jdk, newJdk);
+      }
+    };
+    ApplicationManager.getApplication().invokeLaterOnWriteThread(cleanJdkTableAction);
   }
 }
