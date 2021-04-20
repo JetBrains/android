@@ -53,8 +53,8 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   override fun setUp() {
     super.setUp()
 
-    model.phoneDevice.value = phoneDevice
-    model.wearDevice.value = wearDevice
+    model.selectedPhoneDevice.value = phoneDevice
+    model.selectedWearDevice.value = wearDevice
 
     BatchInvoker.setOverrideStrategy(invokeStrategy)
   }
@@ -70,7 +70,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
 
   @Test
   fun shouldShowGenericErrorIfADeviceWasSelected() {
-    model.phoneDevice.setNullableValue(null)
+    model.selectedPhoneDevice.setNullableValue(null)
     val (fakeUi, _) = createDeviceConnectionStepUi()
 
     fakeUi.waitForHeader("Found a problem")

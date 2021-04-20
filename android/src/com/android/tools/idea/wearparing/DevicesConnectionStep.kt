@@ -95,15 +95,15 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     model.removePairingOnCancel.set(true)
 
     runningJob = GlobalScope.launch(ioThread) {
-      if (model.phoneDevice.valueOrNull == null || model.wearDevice.valueOrNull == null) {
+      if (model.selectedPhoneDevice.valueOrNull == null || model.selectedWearDevice.valueOrNull == null) {
         showUI(header = message("wear.assistant.device.connection.error.title"),
                description = message("wear.assistant.device.connection.error.subtitle"))
         return@launch
       }
 
-      val wearPairingDevice = model.wearDevice.value
+      val wearPairingDevice = model.selectedWearDevice.value
       val wearDevice = wearPairingDevice.launchDeviceIfNeeded()
-      val phonePairingDevice = model.phoneDevice.value
+      val phonePairingDevice = model.selectedPhoneDevice.value
       val phoneDevice = phonePairingDevice.launchDeviceIfNeeded()
 
       prepareErrorListener()
@@ -167,7 +167,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     val stopWatch = StopWatch().apply { start() }
     while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY) {
       if (devicesPaired(phoneDevice, wearDevice)) {
-        showUiPairingSuccess(model.phoneDevice.value.displayName, model.wearDevice.value.displayName)
+        showUiPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
         canGoForward.set(true)
         return
       }
@@ -384,9 +384,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   )
 
   private fun prepareErrorListener() {
-    deviceStateListener.listenAll(model.phoneDevice, model.wearDevice).withAndFire {
-      val errorDevice = model.phoneDevice.valueOrNull.takeIf { it?.isOnline() == false }
-                        ?: model.wearDevice.valueOrNull.takeIf { it?.isOnline() == false }
+    deviceStateListener.listenAll(model.selectedPhoneDevice, model.selectedWearDevice).withAndFire {
+      val errorDevice = model.selectedPhoneDevice.valueOrNull.takeIf { it?.isOnline() == false }
+                        ?: model.selectedWearDevice.valueOrNull.takeIf { it?.isOnline() == false }
       if (errorDevice != null) {
         showDeviceError(errorDevice)
       }

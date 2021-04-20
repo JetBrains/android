@@ -27,8 +27,8 @@ import kotlinx.coroutines.launch
 
 class WearDevicePairingModel : WizardModel() {
   val deviceList: ObjectValueProperty<List<PairingDevice>> = ObjectValueProperty(emptyList())
-  val phoneDevice: OptionalProperty<PairingDevice> = OptionalValueProperty()
-  val wearDevice: OptionalProperty<PairingDevice> = OptionalValueProperty()
+  val selectedPhoneDevice: OptionalProperty<PairingDevice> = OptionalValueProperty()
+  val selectedWearDevice: OptionalProperty<PairingDevice> = OptionalValueProperty()
   val removePairingOnCancel: BoolProperty = BoolValueProperty()
 
   override fun handleFinished() {

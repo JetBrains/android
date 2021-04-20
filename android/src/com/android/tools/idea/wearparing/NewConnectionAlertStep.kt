@@ -38,8 +38,8 @@ class NewConnectionAlertStep(
 
   override fun shouldShow(): Boolean {
     val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
-    val selectedPhone = model.phoneDevice.valueOrNull
-    val selectedWear = model.wearDevice.valueOrNull
+    val selectedPhone = model.selectedPhoneDevice.valueOrNull
+    val selectedWear = model.selectedWearDevice.valueOrNull
     return pairedPhone != null && pairedWear != null && selectedPhone != null && selectedWear != null &&
            (pairedPhone.deviceID != selectedPhone.deviceID || pairedWear.deviceID != selectedWear.deviceID)
   }
@@ -49,8 +49,8 @@ class NewConnectionAlertStep(
     border = empty(24)
 
     val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
-    val selectedPhone = model.phoneDevice.value
-    val selectedWear = model.wearDevice.value
+    val selectedPhone = model.selectedPhoneDevice.value
+    val selectedWear = model.selectedWearDevice.value
 
     add(
       JBLabel("Disconnecting existing devices", LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
