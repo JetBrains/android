@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.getFolderType
 import com.intellij.openapi.Disposable
+import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -34,6 +35,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.model.AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME
 
 /**
  * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and the initialization is controlled by IJ's
@@ -53,7 +55,12 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
 
   override fun isApplicable(project: Project): Boolean {
     this.project = project
-    return ModuleManager.getInstance(project).modules.any { AndroidFacet.getInstance(it) != null }
+    // If the module contains AndroidFacet, then it is an Android Project.
+    // The old project structure (AndroidManifest.xml, src folder, and res folder are belong to root folder) only has Android Gradle Facet.
+    // We check it as well for backwards compatibility.
+    return ModuleManager.getInstance(project).modules
+      .flatMap { module -> FacetManager.getInstance(module).allFacets.asIterable() }
+      .any { facet -> facet.name == AndroidFacet.NAME || facet.name == ANDROID_GRADLE_FACET_NAME }
   }
 
   override fun init(toolWindow: ToolWindow) {
