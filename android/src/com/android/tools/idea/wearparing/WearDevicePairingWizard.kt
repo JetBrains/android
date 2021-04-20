@@ -59,7 +59,7 @@ class WearDevicePairingWizard {
     // Remove the dialog reference when the dialog is disposed (closed).
     Disposer.register(modelWizard) { wizardDialog = null }
 
-    WearPairingManager.setWearPairingListener(model.deviceList, wizardAction)
+    WearPairingManager.setDeviceListListener(model, wizardAction)
 
     wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
       .setProject(project)

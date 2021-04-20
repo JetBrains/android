@@ -26,7 +26,7 @@ import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
-import com.android.tools.idea.observable.core.ObjectValueProperty
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.wearparing.ConnectionState.OFFLINE
@@ -53,7 +53,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private val updateDevicesChannel = Channel<Unit>(1)
 
   private var runningJob: Job? = null
-  private var listHolder: ObjectValueProperty<List<PairingDevice>> = ObjectValueProperty(emptyList())
+  private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
 
   private var pairedDevicesAreOnline = false
@@ -61,8 +61,9 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private var pairedWearDevice: PairingDevice? = null
 
   @Synchronized
-  fun setWearPairingListener(listHolder: ObjectValueProperty<List<PairingDevice>>, wizardAction: WizardAction) {
-    this.listHolder = listHolder
+  fun setDeviceListListener(model: WearDevicePairingModel,
+                            wizardAction: WizardAction) {
+    this.model = model
     this.wizardAction = wizardAction
 
     AndroidDebugBridge.addDeviceChangeListener(this)
@@ -158,7 +159,11 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     }
 
     // Broadcast data to listeners
-    listHolder.set(deviceTable.values.sortedBy { it.displayName })
+    val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
+    model.phoneList.set(phones)
+    model.wearList.set(wears)
+    updateSelectedDevice(phones, model.selectedPhoneDevice)
+    updateSelectedDevice(wears, model.selectedWearDevice)
 
     updateForwardState(connectedDevices)
   }
@@ -289,6 +294,12 @@ private fun IDevice.getDeviceID(): String {
     isEmulator -> EmulatorConsole.getConsole(this)?.avdName ?: name
     else -> name
   }
+}
+
+private fun updateSelectedDevice(deviceList: List<PairingDevice>, device: OptionalProperty<PairingDevice>) {
+  val currentDevice = device.valueOrNull ?: return
+  // Assign the new value from the list, or if missing, update the current state to DISCONNECTED
+  device.value = deviceList.firstOrNull { currentDevice.deviceID == it.deviceID } ?: currentDevice.disconnectedCopy()
 }
 
 private fun showReconnectMessageBalloon(phoneName: String, wearName: String, wizardAction: WizardAction?) =
