@@ -34,6 +34,11 @@ class WearDevicePairingModel : WizardModel() {
 
   val removePairingOnCancel: BoolProperty = BoolValueProperty()
 
+  fun getNonSelectedRunningWearEmulators(): List<PairingDevice> {
+    val selectedWearId = selectedWearDevice.valueOrNull?.deviceID
+    return wearList.get().filter { it.isOnline() && it.deviceID != selectedWearId }
+  }
+
   override fun handleFinished() {
     removePairingOnCancel.set(false) // User pressed "Finish", don't cancel pairing
   }
