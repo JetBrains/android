@@ -2104,7 +2104,7 @@ android-studio/plugins/android/lib/sdk-tools.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
 android-studio/plugins/android/lib/spantable.jar
-android-studio/plugins/android/lib/sqlite-jdbc-3.21.0.1.jar
+android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/android/lib/sqlite_inspector_proto.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
