@@ -62,7 +62,8 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
       assertThat(title).isNotNull()
-      val message = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "error message on device Pixel 3 API 29" }
+      val message = treeWalker.descendants().filterIsInstance<JLabel>()
+        .find { it.text == "<html><div>error message on device Pixel 3 API 29</div></html>" }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
@@ -89,7 +90,8 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Warning" }
       assertThat(title).isNotNull()
-      val message = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "warning message on device Pixel 3 API 29" }
+      val message = treeWalker.descendants().filterIsInstance<JLabel>()
+        .find { it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>" }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(2)
@@ -123,9 +125,11 @@ internal class SelectedDevicesErrorDialogTest {
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
       val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
       assertThat(title).isNotNull()
-      val warning = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "warning message on device Pixel 3 API 29" }
+      val warning = treeWalker.descendants().filterIsInstance<JLabel>()
+        .find { it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>" }
       assertThat(warning).isNotNull()
-      val error = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "error message on device Pixel 3 API 30" }
+      val error = treeWalker.descendants().filterIsInstance<JLabel>()
+        .find { it.text == "<html><div>error message on device Pixel 3 API 30</div></html>" }
       assertThat(error).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
