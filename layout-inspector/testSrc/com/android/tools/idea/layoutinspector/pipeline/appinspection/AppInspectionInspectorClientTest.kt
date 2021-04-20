@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE
@@ -28,6 +29,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PRO
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.CompletableDeferred
@@ -36,11 +38,15 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+
+/** Timeout used in this test. While debugging, you may want extend the timeout */
+private const val TIMEOUT = 1L
+private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class AppInspectionInspectorClientTest {
   private val inspectionRule = AppInspectionInspectorRule()
@@ -222,7 +228,7 @@ class AppInspectionInspectorClientTest {
 
   @Test
   fun inspectorTreeEventIncludesUpdateScreenshotTypeCallback() {
-    val screenshotTypeUpdated = CountDownLatch(1)
+    val screenshotTypeUpdated = ReportingCountDownLatch(1)
     inspectionRule.viewInspector.listenWhen({ it.hasUpdateScreenshotTypeCommand() }) { command ->
       assertThat(command.updateScreenshotTypeCommand.type).isEqualTo(ViewProtocol.Screenshot.Type.BITMAP)
       assertThat(command.updateScreenshotTypeCommand.scale).isEqualTo(1.0f)
@@ -236,7 +242,7 @@ class AppInspectionInspectorClientTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    screenshotTypeUpdated.await()
+    screenshotTypeUpdated.await(TIMEOUT, TIMEOUT_UNIT)
   }
 
   @Test
@@ -288,7 +294,7 @@ class AppInspectionInspectorClientTest {
       ViewProtocol.Response.newBuilder().setStopFetchResponse(ViewProtocol.StopFetchResponse.getDefaultInstance()).build()
     }
 
-    val treeEventsHandled = CountDownLatch(1)
+    val treeEventsHandled = ReportingCountDownLatch(1)
     inspectorRule.launcher.addClientChangedListener { client ->
       client.registerTreeEventCallback { data ->
         (data as ViewLayoutInspectorClient.Data).viewEvent.let { viewEvent ->
@@ -308,6 +314,54 @@ class AppInspectionInspectorClientTest {
     }
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS) // Triggers first batch of layout events
-    treeEventsHandled.await()
+    treeEventsHandled.await(TIMEOUT, TIMEOUT_UNIT)
+  }
+
+  @Test
+  fun testCapabilitiesUpdateWithoutComposeNodes() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    assertThat(inspectorRule.inspectorClient.capabilities).containsNoneOf(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
+  }
+
+  @Test
+  fun testCapabilitiesUpdateWithComposeNodes() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = false)
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    assertThat(inspectorRule.inspectorClient.capabilities).contains(Capability.SUPPORTS_COMPOSE)
+    assertThat(inspectorRule.inspectorClient.capabilities).doesNotContain(Capability.SUPPORTS_SEMANTICS)
+  }
+
+  @Test
+  fun testCapabilitiesUpdateWithComposeNodesWithSemantics() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree(withSemantics = true)
+
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    assertThat(inspectorRule.inspectorClient.capabilities).containsAllOf(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
   }
 }

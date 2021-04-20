@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 
 /**
@@ -25,11 +26,28 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 interface TreeLoader {
   /**
    * Load the component tree corresponding to the given [data] (implementation specific).
-   * Returns:
-   *  - The loaded [AndroidWindow], or null if all windows are gone.
-   *  - a generation id, that can be used to ensure other responses (e.g. properties) are up to date
    */
-  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>?
+  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData?
 
   fun getAllWindowIds(data: Any?): List<*>?
 }
+
+/**
+ * The result of [TreeLoader.loadComponentTree].
+ */
+data class ComponentTreeData(
+  /**
+   * The loaded [AndroidWindow], or null if all windows are gone.
+   */
+  val window: AndroidWindow?,
+
+  /**
+   * A generation id, that can be used to ensure other responses (e.g. properties) are up to date
+   */
+  val generation: Int,
+
+  /**
+   * Dynamic capabilities based on the loaded data.
+   */
+  val dynamicCapabilities: Set<Capability>
+)

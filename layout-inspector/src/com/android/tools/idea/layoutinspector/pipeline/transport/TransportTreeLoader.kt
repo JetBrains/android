@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
@@ -43,12 +44,12 @@ class TransportTreeLoader(
   override fun loadComponentTree(
     data: Any?,
     resourceLookup: ResourceLookup
-  ): Pair<AndroidWindow?, Int>? {
+  ): ComponentTreeData? {
     return loadComponentTree(data, resourceLookup, skiaParser)
   }
 
   @VisibleForTesting
-  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParser): Pair<AndroidWindow?, Int>? {
+  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParser): ComponentTreeData? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     val window: AndroidWindow? =
       if (event.tree.hasRoot()) {
@@ -57,7 +58,7 @@ class TransportTreeLoader(
       else {
         null
       }
-    return Pair(window, event.tree.generation)
+    return ComponentTreeData(window, event.tree.generation, emptySet())
   }
 
   override fun getAllWindowIds(data: Any?): List<Long>? {

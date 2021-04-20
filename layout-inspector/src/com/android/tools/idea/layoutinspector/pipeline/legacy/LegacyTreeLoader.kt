@@ -21,6 +21,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -54,9 +55,9 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
   @VisibleForTesting
   var ddmClientOverride: Client? = null
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow, Int>? {
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
-    return capture(windowName, updater)?.let { Pair(it, 0) }
+    return capture(windowName, updater)?.let { ComponentTreeData(it, 0, emptySet()) }
   }
 
   override fun getAllWindowIds(data: Any?): List<String>? {

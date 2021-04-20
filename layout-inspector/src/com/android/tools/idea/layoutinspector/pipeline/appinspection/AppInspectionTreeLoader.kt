@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewInspectorTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 
@@ -33,17 +33,18 @@ class AppInspectionTreeLoader(
   private val project: Project,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
   private val skiaParser: SkiaParser) : TreeLoader {
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? {
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
-      val window = ViewInspectorTreeLoader(
+      val treeLoader = ViewInspectorTreeLoader(
         project,
         skiaParser,
         data.viewEvent,
         resourceLookup,
         data.composeEvent,
         logEvent
-      ).loadComponentTree()
-      return window to data.generation
+      )
+      val window = treeLoader.loadComponentTree()
+      return ComponentTreeData(window, data.generation, treeLoader.dynamicCapabilities)
     }
     return null
   }
