@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
@@ -85,13 +84,12 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   private val canGoForward = BoolValueProperty()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    listeners.listenAndFire(model.deviceList) {
-      val (wears, phones) = model.deviceList.get().partition { it.isWearDevice }
+    listeners.listenAndFire(model.phoneList) {
+      updateList(phoneList, model.phoneList.get())
+    }
 
-      updateList(phoneList, phones)
-      updateList(wearList, wears)
-      updateSelectedDevice(phones, model.selectedPhoneDevice)
-      updateSelectedDevice(wears, model.selectedWearDevice)
+    listeners.listenAndFire(model.wearList) {
+      updateList(wearList, model.wearList.get())
     }
   }
 
@@ -293,12 +291,6 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       super.setSelectionInterval(n, n)
     }
   }
-}
-
-private fun updateSelectedDevice(deviceList: List<PairingDevice>, device: OptionalProperty<PairingDevice>) {
-  val currentDevice = device.valueOrNull ?: return
-  // Assign the new value from the list, or if missing, update the current state to DISCONNECTED
-  device.value = deviceList.firstOrNull { currentDevice.deviceID == it.deviceID } ?: currentDevice.disconnectedCopy()
 }
 
 private fun PairingDevice.isDisabled(): Boolean {

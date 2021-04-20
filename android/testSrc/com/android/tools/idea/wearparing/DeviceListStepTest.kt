@@ -100,7 +100,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun stepShouldShowEmptyPhoneListWhenNoPhonesAvailable() {
     val fakeUi = createDeviceListStepUi()
-    model.deviceList.set(listOf(wearDevice))
+    model.wearList.set(listOf(wearDevice))
 
     assertThat(fakeUi.getPhoneList().isEmpty).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
@@ -109,7 +109,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun stepShouldShowEmptyWearListWhenNoWearsAvailable() {
     val fakeUi = createDeviceListStepUi()
-    model.deviceList.set(listOf(phoneDevice))
+    model.phoneList.set(listOf(phoneDevice))
 
     assertThat(fakeUi.getPhoneList().isEmpty).isFalse()
     assertThat(fakeUi.getWearList().isEmpty).isTrue()
@@ -118,7 +118,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun stepShouldShowTwoLists() {
     val fakeUi = createDeviceListStepUi()
-    model.deviceList.set(listOf(phoneDevice, wearDevice))
+    model.phoneList.set(listOf(phoneDevice))
+    model.wearList.set(listOf(wearDevice))
 
     // The phone list should have only one element, and should be the phone
     fakeUi.getPhoneList().apply {
@@ -139,7 +140,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   @Test
   fun listItemShowPlayStoreIcon() {
     val fakeUi = createDeviceListStepUi()
-    model.deviceList.set(listOf(phoneDevice))
+    model.phoneList.set(listOf(phoneDevice))
 
     val phoneList = fakeUi.getPhoneList()
     val cellList = phoneList.cellRenderer.getListCellRendererComponent(phoneList, phoneList.model.getElementAt(0), 0, false, false)
@@ -156,7 +157,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun disconnectedListItemDevicesShouldNotBeSelectable() {
     val fakeUi = createDeviceListStepUi()
 
-    model.deviceList.set(listOf(
+    model.phoneList.set(listOf(
       phoneDevice,
       phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", state = DISCONNECTED),
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone3"),
@@ -200,7 +201,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     wearDevice.launch = phoneDevice.launch
     WearPairingManager.setPairedDevices(phoneDevice, wearDevice)
 
-    model.deviceList.set(listOf(
+    model.phoneList.set(listOf(
       phoneDevice.copy(isPaired = true),
     ))
 
@@ -219,7 +220,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
 
-    model.deviceList.set(listOf(
+    model.phoneList.set(listOf(
       phoneDevice.copy(deviceID = "id2", displayName = "My Phone2", apiLevel = 29),
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone3", hasPlayStore = false),
       phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
