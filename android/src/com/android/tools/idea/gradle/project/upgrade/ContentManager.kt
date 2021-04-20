@@ -632,8 +632,8 @@ private fun AgpUpgradeRefactoringProcessor.activeComponentsForNecessity(necessit
 fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_INDEPENDENT -> "Upgrade prerequisites"
   MANDATORY_CODEPENDENT -> "Upgrade"
-  OPTIONAL_CODEPENDENT -> "Post-upgrade steps"
-  OPTIONAL_INDEPENDENT -> "Optional steps"
+  OPTIONAL_CODEPENDENT -> "Recommended post-upgrade steps"
+  OPTIONAL_INDEPENDENT -> "Recommended steps"
   else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
 }
 
