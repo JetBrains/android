@@ -23,11 +23,11 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -54,16 +54,12 @@ public final class PhysicalDeviceAsyncSupplierTest {
     BuilderService service = Mockito.mock(BuilderService.class);
     Mockito.when(service.build(device)).thenReturn(Futures.immediateFuture(physicalDevice));
 
-    PhysicalDeviceAsyncSupplier supplier = new PhysicalDeviceAsyncSupplier(null,
-                                                                           MoreExecutors.newDirectExecutorService(),
-                                                                           project -> adb,
-                                                                           a -> bridgeFuture,
-                                                                           () -> service);
+    PhysicalDeviceAsyncSupplier supplier = new PhysicalDeviceAsyncSupplier(null, project -> adb, a -> bridgeFuture, () -> service);
 
     // Act
     Future<List<PhysicalDevice>> devicesFuture = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(physicalDevice), devicesFuture.get());
+    assertEquals(Collections.singletonList(physicalDevice), devicesFuture.get(256, TimeUnit.MILLISECONDS));
   }
 }
