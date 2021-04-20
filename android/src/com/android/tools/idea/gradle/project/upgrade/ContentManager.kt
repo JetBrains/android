@@ -92,6 +92,7 @@ class ToolWindowModel(
   val runEnabled = BoolValueProperty(true)
   val showFinishedMessage = BoolValueProperty(false)
 
+  val knownVersions = OptionalValueProperty<Set<GradleVersion>>()
   val suggestedVersions = OptionalValueProperty<List<GradleVersion>>()
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
@@ -149,8 +150,8 @@ class ToolWindowModel(
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
-        val gMavenVersions = knownVersionsRequester()
-        val suggestedVersionsList = suggestedVersionsList(gMavenVersions)
+        knownVersions.value = knownVersionsRequester()
+        val suggestedVersionsList = suggestedVersionsList(knownVersions.value)
         invokeLater(ModalityState.NON_MODAL) { suggestedVersions.value = suggestedVersionsList }
       }
     })
@@ -177,7 +178,10 @@ class ToolWindowModel(
     showFinishedMessage.set(false)
     treeModel.nodeStructureChanged(root)
 
-    if (refindPlugin) { current = AndroidPluginInfo.find(project)?.pluginVersion }
+    if (refindPlugin) {
+      current = AndroidPluginInfo.find(project)?.pluginVersion
+      suggestedVersions.value = suggestedVersionsList(knownVersions.valueOrNull ?: setOf())
+    }
     val newVersion = selectedVersion.valueOrNull
     // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
     val newProcessor = newVersion?.let {
