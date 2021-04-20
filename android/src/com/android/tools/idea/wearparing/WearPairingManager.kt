@@ -171,7 +171,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private fun getConnectedDevices(): Map<String, IDevice> {
     val connectedDevices = AndroidDebugBridge.getBridge()?.devices ?: return emptyMap()
     return connectedDevices
-      .filter { it.version.apiLevel > 1 } // Ignore un-populated data devices (still loading properties)
+      .filter { it.arePropertiesSet() } // Ignore un-populated data devices (still loading properties)
       .map { it.getDeviceID() to it }
       .toMap()
   }

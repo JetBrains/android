@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearparing
 
+import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.ui.SVGScaledImageProvider
 import com.android.tools.adtui.ui.ScalingImagePanel
@@ -99,6 +100,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         showUI(header = message("wear.assistant.device.connection.error.title"),
                description = message("wear.assistant.device.connection.error.subtitle"))
         return@launch
+      }
+
+      if (showFirstStage) {
+        killNonSelectedRunningWearEmulators()
       }
 
       val wearPairingDevice = model.selectedWearDevice.value
@@ -191,6 +196,27 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     catch (ex: Throwable) {
       showDeviceError(this)
       throw RuntimeException(ex)
+    }
+  }
+
+  private suspend fun killNonSelectedRunningWearEmulators() {
+    model.getNonSelectedRunningWearEmulators().apply {
+      if (isNotEmpty()) {
+        showUiLaunchingDevice(model.selectedWearDevice.valueOrNull?.displayName ?: "")
+        WearPairingManager.removePairedDevices() // Remove pairing, in case we need to kill a paired device and that would show a toast
+      }
+      forEach {
+        val iDevice = it.launch(project).get() // If device is running, then calling get() will return immediately
+        EmulatorConsole.getConsole(iDevice)?.apply {
+          kill()
+          close()
+        }
+      }
+    }
+
+    val stopWatch = StopWatch().apply { start() }
+    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY && model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
+      delay(200)
     }
   }
 
