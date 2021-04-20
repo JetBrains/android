@@ -915,7 +915,7 @@ private fun setupTestProjectFromAndroidModelCore(
           moduleBuilder.agpVersion,
           gradlePlugins,
           androidProject,
-          variants.let { if (!setupAllVariants) it.take(1) else it },
+          variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
           ndkModel,
           moduleBuilder.selectedBuildVariant,
           moduleBuilder.selectedAbiVariant
