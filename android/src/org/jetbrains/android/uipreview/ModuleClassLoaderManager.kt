@@ -31,12 +31,10 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.plugins.groovy.util.removeUserData
 import java.lang.ref.SoftReference
 import java.util.Collections
@@ -44,7 +42,6 @@ import java.util.IdentityHashMap
 import java.util.WeakHashMap
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
-import java.util.function.Supplier
 
 private val DUMMY_HOLDER = Any()
 
@@ -80,33 +77,6 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
   }
 
   override fun dispose() {}
-}
-
-/**
- * Class providing the context for a ModuleClassLoader in which is being used.
- * Gradle class resolution depends only on [Module] but ASWB will also need the file to be able to
- * correctly resolve the classes.
- *
- * This should be a short living object since it retains a string reference to a [Module].
- */
-class ModuleRenderContext private constructor(val module: Module, val fileProvider: Supplier<PsiFile?>) {
-  val project: Project
-    get() = module.project
-
-  companion object {
-    @JvmStatic
-    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)
-
-    @JvmStatic
-    fun forFile(file: PsiFile) = ModuleRenderContext(file.module!!) { file }
-
-    /**
-     * Always use one of the methods that can provide a file, only use this for testing.
-     */
-    @TestOnly
-    @JvmStatic
-    fun forModule(module: Module) = ModuleRenderContext(module) { null }
-  }
 }
 
 /**
