@@ -383,6 +383,11 @@ class LiveLiteralsService private constructor(private val project: Project,
    * Adds a new document to the tracking. The document will be observed for changes.
    */
   private fun addDocumentTracking(parentDisposable: Disposable, editor: Editor, document: Document) {
+    if (editor.isViewer) {
+      log.info("Editor is view only, no literal tracking will be used.")
+      return
+    }
+
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
     val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
     val tracker = HighlightTracker(file, editor, cachedSnapshot)
