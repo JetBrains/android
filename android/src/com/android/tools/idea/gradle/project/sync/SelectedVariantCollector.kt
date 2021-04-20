@@ -35,8 +35,8 @@ class SelectedVariantCollector(project: Project) {
   private fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
     val moduleId = module.getModuleId() ?: return null
     val androidModuleModel = AndroidModuleModel.get(this)
-    val variantDetails = androidModuleModel?.getSelectedVariantDetails()
     val ndkModuleModel = NdkModuleModel.get(module)
+    val variantDetails = androidModuleModel?.let { getSelectedVariantDetails(androidModuleModel, ndkModuleModel) }
     val ndkFacet = NdkFacet.getInstance(module)
     if (ndkFacet != null && ndkModuleModel != null) {
       // Note, we lose ABI selection if cached models are not available.
@@ -46,15 +46,15 @@ class SelectedVariantCollector(project: Project) {
     return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
   }
 
-  private fun AndroidModuleModel.getSelectedVariantDetails(): VariantDetails? {
+  private fun getSelectedVariantDetails(androidModel: AndroidModuleModel, ndkModel: NdkModuleModel?): VariantDetails? {
     val selectedVariant = try {
-      selectedVariant
+      androidModel.selectedVariant
     }
     catch (e: Exception) {
-      Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: $moduleName", e)
+      Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
       return null
     }
-    return createVariantDetailsFrom(androidProject.flavorDimensions, selectedVariant)
+    return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, ndkModel?.selectedAbi)
   }
 
   private fun Module.getModuleId(): String? {

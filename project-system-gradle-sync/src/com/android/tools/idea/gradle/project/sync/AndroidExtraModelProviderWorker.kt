@@ -443,7 +443,7 @@ internal class AndroidExtraModelProviderWorker(
         ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) } ?: NativeVariantAbiResult.None
 
       val ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion)
-      val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant)
+      val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant, nativeVariantAbi.abi)
       val variantDiffChange =
         VariantSelectionChange.extractVariantSelectionChange(from = newlySelectedVariantDetails, base = selectedVariantDetails)
 
@@ -516,6 +516,12 @@ internal class AndroidExtraModelProviderWorker(
     class V1(val variantAbi: IdeNativeVariantAbi) : NativeVariantAbiResult()
     class V2(val selectedAbiName: String) : NativeVariantAbiResult()
     object None : NativeVariantAbiResult()
+
+    val abi: String? get() = when(this) {
+      is V1 -> variantAbi.abi
+      is V2 -> selectedAbiName
+      None -> null
+    }
   }
 
   private fun BuildController.findNativeVariantAbiModel(
