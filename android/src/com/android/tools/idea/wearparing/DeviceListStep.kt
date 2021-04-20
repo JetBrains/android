@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.IdeTooltipManager
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
@@ -91,8 +90,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 
       updateList(phoneList, phones)
       updateList(wearList, wears)
-      updateSelectedDevice(phones, model.phoneDevice)
-      updateSelectedDevice(wears, model.wearDevice)
+      updateSelectedDevice(phones, model.selectedPhoneDevice)
+      updateSelectedDevice(wears, model.selectedWearDevice)
     }
   }
 
@@ -126,8 +125,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   }
 
   override fun onProceeding() {
-    model.phoneDevice.setNullableValue(phoneList.selectedValue)
-    model.wearDevice.setNullableValue(wearList.selectedValue)
+    model.selectedPhoneDevice.setNullableValue(phoneList.selectedValue)
+    model.selectedWearDevice.setNullableValue(wearList.selectedValue)
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
