@@ -31,6 +31,7 @@ import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
@@ -67,6 +68,8 @@ import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
+
+private val LOG = Logger.getInstance("Upgrade Assistant")
 
 // "Model" here loosely in the sense of Model-View-Controller
 class ToolWindowModel(
@@ -634,7 +637,10 @@ fun AgpUpgradeComponentNecessity.treeText() = when (this) {
   MANDATORY_CODEPENDENT -> "Upgrade"
   OPTIONAL_CODEPENDENT -> "Recommended post-upgrade steps"
   OPTIONAL_INDEPENDENT -> "Recommended steps"
-  else -> "Irrelevant steps" // TODO(xof): log this -- should never happen
+  else -> {
+    LOG.error("Irrelevant steps tree text requested")
+    "Irrelevant steps"
+  }
 }
 
 fun AgpUpgradeComponentNecessity.checkboxToolTipText(enabled: Boolean, selected: Boolean) =
@@ -644,7 +650,10 @@ fun AgpUpgradeComponentNecessity.checkboxToolTipText(enabled: Boolean, selected:
     MANDATORY_CODEPENDENT to false -> "Cannot be selected while ${MANDATORY_INDEPENDENT.treeText()} is unselected"
     MANDATORY_CODEPENDENT to true -> "Cannot be deselected while ${OPTIONAL_CODEPENDENT.treeText()} is selected"
     OPTIONAL_CODEPENDENT to false -> "Cannot be selected while ${MANDATORY_CODEPENDENT.treeText()} is unselected"
-    else -> null // TODO(xof): log this -- should never happen
+    else -> {
+      LOG.error("Irrelevant step tooltip text requested")
+      null
+    }
   }
 
 fun AgpUpgradeComponentNecessity.description() = when (this) {
@@ -666,7 +675,10 @@ fun AgpUpgradeComponentNecessity.description() = when (this) {
     "but will be required when upgrading to a later version of the Android Gradle\n" +
     "Plugin.  You can choose to do them in this upgrade to prepare for the future,\n" +
     "with or without upgrading the Android Gradle Plugin to its new version."
-  else -> "These steps are irrelevant to this upgrade (and should not be displayed)" // TODO(xof): log this
+  else -> {
+    LOG.error("Irrelevant step description requested")
+    "These steps are irrelevant to this upgrade (and should not be displayed)"
+  }
 }
 
 fun GradleVersion?.upgradeLabelText() = when (this) {
