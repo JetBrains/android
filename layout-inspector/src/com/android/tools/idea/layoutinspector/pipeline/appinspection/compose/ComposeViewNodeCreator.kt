@@ -16,10 +16,17 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
+import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
+import java.util.EnumSet
+
+private val composeSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE)
+private val semanticsSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
 
 /**
  * Helper class which handles the logic of using data from a [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to
@@ -28,6 +35,21 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
 class ComposeViewNodeCreator(response: GetComposablesResponse) {
   private val stringTable = StringTableImpl(response.stringsList)
   private val nodes = response.rootsList.map { it.viewId to it.nodesList }.toMap()
+  private var composeFlags = 0
+  private var nodesCreated = false
+
+  /**
+   * The dynamic capabilities based on the loaded data for compose.
+   */
+  val dynamicCapabilities: Set<Capability>
+    get() {
+      val hasSemantics = (composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0
+      return when {
+        nodesCreated && hasSemantics -> semanticsSupport
+        nodesCreated -> composeSupport
+        else -> emptySet()
+      }
+    }
 
   /**
    * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes
@@ -38,7 +60,9 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
    * [GetComposablesResponse].
    */
   fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
-    return nodes[id]?.map { node -> node.convert(shouldInterrupt) }
+    val result = nodes[id]?.map { node -> node.convert(shouldInterrupt) }
+    nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
+    return result
   }
 
   private fun ComposableNode.convert(shouldInterrupt: () -> Boolean): ComposeViewNode {
@@ -65,6 +89,7 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
       flags
     )
 
+    composeFlags = composeFlags or flags
     childrenList.mapTo(node.children) { it.convert(shouldInterrupt).apply { parent = node } }
     return node
   }

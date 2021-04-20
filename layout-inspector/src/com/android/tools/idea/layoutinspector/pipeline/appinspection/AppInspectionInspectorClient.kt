@@ -175,4 +175,8 @@ class AppInspectionInspectorClient(
       viewInspector.updateScreenshotType(type?.protoType, scale)
     }
   }
+
+  override fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {
+    capabilities.addAll(dynamicCapabilities)
+  }
 }

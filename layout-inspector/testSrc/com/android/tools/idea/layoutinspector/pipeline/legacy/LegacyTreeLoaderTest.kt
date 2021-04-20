@@ -218,9 +218,9 @@ DONE.
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
     legacyClient.treeLoader.ddmClientOverride = client
-    val (window, _) = legacyClient.treeLoader.loadComponentTree(
+    val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!
+      resourceLookup)!!.window!!
     window.refreshImages(1.0)
 
     assertThat(window.id).isEqualTo("window1")
@@ -283,9 +283,9 @@ DONE.
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
     legacyClient.treeLoader.ddmClientOverride = client
-    val (window, _) = legacyClient.treeLoader.loadComponentTree(
+    val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!
+      resourceLookup)!!.window!!
     val model = InspectorModel(mock())
     model.update(window, listOf("window1"), 0)
 
