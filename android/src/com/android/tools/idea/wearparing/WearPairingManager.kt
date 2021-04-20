@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.IDevice.HardwareFeature
 import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
@@ -139,7 +140,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     val deviceTable = hashMapOf<String, PairingDevice>()
 
     // Collect list of all available AVDs
-    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).forEach { avdInfo ->
+    AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).filter { it.isWearOrPhone() }.forEach { avdInfo ->
       val deviceID = avdInfo.name
       deviceTable[deviceID] = avdInfo.toPairingDevice(deviceID, isPaired(deviceID))
     }
@@ -147,7 +148,11 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     // Collect list of all connected devices. Enrich data with previous collected AVDs.
     val connectedDevices = getConnectedDevices()
     connectedDevices.forEach { (deviceID, iDevice) ->
-      deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = deviceTable[deviceID])
+      val avdDevice = deviceTable[deviceID]
+      // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR, etc), so we only check for physical devices
+      if ((!iDevice.isEmulator && iDevice.isWearOrPhone()) || avdDevice != null) {
+        deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = avdDevice)
+      }
     }
 
     // Add "paired phone/wear" (if not added already), so they will be shown as "disconnected"
@@ -259,7 +264,7 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
     displayName = avdDevice?.displayName ?: getDeviceName(name),
     apiLevel = avdDevice?.apiLevel ?: version.featureLevel,
     isEmulator = isEmulator,
-    isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(IDevice.HardwareFeature.WATCH),
+    isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(HardwareFeature.WATCH),
     state = if (isOnline) ONLINE else OFFLINE,
     hasPlayStore = avdDevice?.hasPlayStore ?: false,
     isPaired = isPared
@@ -281,6 +286,24 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
   ).apply {
     launch = { project -> AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, this@toPairingDevice) }
   }
+}
+
+private fun IDevice.isWearOrPhone(): Boolean = when {
+  supportsFeature(HardwareFeature.WATCH) -> true
+  supportsFeature(HardwareFeature.TV) -> false
+  supportsFeature(HardwareFeature.AUTOMOTIVE) -> false
+  isEmulator -> throw RuntimeException("Call on emulator") // supportsFeature() only works for physical devices
+  else -> true
+}
+
+private fun AvdInfo.isWearOrPhone(): Boolean = when (tag) {
+  SystemImage.WEAR_TAG -> true
+  SystemImage.ANDROID_TV_TAG -> false
+  SystemImage.GOOGLE_TV_TAG -> false
+  SystemImage.AUTOMOTIVE_TAG -> false
+  SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> false
+  SystemImage.CHROMEOS_TAG -> false
+  else -> true
 }
 
 private fun IDevice.getDeviceName(unknown: String): String {
