@@ -26,7 +26,6 @@ import com.android.tools.idea.emulator.FakeEmulator.Companion.getSkinFolder
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -167,7 +166,7 @@ class SkinDefinitionTest {
   }
 
   @Test
-  fun testPixel_4_XL() {
+  fun testPixel_4_xl() {
     val folder = getSkinFolder("pixel_4_xl")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
@@ -179,17 +178,15 @@ class SkinDefinitionTest {
     assertThat(layout.maskImages).hasSize(4) // Four round corners.
   }
 
-  @Ignore("Enable when the pixel_4a skin is fixed (b/171274996)")
   @Test
-  fun testPixel_4a() {
-    val folder = getSkinFolder("pixel_4a")
+  fun testPixel_4a_5g() {
+    val folder = getSkinFolder("pixel_4a_5g")
     val skin = SkinDefinition.create(folder) ?: throw AssertionError("Expected non-null SkinDefinition")
 
     // Check the skin layout and consistency of its images.
     val layout = skin.layout
     validateLayoutConsistency(layout, folder)
     assertThat(layout.displaySize).isEqualTo(Dimension(1080, 2340))
-    assertThat(layout.frameRectangle.size).isEqualTo(Dimension(1204, 2491))
     assertThat(layout.frameImages).hasSize(8)
     assertThat(layout.maskImages).hasSize(4) // Four round corners, one with a camera hole.
   }
