@@ -19,13 +19,18 @@ import com.android.tools.idea.run.LaunchCompatibility.State
 import com.intellij.CommonBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.text.HtmlChunk
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.panel
 import com.intellij.util.IconUtil
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Action
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.plaf.basic.BasicHTML
+import javax.swing.text.View
 
 /**
  * Displays the deployment issues for each device and a warning or error icon when the user deploys their app.
@@ -41,7 +46,7 @@ class SelectedDevicesErrorDialog(private val project: Project, private val devic
   private val anyDeviceHasError = devices.any { it.launchCompatibility.state == State.ERROR }
 
   init {
-    setUndecorated(true)
+    setResizable(false)
     if (!anyDeviceHasError) {
       setDoNotAskOption(object : DoNotAskOption.Adapter() {
         override fun rememberChoice(isSelected: Boolean, exitCode: Int) = project.putUserData(DO_NOT_SHOW_WARNING_ON_DEPLOYMENT, isSelected)
@@ -67,19 +72,31 @@ class SelectedDevicesErrorDialog(private val project: Project, private val devic
   override fun createCenterPanel(): JComponent {
     return panel {
       row {
-        cell {
+        cell(isVerticalFlow = true) {
           val icon = if (anyDeviceHasError) StudioIcons.Common.ERROR else StudioIcons.Common.WARNING
-          component(JBLabel(IconUtil.scale(icon, null, 2f)))
+          component(JBLabel(IconUtil.scale(icon, null, 2.5f)))
+        }
+        cell(isVerticalFlow = true) {
           val title = if (anyDeviceHasError) message("error.level.title") else message("warning.level.title")
           label(title, bold = true)
-        }
-      }.largeGapAfter()
-
-      devices.map {
-        row {
-          label("${it.launchCompatibility.reason} on device $it")
+          devices.map {
+            component(LimitedWidthLabel("${it.launchCompatibility.reason} on device $it"))
+          }
         }
       }
-    }
+    }.withBorder(BorderFactory.createEmptyBorder(16, 0, 0, 16))
+  }
+}
+
+private class LimitedWidthLabel(val str: String) : JLabel() {
+  companion object {
+    private const val MAX_WIDTH = 446
+  }
+
+  init {
+    val v = BasicHTML.createHTMLView(this, HtmlChunk.raw(str).wrapWith(HtmlChunk.html()).toString())
+    val width = v.getPreferredSpan(View.X_AXIS)
+    val div = if (width > MAX_WIDTH) HtmlChunk.div().attr("width", MAX_WIDTH) else HtmlChunk.div()
+    text = div.addRaw(str).wrapWith(HtmlChunk.html()).toString()
   }
 }
