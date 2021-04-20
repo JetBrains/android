@@ -19,7 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -37,6 +37,11 @@ object FilterGroupAction : DropDownAction("Filter", null, StudioIcons.Common.FIL
     add(SystemNodeFilterAction)
     add(MergedSemanticsFilterAction)
     add(UnmergedSemanticsFilterAction)
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
@@ -72,12 +77,7 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible =
-      LayoutInspector.get(event)?.currentClient?.let { client ->
-        !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
-        || client.capabilities.contains(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
-      }
-      ?: true
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES)
   }
 }
 
@@ -92,7 +92,9 @@ object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") 
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
@@ -107,7 +109,9 @@ object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tre
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get()
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
@@ -119,6 +123,13 @@ object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     LayoutInspector.get(event)?.treeSettings?.composeAsCallstack = state
     event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_COMPOSE)
   }
 }
 
@@ -132,3 +143,9 @@ object SupportLines : ToggleAction("Show Support Lines", null, null) {
     event.tree()?.repaint()
   }
 }
+
+private fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
+  LayoutInspector.get(event)?.currentClient?.let { client ->
+    !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
+    capabilities.any { client.capabilities.contains(it) }
+  } ?: true
