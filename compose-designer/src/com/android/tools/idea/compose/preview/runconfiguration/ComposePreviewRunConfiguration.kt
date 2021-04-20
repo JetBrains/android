@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.stats.RunStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
+import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.search.GlobalSearchScope
 import org.jdom.Element
 
 private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
@@ -103,5 +109,27 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     }
   }
 
+  override fun validate(executor: Executor?): MutableList<ValidationError> {
+    val errors = super.validate(executor)
+    if (!isValidComposableSet()) {
+      errors.add(ValidationError.fatal(message("run.configuration.no.valid.composable.set", composableMethodFqn ?: "")))
+    }
+    return errors
+  }
+
   override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
+
+  /**
+   * Returns whether [composableMethodFqn] points to a `@Composable` function annotated with `@Preview`.
+   */
+  private fun isValidComposableSet(): Boolean {
+    val composableFqn = composableMethodFqn ?: return false
+
+    JavaPsiFacade.getInstance(project).findClass(composableFqn.substringBeforeLast("."), GlobalSearchScope.projectScope(project))
+      ?.findMethodsByName(composableFqn.substringAfterLast("."))?.forEach { method ->
+        if (method.annotations.any { PREVIEW_ANNOTATION_FQNS.contains(it.qualifiedName) }) return@isValidComposableSet true
+      }
+
+    return false
+  }
 }
