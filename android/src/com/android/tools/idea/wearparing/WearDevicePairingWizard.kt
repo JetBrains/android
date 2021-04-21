@@ -16,14 +16,17 @@
 
 package com.android.tools.idea.wearparing
 
+import com.android.tools.idea.emulator.EmulatorSettings
 import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardDialog
+import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
+import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.MODELESS
+import com.intellij.openapi.ui.DialogWrapper.IdeModalityType.PROJECT
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction
@@ -61,11 +64,12 @@ class WearDevicePairingWizard {
 
     WearPairingManager.setDeviceListListener(model, wizardAction)
 
+    val modality = if (EmulatorSettings.getInstance().launchInToolWindow) MODELESS else PROJECT
     wizardDialog = StudioWizardDialogBuilder(modelWizard, "Wear OS emulator pairing assistant")
       .setProject(project)
       .setHelpUrl(URL(WEAR_DOCS_LINK))
-      .setModalityType(DialogWrapper.IdeModalityType.MODELESS)
-      .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL)
+      .setModalityType(modality)
+      .setCancellationPolicy(ALWAYS_CAN_CANCEL)
       .setPreferredSize(JBUI.size(560, 420))
       .setMinimumSize(JBUI.size(400, 250))
       .build(SimpleStudioWizardLayout())
