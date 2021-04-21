@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.intellij.openapi.updateSettings.impl.BuildInfo;
 import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.PlatformUpdates;
 import com.intellij.openapi.updateSettings.impl.UpdateData;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.updateSettings.impl.UpdateStrategy;
@@ -100,11 +101,13 @@ public final class AndroidStudioUpdateStrategyTest {
   private static BuildInfo createBuild(@NotNull String version,
                                        @NotNull String updatesXml,
                                        @NotNull UpdateSettings settings) throws Exception {
-    return new UpdateStrategy(BuildNumber.fromString(version),
-                              UpdateData.parseUpdateData(updatesXml, "AI"),
-                              settings,
-                              new AndroidStudioUpdateStrategyCustomization())
-      .checkForUpdates()
-      .getNewBuild();
+    PlatformUpdates result = new UpdateStrategy(BuildNumber.fromString(version),
+                                                UpdateData.parseUpdateData(updatesXml, "AI"),
+                                                settings,
+                                                new AndroidStudioUpdateStrategyCustomization())
+      .checkForUpdates();
+    return result instanceof PlatformUpdates.Loaded ?
+           ((PlatformUpdates.Loaded)result).getNewBuild() :
+           null;
   }
 }
