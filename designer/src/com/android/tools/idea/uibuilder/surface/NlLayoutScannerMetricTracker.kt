@@ -126,7 +126,7 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
   private fun atfResultCountBuilder(issue: NlAtfIssue): AtfAuditResult.AtfResultCount.Builder {
     val atfResultCountBuilder = AtfAuditResult.AtfResultCount.newBuilder().setCheckName(issue.srcClass)
-    issue.result.mFix.let {
+    issue.result.mFix?.let {
       atfResultCountBuilder.addFixes(atfFixDetailBuilder(it))
     }
     return atfResultCountBuilder
