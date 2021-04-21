@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -37,20 +36,23 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
   public void getDevices() {
     // Arrange
     Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    AndroidDevice androidDevice = Mockito.mock(LaunchableAndroidDevice.class);
 
-    Device device = new VirtualDevice.Builder()
+    Target target = Mockito.mock(Target.class);
+    Mockito.when(target.getDeviceKey()).thenReturn(key);
+
+    Project project = Mockito.mock(Project.class);
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+
+    VirtualDevice device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(key)
       .setAndroidDevice(androidDevice)
       .build();
 
-    AsyncDevicesGetter getter = Mockito.mock(AsyncDevicesGetter.class);
-    Mockito.when(getter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+    DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+    Mockito.when(action.getDevices(project)).thenReturn(Optional.of(Collections.singletonList(device)));
 
-    DeployTarget target = new DeviceAndSnapshotComboBoxTarget(Collections.singleton(new QuickBootTarget(key)), project -> getter);
-
-    Project project = Mockito.mock(Project.class);
+    DeployTarget deployTarget = new DeviceAndSnapshotComboBoxTarget((p, d) -> Collections.singleton(target), () -> action);
 
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(project);
@@ -59,9 +61,10 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
     Mockito.when(facet.getModule()).thenReturn(module);
 
     // Act
-    Object futures = target.getDevices(facet);
+    Object futures = deployTarget.getDevices(facet);
 
     // Assert
+    Mockito.verify(target).boot(device, project);
     assertEquals(new DeviceFutures(Collections.singletonList(androidDevice)), futures);
   }
 }

@@ -24,34 +24,29 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
-  private final @NotNull Set<@NotNull Target> myTargets;
-  private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
+  private final @NotNull SelectedTargetSupplier myGetSelectedTargets;
+  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
 
-  DeviceAndSnapshotComboBoxTarget(@NotNull Set<@NotNull Target> targets) {
-    this(targets, AsyncDevicesGetter::getInstance);
+  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets) {
+    this(getSelectedTargets, DeviceAndSnapshotComboBoxAction::getInstance);
   }
 
   @VisibleForTesting
-  DeviceAndSnapshotComboBoxTarget(@NotNull Set<@NotNull Target> targets,
-                                  @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
-    myTargets = targets;
-    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
-  }
-
-  @VisibleForTesting
-  @NotNull Set<@NotNull Target> getTargets() {
-    return myTargets;
+  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets,
+                                  @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
+    myGetSelectedTargets = getSelectedTargets;
+    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
   }
 
   @Override
@@ -71,25 +66,30 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   @Override
   public DeviceFutures getDevices(@NotNull AndroidFacet facet) {
     Project project = facet.getModule().getProject();
+    List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
+    Set<Target> selectedTargets = myGetSelectedTargets.get(project, devices);
+    Collection<Device> selectedDevices = Target.filterDevices(selectedTargets, devices);
 
-    return myAsyncDevicesGetterGetInstance.apply(project).get()
-      .map(devices -> newDeviceFutures(devices, project))
-      .orElse(new DeviceFutures(Collections.emptyList()));
+    bootAvailableDevices(selectedTargets, selectedDevices, project);
+    return newDeviceFutures(selectedDevices);
   }
 
-  private @NotNull DeviceFutures newDeviceFutures(@NotNull List<@NotNull Device> devices, @NotNull Project project) {
-    devices = Target.filterDevices(myTargets, devices);
-    Map<Key, Target> map = myTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
-    List<AndroidDevice> androidDevices = new ArrayList<>(devices.size());
+  private static void bootAvailableDevices(@NotNull Collection<@NotNull Target> selectedTargets,
+                                           @NotNull Collection<@NotNull Device> selectedDevices,
+                                           @NotNull Project project) {
+    Map<Key, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
 
-    for (Device device : devices) {
-      if (!device.isConnected()) {
-        map.get(device.getKey()).boot((VirtualDevice)device, project);
-      }
+    selectedDevices.stream()
+      .filter(device -> !device.isConnected())
+      .map(VirtualDevice.class::cast)
+      .forEach(virtualDevice -> map.get(virtualDevice.getKey()).boot(virtualDevice, project));
+  }
 
-      androidDevices.add(device.getAndroidDevice());
-    }
+  private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<@NotNull Device> selectedDevices) {
+    List<AndroidDevice> devices = selectedDevices.stream()
+      .map(Device::getAndroidDevice)
+      .collect(Collectors.toList());
 
-    return new DeviceFutures(androidDevices);
+    return new DeviceFutures(devices);
   }
 }
