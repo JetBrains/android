@@ -24,9 +24,9 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library">
       <library name="utp-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha03" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha04" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha03/core-proto-0.0.8-alpha03.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha04/core-proto-0.0.8-alpha04.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

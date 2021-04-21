@@ -12,7 +12,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2/repository/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09:jetifier-core",
         "//prebuilts/tools/common/m2/repository/com/google/auto/auto-common/0.10:auto-common",
         "//prebuilts/tools/common/m2/repository/com/google/flatbuffers/flatbuffers-java/1.12.0:flatbuffers-java",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha03:utp-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha04:utp-core-proto",
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:juniversalchardet",
         "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.10.0:javapoet",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
