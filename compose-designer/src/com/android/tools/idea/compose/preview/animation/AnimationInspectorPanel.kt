@@ -281,6 +281,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     // editor and we need to refresh the animation preview so it displays the most up-to-date animations. For that reason, we need to make
     // sure the animation panel is repainted correctly.
     repaint()
+    playPauseAction.pause()
   }
 
   /**
@@ -667,7 +668,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       ticker.start()
     }
 
-    private fun pause() {
+    fun pause() {
       isPlaying = false
       ticker.stop()
     }
