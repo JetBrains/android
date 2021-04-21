@@ -258,9 +258,6 @@ class WarningsViewDetailPagesFactory(
     val runTestBuildActionButton = JButton("Try Configuration cache in a build").apply {
       addActionListener { actionHandlers.runTestConfigurationCachingBuild() }
     }
-    val addToPropertiesActionLink = HyperlinkLabel("Permanently turn on Configuration cache in gradle.properties.").apply {
-      addHyperlinkListener { actionHandlers.turnConfigurationCachingOnInProperties() }
-    }
     val unknownPluginsNoteHtml = """
         Note: There could be unknown plugins that aren't compatible and are discovered after
         you build with Configuration cache turned on.
@@ -273,7 +270,6 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
     add(runTestBuildActionButton)
-    add(addToPropertiesActionLink)
     if (uiData.unrecognizedPlugins.isNotEmpty())
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
   }
