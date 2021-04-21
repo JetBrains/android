@@ -24,4 +24,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.compose.ui:ui-tooling:+'
     implementation 'androidx.activity:activity-compose:+'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:+'
 }
