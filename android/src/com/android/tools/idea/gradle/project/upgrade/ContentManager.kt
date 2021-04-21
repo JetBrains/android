@@ -92,7 +92,7 @@ class ToolWindowModel(
   val runEnabled = BoolValueProperty(true)
   val showFinishedMessage = BoolValueProperty(false)
 
-  val suggestedVersions = OptionalValueProperty<List<GradleVersion>>()
+  val knownVersions = OptionalValueProperty<List<GradleVersion>>()
 
   val treeModel = DefaultTreeModel(CheckedTreeNode(null))
 
@@ -144,14 +144,14 @@ class ToolWindowModel(
     })
 
     // Initialize known versions (e.g. in case of offline work with no cache)
-    suggestedVersions.value = suggestedVersionsList(setOf())
+    knownVersions.value = suggestedVersionsList(setOf())
 
     // Request known versions.
     ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Looking for known versions", false) {
       override fun run(indicator: ProgressIndicator) {
         val gMavenVersions = knownVersionsRequester()
-        val suggestedVersionsList = suggestedVersionsList(gMavenVersions)
-        invokeLater(ModalityState.NON_MODAL) { suggestedVersions.value = suggestedVersionsList }
+        val knownVersionsList = suggestedVersionsList(gMavenVersions)
+        invokeLater(ModalityState.NON_MODAL) { knownVersions.value = knownVersionsList }
       }
     })
   }
@@ -396,14 +396,14 @@ class ContentManager(val project: Project) {
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       object : DefaultCommonComboBoxModel<GradleVersion>(
         model.selectedVersion.valueOrNull?.toString() ?: "",
-        model.suggestedVersions.valueOrNull ?: emptyList()
+        model.knownVersions.valueOrNull ?: emptyList()
       ) {
         init {
           selectedItem = model.selectedVersion.valueOrNull
-          myListeners.listen(model.suggestedVersions) { suggestedVersions ->
+          myListeners.listen(model.knownVersions) { knownVersions ->
             removeAllElements()
             selectedItem = model.selectedVersion.valueOrNull
-            suggestedVersions.orElse(emptyList()).forEach { addElement(it) }
+            knownVersions.orElse(emptyList()).forEach { addElement(it) }
           }
           placeHolderValue = "Select new version"
         }
