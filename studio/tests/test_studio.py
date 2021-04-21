@@ -3,7 +3,7 @@ import re
 import unittest
 import zipfile
 
-PLATFORMS = ["linux", "win", "mac"]
+PLATFORMS = ["linux", "win", "mac", "mac_arm"]
 
 
 class StudioTests(unittest.TestCase):
