@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -31,16 +30,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.argThat
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import java.util.concurrent.Executors
 
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
   private val legacyClientProvider = object : InspectorClientProvider {
     override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
       val loader = mock(LegacyTreeLoader::class.java)
-      `when`(loader.getAllWindowIds(ArgumentMatchers.any())).thenReturn(windowIds)
+      doAnswer { windowIds }.`when`(loader).getAllWindowIds(ArgumentMatchers.any())
       return LegacyClientProvider(loader).create(params, inspector) as LegacyClient
     }
   }
@@ -67,5 +67,17 @@ class LegacyClientTest {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     val client = inspectorRule.inspectorClient as LegacyClient
     assertThat(client.reloadAllWindows()).isFalse()
+  }
+
+  @Test
+  fun testConnect() {
+    Executors.newSingleThreadExecutor().execute {
+      Thread.sleep(1000)
+      windowIds.add("window1")
+    }
+    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
+    val client = inspectorRule.inspectorClient as LegacyClient
+    verify(client.treeLoader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window1" },
+                                                any(ResourceLookup::class.java))
   }
 }

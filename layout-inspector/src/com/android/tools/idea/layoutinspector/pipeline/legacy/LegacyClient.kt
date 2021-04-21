@@ -29,6 +29,8 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.application.invokeLater
 
+private const val MAX_CONNECTION_ATTEMPTS = 5
+
 /**
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
@@ -102,8 +104,13 @@ class LegacyClient(
       loggedInitialAttach = true
     }
 
-    if (!reloadAllWindows()) {
-      return false
+    var attempts = 0
+    while (!reloadAllWindows()) {
+      // The windows may not be available yet, try again: b/185936377
+      if (++attempts > MAX_CONNECTION_ATTEMPTS) {
+        return false
+      }
+      Thread.sleep(500) // wait 0.5 secs
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
     invokeLater {
