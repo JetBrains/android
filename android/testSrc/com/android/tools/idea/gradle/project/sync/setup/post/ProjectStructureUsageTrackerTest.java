@@ -78,7 +78,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                    .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .addLibraries(GradleLibrary.newBuilder()
                                    .setJarDependencyCount(11)
-                                   .setAarDependencyCount(45))
+                                   .setAarDependencyCount(50))
                    .addModules(GradleModule.newBuilder()
                                  .setTotalModuleCount(3)
                                  .setAppModuleCount(1)

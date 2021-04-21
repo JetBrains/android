@@ -61,6 +61,14 @@ object AndroidAttributeFact {
       "closeIconStartPadding" -> return NlPropertyType.DIMENSION
       "closeIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "closeIconVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "collapsedSize" -> return NlPropertyType.DIMENSION
+      "contentPadding" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingBottom" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingEnd" -> return NlPropertyType.DIMENSION
+      "contentPaddingLeft" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingRight" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingStart" -> return NlPropertyType.DIMENSION
+      "contentPaddingTop" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
       "cornerRadius" -> return NlPropertyType.DIMENSION
       "counterOverflowTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "counterTextColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -76,6 +84,7 @@ object AndroidAttributeFact {
       "errorIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "errorIconTintMode" -> return NlPropertyType.ENUM
       "errorTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "expandedHintEnabled" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "extendMotionSpec" -> return NlPropertyType.ANIMATOR
       "fabAlignmentMode" -> return NlPropertyType.ENUM
       "fabAnimationMode" -> return NlPropertyType.ENUM
@@ -85,6 +94,7 @@ object AndroidAttributeFact {
       "haloColor" -> return NlPropertyType.COLOR_STATE_LIST
       "haloRadius" -> return NlPropertyType.DIMENSION
       "helperTextTextColor" -> return NlPropertyType.COLOR_STATE_LIST
+      "hideAnimationBehavior" -> return NlPropertyType.ENUM
       "hideOnScroll" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "hintTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "iconEndPadding" -> return NlPropertyType.DIMENSION
@@ -93,6 +103,12 @@ object AndroidAttributeFact {
       "iconPadding" -> return NlPropertyType.DIMENSION
       "iconSize" -> return NlPropertyType.DIMENSION
       "insetBottom" -> return NlPropertyType.DIMENSION
+      "indeterminateAnimationType" -> return NlPropertyType.ENUM
+      "indicatorColor" -> return NlPropertyType.COLOR
+      "indicatorDirectionCircular" -> return NlPropertyType.ENUM
+      "indicatorDirectionLinear" -> return NlPropertyType.ENUM
+      "indicatorInset" -> return NlPropertyType.DIMENSION
+      "indicatorSize" -> return NlPropertyType.DIMENSION
       "insetLeft" -> return NlPropertyType.DIMENSION
       "insetRight" -> return NlPropertyType.DIMENSION
       "insetTop" -> return NlPropertyType.DIMENSION
@@ -114,6 +130,9 @@ object AndroidAttributeFact {
       "layout_scrollInterpolator" -> return NlPropertyType.INTERPOLATOR
       "liftOnScrollTargetViewId" -> return NlPropertyType.ID
       "lineSpacing" -> return NlPropertyType.DIMENSION
+      "minHideDelay" -> return NlPropertyType.INTEGER
+      "minSeparation" -> return NlPropertyType.DIMENSION
+      "navigationIconTint" -> return NlPropertyType.COLOR
       "paddingBottomSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "paddingLeftSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "paddingRightSystemWindowInsets" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -126,6 +145,8 @@ object AndroidAttributeFact {
       "selectionRequired" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "shapeAppearance" -> return NlPropertyType.STYLE
       "shapeAppearanceOverlay" -> return NlPropertyType.STYLE
+      "showAnimationBehavior" -> return NlPropertyType.ENUM
+      "showDelay" -> return NlPropertyType.INTEGER
       "shrinkMotionSpec" -> return NlPropertyType.ANIMATOR
       "singleSelection" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "startIconCheckable" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -146,6 +167,7 @@ object AndroidAttributeFact {
       "tabIconTintMode" -> return NlPropertyType.ENUM
       "tabIndicator" -> return NlPropertyType.DRAWABLE
       "tabIndicatorAnimationDuration" -> return NlPropertyType.INTEGER
+      "tabIndicatorAnimationMode" -> return NlPropertyType.ENUM
       "tabIndicatorColor" -> return NlPropertyType.COLOR
       "tabIndicatorFullWidth" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "tabIndicatorGravity" -> return NlPropertyType.ENUM
@@ -173,10 +195,15 @@ object AndroidAttributeFact {
       "thumbColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbElevation" -> return NlPropertyType.DIMENSION
       "thumbRadius" -> return NlPropertyType.DIMENSION
+      "thumbStrokeColor" -> return NlPropertyType.COLOR // b/186080724 COLOR_STATE_LIST?
+      "thumbStrokeWidth" -> return NlPropertyType.DIMENSION
+      "tickVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "trackColor" -> return NlPropertyType.COLOR_STATE_LIST
       "trackColorActive" -> return NlPropertyType.COLOR_STATE_LIST
       "trackColorInactive" -> return NlPropertyType.COLOR_STATE_LIST
+      "trackCornerRadius" -> return NlPropertyType.DIMENSION
       "trackHeight" -> return NlPropertyType.DIMENSION
+      "trackThickness" -> return NlPropertyType.DIMENSION
       "useMaterialThemeColors" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "expanded" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "liftOnScroll" -> return NlPropertyType.THREE_STATE_BOOLEAN
