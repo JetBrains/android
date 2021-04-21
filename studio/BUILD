@@ -549,9 +549,11 @@ py_test(
     data = [
         "tests/expected_linux.txt",
         "tests/expected_mac.txt",
+        "tests/expected_mac_arm.txt",
         "tests/expected_win.txt",
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
+        ":android-studio.mac_arm.zip",
         ":android-studio.win.zip",
     ],
 )
