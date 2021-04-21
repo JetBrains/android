@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.data
 
+import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.intellij.openapi.command.WriteCommandAction
@@ -25,7 +26,8 @@ import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: GradleVersion?,
-  val configurationCachingGradlePropertyState: String?
+  val configurationCachingGradlePropertyState: String?,
+  val isInConfigurationCacheTestFlow: Boolean
 ) {
   companion object {
     private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
@@ -34,7 +36,8 @@ data class StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
         project.getProjectProperties(createIfNotExists = true)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
-      }
+      },
+      isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild
     )
 
     fun turnOnConfigurationCacheInProperties(project: Project) {

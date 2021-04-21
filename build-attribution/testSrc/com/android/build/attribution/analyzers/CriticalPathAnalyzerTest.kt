@@ -106,7 +106,7 @@ class CriticalPathAnalyzerTest {
       null,
       GradlePluginsData.emptyData,
       Mockito.mock(BuildEventsAnalysisResult::class.java),
-      StudioProvidedInfo(null, null)
+      StudioProvidedInfo(null, null, false)
     )
 
     // Then the analyzer should find this critical path
@@ -161,7 +161,7 @@ class CriticalPathAnalyzerTest {
       GradlePluginsData.emptyData,
 
       Mockito.mock(BuildEventsAnalysisResult::class.java),
-      StudioProvidedInfo(null, null)
+      StudioProvidedInfo(null, null, false)
     )
 
     // Then the analyzer should find this critical path

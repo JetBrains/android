@@ -38,7 +38,7 @@ class GarbageCollectionAnalyzerTest {
     analyzersWrapper.onBuildSuccess(AndroidGradlePluginAttributionData(
       garbageCollectionData = mapOf(("gc1" to 500L), ("gc2" to 200L)),
       javaInfo = JavaInfo("11.0.8", "N/A", "", emptyList())
-    ), GradlePluginsData.emptyData, analyzersProxy, StudioProvidedInfo(null, null))
+    ), GradlePluginsData.emptyData, analyzersProxy, StudioProvidedInfo(null, null, false))
 
     assertThat(analyzersProxy.getTotalGarbageCollectionTimeMs()).isEqualTo(700)
 

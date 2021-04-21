@@ -20,6 +20,7 @@
     <projectService serviceImplementation="com.android.build.attribution.BuildAttributionWarningsFilter"/>
     <projectService serviceInterface="com.android.build.attribution.ui.BuildAttributionUiManager"
         serviceImplementation="com.android.build.attribution.ui.BuildAttributionUiManagerImpl"/>
+    <projectService serviceImplementation="com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner"/>
     <applicationService serviceInterface="com.android.build.attribution.KnownGradlePluginsService"
                         serviceImplementation="com.android.build.attribution.KnownGradlePluginsServiceImpl"/>
   </extensions>

@@ -45,6 +45,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
@@ -177,7 +178,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    ConfigurationCacheTestBuildFlowRunner(project, this).startTestBuildsFlow()
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow()
     analytics.rerunBuildWithConfCacheClicked()
   }
 
@@ -245,10 +246,15 @@ class PluginVersionDeclarationFinder(val project: Project) {
   }
 }
 
-class ConfigurationCacheTestBuildFlowRunner(
-  val project: Project,
-  val controller: BuildAnalyzerViewController
-) {
+class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
+
+  var runningTestConfigurationCacheBuild: Boolean = false
+
+  companion object {
+    fun getInstance(project: Project): ConfigurationCacheTestBuildFlowRunner {
+      return ServiceManager.getService(project, ConfigurationCacheTestBuildFlowRunner::class.java)
+    }
+  }
 
   fun startTestBuildsFlow() {
     runFirstConfigurationCacheTestBuildWithConfirmation()
@@ -297,7 +303,7 @@ class ConfigurationCacheTestBuildFlowRunner(
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
         Messages.getInformationIcon(), null
       )
-      if (confirmationResult == Messages.OK) controller.turnConfigurationCachingOnInProperties()
+      if (confirmationResult == Messages.OK) StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
     }
   }
 
@@ -305,12 +311,14 @@ class ConfigurationCacheTestBuildFlowRunner(
     GradleBuildInvoker.getInstance(project).let { invoker ->
       invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
         override fun execute(result: GradleInvocationResult) {
+          runningTestConfigurationCacheBuild = false
           invoker.remove(this)
           if (result.isBuildSuccessful) onSuccess()
           else showFailureMessage(result)
         }
       })
       invoker.rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+      runningTestConfigurationCacheBuild = true
     }
   }
 
