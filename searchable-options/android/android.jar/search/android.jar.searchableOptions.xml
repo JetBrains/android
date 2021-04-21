@@ -726,17 +726,15 @@
     <option name="issue" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="panel" path="ActionManager" hit="Toggle Issue Panel" />
     <option name="toggle" path="ActionManager" hit="Toggle Issue Panel" />
-    <option name="highlights" path="ActionManager" hit="Toggle Live Literals Highlights" />
-    <option name="literals" path="ActionManager" hit="Toggle Live Literals Highlights" />
-    <option name="live" path="ActionManager" hit="Toggle Live Literals Highlights" />
-    <option name="toggle" path="ActionManager" hit="Toggle Live Literals Highlights" />
-    <option name="editor" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="highlights" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="in" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="literals" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="live" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="the" path="ActionManager" hit="Toggle live literals highlights in the editor" />
-    <option name="toggle" path="ActionManager" hit="Toggle live literals highlights in the editor" />
+    <option name="decorations" path="ActionManager" hit="Toggle literals decorations" />
+    <option name="literals" path="ActionManager" hit="Toggle literals decorations" />
+    <option name="toggle" path="ActionManager" hit="Toggle literals decorations" />
+    <option name="decorations" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="editor" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="in" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="literals" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="the" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="toggle" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="and" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
     <option name="between" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
     <option name="landscape" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
@@ -794,12 +792,13 @@
     <option name="verbose" hit="Verbose" />
     <option name="warning" hit="Warning" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Literals" configurable_name="Live Literals">
-    <option name="literals" hit="Live Literals" />
-    <option name="live" hit="Live Literals" />
-    <option name="highlights" hit="Live Literals Highlights" />
-    <option name="literals" hit="Live Literals Highlights" />
-    <option name="live" hit="Live Literals Highlights" />
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Editing of literals" configurable_name="Live Editing of literals">
+    <option name="editing" hit="Live Editing of literals" />
+    <option name="literals" hit="Live Editing of literals" />
+    <option name="live" hit="Live Editing of literals" />
+    <option name="of" hit="Live Editing of literals" />
+    <option name="decorations" hit="Literals decorations" />
+    <option name="literals" hit="Literals decorations" />
   </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
@@ -1023,23 +1022,27 @@
     <option name="testing" hit="Testing" />
   </configurable>
   <configurable id="android.live.literals" configurable_name="Live Literals">
-    <option name="" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="after" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="building" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="can" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="enabling" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="feature" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="is" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="literals" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="live" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="properly" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="required" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="so" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="the" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="work" hit="   Building is required after enabling live literals so the feature can work properly.   " />
-    <option name="enable" hit="Enable Live Literals" />
-    <option name="literals" hit="Enable Live Literals" />
-    <option name="live" hit="Enable Live Literals" />
+    <option name="" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="after" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="building" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="can" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="editing" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="enabling" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="feature" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="is" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="literals" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="live" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="of" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="properly" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="required" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="so" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="the" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="work" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
+    <option name="editing" hit="Enable Live Editing of literals" />
+    <option name="enable" hit="Enable Live Editing of literals" />
+    <option name="literals" hit="Enable Live Editing of literals" />
+    <option name="live" hit="Enable Live Editing of literals" />
+    <option name="of" hit="Enable Live Editing of literals" />
     <option name="literals" hit="Live Literals" />
     <option name="live" hit="Live Literals" />
   </configurable>
