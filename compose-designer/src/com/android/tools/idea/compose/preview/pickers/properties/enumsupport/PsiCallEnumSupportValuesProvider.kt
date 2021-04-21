@@ -18,8 +18,10 @@ package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
+import com.android.tools.idea.compose.preview.PARAMETER_GROUP
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.AndroidModuleInfo
@@ -27,6 +29,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.impl.LibraryScopeCache
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
@@ -43,7 +46,11 @@ class PsiCallEnumSupportValuesProvider private constructor(
 
   companion object {
     @JvmStatic
-    fun createPreviewValuesProvider(module: Module, composeLibraryNamespace: ComposeLibraryNamespace): EnumSupportValuesProvider {
+    fun createPreviewValuesProvider(
+      module: Module,
+      composeLibraryNamespace: ComposeLibraryNamespace,
+      containingFile: VirtualFile?
+    ): EnumSupportValuesProvider {
       val providersMap = mutableMapOf<String, EnumValuesProvider>()
 
       providersMap[PARAMETER_DEVICE] = createDeviceEnumProvider(module, composeLibraryNamespace.composeDevicesClassName)
@@ -51,6 +58,10 @@ class PsiCallEnumSupportValuesProvider private constructor(
       providersMap[PARAMETER_UI_MODE] = createUiModeEnumProvider(module)
 
       providersMap[PARAMETER_API_LEVEL] = createApiLevelEnumProvider(module)
+
+      containingFile?.let {
+        providersMap[PARAMETER_GROUP] = createGroupEnumProvider(module, containingFile)
+      }
 
       return PsiCallEnumSupportValuesProvider(providersMap)
     }
@@ -138,6 +149,15 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider =
     }?.map { target ->
       EnumValue.item(target.version.apiLevel.toString(), "${target.version.apiLevel} (Android ${target.versionName})")
     } ?: emptyList()
+  }
+
+private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile): EnumValuesProvider =
+  {
+    AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile).mapNotNull { previewElement ->
+      previewElement.displaySettings.group
+    }.distinct().map { group ->
+      EnumValue.Companion.item(group)
+    }
   }
 
 private data class ClassEnumValueParams(

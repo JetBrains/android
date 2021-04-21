@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
 import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -23,8 +24,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.android.compose.stubDevicesAsLibrary
+import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +43,8 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     @get:Parameterized.Parameters(name = "{0}.Preview")
     val namespaces = namespaceVariations.map { it[0] }.distinct()
   }
+
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
   val rule = AndroidProjectRule.inMemory()
@@ -63,7 +68,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @RunsInEdt
   @Test
   fun testValuesProvider() {
-    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace)
+    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(4, uiModeValues.size)
     assertEquals("Normal", uiModeValues[0].display)
@@ -79,6 +84,38 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Nexus 10", deviceValues[3].display)
     assertEquals("Nexus 7", deviceValues[4].display)
     assertEquals("Automotive 1024p", deviceValues[5].display)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testGroupValuesProvider() {
+    rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable annotation
+    rule.fixture.stubPreviewAnnotation(composeLibraryNamespace.previewPackage)
+    val file = rule.fixture.addFileToProjectAndInvalidate(
+      "Test.kt",
+      // language=kotlin
+      """
+        import androidx.compose.Composable
+        import $PREVIEW_TOOLING_PACKAGE.Preview
+
+        @Preview
+        @Composable
+        fun preview1() {}
+
+        @Composable
+        @Preview(group = "group1")
+        fun preview2() {}
+
+        @Preview(group = "group2")
+        @Composable
+        fun preview3() {}
+      """.trimIndent())
+
+    val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, file.virtualFile)
+    val groupEnumValues = valuesProvider.getValuesProvider("group")!!.invoke()
+    assertEquals(2, groupEnumValues.size)
+    assertEquals("group1", groupEnumValues[0].display)
+    assertEquals("group2", groupEnumValues[1].display)
   }
 
 }
