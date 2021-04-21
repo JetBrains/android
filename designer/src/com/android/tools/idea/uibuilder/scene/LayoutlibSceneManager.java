@@ -1738,7 +1738,7 @@ public class LayoutlibSceneManager extends SceneManager {
       return true;
     }
     catch (Exception e) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
+      Logger.getInstance(LayoutlibSceneManager.class).debug("executeCallbacksAndRequestRender did not complete successfully", e);
       return false;
     }
   }
