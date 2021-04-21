@@ -22,6 +22,7 @@ import com.android.tools.idea.res.isResourceDeclaration
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.xml.XmlFile
@@ -131,5 +132,15 @@ class AndroidBinaryResourceFileUsageTypeProvider : UsageTypeProvider {
 
   override fun getUsageType(element: PsiElement): UsageType? {
     return if (AndroidFallbackFindUsagesProvider.isBinaryResourceFile(element)) ANDROID_RESOURCE_FILE else null
+  }
+}
+
+class AndroidPropertiesUsageType : UsageTypeProvider {
+  companion object {
+    private val ANDROID_PROPERTIES_FILE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.properties.file"))
+  }
+
+  override fun getUsageType(element: PsiElement): UsageType? {
+    return if (element is PsiFile && element.name == SdkConstants.FN_GRADLE_PROPERTIES) ANDROID_PROPERTIES_FILE else null
   }
 }

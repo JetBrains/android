@@ -55,6 +55,15 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   /**
+   * Test for [AndroidPropertiesUsageType]
+   */
+  fun testGradlePropertiesFile() {
+    val psiFile = myFixture.addFileToProject("gradle.properties", "")
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    assertThat(getUsageType(psiFile).toString()).isEqualTo("Gradle properties file")
+  }
+
+  /**
    * Tests for [AndroidResourceReferenceInCodeUsageTypeProvider]
    */
   fun testAndroidLightFieldResource() {
@@ -211,12 +220,12 @@ class UsageTypeProvidersTest : AndroidTestCase() {
 
   private fun getUsageType(element: PsiElement) : UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
-      if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) }
-        return provider.getUsageType(element, targets) ?: continue
+      return if (provider is UsageTypeProviderEx) {
+        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) } ?: emptyArray()
+        provider.getUsageType(element, targets) ?: continue
       }
       else {
-        return provider.getUsageType(element) ?: continue
+        provider.getUsageType(element) ?: continue
       }
     }
     return null
