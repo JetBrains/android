@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
@@ -60,10 +59,7 @@ private fun Project.isCompose() = cacheInvalidatingOnSyncModifications {
  */
 private fun showFirstTimeAvailablePopup(component: JComponent, parentDisposable: Disposable) {
   val highlightAction = ActionManager.getInstance().getAction("Compose.Live.Literals.ToggleHighlight")
-  val shortcutLabel = highlightAction.shortcutSet.shortcuts.firstOrNull()?.let {
-    " (${KeymapUtil.getShortcutText(it)})"
-  } ?: ""
-  val toggleLiteralsActionName = "\"${highlightAction.templateText}\"$shortcutLabel"
+  val toggleLiteralsActionName = "\"${highlightAction.templateText}\""
   GotItTooltip("android.live.literals.popup", AndroidBundle.message("live.literals.is.available", toggleLiteralsActionName),
                parentDisposable)
     .withLink(AndroidBundle.message("live.literals.is.available.disable.hint")) {
@@ -132,7 +128,6 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
       ToggleLiveLiteralsStatusAction(),
       ToggleLiveLiteralsHighlightAction(),
       ShowLiveLiteralsProblemAction(),
-      UpdateHighlightsKeymapAction(),
       CustomizeLiveLiteralsThemeAction()
     ))
 

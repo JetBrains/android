@@ -292,7 +292,6 @@
         class="com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsHighlightAction"
         text="Toggle Live Literals Highlights"
         description="Switches the Live Literals highlights on/off">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift COMMA" />
     </action>
   </actions>
 

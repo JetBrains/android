@@ -41,9 +41,9 @@ class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highli
     e.presentation.apply {
       isEnabledAndVisible = LiveLiteralsService.getInstance(project).isEnabled
       text = if (LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights)
-        message("live.literals.highlight.toggle.hide.title", getShortcutLabel())
+        message("live.literals.highlight.toggle.hide.title")
       else
-        message("live.literals.highlight.toggle.show.title", getShortcutLabel())
+        message("live.literals.highlight.toggle.show.title")
     }
   }
 
@@ -59,26 +59,5 @@ class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highli
       val highlightAction = ActionManager.getInstance().getAction("Compose.Live.Literals.ToggleHighlight")
       return "\"${highlightAction.templateText}\"${getShortcutLabel()}"
     }
-  }
-}
-
-/**
- * Action that opens the keymap configuration for the [ToggleLiveLiteralsHighlightAction].
- */
-internal class UpdateHighlightsKeymapAction : AnAction(
-  message("live.literals.configure.keymap.title", ToggleLiveLiteralsHighlightAction.getShortcutLabel())) {
-  override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    val keymapConfigurable = ShowSettingsUtilImpl.getConfigurables(project, true).find {
-      it.displayName == KeyMapBundle.message("keymap.display.name")
-    }
-    val settingsGroup = listOf(ConfigurableExtensionPointUtil.getConfigurableGroup(listOf(keymapConfigurable), project))
-
-    SettingsDialogFactory.getInstance().create(
-      project,
-      settingsGroup,
-      keymapConfigurable,
-      message("live.literals.highlight.toggle.title")
-    ).show()
   }
 }
