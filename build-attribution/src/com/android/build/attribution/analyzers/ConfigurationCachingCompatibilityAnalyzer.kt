@@ -36,6 +36,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private var currentAgpVersion: GradleVersion? = null
   private var configurationCachingGradlePropertiesFlagState: String? = null
   private var configurationCacheInBuildState: Boolean? = null
+  private var runningConfigurationCacheTestFlow: Boolean? = null
 
   override fun cleanupTempState() {
     buildscriptClasspath.clear()
@@ -44,6 +45,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     currentAgpVersion = null
     configurationCachingGradlePropertiesFlagState = null
     configurationCacheInBuildState = null
+    runningConfigurationCacheTestFlow = null
   }
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
@@ -62,6 +64,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     appliedPlugins = analyzersResult.getAppliedPlugins()
     if (currentAgpVersion == null) currentAgpVersion = studioProvidedInfo.agpVersion
     configurationCachingGradlePropertiesFlagState = studioProvidedInfo.configurationCachingGradlePropertyState
+    runningConfigurationCacheTestFlow = studioProvidedInfo.isInConfigurationCacheTestFlow
     ensureResultCalculated()
   }
 
@@ -70,6 +73,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   }
 
   private fun compute(appliedPlugins: List<PluginData>): ConfigurationCachingCompatibilityProjectResult {
+    if (runningConfigurationCacheTestFlow == true) return ConfigurationCacheCompatibilityTestFlow
     if (configurationCacheInBuildState == true) return ConfigurationCachingTurnedOn
     if (buildscriptClasspath.isEmpty()) {
       // Possible that we are using an old AGP. Need to check the known version from sync.
@@ -153,5 +157,8 @@ data class IncompatiblePluginWarning(
     get() = pluginInfo.configurationCachingCompatibleFrom
 }
 
-/** Analyzer result when configuration caching is turned on in gradle.properties. */
+/** Analyzer result when build is running with configuration caching enabled. */
 object ConfigurationCachingTurnedOn : ConfigurationCachingCompatibilityProjectResult()
+
+/** Analyzer result for test CC builds started from Build Analyzer. */
+object ConfigurationCacheCompatibilityTestFlow : ConfigurationCachingCompatibilityProjectResult()

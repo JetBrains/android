@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
@@ -430,6 +431,7 @@ class ConfigurationCachingRootNodeDescriptor(
         }
         is NoIncompatiblePlugins -> ""
         ConfigurationCachingTurnedOn -> ""
+        ConfigurationCacheCompatibilityTestFlow -> ""
       },
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
     )
@@ -453,6 +455,7 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
   is NoIncompatiblePlugins -> 1
+  ConfigurationCacheCompatibilityTestFlow -> 1
   ConfigurationCachingTurnedOn -> 0
 }
 

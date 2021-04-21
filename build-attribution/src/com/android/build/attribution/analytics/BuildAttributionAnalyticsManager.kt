@@ -17,6 +17,7 @@ package com.android.build.attribution.analytics
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
@@ -232,6 +233,8 @@ class BuildAttributionAnalyticsManager(
         is NoIncompatiblePlugins -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_NOT_DETECTED
         is IncompatiblePluginsDetected -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED
         ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
+        //TODO (mlazeba): add state to analytics
+        ConfigurationCacheCompatibilityTestFlow -> ConfigurationCacheCompatibilityData.CompatibilityState.UNKNOWN_STATE
       }
       if (configurationCachingCompatibilityState is IncompatiblePluginsDetected) {
         addAllIncompatiblePlugins(configurationCachingCompatibilityState.incompatiblePluginWarnings.map { transformPluginData(it.plugin) })

@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
@@ -199,6 +200,7 @@ class WarningsViewDetailPagesFactory(
       is AGPUpdateRequired -> this.createAGPUpdateRequiredPanel(uiData, projectConfigurationTime)
       is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
       is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
+      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel(uiData, projectConfigurationTime)
       ConfigurationCachingTurnedOn -> Unit
     }
   }
@@ -272,6 +274,20 @@ class WarningsViewDetailPagesFactory(
     add(runTestBuildActionButton)
     if (uiData.unrecognizedPlugins.isNotEmpty())
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
+  }
+
+  private fun JPanel.createConfigurationCacheTestFlowPanel(uiData: ConfigurationCacheCompatibilityTestFlow, configurationTime: TimeWithPercentage) {
+    val contentHtml = """
+        <b>Test builds with Configuration cache finished successfully</b>
+        With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+        
+        Gradle was able to serialize the task graph of this build and reuse it for the second run using configuration cache.
+      """.trimIndent().insertBRTags()
+    val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties.").apply {
+      addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
+    }
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(addToPropertiesActionButton)
   }
 
   private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
