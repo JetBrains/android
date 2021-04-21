@@ -119,23 +119,29 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     }
   }
 
-  override fun getCommandName() = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.title")
+  override fun getCommandName(): String = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.title")
 
-  override fun findUsages(): Array<UsageInfo> {
+  public override fun findUsages(): Array<UsageInfo> {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
-    progressIndicator.isIndeterminate = true
-    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.findusages")
-    val usages = facetsToMigrate.flatMap(::findUsagesOfRClassesFromModule)
+    progressIndicator?.isIndeterminate = true
+    progressIndicator?.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.findusages")
+    val usages = facetsToMigrate.flatMap(::findUsagesOfRClassesFromModule).toMutableList()
 
     // TODO(b/137180850): handle the case where usages is empty better. Display gradle.properties as the only "usage", so there's something
     //   in the UI?
 
-    progressIndicator.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.inferring")
+    progressIndicator?.text = AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.progress.inferring")
     inferPackageNames(usages, progressIndicator)
 
-    progressIndicator.text = null
+    progressIndicator?.text = null
 
     trackProcessorUsage(FIND_USAGES, usages.size)
+    if (updateTopLevelGradleProperties) {
+      val propertiesFile = myProject.getProjectProperties(createIfNotExists = false)
+      if (propertiesFile != null ) {
+        return usages.toTypedArray<UsageInfo>() + PropertiesUsageInfo(NON_TRANSITIVE_R_CLASSES_PROPERTY, propertiesFile.containingFile)
+      }
+    }
     return usages.toTypedArray()
   }
 
@@ -150,8 +156,11 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     val psiMigration = PsiMigrationManager.getInstance(myProject).startMigration()
     try {
       usages.forEachIndexed { index, usageInfo ->
-        if (usageInfo !is CodeUsageInfo) error("unexpected $usageInfo")
-        usageInfo.updateClassReference(psiMigration)
+        when (usageInfo) {
+          is CodeUsageInfo -> {
+            usageInfo.updateClassReference(psiMigration)
+          }
+        }
         progressIndicator.fraction = (index + 1) / totalUsages
       }
     } finally {
@@ -162,7 +171,6 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
       myProject.getProjectProperties(createIfNotExists = true)?.apply {
         findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
       }
-
       val listener = object : GradleSyncListener {
         override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
         override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)

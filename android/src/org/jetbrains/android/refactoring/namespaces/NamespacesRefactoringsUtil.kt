@@ -75,6 +75,8 @@ internal abstract class ResourceUsageInfo : UsageInfo {
   var inferredPackage: String? = null
 }
 
+internal class PropertiesUsageInfo(val flag: String, psiElement: PsiElement) : UsageInfo(psiElement, true)
+
 /**
  * [ResourceUsageInfo] for references to R class fields in Java/Kotlin.
  */
@@ -234,7 +236,7 @@ private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement)
 
 internal fun inferPackageNames(
   result: Collection<ResourceUsageInfo>,
-  progressIndicator: ProgressIndicator
+  progressIndicator: ProgressIndicator?
 ) {
 
   val inferredNamespaces: Table<ResourceType, String, String> =
@@ -260,7 +262,7 @@ internal fun inferPackageNames(
       null
     }
 
-    progressIndicator.fraction = (index + 1) / total
+    progressIndicator?.fraction = (index + 1) / total
   }
 }
 
