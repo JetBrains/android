@@ -535,11 +535,12 @@ android_studio(
             "//prebuilts/studio/layoutlib:licenses",
         ],
     },
-    searchable_options = "searchable-options",
+    searchable_options = "//tools/adt/idea/searchable-options",
     version_eap = True,
     version_full = "dev build",
     version_micro = 0,
     version_patch = 0,
+    visibility = ["//visibility:public"],
 )
 
 py_test(
@@ -556,23 +557,6 @@ py_test(
 )
 
 py_test(
-    name = "searchable_options_test",
-    srcs = [
-        "tests/searchable_options_test.py",
-        "tests/update_searchable_options.py",
-    ],
-    data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
-    ],
-    tags = [
-        "block_network",
-        "no_windows",
-    ],
-)
-
-py_test(
     name = "startup_test",
     srcs = [
         "tests/startup_test.py",
@@ -580,21 +564,6 @@ py_test(
     data = [
         ":android-studio.linux.zip",
         "//tools/vendor/google/testing/display:xvfb",
-    ],
-    tags = [
-        "block_network",
-        "no_mac",
-        "no_windows",
-    ],
-)
-
-py_binary(
-    name = "update_searchable_options",
-    srcs = ["tests/update_searchable_options.py"],
-    data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
     ],
     tags = [
         "block_network",

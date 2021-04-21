@@ -45,8 +45,8 @@ class SearchableOptionTests(unittest.TestCase):
     eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir))
     if not eq:
       print("Searchable options comparison failed.")
-      print("The expected output is in outputs.zip, please update tools/adt/idea/studio/searchable-options with it.")
-      print("Alternatively, if you are on linux you can run: bazel run //tools/adt/idea/studio:update_searchable_options")
+      print("The expected output is in outputs.zip, please update tools/adt/idea/searchable-options with it.")
+      print("Alternatively, if you are on Linux you can run: bazel run //tools/adt/idea/searchable-options:update_searchable_options")
       undeclared_outputs = os.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
       for name in os.listdir(expected_dir):
         shutil.copytree(os.path.join(expected_dir, name), os.path.join(undeclared_outputs, name))
