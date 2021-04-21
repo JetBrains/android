@@ -62,8 +62,10 @@ import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.util.EventListener
+import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JButton
+import javax.swing.JSeparator
 import javax.swing.JTree
 import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
@@ -483,8 +485,17 @@ class ContentManager(val project: Project) {
 
     val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
       val controlsPanel = makeTopComponent()
-      add(controlsPanel, BorderLayout.NORTH)
-      add(tree, BorderLayout.WEST)
+      val topPanel = JBPanel<JBPanel<*>>().apply {
+        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        add(controlsPanel)
+        add(JSeparator(SwingConstants.HORIZONTAL))
+      }
+      add(topPanel, BorderLayout.NORTH)
+      val treePanel = JBPanel<JBPanel<*>>(BorderLayout()).apply {
+        add(tree, BorderLayout.WEST)
+        add(JSeparator(SwingConstants.VERTICAL), BorderLayout.CENTER)
+      }
+      add(treePanel, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
 
       fun updateState(loading: Boolean) {
