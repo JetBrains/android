@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import static com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -42,52 +41,6 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceAndSnapshotComboBoxTargetProviderTest {
-  @Test
-  public void showPrompt() {
-    // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(key)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Collections.singletonList(device);
-
-    DialogWrapper selectDevice = Mockito.mock(DialogWrapper.class);
-    Mockito.when(selectDevice.showAndGet()).thenReturn(true);
-
-    DialogWrapper errorDialog = Mockito.mock(DialogWrapper.class);
-
-    Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
-
-    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
-
-    Project project = Mockito.mock(Project.class);
-    Mockito.when(project.getUserData(MULTIPLE_DEPLOY_TARGETS)).thenReturn(true);
-
-    DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-    Mockito.when(action.getDevices(project)).thenReturn(Optional.of(devices));
-
-    DeployTargetProvider provider =
-      new DeviceAndSnapshotComboBoxTargetProvider(() -> action, (p, d) -> selectDevice, (p, d) -> errorDialog, p -> service);
-
-    Module module = Mockito.mock(Module.class);
-    Mockito.when(module.getProject()).thenReturn(project);
-
-    AndroidFacet facet = Mockito.mock(AndroidFacet.class);
-    Mockito.when(facet.getModule()).thenReturn(module);
-
-    // Act
-    Object deployTarget = provider.showPrompt(facet);
-
-    // Assert
-    assert deployTarget != null;
-    assertEquals(targets, ((DeviceAndSnapshotComboBoxTarget)deployTarget).getTargets());
-  }
-
   @Test
   public void showErrorMessage() {
     // Arrange
@@ -127,10 +80,8 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Mockito.when(action.getDevices(project)).thenReturn(Optional.of(devices));
     Mockito.when(action.getSelectedTargets(project)).thenReturn(targets);
 
-    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-
     DeployTargetProvider provider =
-      new DeviceAndSnapshotComboBoxTargetProvider(() -> action, (p, d) -> selectDeviceDialog, errorDialogSupplier, p -> service);
+      new DeviceAndSnapshotComboBoxTargetProvider(() -> action, (p, d) -> selectDeviceDialog, errorDialogSupplier);
 
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(project);
