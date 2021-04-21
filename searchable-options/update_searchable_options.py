@@ -86,7 +86,7 @@ def remove_empty(path, remove):
 
 
 def update_searchable_options(work_dir, workspace_dir):
-  so_dir = os.path.join(workspace_dir, "tools/adt/idea/studio/searchable-options")
+  so_dir = os.path.join(workspace_dir, "tools/adt/idea/searchable-options")
   files = glob.glob(os.path.join(so_dir, "**/*" + SEARCHABLE_OPTIONS_SUFFIX), recursive=True)
   for file in files:
     os.remove(file)
