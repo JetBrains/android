@@ -47,6 +47,7 @@ fun ProjectDumper.dumpNdkIdeModel(project: Project) {
 
 fun ProjectDumper.dumpNdkModuleModel(ndkModuleModel: NdkModuleModel) {
   val ndkModel = ndkModuleModel.ndkModel
+  prop("SelectedVariantName") { ndkModuleModel.selectedVariant }
   prop("SelectedAbiName") { ndkModuleModel.selectedAbi }
   if (ndkModel is V2NdkModel) dump(ndkModel.nativeModule)
   if (ndkModel is V1NdkModel) dump(ndkModel.androidProject)

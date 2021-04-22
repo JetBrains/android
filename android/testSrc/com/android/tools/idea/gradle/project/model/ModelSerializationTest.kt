@@ -140,6 +140,7 @@ class ModelSerializationTest {
     NdkModuleModel(
       "moduleName",
       File("some/path"),
+      "debug",
       "x86",
       modelCache.nativeAndroidProjectFrom(Mockito.mock(NativeAndroidProject::class.java, RETURNS_SMART_NULLS)),
       listOf()

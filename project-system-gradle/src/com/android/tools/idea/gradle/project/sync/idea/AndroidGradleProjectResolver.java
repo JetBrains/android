@@ -445,32 +445,33 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                           @NotNull IdeAndroidModels ideModels,
                                                           @NotNull CachedVariants cachedVariants) {
     // Prefer V2 NativeModule if available
+    String selectedAbiName = ideModels.getSelectedAbiName();
+    // If there are models we have a selected ABI name.
+    if (selectedAbiName == null) return null;
     if (ideModels.getV2NativeModule() != null) {
       return new NdkModuleModel(moduleName,
                                 rootModulePath,
-                                ideModels.getSelectedAbiName(),
+                                ideModels.getSelectedVariantName(),
+                                selectedAbiName,
                                 new V2NdkModel(ideModels.getAndroidProject().getModelVersion(), ideModels.getV2NativeModule()));
     }
-    else {
-      // V2 model not available, fallback to V1 model.
-      if (ideModels.getV1NativeProject() != null) {
-        List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
-        if (ideModels.getV1NativeVariantAbi() != null) {
-          ideNativeVariantAbis.add(ideModels.getV1NativeVariantAbi());
-        }
-        // Inject cached variants from previous Gradle Sync.
-        ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
+    // V2 model not available, fallback to V1 model.
+    if (ideModels.getV1NativeProject() != null) {
+      List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
+      if (ideModels.getV1NativeVariantAbi() != null) {
+        ideNativeVariantAbis.add(ideModels.getV1NativeVariantAbi());
+      }
+      // Inject cached variants from previous Gradle Sync.
+      ideNativeVariantAbis.addAll(cachedVariants.getNativeVariantsExcept(ideNativeVariantAbis));
 
-        return new NdkModuleModel(moduleName,
-                                  rootModulePath,
-                                  ideModels.getSelectedAbiName(),
-                                  ideModels.getV1NativeProject(),
-                                  ideNativeVariantAbis);
-      }
-      else {
-        return null;
-      }
+      return new NdkModuleModel(moduleName,
+                                rootModulePath,
+                                ideModels.getSelectedVariantName(),
+                                selectedAbiName,
+                                ideModels.getV1NativeProject(),
+                                ideNativeVariantAbis);
     }
+    return null;
   }
 
   @NotNull

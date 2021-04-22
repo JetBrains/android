@@ -314,6 +314,7 @@ MODULE                        : project.app
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    SelectedVariantName           : debug
     SelectedAbiName               : x86
     ModelVersion                  : 4.1.0
     ApiVersion                    : 3

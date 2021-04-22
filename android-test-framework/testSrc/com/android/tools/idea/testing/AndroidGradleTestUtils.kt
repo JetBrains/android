@@ -1017,6 +1017,7 @@ private fun createAndroidModuleDataNode(
         NdkModuleModel(
           moduleName,
           moduleBasePath,
+          selectedVariantName,
           selectedAbiName,
           ndkModel
         ),
