@@ -354,137 +354,20 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-compiler-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-compiler-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compiler-for-ide/1.4.32-release-371/kotlin-compiler-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-scripting-common-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-common:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-common/1.4.32-release-371/kotlin-scripting-common-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-scripting-compiler-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler/1.4.32-release-371/kotlin-scripting-compiler-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-scripting-compiler-impl-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-compiler-impl:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler-impl/1.4.32-release-371/kotlin-scripting-compiler-impl-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-scripting-jvm-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-scripting-jvm:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-jvm/1.4.32-release-371/kotlin-scripting-jvm-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-script-runtime-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-runtime:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-runtime/1.4.32-release-371/kotlin-script-runtime-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-script-util-deps" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-script-util:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-util/1.4.32-release-371/kotlin-script-util-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="allopen-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:allopen-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/allopen-compiler-plugin-for-ide/1.4.32-release-371/allopen-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlinx-serialization-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlinx-serialization-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlinx-serialization-compiler-plugin-for-ide/1.4.32-release-371/kotlinx-serialization-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="noarg-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:noarg-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/noarg-compiler-plugin-for-ide/1.4.32-release-371/noarg-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="sam-with-receiver-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:sam-with-receiver-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/sam-with-receiver-compiler-plugin-for-ide/1.4.32-release-371/sam-with-receiver-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="kotlin-gradle-statistics-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-gradle-statistics-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-gradle-statistics-for-ide/1.4.32-release-371/kotlin-gradle-statistics-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-common" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-compiler" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-compiler-impl" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-jvm" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-script-runtime" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-script-util" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.allopen-compiler-plugin" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlinx-serialization-compiler-plugin" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.noarg-compiler-plugin" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.sam-with-receiver-compiler-plugin" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-gradle-statistics" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.android-extensions-compiler-plugin" level="project" />
-    <orderEntry type="module-library" exported="" scope="PROVIDED">
-      <library name="parcelize-compiler-plugin-for-ide" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:parcelize-compiler-plugin-for-ide:1.4.32-release-371" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/parcelize-compiler-plugin-for-ide/1.4.32-release-371/parcelize-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.parcelize-compiler-plugin" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="javaslang" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinx-coroutines-jdk8" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-reflect" level="project" />
