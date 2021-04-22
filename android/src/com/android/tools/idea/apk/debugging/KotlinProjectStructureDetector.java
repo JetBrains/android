@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import com.intellij.ide.util.projectWizard.importSources.impl.JavaProjectStructureDetector;
+import com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil;
+import com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetector;
+import com.intellij.util.NullableFunction;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinFileType;
@@ -28,7 +30,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * files (i.e., no Java files. Mixed Java-Kotlin work fine). In this case, smali files from those
  * packages cannot be mapped to the Kotlin files.
  */
-public class KotlinProjectStructureDetector extends JavaProjectStructureDetector {
+public class KotlinProjectStructureDetector extends JavaSourceRootDetector {
   @Nls(capitalization = Nls.Capitalization.Sentence)
   @NotNull
   @Override
@@ -40,5 +42,10 @@ public class KotlinProjectStructureDetector extends JavaProjectStructureDetector
   @Override
   protected String getFileExtension() {
     return KotlinFileType.EXTENSION;
+  }
+
+  @Override
+  protected @NotNull NullableFunction<CharSequence, String> getPackageNameFetcher() {
+    return charSequence -> JavaSourceRootDetectionUtil.getPackageName(charSequence);
   }
 }
