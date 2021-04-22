@@ -109,8 +109,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -1628,7 +1630,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private final List<ProgressIndicator> myProgressIndicators = new ArrayList<>();
+  private final Set<ProgressIndicator> myProgressIndicators = new HashSet<>();
 
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private final MyProgressPanel myProgressPanel;
@@ -1639,8 +1641,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     synchronized (myProgressIndicators) {
-      myProgressIndicators.add(indicator);
-      myProgressPanel.showProgressIcon();
+      if (myProgressIndicators.add(indicator)) {
+        myProgressPanel.showProgressIcon();
+      }
     }
   }
 
