@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService.LearnMoreAction
@@ -27,6 +27,7 @@ import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
@@ -38,7 +39,10 @@ private const val LEARN_MORE_LINK = "https://d.android.com/r/studio-ui/layout-in
  * included in the app. The layout inspector is able to show more detailed parameter
  * information if the kotlin reflection library.
  */
-class ComposeDependencyChecker(private val model: InspectorModel) {
+class ComposeDependencyChecker(
+  private val project: Project,
+  private val stats: SessionStatistics
+) {
 
   fun performCheck(client: InspectorClient) {
     if (!isRunningCurrentProject(client)) {
@@ -47,7 +51,7 @@ class ComposeDependencyChecker(private val model: InspectorModel) {
     var addToolingLibrary = false
     var addReflectionLibrary = false
     val operations = mutableListOf<() -> Unit>()
-    model.project.allModules().forEach next@{ module ->
+    project.allModules().forEach next@{ module ->
       val moduleSystem = module.getModuleSystem()
       val runtimeVersion = moduleSystem.getResolvedDependency(GoogleMavenArtifactId.COMPOSE_RUNTIME.getCoordinate("+"))?.version
       if (!moduleSystem.usesCompose || runtimeVersion == null) {
@@ -65,7 +69,7 @@ class ComposeDependencyChecker(private val model: InspectorModel) {
         val kotlinVersion = moduleSystem.getResolvedDependency(GoogleMavenArtifactId.KOTLIN_STDLIB.getCoordinate("+"))?.version
         missing.add(GoogleMavenArtifactId.KOTLIN_REFLECT.getCoordinate(kotlinVersion?.toString() ?: "+"))
         addReflectionLibrary = true
-        model.stats.compose.reflectionLibraryAvailable = false
+        stats.compose.reflectionLibraryAvailable = false
       }
       if (missing.isNotEmpty()) {
         // Only sync once:
@@ -81,7 +85,7 @@ class ComposeDependencyChecker(private val model: InspectorModel) {
     }
 
     val message = createMessage(addToolingLibrary, addReflectionLibrary)
-    val bannerService = InspectorBannerService.getInstance(model.project)
+    val bannerService = InspectorBannerService.getInstance(project)
     val addToProject = object : AnAction("Add to Project") {
       override fun actionPerformed(event: AnActionEvent) {
         ApplicationManager.getApplication().invokeAndWait {
@@ -102,7 +106,7 @@ class ComposeDependencyChecker(private val model: InspectorModel) {
   }
 
   private fun isRunningCurrentProject(client: InspectorClient): Boolean =
-    model.project.allModules().any { module ->
+    project.allModules().any { module ->
       val facet = AndroidFacet.getInstance(module)
       val manifest = facet?.let { Manifest.getMainManifest(it) }
       val packageName = manifest?.`package`?.stringValue

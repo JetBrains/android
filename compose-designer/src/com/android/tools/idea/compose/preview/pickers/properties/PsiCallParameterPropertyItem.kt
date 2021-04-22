@@ -1,9 +1,13 @@
 package com.android.tools.idea.compose.preview.pickers.properties
 
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
+import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
 import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
@@ -24,6 +28,7 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
  * @param argumentExpression the initial [KtExpression] for the argument when this parameter was initialized.
  * @param defaultValue the default value string for the parameter, this is the value that the parameter takes when it does not have a
  *          user-assigned value
+ * @param validation function used for input validation
  */
 internal open class PsiCallParameterPropertyItem(
   val project: Project,
@@ -31,7 +36,8 @@ internal open class PsiCallParameterPropertyItem(
   private val resolvedCall: ResolvedCall<*>,
   private val descriptor: ValueParameterDescriptor,
   protected var argumentExpression: KtExpression?,
-  override val defaultValue: String?) : PsiPropertyItem {
+  override val defaultValue: String?,
+  validation: EditingValidation = { EDITOR_NO_ERROR }) : PsiPropertyItem {
 
   override var name: String
     get() = descriptor.name.identifier
@@ -42,11 +48,16 @@ internal open class PsiCallParameterPropertyItem(
 
   override val namespace: String = ""
 
+  override val editingSupport: EditingSupport = object : EditingSupport {
+    override val validation: EditingValidation = validation
+  }
+
   override var value: String?
     get() = argumentExpression?.tryEvaluateConstantAsText()
     set(value) {
-      if (value != this.value) {
-        writeNewValue(value, false)
+      val newValue = value?.trim()?.nullize()
+      if (newValue != this.value) {
+        writeNewValue(newValue, false)
       }
     }
 

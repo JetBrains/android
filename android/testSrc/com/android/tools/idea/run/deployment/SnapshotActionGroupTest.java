@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static com.intellij.icons.AllIcons.General.WarningDecorator;
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
 import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -117,7 +117,7 @@ public final class SnapshotActionGroupTest {
     action.update(event);
 
     BufferedImage expectedIcon =
-      ImageUtil.toBufferedImage(IconUtil.toImage(new LayeredIcon(VIRTUAL_DEVICE_PHONE, WarningDecorator), ScaleContext.createIdentity()));
+      ImageUtil.toBufferedImage(IconUtil.toImage(new LayeredIcon(VIRTUAL_DEVICE_PHONE, ERROR_DECORATOR), ScaleContext.createIdentity()));
     BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(presentation.getIcon(), ScaleContext.createIdentity()));
     // Assert
     ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);

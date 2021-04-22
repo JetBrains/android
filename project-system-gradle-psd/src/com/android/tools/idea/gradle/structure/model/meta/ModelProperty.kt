@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.meta
 
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
@@ -54,6 +55,11 @@ interface ModelPropertyCore<PropertyT : Any> :
    * A function returning a suitable default variable name for this property
    */
   fun getPreferredVariableName(): String = "var"
+
+  /**
+   * The function to get the required scope of the property, or null if the default of the module or project scope is acceptable
+   */
+  val variableScope: (() -> PsVariablesScope?)?
 
   /**
    * The function to get the default value of the property for a given model, or null if the default value of the property cannot be
@@ -237,6 +243,7 @@ class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()
   override val defaultValueGetter: (() -> ValueT?)? = null
+  override val variableScope: (() -> PsVariablesScope?)? = null
   override val isModified: Boolean? = null
   override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
 }

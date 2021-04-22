@@ -16,13 +16,14 @@
 
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.TV_TAG;
+import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
@@ -48,16 +49,10 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
-import com.android.tools.analytics.CommonMetricsData;
-import com.android.tools.idea.explorer.mocks.MockFileOpener;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.ProductDetails;
-import com.intellij.openapi.util.SystemInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.android.AndroidTestCase;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
@@ -277,8 +272,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
         assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, WEAR_TAG, isArmHostOs));
         assertEquals(X86, getClassificationFromParts(Abi.X86, 24, WEAR_TAG, isArmHostOs));
         assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, 25, WEAR_TAG, isArmHostOs));
-        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, TV_TAG, isArmHostOs));
-        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, TV_TAG, isArmHostOs));
+        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, ANDROID_TV_TAG, isArmHostOs));
+        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, ANDROID_TV_TAG, isArmHostOs));
+        assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, GOOGLE_TV_TAG, isArmHostOs));
+        assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, GOOGLE_TV_TAG, isArmHostOs));
         assertEquals(X86, getClassificationFromParts(Abi.X86, 25, DEFAULT_TAG, isArmHostOs));
         assertEquals(OTHER, getClassificationFromParts(Abi.ARM64_V8A, 25, DEFAULT_TAG, isArmHostOs));
         assertEquals((isArmHostOs ? X86 : RECOMMENDED), getClassificationFromParts(Abi.X86, 25, CHROMEOS_TAG, isArmHostOs));

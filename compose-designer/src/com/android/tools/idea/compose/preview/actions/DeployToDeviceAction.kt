@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
@@ -58,8 +59,9 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = !isRefreshing()
-                               && previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+    e.presentation.isVisible = isNoLibraryAndroidModule
+    e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
@@ -77,7 +79,6 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       setModule(module)
     }
 
-    // TODO(b/152186687): select the configuration in the run configurations combobox.
     val configurationAndSettings = RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
                                    ?: RunManager.getInstance(project).createConfiguration(composePreviewRunConfiguration, factory).apply {
                                      isTemporary = true
@@ -86,8 +87,6 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
                                    }
     (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
       .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
-    // TODO(b/152185907): consider stopping all the ComposePreviewRunConfiguration before running this one.
-    RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 

@@ -31,5 +31,6 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.mlkit-common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
   </component>
 </module>

@@ -95,11 +95,46 @@ class GradleTestResultAdapter(device: IDevice,
         "icebox.snapshot" -> testCase.retentionSnapshot = File(it.sourcePath.path)
       }
     }
+
+    if (testCase.result == AndroidTestCaseResult.FAILED) {
+      myTestSuite.result = AndroidTestSuiteResult.FAILED
+    }
+
     listener.onTestCaseFinished(device, myTestSuite, testCase)
   }
 
   override fun onTestSuiteFinished(testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+    if (!this::myTestSuite.isInitialized) {
+      // Initialize test suite if it hasn't initialized yet.
+      // This may happen if UTP fails in setup phase before it starts test task.
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.getDefaultInstance())
+    }
     myTestSuite.result = testSuiteResult.testStatus.toAndroidTestSuiteResult()
+    listener.onTestSuiteFinished(device, myTestSuite)
+  }
+
+  /**
+   * Called when Gradle test task has finished or cancelled.
+   */
+  fun onGradleTaskFinished() {
+    if (!this::myTestSuite.isInitialized) {
+      // Initialize test suite if it hasn't initialized yet.
+      // This may happen if a build fails before it starts test task.
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.getDefaultInstance())
+    }
+
+    // There can be pending test cases remained even after the Gradle task has finished,
+    // because a user may cancel the task execution or an exception is thrown from the
+    // task execution. We update test results to cancelled state for those pending tests.
+    for (testCase in myTestCases.values) {
+      if (!testCase.result.isTerminalState) {
+        testCase.result = AndroidTestCaseResult.CANCELLED
+        testCase.endTimestampMillis = System.currentTimeMillis()
+        listener.onTestCaseFinished(device, myTestSuite, testCase)
+      }
+    }
+
+    myTestSuite.result = myTestSuite.result ?: AndroidTestSuiteResult.CANCELLED
     listener.onTestSuiteFinished(device, myTestSuite)
   }
 }

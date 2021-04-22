@@ -23,6 +23,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 
 /**
@@ -53,10 +54,14 @@ data class SurfaceLayoutManagerOption(val displayName: String,
  * [DropDownAction] that allows switching the layout manager in the surface.
  */
 class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
-                                       layoutManagers: List<SurfaceLayoutManagerOption>) : DropDownAction(
+                                       private val layoutManagers: List<SurfaceLayoutManagerOption>,
+                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true }
+) : DropDownAction(
   "Switch Layout",
   "Changes the layout of the preview elements.",
   AllIcons.Debugger.RestoreLayout) {
+
+  private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
     override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -77,4 +82,15 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val shouldEnableAction = isActionEnabled(e)
+    e.presentation.isEnabled = shouldEnableAction
+    // Since this is an ActionGroup, IntelliJ will set the button icon to enabled even though it is disabled. Only when clicking on the
+    // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
+    // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
+    // action is disabled.
+    e.presentation.icon = if (shouldEnableAction) AllIcons.Debugger.RestoreLayout else disabledIcon
+  }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static icons.StudioIcons.Common.ERROR_DECORATOR;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
@@ -205,8 +207,7 @@ final class VirtualDevice extends Device {
 
     switch (getLaunchCompatibility().getState()) {
       case ERROR:
-        //TODO(b/180670146): replace with error decorator b/180670146
-        return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
+        return new LayeredIcon(deviceIcon, ERROR_DECORATOR);
       case WARNING:
         return new LayeredIcon(deviceIcon, AllIcons.General.WarningDecorator);
       case OK:

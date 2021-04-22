@@ -18,10 +18,12 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -57,17 +59,17 @@ class LambdaPropertyItemTest {
     `when`(navigatable.canNavigate()).thenReturn(true)
     val property = createProperty(location)
     val link = property.link
-    val stats = property.lookup.stats
     val selection = property.lookup.selection
     val balloon = mockBalloonBuilder()
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
-    link.actionPerformed(event())
+    link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     verify(navigatable).navigate(true)
-    verify(stats).gotoSourceFromPropertyValue(eq(selection))
+    verify(inspector.stats).gotoSourceFromPropertyValue(eq(selection))
     verifyNoInteractions(balloon)
     assertThat(link.templateText).isEqualTo("Text.kt:34")
     assertThat(link.templatePresentation.isEnabled).isTrue()
@@ -78,13 +80,13 @@ class LambdaPropertyItemTest {
     val location = SourceLocation("Text.kt:unknown", null)
     val property = createProperty(location)
     val link = property.link
-    val stats = property.lookup.stats
     val balloon = mockBalloonBuilder()
-    link.actionPerformed(event())
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
+    link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     assertThat(link.templateText).isEqualTo("Text.kt:unknown")
-    verifyNoInteractions(stats)
+    verifyNoInteractions(inspector.stats)
     verify(balloon).show(any(RelativePoint::class.java), any())
   }
 
@@ -95,17 +97,17 @@ class LambdaPropertyItemTest {
     `when`(navigatable.canNavigate()).thenReturn(true)
     val property = createProperty(location)
     val link = property.link
-    val stats = property.lookup.stats
     val selection = property.lookup.selection
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
     val balloon = mockBalloonBuilder()
-    link.actionPerformed(event())
+    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
+    link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
     verify(navigatable).navigate(true)
-    verify(stats).gotoSourceFromPropertyValue(eq(selection))
+    verify(inspector.stats).gotoSourceFromPropertyValue(eq(selection))
     assertThat(link.templateText).isEqualTo("Text.kt:unknown")
     verify(balloon).show(any(RelativePoint::class.java), any())
   }
@@ -127,18 +129,17 @@ class LambdaPropertyItemTest {
   private fun createProperty(location: SourceLocation): LambdaPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
     val selection: ComposeViewNode = mock()
-    val stats: SessionStatistics = mock()
     val resourceLookup: ResourceLookup = mock()
     `when`(lookup.resourceLookup).thenReturn(resourceLookup)
-    `when`(lookup.stats).thenReturn(stats)
     `when`(lookup.selection).thenReturn(selection)
     `when`(resourceLookup.findLambdaLocation("com.example", "Text.kt", "f1$1", "", 34, 34)).thenReturn(location)
     return LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, lookup)
   }
 
-  private fun event(): AnActionEvent {
+  private fun event(inspector: LayoutInspector): AnActionEvent {
     val event: AnActionEvent = mock()
     `when`(event.dataContext).thenReturn(mock())
+    `when`(event.getData(eq(LAYOUT_INSPECTOR_DATA_KEY))).thenReturn(inspector)
     return event
   }
 }

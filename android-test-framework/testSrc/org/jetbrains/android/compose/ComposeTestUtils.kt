@@ -15,7 +15,13 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.SdkConstants
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.KotlinFileType
 
 fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose") {
   addFileToProject(
@@ -175,4 +181,58 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: Strin
     )
     """.trimIndent()
   )
+}
+
+/**
+ * Memory/light fixture only.
+ *
+ * @see stubClassAsLibrary
+ */
+fun CodeInsightTestFixture.stubConfigurationAsLibrary() {
+  val packageName = SdkConstants.CLASS_CONFIGURATION.substringBefore(".Configuration")
+  @Language("JAVA")
+  val fileContents =
+    """
+    package $packageName;
+    public final class Configuration {
+        public static final int UI_MODE_TYPE_UNDEFINED = 0x00;
+        public static final int UI_MODE_TYPE_NORMAL = 0x01;
+        public static final int UI_MODE_TYPE_DESK = 0x02;
+        public static final int UI_MODE_TYPE_CAR = 0x03;
+    }
+    """.trimIndent()
+  this.stubClassAsLibrary("configuration", SdkConstants.CLASS_CONFIGURATION, JavaFileType.INSTANCE, fileContents)
+}
+
+/**
+ * Memory/light fixture only.
+ *
+ * @see stubClassAsLibrary
+ */
+fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
+  @Language("kotlin")
+  val fileContents =
+    """
+    package $devicesPackageName
+    object Devices {
+        const val DEFAULT = ""
+
+        const val NEXUS_7 = "id:Nexus 7"
+        const val PIXEL = "id:pixel"
+        const val AUTOMOTIVE_1024p = "id:automotive_1024p_landscape"
+        const val NEXUS_10 = "name:Nexus 10"
+        const val PIXEL_4 = "id:pixel_4"
+    }
+    """.trimIndent()
+  this.stubClassAsLibrary("devices", "$devicesPackageName.Devices", KotlinFileType.INSTANCE, fileContents)
+}
+
+/**
+ * Seems to only work properly in memory/light fixtures. Such as AndroidProjectRule#inMemory
+ */
+private fun CodeInsightTestFixture.stubClassAsLibrary(libraryName: String, fqClassName: String, fileType: FileType, fileContents: String) {
+  val filePath = fqClassName.replace('.', '/') + '.' + fileType.defaultExtension
+  tempDirFixture.createFile("external/$libraryName/$filePath", fileContents)
+  val libraryDir = tempDirFixture.findOrCreateDir("external/$libraryName")
+  PsiTestUtil.addProjectLibrary(module, libraryName, emptyList(), listOf(libraryDir))
 }

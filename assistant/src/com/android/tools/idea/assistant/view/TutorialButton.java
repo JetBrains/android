@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import icons.AndroidIcons;
-
-import javax.swing.*;
-import java.awt.*;
+import icons.StudioIcons;
+import java.awt.Cursor;
 import java.awt.event.ActionListener;
+import javax.swing.SwingConstants;
 
 /**
  * A custom button for navigating to tutorials. Renders similar to a link.
@@ -36,7 +35,7 @@ public class TutorialButton extends NavigationButton {
     // Render the button as a link to conform with the document-style presentation. We're using a button rather than a link with a
     // click handler to retain built-in accessibility benefits of a button.
     super(UIUtils.getHtml("<a href=\"#\">" + label + "</a>"), key, listener);
-    setIcon(AndroidIcons.Assistant.TutorialIndicator);
+    setIcon(StudioIcons.Misc.TUTORIAL_INDICATOR);
     setIconTextGap(5);
     setHorizontalAlignment(SwingConstants.LEFT);
     setContentAreaFilled(false);

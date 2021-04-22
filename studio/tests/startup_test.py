@@ -139,7 +139,6 @@ class StartUpTest(unittest.TestCase):
                   "Kotlin",
                   "Layoutlib",
                   "Layoutlib Legacy",
-                  "Lombok",
                   "Machine Learning Code Completion",
                   "Machine Learning Code Completion Models",
                   "Mercurial",

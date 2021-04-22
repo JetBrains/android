@@ -32,13 +32,11 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
@@ -247,7 +245,6 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     return new TestConnectDebuggerTask(myApplicationIdProvider,
                                        new AndroidJavaDebugger(),
                                        getProject(),
-                                       false,
                                        attachToRunningProcess,
                                        onTick);
   }
@@ -261,10 +258,9 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     public TestConnectDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                    @NotNull AndroidDebugger debugger,
                                    @NotNull Project project,
-                                   boolean monitorRemoteProcess,
                                    boolean attachToRunningProcess,
                                    @NotNull Tickable onTick) {
-      super(applicationIdProvider, debugger, project, monitorRemoteProcess, attachToRunningProcess);
+      super(applicationIdProvider, debugger, project, attachToRunningProcess);
       myOnTick = onTick;
     }
 

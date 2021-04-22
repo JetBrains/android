@@ -18,26 +18,26 @@ package com.android.tools.lint.model
 import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.LintOptions
-import com.android.ide.common.gradle.model.IdeAaptOptions
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.IdeApiVersion
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeBuildType
-import com.android.ide.common.gradle.model.IdeClassField
-import com.android.ide.common.gradle.model.IdeJavaArtifact
-import com.android.ide.common.gradle.model.IdeJavaLibrary
-import com.android.ide.common.gradle.model.IdeLibrary
-import com.android.ide.common.gradle.model.IdeLintOptions
-import com.android.ide.common.gradle.model.IdeModuleLibrary
-import com.android.ide.common.gradle.model.IdeSourceProvider
-import com.android.ide.common.gradle.model.IdeSourceProviderContainer
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeAaptOptions
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBuildType
+import com.android.tools.idea.gradle.model.IdeClassField
+import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeLintOptions
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.gradle.project.model.ModelCache
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.utils.FileUtils
 import java.io.File
 
@@ -133,7 +133,7 @@ class LintModelFactory : LintModelModuleLoader {
           artifactAddress = library.getMavenArtifactAddress(),
           manifest = File(library.manifest),
           // TODO - expose compile jar vs impl jar?
-          jarFiles = (library.localJars + library.jarFile).map { File(it) },
+          jarFiles = library.runtimeJarFiles.map { File(it) },
           folder = library.folder!!, // Needed for workaround for b/66166521
           resFolder = File(library.resFolder),
           assetsFolder = File(library.assetsFolder),

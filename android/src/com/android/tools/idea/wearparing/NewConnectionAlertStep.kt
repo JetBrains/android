@@ -23,6 +23,7 @@ import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil.ComponentStyle.LARGE
 import icons.StudioIcons
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.GridBagConstraints
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.NONE
@@ -35,54 +36,77 @@ class NewConnectionAlertStep(
   model: WearDevicePairingModel,
   val project: Project
 ) : ModelWizardStep<WearDevicePairingModel>(model, "") {
+  private val mainPanel = JPanel()
 
   override fun shouldShow(): Boolean {
-    val (pairedPhone, pairedWear) = WearPairingManager.getKeepForwardAlive()
-    val selectedPhone = model.phoneDevice.valueOrNull
-    val selectedWear = model.wearDevice.valueOrNull
-    return pairedPhone != null && pairedWear != null && selectedPhone != null && selectedWear != null &&
+    val selectedPhone = model.selectedPhoneDevice.valueOrNull ?: return false
+    val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
+
+    if (model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
+      return true
+    }
+
+    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
+    return pairedPhone != null && pairedWear != null &&
            (pairedPhone.deviceID != selectedPhone.deviceID || pairedWear.deviceID != selectedWear.deviceID)
   }
 
-  override fun getComponent(): JComponent = JPanel().apply {
+  override fun onEntering() {
+    // Should always have a value here, otherwise shouldShow() should have returned false
+    val selectedPhoneName = model.selectedPhoneDevice.value.displayName
+    val selectedWearName = model.selectedWearDevice.value.displayName
+
+    if (model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
+      showUi(
+        header = message("wear.assistant.connection.alert.close.emulators.title"),
+        description = message("wear.assistant.connection.alert.close.emulators.subtitle", selectedWearName, selectedPhoneName)
+      )
+    }
+    else {
+      val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
+      val pairedPhoneName = pairedPhone?.displayName ?: ""
+      val pairedWearName = pairedWear?.displayName ?: ""
+      showUi(
+        header = message("wear.assistant.connection.alert.disconnect.pairing.title"),
+        description = message("wear.assistant.connection.alert.disconnect.pairing.subtitle",
+                              selectedWearName, selectedPhoneName, pairedWearName, pairedPhoneName)
+      )
+    }
+  }
+
+  override fun getComponent(): JComponent = mainPanel
+
+  private fun showUi(header: String, description: String) = mainPanel.apply {
+    removeAll()
+
     layout = GridBagLayout()
     border = empty(24)
 
-    val (pairedPhone, pairedWear) = WearPairingManager.getKeepForwardAlive()
-    val selectedPhone = model.phoneDevice.value
-    val selectedWear = model.wearDevice.value
-
     add(
-      JBLabel("Disconnecting existing devices", LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
+      JBLabel(header, LARGE).withFont(JBFont.label().asBold()).withBorder(empty(0, 0, 24, 0)),
       gridConstraint(x = 0, y = 0, fill = HORIZONTAL, gridwidth = REMAINDER)
     )
     add(
       JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)),
       gridConstraint(x = 0, y = 1)
     )
-    add(
-      JBLabel("<html>Creating a new connection between ${selectedWear.displayName} and ${selectedPhone.displayName} " +
-              "to enable communication.</html>").withBorder(empty(0, 0, 24, 0)),
-      gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL)
+    add(JBLabel(description), gridConstraint(x = 1, y = 1, weightx = 1.0, fill = HORIZONTAL)
     )
-    add(
-      JBLabel("<html>This  will disconnect ${pairedWear?.displayName} from ${pairedPhone?.displayName}.</html>"),
-      gridConstraint(x = 1, y = 2, weightx = 1.0, fill = HORIZONTAL)
-    )
+    add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0)) // Bottom padding
 
-    // Bottom padding
-    add(JPanel(), gridConstraint(x = 0, y = 3, weighty = 1.0))
+    revalidate()
+    repaint()
   }
-
-  private fun gridConstraint(
-    x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1): GridBagConstraints =
-    GridBagConstraints().apply {
-      this.gridx = x
-      this.gridy = y
-      this.weightx = weightx
-      this.weighty = weighty
-      this.fill = fill
-      this.gridwidth = gridwidth
-      this.anchor = GridBagConstraints.NORTH
-    }
 }
+
+internal fun gridConstraint(
+  x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1): GridBagConstraints =
+  GridBagConstraints().apply {
+    this.gridx = x
+    this.gridy = y
+    this.weightx = weightx
+    this.weighty = weighty
+    this.fill = fill
+    this.gridwidth = gridwidth
+    this.anchor = GridBagConstraints.NORTH
+  }

@@ -41,7 +41,6 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//prebuilts/tools/common/mlkit/testData",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
@@ -77,5 +76,6 @@ iml_module(
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
 )

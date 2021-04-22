@@ -21,9 +21,9 @@ import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
-import com.android.ide.common.gradle.model.IdeModuleLibrary;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;

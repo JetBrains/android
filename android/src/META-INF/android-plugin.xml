@@ -113,7 +113,7 @@
             icon="StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN"
             text="Wear OS emulator pairing assistant"
             description="Opens the Wear OS emulator pairing assistant" />
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="true">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager"
               class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
@@ -141,7 +141,7 @@
 
     <group id="Android.DeviceExplorer.ActionsToolbar">
       <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="StudioIcons.DeviceExplorer.SHARED_PREFS" text="Navigate to shared preferences folder"/>
-      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.DeviceExplorer.DatabaseFolder" text="Navigate to database folder" />
+      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="StudioIcons.DeviceExplorer.DATABASE_FOLDER" text="Navigate to database folder" />
       <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="StudioIcons.DeviceExplorer.SD_CARD_FOLDER" text="Navigate to SD card folder" />
       <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help" text="Open Device Explorer help" />
     </group>
@@ -173,6 +173,12 @@
 
       <add-to-group group-id="Internal.Android"/>
     </group>
+    <group id="Android.Diagnostics">
+      <separator/>
+      <action class="com.android.tools.idea.res.ToggleResourceUpdateTracingAction"/>
+      <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
+    </group>
+
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
@@ -247,7 +253,7 @@
     </action>
     <action id="AgpUpgrade" class="com.android.tools.idea.gradle.project.upgrade.AgpUpgradeAction"
             text="AGP Upgrade Assistant..." description="Upgrade the project's Android Gradle Plugin (AGP) dependency">
-      <add-to-group group-id="RefactoringMenu"/>
+      <add-to-group group-id="ToolsMenu"/>
     </action>
 
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
@@ -291,7 +297,6 @@
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
     <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>

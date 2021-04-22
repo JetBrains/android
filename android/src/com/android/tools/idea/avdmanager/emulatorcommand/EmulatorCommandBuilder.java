@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -100,9 +99,7 @@ public class EmulatorCommandBuilder {
       command.addParameter("-qt-hide-window");
       command.addParameter("-grpc-use-token");
       command.addParameters("-idle-grpc-timeout", "300");
-      if (StudioFlags.EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS.get()) {
-        command.addParameter("-experimental-enable-multidisplay");
-      }
+      command.addParameter("-experimental-enable-multidisplay");
     }
 
     command.addParameters(myStudioEmuParams);

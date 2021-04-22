@@ -46,10 +46,7 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_BOTH = "projects/moduleInfo/both";
   public static final String MODULE_INFO_FLAVORS = "projects/moduleInfo/flavors";
   public static final String MODULE_INFO_GRADLE_ONLY = "projects/moduleInfo/gradleOnly";
-  public static final String MODULE_INFO_MANIFEST_ERROR = "projects/moduleInfo/manifestError";
-  public static final String MODULE_INFO_MANIFEST_MERGER = "projects/moduleInfo/manifestMerger";
   public static final String MODULE_INFO_MANIFEST_ONLY = "projects/moduleInfo/manifestOnly";
-  public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
   public static final String MULTI_FEATURE = "projects/multiFeature";
   public static final String MULTIPLE_MODULE_DEPEND_ON_AAR = "projects/multipleModuleDependOnAar";
@@ -63,9 +60,8 @@ public final class TestProjectPaths {
   public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
-  public static final String PROJECT_MODEL_MULTIFLAVOR = "projects/projectModel/multiflavor";
-  public static final String PROJECT_WITH1_DOT5 = "projects/projectWith1Dot5";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
+  public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY = "projects/projectWithAppAndLibDependency";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";

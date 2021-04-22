@@ -63,7 +63,7 @@ class TransportAndroidWindow(
   }
 
   @Slow
-  override fun doRefreshImages(scale: Double) {
+  override fun refreshImages(scale: Double) {
     val bytes = client.getPayload(payloadId)
     if (bytes.isNotEmpty()) {
       try {
@@ -108,8 +108,7 @@ class TransportAndroidWindow(
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ViewNode.writeDrawChildren { drawChildren ->
-        rootView.flatten().forEach { it.drawChildren().clear() }
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(rootView)
       }
     }
   }

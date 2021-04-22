@@ -29,17 +29,21 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  * [PsiPropertyItem] for @Preview parameters that can take an Enum from the project. Can assign a fully qualified class to the value. It
  * while trying to import the class in to the parameter's file.
  */
-internal class ClassPsiCallParameter(project: Project,
-                                     private val model: PsiCallPropertyModel,
-                                     resolvedCall: ResolvedCall<*>,
-                                     descriptor: ValueParameterDescriptor,
-                                     argumentExpression: KtExpression?,
-                                     initialValue: String?) : PsiCallParameterPropertyItem(project,
-                                                                                           model,
-                                                                                           resolvedCall,
-                                                                                           descriptor,
-                                                                                           argumentExpression,
-                                                                                           initialValue) {
+internal class ClassPsiCallParameter(
+  project: Project,
+  private val model: PsiCallPropertyModel,
+  resolvedCall: ResolvedCall<*>,
+  descriptor: ValueParameterDescriptor,
+  argumentExpression: KtExpression?,
+  initialValue: String?
+) : PsiCallParameterPropertyItem(
+  project,
+  model,
+  resolvedCall,
+  descriptor,
+  argumentExpression,
+  initialValue
+) {
 
   /**
    * Set a new value using their fully qualified class. Will try to add the import statement for the class, if it fails, it will default to
@@ -54,7 +58,8 @@ internal class ClassPsiCallParameter(project: Project,
 
     if (importResult != null && importResult != ImportDescriptorResult.FAIL) {
       writeNewValue("$className.$newValue", true)
-    } else {
+    }
+    else {
       writeNewValue("$fqClass.$newValue", true)
     }
   }

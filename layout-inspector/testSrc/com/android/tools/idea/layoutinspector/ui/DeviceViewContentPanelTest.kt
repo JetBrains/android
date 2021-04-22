@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -40,7 +41,8 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -105,7 +107,6 @@ class DeviceViewContentPanelTest {
   @Before
   fun before() {
     ApplicationManager.getApplication().replaceService(PropertiesComponent::class.java, PropertiesComponentMock(), disposable.disposable)
-    TreeSettings.hideSystemNodes = false
   }
 
   @Test
@@ -118,9 +119,12 @@ class DeviceViewContentPanelTest {
         view(VIEW2, 60, 160, 10, 20)
       }
     }
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
     val settings = DeviceViewSettings(scalePercent = 30)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val stats = SessionStatistics(model, treeSettings)
+    val panel = DeviceViewContentPanel(model, stats, treeSettings, settings, disposable.disposable)
     assertEquals(Dimension(376, 394), panel.preferredSize)
 
     settings.scalePercent = 100
@@ -144,14 +148,15 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.paint(graphics)
@@ -210,21 +215,20 @@ class DeviceViewContentPanelTest {
   @Test
   fun testPaintWithHiddenSystemViews() {
     val model = model {
-      view(ROOT, 0, 0, 500, 1000) {
+      view(ROOT, 0, 0, 500, 1000, layout = null) {
         view(VIEW1, 125, 150, 250, 250, layout = activityMain) {
           image()
         }
       }
     }
-
-    TreeSettings.hideSystemNodes = true
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.paint(graphics)
@@ -263,7 +267,9 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
-    val panel = DeviceViewContentPanel(model, DeviceViewSettings(), disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, DeviceViewSettings(), disposable.disposable)
     panel.setSize(10, 15)
     panel.model.rotate(-1.0, -1.0)
 
@@ -290,7 +296,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(1000, 1500)
 
     panel.model.overlay = ImageIO.read(getWorkspaceRoot().resolve("$TEST_DATA_PATH/overlay.png").toFile())
@@ -319,7 +327,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
@@ -369,18 +379,20 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
 
     // Click on VIEW3 when system views are showing:
-    TreeSettings.hideSystemNodes = false
+    treeSettings.hideSystemNodes = false
     fakeUi.mouse.click(40, 50)
     assertThat(model.selection).isSameAs(model[VIEW3]!!)
 
     // Click on VIEW3 when system views are hidden:
-    TreeSettings.hideSystemNodes = true
+    treeSettings.hideSystemNodes = true
     fakeUi.mouse.click(40, 50)
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
   }
@@ -400,18 +412,19 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.hoveredNode).isNull()
 
     // Move to VIEW3 when system views are showing:
-    TreeSettings.hideSystemNodes = false
     fakeUi.mouse.moveTo(40, 50)
     assertThat(model.hoveredNode).isSameAs(model[VIEW3]!!)
 
     // Move to VIEW3 when system views are hidden:
-    TreeSettings.hideSystemNodes = true
+    treeSettings.hideSystemNodes = true
     fakeUi.mouse.moveTo(40, 50)
     assertThat(model.hoveredNode).isSameAs(model[VIEW1]!!)
   }
@@ -421,7 +434,7 @@ class DeviceViewContentPanelTest {
     val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
+      view(ROOT, 0, 0, 100, 200, layout = null) {
         view(VIEW1, 25, 30, 50, 50, layout = layoutMain) {
           view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
             view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat) {
@@ -433,7 +446,9 @@ class DeviceViewContentPanelTest {
     }
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -446,12 +461,11 @@ class DeviceViewContentPanelTest {
     }.`when`(ActionManager.getInstance()).createActionPopupMenu(anyString(), any(ActionGroup::class.java))
 
     // Right click on VIEW4 when system views are showing:
-    TreeSettings.hideSystemNodes = false
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
     latestPopup!!.assertSelectViewAction(5, 4, 3, 2, 1)
 
     // Right click on VIEW4 when system views are hidden:
-    TreeSettings.hideSystemNodes = true
+    treeSettings.hideSystemNodes = true
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
     latestPopup!!.assertSelectViewAction(5, 2)
   }
@@ -461,7 +475,11 @@ class DeviceViewContentPanelTest {
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
     val model = model {}
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val launcher: InspectorClientLauncher = mock()
+    `when`(launcher.activeClient).thenReturn(mock())
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     val selectProcessAction = mock<SelectProcessAction>()
     panel.selectProcessAction = selectProcessAction
     `when`(selectProcessAction.templatePresentation).thenReturn(mock())
@@ -515,7 +533,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -557,7 +577,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 100)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(200, 300)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -595,7 +617,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -673,7 +697,10 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(1200, 1400, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val panel = DeviceViewContentPanel(model, DeviceViewSettings(scalePercent = 400), disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val stats = SessionStatistics(model, treeSettings)
+    val panel = DeviceViewContentPanel(model, stats, treeSettings, DeviceViewSettings(scalePercent = 400), disposable.disposable)
     panel.setSize(1200, 1400)
 
     panel.paint(graphics)
@@ -712,7 +739,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -755,7 +784,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 50)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(400, 600)
 
     panel.paint(graphics)
@@ -814,7 +845,9 @@ class DeviceViewContentPanelTest {
 
     val settings = DeviceViewSettings(scalePercent = 75)
     settings.drawLabel = false
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     panel.setSize(200, 200)
 
     panel.paint(graphics)
@@ -834,9 +867,13 @@ class DeviceViewContentPanelTest {
   fun testPaintEmpty() {
     IconLoader.activate()
     setPortableUiFont(2.0f)
-    val panel = DeviceViewContentPanel(model {}, DeviceViewSettings(), disposable.disposable)
-    panel.setSize(400, 400)
-    val generatedImage = BufferedImage(400, 400, TYPE_INT_ARGB)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val model = model {}
+    val stats = SessionStatistics(model, treeSettings)
+    val panel = DeviceViewContentPanel(model, stats, treeSettings, DeviceViewSettings(), disposable.disposable)
+    panel.setSize(800, 400)
+    val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     // We have to use a big threshold here, since the image is almost all text and despite using the portable font there's still
@@ -857,7 +894,9 @@ class DeviceViewContentPanelTest {
     }
     val view1 = model[VIEW1]
     val settings = DeviceViewSettings(scalePercent = 200)
-    val panel = DeviceViewContentPanel(model, settings, disposable.disposable)
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 400, 400)

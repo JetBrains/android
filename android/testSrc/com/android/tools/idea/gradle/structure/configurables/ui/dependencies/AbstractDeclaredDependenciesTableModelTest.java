@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.util.EnumSet
 
 /**
@@ -61,6 +60,16 @@ interface InspectorClient {
      * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
      */
     SUPPORTS_SKP,
+
+    /**
+     * Indicates that this client is able to collect semantic information.
+     */
+    SUPPORTS_SEMANTICS,
+
+    /**
+     * Indicates that this client is able to inspect compose parts of the application.
+     */
+    SUPPORTS_COMPOSE,
   }
 
   /**
@@ -140,6 +149,11 @@ interface InspectorClient {
   fun updateScreenshotType(type: AndroidWindow.ImageType?, scale: Float = 1.0f) {}
 
   /**
+   * Some compose capabilities are discovered after receiving data from the agent.
+   */
+  fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {}
+
+  /**
    * Report this client's capabilities so that external systems can check what functionality is
    * available before interacting with some of this client's methods.
    */
@@ -203,7 +217,7 @@ object DisconnectedClient : InspectorClient {
     override val streamId: Long = 0
   }
   override val treeLoader = object : TreeLoader {
-    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): Pair<AndroidWindow?, Int>? = null
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? = null
     override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
   }
   override val isCapturing = false

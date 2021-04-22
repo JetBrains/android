@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,7 +55,8 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = true
+    // Disable the action while refreshing.
+    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
     // Only display the animation inspector icon if there are animations to be inspected.
     e.presentation.isVisible = getPreviewElement()?.hasAnimations == true
   }

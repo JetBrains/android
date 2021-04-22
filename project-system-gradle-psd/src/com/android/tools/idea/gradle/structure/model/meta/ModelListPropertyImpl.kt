@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
@@ -120,6 +121,7 @@ class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
     override fun addItem(index: Int): ModelPropertyCore<ValueT> = this@ModelListPropertyImpl.addItem(model, index)
     override fun deleteItem(index: Int) = this@ModelListPropertyImpl.deleteItem(model, index)
     override val defaultValueGetter: (() -> List<ValueT>?)? = null
+    override val variableScope: (() -> PsVariablesScope?)? = null
     override val isModified: Boolean? get() = model.getParsedProperty()?.isModified
 
     override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy { parsedValue, resolvedValue ->

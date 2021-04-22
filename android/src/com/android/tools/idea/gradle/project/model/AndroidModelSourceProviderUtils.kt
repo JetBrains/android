@@ -17,13 +17,13 @@
 
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.IdeApiVersion
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer
-import com.android.ide.common.gradle.model.IdeProductFlavorContainer
-import com.android.ide.common.gradle.model.IdeSourceProvider
-import com.android.ide.common.gradle.model.IdeSourceProviderContainer
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
@@ -60,7 +60,9 @@ private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifa
 
 internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
 internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
-internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
+internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) =
+  if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
+  else emptyList()
 
 internal fun AndroidModuleModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
 internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)

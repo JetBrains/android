@@ -116,9 +116,9 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module-library">
       <library name="utp-core-proto" type="repository">
-        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha02" />
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha03" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha02/core-proto-0.0.8-alpha02.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha03/core-proto-0.0.8-alpha03.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -135,6 +135,8 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
@@ -145,7 +147,7 @@
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="module-library">
-      <library>
+      <library name="libstudio.android-test-plugin-host-retention-proto">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/utp/android-test-plugin-host-retention-proto/libstudio.android-test-plugin-host-retention-proto.jar!/" />
         </CLASSES>

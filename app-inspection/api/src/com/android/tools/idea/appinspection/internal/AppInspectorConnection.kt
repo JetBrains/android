@@ -171,11 +171,11 @@ internal class AppInspectorConnection(
         }
       }
     }
-    collectCrashes()
+    collectDisposedEvent()
     collectProcessTermination()
   }
 
-  private fun collectCrashes() {
+  private fun collectDisposedEvent() {
     transport.eventFlow(
       eventKind = APP_INSPECTION_EVENT,
       filter = { event -> event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId },
@@ -183,8 +183,12 @@ internal class AppInspectorConnection(
     ).onEach {
       val appInspectionEvent = it.event.appInspectionEvent
       when {
-        appInspectionEvent.hasCrashEvent() -> {
-          cleanup("Inspector $inspectorId has crashed.", crashed = true)
+        appInspectionEvent.hasDisposedEvent() -> {
+          if (appInspectionEvent.disposedEvent.errorMessage.isNullOrEmpty()) {
+            cleanup("Inspector $inspectorId has been disposed.")
+          } else {
+            cleanup("Inspector $inspectorId has crashed.", crashed = true)
+          }
         }
       }
     }.launchIn(scope)

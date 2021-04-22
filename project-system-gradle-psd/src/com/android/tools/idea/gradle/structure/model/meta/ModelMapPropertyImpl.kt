@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.reflect.KProperty
@@ -141,6 +142,7 @@ class ModelMapPropertyImpl<ModelT, ResolvedT, ParsedT, ValueT : Any>(
       this@ModelMapPropertyImpl.changeEntryKey(model, old, new)
 
     override val defaultValueGetter: (() -> Map<String, ValueT>?)? = null
+    override val variableScope: (() -> PsVariablesScope?)? = null
     override val isModified: Boolean? get() = model.getParsedProperty()?.isModified
 
     override fun annotateParsedResolvedMismatch(): ValueAnnotation? = annotateParsedResolvedMismatchBy { parsedValue, resolvedValue ->

@@ -12,7 +12,6 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -46,9 +45,48 @@ PROJECT                       : LightSyncBasedTestsWithGradleLikeStructureTest
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/debug/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/main/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/src/androidTest/java [-]

@@ -882,13 +882,23 @@ public class RenderTask {
           }
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
         }
-        return result != null ?
-               result.createWithStats(
-                 new RenderResultStats(
-                   System.currentTimeMillis() - startInflateTimeMs,
-                   -1,
-                   myModuleClassLoader.getStats())) :
-               RenderResult.createRenderTaskErrorResult(xmlFile, ex);
+
+        if (result != null) {
+          return result.createWithStats(
+            new RenderResultStats(
+              System.currentTimeMillis() - startInflateTimeMs,
+              -1,
+              myModuleClassLoader.getStats()));
+        }
+        else {
+          if (xmlFile.isValid()) {
+            return RenderResult.createRenderTaskErrorResult(xmlFile, ex);
+          }
+          else {
+            LOG.warn("Invalid file " + xmlFile);
+            return null;
+          }
+        }
       });
   }
 

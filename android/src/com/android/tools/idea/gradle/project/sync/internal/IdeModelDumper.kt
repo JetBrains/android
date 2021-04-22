@@ -15,33 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.ide.common.gradle.model.IdeAaptOptions
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
-import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.IdeAndroidProject
-import com.android.ide.common.gradle.model.IdeApiVersion
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer
-import com.android.ide.common.gradle.model.IdeDependencies
-import com.android.ide.common.gradle.model.IdeDependenciesInfo
-import com.android.ide.common.gradle.model.IdeJavaArtifact
-import com.android.ide.common.gradle.model.IdeJavaCompileOptions
-import com.android.ide.common.gradle.model.IdeJavaLibrary
-import com.android.ide.common.gradle.model.IdeLibrary
-import com.android.ide.common.gradle.model.IdeLintOptions
-import com.android.ide.common.gradle.model.IdeModuleLibrary
-import com.android.ide.common.gradle.model.IdeProductFlavor
-import com.android.ide.common.gradle.model.IdeProductFlavorContainer
-import com.android.ide.common.gradle.model.IdeSigningConfig
-import com.android.ide.common.gradle.model.IdeSourceProvider
-import com.android.ide.common.gradle.model.IdeSourceProviderContainer
-import com.android.ide.common.gradle.model.IdeTestOptions
-import com.android.ide.common.gradle.model.IdeTestedTargetVariant
-import com.android.ide.common.gradle.model.IdeVariant
-import com.android.ide.common.gradle.model.IdeVariantBuildInformation
-import com.android.ide.common.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.model.IdeAaptOptions
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeBaseArtifact
+import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
+import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeDependenciesInfo
+import com.android.tools.idea.gradle.model.IdeJavaArtifact
+import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeLintOptions
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeProductFlavor
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
+import com.android.tools.idea.gradle.model.IdeSigningConfig
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
+import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
+import com.android.tools.idea.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
+import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.intellij.openapi.module.ModuleManager
@@ -135,6 +135,7 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
       prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
       prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
       prop("TestApplicationId") { ideVariant.testApplicationId }
+      prop("DeprecatedPreMergedApplicationId") { ideVariant.deprecatedPreMergedApplicationId }
       ideVariant.resourceConfigurations.forEach { prop("ResourceConfigurations") { it } }
       ideVariant.productFlavors.forEach { prop("ProductFlavors") { it } }
       prop("TestInstrumentationRunner") { ideVariant.testInstrumentationRunner }
@@ -186,8 +187,8 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
   dump(androidLibrary as IdeLibrary)
   prop("Folder") { androidLibrary.folder?.path?.toPrintablePath() }
   prop("Manifest") { androidLibrary.manifest.toPrintablePath() }
-  prop("JarFile") { androidLibrary.jarFile.toPrintablePath() }
-  prop("CompileJarFile") { androidLibrary.compileJarFile.toPrintablePath() }
+  androidLibrary.compileJarFiles.forEach { prop("CompileJarFiles") { it.toPrintablePath() } }
+  androidLibrary.runtimeJarFiles.forEach { prop("RuntimeJarFiles") { it.toPrintablePath() } }
   prop("ResFolder") { androidLibrary.resFolder.toPrintablePath() }
   prop("ResStaticLibrary") { androidLibrary.resStaticLibrary?.path?.toPrintablePath() }
   prop("AssetFolder") { androidLibrary.assetsFolder.toPrintablePath() }
@@ -198,7 +199,6 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
   prop("ExternalAnnotations") { androidLibrary.externalAnnotations.toPrintablePath() }
   prop("PublicResources") { androidLibrary.publicResources.toPrintablePath() }
   prop("SymbolFile") { androidLibrary.symbolFile.toPrintablePath() }
-  androidLibrary.localJars.forEach { prop("LocalJars") { it.toPrintablePath() } }
 }
 
 private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {

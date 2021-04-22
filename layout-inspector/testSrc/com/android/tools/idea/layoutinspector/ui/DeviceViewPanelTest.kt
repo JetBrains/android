@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
@@ -37,6 +36,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
@@ -49,8 +49,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
 import com.android.tools.profiler.proto.Commands
@@ -59,7 +59,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -70,12 +69,12 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -111,7 +110,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
   }
 
   @Test
@@ -125,7 +126,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
   }
 
   @Test
@@ -172,7 +175,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testTurnOnSnapshotModeWhenDisconnected() {
     installCommandHandlers()
 
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -183,7 +186,9 @@ class DeviceViewPanelWithFullInspectorTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isFalse()
@@ -195,7 +200,7 @@ class DeviceViewPanelWithFullInspectorTest {
     installCommandHandlers()
     InspectorClientSettings.isCapturingModeOn = false
 
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -208,7 +213,9 @@ class DeviceViewPanelWithFullInspectorTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isNull()
+    assertThat(getPresentation(toggle).description).isEqualTo(
+      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+      "impact runtime performance.")
 
     assertThat(commands).isEmpty()
     assertThat(InspectorClientSettings.isCapturingModeOn).isTrue()
@@ -217,7 +224,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testTurnOnSnapshotMode() {
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
     latch = CountDownLatch(2)
 
@@ -244,7 +251,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testTurnOnLiveMode() {
-    val stats = inspectorRule.inspectorModel.stats.live
+    val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
     latch = CountDownLatch(2)
 
@@ -299,7 +306,6 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting again, loading should show
-    inspectorRule.processes.resume()
     inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(pid = 2)
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
@@ -349,20 +355,21 @@ class DeviceViewPanelTest {
 
   @Before
   fun setup() {
-    ApplicationManager.getApplication().registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock())
     ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
-    TreeSettings.hideSystemNodes = false
   }
 
+  @Ignore("b/185809224")
   @Test
   fun testZoomOnConnect() {
     val viewSettings = DeviceViewSettings(scalePercent = 100)
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, mock(), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -401,7 +408,9 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -436,7 +445,9 @@ class DeviceViewPanelTest {
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
@@ -488,7 +499,9 @@ class DeviceViewPanelTest {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
     val toolbar = getToolbar(panel)
@@ -527,7 +540,9 @@ class DeviceViewPanelTest {
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     `when`(launcher.activeClient).thenReturn(client)
-    val inspector = LayoutInspector(launcher, model, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
+    treeSettings.hideSystemNodes = false
     val settings = DeviceViewSettings(scalePercent = 100)
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 

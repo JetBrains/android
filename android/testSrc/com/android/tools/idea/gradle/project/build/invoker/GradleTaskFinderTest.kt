@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
-import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidModuleDependency

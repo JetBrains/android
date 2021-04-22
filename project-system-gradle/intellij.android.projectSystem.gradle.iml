@@ -11,7 +11,10 @@
     <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
@@ -26,5 +29,6 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
   </component>
 </module>

@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
-import com.android.tools.idea.uibuilder.property2.ui.EmptyTablePanel
+import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import org.fest.swing.core.Robot
 
 /**

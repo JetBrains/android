@@ -127,6 +127,6 @@ class LegacyPropertiesProviderTest {
                     expectedSection: PropertySection = PropertySection.DEFAULT) {
     val property = properties.getOrNull(namespace, name) ?: error("Property: $name is missing")
     assertThat(property.value).isEqualTo(expectedValue)
-    assertThat(property.group).isEqualTo(expectedSection)
+    assertThat(property.section).isEqualTo(expectedSection)
   }
 }

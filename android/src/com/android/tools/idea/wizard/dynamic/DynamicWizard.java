@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import icons.AndroidIcons;
+import icons.StudioIllustrations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -563,7 +563,7 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
   @Nullable
   public Icon getIcon() {
-    return AndroidIcons.Wizards.StudioProductIcon;
+    return StudioIllustrations.Common.PRODUCT_ICON;
   }
 
   protected static class PathIterator {

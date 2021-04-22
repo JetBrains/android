@@ -16,23 +16,33 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.window
+import com.android.tools.property.testing.ApplicationRule
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 
 class Toggle3dActionTest {
+
+  @get:Rule
+  val appRule = ApplicationRule()
 
   private val inspectorModel = model {
     view(1) {
@@ -41,8 +51,8 @@ class Toggle3dActionTest {
       }
     }
   }
-
-  private val viewModel = DeviceViewPanelModel(inspectorModel)
+  private lateinit var inspector: LayoutInspector
+  private lateinit var viewModel: DeviceViewPanelModel
 
   private val event: AnActionEvent = mock()
   private val presentation: Presentation = mock()
@@ -52,18 +62,21 @@ class Toggle3dActionTest {
 
   @Before
   fun setUp() {
+    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
     val client: InspectorClient = mock()
     `when`(client.capabilities).thenReturn(capabilities)
     `when`(client.isConnected).thenReturn(true)
     `when`(client.isCapturing).thenReturn(true)
     `when`(device.apiLevel).thenReturn(29)
+    val launcher: InspectorClientLauncher = mock()
+    `when`(launcher.activeClient).thenReturn(client)
+    inspector = LayoutInspector(launcher, inspectorModel, SessionStatistics(inspectorModel, mock()), mock(), MoreExecutors.directExecutor())
+    viewModel = DeviceViewPanelModel(inspectorModel, inspector.stats, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
     `when`(process.device).thenReturn(device)
     `when`(client.process).thenReturn(process)
-    val layoutInspector: LayoutInspector = mock()
-    `when`(layoutInspector.currentClient).thenReturn(client)
     `when`(event.getData(DEVICE_VIEW_MODEL_KEY)).thenReturn(viewModel)
-    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(layoutInspector)
+    `when`(event.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     `when`(event.presentation).thenReturn(presentation)
   }
 

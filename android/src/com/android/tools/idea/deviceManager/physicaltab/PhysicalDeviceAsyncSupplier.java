@@ -22,9 +22,11 @@ import com.android.tools.idea.adb.AdbService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FluentFuture;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.nio.file.Path;
@@ -44,14 +46,14 @@ final class PhysicalDeviceAsyncSupplier {
   private final @NotNull ListeningExecutorService myService;
   private final @NotNull Function<@Nullable Project, @NotNull Path> myGetAdb;
   private final @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> myGetDebugBridge;
-  private final @NotNull Supplier<@NotNull ConnectionTimeService> myConnectionTimeServiceGetInstance;
+  private final @NotNull Supplier<@NotNull BuilderService> myBuilderServiceGetInstance;
 
   PhysicalDeviceAsyncSupplier(@Nullable Project project) {
     this(project,
          MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
          PhysicalDeviceAsyncSupplier::getAdb,
          PhysicalDeviceAsyncSupplier::getDebugBridge,
-         ConnectionTimeService::getInstance);
+         BuilderService::getInstance);
   }
 
   @VisibleForTesting
@@ -59,16 +61,16 @@ final class PhysicalDeviceAsyncSupplier {
                               @NotNull ListeningExecutorService service,
                               @NotNull Function<@Nullable Project, @NotNull Path> getAdb,
                               @NotNull AsyncFunction<@NotNull Path, @Nullable AndroidDebugBridge> getDebugBridge,
-                              @NotNull Supplier<@NotNull ConnectionTimeService> connectionTimeServiceGetInstance) {
+                              @NotNull Supplier<@NotNull BuilderService> builderServiceGetInstance) {
     myProject = project;
     myService = service;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
-    myConnectionTimeServiceGetInstance = connectionTimeServiceGetInstance;
+    myBuilderServiceGetInstance = builderServiceGetInstance;
   }
 
   /**
-   * Called by a pooled application thread
+   * Called by an application pool thread
    */
   @WorkerThread
   private static @NotNull Path getAdb(@Nullable Project project) {
@@ -76,7 +78,7 @@ final class PhysicalDeviceAsyncSupplier {
   }
 
   /**
-   * Called by a pooled application thread
+   * Called by an application pool thread
    */
   @WorkerThread
   private static @NotNull ListenableFuture<@Nullable AndroidDebugBridge> getDebugBridge(@NotNull Path adb) {
@@ -88,11 +90,11 @@ final class PhysicalDeviceAsyncSupplier {
     return FluentFuture.from(myService.submit(() -> myGetAdb.apply(myProject)))
       .transformAsync(myGetDebugBridge, myService)
       .transform(PhysicalDeviceAsyncSupplier::getDevices, myService)
-      .transform(this::collectToPhysicalDevices, myService);
+      .transformAsync(this::collectToPhysicalDevices, myService);
   }
 
   /**
-   * Called by a pooled application thread
+   * Called by an application pool thread
    */
   @WorkerThread
   private static @NotNull Collection<@NotNull IDevice> getDevices(@Nullable AndroidDebugBridge bridge) {
@@ -108,16 +110,34 @@ final class PhysicalDeviceAsyncSupplier {
   }
 
   /**
-   * Called by a pooled application thread
+   * Called by an application pool thread
    */
   @WorkerThread
-  private @NotNull List<@NotNull PhysicalDevice> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
-    ConnectionTimeService service = myConnectionTimeServiceGetInstance.get();
+  private @NotNull ListenableFuture<@NotNull List<@NotNull PhysicalDevice>> collectToPhysicalDevices(@NotNull Collection<@NotNull IDevice> devices) {
+    BuilderService service = myBuilderServiceGetInstance.get();
 
-    return devices.stream()
+    Iterable<ListenableFuture<PhysicalDevice>> futures = devices.stream()
       .filter(device -> !device.isEmulator())
-      .map(IDevice::getSerialNumber)
-      .map(serialNumber -> new PhysicalDevice(serialNumber, service.get(serialNumber)))
+      .map(service::build)
       .collect(Collectors.toList());
+
+    // noinspection UnstableApiUsage
+    return FluentFuture.from(Futures.successfulAsList(futures)).transform(PhysicalDeviceAsyncSupplier::filterSuccessful, myService);
+  }
+
+  /**
+   * Called by an application pool thread
+   */
+  @WorkerThread
+  private static @NotNull List<@NotNull PhysicalDevice> filterSuccessful(@NotNull Collection<@Nullable PhysicalDevice> devices) {
+    List<PhysicalDevice> filteredDevices = devices.stream()
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+
+    if (filteredDevices.size() != devices.size()) {
+      Logger.getInstance(PhysicalDeviceAsyncSupplier.class).warn("Some of the physical devices were not successfully built");
+    }
+
+    return filteredDevices;
   }
 }

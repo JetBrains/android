@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.analytics;
 
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ class NlNopTracker implements NlUsageTracker {
   }
 
   @Override
-  public void logPropertyChange(@NotNull NelePropertyItem property,
+  public void logPropertyChange(@NotNull NlPropertyItem property,
                                 int filterMatches) {
   }
 

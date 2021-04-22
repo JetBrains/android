@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.pipeline.transport
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -46,8 +46,8 @@ import java.util.concurrent.TimeUnit
  * [LayoutInspectorRule] to start up with a transport-pipeline client.
  */
 class TransportClientProvider(private val transportComponents: TransportInspectorClient.TransportComponents) : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
-    return TransportInspectorClient(params.adb, params.process, model, transportComponents)
+  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+    return TransportInspectorClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, transportComponents)
   }
 }
 

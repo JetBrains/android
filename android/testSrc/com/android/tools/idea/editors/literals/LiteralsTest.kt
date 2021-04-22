@@ -20,12 +20,14 @@ import com.android.tools.idea.testing.deleteText
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.hasErrorElementInRange
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Assert.assertEquals
@@ -381,5 +383,55 @@ class LiteralsTest {
       text='In one line' location='LiteralsTest.kt (228,239)' value='In one line' usages='test.app.LiteralsTest.<init>-228'
       """.trimIndent(),
       snapshot.all.toDebugString())
+  }
+
+  @Test
+  fun `check highlights`() {
+    val literalsManager = LiteralsManager()
+    val file = projectRule.fixture.addFileToProject(
+      "/src/test/app/LiteralsTest.kt",
+      // language=kotlin
+      """
+        package test.app
+
+        class LiteralsTest {
+          private val SIMPLE = "S1"
+          private val STR = ""${'"'}
+            {
+              "margin" : 150,
+              "width" : 20
+            }
+          ""${'"'}
+          private val ONE_LINE = ""${'"'}In one line""${'"'}
+
+          fun testCall() {
+            method(STR)
+          }
+      }
+      """.trimIndent()).configureEditor()
+
+    val snapshot = literalsManager.findLiterals(file)
+    val outHighlighters = mutableSetOf<RangeHighlighter>()
+    UIUtil.invokeAndWaitIfNeeded(Runnable {
+      snapshot.highlightSnapshotInEditor(
+        projectRule.project,
+        projectRule.fixture.editor,
+        LITERAL_TEXT_ATTRIBUTE_KEY,
+        outHighlighters)
+    })
+
+    val output = ReadAction.compute<String, Throwable> {
+      outHighlighters.joinToString("\n") {
+        "${it.startOffset}-${it.endOffset}"
+      }
+    }
+    assertEquals(
+      """
+        69-71
+        95-167
+        198-209
+      """.trimIndent(),
+      output
+      )
   }
 }

@@ -21,13 +21,13 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.Collections.emptyList;
 
-import com.android.ide.common.gradle.model.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.IdeJavaLibrary;
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl;
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl;
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryCore;
-import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl;
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryCore;
+import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.testing.Facets;
@@ -91,12 +91,11 @@ public class DependenciesExtractorTest extends PlatformTestCase {
       "com.android.support:support-core-ui:25.3.1@aar",
       new File("libraryFolder"),
       "manifest.xml",
-      libJar.getPath(),
-      libCompileJar.getPath(),
+      ImmutableList.of(libCompileJar.getPath(), localJar.getPath()),
+      ImmutableList.of(libJar.getPath(), localJar.getPath()),
       resFolder.getPath(),
       new File("libraryFolder/res.apk"),
       "assets",
-      Collections.singletonList(localJar.getPath()),
       "jni",
       "aidl",
       "renderscriptFolder",

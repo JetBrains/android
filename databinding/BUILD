@@ -43,7 +43,6 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/databinding/testData",
@@ -74,6 +73,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
     ],
 )
 

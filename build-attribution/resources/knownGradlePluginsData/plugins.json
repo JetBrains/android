@@ -16,7 +16,35 @@
       "pluginArtifact": {
         "group": "com.google.firebase",
         "name": "firebase-crashlytics-gradle"
-      }
+      },
+      "configurationCachingCompatibleFrom": "2.5.1"
+    },
+    {
+      "name": "Google Services Gradle plugin",
+      "pluginClasses": ["com.google.gms.googleservices.GoogleServicesPlugin"],
+      "pluginArtifact": {
+        "group": "com.google.gms",
+        "name": "google-services"
+      },
+      "configurationCachingCompatibleFrom": "4.3.5"
+    },
+    {
+      "name": "Firebase Performance Monitoring plugin",
+      "pluginClasses": ["com.google.firebase.perf.plugin.FirebasePerfPlugin"],
+      "pluginArtifact": {
+        "group": "com.google.firebase",
+        "name": "perf-plugin"
+      },
+      "configurationCachingCompatibleFrom": "1.3.5"
+    },
+    {
+      "name": "Strict Version Matcher Gradle plugin",
+      "pluginClasses": ["com.google.android.gms.StrictVersionMatcherPlugin"],
+      "pluginArtifact": {
+        "group": "com.google.android.gms",
+        "name": "strict-version-matcher-plugin"
+      },
+      "configurationCachingCompatibleFrom": "1.2.2"
     }
   ]
 }

@@ -16,24 +16,23 @@
 
 package com.android.tools.idea.logcat;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ddmlib.Log.LogLevel;
 import com.intellij.diagnostic.logging.LogFilterModel;
-import org.jetbrains.annotations.NotNull;
+import java.time.ZoneId;
+import java.util.regex.Pattern;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.time.ZoneId;
-import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
-
 public class AndroidLogFilterModelTest {
-
-  private TestFilterModel myFilterModel;
+  private AndroidLogFilterModel myFilterModel;
+  private AndroidLogcatPreferences myPreferences;
 
   @Before
   public void setUp() throws Exception {
-    myFilterModel = new TestFilterModel();
+    myPreferences = new AndroidLogcatPreferences();
+    myFilterModel = new AndroidLogFilterModel(new AndroidLogcatFormatter(ZoneId.of("America/Los_Angeles"), myPreferences), myPreferences);
     myFilterModel.processingStarted();
   }
 
@@ -51,7 +50,7 @@ public class AndroidLogFilterModelTest {
 
   @Test
   public void filterRejectsBelowMinimumLogLevelLine() {
-    myFilterModel.setMinimumLevel(LogLevel.ERROR);
+    myPreferences.TOOL_WINDOW_LOG_LEVEL = LogLevel.ERROR.getStringValue();
     LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
     assertThat(result.isApplicable()).isFalse();
   }
@@ -174,32 +173,5 @@ public class AndroidLogFilterModelTest {
 
     result = myFilterModel.processLine(lines[2]);
     assertThat(result.isApplicable()).isFalse();
-  }
-
-  private static class TestFilterModel extends AndroidLogFilterModel {
-    @NotNull private LogLevel myMinimumLevel = LogLevel.VERBOSE; // Allow all messages by default
-
-    private TestFilterModel() {
-      super(new AndroidLogcatFormatter(ZoneId.of("America/Los_Angeles"), new AndroidLogcatPreferences()));
-    }
-
-    public void setMinimumLevel(@NotNull LogLevel logLevel) {
-      myMinimumLevel = logLevel;
-    }
-
-    @Override
-    protected void saveConfiguredFilterName(String filterName) {
-      // No need to save during unit tests
-    }
-
-    @Override
-    protected void saveLogLevel(String logLevelName) {
-      // No need to save during unit tests
-    }
-
-    @Override
-    public String getSelectedLogLevelName() {
-      return myMinimumLevel.getStringValue();
-    }
   }
 }

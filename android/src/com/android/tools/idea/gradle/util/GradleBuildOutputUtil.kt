@@ -20,8 +20,8 @@ package com.android.tools.idea.gradle.util
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
-import com.android.ide.common.gradle.model.IdeBuildTasksAndOutputInformation
-import com.android.ide.common.gradle.model.IdeVariantBuildInformation
+import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
+import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus

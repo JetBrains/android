@@ -15,45 +15,51 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.module;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.DependencySelection;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ResolvedDependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
-import icons.AndroidIcons;
+import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JScrollPane;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
@@ -76,7 +82,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
                                    @NotNull PsContext context,
                                    @NotNull DependencySelection dependencySelection,
                                    @Nullable ToolWindowAnchor anchor) {
-    super(title, AndroidIcons.Variant, anchor);
+    super(title, StudioIcons.Misc.PROJECT_SYSTEM_VARIANT, anchor);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

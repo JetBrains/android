@@ -1,0 +1,935 @@
+PROJECT                       : MainActivity
+    PROJECT_JDK                   : <JAVA_VERSION>
+        Version                       : version <JDK_VERSION>
+    MODULE                        : MainActivity
+        ExternalModuleGroup           :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : MainActivity
+        LinkedProjectPath             : <PROJECT>
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/MainActivity.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Java-Gradle
+            TypeId                        : java-gradle
+            Buildable                     : false
+        CONENT_ENTRY                  : file://<PROJECT>
+            EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/build [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
+    MODULE                        : MainActivity.app
+        ExternalModuleGroup           : MainActivity
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :app
+        LinkedProjectPath             : <PROJECT>/app
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/app/MainActivity.app.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName              : assembleDebug
+            CompileJavaTaskName           : compileDebugSources
+            - AfterSyncTask               : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType                   : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing               : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex                : false
+            MinimalMainDex                : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            GradlePath                    : :app
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ApiLevel                      : 1.4
+            CompilerArguments
+                apiVersion                    : 1.4
+                languageVersion               : 1.4
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.4
+            MergedCompilerArguments
+                apiVersion                    : 1.4
+                languageVersion               : 1.4
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (JVM_1_6)
+            UseProjectSettings            : false
+            Version                       : 3
+        CONENT_ENTRY                  : file://<PROJECT>/app
+            JavaSource                    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+            JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
+            JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
+            JavaSource                    : file://<PROJECT>/app/src/main/java
+            JavaResource                  : file://<PROJECT>/app/src/main/res
+            JavaSource (test)             : file://<PROJECT>/app/src/test/java
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.annotation:annotation:1.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.collection:collection:1.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.core:core-ktx:1.0.1@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.core:core-ktx:1.0.1@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-ktx-1.0.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-ktx-1.0.1/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-ktx-1.0.1/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.core:core:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.core:core:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.1@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test:core:1.2.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test:monitor:1.2.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:runner:1.2.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: androidx.test:runner:1.2.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.2.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY                       : Gradle: com.google.dagger:dagger:2.6
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: com.google.dagger:dagger:2.6 [=]
+            *CLASSES                      : jar://<M2>/com/google/dagger/dagger/2.6/dagger-2.6.jar!/
+        LIBRARY                       : Gradle: com.squareup:javawriter:2.1.1
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: com.squareup:javawriter:2.1.1 [=]
+            *CLASSES                      : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY                       : Gradle: javax.inject:javax.inject:1
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: javax.inject:javax.inject:1 [=]
+            *CLASSES                      : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY                       : Gradle: junit:junit:4.12
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: junit:junit:4.12 [=]
+            *CLASSES                      : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY                       : Gradle: kaptGeneratedClasses
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: kaptGeneratedClasses [=]
+            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debug [-]
+        LIBRARY                       : Gradle: kaptGeneratedTestClasses
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: kaptGeneratedTestClasses [=]
+            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
+            *CLASSES                      : file://<PROJECT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
+        LIBRARY                       : Gradle: net.sf.kxml:kxml2:2.3.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
+            *CLASSES                      : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-integration:1.3
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY                       : Gradle: org.hamcrest:hamcrest-library:1.3
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Test
+            IsExported                    : false
+            Name                          : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
+            *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains:annotations:13.0 [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
+    MODULE                        : MainActivity.lib
+        ExternalModuleGroup           : MainActivity
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId               : :lib
+        LinkedProjectPath             : <PROJECT>/lib
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/MainActivity.lib.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android
+            TypeId                        : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName              : assembleDebug
+            CompileJavaTaskName           : compileDebugSources
+            - AfterSyncTask               : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType                   : 1
+            RunProcessResourcesMavenTask  : true
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing               : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex                : false
+            MinimalMainDex                : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            GradlePath                    : :lib
+        FACET                         : Kotlin
+            TypeId                        : kotlin-language
+            ApiLevel                      : 1.4
+            CompilerArguments
+                apiVersion                    : 1.4
+                languageVersion               : 1.4
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            CompilerSettings
+                additionalArguments           : -Xallow-no-source-files
+                copyJsLibraryFiles            : true
+                outputDirectoryForJsLibraryFiles        : lib
+            IsTestModule                  : false
+            Kind                          : DEFAULT
+            LanguageLevel                 : 1.4
+            MergedCompilerArguments
+                apiVersion                    : 1.4
+                languageVersion               : 1.4
+                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
+                - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
+            Platform                      : JVM (JVM_1_6)
+            UseProjectSettings            : false
+            Version                       : 3
+        CONENT_ENTRY                  : file://<PROJECT>/lib
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            Generated                     : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
+        JDK                           : <NAME_CUT> Android SDK
+        *isInherited                  : false
+            SdkType                       : Android SDK
+            HomePath                      : <ANDROID_SDK>
+            VersionString                 : version <JDK_VERSION>
+        ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.annotation:annotation:1.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.0.2@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-common:2.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.arch.core:core-common:2.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.collection:collection:1.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.collection:collection:1.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.core:core:1.0.1@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.core:core:1.0.1@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.customview:customview:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.documentfile:documentfile:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
+            *CLASSES                      : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.loader:loader:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.print:print:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.print:print:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar!/
+            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/annotations.zip!/
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+            LibraryLevel                  : project
+            IsModuleLevel                 : false
+            Scope                         : Compile
+            IsExported                    : false
+            Name                          : Gradle: org.jetbrains:annotations:13.0 [=]
+            *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
+    RUN_CONFIGURATION             : app
+        *class*                       : AndroidRunConfiguration
+        ModuleName                    : MainActivity.app
+        Module                        : MainActivity.app

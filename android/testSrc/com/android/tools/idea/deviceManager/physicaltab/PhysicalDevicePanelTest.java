@@ -35,13 +35,19 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
   private PhysicalDevicePanel myPanel;
+  private Disposable myParent;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
 
-  private PhysicalDevice myConnectedPixel3;
+  private PhysicalDevice myOnlinePixel3;
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private Executor myExecutor;
+
+  @Before
+  public void mockParent() {
+    myParent = Mockito.mock(Disposable.class);
+  }
 
   @Before
   public void initComponent() {
@@ -55,10 +61,14 @@ public final class PhysicalDevicePanelTest {
 
   @Before
   public void mockSupplier() {
-    myConnectedPixel3 = new PhysicalDevice("86UX00F4R", Instant.parse("2021-03-24T22:38:05.890570Z"));
+    myOnlinePixel3 = new PhysicalDevice.Builder()
+      .setSerialNumber("86UX00F4R")
+      .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
+      .setOnline(true)
+      .build();
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
-    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myConnectedPixel3)));
+    Mockito.when(mySupplier.get()).thenReturn(Futures.immediateFuture(Collections.singletonList(myOnlinePixel3)));
   }
 
   @Before
@@ -67,32 +77,35 @@ public final class PhysicalDevicePanelTest {
   }
 
   @After
-  public void disposeOfPanel() {
-    Disposer.dispose(myPanel);
+  public void disposeOfParent() {
+    Disposer.dispose(myParent);
   }
 
   @Test
   public void newPhysicalDevicePanel() {
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
-    assertEquals(Collections.singletonList(Arrays.asList(myConnectedPixel3, "API", "Type", "Actions")), myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "API", "Type", "Actions")), myPanel.getData());
   }
 
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
     // Arrange
-    PhysicalDevice disconnectedPixel5 = new PhysicalDevice("0A071FDD4003ZG");
-    myComponent.set(Collections.singletonList(disconnectedPixel5));
+    PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
+      .setSerialNumber("0A071FDD4003ZG")
+      .build();
+
+    myComponent.set(Collections.singletonList(offlinePixel5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(myParent, () -> myComponent, model -> myListener, mySupplier, myExecutor);
 
     // Assert
     Object data = Arrays.asList(
-      Arrays.asList(myConnectedPixel3, "API", "Type", "Actions"),
-      Arrays.asList(disconnectedPixel5, "API", "Type", "Actions"));
+      Arrays.asList(myOnlinePixel3, "API", "Type", "Actions"),
+      Arrays.asList(offlinePixel5, "API", "Type", "Actions"));
 
     assertEquals(data, myPanel.getData());
   }

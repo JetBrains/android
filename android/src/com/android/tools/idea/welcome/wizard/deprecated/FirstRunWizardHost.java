@@ -23,6 +23,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.ide.IdeBundle;
+import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -176,6 +177,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
     myFrame.setVisible(false);
     myFrame.dispose();
     if (action == CloseAction.FINISH || action == CloseAction.CANCEL) {
+      // If the user has not selected a Theme, we may have uninstalled ui components
+      LafManager.getInstance().updateUI();
       WelcomeFrame.showNow();
     }
     else if (action == CloseAction.EXIT) {

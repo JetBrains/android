@@ -22,43 +22,44 @@ import com.android.builder.model.NativeFile
 import com.android.builder.model.NativeSettings
 import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
-import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
-import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
-import com.android.ide.common.gradle.model.stubs.AndroidArtifactOutputStub
-import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
-import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
-import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
-import com.android.ide.common.gradle.model.stubs.ApiVersionStub
-import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
-import com.android.ide.common.gradle.model.stubs.BuildTypeStub
-import com.android.ide.common.gradle.model.stubs.ClassFieldStub
-import com.android.ide.common.gradle.model.stubs.FilterDataStub
-import com.android.ide.common.gradle.model.stubs.JavaArtifactStub
-import com.android.ide.common.gradle.model.stubs.JavaCompileOptionsStub
-import com.android.ide.common.gradle.model.stubs.LintOptionsStub
-import com.android.ide.common.gradle.model.stubs.MavenCoordinatesStub
-import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
-import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
-import com.android.ide.common.gradle.model.stubs.SigningConfigStub
-import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
-import com.android.ide.common.gradle.model.stubs.SourceProviderStub
-import com.android.ide.common.gradle.model.stubs.TestOptionsStub
-import com.android.ide.common.gradle.model.stubs.TestedTargetVariantStub
-import com.android.ide.common.gradle.model.stubs.VariantStub
-import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
+import com.android.tools.idea.gradle.model.stubs.AaptOptionsStub
+import com.android.tools.idea.gradle.model.stubs.AndroidArtifactOutputStub
+import com.android.tools.idea.gradle.model.stubs.AndroidArtifactStub
+import com.android.tools.idea.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
+import com.android.tools.idea.gradle.model.stubs.AndroidProjectStub
+import com.android.tools.idea.gradle.model.stubs.ApiVersionStub
+import com.android.tools.idea.gradle.model.stubs.BuildTypeContainerStub
+import com.android.tools.idea.gradle.model.stubs.BuildTypeStub
+import com.android.tools.idea.gradle.model.stubs.ClassFieldStub
+import com.android.tools.idea.gradle.model.stubs.FilterDataStub
+import com.android.tools.idea.gradle.model.stubs.JavaArtifactStub
+import com.android.tools.idea.gradle.model.stubs.JavaCompileOptionsStub
+import com.android.tools.idea.gradle.model.stubs.LintOptionsStub
+import com.android.tools.idea.gradle.model.stubs.MavenCoordinatesStub
+import com.android.tools.idea.gradle.model.stubs.ProductFlavorContainerStub
+import com.android.tools.idea.gradle.model.stubs.ProductFlavorStub
+import com.android.tools.idea.gradle.model.stubs.SigningConfigStub
+import com.android.tools.idea.gradle.model.stubs.SourceProviderContainerStub
+import com.android.tools.idea.gradle.model.stubs.SourceProviderStub
+import com.android.tools.idea.gradle.model.stubs.TestOptionsStub
+import com.android.tools.idea.gradle.model.stubs.TestedTargetVariantStub
+import com.android.tools.idea.gradle.model.stubs.VariantStub
+import com.android.tools.idea.gradle.model.stubs.VectorDrawablesOptionsStub
+import com.android.tools.idea.gradle.model.stubs.ViewBindingOptionsStub
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.java.GradleModuleVersionImpl
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
@@ -176,12 +177,11 @@ class ModelSerializationTest {
       "artifactAddress",
       File("folder"),
       "manifest",
-      "jarFile",
-      "compileJarFile",
+      listOf("compileJarFiles"),
+      listOf("runtimeJarFiles"),
       "resFolder",
       File("resStaticLibrary"),
       "assetsFolder",
-      listOf("localJars"),
       "jniFolder",
       "aidlFolder",
       "renderscriptFolder",

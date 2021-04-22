@@ -61,13 +61,20 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedViewBuilder)
+    val attributeSections = setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")
     tab.builders.add(DimensionBuilder)
-    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.group == PropertySection.DECLARED },
+    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.section == PropertySection.DECLARED },
                                            model, enumSupportProvider, controlTypeProvider))
-    tab.builders.add(InspectorTableBuilder("Layout", { it.group == PropertySection.LAYOUT },
+    tab.builders.add(InspectorTableBuilder("Layout", { it.section == PropertySection.LAYOUT },
                                            model, enumSupportProvider, controlTypeProvider, androidSortOrder))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { it.group != PropertySection.DIMENSION && it.group != PropertySection.VIEW },
+    tab.builders.add(InspectorTableBuilder("All Attributes", { it.section in attributeSections },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Parameters", { it.section == PropertySection.PARAMETERS },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Merged Semantics", { it.section == PropertySection.MERGED },
+                                           model, enumSupportProvider, controlTypeProvider, searchable = true))
+    tab.builders.add(InspectorTableBuilder("Semantics", { it.section == PropertySection.UNMERGED },
                                            model, enumSupportProvider, controlTypeProvider, searchable = true))
   }
 }

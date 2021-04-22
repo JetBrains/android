@@ -15,7 +15,8 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import gnu.trove.TIntArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,7 +29,7 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   private static final int BASE = 10;
   private static final int MIN_INTERVAL = 1;
   private static final String[] UNITS = new String[]{"mm", "cm", "m"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{10, 5, 1});
+  private static final IntList BASE_FACTORS = IntArrayList.wrap(new int[]{10, 5, 1});
 
   public MockAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
@@ -66,7 +67,7 @@ public class MockAxisFormatter extends BaseAxisFormatter {
 
   @Override
   @NotNull
-  protected TIntArrayList getUnitBaseFactors(int index) {
+  protected IntList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }
 }

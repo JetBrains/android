@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.utils.SdkUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -24,13 +23,11 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.imageio.ImageIO;
@@ -83,29 +80,23 @@ public class BuiltInImages {
     List<String> names = new ArrayList<>(80);
     ZipFile zipFile = null;
     try {
-      ProtectionDomain protectionDomain = BuiltInImages.class.getProtectionDomain();
-      URL url = protectionDomain.getCodeSource().getLocation();
-      if (url != null && url.getProtocol().equals("jar")) {
-        File file = SdkUtils.urlToFile(url);
-        zipFile = new JarFile(file);
-      } else {
-        Enumeration<URL> en = BuiltInImages.class.getClassLoader().getResources(pathPrefix);
-        if (en.hasMoreElements()) {
-          url = en.nextElement();
-          URLConnection urlConnection = url.openConnection();
-          if (urlConnection instanceof JarURLConnection) {
-            JarURLConnection urlConn = (JarURLConnection)urlConnection;
-            zipFile = urlConn.getJarFile();
-          } else if ("file".equals(url.getProtocol())) { //$NON-NLS-1$
-            File directory = new File(url.getPath());
-            String[] list = directory.list();
-            if (list == null) {
-              return Collections.emptyList();
-            }
-            return Arrays.asList(list);
+      Enumeration<URL> en = BuiltInImages.class.getClassLoader().getResources(pathPrefix);
+      if (en.hasMoreElements()) {
+        URL url = en.nextElement();
+        URLConnection urlConnection = url.openConnection();
+        if (urlConnection instanceof JarURLConnection) {
+          JarURLConnection urlConn = (JarURLConnection)urlConnection;
+          zipFile = urlConn.getJarFile();
+        } else if ("file".equals(url.getProtocol())) { //$NON-NLS-1$
+          File directory = new File(url.getPath());
+          String[] list = directory.list();
+          if (list == null) {
+            return Collections.emptyList();
           }
+          return Arrays.asList(list);
         }
       }
+
       Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
       while (enumeration.hasMoreElements()) {
         ZipEntry zipEntry = enumeration.nextElement();
@@ -118,9 +109,11 @@ public class BuiltInImages {
           names.add(name);
         }
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       getLog().error(e);
-    } finally {
+    }
+    finally {
       if (zipFile != null) {
         try {
           zipFile.close();

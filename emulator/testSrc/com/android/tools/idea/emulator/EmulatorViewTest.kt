@@ -30,7 +30,6 @@ import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
@@ -55,9 +54,6 @@ import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
-import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.VK_A
@@ -279,23 +275,6 @@ class EmulatorViewTest {
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
     assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
     assertAppearance(ui, "EmulatorView4")
-
-    // Check clipboard synchronization.
-    val content = StringSelection("host clipboard")
-    ClipboardSynchronizer.getInstance().setContent(content, content)
-    val event = FocusEvent(view, FocusEvent.FOCUS_GAINED, false, null)
-    for (listener in view.focusListeners) {
-      listener.focusGained(event)
-    }
-    call = emulator.getNextGrpcCall(3, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
-    assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
-    call.waitForResponse(2, TimeUnit.SECONDS)
-    emulator.clipboard = "device clipboard"
-    call.waitForResponse(2, TimeUnit.SECONDS)
-    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
   }
 
   /** Checks a large container size resulting in a scale greater than 1:1. */

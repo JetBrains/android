@@ -28,8 +28,7 @@ import com.intellij.openapi.components.StoragePathMacros
 @Service
 class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<LiveLiteralsApplicationConfiguration.State>(State()) {
   class State: BaseState() {
-    var isEnabled = StudioFlags.COMPOSE_LIVE_LITERALS.get()
-    var showAvailablePopup = true
+    var isEnabled by property(true)
   }
 
   /**
@@ -37,21 +36,12 @@ class LiveLiteralsApplicationConfiguration : SimplePersistentStateComponent<Live
    * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable]
    */
   var isEnabled
-    get() = state.isEnabled
+    get() = StudioFlags.COMPOSE_LIVE_LITERALS.get() && state.isEnabled
     set(value) {
       if (state.isEnabled != value) {
         state.isEnabled = value
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(value)
       }
-    }
-
-  /**
-   * If true, the first time literals become available, a notification popup will show with instructions on how they work.
-   */
-  var showAvailablePopup
-    get() = state.showAvailablePopup
-    set(value) {
-      state.showAvailablePopup = value
     }
 
   companion object {

@@ -431,9 +431,7 @@ public class GuiTestRule implements TestRule {
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectDirPath, gradleVersion, null);
-    File path = TestUtils.runningFromBazel() ?
-                TestUtils.resolveWorkspacePath("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip").toFile() :
-                EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
     return wrapper != null;

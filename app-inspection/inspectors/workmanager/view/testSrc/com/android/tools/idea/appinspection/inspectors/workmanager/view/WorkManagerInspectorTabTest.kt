@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
+import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -60,6 +61,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
+import java.awt.event.ActionEvent
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.swing.JComponent
@@ -529,6 +531,80 @@ class WorkManagerInspectorTabTest {
       graphViewAction.actionPerformed(event)
       val graphView = contentView.getFirstChildIsInstance<WorkDependencyGraphView>()
       assertThat(graphView.getFirstChildIsInstance<JLabel>().text).isEqualTo("ClassName1")
+    }.join()
+  }
+
+  @Test
+  fun navigateWorksInDependencyView() = runBlocking {
+    val parentWorkInfo: WorkInfo = WorkInfo.newBuilder().apply {
+      id = "parent"
+      workerClassName = "package1.package2.ClassName2"
+      state = WorkInfo.State.ENQUEUED
+      scheduleRequestedAt = 1L
+      runAttemptCount = 1
+      constraints = Constraints.getDefaultInstance()
+      isPeriodic = false
+      addAllDependents(listOf("left_child", "right_child"))
+    }.build()
+
+    val leftChildWorkInfo: WorkInfo = WorkInfo.newBuilder().apply {
+      id = "left_child"
+      workerClassName = "package1.package2.ClassName3"
+      state = WorkInfo.State.ENQUEUED
+      scheduleRequestedAt = 2L
+      runAttemptCount = 1
+      constraints = Constraints.getDefaultInstance()
+      isPeriodic = false
+      addPrerequisites("parent")
+    }.build()
+
+    val rightChildWorkInfo: WorkInfo = WorkInfo.newBuilder().apply {
+      id = "right_child"
+      workerClassName = "package1.package2.ClassName4"
+      state = WorkInfo.State.ENQUEUED
+      scheduleRequestedAt = 2L
+      runAttemptCount = 1
+      constraints = Constraints.getDefaultInstance()
+      isPeriodic = false
+      addPrerequisites("parent")
+    }.build()
+
+    sendWorkAddedEvent(parentWorkInfo)
+    sendWorkAddedEvent(leftChildWorkInfo)
+    sendWorkAddedEvent(rightChildWorkInfo)
+    launch(uiDispatcher) {
+      val inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+
+      val contentView = (inspectorTab.component as JBSplitter).firstComponent as WorksContentView
+      val toolbar = TreeWalker(inspectorTab.component)
+        .descendantStream()
+        .filter { it is ActionToolbar }
+        .toList()[1] as ActionToolbarImpl
+      val graphViewAction = toolbar.actions[1] as AnAction
+      assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
+
+      // Select parent work.
+      val selectionModel = inspectorTab.workSelectionModel
+      selectionModel.setSelectedWork(parentWorkInfo, WorkSelectionModel.Context.GRAPH)
+
+      // Switch to graph mode.
+      val event1: AnActionEvent = mock(AnActionEvent::class.java)
+      graphViewAction.actionPerformed(event1)
+      val graphView = contentView.getFirstChildIsInstance<WorkDependencyGraphView>()
+
+      // Move down to left_child work.
+      val actionEvent: ActionEvent = mock(ActionEvent::class.java)
+      graphView.actionMap["Down"].actionPerformed(actionEvent)
+      assertThat(inspectorTab.workSelectionModel.selectedWork).isEqualTo(leftChildWorkInfo)
+      // Move right to right_child work.
+      graphView.actionMap["Right"].actionPerformed(actionEvent)
+      assertThat(inspectorTab.workSelectionModel.selectedWork).isEqualTo(rightChildWorkInfo)
+      // Move left to left_child work.
+      graphView.actionMap["Left"].actionPerformed(actionEvent)
+      assertThat(inspectorTab.workSelectionModel.selectedWork).isEqualTo(leftChildWorkInfo)
+      // Move up to parent work.
+      graphView.actionMap["Up"].actionPerformed(actionEvent)
+      assertThat(inspectorTab.workSelectionModel.selectedWork).isEqualTo(parentWorkInfo)
     }.join()
   }
 

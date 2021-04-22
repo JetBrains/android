@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
-public final class PhysicalTabContent {
-  private PhysicalTabContent() {
+public final class PhysicalTabContent implements Disposable {
+  private final @NotNull Content myContent;
+
+  public PhysicalTabContent(@NotNull ContentFactory factory, @NotNull Project project) {
+    myContent = factory.createContent(new PhysicalDevicePanel(this, project), "Physical", false);
+    myContent.setDisposer(this);
   }
 
-  public static @NotNull Content create(@NotNull ContentFactory factory, @NotNull Project project) {
-    PhysicalDevicePanel panel = new PhysicalDevicePanel(project);
+  @Override
+  public void dispose() {
+  }
 
-    Content content = factory.createContent(panel, "Physical", false);
-    content.setDisposer(panel);
-
-    return content;
+  public @NotNull Content getContent() {
+    return myContent;
   }
 }

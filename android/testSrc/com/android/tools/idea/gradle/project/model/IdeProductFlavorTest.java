@@ -21,9 +21,11 @@ import static org.junit.Assert.assertEquals;
 import com.android.annotations.NonNull;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.VectorDrawablesOptions;
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl;
-import com.android.ide.common.gradle.model.stubs.ProductFlavorStub;
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl;
+import com.android.tools.idea.gradle.model.stubs.ProductFlavorStub;
 import com.android.testutils.Serialization;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
 import java.util.Objects;
 import org.junit.Before;
@@ -88,7 +90,6 @@ public class IdeProductFlavorTest {
                                 getTestInstrumentationRunner(),
                                 getTestHandleProfiling(),
                                 getTestFunctionalTest(),
-                                getSigningConfig(),
                                 getWearAppUnbundled());
                     }
                 };

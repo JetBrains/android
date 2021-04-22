@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
@@ -54,6 +55,7 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import com.google.common.annotations.VisibleForTesting
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
@@ -96,6 +98,7 @@ class WarningsViewDetailPagesFactory(
     } ?: JPanel()
   }
 
+  @VisibleForTesting
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningType, nodeDescriptor.presentedWarnings)
     is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData.task)
@@ -197,21 +200,22 @@ class WarningsViewDetailPagesFactory(
       is AGPUpdateRequired -> this.createAGPUpdateRequiredPanel(uiData, projectConfigurationTime)
       is NoIncompatiblePlugins -> this.createNoIncompatiblePluginsPanel(uiData, projectConfigurationTime)
       is IncompatiblePluginsDetected -> this.createIncompatiblePluginsDetectedPanel(uiData, projectConfigurationTime)
+      is ConfigurationCacheCompatibilityTestFlow -> this.createConfigurationCacheTestFlowPanel(uiData, projectConfigurationTime)
       ConfigurationCachingTurnedOn -> Unit
     }
   }
 
   private fun JPanel.createAGPUpdateRequiredPanel(uiData: AGPUpdateRequired, projectConfigurationTime: TimeWithPercentage) {
     val appliedAGPPluginsList = uiData.appliedPlugins.joinToString(
-      prefix = "<h4>Android Gradle plugins applied in this build:</h4><ul>",
+      prefix = "Android Gradle plugins applied in this build:<ul>",
       postfix = "</ul>",
       separator = ""
     ) { "<li>${it.displayName}</li>" }
     val contentHtml = """
-        <b>Android Gradle plugin update required to make configuration cache available</b>
+        <b>Android Gradle plugin update required to make Configuration cache available</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        Android Gradle plugin supports configuration cache from ${uiData.recommendedVersion}.
-        Current version is ${uiData.currentVersion}.
+        Android Gradle plugin supports Configuration cache from ${uiData.recommendedVersion}. Current version is ${uiData.currentVersion}.
+        
         $appliedAGPPluginsList
       """.trimIndent().insertBRTags()
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
@@ -238,9 +242,9 @@ class WarningsViewDetailPagesFactory(
     val pluginsCountLines = sequenceOf(upgradablePluginsCountLine, incompatiblePluginsCountLine).filterNotNull()
       .joinToString(prefix = "<ul>", postfix = "</ul>", separator = "") { "<li>$it</li>" }
     val contentHtml = """
-        <b>Some plugins are not compatible with configuration cache</b>
+        <b>Some plugins are not compatible with Configuration cache</b>
         ${configurationCachingDescriptionHeader(configurationTime)}
-        Some of the plugins applied are known to be not compatible with configuration cache in versions used in this build.
+        Some of the plugins applied are known to be not compatible with Configuration cache in versions used in this build.
         $pluginsCountLines
         You can find details on each plugin on corresponding sub-pages.
       """.trimIndent().insertBRTags()
@@ -249,19 +253,16 @@ class WarningsViewDetailPagesFactory(
 
   private fun JPanel.createNoIncompatiblePluginsPanel(uiData: NoIncompatiblePlugins, configurationTime: TimeWithPercentage) {
     val contentHtml = """
-        <b>Try to turn configuration cache on</b>
+        <b>Try to turn Configuration cache on</b>
         ${configurationCachingDescriptionHeader(configurationTime)}
-        The known plugins applied in this build are compatible with configuration cache.
+        The known plugins applied in this build are compatible with Configuration cache.
       """.trimIndent().insertBRTags()
-    val runTestBuildActionButton = JButton("Run build with configuration cache").apply {
+    val runTestBuildActionButton = JButton("Try Configuration cache in a build").apply {
       addActionListener { actionHandlers.runTestConfigurationCachingBuild() }
     }
-    val addToPropertiesActionLink = HyperlinkLabel("Turn configuration cache permanently in gradle.properties").apply {
-      addHyperlinkListener { actionHandlers.turnConfigurationCachingOnInProperties() }
-    }
     val unknownPluginsNoteHtml = """
-        Note: There could be unknown plugins that aren't compatible and will be discovered after
-        you build with the Configuration Cache turned on.
+        Note: There could be unknown plugins that aren't compatible and are discovered after
+        you build with Configuration cache turned on.
         """.trimIndent().insertBRTags()
     val unknownPluginsListHtml = uiData.unrecognizedPlugins.joinToString(
       prefix = "<b>List of applied plugins we were not able to recognise:</b><ul>",
@@ -271,9 +272,22 @@ class WarningsViewDetailPagesFactory(
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     add(htmlTextLabelWithFixedLines(unknownPluginsNoteHtml).setupConfigurationCachingDescriptionPane())
     add(runTestBuildActionButton)
-    add(addToPropertiesActionLink)
     if (uiData.unrecognizedPlugins.isNotEmpty())
       add(htmlTextLabelWithFixedLines(unknownPluginsListHtml).setupConfigurationCachingDescriptionPane())
+  }
+
+  private fun JPanel.createConfigurationCacheTestFlowPanel(uiData: ConfigurationCacheCompatibilityTestFlow, configurationTime: TimeWithPercentage) {
+    val contentHtml = """
+        <b>Test builds with Configuration cache finished successfully</b>
+        With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
+        
+        Gradle was able to serialize the task graph of this build and reuse it for the second run using configuration cache.
+      """.trimIndent().insertBRTags()
+    val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties.").apply {
+      addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
+    }
+    add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
+    add(addToPropertiesActionButton)
   }
 
   private fun createConfigurationCachingWarningPage(data: IncompatiblePluginWarning,
@@ -283,7 +297,7 @@ class WarningsViewDetailPagesFactory(
     val contentHtml = if (data.requiredVersion != null) """
         <b>${data.plugin.displayName}: update required</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        Update this plugin to ${data.requiredVersion} or higher to make configuration cache available.
+        Update this plugin to ${data.requiredVersion} or higher to make Configuration cache available.
         
         Plugin version: ${data.currentVersion}
         Plugin dependency: ${data.pluginInfo.pluginArtifact}
@@ -291,7 +305,7 @@ class WarningsViewDetailPagesFactory(
     else """
         <b>${data.plugin.displayName}: not compatible</b>
         ${configurationCachingDescriptionHeader(projectConfigurationTime)}
-        The version of this plugin used in this build is not compatible with configuration cache
+        The version of this plugin used in this build is not compatible with Configuration cache
         and we don’t know the version when it becomes compatible.
         
         Plugin version: ${data.currentVersion}
@@ -299,15 +313,15 @@ class WarningsViewDetailPagesFactory(
       """.trimIndent().insertBRTags()
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())
     if (data.requiredVersion != null) {
-      add(JButton("Update plugin").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
+      add(JButton("Go to plugin version declaration").apply { addActionListener { actionHandlers.updatePluginClicked(data) } })
     }
   }
 
   private fun configurationCachingDescriptionHeader(configurationTime: TimeWithPercentage): String =
     "<p>" +
     "You could save about ${configurationTime.durationStringHtml()} by turning " +
-    "${externalLink("configuration cache", CONFIGURATION_CACHING)} on.<br/>" +
-    "With configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
+    "${externalLink("Configuration cache", CONFIGURATION_CACHING)} on.<br/>" +
+    "With Configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed." +
     "</p>"
 
   private fun JEditorPane.setupConfigurationCachingDescriptionPane() = apply {

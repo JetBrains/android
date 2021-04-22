@@ -15,7 +15,7 @@ iml_module(
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha02:utp-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha03:utp-core-proto",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
     ],
 )

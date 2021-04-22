@@ -18,6 +18,7 @@ public class StudioIllustrations {
   public static class Common {
     public static final Icon DISCONNECT_PROFILER = load("/studio/illustrations/common/disconnect-profiler.svg"); // 171x97
     public static final Icon DISCONNECT = load("/studio/illustrations/common/disconnect.svg"); // 171x97
+    public static final Icon PRODUCT_ICON = load("/studio/illustrations/common/product-icon.svg"); // 64x64
   }
 
   public static class FormFactors {
@@ -31,5 +32,10 @@ public class StudioIllustrations {
     public static final Icon TV = load("/studio/illustrations/form-factors/tv.svg"); // 64x64
     public static final Icon WEAR_LARGE = load("/studio/illustrations/form-factors/wear-large.svg"); // 100x100
     public static final Icon WEAR = load("/studio/illustrations/form-factors/wear.svg"); // 64x64
+  }
+
+  public static class Wizards {
+    public static final Icon ANDROID_MODULE = load("/studio/illustrations/wizards/android-module.svg"); // 512x512
+    public static final Icon NO_ACTIVITY = load("/studio/illustrations/wizards/no-activity.svg"); // 512x512
   }
 }

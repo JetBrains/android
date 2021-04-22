@@ -31,7 +31,8 @@ class AllocationDurationDataTest {
     val viewRange = Range(0.0, 10.0)
     val dataRange = Range(0.0, 10.0)
     val allocSeries = DataSeries {
-      fun make(x: Long) = SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) {throw NotImplementedError()}))
+      fun make(x: Long): SeriesData<CaptureDurationData<out CaptureObject>> =
+        SeriesData(x, CaptureDurationData<CaptureObject>(1, false, false, CaptureEntry(x) {throw NotImplementedError()}))
       listOf(make(1), make(3))
     }
     val samplingSeries = DataSeries {

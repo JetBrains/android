@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.ide.common.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink

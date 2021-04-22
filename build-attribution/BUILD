@@ -25,6 +25,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
     ],
 )
 
@@ -41,7 +42,6 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
@@ -71,5 +71,6 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
     ],
 )

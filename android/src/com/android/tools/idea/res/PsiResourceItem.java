@@ -82,7 +82,7 @@ public final class PsiResourceItem implements ResourceItem {
   @NotNull private final String myName;
   @NotNull private final ResourceType myType;
 
-  @NotNull private ResourceFolderRepository myOwner;
+  @NotNull private final ResourceFolderRepository myOwner;
   @Nullable private ResourceValue myResourceValue;
   @Nullable private PsiResourceFile mySourceFile;
   /**
@@ -603,7 +603,12 @@ public final class PsiResourceItem implements ResourceItem {
         .add("type", myType);
     XmlTag tag = getTag();
     if (tag != null) {
-      helper.add("tag", IdeResourcesUtil.getTextContent(tag));
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        helper.add("tag", IdeResourcesUtil.getTextContent(tag));
+      }
+      else {
+        helper.add("tag", ReadAction.compute(() -> IdeResourcesUtil.getTextContent(tag)));
+      }
     }
     PsiFile file = getPsiFile();
     if (file != null) {

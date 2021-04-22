@@ -31,7 +31,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.util.AtomicNotNullLazyValue
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
 import com.intellij.util.Alarm.ThreadToUse
@@ -141,19 +140,19 @@ fun <T> readOnPooledThread(function: () -> T): ListenableFuture<T> {
   return MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()).submit<T> { ReadAction.compute<T, Throwable>(function) }
 }
 
-private object MyAlarm : AtomicNotNullLazyValue<Alarm>() {
-  override fun compute() = Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication())
+private val MyAlarm by lazy {
+  Alarm(ThreadToUse.POOLED_THREAD, ApplicationManager.getApplication())
 }
 
 fun <V> delayedValue(value: V, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest({ result.set(value) }, delayMillis)
+  MyAlarm.addRequest({ result.set(value) }, delayMillis)
   return result
 }
 
 fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest(
+  MyAlarm.addRequest(
     Runnable {
       try {
         result.set(callable.call())
@@ -169,7 +168,7 @@ fun <V> delayedOperation(callable: Callable<V>, delayMillis: Int): ListenableFut
 
 fun <V> delayedError(t: Throwable, delayMillis: Int): ListenableFuture<V> {
   val result = SettableFuture.create<V>()
-  MyAlarm.value.addRequest({ result.setException(t) }, delayMillis)
+  MyAlarm.addRequest({ result.setException(t) }, delayMillis)
   return result
 }
 

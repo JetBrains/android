@@ -131,10 +131,10 @@ class SelectViewAction(
 ) : AnAction(generateText(view), null,
              AndroidDomElementDescriptorProvider.getIconForViewTag(view.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW) {
 
-  override fun actionPerformed(unused: AnActionEvent) {
+  override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
 
     // This action is only performed from mouse clicks on the image
-    inspectorModel.stats.selectionMadeFromImage(view)
+    LayoutInspector.get(event)?.stats?.selectionMadeFromImage(view)
   }
 }

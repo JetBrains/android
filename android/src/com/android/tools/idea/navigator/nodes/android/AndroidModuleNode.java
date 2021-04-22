@@ -22,8 +22,8 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;

@@ -10,4 +10,4 @@
 %prefix%Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 %prefix%Contents/plugins/gradle/lib/gradle-api-6.8.jar
 %prefix%Contents/plugins/java/lib/debugger-memory-agent-1.0.29.jar
-%prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar
+%prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar

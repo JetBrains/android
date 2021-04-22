@@ -17,6 +17,8 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.ANDROID_STUDIO_DEFAULT_JDK_NAME
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation
 import com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError
 import com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton
@@ -108,8 +110,12 @@ class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model,
 
   override fun onProceeding() {
     val path = FilePaths.toSystemDependentPath(jdkLocation.path)
-    ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(path!!) }
-    //myState.put(WizardConstants.KEY_JDK_LOCATION, path!!.path)
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path!!)
+    }
+    else {
+      ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(path!!) }
+    }
   }
 
   override fun getPreferredFocusComponent() = jdkPanel

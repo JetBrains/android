@@ -281,6 +281,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     // editor and we need to refresh the animation preview so it displays the most up-to-date animations. For that reason, we need to make
     // sure the animation panel is repainted correctly.
     repaint()
+    playPauseAction.pause()
   }
 
   /**
@@ -456,6 +457,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
         }
         logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_START_STATE)
         updateAnimationStartAndEndStates()
+        updateProperties()
       })
       endStateComboBox.addActionListener(ActionListener {
         if (!isSwappingStates) {
@@ -463,6 +465,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
           logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
         }
         updateAnimationStartAndEndStates()
+        updateProperties()
       })
     }
 
@@ -496,7 +499,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     fun updateProperties() {
       val animClock = animationClock ?: return
       try {
-        var animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
+        val animatedPropKeys = animClock.getAnimatedPropertiesFunction.invoke(animClock.clock, animation) as List<ComposeAnimatedProperty>
         animatedPropertiesPanel.updateProperties(animatedPropKeys)
       }
       catch (e: Exception) {
@@ -665,7 +668,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       ticker.start()
     }
 
-    private fun pause() {
+    fun pause() {
       isPlaying = false
       ticker.stop()
     }

@@ -16,14 +16,10 @@
 package com.android.tools.idea.emulator.dialogs
 
 import com.android.tools.adtui.util.getHumanizedSize
-import com.android.utils.FlightRecorder
-import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.applyToComponent
 import com.intellij.ui.layout.panel
 import java.awt.Component
 import java.awt.event.ActionEvent
@@ -49,15 +45,12 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
         val snapshotsClause = if (incompatibleSnapshotsCount == 1) "There is 1 snapshot"
                               else "There are $incompatibleSnapshotsCount snapshots"
         val pronoun = if (incompatibleSnapshotsCount == 1) "it" else "them"
-        label("""${snapshotsClause} incompatible with the current configuration occupying
+        label("""$snapshotsClause incompatible with the current configuration occupying
 |                ${getHumanizedSize(incompatibleSnapshotsSize)} of disk space. Do you want to permanently delete $pronoun?
 |             """.trimMargin())
       }
       row {
         checkBox("Do this from now on without asking", ::doNotAskAgain)
-          .applyToComponent { FlightRecorder.log {
-            "IncompatibleSnapshotsDeletionConfirmationDialog.createPanel: check box ${if (isSelected) "checked" else "unchecked"}, " +
-            "doNotAskAgain=$doNotAskAgain" } }
       }
     }
   }
@@ -66,9 +59,7 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
    * Creates the dialog wrapper.
    */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
-    FlightRecorder.log { "IncompatibleSnapshotsDeletionConfirmationDialog.createWrapper" }
     val dialogPanel = createPanel()
-    thisLogger().debug { "doNotAskAgain=$doNotAskAgain" }
     return dialog(
       title = "Incompatible Snapshots Detected",
       resizable = true,
@@ -90,7 +81,6 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
     override fun actionPerformed(event: ActionEvent) {
       val wrapper = DialogWrapper.findInstance(event.source as? Component)
       dialogPanel.apply()
-      FlightRecorder.log { "IncompatibleSnapshotsDeletionConfirmationDialog.DialogAction.actionPerformed ${getValue(NAME)}" }
       wrapper?.close(exitCode)
     }
   }

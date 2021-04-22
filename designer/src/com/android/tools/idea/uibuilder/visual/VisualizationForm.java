@@ -28,10 +28,16 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.PanZoomListener;
+import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -41,8 +47,11 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -71,8 +80,12 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -89,9 +102,12 @@ import org.jetbrains.annotations.Nullable;
  * convenient way to user to preview the layout in different devices.
  */
 public class VisualizationForm
-  implements Disposable, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
+  implements VisualizationContent, ConfigurationSetListener, ResourceNotificationManager.ResourceChangeListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
+
+  private static final Set<NlSupportedActions> VISUALIZATION_SUPPORTED_ACTIONS =
+    StudioFlags.NELE_VISUAL_LINT.get() ? ImmutableSet.of(NlSupportedActions.TOGGLE_ISSUE_PANEL) : ImmutableSet.of();
 
   /**
    * horizontal gap between different previews
@@ -137,6 +153,7 @@ public class VisualizationForm
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
+  @NotNull private final Map<NlModel, IssueProvider> myIssueProviders = new HashMap<>();
 
   public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
@@ -157,6 +174,9 @@ public class VisualizationForm
         sceneManager.setUseImagePool(false);
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
         sceneManager.setQuality(0.0f);
+        if (StudioFlags.NELE_VISUAL_LINT.get()) {
+          sceneManager.setLogRenderErrors(false);
+        }
         return sceneManager;
       })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface)surface, () -> myCurrentModelsProvider))
@@ -168,6 +188,7 @@ public class VisualizationForm
                                                      false))
       .setMinScale(0.10)
       .setMaxScale(4)
+      .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
       .build();
     mySurface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT);
     mySurface.addPanZoomListener(this);
@@ -180,8 +201,16 @@ public class VisualizationForm
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
 
+    JComponent mainComponent;
+    if (StudioFlags.NELE_VISUAL_LINT.get()) {
+      mainComponent = new IssuePanelSplitter(mySurface, myWorkBench);
+    }
+    else {
+      mainComponent = myWorkBench;
+    }
+
     myRoot.add(createToolbarPanel(), BorderLayout.NORTH);
-    myRoot.add(myWorkBench, BorderLayout.CENTER);
+    myRoot.add(mainComponent, BorderLayout.CENTER);
     myRoot.setFocusCycleRoot(true);
     myRoot.setFocusTraversalPolicy(new VisualizationTraversalPolicy(mySurface));
   }
@@ -233,6 +262,15 @@ public class VisualizationForm
     actionToolbar.updateActionsImmediately();
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
+
+    if (StudioFlags.NELE_VISUAL_LINT.get()) {
+      DefaultActionGroup lintGroup = new DefaultActionGroup();
+      lintGroup.add(new IssuePanelToggleAction(mySurface));
+      ActionToolbar lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true);
+      lintToolbar.updateActionsImmediately();
+      ActionToolbarUtil.makeToolbarNavigable(lintToolbar);
+      myActionToolbarPanel.add(lintToolbar.getComponent(), BorderLayout.EAST);
+    }
   }
 
   private void createContentPanel() {
@@ -279,6 +317,10 @@ public class VisualizationForm
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
     for (NlModel model : models) {
+      IssueProvider provider = myIssueProviders.remove(model);
+      if (provider != null) {
+        mySurface.getIssueModel().removeIssueProvider(provider);
+      }
       mySurface.removeModel(model);
       Disposer.dispose(model);
     }
@@ -290,6 +332,7 @@ public class VisualizationForm
    *
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
+  @Override
   public boolean setNextEditor(@NotNull FileEditor editor) {
     if (IdeResourcesUtil.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
       return false;
@@ -426,6 +469,7 @@ public class VisualizationForm
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.
+  @Override
   public void fileClosed(@NotNull FileEditorManager editorManager, @NotNull VirtualFile file) {
     if (myEditor == null) {
       setNoActiveModel();
@@ -552,6 +596,11 @@ public class VisualizationForm
       myCancelRenderingTaskLock.unlock();
     }
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    IssueModel issueModel = mySurface.getIssueModel();
+    for (IssueProvider provider : myIssueProviders.values()) {
+      issueModel.removeIssueProvider(provider);
+    }
+    myIssueProviders.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
       renderFuture = renderFuture.thenCompose(it -> {
@@ -559,7 +608,25 @@ public class VisualizationForm
           return CompletableFuture.completedFuture(null);
         }
         else {
-          CompletableFuture<Void> modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
+          CompletableFuture<Void> modelUpdateFuture;
+          if (StudioFlags.NELE_VISUAL_LINT.get()) {
+            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModelAndProcessResults(result -> {
+              if (result != null) {
+                Collection<RenderErrorModel.Issue> issues = VisualLintAnalysisKt.analyze(result);
+                NlModel model = manager.getModel();
+                IssueProvider provider = new VisualLintIssueProvider(model, new RenderErrorModel(issues));
+                IssueProvider oldProvider = myIssueProviders.put(model, provider);
+                if (oldProvider != null) {
+                  issueModel.removeIssueProvider(oldProvider);
+                }
+                issueModel.addIssueProvider(provider);
+              }
+              return null;
+            });
+          }
+          else {
+            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
+          }
           if (isRenderingCanceled.get()) {
             return CompletableFuture.completedFuture(null);
           }
@@ -594,6 +661,7 @@ public class VisualizationForm
   /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */
+  @Override
   public void activate() {
     if (isActive) {
       return;

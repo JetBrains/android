@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;

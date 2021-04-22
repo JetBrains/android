@@ -63,7 +63,8 @@ private constructor(
   private val animatedSelectorModel: AnimatedSelectorModel,
   listener: AnimationListener, tickStepMs: Long,
   minTimeMs: Long, initialMaxTimeMs: Long
-) : AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs), Disposable {
+) : AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs,
+                     AnimationToolbarType.ANIMATED_SELECTOR), Disposable {
 
   init {
     val previewOptions = animatedSelectorModel.getPreviewOption()
@@ -78,6 +79,7 @@ private constructor(
 
       box.addActionListener {
         // Stop the animation (if playing) when switching the preview option.
+        myAnalyticsManager.trackAction(myToolbarType, AnimationToolbarAction.SELECT_ANIMATION)
         stop()
         val transitionId = box.item
         animatedSelectorModel.setPreviewOption(transitionId)
@@ -225,7 +227,7 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
     val systemTempDir = File(FileUtilRt.getTempDirectory()).toVirtualFile()!!
     val tempDrawableDir = systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER)
                           ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
-    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$originalFileName", ".xml", true)
+    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$originalFileName", null, true)
     return physicalChildInTempDrawableFile.toVirtualFile()!!
   }
 

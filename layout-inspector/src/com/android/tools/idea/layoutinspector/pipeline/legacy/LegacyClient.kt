@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -35,6 +36,7 @@ class LegacyClient(
   adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   model: InspectorModel,
+  stats: SessionStatistics,
   treeLoaderForTest: LegacyTreeLoader? = null
 ) : AbstractInspectorClient(process) {
 
@@ -47,7 +49,7 @@ class LegacyClient(
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val metrics = LayoutInspectorMetrics.create(model.project, process, model.stats)
+  private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {

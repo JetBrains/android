@@ -51,4 +51,11 @@ interface TraceProcessorService {
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
    */
   fun loadMemoryData(traceId: Long, abi: String, memorySet: NativeMemoryHeapSet, ideProfilerServices: IdeProfilerServices)
+
+  /**
+   * Query the trace metadata from the metadata table. https://perfetto.dev/docs/analysis/sql-tables#metadata
+   * If the metadataName is blank or has multiple rows with the same name, the value of each row is returned.
+   * If an error occurs, or the metadata is not found an empty list is returned.
+   */
+  fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices) : List<String>
 }

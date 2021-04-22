@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeBaseConfig
-import com.android.ide.common.gradle.model.IdeBuildType
+import com.android.tools.idea.gradle.model.IdeBaseConfig
+import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel

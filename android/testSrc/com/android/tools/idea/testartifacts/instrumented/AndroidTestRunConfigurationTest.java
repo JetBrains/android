@@ -18,8 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.ValidationError;
@@ -62,10 +60,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
     assertInstanceOf(androidTestRunConfiguration, AndroidTestRunConfiguration.class);
 
-    AndroidModuleModel spyModel = spy(AndroidModuleModel.get(myAndroidFacet));
-    doReturn(null).when(spyModel).getArtifactForAndroidTest();
-
-    List<ValidationError> errors = androidTestRunConfiguration.checkConfiguration(myAndroidFacet, spyModel);
+    List<ValidationError> errors = androidTestRunConfiguration.checkConfiguration(myAndroidFacet);
     assertThat(errors).hasSize(1);
     assertThat(errors.get(0).getMessage()).matches("Active build variant \"(.*)\" does not have a test artifact.");
   }

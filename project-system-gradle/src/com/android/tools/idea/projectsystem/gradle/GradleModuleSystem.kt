@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.project.getPackageName
@@ -101,16 +102,17 @@ class GradleModuleSystem(
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
-    return getResolvedLibraryDependencies(scope)
-      .asSequence()
-      .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
-      .find { it.matches(coordinate) }
+    return getDependenciesFor(module, scope)
+      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
+      ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
+      ?.find { it.matches(coordinate) }
   }
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
-    return getResolvedLibraryDependencies()
-      .find { GradleCoordinate.parseCoordinateString(it.address)?.matches(coordinate) ?: false }
-      ?.location?.toPath()
+    return getDependenciesFor(module, DependencyScopeType.MAIN)
+      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
+      ?.find { GradleCoordinate.parseCoordinateString(it.artifactAddress)?.matches(coordinate) ?: false }
+      ?.artifact?.toPath()
   }
 
   // TODO: b/129297171
@@ -131,9 +133,9 @@ class GradleModuleSystem(
       }
     }
     else {
-      getResolvedLibraryDependencies(module, DependencyScopeType.MAIN)
-        .asSequence()
-        .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
+      getDependenciesFor(module, DependencyScopeType.MAIN)
+        ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
+        ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) } ?: emptySequence()
     }
   }
 
@@ -142,24 +144,19 @@ class GradleModuleSystem(
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
     module)
 
-  override fun getResolvedLibraryDependencies(scope: DependencyScopeType): Collection<ExternalLibrary> {
+  override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
-    return getResolvedLibraryDependencies(module, scope)
+    return getDependenciesFor(module, scope)?.androidLibraries?.map(::convertLibraryToExternalLibrary) ?: emptyList()
   }
 
-  private fun getResolvedLibraryDependencies(module: Module, scope: DependencyScopeType): Collection<ExternalLibrary> {
-    val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
+  private fun getDependenciesFor(module: Module, scope: DependencyScopeType): IdeDependencies? {
+    val gradleModel = AndroidModuleModel.get(module) ?: return null
 
-    val dependencies = when(scope) {
-      DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
-      DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.level2Dependencies
-      DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.level2Dependencies
-    } ?: return emptyList()
-
-    val javaLibraries = dependencies.javaLibraries.map(::convertLibraryToExternalLibrary)
-    val androidLibraries = dependencies.androidLibraries.map(::convertLibraryToExternalLibrary)
-
-    return javaLibraries + androidLibraries
+    return when (scope) {
+             DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.level2Dependencies
+             DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.level2Dependencies
+             DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.level2Dependencies
+           } ?: return null
   }
 
   override fun canRegisterDependency(type: DependencyType): CapabilityStatus {
@@ -218,14 +215,19 @@ class GradleModuleSystem(
       ManifestSystemProperty.VERSION_CODE to androidModel.versionCode?.takeIf { it > 0 }?.toString(),
       ManifestSystemProperty.PACKAGE to androidModel.applicationId
     )
-    val gradleModel = AndroidModuleModel.get(facet) ?: return ManifestOverrides(directOverrides)
-    val variant = gradleModel.selectedVariant
-    val placeholders = variant.manifestPlaceholders
+    val variant = androidModel.selectedVariant
+    val placeholders = getManifestPlaceholders()
     val directOverridesFromGradle = notNullMapOf(
       ManifestSystemProperty.MAX_SDK_VERSION to variant.maxSdkVersion?.toString(),
-      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, gradleModel)
+      ManifestSystemProperty.VERSION_NAME to getVersionNameOverride(facet, androidModel)
     )
     return ManifestOverrides(directOverrides + directOverridesFromGradle, placeholders)
+  }
+
+  override fun getManifestPlaceholders(): Map<String, String> {
+    val facet = AndroidFacet.getInstance(module)
+    val androidModel = facet?.let(AndroidModuleModel::get) ?: return emptyMap()
+    return androidModel.selectedVariant.manifestPlaceholders
   }
 
   override fun getMergedManifestContributors(): MergedManifestContributors {
@@ -301,8 +303,8 @@ class GradleModuleSystem(
 
   override val codeShrinker: CodeShrinker?
     get() = when (AndroidModuleModel.get(module)?.selectedVariant?.mainArtifact?.codeShrinker) {
-      com.android.ide.common.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
-      com.android.ide.common.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
+      com.android.tools.idea.gradle.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      com.android.tools.idea.gradle.model.CodeShrinker.R8 -> CodeShrinker.R8
       null -> null
     }
 

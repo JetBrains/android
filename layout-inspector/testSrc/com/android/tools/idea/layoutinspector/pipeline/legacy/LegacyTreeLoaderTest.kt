@@ -31,6 +31,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -40,6 +41,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
@@ -102,7 +104,8 @@ DONE.
    * internally constructed [LegacyTreeLoader]
    */
   private fun createSimpleLegacyClient(): LegacyClient {
-    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model {})
+    val model = model {}
+    return LegacyClient(adb.bridge, LEGACY_DEVICE.createProcess(), model, SessionStatistics(model, FakeTreeSettings()))
   }
 
   /**
@@ -215,9 +218,9 @@ DONE.
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
     legacyClient.treeLoader.ddmClientOverride = client
-    val (window, _) = legacyClient.treeLoader.loadComponentTree(
+    val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!
+      resourceLookup)!!.window!!
     window.refreshImages(1.0)
 
     assertThat(window.id).isEqualTo("window1")
@@ -280,9 +283,9 @@ DONE.
       .`when`(rawImage).getARGB(anyInt())
     `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
     legacyClient.treeLoader.ddmClientOverride = client
-    val (window, _) = legacyClient.treeLoader.loadComponentTree(
+    val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!
+      resourceLookup)!!.window!!
     val model = InspectorModel(mock())
     model.update(window, listOf("window1"), 0)
 

@@ -23,11 +23,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.AppDeploymentListener
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.application.ApplicationManager
@@ -84,9 +82,9 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), standalone = true)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
@@ -143,11 +141,8 @@ class EmulatorToolWindowManagerTest {
 
     // Close the panel corresponding to emulator1.
     contentManager.removeContent(contentManager.contents[0], true)
-    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
-      val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
-      assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/closeExtendedControls")
-    }
-    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS)
+    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS,
+                                         FakeEmulator.defaultCallFilter.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
 
@@ -165,7 +160,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
 
     toolWindow.show()
 
@@ -186,8 +181,6 @@ class EmulatorToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true, projectRule.fixture.testRootDisposable)
-
     val factory = EmulatorToolWindowFactory()
     assertThat(factory.shouldBeAvailable(project)).isTrue()
     factory.createToolWindowContent(project, toolWindow)
@@ -195,7 +188,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.root
-    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
 
     toolWindow.show()
 

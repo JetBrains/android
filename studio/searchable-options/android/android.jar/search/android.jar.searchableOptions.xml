@@ -251,6 +251,10 @@
     <option name="enable" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="instant" path="ActionManager" hit="Enable Instant Apps Support..." />
     <option name="support" path="ActionManager" hit="Enable Instant Apps Support..." />
+    <option name="enable" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="resource" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="tracing" path="ActionManager" hit="Enable Resource Update Tracing" />
+    <option name="update" path="ActionManager" hit="Enable Resource Update Tracing" />
     <option name="disable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
     <option name="enable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
     <option name="mode" path="ActionManager" hit="Enable or disable the Night mode of preview" />
@@ -844,34 +848,24 @@
     <option name="show" hit="Show application logcat messages in Run Console" />
   </configurable>
   <configurable id="emulator" configurable_name="Emulator">
-    <option name="" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="a" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="android" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="application" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="applications" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="as" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="avds" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="cause" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="due" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="emulator" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="enabling" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="hardware" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="in" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="launch" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="of" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="otherwise" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="profiles" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="regardless" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="setting" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="some" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="standalone" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="the" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="their" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="this" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="to" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="tool" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="will" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
-    <option name="window" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise the Android Emulator will launch as a standalone application. Some AVDs will launch as standalone applications regardless of this setting due to their hardware profiles.   " />
+    <option name="" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="a" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="android" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="application" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="as" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="cause" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="emulator" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="enabling" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="in" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="launch" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="otherwise" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="setting" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="standalone" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="this" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="to" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="tool" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="will" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
+    <option name="window" hit="   Enabling this setting will cause Android Emulator to launch in a tool window. Otherwise Android Emulator will launch as a standalone application.   " />
     <option name="ask" hit="Ask before deleting" />
     <option name="before" hit="Ask before deleting" />
     <option name="deleting" hit="Ask before deleting" />
@@ -1029,6 +1023,20 @@
     <option name="testing" hit="Testing" />
   </configurable>
   <configurable id="android.live.literals" configurable_name="Live Literals">
+    <option name="" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="after" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="building" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="can" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="enabling" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="feature" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="is" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="literals" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="live" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="properly" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="required" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="so" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="the" hit="   Building is required after enabling live literals so the feature can work properly.   " />
+    <option name="work" hit="   Building is required after enabling live literals so the feature can work properly.   " />
     <option name="enable" hit="Enable Live Literals" />
     <option name="literals" hit="Enable Live Literals" />
     <option name="live" hit="Enable Live Literals" />
@@ -1307,6 +1315,11 @@
     <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="compiler" hit="Compiler" />
+    <option name="after" hit="Continue the build after failures" />
+    <option name="build" hit="Continue the build after failures" />
+    <option name="continue" hit="Continue the build after failures" />
+    <option name="failures" hit="Continue the build after failures" />
+    <option name="the" hit="Continue the build after failures" />
     <option name="automatically" hit="Make project automatically (only works while not running / debugging)" />
     <option name="debugging" hit="Make project automatically (only works while not running / debugging)" />
     <option name="make" hit="Make project automatically (only works while not running / debugging)" />

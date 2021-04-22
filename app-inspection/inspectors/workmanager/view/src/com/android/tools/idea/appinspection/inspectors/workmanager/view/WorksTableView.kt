@@ -9,8 +9,8 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.table.JBTable
 import java.awt.Component
 import java.awt.Rectangle
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JTable
@@ -74,31 +74,19 @@ class WorksTableView(tab: WorkManagerInspectorTab,
     }
   }
 
+  private var isFirstTimeLayout = true
+
   init {
     autoCreateRowSorter = true
 
+    resetDefaultFocusTraversalKeys()
+    isStriped = true
+    autoResizeMode = AUTO_RESIZE_ALL_COLUMNS
     columnModel.getColumn(WorksTableModel.Column.ORDER.ordinal).cellRenderer = DefaultTableCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.CLASS_NAME.ordinal).cellRenderer = DefaultTableCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.STATE.ordinal).cellRenderer = WorksTableStateCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.TIME_STARTED.ordinal).cellRenderer = WorksTableTimeCellRenderer()
     columnModel.getColumn(WorksTableModel.Column.DATA.ordinal).cellRenderer = WorksTableDataCellRenderer()
-
-    // Adjusts width for each column.
-    addComponentListener(object : ComponentAdapter() {
-      fun refreshColumnSizes() {
-        for (column in WorksTableModel.Column.values()) {
-          columnModel.getColumn(column.ordinal).preferredWidth = (width * column.widthPercentage).toInt()
-        }
-      }
-
-      override fun componentShown(e: ComponentEvent) {
-        refreshColumnSizes()
-      }
-
-      override fun componentResized(e: ComponentEvent) {
-        refreshColumnSizes()
-      }
-    })
 
     // Update selected work when a new row is selected.
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -116,6 +104,15 @@ class WorksTableView(tab: WorkManagerInspectorTab,
     addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (rowAtPoint(e.point) in 0 until rowCount) {
+          tab.isDetailsViewVisible = true
+          client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
+        }
+      }
+    })
+
+    addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (e.keyCode == KeyEvent.VK_SPACE && selectedRow != -1) {
           tab.isDetailsViewVisible = true
           client.tracker.trackWorkSelected(AppInspectionEvent.WorkManagerInspectorEvent.Context.TABLE_CONTEXT)
         }
@@ -140,5 +137,16 @@ class WorksTableView(tab: WorkManagerInspectorTab,
         }
       }
     }
+  }
+
+  override fun doLayout() {
+    if (isFirstTimeLayout) {
+      isFirstTimeLayout = false
+      // Adjust column width before doLayout() gets called for the first time.
+      for (column in WorksTableModel.Column.values()) {
+        columnModel.getColumn(column.ordinal).preferredWidth = (width * column.widthPercentage).toInt()
+      }
+    }
+    super.doLayout()
   }
 }

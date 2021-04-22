@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.android.ide.common.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -53,7 +53,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     super.setUp()
     _gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
     _gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project), moduleHierarchyProviderStub)
-    assertThat(gradleModuleSystem.getResolvedLibraryDependencies()).isEmpty()
+    assertThat(gradleModuleSystem.getAndroidLibraryDependencies()).isEmpty()
   }
 
   override fun tearDown() {

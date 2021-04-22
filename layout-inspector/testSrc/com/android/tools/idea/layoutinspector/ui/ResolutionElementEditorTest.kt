@@ -36,6 +36,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
@@ -155,7 +156,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testHasLinkPanel() {
-    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
@@ -236,7 +237,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun createEditors(): List<ResolutionElementEditor> {
-    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val model = model(projectRule.project, FakeTreeSettings(), DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
@@ -244,7 +245,7 @@ class ResolutionElementEditorTest {
     val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
     val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, node.drawId, model, map)
+      ANDROID_URI, item.attrName, item.type, value, null, item.section, item.source, node.drawId, model, map)
     val editors = mutableListOf<ResolutionElementEditor>()
     val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))

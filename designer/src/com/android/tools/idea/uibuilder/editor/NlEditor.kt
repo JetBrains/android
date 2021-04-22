@@ -23,10 +23,11 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
 import com.android.tools.idea.uibuilder.palette.PaletteDefinition
-import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
@@ -39,6 +40,12 @@ private const val WORKBENCH_NAME = "NELE_EDITOR"
 
 const val NL_EDITOR_ID = "android-designer2"
 
+private val LAYOUT_EDITOR_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DEVICE,
+                                                    NlSupportedActions.SWITCH_DEVICE_ORIENTATION,
+                                                    NlSupportedActions.SWITCH_DESIGN_MODE,
+                                                    NlSupportedActions.SWITCH_NIGHT_MODE,
+                                                    NlSupportedActions.TOGGLE_ISSUE_PANEL)
+
 class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
 
   override fun getEditorId() = NL_EDITOR_ID
@@ -47,10 +54,15 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
                         {
                           if (StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()) {
-                            NlDesignSurface.builder(myProject, this).showModelNames().build()
+                            NlDesignSurface.builder(myProject, this)
+                              .showModelNames()
+                              .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
+                              .build()
                           }
                           else {
-                            NlDesignSurface.builder(myProject, this).build()
+                            NlDesignSurface.builder(myProject, this)
+                              .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
+                              .build()
                           }
                         },
                         { toolWindowDefinitions(it) },
@@ -60,7 +72,7 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
-    definitions.add(NelePropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
+    definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
     if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       definitions.add(MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE))

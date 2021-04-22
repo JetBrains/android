@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
@@ -38,12 +37,9 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   /** Callback taking (oldWindow, newWindow, isStructuralChange */
   val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  override val stats = SessionStatistics()
   var lastGeneration = 0
   var updating = false
 
-  @Suppress("unused")
-  private val memoryProbe = InspectorMemoryProbe(this)
   private val idLookup = mutableMapOf<Long, ViewNode>()
 
   override var selection: ViewNode? = null
@@ -59,9 +55,6 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   val windows = mutableMapOf<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
   val root = ViewNode("root - hide")
-
-  val hasSubImages
-    get() = windows.values.any { it.hasSubImages }
 
   /** Whether there are currently any views in this model */
   val isEmpty
@@ -147,19 +140,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
   fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
     updateConnectionNotification(client)
-    updateStats(client)
   }
 
   private fun updateConnectionNotification(client: InspectorClient) {
     if (client.isConnected && !client.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE) && client.process.device.apiLevel >= 29) {
       InspectorBannerService.getInstance(project).notification = StatusNotificationImpl(
         AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
-    }
-  }
-
-  private fun updateStats(client: InspectorClient) {
-    if (client.isConnected) {
-      stats.start(client.isCapturing)
     }
   }
 
@@ -181,6 +167,12 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
         windows[newWindow.id] = newWindow
         structuralChange = true
+        if (oldWindow == null) {
+          // build draw tree on initial load of the window, so we can scale and scroll correctly.
+          // We only want to do this on initial load since otherwise there'll be flickering between when the tree is updated and when
+          // the images are loaded.
+          ViewNode.writeDrawChildren { drawChildren -> buildDrawTree(newWindow.root, drawChildren) }
+        }
       }
       else {
         oldWindow.copyFrom(newWindow)
@@ -202,6 +194,15 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
     hiddenNodes.removeIf { !allNodes.contains(it) }
     updating = false
     modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
+  }
+
+  private fun buildDrawTree(node: ViewNode, drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
+    if (node.drawChildren().isEmpty()) {
+      node.children.forEach {
+        node.drawChildren().add(DrawViewChild(it))
+        buildDrawTree(it, drawChildren)
+      }
+    }
   }
 
   fun notifyModified() =
@@ -273,6 +274,7 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
         oldNode.composePackageHash = newNode.composePackageHash
         oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
+        oldNode.composeFlags = newNode.composeFlags
       }
 
       oldNode.children.clear()

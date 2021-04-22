@@ -15,7 +15,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -28,7 +28,8 @@ import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper;
 import com.android.tools.idea.rendering.classloading.PseudoClass;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
-import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
+import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
+import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -39,7 +40,6 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -63,7 +63,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,7 +123,8 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    ThreadLocalRenameTransform::new,
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -132,7 +132,8 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
-    ThreadLocalRenameTransform::new,
+    ThreadLocalTrackingTransform::new,
+    ThreadControllingTransform::new,
     PreviewAnimationClockMethodTransform::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
@@ -178,8 +179,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   private final Map<String, ClassModificationTimestamp> myClassFilesLastModified = new ConcurrentHashMap<>();
 
   private final List<URL> mAdditionalLibraries;
-
-  private final Set<String> loadedClasses = new HashSet<>();
 
   /**
    * Method uses to remap type names using {@link ModuleClassLoader#INTERNAL_PACKAGE} as prefix to its original name so they original
@@ -292,7 +291,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     } finally {
       if (classLoaded) {
         myDiagnostics.classLoadedEnd(name, System.currentTimeMillis() - startTimeMs);
-        loadedClasses.add(name);
       }
     }
   }
@@ -521,14 +519,14 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
+    for (ExternalAndroidLibrary library : moduleSystem.getAndroidLibraryDependencies()) {
       if (library.getHasResources()) {
         registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
   }
 
-  private static void registerLibraryResources(@NotNull ExternalLibrary library,
+  private static void registerLibraryResources(@NotNull ExternalAndroidLibrary library,
                                                @NotNull ResourceRepositoryManager repositoryManager,
                                                @NotNull ResourceClassRegistry classRegistry,
                                                @NotNull ResourceIdManager idManager) {
@@ -561,7 +559,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   }
 
   @Nullable
-  private static String getPackageName(@NotNull ExternalLibrary library) {
+  private static String getPackageName(@NotNull ExternalAndroidLibrary library) {
     if (library.getPackageName() != null) {
       return library.getPackageName();
     }
@@ -614,10 +612,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
    */
-  boolean isUpToDate() {
-    // We check the dependencies first since it does not require disk access.
-    if (!areDependenciesUpToDate()) return false;
-
+  boolean isUserCodeUpToDate() {
     for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
       VirtualFile classFile = entry.getValue();
       if (!classFile.isValid()) {
@@ -647,11 +642,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   @NotNull
   public ModuleClassLoaderDiagnosticsRead getStats() {
     return myDiagnostics;
-  }
-
-  @NotNull
-  public ImmutableCollection<String> getLoadedClasses() {
-    return ImmutableList.copyOf(loadedClasses);
   }
 
   @Nullable

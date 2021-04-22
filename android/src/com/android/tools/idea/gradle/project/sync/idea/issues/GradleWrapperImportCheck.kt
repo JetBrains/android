@@ -16,25 +16,21 @@
 @file:JvmName("GradleWrapperImportCheck")
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.idea.RESOLVER_LOG
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.gradle.util.GradleWrapper.GRADLEW_PROPERTIES_PATH
 import com.android.tools.idea.gradle.util.PersistentSHA256Checksums
 import com.android.tools.idea.util.PropertiesFiles
-import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_DISTRIBUTIONSHA256SUM_REMOVED_FROM_WRAPPER
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.build.issue.quickfix.OpenFileQuickFix
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.pom.Navigatable
 import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -42,6 +38,8 @@ import java.io.File
 import java.io.IOException
 import java.net.URL
 import java.util.concurrent.CompletableFuture
+
+private val LOG = Logger.getInstance(GradleWrapperImportChecker::class.java)
 
 class InvalidGradleWrapperException(val wrapper: GradleWrapper) : AndroidSyncException()
 
@@ -62,7 +60,7 @@ fun validateGradleWrapper(projectPath: String) {
     // Perform the validation
     if (validateChecksums(gradleWrapper)) return
   } catch (exception: IOException) {
-    RESOLVER_LOG.warn(exception)
+    LOG.warn(exception)
   }
 
   // We failed, throw an exception to be caught by the issue checker

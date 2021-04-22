@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.run
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.GradleTaskRunnerFactory
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase

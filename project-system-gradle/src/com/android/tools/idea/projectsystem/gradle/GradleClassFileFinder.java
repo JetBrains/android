@@ -17,11 +17,10 @@ package com.android.tools.idea.projectsystem.gradle;
 
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
 import com.android.tools.idea.run.GradleApkProvider;

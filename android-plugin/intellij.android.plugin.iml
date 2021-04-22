@@ -43,5 +43,6 @@
     <orderEntry type="module" module-name="intellij.android.testRetention" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.ide" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.ide" />
   </component>
 </module>

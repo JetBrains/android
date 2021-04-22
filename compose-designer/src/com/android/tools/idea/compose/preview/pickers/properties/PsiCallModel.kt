@@ -24,6 +24,10 @@ import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiCallEnumSupportValuesProvider
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerNormalValidator
+import com.android.tools.idea.compose.preview.pickers.properties.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
@@ -33,6 +37,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
@@ -59,9 +64,12 @@ import org.jetbrains.uast.toUElement
  *
  * In both cases, this [PsiCallPropertyModel] will deal with the named parameters as properties.
  */
-class PsiCallPropertyModel internal constructor(private val project: Project,
-                                                resolvedCall: ResolvedCall<*>,
-                                                defaultValues: Map<String, String?>) : PsiPropertyModel() {
+class PsiCallPropertyModel internal constructor(
+  private val project: Project,
+  resolvedCall: ResolvedCall<*>,
+  defaultValues: Map<String, String?>,
+  override val enumSupportValuesProvider: EnumSupportValuesProvider
+) : PsiPropertyModel() {
   private val psiPropertiesCollection = parserResolvedCallToPsiPropertyItems(project, this, resolvedCall, defaultValues)
 
   val psiFactory: KtPsiFactory by lazy { KtPsiFactory(project, true) }
@@ -83,7 +91,13 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
         Logger.getInstance(PsiCallPropertyModel::class.java).warn("Could not obtain default values")
         emptyMap()
       }
-      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable())
+      val containingFile = previewElement.previewElementDefinitionPsi?.containingFile
+      val module = containingFile?.module
+
+      val valuesProvider = module?.let {
+        PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(it, previewElement.composeLibraryNamespace, containingFile.virtualFile)
+      } ?: EnumSupportValuesProvider.EMPTY
+      return PsiCallPropertyModel(project, resolvedCall, defaultValues.toReadable(), valuesProvider)
     }
   }
 }
@@ -91,17 +105,28 @@ class PsiCallPropertyModel internal constructor(private val project: Project,
 /**
  * Given a resolved call, this method returns the collection of editable [PsiPropertyItem]s.
  */
-private fun parserResolvedCallToPsiPropertyItems(project: Project,
-                                                 model: PsiCallPropertyModel,
-                                                 resolvedCall: ResolvedCall<*>,
-                                                 defaultValues: Map<String, String?>): Collection<PsiPropertyItem> =
+private fun parserResolvedCallToPsiPropertyItems(
+  project: Project,
+  model: PsiCallPropertyModel,
+  resolvedCall: ResolvedCall<*>,
+  defaultValues: Map<String, String?>
+): Collection<PsiPropertyItem> =
   ReadAction.compute<Collection<PsiPropertyItem>, Throwable> {
-    return@compute resolvedCall.valueArguments.map { (descriptor, resolved) ->
+    return@compute resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) ->
+      descriptor.index
+    }.map { (descriptor, resolved) ->
       val argumentExpression = (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
       val defaultValue = defaultValues[descriptor.name.asString()]
       when (descriptor.name.asString()) {
         PARAMETER_FONT_SCALE -> FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
         PARAMETER_BACKGROUND_COLOR -> ColorPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_WIDTH,
+        PARAMETER_WIDTH_DP,
+        PARAMETER_HEIGHT,
+        PARAMETER_HEIGHT_DP -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
+                                                            IntegerNormalValidator)
+        PARAMETER_API_LEVEL -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
+                                                            IntegerStrictValidator)
         else -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
       }
     }

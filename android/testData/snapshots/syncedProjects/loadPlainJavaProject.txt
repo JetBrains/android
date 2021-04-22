@@ -12,7 +12,7 @@ PROJECT                       : testLoadPlainJavaProject
             compilerTestOutputPath        : file://<PROJECT>/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testLoadPlainJavaProject.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testLoadPlainJavaProject.iml
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>
             JavaSource                    : file://<PROJECT>/src/main/java

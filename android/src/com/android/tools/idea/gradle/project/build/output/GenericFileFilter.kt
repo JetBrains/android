@@ -52,12 +52,85 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
     var state = ParsingState.NORMAL
     var pathStartIndex = -1
     var lastPathSegmentStart = -1
+    var candidateItem: Filter.ResultItem? = null
     var i = 0
+
+    fun addPreviousCandidate() {
+      if (candidateItem != null) {
+        items += candidateItem!!
+      }
+      candidateItem = null
+    }
 
     fun startPathMode(){
       state = ParsingState.PATH
       pathStartIndex = i
       lastPathSegmentStart = i
+      addPreviousCandidate()
+    }
+
+    fun startNormalMode() {
+      state = ParsingState.NORMAL
+      addPreviousCandidate()
+    }
+
+    fun startCanceledMode() {
+      state = ParsingState.CANCELED_PATH
+      addPreviousCandidate()
+    }
+
+    fun findValidResult(pathEndIndex: Int, lineNumber: Int, columnNumber: Int): Filter.ResultItem? {
+      if (pathEndIndex - lastPathSegmentStart > FILENAME_MAX) return null
+      if (pathEndIndex - pathStartIndex < PATH_MIN) return null
+
+      val path = line.substring(pathStartIndex, pathEndIndex)
+      if (path == "/") {
+        // Ignore single slashes, as these are probably referring to something
+        // other than the file system root (e.g. progress indicators like "[10 / 1,000]").
+        return null
+      }
+      val file = try {
+        localFileSystem.findFileByPathIfCached(path)
+      } catch (t: Throwable) {
+        // We interpret any exception to mean the file is not found.
+        null
+      }
+      return if (file != null) {
+        Filter.ResultItem(
+          indexOffset + pathStartIndex,
+          indexOffset + i,
+          OpenFileHyperlinkInfo(project, file, lineNumber, columnNumber))
+      }
+      else {
+        null
+      }
+    }
+
+    fun findValidResultWithNumbers(pathEndIndex: Int): Filter.ResultItem? {
+      val lineNumber: Int
+      var columnNumber = 1
+      // Try to parse as "path: (line, column):"
+      if (line.startsWith(" (", i + 1)) {
+        i += 3
+        lineNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+        if (line.startsWith(", ", i)) {
+          i += 2
+          columnNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+          if (line.startsWith("):", i)) {
+            i += 2
+          }
+        }
+      }
+      else {
+        // Try to parse as path:line:column:
+        lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+        columnNumber =
+          if (line.getOrNull(++i) == ':')
+            line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
+          else
+            1
+      }
+      return findValidResult(pathEndIndex, lineNumber - 1, columnNumber - 1)
     }
 
     while (i < line.length) {
@@ -76,81 +149,68 @@ class GenericFileFilter(private val project: Project, private val localFileSyste
           }
         }
         ParsingState.PATH -> {
-          fun addItem(pathEndIndex: Int, lineNumber: Int, columnNumber: Int): Boolean {
-            state = ParsingState.NORMAL
-            if (pathEndIndex - lastPathSegmentStart > FILENAME_MAX) return false
-            if (pathEndIndex - pathStartIndex < PATH_MIN) return false
-
-            val path = line.substring(pathStartIndex, pathEndIndex)
-            if (path == "/") {
-              // Ignore single slashes, as these are probably referring to something
-              // other than the file system root (e.g. progress indicators like "[10 / 1,000]").
-              return false
-            }
-            val file = try {
-              localFileSystem.findFileByPathIfCached(path)
-            } catch (t: Throwable) {
-              // We interpret any exception to mean the file is not found.
-              null
-            }
-            if (file != null) {
-              items += Filter.ResultItem(
-                indexOffset + pathStartIndex,
-                indexOffset + i,
-                OpenFileHyperlinkInfo(project, file, lineNumber, columnNumber))
-              return true
-            }
-            return false
+          if ((i - lastPathSegmentStart) > FILENAME_MAX) {
+            startCanceledMode()
           }
-          when {
+          else when {
             line[i] == '\\' || line[i] == '/' -> {
               lastPathSegmentStart = i + 1
               if (i - pathStartIndex > 1){
-                val path = line.substring(pathStartIndex, i)
-                val file = localFileSystem.findFileByPathIfCached(path)
-                if (file == null){
-                  // skip remaining. If a prent does not exist, children will not exist either.
-                  state = ParsingState.CANCELED_PATH
+                val currentCandidate = findValidResult(i, 0, 0)
+                if (currentCandidate == null) {
+                  /* This is not a valid path it means that continuing as a path no longer will result in a valid file, but this could be
+                     the the start of a new path. Need to move back up to 4 characters since the path could include a drive letter.
+                   */
+                  if ((i - 3) > pathStartIndex && line[i - 1] == ':' && line[i - 2] in 'A'..'Z' && line[i - 3].isWhitespace()) {
+                    i -= 5
+                    startNormalMode()
+                  }
+                  else if ((i - 1) > pathStartIndex && line[i -1].isWhitespace()) {
+                    i -= 2
+                    startNormalMode()
+                  }
+                  else {
+                    startCanceledMode()
+                  }
                 }
               }
             }
             line[i] == ':' -> {
-              val pathEndIndex = i
-              var lineNumber = 1
-              var columnNumber = 1
-              // Try to parse as "path: (line, column):"
-              if (line.startsWith(" (", i + 1)) {
-                i += 3
-                lineNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-                if (line.startsWith(", ", i)) {
-                  i += 2
-                  columnNumber = line.takeWhileFromIndex(i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-                  if (line.startsWith("):", i)) {
-                    i += 2
-                  }
-                }
+              val previousI = i
+              val longestCandidate = findValidResultWithNumbers(i)
+              if (longestCandidate != null) {
+                candidateItem = longestCandidate
               }
               else {
-                // Try to parse as path:line:column:
-                lineNumber = line.takeWhileFromIndex(i + 1) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-                columnNumber =
-                  if (line.getOrNull(++i) == ':')
-                    line.takeWhileFromIndex(++i) { it.isDigit() }?.also { i += it.length }.safeToIntOrDefault(1)
-                  else
-                    1
+                // Could not parse numbers correctly (or is not a valid path, restore i)
+                i = previousI
+                // Could be the start of a windows path, move back in that case
+                if (((i - 1) > pathStartIndex)
+                    && (line[i - 1] in 'A'..'Z')
+                    && ((i + 1) < line.length)
+                    && (line[i + 1] == '/' || line[i + 1] == '\\')) {
+                  i -= 2
+                }
               }
-              addItem(pathEndIndex, lineNumber - 1, columnNumber - 1)
+              startNormalMode()
             }
-            // Paths can have withe spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
-            line[i].isWhitespace() -> if (!addItem(i, 0, 0) && (i - lastPathSegmentStart) < FILENAME_MAX) {
-              // Do not break path current if it does not belong to a valid file, and filename does not exceed max allowed len
-              state = ParsingState.PATH
+            // Paths can have white spaces and links get cut early (https://issuetracker.google.com/issues/136242040)
+            // Or can be a valid path but be the prefix of a longer path (for example "/work projects/" and "/work projects 2" exist,
+            // https://issuetracker.google.com/issues/167701951)
+            line[i].isWhitespace() -> {
+              val possibleCandidate = findValidResult(i, 0, 0)
+              if (possibleCandidate != null) {
+                candidateItem = possibleCandidate
+              }
             }
           }
         }
-        ParsingState.CANCELED_PATH -> if (line[i].isWhitespace()) state = ParsingState.NORMAL
+        ParsingState.CANCELED_PATH -> if (line[i].isWhitespace()) startNormalMode()
       }
       i++
+    }
+    if (candidateItem != null) {
+      items += candidateItem!!
     }
     if (items.isEmpty()) return null
     return Filter.Result(items)

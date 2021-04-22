@@ -365,6 +365,15 @@ public final class StudioFlags {
     "Include resource directories from AARs found through project system.",
     false);
 
+  public static final Flag<Boolean> NELE_VISUAL_LINT = Flag.create(
+    NELE, "visual.lint", "Enable visual linting for layouts",
+    "Enable all the various tools related to visual linting of layouts.",
+    false);
+
+  public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
+    NELE, "preview.warn.new.threads", "Enable new threads warning",
+    "Display a warning if user code creates new threads in the preview",
+    true);
   //endregion
 
   //region Navigation Editor
@@ -388,6 +397,14 @@ public final class StudioFlags {
     "Adds a visual preview to the Navigation resources in the Resource Manager. The preview corresponds to the start destination " +
     "of the graph.",
     true);
+  //endregion
+
+  //region Resource Repository
+  private static final FlagGroup RESOURCE_REPOSITORY = new FlagGroup(FLAGS, "resource.repository", "Resource Repository");
+  public static final Flag<Boolean> RESOURCE_REPOSITORY_TRACE_UPDATES = Flag.create(
+    RESOURCE_REPOSITORY, "trace.updates", "Enable Tracing of Resource Repository Updates",
+    "Enables tracing of resource repository updates",
+    false);
   //endregion
 
   //region Run/Debug
@@ -611,6 +628,11 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> SHOW_JDK_PATH = Flag.create(
     GRADLE_IDE, "jdk.show.path", "Show JDK path in settings", "Shows JDK path for each item in Gradle settings.", true);
+
+  public static final Flag<Boolean> GRADLE_SYNC_USE_V2_MODEL = Flag.create(
+    GRADLE_IDE, "gradle.sync.use.v2", "Use V2 Builder models", "Enable fetching V2 builder models from AGP when syncing.", false);
+
+
   //endregion
 
   //region Database Inspector
@@ -678,26 +700,18 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.use.inspection", "Use app inspection client",
     "If enabled, use a client built on the app inspection pipeline instead of the transport pipeline.", true);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
+    "If enabled, display semantic information found in the agent.", false);
+
   //endregion
 
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_EXTENDED_CONTROLS = Flag.create(
-    EMBEDDED_EMULATOR, "extended.controls", "Enable Emulator Extended Controls",
-    "Enables the extended controls in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA = Flag.create(
-    EMBEDDED_EMULATOR, "virtual.scene.camera", "Enable Emulator Virtual Scene Camera",
-    "Enables the virtual scene camera in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_MULTIPLE_DISPLAYS = Flag.create(
-    EMBEDDED_EMULATOR, "multiple.displays", "Enable Emulator Multiple Displays",
-    "Enables configurable multiple displays in the Embedded Emulator",
-    true);
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_FOLDING = Flag.create(
-    EMBEDDED_EMULATOR, "folding", "Enable Emulator Folding",
-    "Enables display folding in the Embedded Emulator",
-    true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(
+    EMBEDDED_EMULATOR, "screenshot.statistics", "Enable Collection of Screenshot Statistics",
+    "Captures statistics of received Emulator screenshots",
+    false);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
     EMBEDDED_EMULATOR, "trace.grpc.calls", "Enable Emulator gRPC Tracing",
     "Enables tracing of most Emulator gRPC calls",
@@ -729,7 +743,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
-    "If enabled, show the action in the refactoring menu", false);
+    "If enabled, show the action in the refactoring menu", true);
   //endregion
 
   //region IoT
@@ -1110,7 +1124,7 @@ public final class StudioFlags {
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",
     "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
-    false
+    true
   );
 
   public static final Flag<Boolean> COMPOSE_INDIVIDUAL_PIN_PREVIEW = Flag.create(
@@ -1180,6 +1194,16 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NETWORK_MANAGER_INSPECTOR_TAB = Flag.create(
     NETWORK_INSPECTOR, "enable.network.inspector.tab", "Enable Network Inspector Tab",
     "Enables a Network Inspector Tab in the App Inspection tool window",
+    false
+  );
+  // endregion
+
+  // region BackgroundTask Inspector
+  private static final FlagGroup BACKGROUND_TASK_INSPECTOR =
+    new FlagGroup(FLAGS, "backgroundtask.inspector", "BackgroundTask Inspector");
+  public static final Flag<Boolean> ENABLE_BACKGROUND_TASK_INSPECTOR_TAB = Flag.create(
+    BACKGROUND_TASK_INSPECTOR, "enable.backgroundtask.inspector.tab", "Enable BackgroundTask Inspector Tab",
+    "Enables a BackgroundTask Inspector Tab in the App Inspection tool window",
     false
   );
   // endregion

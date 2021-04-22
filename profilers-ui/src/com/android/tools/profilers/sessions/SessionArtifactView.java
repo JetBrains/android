@@ -255,7 +255,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   protected List<ContextMenuItem> getContextMenus() {
     List<ContextMenuItem> menus = new ArrayList<>();
     DefaultContextMenuItem action = new DefaultContextMenuItem.Builder("Export...")
-      .setEnableBooleanSupplier(() -> !getArtifact().isOngoing())
+      .setEnableBooleanSupplier(() -> getArtifact().canExport() && !getArtifact().isOngoing())
       .setActionRunnable(() -> exportArtifact())
       .build();
     menus.add(action);

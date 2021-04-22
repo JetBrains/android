@@ -154,7 +154,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(ids);
     assertSize(2, ids);
     List<ResourceItem> sorted = new ArrayList<>(ids);
-    Collections.sort(sorted, Comparator.comparing(item -> item.getSource().getFileName()));
+    sorted.sort(Comparator.comparing(item -> item.getSource().getFileName()));
     //noinspection ConstantConditions
     assertEquals("layout_ids1.xml", sorted.get(0).getSource().getFileName());
     //noinspection ConstantConditions
@@ -281,7 +281,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
-    assertTrue(resources.isScanPending(psiValues1));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiValues1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
 
@@ -341,7 +341,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document2);
     });
     // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
-    assertTrue(resources.isScanPending(psiValues3));
+    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiValues3));
     UIUtil.dispatchAllInvocationEvents();
     // Unaffected by above change
     assertStringIs(resources, "app_name", "Different App Name");

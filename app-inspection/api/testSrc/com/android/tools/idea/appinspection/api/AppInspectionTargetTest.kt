@@ -27,7 +27,6 @@ import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createArtifactCoordinate
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeLaunchParameters
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createFakeProcessDescriptor
-import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_PROJECT
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -122,29 +121,11 @@ class AppInspectionTargetTest {
   }
 
   @Test
-  fun clientIsCached() = runBlocking<Unit> {
-    val process = createFakeProcessDescriptor()
-    val target = appInspectionRule.launchTarget(process)
-
-    // Launch an inspector.
-    val firstClient = target.launchInspector(createFakeLaunchParameters(process))
-
-    // Launch another inspector with same parameters.
-    val secondClient = target.launchInspector(createFakeLaunchParameters(process))
-
-    // Check they are the same.
-    assertThat(firstClient).isSameAs(secondClient)
-  }
-
-
-  @Test
   fun processTerminationDisposesClient() = runBlocking<Unit> {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
     // Launch an inspector client.
     val client = target.launchInspector(createFakeLaunchParameters())
-
-    assertThat(target.inspectorDisposableJobs.size).isEqualTo(1)
 
     // Fake target termination to dispose of client.
     transportService.addEventToStream(
@@ -158,7 +139,7 @@ class AppInspectionTargetTest {
         .build()
     )
 
-    target.inspectorDisposableJobs[INSPECTOR_ID]!!.join()
+    client.awaitForDisposal()
 
     // Launch the same inspector client again.
     val client2 = target.launchInspector(createFakeLaunchParameters())
@@ -175,22 +156,12 @@ class AppInspectionTargetTest {
     val clientLaunchParams2 = createFakeLaunchParameters(inspectorId = "b")
 
     val client1 = target.launchInspector(clientLaunchParams1)
-
-    // This job will only finish after its client gets cancelled
-    val client2Launched = launch {
-      transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
-        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-          // Keep client2 hanging so we can verify its cancellation.
-        }
-      })
-      target.launchInspector(clientLaunchParams2)
-    }
+    val client2 = target.launchInspector(clientLaunchParams2)
 
     target.dispose()
 
     client1.awaitForDisposal()
-
-    client2Launched.join()
+    client2.awaitForDisposal()
   }
 
   // Verifies the marshalling and unmarshalling of GetLibraryVersion's params.

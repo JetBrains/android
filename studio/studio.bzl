@@ -74,8 +74,19 @@ def _get_mac(dep):
 
 MAC = struct(
     name = "mac",
-    jre = "jre/jdk/",
+    jre = "jre/",
     get = _get_mac,
+    base_path = "Contents/",
+    resource_path = "Contents/Resources/",
+)
+
+def _get_mac_arm(dep):
+    return dep.files.to_list() + dep.files_mac_arm.to_list()
+
+MAC_ARM = struct(
+    name = "mac_arm",
+    jre = "jre/",
+    get = _get_mac_arm,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
 )
@@ -145,6 +156,7 @@ def _studio_plugin_impl(ctx):
     plugin_info = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
     _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_linux)
     _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac)
+    _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_mac_arm)
     _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_info, ctx.outputs.plugin_win)
 
     # Check that all modules needed by the modules in this plugin, are either present in the
@@ -171,6 +183,7 @@ def _studio_plugin_impl(ctx):
         files = depset(),
         files_linux = depset([ctx.outputs.plugin_linux]),
         files_mac = depset([ctx.outputs.plugin_mac]),
+        files_mac_arm = depset([ctx.outputs.plugin_mac_arm]),
         files_win = depset([ctx.outputs.plugin_win]),
         plugin_info = plugin_info,
         module_deps = depset(ctx.attr.modules),
@@ -208,6 +221,7 @@ _studio_plugin = rule(
     outputs = {
         "plugin_linux": "%{name}.linux.zip",
         "plugin_mac": "%{name}.mac.zip",
+        "plugin_mac_arm": "%{name}.mac_arm.zip",
         "plugin_win": "%{name}.win.zip",
     },
     implementation = _studio_plugin_impl,
@@ -253,12 +267,13 @@ def studio_plugin(
     )
 
 def _studio_data_impl(ctx):
-    for dep in ctx.attr.files_linux + ctx.attr.files_mac + ctx.attr.files_win:
+    for dep in ctx.attr.files_linux + ctx.attr.files_mac + ctx.attr.files_mac_arm + ctx.attr.files_win:
         if hasattr(dep, "mappings"):
             fail("studio_data does not belong on a platform specific attribute, please add " + str(dep.label) + " to \"files\" directly")
 
     files = []
     mac = []
+    mac_arm = []
     win = []
     linux = []
     mappings = {}
@@ -268,25 +283,28 @@ def _studio_data_impl(ctx):
         if hasattr(dep, "mappings"):
             linux += [dep.files_linux]
             mac += [dep.files_mac]
+            mac_arm += [dep.files_mac_arm]
             win += [dep.files_win]
             mappings.update(dep.mappings)
         else:
             to_map += dep.files.to_list()
 
     for prefix, destination in ctx.attr.mappings.items():
-        for src in to_map + ctx.files.files_mac + ctx.files.files_linux + ctx.files.files_win:
+        for src in to_map + ctx.files.files_mac + ctx.files.files_mac_arm + ctx.files.files_linux + ctx.files.files_win:
             if src not in mappings and src.short_path.startswith(prefix):
                 mappings[src] = destination + src.short_path[len(prefix):]
 
     dfiles = depset(order = "preorder", transitive = files)
     dlinux = depset(ctx.files.files_linux, order = "preorder", transitive = linux)
     dmac = depset(ctx.files.files_mac, order = "preorder", transitive = mac)
+    dmac_arm = depset(ctx.files.files_mac_arm, order = "preorder", transitive = mac_arm)
     dwin = depset(ctx.files.files_win, order = "preorder", transitive = win)
 
     return struct(
         files = dfiles,
         files_linux = dlinux,
         files_mac = dmac,
+        files_mac_arm = dmac_arm,
         files_win = dwin,
         mappings = mappings,
     )
@@ -296,6 +314,7 @@ _studio_data = rule(
         "files": attr.label_list(allow_files = True),
         "files_linux": attr.label_list(allow_files = True),
         "files_mac": attr.label_list(allow_files = True),
+        "files_mac_arm": attr.label_list(allow_files = True),
         "files_win": attr.label_list(allow_files = True),
         "mappings": attr.string_dict(
             mandatory = True,
@@ -311,15 +330,16 @@ _studio_data = rule(
 # This allows grouping all files of the same concept that have different platform variants.
 # Args:
 #     files: A list of files present on all platforms
-#     files_{linux, mac, win}: A list of files for each platform
+#     files_{linux, mac, mac_arm, win}: A list of files for each platform
 #     mapping: A dictionary to map file locations and build an arbitrary file tree, in the form of
 #              a dictionary from current directory to new directory.
-def studio_data(name, files = [], files_linux = [], files_mac = [], files_win = [], mappings = {}, tags = [], **kwargs):
+def studio_data(name, files = [], files_linux = [], files_mac = [], files_mac_arm = [], files_win = [], mappings = {}, tags = [], **kwargs):
     _studio_data(
         name = name,
         files = files,
         files_linux = files_linux,
         files_mac = files_mac,
+        files_mac_arm = files_mac_arm,
         files_win = files_win,
         mappings = mappings,
         tags = tags,
@@ -392,7 +412,7 @@ def _codesign(ctx, filelist_template, entitlements, prefix, out):
     _zipper(ctx, "_codesign for macOS", files, out)
 
 def _android_studio_prefix(ctx, platform):
-    if platform == MAC:
+    if platform == MAC or platform == MAC_ARM:
         return ctx.attr.platform.platform_info.mac_bundle_name + "/"
     return "android-studio/"
 
@@ -418,7 +438,7 @@ def _android_studio_os(ctx, platform, out):
     _stamp_platform(ctx, platform, platform_zip, platform_stamp)
     overrides += [(platform_prefix, platform_stamp)]
     for plugin in platform_plugins:
-        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin.basename)
+        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s" % (plugin.basename, platform.name))
         _stamp_platform_plugin(ctx, platform, platform_zip, plugin, stamp)
         overrides += [(platform_prefix, stamp)]
 
@@ -462,7 +482,7 @@ def _android_studio_os(ctx, platform, out):
         overrides += [(platform_prefix + platform.base_path, stamp)]
         zips += [(platform_prefix + platform.base_path, plugin_zip)]
 
-    if platform == MAC:
+    if platform == MAC or platform == MAC_ARM:
         codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
         _codesign(ctx, ctx.file.codesign_filelist, ctx.file.codesign_entitlements, platform_prefix, codesign)
         zips += [("", codesign)]
@@ -488,6 +508,7 @@ def _android_studio_impl(ctx):
 
     _android_studio_os(ctx, LINUX, ctx.outputs.linux)
     _android_studio_os(ctx, MAC, ctx.outputs.mac)
+    _android_studio_os(ctx, MAC_ARM, ctx.outputs.mac_arm)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
     vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
@@ -504,7 +525,7 @@ def _android_studio_impl(ctx):
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
         executable = script,
-        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.win]),
+        files = depset([ctx.outputs.linux, ctx.outputs.mac, ctx.outputs.mac_arm, ctx.outputs.win]),
         runfiles = runfiles,
     )
 
@@ -554,6 +575,7 @@ _android_studio = rule(
     outputs = {
         "linux": "%{name}.linux.zip",
         "mac": "%{name}.mac.zip",
+        "mac_arm": "%{name}.mac_arm.zip",
         "win": "%{name}.win.zip",
         "plugins": "%{name}.plugin.lst",
     },
@@ -681,6 +703,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset([base_linux]),
             files_mac = depset([base_mac]),
+            files_mac_arm = depset([base_mac]),
             files_win = depset([base_win]),
             mappings = {},
         ),
@@ -688,6 +711,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset(plugins_linux),
             files_mac = depset(plugins_mac),
+            files_mac_arm = depset(plugins_mac),
             files_win = depset(plugins_win),
             mappings = {},
         ),

@@ -22,8 +22,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toC
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;

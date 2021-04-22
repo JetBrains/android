@@ -67,6 +67,58 @@ import org.xmlpull.v1.XmlPullParserException;
  * single summary at the end
  */
 public class RenderLogger implements IRenderLogger {
+  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger(null, null, null) {
+    @Override
+    public void addMessage(@NotNull RenderProblem message) {}
+
+    @Override
+    public void error(@Nullable String tag,
+                      @Nullable String message,
+                      @Nullable Object viewCookie,
+                      @Nullable Object data) {}
+
+    @Override
+    public void error(@Nullable String tag,
+                      @Nullable String message,
+                      @Nullable Throwable throwable,
+                      @Nullable Object viewCookie,
+                      @Nullable Object data) {}
+
+    @Override
+    public void warning(@Nullable String tag,
+                        @NotNull String message,
+                        @Nullable Object viewCookie,
+                        @Nullable Object data) {}
+
+    @Override
+    public void fidelityWarning(@Nullable String tag,
+                                @Nullable String message,
+                                @Nullable Throwable throwable,
+                                @Nullable Object viewCookie,
+                                @Nullable Object data) {}
+
+    @Override
+    public void setHasLoadedClasses() {}
+
+    @Override
+    public void setMissingResourceClass() {}
+
+    @Override
+    public void setResourceClass(@NotNull String resourceClass) {}
+
+    @Override
+    public void addMissingClass(@NotNull String className) {}
+
+    @Override
+    public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {}
+
+    @Override
+    public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {}
+
+    @Override
+    public void logAndroidFramework(int priority, String tag, @NotNull String message) {}
+  };
+
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -563,6 +615,15 @@ public class RenderLogger implements IRenderLogger {
         String name = data instanceof String ? (String)data : null;
         myMissingFragments.add(name);
       }
+      return;
+    }
+    else if (TAG_THREAD_CREATION.equals(tag)) {
+      addTag(tag);
+      RenderProblem problem = RenderProblem.createPlain(WARNING, description).tag(tag);
+      if (data instanceof Throwable) {
+        problem.throwable((Throwable)data);
+      }
+      addMessage(problem);
       return;
     }
 

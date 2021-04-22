@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.property.panel.api.LinkPropertyItem
@@ -35,6 +37,7 @@ import java.util.concurrent.TimeUnit
  * A [LinkPropertyItem] for a lambda parameter from Compose.
  *
  * @param name the parameter name
+ * @param section the section the parameter will show up in the parameters/attributes table
  * @param viewId the compose node this parameter belongs to
  * @param packageName the package name of the enclosing class as found in the synthetic name of the lambda
  * @param fileName the name of the enclosing file
@@ -44,6 +47,7 @@ import java.util.concurrent.TimeUnit
  */
 class LambdaParameterItem(
   name: String,
+  section: PropertySection,
   viewId: Long,
   rootId: Long,
   index: Int,
@@ -58,6 +62,7 @@ class LambdaParameterItem(
   name,
   PropertyType.LAMBDA,
   value = "λ",
+  section,
   viewId,
   lookup,
   rootId,
@@ -73,7 +78,7 @@ class LambdaParameterItem(
           invokeLater {
             // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
             it.navigate(true)
-            lookup.stats.gotoSourceFromPropertyValue(lookup.selection)
+            LayoutInspector.get(event)?.stats?.gotoSourceFromPropertyValue(lookup.selection)
             if (location.source.endsWith(":unknown")) {
               showBalloonError("Could not determine exact source location", event)
             }
@@ -99,5 +104,5 @@ class LambdaParameterItem(
   }
 
   override fun clone(): LambdaParameterItem = LambdaParameterItem(
-    name, viewId, rootId, index, packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber, lookup)
+    name, section, viewId, rootId, index, packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber, lookup)
 }

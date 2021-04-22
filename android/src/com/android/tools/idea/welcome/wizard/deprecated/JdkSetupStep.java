@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_TOOLTIP;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError;
@@ -191,7 +192,12 @@ public class JdkSetupStep extends FirstRunWizardStep {
       return false;
     }
     File path = toSystemDependentPath(getJdkLocation().getPath());
-    ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(path);});
+    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path);
+    }
+    else {
+      ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(path);});
+    }
     myState.put(KEY_JDK_LOCATION, path.getPath());
     return true;
   }

@@ -41,6 +41,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -159,7 +160,7 @@ class AndroidLiveLiteralDeployMonitor {
                 LiveLiteralDeployer.UpdateLiveLiteralParam param = new LiveLiteralDeployer.UpdateLiveLiteralParam(
                   key, offset, helper, type, change.getConstantValue().toString());
 
-                String lookup = helper + "[offset = " + offset + "]";
+                String lookup = getLiteralTimeStampKey(adb.getSerial(), helper, offset);
                 if (lastUpdate.getOrDefault(lookup,0L) < timestamp) {
                   params.add(param);
                   lastUpdate.put(lookup, timestamp);
@@ -267,5 +268,9 @@ class AndroidLiveLiteralDeployMonitor {
       path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
     return path.getAbsolutePath();
+  }
+
+  public static String getLiteralTimeStampKey(String deviceId, String helper, int offset) {
+    return String.format(Locale.ENGLISH,"[device=%s]-%s[offset=%d]", deviceId, helper, offset);
   }
 }

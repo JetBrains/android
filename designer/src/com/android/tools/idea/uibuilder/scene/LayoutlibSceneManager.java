@@ -351,6 +351,8 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private boolean useImagePool = true;
 
+  private boolean myLogRenderErrors = true;
+
   /**
    * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
    */
@@ -771,9 +773,7 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       updateTargets();
-      Scene scene = getScene();
-      scene.needsRebuildList();
-      scene.repaint();
+      getScene().needsRebuildList();
     }
   }
 
@@ -959,6 +959,10 @@ public class LayoutlibSceneManager extends SceneManager {
     this.quality = quality;
   }
 
+  public void setLogRenderErrors(boolean enabled) {
+    myLogRenderErrors = enabled;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayout(boolean animate) {
@@ -1121,7 +1125,7 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = RenderService.getInstance(getModel().getProject());
-    RenderLogger logger = renderService.createLogger(facet);
+    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet) : renderService.getNopLogger();
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
@@ -1267,12 +1271,21 @@ public class LayoutlibSceneManager extends SceneManager {
    *
    * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
+  @NotNull
   public CompletableFuture<Void> updateModel() {
+    return updateModelAndProcessResults(result -> null);
+  }
+
+  /**
+   * Asynchronously update the model and apply the provided processing to the {@link RenderResult}.
+   */
+  @NotNull
+  public CompletableFuture<Void> updateModelAndProcessResults(Function<? super RenderResult, Void> resultProcessing) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
     return inflate(true)
-      .thenApply(result -> null);
+      .thenApply(resultProcessing);
   }
 
   protected void notifyListenersModelLayoutComplete(boolean animate) {
@@ -1725,7 +1738,7 @@ public class LayoutlibSceneManager extends SceneManager {
       return true;
     }
     catch (Exception e) {
-      Logger.getInstance(LayoutlibSceneManager.class).warn("executeCallbacksAndRequestRender did not complete successfully", e);
+      Logger.getInstance(LayoutlibSceneManager.class).debug("executeCallbacksAndRequestRender did not complete successfully", e);
       return false;
     }
   }

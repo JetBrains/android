@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
@@ -56,6 +54,7 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertAbout
@@ -354,8 +353,18 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testKapt() {
-      val text = importSyncAndDumpProject(KOTLIN_KAPT)
-      assertIsEqualToSnapshot(text)
+      importSyncAndDumpProject(KOTLIN_KAPT) { project ->
+        val debugBefore = project.saveAndDump()
+        switchVariant(project, ":app", "release")
+        val release = project.saveAndDump()
+        switchVariant(project, ":app", "debug")
+        val debugAfter = project.saveAndDump()
+        assertAreEqualToSnapshots(
+          debugBefore to ".debug.before",
+          release to ".release",
+          debugAfter to ".debug.before"
+        )
+      }
     }
 
     @Test
@@ -402,54 +411,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
       assertAreEqualToSnapshots(
         before to ".same",
         after to ".same"
-      )
-    }
-
-    @Test
-    fun testSwitchingVariantsWithReopen_simpleApplication() {
-      prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val debugBefore = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val release = openPreparedProject("project") { project ->
-        switchVariant(project, ":app", "release")
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-        project.saveAndDump()
-      }
-      val reopenedRelease = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        debugBefore to ".debug",
-        release to ".release",
-//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
-      )
-    }
-
-    @Test
-    fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
-      prepareGradleProject(SIMPLE_APPLICATION, "project")
-      val debugBefore = openPreparedProject("project") { project: Project ->
-        project.saveAndDump()
-      }
-      val release = openPreparedProject("project") { project ->
-        switchVariant(project, ":app", "release")
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-        runWriteAction {
-          // Modify the project build file to ensure the project is synced when opened.
-          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
-            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
-          }
-        }
-        project.saveAndDump()
-      }
-      val reopenedRelease = openPreparedProject("project") { project ->
-        project.saveAndDump()
-      }
-      assertAreEqualToSnapshots(
-        debugBefore to ".debug",
-        release to ".release",
-//        reopenedRelease to ".release" // TODO(b/178740252): Uncomment.
       )
     }
 
@@ -531,10 +492,6 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
   protected fun Project.syncAndDumpProject(): String {
     requestSyncAndWait()
     return this.saveAndDump()
-  }
-
-  protected fun Project.requestSyncAndWait() {
-    AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
   }
 
   protected fun <T> withJdkNamed18(body: () -> T): T {

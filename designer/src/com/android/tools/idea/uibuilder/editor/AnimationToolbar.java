@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.ui.DesignSurfaceToolbarUI;
+import com.android.tools.idea.uibuilder.analytics.AnimationToolbarAnalyticsManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -82,6 +83,8 @@ public class AnimationToolbar extends JPanel implements Disposable {
   private ScheduledFuture<?> myTicker;
   private long myFramePositionMs;
   private long myLastTickMs = 0L;
+  protected final AnimationToolbarType myToolbarType;
+  protected final AnimationToolbarAnalyticsManager myAnalyticsManager = new AnimationToolbarAnalyticsManager();
 
   /**
    * Constructs a new AnimationToolbar
@@ -93,23 +96,28 @@ public class AnimationToolbar extends JPanel implements Disposable {
    * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
    */
   protected AnimationToolbar(@NotNull Disposable parentDisposable, @NotNull AnimationListener listener, long tickStepMs,
-                           long minTimeMs, long initialMaxTimeMs) {
+                             long minTimeMs, long initialMaxTimeMs, AnimationToolbarType toolbarType) {
     Disposer.register(parentDisposable, this);
 
     myListener = listener;
     myTickStepMs = tickStepMs;
     myMinTimeMs = minTimeMs;
     myMaxTimeMs = initialMaxTimeMs;
+    myToolbarType = toolbarType;
 
-    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP, this::onPlay);
+    myPlayButton = newControlButton(StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP,
+                                    AnimationToolbarAction.PLAY, this::onPlay);
     myPlayButton.setEnabled(true);
-    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP, this::onPause);
+    myPauseButton = newControlButton(StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP,
+                                     AnimationToolbarAction.PAUSE, this::onPause);
     myPauseButton.setEnabled(true);
-    myStopButton = newControlButton(StudioIcons.LayoutEditor.Motion.END_CONSTRAINT, "Stop", DEFAULT_STOP_TOOLTIP, this::onStop);
-    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward",
-                                        DEFAULT_FRAME_FORWARD_TOOLTIP, this::onFrameFwd);
-    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward",
-                                        DEFAULT_FRAME_BACK_TOOLTIP, this::onFrameBck);
+    // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
+    myStopButton = newControlButton(StudioIcons.LayoutEditor.Toolbar.REFRESH, "Stop", DEFAULT_STOP_TOOLTIP,
+                                    AnimationToolbarAction.STOP, this::onStop);
+    myFrameFwdButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_END, "Step forward", DEFAULT_FRAME_FORWARD_TOOLTIP,
+                                        AnimationToolbarAction.FRAME_FORWARD, this::onFrameFwd);
+    myFrameBckButton = newControlButton(StudioIcons.LayoutEditor.Motion.GO_TO_START, "Step backward", DEFAULT_FRAME_BACK_TOOLTIP,
+                                        AnimationToolbarAction.FRAME_BACKWARD, this::onFrameBck);
 
     myControlBar = new JPanel(new FlowLayout()) {
       @Override
@@ -134,6 +142,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
     else {
       myTimeSliderModel = new DefaultBoundedRangeModel(0, 0, 0, 100);
       myTimeSliderChangeModel = e -> {
+        myAnalyticsManager.trackAction(myToolbarType, AnimationToolbarAction.FRAME_CONTROL);
         long newPositionMs = (long)((myMaxTimeMs - myMinTimeMs) * (myTimeSliderModel.getValue() / 100f));
         seek(newPositionMs);
       };
@@ -205,7 +214,7 @@ public class AnimationToolbar extends JPanel implements Disposable {
                                                                  @NotNull AnimationListener listener,
                                                                  long tickStepMs,
                                                                  long minTimeMs) {
-    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, -1);
+    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, -1, AnimationToolbarType.UNLIMITED);
   }
 
   /**
@@ -223,21 +232,23 @@ public class AnimationToolbar extends JPanel implements Disposable {
                                                         long tickStepMs,
                                                         long minTimeMs,
                                                         long initialMaxTimeMs) {
-    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs);
+    return new AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs, AnimationToolbarType.LIMITED);
   }
 
   /**
    * Creates a new toolbar control button
    */
   @NotNull
-  private static JButton newControlButton(@NotNull Icon baseIcon,
-                                          @NotNull String label,
-                                          @Nullable String tooltip,
-                                          @NotNull Runnable callback) {
+  private JButton newControlButton(@NotNull Icon baseIcon,
+                                   @NotNull String label,
+                                   @Nullable String tooltip,
+                                   AnimationToolbarAction action,
+                                   @NotNull Runnable callback) {
     JButton button = new CommonButton();
     button.setName(label);
     button.setIcon(baseIcon);
     button.addActionListener((e) -> {
+      myAnalyticsManager.trackAction(myToolbarType, action);
       callback.run();
     });
 
@@ -418,6 +429,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
    */
   private boolean isUnlimitedAnimationToolbar() {
     return myMaxTimeMs == -1;
+  }
+
+  public AnimationToolbarType getToolbarType() {
+    return myToolbarType;
   }
 
   @Override

@@ -41,6 +41,10 @@ private class TestBuildListener: BuildListener {
     log.append("Build Failed\n")
   }
 
+  override fun buildCleaned() {
+    log.append("Build Cleaned\n")
+  }
+
   fun getLog(): String = log.toString().trimEnd()
 }
 
@@ -140,7 +144,7 @@ class BuildListenerTest {
 
     buildState.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     processEvents()
-    assertEquals("Build Failed", buildListener.getLog())
+    assertEquals("Build Cleaned", buildListener.getLog())
   }
 
   /**

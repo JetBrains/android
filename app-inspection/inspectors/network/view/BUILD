@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-inspection.inspectors.network.view",
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspectors.network.view.iml"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -20,5 +21,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )

@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
-import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.UNKNOWN
- import com.android.tools.idea.layoutinspector.model.DrawViewChild
-import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Image
@@ -50,7 +47,12 @@ data class ViewDrawInfo(
 
 private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
-class DeviceViewPanelModel(private val model: InspectorModel, private val client: (() -> InspectorClient?)? = null) {
+class DeviceViewPanelModel(
+  private val model: InspectorModel,
+  private val stats: SessionStatistics,
+  val treeSettings: TreeSettings,
+  private val client: (() -> InspectorClient?)? = null
+) {
   @VisibleForTesting
   var xOff = 0.0
   @VisibleForTesting
@@ -119,7 +121,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
       .asSequence()
       .filter { it.bounds.contains(x, y) }
       .sortedByDescending { it.hitLevel }
-      .map { it.node.owner }
+      .mapNotNull { it.node.findFilteredOwner(treeSettings) }
       .distinct()
 
   fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
@@ -132,10 +134,10 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
 
   fun refresh() {
     if (xOff == 0.0 && yOff == 0.0) {
-      model.stats.rotation.toggledTo2D()
+      stats.rotation.toggledTo2D()
     }
     else {
-      model.stats.rotation.toggledTo3D()
+      stats.rotation.toggledTo3D()
     }
     if (model.isEmpty) {
       rootBounds = Rectangle()
@@ -148,8 +150,8 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    ViewNode.readFilteredDrawChildren { drawChildren ->
-      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
+    ViewNode.readDrawChildren { drawChildren ->
+      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, levelLists.size, drawChildren) }
     }
     maxDepth = levelLists.size
 
@@ -158,7 +160,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.node.owner.transformedBounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      rootBounds = levelLists[0].map { it.node.bounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
       root.x = rootBounds.x
       root.y = rootBounds.x
       root.width = rootBounds.width
@@ -177,63 +179,71 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
       rootBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
-    newHitRects.forEach { it.bounds }
     hitRects = newHitRects.toList()
     modificationListeners.forEach { it() }
   }
 
-  private fun buildLevelLists(root: DrawViewNode,
+  private fun buildLevelLists(node: DrawViewNode,
                               levelListCollector: MutableList<MutableList<LevelListItem>>,
                               minLevel: Int,
-                              drawChildren: ViewNode.() -> Sequence<DrawViewNode>) {
-    var newLevelIndex = levelListCollector.size
-    if (model.isVisible(root.owner)) {
+                              previousLevel: Int,
+                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
+    var newLevelIndex = minLevel
+    val owner = node.findFilteredOwner(treeSettings)
+    if (owner == null || model.isVisible(owner)) {
       // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
       // in the next level above that (that is, the last level, starting from the top, where there's space).
-      val rootArea = Area(root.owner.transformedBounds)
+      val rootArea = Area(node.bounds)
+      // find the last level where this node intersects with what's at that level already.
       newLevelIndex = levelListCollector
         .subList(minLevel, levelListCollector.size)
-        .indexOfLast { it.map { (node, _) -> Area(node.owner.transformedBounds) }.any { a -> a.run { intersect(rootArea); !isEmpty } } }
-      if (newLevelIndex == -1) {
-        newLevelIndex = levelListCollector.size
+        .indexOfLast { it.map { (node, _) -> Area(node.bounds) }.any { a -> a.run { intersect(rootArea); !isEmpty } } }
+
+      var shouldDraw = true
+      var isCollapsed = false
+      // If we can collapse, merge into the layer we found if it's the same as our parent node's layer
+      if (node.canCollapse(treeSettings) && newLevelIndex <= previousLevel &&
+          (levelListCollector.getOrNull(previousLevel)?.any {
+            it.node.findFilteredOwner(treeSettings) == node.findFilteredOwner(treeSettings)
+          } == true || (newLevelIndex == -1 && node.findFilteredOwner(treeSettings) == null))) {
+        isCollapsed = true
+        shouldDraw = node.drawWhenCollapsed
+        if (newLevelIndex == -1) {
+          // We didn't find anything to merge into, so just draw at the bottom.
+          newLevelIndex = 0
+        }
       }
       else {
-        newLevelIndex += minLevel + 1
+        // We're not collapsing, so draw in the level above the last level with overlapping contents
+        newLevelIndex++
       }
-      val levelList = levelListCollector.getOrElse(newLevelIndex) {
-        mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
-      }
-      levelList.add(LevelListItem(root, false))
-      if (!root.canCollapse) {
-        // Add leading images to this level
-        root.owner.drawChildren()
-          .takeWhile { it.canCollapse }
-          .mapTo(levelList) { LevelListItem(it, true) }
+      // The list index we got was from a sublist starting at minLevel, so we have to add minLevel back in.
+      newLevelIndex += minLevel
+
+      if (shouldDraw) {
+        val levelList = levelListCollector.getOrElse(newLevelIndex) {
+          mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
+        }
+        levelList.add(LevelListItem(node, isCollapsed))
       }
     }
-    if (root is DrawViewChild) {
-      var sawChild = false
-      for (drawChild in root.owner.drawChildren()) {
-        if (!sawChild && drawChild is DrawViewImage) {
-          // Skip leading images -- they're already added
-          continue
-        }
-        sawChild = true
-        buildLevelLists(drawChild, levelListCollector, newLevelIndex, drawChildren)
-      }
+    for (drawChild in node.children(drawChildren)) {
+      buildLevelLists(drawChild, levelListCollector, 0, newLevelIndex, drawChildren)
     }
   }
 
-  private fun rebuildRectsForLevel(transform: AffineTransform,
-                                   magnitude: Double,
-                                   angle: Double,
-                                   allLevels: List<List<LevelListItem>>,
-                                   newHitRects: MutableList<ViewDrawInfo>) {
-    val ownerToLevel = mutableMapOf<ViewNode, Int>()
+  private fun rebuildRectsForLevel(
+    transform: AffineTransform,
+    magnitude: Double,
+    angle: Double,
+    allLevels: List<List<LevelListItem>>,
+    newHitRects: MutableList<ViewDrawInfo>
+  ) {
+    val ownerToLevel = mutableMapOf<ViewNode?, Int>()
 
     allLevels.forEachIndexed { level, levelList ->
       levelList.forEach { (view, isCollapsed) ->
-        val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
+        val hitLevel = ownerToLevel.getOrPut(view.findFilteredOwner(treeSettings)) { level }
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
@@ -242,7 +252,7 @@ class DeviceViewPanelModel(private val model: InspectorModel, private val client
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.owner.transformedBounds)
+        val rect = viewTransform.createTransformedShape(view.unfilteredOwner.transformedBounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
       }
     }

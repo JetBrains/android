@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.systemtrace
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
@@ -31,7 +32,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50)
   }
 
-  fun build(traceId: Long, mainProcessId: Int): SystemTraceCpuCapture {
+  fun build(traceId: Long, mainProcessId: Int, initialViewRange: Range): SystemTraceCpuCapture {
 
     val mainProcess = model.getProcessById(mainProcessId) ?: throw IllegalArgumentException(
       "A process with the id $mainProcessId was not found while parsing the capture.")
@@ -46,7 +47,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 cpuCounters, memoryCounters, frameManager, sfManager)
+                                 cpuCounters, memoryCounters, frameManager, sfManager, initialViewRange)
   }
 
   /**

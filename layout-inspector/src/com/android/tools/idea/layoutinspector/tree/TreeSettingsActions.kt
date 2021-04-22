@@ -15,40 +15,56 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.componenttree.ui.LINES
+import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.ui.tree.ui.Control
-import com.intellij.ui.treeStructure.Tree
 import icons.StudioIcons
 
 /**
  * This file contains view options for the component tree.
  */
 
+/**
+ * Filter menu group
+ */
+object FilterGroupAction : DropDownAction("Filter", null, StudioIcons.Common.FILTER) {
+  init {
+    add(SystemNodeFilterAction)
+    add(MergedSemanticsFilterAction)
+    add(UnmergedSemanticsFilterAction)
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_SEMANTICS)
+  }
+}
 
 /**
  * Filter system nodes from view hierarchy and compose hierarchy.
  */
-object FilterNodeAction : ToggleAction("Filter System-Defined Layers", null, StudioIcons.Common.FILTER) {
+object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.hideSystemNodes
+    LayoutInspector.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.hideSystemNodes = state
+    val inspector = LayoutInspector.get(event) ?: return
+    val treeSettings = inspector.treeSettings
+    treeSettings.hideSystemNodes = state
 
     if (state) {
-      val model = LayoutInspector.get(event)?.layoutInspectorModel
-      val selectedNode = model?.selection
-      if (selectedNode?.isInComponentTree == false) {
-        model.setSelection(selectedNode.findClosestUnfilteredNode(), SelectionOrigin.COMPONENT_TREE)
+      val model = inspector.layoutInspectorModel
+      val selectedNode = model.selection
+      if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
+        model.setSelection(selectedNode.findClosestUnfilteredNode(treeSettings), SelectionOrigin.COMPONENT_TREE)
       }
-      val hoveredNode = model?.hoveredNode
-      if (hoveredNode?.isInComponentTree == false) {
+      val hoveredNode = model.hoveredNode
+      if (hoveredNode != null && !hoveredNode.isInComponentTree(treeSettings)) {
         model.hoveredNode = null
       }
     }
@@ -61,51 +77,75 @@ object FilterNodeAction : ToggleAction("Filter System-Defined Layers", null, Stu
 
   override fun update(event: AnActionEvent) {
     super.update(event)
+    event.presentation.isVisible = isActionVisible(event, Capability.SUPPORTS_SYSTEM_NODES)
+  }
+}
+
+object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree ?: DEFAULT_MERGED_SEMANTICS_TREE
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree = state
+    event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
     event.presentation.isVisible =
-      LayoutInspector.get(event)?.currentClient?.let { client ->
-        !client.isConnected // If not running, default to visible so user can modify selection when next client is connected
-        || client.capabilities.contains(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
-      }
-      ?: true
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
+  }
+}
+
+object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tree") {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree ?: DEFAULT_UNMERGED_SEMANTICS_TREE
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree = state
+    event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
   }
 }
 
 object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    TreeSettings.composeAsCallstack
+    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack ?: DEFAULT_COMPOSE_AS_CALLSTACK
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.composeAsCallstack = state
-
-    // Update the component tree:
+    LayoutInspector.get(event)?.treeSettings?.composeAsCallstack = state
     event.treePanel()?.refresh()
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
+      isActionVisible(event, Capability.SUPPORTS_COMPOSE)
   }
 }
 
 object SupportLines : ToggleAction("Show Support Lines", null, null) {
 
   override fun isSelected(event: AnActionEvent): Boolean =
-    event.tree()?.getClientProperty(Control.Painter.KEY) == LINES
+    LayoutInspector.get(event)?.treeSettings?.supportLines ?: DEFAULT_SUPPORT_LINES
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    TreeSettings.supportLines = state
-    val newPainter = when {
-      state -> LINES
-      else -> null
-    }
-    val tree = event.tree() ?: return
-    tree.putClientProperty(Control.Painter.KEY, newPainter)
-    tree.repaint()
+    LayoutInspector.get(event)?.treeSettings?.supportLines = state
+    event.tree()?.repaint()
   }
 }
 
-fun Tree.setDefaultPainter() {
-  val painter = with(TreeSettings) {
-    when {
-      supportLines -> LINES
-      else -> null
-    }
-  }
-  putClientProperty(Control.Painter.KEY, painter)
-}
+private fun isActionVisible(event: AnActionEvent, vararg capabilities: Capability): Boolean =
+  LayoutInspector.get(event)?.currentClient?.let { client ->
+    !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
+    capabilities.any { client.capabilities.contains(it) }
+  } ?: true

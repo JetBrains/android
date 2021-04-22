@@ -158,14 +158,6 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
   }
 
   @Override
-  public void startNonCancelableSection() {
-  }
-
-  @Override
-  public void finishNonCancelableSection() {
-  }
-
-  @Override
   public boolean isModal() {
     if (myExistingIndicator != null) {
       return myExistingIndicator.isModal();

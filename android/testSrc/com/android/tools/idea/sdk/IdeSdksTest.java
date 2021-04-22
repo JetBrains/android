@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -47,6 +48,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.IdeComponents;
@@ -313,5 +316,26 @@ public class IdeSdksTest extends PlatformTestCase {
     });
     verify(spyJdks, never()).createJdk(any());
     assertThat(newJdk.get()).isSameAs(currentJdk);
+  }
+
+  /**
+   * Confirm that the default JDK is used when it is in the JDK table
+   */
+  public void testDefaultJdkIsUsed() throws IOException {
+    // Only test if per project JDK is enabled
+    if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+      return;
+    }
+    Sdk currentJdk = myIdeSdks.getJdk();
+    assertThat(currentJdk).isNotNull();
+    String homePath = currentJdk.getHomePath();
+    assertThat(homePath).isNotNull();
+    assertThat(homePath).isNotEqualTo("");
+
+    Sdk jdk8 = IdeSdks.findOrCreateJdk(AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME,
+                                       new File(getEmbeddedJdk8Path()));
+    assertThat(jdk8).isNotNull();
+    Sdk newJdk = myIdeSdks.getJdk();
+    assertThat(newJdk).isSameAs(jdk8);
   }
 }

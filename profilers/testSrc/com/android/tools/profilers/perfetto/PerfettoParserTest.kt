@@ -17,11 +17,15 @@ package com.android.tools.profilers.perfetto
 
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeTraceProcessorService
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.Base64
 import org.junit.Test
+import perfetto.protos.PerfettoTrace
+import java.util.concurrent.TimeUnit
 
 class PerfettoParserTest {
 
@@ -44,6 +48,39 @@ class PerfettoParserTest {
     val services = FakeIdeProfilerServices()
     services.enableUseTraceProcessor(true)
 
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    val parser = PerfettoParser(MainProcessSelector(), services)
+    val capture = parser.parse(traceFile, 1)
+
+    assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+  }
+
+  @Test
+  fun `with UiState appended to trace file`() {
+    val services = FakeIdeProfilerServices()
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder ()
+      .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
+      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+      .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+      .build().toByteArray())
+    services.enableUseTraceProcessor(true)
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    val parser = PerfettoParser(MainProcessSelector(), services)
+    val capture = parser.parse(traceFile, 1)
+    assertThat(capture.mainThreadId).isEqualTo(1001)
+    assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.SECONDS.toMicros(1).toDouble())
+    assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.SECONDS.toMicros(99).toDouble())
+  }
+
+  @Test
+  fun `with invalid UiState in metadataTable`() {
+    val services = FakeIdeProfilerServices()
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.uiStateForTraceId[1] = "Not a valid base64 encoded proto"
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)

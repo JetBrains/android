@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wearparing
 
+import com.android.sdklib.SdkVersionInfo
+import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -22,6 +24,7 @@ import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.ide.IdeTooltipManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
@@ -31,15 +34,19 @@ import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES
+import com.intellij.ui.TooltipWithClickableLinks
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBPanel
+import com.intellij.util.containers.FixedHashMap
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import icons.StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
@@ -53,13 +60,17 @@ import javax.swing.DefaultListSelectionModel
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.isRightMouseButton
+import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
-class DeviceListStep(model: WearDevicePairingModel, val project: Project, val emptyListClickedAction: () -> Unit) :
+internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating"
+
+class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
   private val phoneList = createList(
@@ -73,19 +84,20 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
   private val canGoForward = BoolValueProperty()
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    listeners.listenAndFire(model.deviceList) {
-      val (wears, phones) = model.deviceList.get().partition { it.isWearDevice }
+    listeners.listenAndFire(model.phoneList) {
+      updateList(phoneList, model.phoneList.get())
+    }
 
-      updateList(phoneList, phones)
-      updateList(wearList, wears)
+    listeners.listenAndFire(model.wearList) {
+      updateList(wearList, model.wearList.get())
     }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
       NewConnectionAlertStep(model, project),
-      DevicesConnectionStep(model, project, true),
-      DevicesConnectionStep(model, project, false)
+      DevicesConnectionStep(model, project, true, wizardAction),
+      DevicesConnectionStep(model, project, false, wizardAction)
     )
   }
 
@@ -111,8 +123,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
   }
 
   override fun onProceeding() {
-    model.phoneDevice.setNullableValue(phoneList.selectedValue)
-    model.wearDevice.setNullableValue(wearList.selectedValue)
+    model.selectedPhoneDevice.setNullableValue(phoneList.selectedValue)
+    model.selectedWearDevice.setNullableValue(wearList.selectedValue)
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -138,23 +150,35 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
   }
 
   private fun createList(listName: String, emptyTextTitle: String): JBList<PairingDevice> {
-    return JBList<PairingDevice>().apply {
+    return TooltipList<PairingDevice>().apply {
       name = listName
-      setCellRenderer { _, value, _, isSelected, cellHasFocus ->
+      setCellRenderer { _, value, _, isSelected, _ ->
 
         JPanel().apply {
           layout = GridBagLayout()
-          add(JBLabel(getDeviceIcon(value)))
+          add(JBLabel(getDeviceIcon(value, isSelected)))
           add(
             JPanel().apply {
               layout = BoxLayout(this, BoxLayout.Y_AXIS)
               border = JBUI.Borders.emptyLeft(8)
               isOpaque = false
               add(JBLabel(value.displayName).apply {
-                icon = if (!value.isWearDevice && value.hasPlayStore) StudioIcons.Avd.DEVICE_PLAY_STORE else null
+                icon = if (!value.isWearDevice && value.hasPlayStore) getIcon(StudioIcons.Avd.DEVICE_PLAY_STORE, isSelected) else null
+                foreground = when {
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                  else -> UIUtil.getLabelForeground()
+                }
                 horizontalTextPosition = SwingConstants.LEFT
               })
-              add(JBLabel(value.versionName))
+              add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)).apply {
+                foreground = when {
+                  isSelected -> UIUtil.getListForeground(isSelected, isSelected)
+                  value.isDisabled() -> UIUtil.getLabelDisabledForeground()
+                  else -> UIUtil.getContextHelpForeground()
+                }
+                font = JBFont.label().lessOn(2f)
+              })
             },
             GridBagConstraints().apply {
               fill = GridBagConstraints.HORIZONTAL
@@ -163,13 +187,15 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
             }
           )
           if (value.isPaired) {
-            add(JBLabel(INSERT_HORIZ_CHAIN))
+            add(JBLabel(getIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN, isSelected)))
           }
 
           isOpaque = true
-          background = UIUtil.getListBackground(isSelected, cellHasFocus)
-          foreground = UIUtil.getListForeground(isSelected, cellHasFocus)
-          UIUtil.setEnabled(this, value.state != DISCONNECTED, true)
+          background = UIUtil.getListBackground(isSelected, isSelected)
+          toolTipText = value.getTooltip()?.let {
+            val learnMore = message("wear.assistant.device.list.tooltip.learn.more")
+            """<html>$it<br><a href="$WEAR_DOCS_LINK">$learnMore</a>"""
+          }
           border = empty(4, 16)
         }
       }
@@ -179,7 +205,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
         emptyText.appendLine(it)
       }
       emptyText.appendLine(message("wear.assistant.device.list.open.avd"), LINK_PLAIN_ATTRIBUTES) {
-        emptyListClickedAction()
+        wizardAction.closeAndStartAvd(project)
       }
 
       addListSelectionListener {
@@ -214,9 +240,19 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
     updateGoForward()
   }
 
-  private fun getDeviceIcon(device: PairingDevice): Icon {
-    val baseIcon = if (device.isWearDevice) StudioIcons.Avd.DEVICE_WEAR else StudioIcons.Avd.DEVICE_PHONE
+  private fun getDeviceIcon(device: PairingDevice, isSelected: Boolean): Icon {
+    val baseIcon = when {
+      device.isWearDevice -> getIcon(StudioIcons.Avd.DEVICE_WEAR, isSelected)
+      else -> getIcon(StudioIcons.Avd.DEVICE_PHONE, isSelected)
+    }
     return if (device.isOnline()) ExecutionUtil.getLiveIndicator(baseIcon) else baseIcon
+  }
+
+  // Cache generated white icons, so we don't keep creating new ones
+  private val whiteIconsCache = hashMapOf<Icon, Icon>()
+  private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
+    isSelected -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+    else -> icon
   }
 
   private fun JBList<PairingDevice>.addRightClickAction() {
@@ -225,12 +261,16 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          if (listDevice.isPaired) {
-            val menu = JBPopupMenu()
-            val item = JBMenuItem(message("wear.assistant.device.list.forget.connection"))
+          val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
+          if (listDevice.isPaired && pairedPhone != null && pairedWear != null) {
+            val peerDevice = if (pairedPhone.deviceID == listDevice.deviceID) pairedWear else pairedPhone
+            val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
-              WearPairingManager.removeKeepForwardAlive()
+              GlobalScope.launch(Dispatchers.IO) {
+                WearPairingManager.removePairedDevices()
+              }
             }
+            val menu = JBPopupMenu()
             menu.add(item)
             JBPopupMenu.showByEvent(e, menu)
           }
@@ -247,8 +287,49 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val em
 
     override fun setSelectionInterval(idx0: Int, idx1: Int) {
       // Note from javadoc: in SINGLE_SELECTION selection mode, only the second index is used
-      val n = if (idx1 < 0 || idx1 >= list.model.size || list.model.getElementAt(idx1).state == DISCONNECTED) -1 else idx1
+      val n = if (idx1 < 0 || idx1 >= list.model.size || list.model.getElementAt(idx1).isDisabled()) -1 else idx1
       super.setSelectionInterval(n, n)
     }
+  }
+}
+
+private fun PairingDevice.isDisabled(): Boolean {
+  return state == DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
+}
+
+private fun PairingDevice.getTooltip(): String? = when {
+  isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api")
+  isEmulator && !isWearDevice && !hasPlayStore -> message("wear.assistant.device.list.tooltip.requires.play")
+  else -> null
+}
+
+/**
+ * A [JBList] with a special tooltip that can take html links
+ */
+private class TooltipList<E> : JBList<E>() {
+  private data class CellRendererItem<E>(val value: E, val isSelected: Boolean, val cellHasFocus: Boolean)
+
+  // Tooltip manager keeps requesting cell items when the mouse moves (even inside the same item!). Keep the last few in memory.
+  private val cellRendererCache = FixedHashMap<CellRendererItem<E>, Component>(8)
+  private val tooltipCache = hashMapOf<String, TooltipWithClickableLinks>()
+
+  override fun setCellRenderer(cellRenderer: ListCellRenderer<in E>) {
+    super.setCellRenderer { list, value, index, isSelected, cellHasFocus ->
+      cellRendererCache.getOrPut(CellRendererItem(value, isSelected, cellHasFocus)) {
+        cellRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+      }
+    }
+  }
+
+  override fun getToolTipText(event: MouseEvent?): String? {
+    // Do nothing if tooltip already showing (or it will dismiss, making pressing the link very hard)
+    val manager = IdeTooltipManager.getInstance().takeIf { !it.hasCurrent() } ?: return null
+    val toolTipText = super.getToolTipText(event)
+    val tooltip = toolTipText?.let { tooltipCache.getOrPut(toolTipText) { TooltipForBrowser(this, toolTipText) } }
+
+    tooltip?.point = event?.point
+    manager.setCustomTooltip(this, tooltip)
+
+    return toolTipText
   }
 }

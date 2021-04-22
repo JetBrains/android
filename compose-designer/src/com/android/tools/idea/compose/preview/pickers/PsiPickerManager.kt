@@ -59,13 +59,12 @@ private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyM
       border = JBUI.Borders.empty(8, 0)
     })
     add(JSeparator())
-    add(propertiesPanel.component.apply propertiesComponent@{
+    add(propertiesPanel.component.apply {
       isOpaque = false
       border = JBUI.Borders.empty(0, 0, 8, 0)
-      isFocusCycleRoot = true
-      isFocusTraversalPolicyProvider = true
-      focusTraversalPolicy = LayoutFocusTraversalPolicy()
-      // TODO(b/154503873): Figure out a way to focus the first property's editor
     })
+    isFocusCycleRoot = true
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
 }

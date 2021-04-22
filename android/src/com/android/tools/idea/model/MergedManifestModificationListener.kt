@@ -25,6 +25,8 @@ import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.AppTopics
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -38,9 +40,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.annotations.VisibleForTesting
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * A project-wide listener that determines which modules' merged manifests are affected by VFS
@@ -56,6 +62,17 @@ class MergedManifestModificationListener(
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
+
+  private class Request(val facet: AndroidFacet, val future: Future<*>)
+
+  private val lastRequestToUpdateModificationTrackers = AtomicReference<Request?>()
+
+  @VisibleForTesting
+  @JvmField
+  val trackerUpdaterExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
+    "Merged Manifest Modification Tracker Updater Pool",
+    1
+  )
 
   // If a directory was deleted, we won't get a separate event for each descendant, so we
   // must let directories pass through this fail-fast filter in case they contain relevant files.
@@ -89,7 +106,7 @@ class MergedManifestModificationListener(
   override fun fileWithNoDocumentChanged(file: VirtualFile) = possiblyIrrelevantFileChanged(file)
 
   override fun documentChanged(event: DocumentEvent) {
-    if (project.isDisposed()) {
+    if (project.isDisposed) {
       // note that event may arrive from any project, not only from myProject
       // myProject can be temporarily disposed in light tests
       return
@@ -106,12 +123,40 @@ class MergedManifestModificationListener(
     }
   }
 
-  override fun fileChanged(path: PathString, facet: AndroidFacet) = updateModificationTrackers(facet)
+  override fun fileChanged(path: PathString, facet: AndroidFacet) {
+    lastRequestToUpdateModificationTrackers.getAndUpdate { request ->
+      if (request?.facet == facet) {
+        // This is to optimize the use case that the user is actively editing one file, and a backlog of same requests
+        // are created and pending there. Thus we can just leave one pending request and cancel the others. In order
+        // to make it simple, we only cache the last request, and cancel it, if the same new request comes and the old
+        // one is still in progress.
+        request.future.cancel(true).let {
+          thisLogger().debug {
+            "Request for updating '${request.facet.module}' is cancelled with status=\"$it\"."
+          }
+        }
+      }
 
-  private fun updateModificationTrackers(facet: AndroidFacet) {
-    facet.module.getTransitiveResourceDependents().forEach {
-      MergedManifestModificationTracker.getInstance(it).manifestChanged()
+      requestToUpdateModificationTrackers(facet)
     }
+  }
+
+  private fun requestToUpdateModificationTrackers(facet: AndroidFacet): Request {
+    val future = trackerUpdaterExecutor.submit {
+      for (module in facet.module.getTransitiveResourceDependents()) {
+        MergedManifestModificationTracker.getInstance(module).manifestChanged()
+      }
+
+      lastRequestToUpdateModificationTrackers.getAndUpdate { request ->
+        if (request != null && request.facet == facet) {
+          null
+        }
+        else {
+          request
+        }
+      }
+    }
+    return Request(facet, future)
   }
 
   /**

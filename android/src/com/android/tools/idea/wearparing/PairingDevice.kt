@@ -26,7 +26,8 @@ enum class ConnectionState {
 data class PairingDevice(
   val deviceID: String,
   val displayName: String,
-  val versionName: String,
+  val apiLevel: Int,
+  val isEmulator: Boolean,
   val isWearDevice: Boolean,
   val hasPlayStore: Boolean,
   val state: ConnectionState,
@@ -36,4 +37,10 @@ data class PairingDevice(
   lateinit var launch: (Project) -> ListenableFuture<IDevice>
 
   fun isOnline(): Boolean = state == ConnectionState.ONLINE
+
+  fun disconnectedCopy(isPaired: Boolean = false): PairingDevice {
+    val res = copy(state = ConnectionState.DISCONNECTED, isPaired = isPaired)
+    res.launch = this.launch
+    return res
+  }
 }

@@ -17,39 +17,38 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
-import com.android.ide.common.gradle.model.IdeAaptOptions
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.IdeArtifactName
-import com.android.ide.common.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidArtifactOutputImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
-import com.android.ide.common.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl
-import com.android.ide.common.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
-import com.android.ide.common.gradle.model.impl.IdeBuildTypeContainerImpl
-import com.android.ide.common.gradle.model.impl.IdeBuildTypeImpl
-import com.android.ide.common.gradle.model.impl.IdeDependenciesImpl
-import com.android.ide.common.gradle.model.impl.IdeDependenciesInfoImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaArtifactImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.ide.common.gradle.model.impl.IdeLintOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeModuleLibraryImpl
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorContainerImpl
-import com.android.ide.common.gradle.model.impl.IdeProductFlavorImpl
-import com.android.ide.common.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.ide.common.gradle.model.impl.IdeSourceProviderImpl
-import com.android.ide.common.gradle.model.impl.IdeVariantBuildInformationImpl
-import com.android.ide.common.gradle.model.impl.IdeVariantImpl
-import com.android.ide.common.gradle.model.impl.IdeVectorDrawablesOptionsImpl
-import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
-import com.android.ide.common.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeVariant
-import com.android.ide.common.gradle.model.ndk.v2.NativeBuildSystem
+import com.android.tools.idea.gradle.model.IdeAaptOptions
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
+import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
+import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
@@ -67,7 +66,9 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
@@ -103,6 +104,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.doNotEnableExternalStorageByDefaultInTests
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
@@ -812,6 +814,28 @@ fun setupTestProjectFromAndroidModel(
   }
 
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants)
+}
+
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun updateTestProjectFromAndroidModel(
+  project: Project,
+  basePath: File,
+  vararg moduleBuilders: ModuleModelBuilder
+) {
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false)
+  getInstance(project).syncSkipped(null)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
+
+private fun setupTestProjectFromAndroidModelCore(
+  project: Project,
+  basePath: File,
+  moduleBuilders: Array<out ModuleModelBuilder>,
+  setupAllVariants: Boolean
+) {
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val gradlePlugins = listOf(
@@ -891,7 +915,7 @@ fun setupTestProjectFromAndroidModel(
           moduleBuilder.agpVersion,
           gradlePlugins,
           androidProject,
-          variants.let { if (!setupAllVariants) it.take(1) else it },
+          variants.let { if (!setupAllVariants) it.filter { it.name == moduleBuilder.selectedBuildVariant } else it },
           ndkModel,
           moduleBuilder.selectedBuildVariant,
           moduleBuilder.selectedAbiVariant
@@ -1182,26 +1206,36 @@ fun <T> GradleIntegrationTest.openPreparedProject(
 private fun <T> openPreparedProject(
   projectPath: File,
   verifyOpened: (Project) -> Unit,
-  action: (Project) -> T): T {
-  val project = runInEdtAndGet {
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
-    // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
-    emulateStartupActivityForTest(project)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    project
-  }
-  try {
-    verifyOpened(project)
-    return action(project)
-  }
-  finally {
-    runInEdtAndWait {
-      PlatformTestUtil.saveProject(project, true)
-      ProjectUtil.closeAndDispose(project)
+  action: (Project) -> T
+): T {
+
+  fun body(): T {
+    val project = runInEdtAndGet {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+      val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+      // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
+      emulateStartupActivityForTest(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      project
+    }
+    try {
+      verifyOpened(project)
+      return action(project)
+    }
+    finally {
+      runInEdtAndWait {
+        PlatformTestUtil.saveProject(project, true)
+        ProjectUtil.closeAndDispose(project)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      }
     }
   }
+
+  var result: Result<T> = Result.failure(IllegalStateException())
+  doNotEnableExternalStorageByDefaultInTests {
+    result = Result.success(body())
+  }
+  return result.getOrThrow()
 }
 
 private fun GradleIntegrationTest.nameToPath(name: String) =
@@ -1281,4 +1315,8 @@ private fun Project.verifyModelsAttached() {
     module.verifyModel(AndroidFacet::getInstance, AndroidModuleModel::get)
     module.verifyModel({ NdkFacet.getInstance(this) }, { ndkModuleModel })
   }
+}
+
+fun Project.requestSyncAndWait() {
+  AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
 }

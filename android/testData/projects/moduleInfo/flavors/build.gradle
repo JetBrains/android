@@ -34,13 +34,13 @@ android {
     pro {
       applicationId "com.example.pro"
       versionCode 20
-      flavorDimension "version"
+      dimension "version"
     }
 
     free {
       applicationId "com.example.free"
       minSdkVersion 14
-      flavorDimension "version"
+      dimension "version"
     }
   }
 }

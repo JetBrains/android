@@ -25,25 +25,24 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
-import com.android.utils.FlightRecorder
+import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
+import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.ide.dnd.DnDTarget
@@ -54,7 +53,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import org.jetbrains.android.sdk.AndroidSdkUtils.ADB_PATH_PROPERTY
@@ -69,11 +67,11 @@ import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
@@ -121,12 +119,14 @@ class EmulatorToolWindowPanelTest {
   @Before
   fun setUp() {
     setPortableUiFont()
-    // Necessary to properly update button states.
+    // Necessary to properly update toolbar button states.
     installHeadlessTestDataManager(projectRule.project, testRootDisposable)
   }
 
   @Test
   fun testAppearanceAndToolbarActions() {
+    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
+
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
@@ -180,9 +180,26 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(streamScreenshotCall.completion.isCancelled).isFalse()
 
+    // Check clipboard synchronization.
+    val content = StringSelection("host clipboard")
+    ClipboardSynchronizer.getInstance().setContent(content, content)
+    focusManager.focusOwner = emulatorView
+    call = emulator.getNextGrpcCall(3, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
+    assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamClipboard")
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    emulator.clipboard = "device clipboard"
+    call.waitForResponse(2, TimeUnit.SECONDS)
+    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    assertThat(call.completion.isCancelled).isFalse()
+    focusManager.focusOwner = null
+    call.waitForCancellation(2, TimeUnit.SECONDS)
+
     panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
   }
 
   @Test
@@ -263,7 +280,7 @@ class EmulatorToolWindowPanelTest {
 
     val uiState = panel.destroyContent()
     assertThat(panel.primaryEmulatorView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { streamScreenshotCall.completion.isCancelled }
+    streamScreenshotCall.waitForCancellation(2, TimeUnit.SECONDS)
 
     // Check serialization and deserialization of MultiDisplayStateStorage.
     val state = MultiDisplayStateStorage.getInstance(projectRule.project)
@@ -279,7 +296,6 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testVirtualSceneCamera() {
-    StudioFlags.EMBEDDED_EMULATOR_VIRTUAL_SCENE_CAMERA.override(true, testRootDisposable)
     val panel = createWindowPanel()
     val ui = FakeUi(panel)
 
@@ -299,11 +315,8 @@ class EmulatorToolWindowPanelTest {
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.`when`<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
-    ui.keyboard.setFocus(emulatorView)
-    val mockFocusManager = mock<KeyboardFocusManager>()
-    `when`(mockFocusManager.focusOwner).thenReturn(emulatorView)
-    `when`(mockFocusManager.redispatchEvent(any(), any())).thenCallRealMethod()
-    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
+    val focusManager = FakeKeyboardFocusManager(testRootDisposable)
+    focusManager.focusOwner = emulatorView
 
     assertThat(ui.findComponent<EditorNotificationPanel>()).isNull()
 
@@ -331,23 +344,19 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<EditorNotificationPanel>()?.text)
         .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
 
-    // Drain the gRPC call log.
-    for (i in 1..5) {
-      if (emulator.getNextGrpcCall(2, TimeUnit.SECONDS).methodName.endsWith("streamClipboard")) {
-        break
-      }
-    }
-
     // Check camera movement.
     val velocityExpectations =
         mapOf('W' to "z: -1.0", 'A' to "x: -1.0", 'S' to "z: 1.0", 'D' to "x: 1.0", 'Q' to "y: -1.0", 'E' to "y: 1.0")
+    val callFilter = FakeEmulator.defaultCallFilter.or("android.emulation.control.EmulatorController/streamClipboard",
+                                                       "android.emulation.control.EmulatorController/streamScreenshot")
     for ((key, expected) in velocityExpectations) {
       ui.keyboard.press(key.toInt())
-      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+
+      var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
       ui.keyboard.release(key.toInt())
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
       assertThat(shortDebugString(call.request)).isEqualTo("")
     }
@@ -357,7 +366,7 @@ class EmulatorToolWindowPanelTest {
     val y = initialMousePosition.y + 10
     val event = MouseEvent(glassPane, MOUSE_MOVED, System.currentTimeMillis(), ui.keyboard.toModifiersCode(), x, y, x, y, 0, false, 0)
     glassPane.dispatch(event)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
     assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
 
@@ -367,7 +376,7 @@ class EmulatorToolWindowPanelTest {
                                      VK_PAGE_UP to "x: 0.08726646 y: -0.08726646", VK_PAGE_DOWN to "x: -0.08726646 y: -0.08726646")
     for ((key, expected) in rotationExpectations) {
       ui.keyboard.pressAndRelease(key)
-      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+      call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS, callFilter)
       assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
       assertThat(shortDebugString(call.request)).isEqualTo(expected)
     }
@@ -384,8 +393,61 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Test
-  fun testDnD() {
-    FlightRecorder.initialize(100)
+  fun testDragToInstallApp() {
+    val target = createDropTarget()
+    val device = createMockDevice()
+
+    // Check APK installation.
+    val apkFileList = listOf(File("/some_folder/myapp.apk"))
+    val event = createDragEvent(apkFileList)
+
+    // Simulate drag.
+    target.update(event)
+
+    verify(event).isDropPossible = true
+
+    val installPackagesCalled = CountDownLatch(1)
+    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
+    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
+    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
+      installPackagesCalled.countDown()
+    }
+
+    // Simulate drop.
+    target.drop(event)
+
+    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
+  }
+
+  @Test
+  fun testDragToPushFiles() {
+    val target = createDropTarget()
+    val device = createMockDevice()
+
+    // Check file copying.
+    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
+    val event = createDragEvent(fileList)
+
+    // Simulate drag.
+    target.update(event)
+
+    verify(event).isDropPossible = true
+
+    val pushCalled = CountDownLatch(1)
+    val firstArgCaptor = ArgumentCaptor.forClass(Array<String>::class.java)
+    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
+    `when`(device.push(firstArgCaptor.capture(), secondArgCaptor.capture())).then { pushCalled.countDown() }
+
+    // Simulate drop.
+    target.drop(event)
+
+    assertThat(pushCalled.await(2, TimeUnit.SECONDS)).isTrue()
+    assertThat(firstArgCaptor.value).isEqualTo(fileList.map(File::getAbsolutePath).toTypedArray())
+    assertThat(secondArgCaptor.value).isEqualTo("/sdcard/Download")
+  }
+
+  private fun createDropTarget(): DnDTarget {
     val adb = getWorkspaceRoot().resolve("$TEST_DATA_PATH/fake-adb")
     val savedAdbPath = System.getProperty(ADB_PATH_PROPERTY)
     if (savedAdbPath != null) {
@@ -394,18 +456,21 @@ class EmulatorToolWindowPanelTest {
     System.setProperty(ADB_PATH_PROPERTY, adb.toString())
 
     var nullableTarget: DnDTarget? = null
-    val mockDnDManager = mock<DnDManager>()
-    `when`(mockDnDManager.registerTarget(any(), any())).then {
+    val mockDndManager = mock<DnDManager>()
+    `when`(mockDndManager.registerTarget(any(), any())).then {
       it.apply { nullableTarget = getArgument<DnDTarget>(0) }
     }
-    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDnDManager, testRootDisposable)
+    ApplicationManager.getApplication().replaceService(DnDManager::class.java, mockDndManager, testRootDisposable)
 
     val panel = createWindowPanel()
     panel.createContent(false)
+    Disposer.register(testRootDisposable) { panel.destroyContent() }
 
-    val target = nullableTarget as DnDTarget
+    return nullableTarget as DnDTarget
+  }
+
+  private fun createMockDevice(): IDevice {
     val device = mock<IDevice>()
-    FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: device: $device")
     `when`(device.isEmulator).thenReturn(true)
     `when`(device.serialNumber).thenReturn("emulator-${emulator.serialPort}")
     `when`(device.version).thenReturn(AndroidVersion(AndroidVersion.MIN_RECOMMENDED_API))
@@ -413,72 +478,17 @@ class EmulatorToolWindowPanelTest {
     `when`(mockAdb.devices).thenReturn(arrayOf(device))
     val mockAdbService = mock<AdbService>()
     `when`(mockAdbService.getDebugBridge(any())).thenReturn(immediateFuture(mockAdb))
-    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService)
-
-    // Check APK installation.
-    val apkFileList = listOf(File("/some_folder/myapp.apk"))
-    val dnDEvent1 = createDnDEvent(apkFileList)
-
-    // Simulate drag.
-    target.update(dnDEvent1)
-
-    verify(dnDEvent1).isDropPossible = true
-
-    val installPackagesCalled = CountDownLatch(1)
-    val installOptions = listOf("-t", "--user", "current", "--full", "--dont-kill")
-    val fileListCaptor = ArgumentCaptor.forClass(apkFileList.javaClass)
-    `when`(device.installPackages(fileListCaptor.capture(), eq(true), eq(installOptions), anyLong(), any())).then {
-      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: app installed")
-      installPackagesCalled.countDown()
-    }
-
-    // Simulate drop.
-    target.drop(dnDEvent1)
-
-    assertThat(installPackagesCalled.await(2, TimeUnit.SECONDS)).isTrue()
-    assertThat(fileListCaptor.value).isEqualTo(apkFileList)
-
-    // Check file copying.
-    val fileList = listOf(File("/some_folder/file1.txt"), File("/some_folder/file2.jpg"))
-    val dnDEvent2 = createDnDEvent(fileList)
-
-    // Simulate drag.
-    target.update(dnDEvent2)
-
-    verify(dnDEvent2).isDropPossible = true
-
-    val allFilesPushed = CountDownLatch(fileList.size)
-    val firstArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    val secondArgCaptor = ArgumentCaptor.forClass(String::class.java)
-    `when`(device.pushFile(firstArgCaptor.capture(), secondArgCaptor.capture())).then {
-      FlightRecorder.log("EmulatorToolWindowPanelTest.testDnD: file pushed")
-      allFilesPushed.countDown()
-    }
-
-    // Simulate drop.
-    target.drop(dnDEvent2)
-
-    try {
-      assertThat(allFilesPushed.await(5, TimeUnit.SECONDS)).isTrue()
-      assertThat(firstArgCaptor.allValues).isEqualTo(fileList.map(File::getAbsolutePath).toList())
-      assertThat(secondArgCaptor.allValues).isEqualTo(fileList.map { "/sdcard/Download/${it.name}" }.toList())
-      FlightRecorder.print()
-    }
-    catch (t: Throwable) {
-      FlightRecorder.print()
-      throw t
-    }
-
-    panel.destroyContent()
+    ApplicationManager.getApplication().registerServiceInstance(AdbService::class.java, mockAdbService, testRootDisposable)
+    return device
   }
 
-  private fun createDnDEvent(files: List<File>): DnDEvent {
+  private fun createDragEvent(files: List<File>): DnDEvent {
     val transferableWrapper = mock<TransferableWrapper>()
     `when`(transferableWrapper.asFileList()).thenReturn(files)
-    val dnDEvent = mock<DnDEvent>()
-    `when`(dnDEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
-    `when`(dnDEvent.attachedObject).thenReturn(transferableWrapper)
-    return dnDEvent
+    val event = mock<DnDEvent>()
+    `when`(event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)).thenReturn(true)
+    `when`(event.attachedObject).thenReturn(transferableWrapper)
+    return event
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -504,7 +514,7 @@ class EmulatorToolWindowPanelTest {
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
-    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
+    emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
     emulator.start()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
@@ -516,7 +526,7 @@ class EmulatorToolWindowPanelTest {
       }
       emulator.stop()
     }
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel
   }
 

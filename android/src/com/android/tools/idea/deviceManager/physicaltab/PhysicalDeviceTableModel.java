@@ -16,7 +16,7 @@
 package com.android.tools.idea.deviceManager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.idea.deviceManager.Device;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -41,50 +41,13 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myDevices = devices;
   }
 
-  void handleConnectedDevice(@NotNull PhysicalDevice connectedDevice) {
-    assert connectedDevice.isConnected();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, connectedDevice);
-
-    if (modelRowIndex == -1) {
-      myDevices.add(connectedDevice);
-    }
-    else {
-      PhysicalDevice device = myDevices.get(modelRowIndex);
-
-      if (device.isConnected()) {
-        Logger.getInstance(PhysicalDeviceTableModel.class).warn("Connecting a connected device" + System.lineSeparator()
-                                                                + device.toDebugString());
-      }
-
-      myDevices.set(modelRowIndex, connectedDevice);
-    }
-
-    myDevices.sort(null);
-    fireTableDataChanged();
+  void deviceConnected(@NotNull PhysicalDevice device) {
   }
 
-  void handleDisconnectedDevice(@NotNull PhysicalDevice disconnectedDevice) {
-    assert !disconnectedDevice.isConnected();
-    int modelRowIndex = PhysicalDevices.indexOf(myDevices, disconnectedDevice);
+  void deviceDisconnected(@NotNull PhysicalDevice device) {
+  }
 
-    if (modelRowIndex == -1) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting an unknown device" + System.lineSeparator()
-                                                              + disconnectedDevice.toDebugString());
-
-      return;
-    }
-
-    PhysicalDevice device = myDevices.get(modelRowIndex);
-
-    if (!device.isConnected()) {
-      Logger.getInstance(PhysicalDeviceTableModel.class).warn("Disconnecting a disconnected device" + System.lineSeparator()
-                                                              + device.toDebugString());
-    }
-
-    myDevices.set(modelRowIndex, disconnectedDevice);
-    myDevices.sort(null);
-
-    fireTableDataChanged();
+  void deviceChanged(@NotNull PhysicalDevice device) {
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
@@ -112,6 +75,20 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         return "Type";
       case ACTIONS_MODEL_COLUMN_INDEX:
         return "Actions";
+      default:
+        throw new AssertionError(modelColumnIndex);
+    }
+  }
+
+  @Override
+  public @NotNull Class<@NotNull ?> getColumnClass(int modelColumnIndex) {
+    switch (modelColumnIndex) {
+      case DEVICE_MODEL_COLUMN_INDEX:
+        return Device.class;
+      case API_MODEL_COLUMN_INDEX:
+      case TYPE_MODEL_COLUMN_INDEX:
+      case ACTIONS_MODEL_COLUMN_INDEX:
+        return Object.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }

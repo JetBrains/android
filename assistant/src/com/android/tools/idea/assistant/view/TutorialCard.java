@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.assistant.ScrollHandler;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.components.JBLabel;
@@ -48,7 +48,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,15 +120,6 @@ public class TutorialCard extends CardViewPanel {
       redraw();
     }
     super.setVisible(aFlag);
-    initScrollValues();
-  }
-
-  /**
-   * Resets the scroll values of the window to the top
-   * IMPORTANT: Do not add PSI/VFS calls here, it is called by SwingUtilities.invokeLater
-   */
-  @UiThread
-  private void initScrollValues() {
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
@@ -248,14 +238,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.setOpaque(false);
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-    // Reset the scroll bars after render, see b/77530149
-    // We must use SwingUtilities.invokeLater here instead of Application.invokeLater because the latter causes initScrollValues
-    // to be called earlier than the UIUtils.setHtml calls above complete, scrolling the window back to the bottom.
-    // UIUtils.setHtml uses SwingUtilities.invokeLater, so we need to run initScrollValues on the same queue to ensure it comes
-    // after UIUtils.setHtml is done. This is pure UI code, it doesn't touch VFS or PSI.
-    //noinspection WrongInvokeLater
-    SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
   private static class TutorialDescription extends JEditorPane {

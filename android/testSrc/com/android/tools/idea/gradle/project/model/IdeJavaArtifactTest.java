@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.project.model;
 import static com.android.tools.idea.gradle.project.model.IdeModelTestUtils.assertEqualsOrSimilar;
 
 import com.android.builder.model.JavaArtifact;
-import com.android.ide.common.gradle.model.IdeJavaArtifact;
-import com.android.ide.common.gradle.model.stubs.JavaArtifactStub;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
+import com.android.tools.idea.gradle.model.stubs.JavaArtifactStub;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -61,7 +61,7 @@ object DemoExample {
    * This probably should not be called if [setUpDemo] was also called.
    */
   fun extractViewRoot(fixture: CodeInsightTestFixture): ViewNode {
-    return model(fixture.project, setUpDemo(fixture)).root.children.single()
+    return model(fixture.project, FakeTreeSettings(), setUpDemo(fixture)).root.children.single()
   }
 
   private fun createDemoViewNodes(body: InspectorViewDescriptor.() -> Unit): InspectorModelDescriptor.() -> Unit = {

@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -25,8 +27,10 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.ConfigurationParamsBuilder
 import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
@@ -34,8 +38,8 @@ import java.awt.Shape
 import java.awt.image.BufferedImage
 
 // TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
-fun model(project: Project = mock(), body: InspectorModelDescriptor.() -> Unit) =
-  InspectorModelDescriptor(project).also(body).build()
+fun model(project: Project = mock(), treeSettings: TreeSettings = FakeTreeSettings(), body: InspectorModelDescriptor.() -> Unit) =
+  InspectorModelDescriptor(project).also(body).build(treeSettings)
 
 fun window(windowId: Any,
            rootViewDrawId: Long,
@@ -58,6 +62,7 @@ fun window(windowId: Any,
     }
   }
 
+private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
 
 fun view(drawId: Long,
          x: Int = 0,
@@ -69,7 +74,7 @@ fun view(drawId: Long,
          viewId: ResourceReference? = null,
          textValue: String = "",
          layoutFlags: Int = 0,
-         layout: ResourceReference? = null,
+         layout: ResourceReference? = defaultLayout,
          body: InspectorViewDescriptor.() -> Unit = {}) =
   InspectorViewDescriptor(drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout)
     .also(body).build()
@@ -85,8 +90,9 @@ fun compose(drawId: Long,
             width: Int = 0,
             height: Int = 0,
             body: InspectorViewDescriptor.() -> Unit = {}) =
-  InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0, null,
-                          composeFilename, composePackageHash, composeOffset, composeLineNumber).also(body)
+  InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0,
+                          composeFilename = composeFilename, composePackageHash = composePackageHash, composeOffset = composeOffset,
+                          composeLineNumber = composeLineNumber).also(body)
 
 interface InspectorNodeDescriptor
 class InspectorImageDescriptor(internal val image: BufferedImage): InspectorNodeDescriptor
@@ -101,11 +107,12 @@ class InspectorViewDescriptor(private val drawId: Long,
                               private val viewId: ResourceReference?,
                               private val textValue: String,
                               private val layoutFlags: Int,
-                              private val layout: ResourceReference?,
+                              private val layout: ResourceReference? = defaultLayout,
                               private val composeFilename: String = "",
                               private val composePackageHash: Int = 0,
                               private val composeOffset: Int = 0,
                               private val composeLineNumber: Int = 0,
+                              private val composeFlags: Int = 0,
                               val imageType: ImageType = ImageType.BITMAP_AS_REQUESTED): InspectorNodeDescriptor {
   private val children = mutableListOf<InspectorNodeDescriptor>()
 
@@ -123,7 +130,7 @@ class InspectorViewDescriptor(private val drawId: Long,
            viewId: ResourceReference? = null,
            textValue: String = "",
            layoutFlags: Int = 0,
-           layout: ResourceReference? = null,
+           layout: ResourceReference? = defaultLayout,
            body: InspectorViewDescriptor.() -> Unit = {}) =
     children.add(InspectorViewDescriptor(
       drawId, qualifiedName, x, y, width, height, bounds, viewId, textValue, layoutFlags, layout).apply(body))
@@ -143,19 +150,22 @@ class InspectorViewDescriptor(private val drawId: Long,
               composePackageHash: Int = -1,
               composeOffset: Int = 0,
               composeLineNumber: Int = 0,
+              composeFlags: Int = 0,
               x: Int = 0,
               y: Int = 0,
               width: Int = 0,
               height: Int = 0,
               body: InspectorViewDescriptor.() -> Unit = {}) =
-    children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0, null,
-                                         composeFilename, composePackageHash, composeOffset, composeLineNumber).apply(body))
+    children.add(InspectorViewDescriptor(drawId, name, x, y, width, height, null, null, "", 0,
+                                         composeFilename = composeFilename, composePackageHash = composePackageHash,
+                                         composeOffset = composeOffset, composeLineNumber = composeLineNumber,
+                                         composeFlags = composeFlags).apply(body))
 
   fun build(): ViewNode {
     val result =
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
       else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0,
-                           composeFilename, composePackageHash, composeOffset, composeLineNumber)
+                           composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags)
     ViewNode.writeDrawChildren { drawChildren ->
       children.forEach {
         when (it) {
@@ -188,7 +198,7 @@ class InspectorModelDescriptor(val project: Project) {
            viewId: ResourceReference? = null,
            textValue: String = "",
            layoutFlags: Int = 0,
-           layout: ResourceReference? = null,
+           layout: ResourceReference? = defaultLayout,
            imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
            body: InspectorViewDescriptor.() -> Unit = {}) {
     root = InspectorViewDescriptor(
@@ -201,11 +211,12 @@ class InspectorModelDescriptor(val project: Project) {
            viewId: ResourceReference? = null,
            textValue: String = "",
            imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
+           layout: ResourceReference? = defaultLayout,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, null,
+    view(drawId, rect?.x ?: 0, rect?.y ?: 0, rect?.width ?: 0, rect?.height ?: 0, rect, qualifiedName, viewId, textValue, 0, layout,
          imageType, body)
 
-  fun build(): InspectorModel {
+  fun build(treeSettings: TreeSettings): InspectorModel {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
     val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) { _, window ->
@@ -216,7 +227,7 @@ class InspectorModelDescriptor(val project: Project) {
           if (drawChildren.any { drawChild -> drawChild is DrawViewImage }) {
             // We can't support changes to the child list when there are also images, currently, since we can't know where in the order
             // of children it should be, or if it should still be there at all.
-            if (drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.owner } == children) {
+            if (drawChildren.filterIsInstance<DrawViewChild>().map { drawChild -> drawChild.findFilteredOwner(treeSettings) } == children) {
               // No changes, great.
             }
             else {

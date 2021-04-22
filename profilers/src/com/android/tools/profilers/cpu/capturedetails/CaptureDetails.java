@@ -230,13 +230,25 @@ public abstract class CaptureDetails {
       // This range needs to account for the multiple children,
       // does it need to account for the merged children?
       myTopDownNode.update(mySelectionRange);
+      // If the new selection range intersects the root node, we should reconstruct the flame chart node.
+      // Otherwise, clear the flame chart node and show an empty chart.
       if (myTopDownNode.getGlobalTotal() > 0) {
         double start = Math.max(myTopDownNode.getNodes().get(0).getStart(), mySelectionRange.getMin());
         myFlameNode = convertToFlameChart(myTopDownNode, start, 0);
-        myFlameNode.setEndGlobal(myFlameNode.getLastChild().getEndGlobal());
-        // This is the range used by the HTreeChart to determine if a node is in the range or out of the range.
-        // Because the node is already filtered to the selection we can use the length of the node.
-        myFlameRange.set(myFlameNode.getStart(), myFlameNode.getEnd());
+        // The intersection check (root.getGlobalTotal() > 0) may be a false positive because the root's global total is the
+        // sum of all its children for the purpose of mapping a multi-node tree to flame chart space. Thus we need to look at
+        // its children to find out the actual intersection.
+        if (myFlameNode.getLastChild() != null) {
+          // At least one child intersects the selection rage, use the last child as the real intersection end.
+          myFlameNode.setEndGlobal(myFlameNode.getLastChild().getEndGlobal());
+          // This is the range used by the HTreeChart to determine if a node is in the range or out of the range.
+          // Because the node is already filtered to the selection we can use the length of the node.
+          myFlameRange.set(myFlameNode.getStart(), myFlameNode.getEnd());
+        }
+        else {
+          // No child intersects the selection range, so effectively there's no intersection at all.
+          myFlameNode = null;
+        }
       }
       else {
         myFlameNode = null;

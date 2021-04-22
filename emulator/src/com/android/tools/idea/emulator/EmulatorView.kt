@@ -18,7 +18,6 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
-import com.android.emulator.control.ClipData
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
@@ -44,10 +43,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.protobuf.Empty
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.TextFormat.shortDebugString
-import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
@@ -61,7 +58,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.IdeGlassPane
@@ -73,8 +69,6 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.xml.util.XmlStringUtil
-import io.grpc.Status
-import io.grpc.StatusRuntimeException
 import org.HdrHistogram.Histogram
 import java.awt.BorderLayout
 import java.awt.Color
@@ -93,12 +87,10 @@ import java.awt.RenderingHints.KEY_RENDERING
 import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
 import java.awt.RenderingHints.VALUE_RENDER_QUALITY
 import java.awt.color.ColorSpace
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
-import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -193,10 +185,6 @@ class EmulatorView(
   private var screenshotFeed: Cancelable? = null
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
-
-  private var clipboardFeed: Cancelable? = null
-  @Volatile
-  private var clipboardReceiver: ClipboardReceiver? = null
 
   private var notificationFeed: Cancelable? = null
   @Volatile
@@ -313,7 +301,7 @@ class EmulatorView(
 
   private var virtualSceneCameraOperatingDisposable: Disposable? = null
   private val virtualSceneCameraVelocityController = VirtualSceneCameraVelocityController(emulator)
-  private val stats = Stats()
+  private val stats = if (StudioFlags.EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS.get()) Stats() else null
 
   init {
     Disposer.register(disposableParent, this)
@@ -338,43 +326,36 @@ class EmulatorView(
     addKeyListener(MyKeyListener())
 
     if (displayId == PRIMARY_DISPLAY_ID) {
-      addFocusListener(object : FocusAdapter() {
+      addFocusListener(object : FocusListener {
         override fun focusGained(event: FocusEvent) {
-          if (connected) {
-            setDeviceClipboardAndListenToChanges()
-          }
           if (virtualSceneCameraActive) {
             showVirtualSceneCameraPrompt()
           }
         }
 
         override fun focusLost(event: FocusEvent) {
-          cancelClipboardFeed()
           hideVirtualSceneCameraPrompt()
         }
       })
     }
 
-    if (StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.get()) {
-      val connection = ApplicationManager.getApplication().messageBus.connect(this)
-      connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
-        if (connected) {
-          val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
-          emulator.setUiTheme(style)
-        }
-      })
-    }
+    val connection = ApplicationManager.getApplication().messageBus.connect(this)
+    connection.subscribe(LafManagerListener.TOPIC, LafManagerListener {
+      if (connected) {
+        val style = if (StartupUiUtil.isUnderDarcula()) ThemingStyle.Style.DARK else ThemingStyle.Style.LIGHT
+        emulator.setUiTheme(style)
+      }
+    })
 
     updateConnectionState(emulator.connectionState)
   }
 
   override fun dispose() {
     cancelNotificationFeed()
-    cancelClipboardFeed()
     cancelScreenshotFeed()
     removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
-    Disposer.dispose(stats) // stats have to be disposed last.
+    stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
 
   fun addDisplayConfigurationListener(listener: DisplayConfigurationListener) {
@@ -524,7 +505,7 @@ class EmulatorView(
 
     if (multiTouchMode) {
       val touchEvent = TouchEvent.newBuilder()
-        .setDevice(displayId)
+        .setDisplay(displayId)
         .addTouches(createTouch(displayX, displayY, 0, button))
         .addTouches(createTouch(deviceDisplayRegion.width - displayX, deviceDisplayRegion.height - displayY, 1, button))
         .build()
@@ -533,7 +514,7 @@ class EmulatorView(
     }
     else {
       val mouseEvent = MouseEventMessage.newBuilder()
-        .setDevice(displayId)
+        .setDisplay(displayId)
         .setX(displayX.coerceIn(0, deviceDisplayRegion.width))
         .setY(displayY.coerceIn(0, deviceDisplayRegion.height))
         .setButtons(button)
@@ -565,9 +546,6 @@ class EmulatorView(
           requestScreenshotFeed()
         }
         if (displayId == PRIMARY_DISPLAY_ID) {
-          if (isFocusOwner) {
-            setDeviceClipboardAndListenToChanges()
-          }
           if (notificationFeed == null) {
             requestNotificationFeed()
           }
@@ -583,36 +561,6 @@ class EmulatorView(
 
     revalidate()
     repaint()
-  }
-
-  private fun setDeviceClipboardAndListenToChanges() {
-    val text = getClipboardText()
-    if (text.isEmpty()) {
-      requestClipboardFeed()
-    }
-    else {
-      emulator.setClipboard(ClipData.newBuilder().setText(text).build(), object : EmptyStreamObserver<Empty>() {
-        override fun onCompleted() {
-          requestClipboardFeed()
-        }
-
-        override fun onError(t: Throwable) {
-          if (t is StatusRuntimeException && t.status.code == Status.Code.UNIMPLEMENTED) {
-            notifyEmulatorIsOutOfDate()
-          }
-        }
-      })
-    }
-  }
-
-  private fun getClipboardText(): String {
-    val synchronizer = ClipboardSynchronizer.getInstance()
-    return if (synchronizer.areDataFlavorsAvailable(DataFlavor.stringFlavor)) {
-      synchronizer.getData(DataFlavor.stringFlavor) as String? ?: ""
-    }
-    else {
-      ""
-    }
   }
 
   private fun notifyEmulatorIsOutOfDate() {
@@ -671,7 +619,7 @@ class EmulatorView(
     if (!screenshot.painted) {
       screenshot.painted = true
       val paintTime = System.currentTimeMillis()
-      stats.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
+      stats?.recordLatencyEndToEnd(paintTime - screenshot.frameOriginationTime)
     }
   }
 
@@ -803,21 +751,6 @@ class EmulatorView(
     screenshotFeed = null
   }
 
-  private fun requestClipboardFeed() {
-    cancelClipboardFeed()
-    if (connected) {
-      val receiver = ClipboardReceiver()
-      clipboardReceiver = receiver
-      clipboardFeed = emulator.streamClipboard(receiver)
-    }
-  }
-
-  private fun cancelClipboardFeed() {
-    clipboardReceiver = null
-    clipboardFeed?.cancel()
-    clipboardFeed = null
-  }
-
   private fun requestNotificationFeed() {
     cancelNotificationFeed()
     if (connected) {
@@ -845,7 +778,6 @@ class EmulatorView(
   }
 
   override fun componentHidden(event: ComponentEvent) {
-    cancelClipboardFeed()
   }
 
   override fun componentMoved(event: ComponentEvent) {
@@ -939,25 +871,6 @@ class EmulatorView(
       component = component.parent
     }
     return null
-  }
-
-  private inner class ClipboardReceiver : EmptyStreamObserver<ClipData>() {
-    var responseCount = 0
-
-    override fun onNext(response: ClipData) {
-      if (clipboardReceiver != this) {
-        return // This clipboard feed has already been cancelled.
-      }
-
-      // Skip the first response that reflects the current clipboard state.
-      if (responseCount != 0 && response.text.isNotEmpty()) {
-        invokeLaterInAnyModalityState {
-          val content = StringSelection(response.text)
-          ClipboardSynchronizer.getInstance().setContent(content, content)
-        }
-      }
-      responseCount++
-    }
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
@@ -1181,7 +1094,7 @@ class EmulatorView(
       }
 
       val lostFrames = if (expectedFrameNumber > 0) response.seq - expectedFrameNumber else 0
-      stats.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
+      stats?.recordFrameArrival(arrivalTime - frameOriginationTime, lostFrames, imageFormat.width * imageFormat.height)
       expectedFrameNumber = response.seq + 1
 
       val foldedDisplay = imageFormat.foldedDisplay
@@ -1207,7 +1120,7 @@ class EmulatorView(
         if (screenshotReceiver == this) {
           val screenshot = screenshotForProcessing.getAndSet(null)
           if (screenshot == null) {
-            stats.recordDroppedFrame()
+            stats?.recordDroppedFrame()
           }
           else {
             screenshot.skinLayout = skinLayoutCache.get(screenshot.displayShape)
@@ -1234,7 +1147,7 @@ class EmulatorView(
 
       val screenshot = screenshotForDisplay.getAndSet(null)
       if (screenshot == null) {
-        stats.recordDroppedFrame()
+        stats?.recordDroppedFrame()
         return
       }
 
@@ -1377,9 +1290,9 @@ class EmulatorView(
           val frameSize = (pixelCount.toDouble() / frameCount).roundToInt()
           val neverArrived = if (droppedFrameCountBeforeArrival != 0) " (${droppedFrameCountBeforeArrival} never arrived)" else ""
           val dropped = if (droppedFrameCount != 0) " dropped frames: $droppedFrameCount$neverArrived" else ""
-          thisLogger().info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
-                            "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
-                            "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
+          LOG.info("Frames: $frameCount $dropped average frame rate: $frameRate average frame size: $frameSize pixels\n" +
+                   "latency: ${shortDebugString(latencyEndToEnd.toProto())}\n" +
+                   "latency of arrival: ${shortDebugString(latencyOfArrival.toProto())}")
         }
       }
     }
@@ -1402,6 +1315,6 @@ private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_
                                    32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
-private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis() // TODO: Change to 1 hour when switching to analytics logging.
+private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis()
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)

@@ -20,11 +20,12 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.Rotation.SkinRotation.LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
-import com.android.ide.common.util.PathString
+import com.android.io.writeImage
 import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.awt.Dimension
@@ -101,7 +102,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
     @JvmStatic
     fun create(skinFolder: Path): SkinDefinition? {
       try {
-        val layoutFile = skinFolder.resolve("layout") ?: return null
+        val layoutFile = skinFolder.resolve("layout")
         val contents = Files.readAllBytes(layoutFile).toString(UTF_8)
         val skin = SkinLayoutDefinition.parseString(contents)
         var displayWidth = 0
@@ -207,44 +208,35 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       val backgroundImages: List<AnchoredImage>
       val maskImages: List<AnchoredImage>
       val background = part.backgroundFile?.let { readImage(it) }
-      if (background == null) {
-        backgroundImages = emptyList()
-      }
-      else {
-        backgroundImages = disassembleFrame(background, frameRectangle, displaySize)
+
+      val mask = when {
+        background != null && isTransparentNearCenterOfDisplay(background, displaySize, frameRectangle) -> {
+          // The background image is transparent near the center of the display. Derive mask from the background image.
+          background.cropped(Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height)).apply {
+            // If running in a non-IDE environment and the mask file is specified in the layout but is absent on disk,
+            // create the missing mask file.
+            if (ApplicationManager.getApplication() == null && part.maskFile != null) {
+              val maskFile = Paths.get(part.maskFile.toURI())
+              if (Files.notExists(maskFile)) {
+                writeImage("WEBP", maskFile)
+              }
+            }
+          }
+        }
+        part.maskFile != null -> readImage(part.maskFile)
+        else -> null
       }
 
-      val mask =
-        if (part.maskFile != null) {
-          readImage(part.maskFile)
-        }
-        else if (part.backgroundFile?.file?.let { isCombinedMaskAndBackground(it) } == true) {
-          // Derive mask from the background image.
-          background?.cropped(Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height))
-        }
-        else {
-          null
-        }
-
-      if (mask == null) {
-        maskImages = emptyList()
-      }
-      else {
-        maskImages = disassembleMask(mask, displaySize)
-      }
+      backgroundImages = background?.let { disassembleFrame(it, frameRectangle, displaySize) } ?: emptyList()
+      maskImages = mask?.let { disassembleMask(it, displaySize) } ?: emptyList()
 
       val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
       return SkinLayout(displaySize, adjustedFrameRectangle, backgroundImages, maskImages)
     }
 
-    /**
-     * Some round Wear OS devices specify a single file that is supposed to be used for both, background and mask.
-     * To distinguish such devices this method uses a heuristic based on the skin name.
-     */
     @JvmStatic
-    private fun isCombinedMaskAndBackground(filename: String): Boolean {
-      val skinName = PathString(filename).parentFileName ?: return false
-      return skinName.startsWith("AndroidWearRound") || skinName.startsWith("wear_round")
+    private fun isTransparentNearCenterOfDisplay(image: BufferedImage, displaySize: Dimension, frameRectangle: Rectangle): Boolean {
+      return isTransparentPixel(image, displaySize.width / 2 - frameRectangle.x, displaySize.height / 2 - frameRectangle.y)
     }
 
     /**
@@ -473,7 +465,7 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
       return image
     }
 
-    private const val ALPHA_MASK = 0xFF000000.toInt()
+    private const val ALPHA_MASK = 0xFF shl 24
   }
 
   private data class Part(val backgroundFile: URL?, val maskFile: URL?)

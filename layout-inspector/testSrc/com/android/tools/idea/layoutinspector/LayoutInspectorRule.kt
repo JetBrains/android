@@ -26,6 +26,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -33,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -64,13 +66,24 @@ val LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
   override val version = "M"
 }
 
-fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp", pid: Int = 1, streamId: Long = 13579): ProcessDescriptor {
+val OLDER_LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
+  override val model = "Older Legacy Model"
+  override val serial = "12"
+  override val apiLevel = AndroidVersion.VersionCodes.LOLLIPOP
+  override val version = "L"
+}
+
+fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp",
+                                   pid: Int = 1,
+                                   streamId: Long = 13579,
+                                   isRunning: Boolean = true
+): ProcessDescriptor {
   val device = this
   return object : ProcessDescriptor {
     override val device = device
     override val abiCpuArch = "x86_64"
     override val name = name
-    override val isRunning = true
+    override val isRunning = isRunning
     override val pid = pid
     override val streamId = streamId
   }
@@ -83,15 +96,15 @@ fun DeviceDescriptor.createProcess(name: String = "com.example.layout.MyApp", pi
  * This will be used to handle initializing this rule's [InspectorClientLauncher].
  */
 interface InspectorClientProvider {
-  fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient
+  fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient
 }
 
 /**
  * Simple, convenient provider for generating a real [LegacyClient]
  */
 class LegacyClientProvider(private val treeLoaderOverride: LegacyTreeLoader? = null) : InspectorClientProvider {
-  override fun create(params: InspectorClientLauncher.Params, model: InspectorModel): InspectorClient {
-    return LegacyClient(params.adb, params.process, model, treeLoaderOverride)
+  override fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient {
+    return LegacyClient(params.adb, params.process, inspector.layoutInspectorModel, inspector.stats, treeLoaderOverride)
   }
 }
 
@@ -238,7 +251,7 @@ class LayoutInspectorRule(
     inspectorModel = InspectorModel(projectRule.project)
     launcher = InspectorClientLauncher(adbRule.bridge,
                                        processes,
-                                       listOf { params -> clientProvider.create(params, inspectorModel) },
+                                       listOf { params -> clientProvider.create(params, inspector) },
                                        launcherDisposable,
                                        MoreExecutors.directExecutor())
     Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
@@ -255,7 +268,9 @@ class LayoutInspectorRule(
     }
 
     // This factory will be triggered when LayoutInspector is created
-    inspector = LayoutInspector(launcher, inspectorModel, MoreExecutors.directExecutor())
+    val treeSettings = FakeTreeSettings()
+    val stats = SessionStatistics(inspectorModel, treeSettings)
+    inspector = LayoutInspector(launcher, inspectorModel, stats, treeSettings, MoreExecutors.directExecutor())
     launcher.addClientChangedListener {
       inspectorClient = it
     }

@@ -98,12 +98,6 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  @Nullable
-  public SigningConfig getSigningConfig() {
-    return null;
-  }
-
-  @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     return Collections.emptyMap();

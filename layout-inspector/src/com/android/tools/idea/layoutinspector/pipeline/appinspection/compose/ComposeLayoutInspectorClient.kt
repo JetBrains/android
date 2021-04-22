@@ -166,6 +166,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
         this.maxElements = maxElements
         referenceBuilder.apply {
           composableId = reference.nodeId
+          kind = reference.kind.convert()
           parameterIndex = reference.parameterIndex
           addAllCompositeIndex(reference.indices.asIterable())
         }

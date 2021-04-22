@@ -73,6 +73,7 @@ import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.inprocess.InProcessServerBuilder
 import io.grpc.stub.StreamObserver
+import org.junit.Assert
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.RenderingHints
@@ -95,16 +96,16 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.CREATE_NEW
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Predicate
 import javax.imageio.ImageIO
-import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -120,9 +121,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private var grpcServer = createGrpcServer()
   private val lifeCycleLock = Object()
   private var startTime = 0L
-  private val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
-                                             "android.emulation.control.EmulatorController/getDisplayConfigurations",
-                                             "android.emulation.control.EmulatorController/streamNotification")
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
 
@@ -171,7 +169,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
-  private val grpcLock = ReentrantLock()
+  private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
 
   init {
     val embeddedFlags = if (standalone) {
@@ -310,11 +308,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   fun pauseGrpc() {
-    grpcLock.lock()
+    grpcSemaphore.drainPermits()
   }
 
   fun resumeGrpc() {
-    grpcLock.unlock()
+    grpcSemaphore.release(Int.MAX_VALUE)
   }
 
   private fun createGrpcServer(): Server {
@@ -463,6 +461,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
     val event = if (cameraActive) EventType.VIRTUAL_SCENE_CAMERA_ACTIVE else EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
     return Notification.newBuilder().setEvent(event).build()
+  }
+
+  private inline fun <T> Semaphore.withPermit(action: () -> T): T {
+    acquire()
+    try {
+      return action()
+    } finally {
+      release()
+    }
   }
 
   private inner class EmulatorControllerService(
@@ -704,7 +711,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       val forwardingCall = object : SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
-          grpcLock.withLock {
+          grpcSemaphore.withPermit {
             callRecord.responseMessageCounter.add(Unit)
             super.sendMessage(response)
           }
@@ -712,7 +719,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
-          grpcLock.withLock {
+          grpcSemaphore.withPermit {
             callRecord.request = request as MessageOrBuilder
             grpcCallLog.add(callRecord)
             super.onMessage(request)
@@ -749,6 +756,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       completion.get(timeout, unit)
     }
 
+    fun waitForCancellation(timeout: Long, unit: TimeUnit) {
+      try {
+        waitForCompletion(2, TimeUnit.SECONDS)
+        Assert.fail("The $methodName call was not cancelled")
+      }
+      catch (expected: CancellationException) {
+      }
+    }
+
     override fun toString(): String {
       return "$methodName(${shortDebugString(request)})"
     }
@@ -757,6 +773,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   class CallFilter(private vararg val methodNamesToIgnore: String) : Predicate<GrpcCallRecord> {
     override fun test(call: GrpcCallRecord): Boolean {
       return call.methodName !in methodNamesToIgnore
+    }
+
+    fun or(vararg moreMethodNamesToIgnore: String): CallFilter {
+      return CallFilter(*arrayOf(*methodNamesToIgnore) + arrayOf(*moreMethodNamesToIgnore))
     }
   }
 
@@ -1141,6 +1161,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
+
+    @JvmStatic
+    val defaultCallFilter = CallFilter("android.emulation.control.EmulatorController/getVmState",
+                                       "android.emulation.control.EmulatorController/getDisplayConfigurations",
+                                       "android.emulation.control.EmulatorController/streamNotification")
   }
 }
 

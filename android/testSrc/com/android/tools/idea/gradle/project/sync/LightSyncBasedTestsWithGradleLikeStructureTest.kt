@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.buildNdkModelStub
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
+import com.android.tools.idea.testing.updateTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
@@ -165,6 +170,34 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
     val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
     assertIsEqualToSnapshot(dump)
   }
+
+  @Test
+  fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
+    val tempRoot = File(myFixture.tempDirPath)
+    setupTestProjectFromAndroidModel(
+      project,
+      tempRoot,
+      rootModuleBuilder,
+      appModuleBuilder,
+      libModuleBuilder
+    )
+    val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot))
+
+    // Do not request before setup as it replaces the project system implementation.
+    val syncModificationTracker = ProjectSyncModificationTracker.getInstance(project)
+    val syncStamp = syncModificationTracker.modificationCount
+    updateTestProjectFromAndroidModel(
+      project,
+      tempRoot,
+      rootModuleBuilder,
+      appModuleBuilder,
+      libModuleBuilderWithLib(tempRoot.resolve(".gradle"))
+    )
+    assertThat(syncModificationTracker.modificationCount).isGreaterThan(syncStamp)
+    val dumpAfter = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot))
+
+    assertAreEqualToSnapshots(dump to ".before", dumpAfter to ".after")
+  }
 }
 
 private val appModuleBuilder = AndroidModuleModelBuilder(
@@ -172,4 +205,35 @@ private val appModuleBuilder = AndroidModuleModelBuilder(
   "debug",
   AndroidProjectBuilder(androidModuleDependencyList = { listOf(AndroidModuleDependency(":lib", "debug")) })
 )
+
 private val libModuleBuilder = AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder())
+private fun libModuleBuilderWithLib(gradleCacheRoot: File) =
+  AndroidModuleModelBuilder(
+    ":lib",
+    "debug",
+    AndroidProjectBuilder(
+      androidLibraryDependencyList = { listOf(ideAndroidLibrary(gradleCacheRoot, "com.example:library:1.0")) }
+    )
+  )
+
+private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
+  IdeAndroidLibraryImpl(
+    artifactAddress = artifactAddress,
+    folder = gradleCacheRoot.resolve(File("libraryFolder")),
+    manifest = "manifest.xml",
+    compileJarFiles = listOf("api.jar"),
+    runtimeJarFiles = listOf("file.jar"),
+    resFolder = "res",
+    resStaticLibrary = File("libraryFolder/res.apk"),
+    assetsFolder = "assets",
+    jniFolder = "jni",
+    aidlFolder = "aidl",
+    renderscriptFolder = "renderscriptFolder",
+    proguardRules = "proguardRules",
+    lintJar = "lint.jar",
+    externalAnnotations = "externalAnnotations",
+    publicResources = "publicResources",
+    artifact = gradleCacheRoot.resolve(File("artifactFile")),
+    symbolFile = "symbolFile",
+    isProvided = false
+  )

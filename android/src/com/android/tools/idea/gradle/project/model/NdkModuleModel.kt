@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.intellij.openapi.module.Module
 import com.intellij.serialization.PropertyMapping
@@ -68,7 +68,7 @@ data class NdkModuleModel
   override fun getModuleName() = moduleName
 
   fun getDefaultVariantAbi(): VariantAbi? =
-    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && abi == "x86" } ?: allVariantAbis.firstOrNull()
+    allVariantAbis.firstOrNull { (variant, abi) -> variant == "debug" && (abi == "x86" || abi == "x86_64") } ?: allVariantAbis.firstOrNull()
 
   companion object {
     @JvmStatic

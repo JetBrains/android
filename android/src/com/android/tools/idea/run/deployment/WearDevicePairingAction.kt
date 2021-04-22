@@ -16,10 +16,12 @@
 package com.android.tools.idea.run.deployment
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
 import com.android.tools.idea.wearparing.WearDevicePairingWizard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import icons.StudioIcons
 
 /**
  * The action to show the [WearDevicePairingWizard] dialog.
@@ -31,7 +33,12 @@ class WearDevicePairingAction : AnAction() {
   @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = e.project != null && WEAR_DEVICE_PAIRING_ENABLED.get()
+    e.presentation.apply {
+      isEnabledAndVisible = e.project != null && WEAR_DEVICE_PAIRING_ENABLED.get()
+      if (isEnabled && selectedIcon == null) {
+        selectedIcon = generateWhiteIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
+      }
+    }
   }
 
   @UiThread

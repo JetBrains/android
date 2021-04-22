@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,10 +44,15 @@ public class NullMonitorStage extends StreamingStage {
 
   @Override
   public void enter() {
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
   }
 
   @Override
   public void exit() {
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.NULL_STAGE;
   }
 }

@@ -25,6 +25,8 @@ import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.intellij.util.Base64
+import perfetto.protos.PerfettoTrace
 import java.io.File
 import java.io.FileInputStream
 import java.io.ObjectInputStream
@@ -81,6 +83,12 @@ class FakeTraceProcessorService: TraceProcessorService {
    */
   var forceFailLoadTrace = false
 
+  /**
+   * Setup test UiState data to be returned when parsing a trace. If the trace id is not found in this list, an empty UiState will be
+   * returned.
+   */
+  val uiStateForTraceId = mutableMapOf<Long, String>()
+
   override fun loadTrace(traceId: Long, traceFile: File, ideProfilerServices: IdeProfilerServices): Boolean {
     if (validTraces.contains(traceFile) && !forceFailLoadTrace) {
       loadedTraces[traceId] = traceFile
@@ -96,6 +104,14 @@ class FakeTraceProcessorService: TraceProcessorService {
     } else {
       return emptyList()
     }
+  }
+
+  override fun getTraceMetadata(traceId: Long, metadataName: String, ideProfilerServices: IdeProfilerServices): List<String> {
+    val metadataList = mutableListOf<String>()
+    if (metadataName.equals("ui_state") && uiStateForTraceId.containsKey(traceId)) {
+      metadataList.add(uiStateForTraceId[traceId]!!)
+    }
+    return metadataList
   }
 
   override fun loadCpuData(traceId: Long, processIds: List<Int>, ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter {

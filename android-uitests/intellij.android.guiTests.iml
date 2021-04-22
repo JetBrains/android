@@ -56,6 +56,7 @@
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />

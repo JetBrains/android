@@ -33,7 +33,7 @@ class LegacyAndroidWindow(
   private val windowName: String)
   : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
 
-  override fun doRefreshImages(scale: Double) {
+  override fun refreshImages(scale: Double) {
     val image = client.latestScreenshots[windowName]?.let { pngBytes ->
       ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
         it.getScaledInstance((it.width * scale).toInt(), (it.height * scale).toInt(), Image.SCALE_DEFAULT)

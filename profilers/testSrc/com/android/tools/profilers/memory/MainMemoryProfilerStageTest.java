@@ -45,17 +45,18 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.nio.ByteBuffer;
@@ -769,13 +770,14 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
                                           .setPid(ProfilersTestData.SESSION_DATA.getPid())
                                           .build());
 
-    DataSeries<CaptureDurationData<CaptureObject>> series =
+    DataSeries<CaptureDurationData<? extends CaptureObject>> series =
       CaptureDataSeries.ofHeapDumpSamples(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                           myIdeProfilerServices.getFeatureTracker(), myStage);
-    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     myStage.selectCaptureDuration(dataList.get(0).value, null);
-    assertThat(myProfilers.getStage()).isInstanceOf(HeapDumpStage.class);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+    assertThat(myProfilers.getStage().getStageType()).isEqualTo(AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE);
   }
 
   @Test

@@ -16,36 +16,17 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
-import com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
-import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
-import com.android.tools.utp.GradleAndroidProjectResolverExtension.Companion.ENABLE_UTP_TEST_REPORT_PROPERTY
-import com.android.tools.utp.TaskOutputLineProcessor
-import com.android.tools.utp.TaskOutputProcessor
-import com.android.utils.usLocaleCapitalize
-import com.google.common.annotations.VisibleForTesting
-import com.intellij.execution.process.ProcessAdapter
-import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessOutputTypes
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
-import java.io.File
 
 /**
- * LaunchTask for delegating instrumentation tests to AGP from AS
+ * LaunchTask for delegating instrumentation tests to AGP from AS.
  */
 class GradleAndroidTestApplicationLaunchTask private constructor(
   private val project: Project,
@@ -58,10 +39,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   private val testPackageName: String,
   private val testClassName: String,
   private val testMethodName: String,
-  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : AppLaunchTask(){
+  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : AppLaunchTask() {
 
   companion object {
-
     /**
      * Creates [GradleAndroidTestApplicationLaunchTask] for all-in-module test.
      */
@@ -144,53 +124,9 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     if (!checkAndroidGradlePluginVersion()) {
       return LaunchResult.error("ANDROID_TEST_AGP_VERSION_TOO_OLD", "checking the Android Gradle plugin version")
     }
-    if (myGradleConnectedAndroidTestInvoker.run(device)) {
-      consolePrinter.stdout("Running tests\n")
-      val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-      val adapters = myGradleConnectedAndroidTestInvoker.getDevices().map {
-        val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
-        adapter.device.id to adapter
-      }.toMap()
-
-      val path: File = getBaseDirPath(project)
-      val taskNames: List<String> = getTaskNames()
-      val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(ProjectSystemId(taskId),
-                                                                             ExternalSystemTaskType.EXECUTE_TASK, project)
-      val taskOutputProcessor = TaskOutputProcessor(adapters)
-      val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
-        val outputLineProcessor = TaskOutputLineProcessor(object:TaskOutputLineProcessor.LineProcessor {
-          override fun processLine(line: String) {
-            val processedText = taskOutputProcessor.process(line)
-            if (!(processedText.isBlank() && line != processedText)) {
-              consolePrinter.stdout(processedText)
-            }
-          }
-        })
-        override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-          super.onTaskOutput(id, text, stdOut)
-          if (stdOut) {
-            outputLineProcessor.append(text)
-          } else {
-            processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
-          }
-        }
-
-        override fun onEnd(id: ExternalSystemTaskId) {
-          super.onEnd(id)
-          outputLineProcessor.close()
-          processHandler.detachProcess()
-        }
-      }
-
-      processHandler.addProcessListener(object: ProcessAdapter() {
-        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-          if (willBeDestroyed) {
-            AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
-          }
-        }
-      })
-      AndroidGradleTaskManager().executeTasks(externalTaskId, taskNames, path.path, getGradleExecutionSettings(), null, listener)
-    }
+    myGradleConnectedAndroidTestInvoker.schedule(
+      project, taskId, processHandler, consolePrinter, androidModuleModel,
+      waitForDebugger, testPackageName, testClassName, testMethodName, device)
     return LaunchResult.success()
   }
 
@@ -207,45 +143,4 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   override fun getId(): String = "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK"
   override fun getDescription(): String = "Launching a connectedAndroidTest for selected devices"
   override fun getDuration(): Int = LaunchTaskDurations.LAUNCH_ACTIVITY
-
-  @VisibleForTesting
-  fun getGradleExecutionSettings(): GradleExecutionSettings {
-    return getOrCreateGradleExecutionSettings(project).apply {
-      // Add an environmental variable to filter connected devices for selected devices.
-      val deviceSerials = myGradleConnectedAndroidTestInvoker.getDevices().joinToString(",") { device ->
-        device.serialNumber
-      }
-      withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
-
-      // Enable UTP in Gradle. This is required for Android Studio integration.
-      withArgument("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
-
-      // Enable UTP test results reporting by embedded XML tag in stdout.
-      withArgument("-P${ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
-
-      // Add a test filter.
-      if (testPackageName != "" || testClassName != "") {
-        var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
-        if (testPackageName != "") {
-          testTypeArgs += ".package=$testPackageName"
-        } else if (testClassName != "") {
-          testTypeArgs += ".class=$testClassName"
-          if (testMethodName != "") {
-            testTypeArgs += "#$testMethodName"
-          }
-        }
-        withArgument(testTypeArgs)
-      }
-
-      // Enable debug flag for run with debugger.
-      if (waitForDebugger) {
-        withArgument("-Pandroid.testInstrumentationRunnerArguments.debug=true")
-      }
-    }
-  }
-
-  @VisibleForTesting
-  fun getTaskNames(): List<String> {
-    return listOf("connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest")
-  }
 }

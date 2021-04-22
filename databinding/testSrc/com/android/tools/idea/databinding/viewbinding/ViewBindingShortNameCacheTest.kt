@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectBuilder

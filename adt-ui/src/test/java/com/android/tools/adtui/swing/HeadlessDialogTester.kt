@@ -26,9 +26,7 @@ import com.intellij.openapi.actionSystem.CommonShortcuts
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager.getApplication
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.impl.LaterInvocator
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.CommandProcessorEx
 import com.intellij.openapi.project.DumbAware
@@ -49,8 +47,11 @@ import com.intellij.ui.ComponentUtil
 import com.intellij.ui.SpeedSearchBase
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.Consumer
+import com.intellij.util.ExceptionUtil
+import com.intellij.util.ReflectionUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
+import java.awt.AWTEvent
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -58,11 +59,14 @@ import java.awt.EventQueue
 import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
 import java.awt.Point
+import java.awt.Toolkit
 import java.awt.Window
+import java.awt.event.InvocationEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionAdapter
 import java.awt.event.MouseMotionListener
+import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -103,7 +107,7 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: R
       while (true) {
         if (modalDialogStack.size == modalDepth) {
           val dialog = modalDialogStack.last()
-          invokeLater(ModalityState.any()) {
+          EventQueue.invokeLater {
             try {
               dialogInteractor.consume(dialog)
             }
@@ -129,8 +133,9 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: R
     dialogCreator.run()
 
     while (dialogClosed.count > 0) {
-      UIUtil.dispatchAllInvocationEvents()
-      dialogClosed.await(10, TimeUnit.MILLISECONDS)
+      if (dispatchNextInvocationEventIfAny() == null) {
+        dialogClosed.await(10, TimeUnit.MILLISECONDS)
+      }
     }
   }
   finally {
@@ -140,11 +145,34 @@ private fun createModalDialogAndInteractWithIt(modalDepth: Int, dialogCreator: R
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
 
+private fun dispatchNextInvocationEventIfAny(): AWTEvent? {
+  // Code similar to EdtInvocationManager.dispatchAllInvocationEvents.
+  val eventQueue = Toolkit.getDefaultToolkit().systemEventQueue
+  while (eventQueue.peekEvent() != null) {
+    try {
+      val event = eventQueue.nextEvent
+      if (event is InvocationEvent) {
+        dispatchEventMethod.invoke(eventQueue, event)
+        return event
+      }
+    }
+    catch (e: InvocationTargetException) {
+      ExceptionUtil.rethrowAllAsUnchecked(e.cause)
+    }
+    catch (e: Exception) {
+      ExceptionUtil.rethrow(e)
+    }
+  }
+  return null
+}
+
 private val modalityChangeLock = ReentrantLock()
 @GuardedBy("modalityChangeLock")
 private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
+
+private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 
 /**
  * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
@@ -391,8 +419,10 @@ private class HeadlessDialogWrapperPeer(
 
     try {
       val eventQueue = IdeEventQueue.getInstance()
-      while (latch.count > 0 && PlatformTestUtil.dispatchNextEventIfAny(eventQueue) != null) {
-        latch.await(10, TimeUnit.MILLISECONDS)
+      while (latch.count > 0) {
+        if (PlatformTestUtil.dispatchNextEventIfAny(eventQueue) == null) {
+          latch.await(10, TimeUnit.MILLISECONDS)
+        }
       }
     } finally {
       modalityChangeLock.withLock {

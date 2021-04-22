@@ -57,10 +57,12 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   val listeners = HashSet<Listener>()
 
   /** Tracks metric related to atf */
+  @VisibleForTesting
   private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
   /** Listener for issue panel open/close */
-  private val issuePanelListener = object : IssuePanel.EventListener {
+  @VisibleForTesting
+  val issuePanelListener = object : IssuePanel.EventListener {
     override fun onPanelExpanded(isExpanded: Boolean) {
       if (isExpanded) {
         metricTracker.trackIssues(issues, renderMetric)
@@ -73,6 +75,16 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
       }
     }
 
+  }
+
+  private val atfIssueEventListener = object: NlAtfIssue.EventListener {
+    override fun onApplyFixButtonClicked(issue: ValidatorData.Issue) {
+      metricTracker.trackApplyFixButtonClicked(issue)
+    }
+
+    override fun onIgnoreButtonClicked(issue: ValidatorData.Issue) {
+      metricTracker.trackIgnoreButtonClicked(issue)
+    }
   }
 
   init {
@@ -138,7 +150,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
           if (component == null) {
             issuesWithoutSources++
           } else {
-            lintIntegrator.createIssue(it, component)
+            lintIntegrator.createIssue(it, component, atfIssueEventListener)
           }
         }
         // TODO: b/180069618 revisit metrics. Should log each issue.

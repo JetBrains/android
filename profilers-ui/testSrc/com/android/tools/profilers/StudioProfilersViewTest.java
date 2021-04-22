@@ -40,13 +40,14 @@ import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
-import com.android.tools.profilers.memory.HeapDumpStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryCaptureStage;
 import com.android.tools.profilers.memory.MemoryMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionsView;
 import com.google.common.truth.Truth;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.EdtRule;
@@ -518,7 +519,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void nonTimelineStageHidesRightToolbar_timelineStageShowsRightToolbar() {
-    myProfilers.setStage(new HeapDumpStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
+    myProfilers.setStage(new MemoryCaptureStage(myProfilers, new FakeCaptureObjectLoader(), null, null));
     assertThat(myView.getRightToolbar().isVisible()).isFalse();
 
     myProfilers.setStage(new MainMemoryProfilerStage(myProfilers));
@@ -576,6 +577,11 @@ public class StudioProfilersViewTest {
 
     @Override
     public void exit() { }
+
+    @Override
+    public AndroidProfilerEvent.Stage getStageType() {
+      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
+    }
 
     @Nullable
     @Override

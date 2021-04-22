@@ -10,11 +10,10 @@ PROJECT                       : testApiDependency
         COMPILER_MODULE_EXTENSION
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/testApiDependency.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/testApiDependency.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         CONENT_ENTRY                  : file://<PROJECT>
             EXCLUDE_FOLDER                : file://<PROJECT>/.gradle
@@ -33,11 +32,10 @@ PROJECT                       : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/app/testApiDependency.app.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/app/testApiDependency.app.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -75,7 +73,6 @@ PROJECT                       : testApiDependency
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
@@ -495,15 +492,13 @@ PROJECT                       : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jlib
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jlib
             EXCLUDE_FOLDER                : file://<PROJECT>/jlib/.gradle [-]
@@ -540,15 +535,13 @@ PROJECT                       : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :jlib0
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : true
         CONENT_ENTRY                  : file://<PROJECT>/jlib0
             EXCLUDE_FOLDER                : file://<PROJECT>/jlib0/.gradle [-]
@@ -586,11 +579,10 @@ PROJECT                       : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib/testApiDependency.lib.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/lib/testApiDependency.lib.iml
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -628,7 +620,6 @@ PROJECT                       : testApiDependency
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]

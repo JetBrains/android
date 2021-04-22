@@ -26,19 +26,19 @@ import static java.util.stream.Collectors.toMap;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.build.GenericBuiltArtifacts;
-import com.android.ide.common.gradle.model.IdeAaptOptions;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
-import com.android.ide.common.gradle.model.IdeApiVersion;
-import com.android.ide.common.gradle.model.IdeArtifactName;
-import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeJavaCompileOptions;
-import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
-import com.android.ide.common.gradle.model.IdeSourceProvider;
-import com.android.ide.common.gradle.model.IdeTestOptions;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAaptOptions;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeApiVersion;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeJavaCompileOptions;
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
+import com.android.tools.idea.gradle.model.IdeTestOptions;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.util.LastBuildOrSyncService;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.model.Namespacing;
+import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -68,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -544,26 +544,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
-  public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
-    IdeVariant variant = getSelectedVariant();
-    AndroidFacetProperties state = facet.getProperties();
-    state.SELECTED_BUILD_VARIANT = variant.getName();
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-
-    // When multi test artifacts are enabled, test tasks are computed dynamically.
-    updateGradleTaskNames(state, mainArtifact);
-  }
-
-  private static void updateGradleTaskNames(@NotNull AndroidFacetProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
-    state.ASSEMBLE_TASK_NAME = mainArtifact.getBuildInformation().getAssembleTaskName();
-    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = new HashSet<>(mainArtifact.getIdeSetupTaskNames());
-
-    state.ASSEMBLE_TEST_TASK_NAME = "";
-    state.COMPILE_JAVA_TEST_TASK_NAME = "";
-  }
-
   @Override
   @NotNull
   public ClassJarProvider getClassJarProvider() {
@@ -629,6 +609,25 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       }
 
       return artifacts.getApplicationId();
+    }
+  }
+
+  @Override
+  public @Nullable TestExecutionOption getTestExecutionOption() {
+    IdeAndroidArtifact testArtifact = getSelectedVariant().getAndroidTestArtifact();
+    if (testArtifact == null) return null;
+
+    IdeTestOptions testOptions = testArtifact.getTestOptions();
+    if (testOptions == null) return null;
+
+    IdeTestOptions.Execution execution = testOptions.getExecution();
+    if (execution == null) return null;
+
+    switch (execution) {
+      case ANDROID_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROID_TEST_ORCHESTRATOR;
+      case ANDROIDX_TEST_ORCHESTRATOR: return TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR;
+      case HOST: return TestExecutionOption.HOST;
+      default: throw new IllegalStateException("Unknown option: " + execution);
     }
   }
 }

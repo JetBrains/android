@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
@@ -46,6 +47,9 @@ class ViewInspectorTreeLoader(
   private var isInterrupted = false
 
   private val viewNodeCreator = ViewNodeCreator(viewEvent, composeEvent)
+
+  val dynamicCapabilities: Set<InspectorClient.Capability>
+    get() = viewNodeCreator.dynamicCapabilities
 
   @Suppress("unused") // Need to keep a reference to receive notifications
   private val lowMemoryWatcher = LowMemoryWatcher.register(

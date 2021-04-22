@@ -47,9 +47,9 @@ import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
@@ -91,7 +91,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -126,22 +125,16 @@ public class AndroidGradleTests {
    */
   public static class SyncIssuesPresentError extends AssertionError {
     @NotNull
-    private List<SyncIssueData> issues;
-    public SyncIssuesPresentError(@NotNull String message, @NotNull List<SyncIssueData> issues) {
+    private List<IdeSyncIssue> issues;
+    public SyncIssuesPresentError(@NotNull String message, @NotNull List<IdeSyncIssue> issues) {
       super(message);
       this.issues = issues;
     }
 
     @NotNull
-    public List<SyncIssueData> getIssues() {
+    public List<IdeSyncIssue> getIssues() {
       return issues;
     }
-  }
-
-  /** Interface to allow tests to accept sync issues as valid when they load a project */
-  public interface SyncIssueFilter {
-    /** returns true if the error should be ignored */
-    boolean ignoreIssue(@NotNull SyncIssueData issue);
   }
 
   /**
@@ -304,6 +297,8 @@ public class AndroidGradleTests {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     gradleProperties.setJvmArgs(Strings.nullToEmpty(gradleProperties.getJvmArgs()) + " -XX:MaxMetaspaceSize=768m ");
+    // Disable Gradle file watching as it may be causing DirectoryNotEmptyException, see b/184293946.
+    gradleProperties.getProperties().setProperty("org.gradle.vfs.watch", "false");
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
       gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
     }
@@ -530,8 +525,7 @@ public class AndroidGradleTests {
    */
   public static void importProject(
     @NotNull Project project,
-    @NotNull GradleSyncInvoker.Request syncRequest,
-    @Nullable SyncIssueFilter issueFilter) throws Exception {
+    @NotNull GradleSyncInvoker.Request syncRequest) throws Exception {
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.configureNewProject(project);
@@ -539,7 +533,7 @@ public class AndroidGradleTests {
       return syncProject(project, syncRequest);
     });
 
-    AndroidGradleTests.checkSyncStatus(project, syncListener, issueFilter);
+    AndroidGradleTests.checkSyncStatus(project, syncListener);
     AndroidTestBase.refreshProjectFiles();
   }
 
@@ -579,21 +573,16 @@ public class AndroidGradleTests {
   }
 
   public static void checkSyncStatus(@NotNull Project project,
-                                     @NotNull TestGradleSyncListener syncListener,
-                                     @Nullable SyncIssueFilter issueFilter) throws SyncIssuesPresentError {
+                                     @NotNull TestGradleSyncListener syncListener) throws SyncIssuesPresentError {
     if (!syncListener.isSyncFinished() || syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
     // Also fail the test if SyncIssues with type errors are present.
-    List<SyncIssueData> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
+    List<IdeSyncIssue> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
       .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
-    Stream<SyncIssueData> errorStream = errors.stream();
-    if (issueFilter != null) {
-      errorStream = errorStream.filter(data -> !issueFilter.ignoreIssue(data));
-    }
-    String errorMessage = errorStream.map(SyncIssueData::toString).collect(Collectors.joining("\n"));
+    String errorMessage = errors.stream().map(IdeSyncIssue::toString).collect(Collectors.joining("\n"));
     if (!errorMessage.isEmpty()) {
       throw new SyncIssuesPresentError(errorMessage, errors);
     }

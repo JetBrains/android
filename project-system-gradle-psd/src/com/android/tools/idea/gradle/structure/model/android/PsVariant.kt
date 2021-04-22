@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeArtifactName
-import com.google.common.annotations.VisibleForTesting
-import com.android.ide.common.gradle.model.IdeVariant
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.utils.combineAsCamelCase
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import icons.AndroidIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
 private val LOG = Logger.getInstance(PsVariant::class.java)
@@ -61,7 +61,7 @@ open class PsVariant(
 
   override val isDeclared: Boolean = false
 
-  override val icon: Icon? = AndroidIcons.Variant
+  override val icon: Icon? = StudioIcons.Misc.PROJECT_SYSTEM_VARIANT
 
   fun findArtifact(name: IdeArtifactName): PsAndroidArtifact? {
     return artifactCollection.findElement(name)

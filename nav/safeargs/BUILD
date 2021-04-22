@@ -40,11 +40,10 @@ iml_module(
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
     # keep sorted
     test_data = [
-        ":testdeps_repo.zip",
+        ":testdeps_repo",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/nav/safeargs/testData",
         "//tools/base/build-system:gradle-distrib",
@@ -84,4 +83,5 @@ maven_repo(
     artifacts = [
         "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
     ],
+    use_zip = False,
 )

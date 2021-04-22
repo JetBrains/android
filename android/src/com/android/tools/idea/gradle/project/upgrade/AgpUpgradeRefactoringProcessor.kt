@@ -79,9 +79,10 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_BUILD_FEATURES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
-import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
@@ -104,6 +105,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
@@ -449,12 +451,19 @@ class AgpUpgradeRefactoringProcessor(
 
     val presentation = createPresentation(viewDescriptor, usages)
     if (usageView == null) {
-      usageView = viewManager.showUsages(targets, usages, presentation, factory)
-      customizeUsagesView(viewDescriptor, usageView!!)
+      usageView = viewManager.showUsages(targets, usages, presentation, factory).apply {
+        Disposer.register(this, { usageView = null })
+        customizeUsagesView(viewDescriptor, this)
+      }
     }
     else {
-      usageView?.run { removeUsagesBulk(this.usages) }
-      (usageView as UsageViewImpl).appendUsagesInBulk(Arrays.asList(*usages))
+      (usageView as? UsageViewImpl)?.run {
+        removeUsagesBulk(this.usages)
+        appendUsagesInBulk(Arrays.asList(*usages))
+        // TODO(xof): switch to Find tab with our existing usageView in it (but it's more complicated than that
+        //  because the user might have detached the usageView and it might be visible, floating in a window
+        //  somewhere, or arbitrarily minimized).
+      }
     }
     // TODO(xof): investigate whether UnloadedModules are a thing we support / understand
     //val unloadedModules = computeUnloadedModulesFromUseScope(viewDescriptor)
@@ -1073,8 +1082,23 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             }
             psiElement?.let {
               val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
-              usages.add(WellKnownGradlePluginUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
+              usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
             }
+          }
+        }
+      }
+      model.plugins().forEach plugin@{ plugin ->
+        if (plugin.version().valueType == STRING) {
+          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@plugin
+          if (GradleVersion(0,0) >= version) return@plugin
+          WELL_KNOWN_GRADLE_PLUGIN_TABLE[plugin.name().toString()]?.let { info ->
+            val minVersion = info(compatibleGradleVersion)
+            if (minVersion <= version) return@plugin
+            val resultModel = plugin.version().resultModel
+            val element = resultModel.rawElement
+            val psiElement = element?.psiElement ?: return@plugin
+            val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+            usages.add(WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, plugin, resultModel, minVersion.toString()))
           }
         }
       }
@@ -1163,11 +1187,33 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_6_5, VERSION_6_7_1, VERSION_FOR_DEV -> GradleVersion.parse("1.6.1.0")
       }
 
+    fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
+        VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("2.0.0")
+        VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
+      }
+
+    /**
+     * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
+     * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
+     * plugins Dsl).
+     */
     val WELL_KNOWN_GRADLE_PLUGIN_TABLE = mapOf(
       "org.jetbrains.kotlin:kotlin-gradle-plugin" to ::`kotlin-gradle-plugin-compatibility-info`,
+      "org.jetbrains.kotlin.android" to ::`kotlin-gradle-plugin-compatibility-info`,
+
       "androidx.navigation:navigation-safe-args-gradle-plugin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
-      "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`
-    )
+      "androidx.navigation.safeargs" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+      "androidx.navigation.safeargs.kotlin" to ::`androidx-navigation-safeargs-gradle-plugin-compatibility-info`,
+
+      "de.mannodermaus.gradle.plugins:android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
+      "de.mannodermaus.android-junit5" to ::`de-mannodermaus-android-junit5-plugin-compatibility-info`,
+
+      "com.google.firebase:firebase-crashlytics-gradle" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
+      "com.google.firebase.crashlytics" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
+
+      )
   }
 }
 
@@ -1214,7 +1260,7 @@ class GradleVersionUsageInfo(
   fun String.escapeColons() = this.replace(":", "\\:")
 }
 
-class WellKnownGradlePluginUsageInfo(
+class WellKnownGradlePluginDependencyUsageInfo(
   element: WrappedPsiElement,
   val dependency: ArtifactDependencyModel,
   val resultModel: GradlePropertyModel,
@@ -1227,6 +1273,21 @@ class WellKnownGradlePluginUsageInfo(
   override fun getDiscriminatingValues() = listOf(dependency.group().toString(), dependency.name().toString(), version)
 
   override fun getTooltipText() = "Update version of ${dependency.group()}:${dependency.name()} to $version"
+}
+
+class WellKnownGradlePluginDslUsageInfo(
+  element: WrappedPsiElement,
+  val plugin: PluginModel,
+  val resultModel: GradlePropertyModel,
+  val version: String
+): GradleBuildModelUsageInfo(element) {
+  override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
+    resultModel.setValue(version)
+  }
+
+  override fun getDiscriminatingValues() = listOf(plugin.name().toString(), version)
+
+  override fun getTooltipText() = "Update version of ${plugin.name().toString()} to $version"
 }
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -1482,10 +1543,11 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
       //  to determine what kind of a module we have.
       val applicationSet = setOf(
         "application", "org.gradle.application", // see Gradle documentation for PluginDependenciesSpec for `org.gradle.` prefix
+        "android", // deprecated but equivalent to com.android.application
         "com.android.application", "com.android.test", "com.android.instant-app")
       val librarySet = setOf(
         "java", "java-library", "org.gradle.java", "org.gradle.java-library",
-        "com.android.library", "com.android.dynamic-feature", "com.android.feature")
+        "com.android.base", "com.android.library", "com.android.dynamic-feature", "com.android.feature")
       val compileReplacement = when {
         !model.android().dynamicFeatures().toList().isNullOrEmpty() -> "api"
         pluginSet.intersect(applicationSet).isNotEmpty() -> "implementation"
@@ -2176,7 +2238,7 @@ val MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES =
       now performed using the androidResources block.
     """.trimIndent() },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToAndroidResourcesRefactoringProcessor.usageView.header"),
-    componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME
+    componentKind = MIGRATE_TO_ANDROID_RESOURCES,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(
@@ -2213,7 +2275,7 @@ val REMOVE_BUILD_TYPE_USE_PROGUARD_INFO = PropertiesOperationsRefactoringInfo(
     is used unconditionally.
   """.trimIndent()},
   processedElementsHeaderSupplier = { "Remove buildType useProguard setting" },
-  componentKind = UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+  componentKind = REMOVE_BUILD_TYPE_USE_PROGUARD,
   propertiesOperationInfos = listOf(BUILD_TYPE_USE_PROGUARD_INFO)
 )
 

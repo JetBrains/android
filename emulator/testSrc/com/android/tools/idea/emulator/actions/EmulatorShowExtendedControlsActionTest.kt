@@ -18,8 +18,6 @@ package com.android.tools.idea.emulator.actions
 import com.android.emulator.control.ThemingStyle
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.emulator.EmulatorViewRule
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -40,7 +38,6 @@ class EmulatorShowExtendedControlsActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.EMBEDDED_EMULATOR_EXTENDED_CONTROLS.override(true, emulatorViewRule.testRootDisposable)
     enableHeadlessDialogs(emulatorViewRule.testRootDisposable)
   }
 

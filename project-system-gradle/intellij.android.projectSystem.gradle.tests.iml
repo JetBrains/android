@@ -24,6 +24,8 @@
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
   </component>
 </module>

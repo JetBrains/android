@@ -1,0 +1,3 @@
+javac com/mythreadcontrollingjar/ThreadCreator.java
+javac com/mythreadcontrollingjar/CustomThread.java
+jar -cvf mythreadcontrolling.jar com/mythreadcontrollingjar/ThreadCreator.class com/mythreadcontrollingjar/CustomThread.class

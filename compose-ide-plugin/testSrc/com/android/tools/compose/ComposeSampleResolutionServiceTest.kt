@@ -51,10 +51,7 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     File(getComposePluginTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.REPO_FOR_SAMPLES_ARTIFACT_TEST)))
 
   fun testDownloadingAndAttachingSamples() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
-      // ignore missing manifest errors
-      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-    }
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
     // Pass empty path as library path to make sure that sample sources are from maven, not from local directory.
@@ -68,10 +65,7 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
   }
 
   fun testResolveSampleReference() {
-    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES) {
-      // ignore missing manifest errors
-      it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
-    }
+    loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val file = VfsUtil.findFile(Paths.get(project.basePath, "/app/src/main/java/com/example/appforsamplestest/Main.kt"), false)
     assume().that(file).isNotNull()

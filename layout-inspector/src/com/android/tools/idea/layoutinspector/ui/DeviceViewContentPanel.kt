@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DRAW_NODE_LABEL_HEIGHT
 import com.android.tools.idea.layoutinspector.model.EMPHASIZED_BORDER_OUTLINE_THICKNESS
@@ -27,6 +28,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.LABEL_FONT_SIZE
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -69,7 +71,11 @@ private val HQ_RENDERING_HINTS = mapOf(
 )
 
 class DeviceViewContentPanel(
-  val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, disposableParent: Disposable
+  val inspectorModel: InspectorModel,
+  val stats: SessionStatistics,
+  val treeSettings: TreeSettings,
+  val viewSettings: DeviceViewSettings,
+  disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
   @VisibleForTesting
@@ -78,7 +84,7 @@ class DeviceViewContentPanel(
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
+  val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
 
   val rootLocation: Point?
     get() {
@@ -93,13 +99,17 @@ class DeviceViewContentPanel(
 
   init {
     emptyText.appendLine("No process connected")
-    emptyText.appendLine("Select process", SimpleTextAttributes.LINK_ATTRIBUTES) {
+
+    emptyText.appendLine("Deploy your app or ")
+    emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
       val button = selectProcessAction.button
       val dataContext = DataManager.getInstance().getDataContext(button)
       selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
       val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation, dataContext)
       selectProcessAction.actionPerformed(event)
     }
+    emptyText.appendText(" to begin inspection.")
+
     emptyText.appendLine("")
     emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
       Desktop.getDesktop().browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
@@ -156,14 +166,14 @@ class DeviceViewContentPanel(
 
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
-        val view = nodeAtPoint(e)?.findClosestUnfilteredNode()
+        val view = nodeAtPoint(e)
         inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
-        inspectorModel.stats.selectionMadeFromImage(view)
+        stats.selectionMadeFromImage(view)
       }
 
       override fun mouseMoved(e: MouseEvent) {
         if (e.isConsumed) return
-        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)?.findClosestUnfilteredNode()
+        inspectorModel.hoveredNode = findTopViewAt(e.x, e.y)
       }
     }
     addMouseListener(listener)
@@ -171,7 +181,7 @@ class DeviceViewContentPanel(
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        val views = findComponentsAt(x, y).filter { it.isInComponentTree }
+        val views = findComponentsAt(x, y)
         showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
       }
     })
@@ -239,7 +249,7 @@ class DeviceViewContentPanel(
   private fun autoScrollAndRepaint(origin: SelectionOrigin) {
     val selection = inspectorModel.selection
     if (origin != SelectionOrigin.INTERNAL && selection != null) {
-      val hits = model.hitRects.filter { it.node.owner == selection }
+      val hits = model.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }
       val bounds = Rectangle()
       hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
@@ -267,14 +277,14 @@ class DeviceViewContentPanel(
     val hoveredNode = inspectorModel.hoveredNode
 
     val drawView = drawInfo.node
-    val view = drawView.owner
+    val view = drawView.findFilteredOwner(treeSettings)
     val selection = inspectorModel.selection
 
-    if (!drawInfo.isCollapsed && view.isInComponentTree &&
+    if (!drawInfo.isCollapsed &&
         (viewSettings.drawBorders || viewSettings.drawUntransformedBounds || view == selection || view == hoveredNode)) {
       val g2 = g.create() as Graphics2D
       g2.transform = g2.transform.apply { concatenate(drawInfo.transform) }
-      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings)
+      drawView.paintBorder(g2, view == selection, view == hoveredNode, viewSettings, treeSettings)
     }
   }
 

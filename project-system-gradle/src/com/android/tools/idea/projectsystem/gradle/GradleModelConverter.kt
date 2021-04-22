@@ -15,28 +15,21 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.gradle.model.IdeAndroidLibrary
-import com.android.ide.common.gradle.model.IdeJavaLibrary
-import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.util.PathString
 import com.android.ide.common.util.toPathString
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.projectmodel.ResourceFolder
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 
 /**
- * Converts a builder-model [IdeJavaLibrary] into a [ExternalLibrary]. Returns null
+ * Converts a builder-model [IdeAndroidLibrary] into a [ExternalAndroidLibrary]. Returns null
  * if the input is invalid.
  */
-fun convertLibraryToExternalLibrary(source: IdeJavaLibrary): ExternalLibrary = JavaLibraryWrapper(source)
+fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidLibrary = AndroidLibraryWrapper(source)
 
-/**
- * Converts a builder-model [IdeAndroidLibrary] into a [ExternalLibrary]. Returns null
- * if the input is invalid.
- */
-fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalLibrary = AndroidLibraryWrapper(source)
-
-private abstract class LibraryWrapper<T: IdeLibrary>(protected val lib: T) : ExternalLibrary {
+private abstract class LibraryWrapper<T: IdeLibrary>(protected val lib: T) : ExternalAndroidLibrary {
   @Suppress("FileComparisons")
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -49,26 +42,11 @@ private abstract class LibraryWrapper<T: IdeLibrary>(protected val lib: T) : Ext
   }
 }
 
-private class JavaLibraryWrapper(source: IdeJavaLibrary) : LibraryWrapper<IdeJavaLibrary>(source) {
-  override val address: String get() = lib.artifactAddress
-  override val location: PathString? get() = null
-  override val manifestFile: PathString? get() = null
-  override val packageName: String? get() = null
-  override val classJars: List<PathString> get() = listOf(lib.artifact.toPathString())
-  override val dependencyJars: List<PathString> get() = emptyList()
-  override val resFolder: ResourceFolder? get() = null
-  override val symbolFile: PathString? get() = null
-  override val resApkFile: PathString? get() = null
-  override val hasResources: Boolean get() = false
-}
-
 private class AndroidLibraryWrapper(source: IdeAndroidLibrary) : LibraryWrapper<IdeAndroidLibrary>(source) {
   override val address: String get() = lib.artifactAddress
   override val location: PathString? get() = lib.artifact.toPathString()
   override val manifestFile: PathString? get() = PathString(lib.manifest)
   override val packageName: String? get() = null
-  override val classJars: List<PathString> get() = listOf(PathString(lib.jarFile))
-  override val dependencyJars: List<PathString> get() = lib.localJars.map(::PathString)
   override val resFolder: ResourceFolder? get() = RecursiveResourceFolder(PathString(lib.resFolder))
   override val symbolFile: PathString? get() = PathString(lib.symbolFile)
   override val resApkFile: PathString? get() = lib.resStaticLibrary?.let(::PathString)

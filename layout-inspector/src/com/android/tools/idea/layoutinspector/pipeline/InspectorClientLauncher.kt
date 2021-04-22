@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -47,16 +48,19 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
                               private val processes: ProcessesModel,
                               private val clientCreators: List<(Params) -> InspectorClient?>,
                               private val parentDisposable: Disposable,
-                              @VisibleForTesting executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
+                              @VisibleForTesting val executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor) {
   companion object {
 
     /**
      * Convenience method for creating a launcher with useful client creation rules used in production
      */
-    fun createDefaultLauncher(adb: AndroidDebugBridge,
-                              processes: ProcessesModel,
-                              model: InspectorModel,
-                              parentDisposable: Disposable): InspectorClientLauncher {
+    fun createDefaultLauncher(
+      adb: AndroidDebugBridge,
+      processes: ProcessesModel,
+      model: InspectorModel,
+      stats: SessionStatistics,
+      parentDisposable: Disposable
+    ): InspectorClientLauncher {
       val transportComponents = TransportInspectorClient.TransportComponents()
       Disposer.register(parentDisposable, transportComponents)
 
@@ -67,17 +71,17 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
               if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION.get()) {
-                AppInspectionInspectorClient(params.adb, params.process, model)
+                AppInspectionInspectorClient(params.adb, params.process, model, stats)
               }
               else {
-                TransportInspectorClient(params.adb, params.process, model, transportComponents)
+                TransportInspectorClient(params.adb, params.process, model, stats, transportComponents)
               }
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.adb, params.process, model) }
+          { params -> LegacyClient(params.adb, params.process, model, stats) }
         ),
         parentDisposable)
     }
@@ -162,7 +166,18 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
       if (field != value) {
         field = value
         if (!activeClient.isConnected && value) {
-          handleProcess(processes.selectedProcess)
+          // If here, we may be re-enabling this launcher after previously disabling it (the "isConnected" check above could indicate that
+          // the user minimized the inspector and then stopped inspection or the running process afterwards). Now that we're re-enabling,
+          // we try to autoconnect but only if we find a valid, running process.
+          processes.selectedProcess?.let { process ->
+            val runningProcess = process.takeIf { it.isRunning }
+                                 ?: processes.processes.firstOrNull { it.pid == process.pid && it.isRunning }
+
+            if (runningProcess != null) {
+              processes.selectedProcess = runningProcess // As a side effect, will ensure the pulldown is updated
+              executor.execute { handleProcess(processes.selectedProcess) }
+            }
+          }
         }
       }
     }

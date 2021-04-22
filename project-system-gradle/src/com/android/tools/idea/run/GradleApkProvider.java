@@ -34,12 +34,12 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
-import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
@@ -48,7 +48,7 @@ import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -521,19 +521,30 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   @Override
   public List<ValidationError> validate() {
+    ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     if (androidModuleModel == null) {
       Runnable requestProjectSync =
         () -> ProjectSystemUtil.getSyncManager(myFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
-      return ImmutableList.of(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
+      result.add(ValidationError.fatal("The project has not yet been synced with Gradle configuration", requestProjectSync));
+      return result.build();
     }
+
+    if (isTest()) {
+      IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
+      if (testArtifact == null) {
+        IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
+        result.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
+      }
+    }
+
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         myOutputKindProvider.apply(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
         isArtifactSigned(androidModuleModel)) {
-      return ImmutableList.of();
+      return result.build();
     }
 
     File outputFile = getOutputFile(androidModuleModel);
@@ -551,7 +562,9 @@ public class GradleApkProvider implements ApkProvider {
         service.openModuleSettings(module);
       }
     };
-    return ImmutableList.of(ValidationError.fatal(message, quickFix));
+
+    result.add(ValidationError.fatal(message, quickFix));
+    return result.build();
   }
 
   /**

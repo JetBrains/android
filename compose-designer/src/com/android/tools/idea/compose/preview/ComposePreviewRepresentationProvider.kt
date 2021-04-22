@@ -52,6 +52,7 @@ import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -63,6 +64,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -82,7 +84,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
       ForceCompileAndRefreshAction(surface),
       SwitchSurfaceLayoutManagerAction(
         layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
-        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS).visibleOnlyInComposeStaticPreview(),
+        layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
+      ) { !isAnyPreviewRefreshing(it.dataContext) }.visibleOnlyInComposeStaticPreview(),
       StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       StudioFlags.COMPOSE_BLUEPRINT_MODE.ifEnabled {
         if (surface is NlDesignSurface) BlueprintModeDropDownAction(surface).visibleOnlyInComposeStaticPreview() else null
@@ -102,6 +105,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
                      StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
 
+    private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
+
     init {
       addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
       addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
@@ -118,6 +123,17 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
 
     override fun createCustomComponent(presentation: Presentation, place: String) =
       ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      val shouldEnableAction = !isAnyPreviewRefreshing(e.dataContext)
+      e.presentation.isEnabled = shouldEnableAction
+      // Since this is an ActionGroup, IntelliJ will set the button icon to enabled even though it is disabled. Only when clicking on the
+      // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
+      // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
+      // action is disabled.
+      e.presentation.icon = if (shouldEnableAction) StudioIcons.LayoutEditor.Toolbar.VIEW_MODE else disabledIcon
+    }
   }
 }
 
@@ -211,6 +227,11 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
 
   return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull { it.getComposePreviewManager() } ?: emptyList()
 }
+
+/**
+ * Returns whether any preview manager is currently refreshing.
+ */
+internal fun isAnyPreviewRefreshing(context: DataContext) = findComposePreviewManagersForContext(context).any { it.status().isRefreshing }
 
 // We will default to split mode if there are @Preview annotations in the file or if the file contains @Composable.
 private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() = when (preferredComposableEditorMode) {

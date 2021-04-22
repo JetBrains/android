@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
-import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.eq
@@ -36,11 +34,10 @@ class UseJdkAsProjectJdkListenerTest {
   fun `setJdkAsProjectJdk is called when used`() {
     gradleProjectRule.load(SIMPLE_APPLICATION)
     val project = gradleProjectRule.project
-    val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
-    assertThat(projectSettings).isNotNull()
-    projectSettings!!.gradleJvm = USE_JAVA_HOME
     val jdkPath = IdeSdks.getInstance().jdk!!.homePath!!
-    val listener = UseJdkAsProjectJdkListener(project, IdeSdks.getInstance().jdk!!.homePath!!)
+    val suffix = ".id.suffix"
+    val listener = UseJdkAsProjectJdkListener(project, jdkPath, suffix)
+    assertThat(listener.id).isEqualTo("${UseJdkAsProjectJdkListener.baseId()}$suffix")
     mockStatic(AndroidStudioGradleInstallationManager::class.java).use {
       listener.changeGradleProjectSetting()
       it.verify { AndroidStudioGradleInstallationManager.setJdkAsProjectJdk(eq(project), eq(jdkPath)) }

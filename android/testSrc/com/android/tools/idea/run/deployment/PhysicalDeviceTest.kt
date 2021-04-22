@@ -26,6 +26,7 @@ import com.intellij.ui.LayeredIcon
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.ImageUtil
+import icons.StudioIcons.Common.ERROR_DECORATOR
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
@@ -80,8 +81,7 @@ class PhysicalDeviceTest {
       .setLaunchCompatibility(LaunchCompatibility(LaunchCompatibility.State.ERROR, "error"))
       .build()
 
-    //TODO(b/180670146): replace with error decorator.
-    assertIconSimilar(LayeredIcon(ExecutionUtil.getLiveIndicator(PHYSICAL_DEVICE_WEAR), WarningDecorator), wearWithError.icon)
+    assertIconSimilar(LayeredIcon(ExecutionUtil.getLiveIndicator(PHYSICAL_DEVICE_WEAR), ERROR_DECORATOR), wearWithError.icon)
   }
 
   @Test

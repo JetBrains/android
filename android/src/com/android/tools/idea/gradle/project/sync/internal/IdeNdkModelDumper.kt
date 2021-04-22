@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeToolchain
-import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantInfo
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeAbi
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeModule
-import com.android.ide.common.gradle.model.ndk.v2.IdeNativeVariant
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantInfo
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeVariant
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V1NdkModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel

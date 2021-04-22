@@ -15,32 +15,21 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.property.testing.ApplicationRule
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSystemNode
-import com.intellij.ide.util.PropertiesComponent
-import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 class SystemViewToggleStatisticsTest {
-  @get:Rule
-  val appRule = ApplicationRule()
-
-  @Before
-  fun before() {
-    appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
-  }
 
   @Test
   fun testStart() {
-    val systemViewToggle = SystemViewToggleStatistics()
+    val treeSettings = FakeTreeSettings()
+    val systemViewToggle = SystemViewToggleStatistics(treeSettings)
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
-    TreeSettings.hideSystemNodes = false
+    treeSettings.hideSystemNodes = false
     systemViewToggle.selectionMade()
     systemViewToggle.start()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
@@ -51,14 +40,15 @@ class SystemViewToggleStatisticsTest {
 
   @Test
   fun testToggleBackAndForth() {
-    val systemViewToggle = SystemViewToggleStatistics()
+    val treeSettings = FakeTreeSettings()
+    val systemViewToggle = SystemViewToggleStatistics(treeSettings)
     systemViewToggle.start()
 
-    TreeSettings.hideSystemNodes = true
+    treeSettings.hideSystemNodes = true
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
     systemViewToggle.selectionMade()
-    TreeSettings.hideSystemNodes = false
+    treeSettings.hideSystemNodes = false
     systemViewToggle.selectionMade()
     val data = DynamicLayoutInspectorSystemNode.newBuilder()
     systemViewToggle.save(data)

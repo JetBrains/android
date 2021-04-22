@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
@@ -45,21 +46,21 @@ object CheckUtil {
    * Check whether the draw tree of [actual] is the same as that of [expected].
    * Right now the check is pretty cursory, but it can be expanded as needed.
    */
-  fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode) {
+  fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode, treeSettings: TreeSettings = FakeTreeSettings()) {
     assertEquals(expected.drawId, actual.drawId)
     ViewNode.readDrawChildren { drawChildren ->
       assertEquals("for node ${expected.drawId}", expected.drawChildren().size, actual.drawChildren().size)
-      expected.drawChildren().zip(actual.drawChildren()).forEach { (expected, actual) -> checkTreesEqual(expected, actual) }
+      expected.drawChildren().zip(actual.drawChildren()).forEach { (expected, actual) -> checkTreesEqual(expected, actual, treeSettings) }
     }
   }
 
-  private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode) {
+  private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode, treeSettings: TreeSettings) {
     if (expected is DrawViewChild && actual is DrawViewChild) {
-      assertDrawTreesEqual(expected.owner, actual.owner)
+      assertDrawTreesEqual(expected.unfilteredOwner, actual.unfilteredOwner, treeSettings)
     }
     else if (expected is DrawViewImage && actual is DrawViewImage) {
       if (expected.image !is BufferedImage) {
-        fail("expected image should be a BufferedImage for id ${expected.owner.drawId}")
+        fail("expected image should be a BufferedImage for id ${expected.findFilteredOwner(treeSettings)!!.drawId}")
       }
       ImageDiffUtil.assertImageSimilar("image", expected.image as BufferedImage, actual.image, 0.0)
     }

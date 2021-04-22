@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.rendering.api.AssetRepository;
-import com.android.projectmodel.ExternalLibrary;
+import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
@@ -201,8 +201,8 @@ public class AssetRepositoryImpl extends AssetRepository {
 
     Stream<VirtualFile> libraryDepAars = Stream.empty();
     if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
-      libraryDepAars = ProjectSystemUtil.getModuleSystem(facet.getModule()).getResolvedLibraryDependencies().stream()
-        .map(ExternalLibrary::getLocation)
+      libraryDepAars = ProjectSystemUtil.getModuleSystem(facet.getModule()).getAndroidLibraryDependencies().stream()
+        .map(ExternalAndroidLibrary::getLocation)
         .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
         .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
         .filter(Objects::nonNull);

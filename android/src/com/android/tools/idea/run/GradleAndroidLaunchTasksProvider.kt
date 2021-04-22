@@ -33,8 +33,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.annotations.Nullable
 
 /**
  * LaunchTasksProvider that provides GradleAndroidTestApplicationLaunchTasks for instrumentation tests
@@ -58,8 +56,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
   private val CLASSNAME: String = className
   private val METHODNAME: String = methodName
 
-  @NotNull
-  override fun getTasks(@NotNull device: IDevice, @NotNull launchStatus: LaunchStatus, @NotNull consolePrinter: ConsolePrinter): List<LaunchTask> {
+  override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
     val testAppId: String?
     try {
@@ -132,8 +129,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
     return launchTasks
   }
 
-  @Nullable
-  override fun getConnectDebuggerTask(@NotNull launchStatus: LaunchStatus, @Nullable version: AndroidVersion?): DebugConnectorTask? {
+  override fun getConnectDebuggerTask(launchStatus: LaunchStatus, version: AndroidVersion?): DebugConnectorTask? {
     if (!myLaunchOptions.isDebug) {
       return null
     }

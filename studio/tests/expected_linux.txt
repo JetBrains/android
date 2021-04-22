@@ -2045,11 +2045,12 @@ android-studio/plugins/android/lib/asm-7.0.jar
 android-studio/plugins/android/lib/asm-analysis-7.0.jar
 android-studio/plugins/android/lib/asm-tree-7.0.jar
 android-studio/plugins/android/lib/auto-common-0.10.jar
+android-studio/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 android-studio/plugins/android/lib/baksmali-2.2.4.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/core-3.4.0.jar
-android-studio/plugins/android/lib/core-proto-0.0.8-alpha02.jar
+android-studio/plugins/android/lib/core-proto-0.0.8-alpha03.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/dexlib2-2.2.4.jar
@@ -2279,6 +2280,12 @@ android-studio/plugins/android/resources/device-art-resources/pixel_4_xl/mask.we
 android-studio/plugins/android/resources/device-art-resources/pixel_4a/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_4a/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_4a/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_4a_5g/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_4a_5g/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_4a_5g/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_5/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_5/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_5/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_shadow.webp
@@ -2865,9 +2872,6 @@ android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/junit/lib/resources_en.jar
-android-studio/plugins/lombok/lib/lombok-generated.jar
-android-studio/plugins/lombok/lib/lombok.jar
-android-studio/plugins/lombok/lib/resources_en.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/platform-images/lib/platform-images.jar
 android-studio/plugins/platform-images/lib/resources_en.jar
@@ -2885,7 +2889,7 @@ android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/stream-debugger/lib/resources_en.jar
 android-studio/plugins/stream-debugger/lib/stream-debugger.jar
 android-studio/plugins/svn4idea/lib/resources_en.jar
-android-studio/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar
+android-studio/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/svn4idea/lib/svn4idea.jar
 android-studio/plugins/tasks/lib/axis-1.4.jar
 android-studio/plugins/tasks/lib/axis-jaxrpc-1.4.jar

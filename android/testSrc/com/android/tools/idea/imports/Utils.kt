@@ -20,8 +20,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -53,13 +54,18 @@ internal fun performAndWaitForSyncEnd(
   invoke()
 
   val results = publishedResult.get(10, TimeUnit.SECONDS)
-  Truth.assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
-internal fun assertBuildGradle(projectRule: AndroidGradleProjectRule, check: (String) -> Unit) {
-  val buildGradle = projectRule.project.guessProjectDir()!!.findFileByRelativePath("app/build.gradle")
-  val buildGradlePsi = PsiManager.getInstance(projectRule.project).findFile(buildGradle!!)
-  check(buildGradlePsi!!.text)
+internal fun checkBuildGradle(project: Project, check: (String) -> Boolean): Boolean {
+  val buildGradle = project.guessProjectDir()!!.findFileByRelativePath("app/build.gradle")
+  val buildGradlePsi = PsiManager.getInstance(project).findFile(buildGradle!!)
+
+  return check(buildGradlePsi!!.text)
+}
+
+internal fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
+  assertThat(checkBuildGradle(project, check)).isEqualTo(true)
 }
 
 internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
@@ -103,6 +109,15 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "version": "17.0.0",
                 "fqcns": [
                   "com.google.android.gms.maps.SupportMapFragment"
+                ]
+              },
+              {
+                "groupId": "androidx.camera",
+                "artifactId": "camera-core",
+                "version": "1.1.0-alpha03",
+                "fqcns": [
+                  "androidx.camera.core.ExtendableBuilder",
+                  "androidx.camera.core.ImageCapture"
                 ]
               },
               {

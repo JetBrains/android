@@ -51,6 +51,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
@@ -60,11 +61,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.ArrayBlockingQueue
 
 class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
@@ -206,6 +209,71 @@ class AppInspectionViewTest {
   }
 
   @Test
+  fun inspectorDisposed() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val fakeDevice = FakeTransportService.FAKE_DEVICE.toBuilder().apply {
+      deviceId = 1
+      model = "fakeModel"
+      serial = "1"
+    }.build()
+
+    val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().apply {
+      pid = 1
+      deviceId = 1
+    }.build()
+
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    val tabsCleared = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                                         appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+      // Test initial tabs added.
+      inspectionView.tabsChangedFlow
+        .take(2)
+        .collectIndexed { i, _ ->
+          if (i == 0) {
+            assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
+            inspectionView.inspectorTabs.forEach { it.waitForContent() }
+            tabsAdded.complete(Unit)
+          }
+          else if (i == 1) {
+            // When the inspectors are disposed, tabs should be cleared.
+            assertThat(inspectionView.inspectorTabs).isEmpty()
+            tabsCleared.complete(Unit)
+          }
+        }
+    }
+
+    // Launch a processes and wait for its tab to be created
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcess)
+
+    tabsAdded.await()
+
+    // Generate fake crash event
+    transportService.addEventToStream(
+      fakeDevice.deviceId,
+      Common.Event.newBuilder()
+        .setPid(fakeProcess.pid)
+        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
+        .setTimestamp(timer.currentTimeNs)
+        .setIsEnded(true)
+        .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
+                                 .setInspectorId(INSPECTOR_ID)
+                                 .setDisposedEvent(AppInspection.DisposedEvent.getDefaultInstance())
+                                 .build())
+        .build()
+    )
+
+    tabsCleared.await()
+  }
+
+  @Test
   fun inspectorCrashNotification() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val fakeDevice = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial(
@@ -257,8 +325,8 @@ class AppInspectionViewTest {
         .setIsEnded(true)
         .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
                                  .setInspectorId(INSPECTOR_ID)
-                                 .setCrashEvent(
-                                   AppInspection.CrashEvent.newBuilder()
+                                 .setDisposedEvent(
+                                   AppInspection.DisposedEvent.newBuilder()
                                      .setErrorMessage("error")
                                      .build()
                                  )
@@ -638,7 +706,7 @@ class AppInspectionViewTest {
   }
 
   @Test
-  fun stopInspectionPressed_noMoreLaunchingOfInspectors() = runBlocking {
+  fun stopInspectionPressed_onlyOfflineInspectorsRemain() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
     val inspectionView = withContext(uiDispatcher) {
@@ -788,5 +856,109 @@ class AppInspectionViewTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     launchParamsVerifiedDeferred.await()
+  }
+
+  @Ignore("b/184467010")
+  @Test
+  fun appInspectionView_canToggleAutoConnectedState() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        appInspectionServiceRule.scope, uiDispatcher) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    assertThat(inspectionView.autoConnects).isTrue()
+
+    val fakeDevice = FakeTransportService.FAKE_DEVICE
+    val fakeProcesses = (1..3).map { i ->
+      FakeTransportService.FAKE_PROCESS.toBuilder()
+        .setPid(i)
+        .setDeviceId(fakeDevice.deviceId)
+        .build()
+    }.toList()
+
+    // Add a process.
+    val selectedProcessChangedQueue = ArrayBlockingQueue<Unit>(1)
+    inspectionView.processesModel.addSelectedProcessListeners {
+      // This listener is triggered on the test thread
+      selectedProcessChangedQueue.add(Unit)
+    }
+
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcesses[0])
+
+    // Verify auto connected to initial process
+    withContext(Dispatchers.Default) {
+      // Note: We need to wait for process changes here (and below) on a non-test thread that's *not* the UI thread, so we
+      // don't block the test thread *and* we give the UI thread a chance to respond to the change
+      selectedProcessChangedQueue.take()
+    }
+
+    withContext(uiDispatcher) {
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[0].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+    }
+
+    // Verify auto connect to new process
+    withContext(Dispatchers.Default) {
+      inspectionView.stopInspectors()
+      selectedProcessChangedQueue.take()
+      timer.currentTimeNs += 1
+      transportService.addProcess(fakeDevice, fakeProcesses[1])
+      selectedProcessChangedQueue.take()
+    }
+
+    withContext(uiDispatcher) {
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+    }
+
+    // Process stop still handled, even if auto connect enabled is set to false
+    withContext(uiDispatcher) {
+      inspectionView.autoConnects = false
+    }
+
+    withContext(Dispatchers.Default) {
+      inspectionView.stopInspectors()
+      selectedProcessChangedQueue.take()
+    }
+
+    withContext(uiDispatcher) {
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+
+      // Stopped process is still there even if toggling back to true
+      inspectionView.autoConnects = true
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+    }
+
+    // New process is ignored (as expected) if autoconnection isn't enabled
+    withContext(uiDispatcher) {
+      inspectionView.autoConnects = false
+    }
+
+    withContext(Dispatchers.Default) {
+      timer.currentTimeNs += 1
+      transportService.addProcess(fakeDevice, fakeProcesses[2])
+      selectedProcessChangedQueue.take()
+    }
+
+    withContext(uiDispatcher) {
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+    }
+
+    // New process attaches if the state changes, however
+    withContext(uiDispatcher) {
+      inspectionView.autoConnects = true
+
+      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[2].pid)
+      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+    }
   }
 }

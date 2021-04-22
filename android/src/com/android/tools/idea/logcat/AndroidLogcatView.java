@@ -149,30 +149,10 @@ public class AndroidLogcatView {
     myProject = project;
     this.parentDisposable = parentDisposable;
 
-    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
+    AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(project);
+    AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), preferences);
 
-    myLogFilterModel = new AndroidLogFilterModel(formatter) {
-      @NotNull
-      private AndroidLogcatPreferences getPreferences() {
-        return AndroidLogcatPreferences.getInstance(project);
-      }
-
-      @Override
-      protected void saveLogLevel(String logLevelName) {
-        getPreferences().TOOL_WINDOW_LOG_LEVEL = logLevelName;
-      }
-
-      @Override
-      public String getSelectedLogLevelName() {
-        return getPreferences().TOOL_WINDOW_LOG_LEVEL;
-      }
-
-      @Override
-      protected void saveConfiguredFilterName(String filterName) {
-        getPreferences().TOOL_WINDOW_CONFIGURED_FILTER = filterName;
-      }
-    };
-
+    myLogFilterModel = new AndroidLogFilterModel(formatter, preferences);
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
     myLogcatReceiver = new ViewListener(formatter, this);
 

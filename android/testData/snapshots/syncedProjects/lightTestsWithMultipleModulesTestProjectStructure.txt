@@ -12,7 +12,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Java-Gradle
             TypeId                        : java-gradle
-            ExternalSource                : GRADLE
             Buildable                     : false
         ORDER_ENTRY                   : <Module source>
     MODULE                        : app
@@ -26,7 +25,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -60,9 +58,48 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/androidTest/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/debug/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/main/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/app/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
@@ -117,7 +154,6 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Android
             TypeId                        : android
-            ExternalSource                : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName              : assembleDebug
             CompileJavaTaskName           : compileDebugSources
@@ -151,9 +187,48 @@ PROJECT                       : LightSyncBasedTestsWithMultipleModulesTestProjec
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
-            ExternalSource                : GRADLE
             GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/lib
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/debug/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/main/shaders [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/aidl [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/assets [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/kotlin [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/ml [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/renderscript [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/res [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/lib/src/test/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]

@@ -18,10 +18,13 @@ package org.jetbrains.android.uipreview;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -31,6 +34,9 @@ import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
+import com.android.tools.idea.testing.JavaModuleModelBuilder;
+import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
@@ -223,6 +229,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
+    // Recompile and check ClassLoader is out of date.
+    assertTrue(loader.isUserCodeUpToDate());
+    javac.run(null, null, null, modifiedSrc.getPath());
+    assertFalse(loader.isUserCodeUpToDate());
+
     ModuleClassLoaderManager.get().release(loader, this);
   }
 
@@ -256,5 +267,78 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
     loader.loadClass("p1.p2.R");
     ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  public void testNotUpToDate_whenDependenciesChange() throws IOException {
+    File basePath = new File(getProject().getBasePath());
+    File gradleFolder = basePath.toPath().resolve(".gradle").toFile();
+    String libFolder = "libraryFolder";
+    String libJar = "file.jar";
+    File libFolderFile = gradleFolder.toPath().resolve(libFolder).toFile();
+    assertTrue(libFolderFile.exists() || libFolderFile.mkdirs());
+    // We have to actually create the file so that the ".exists()" check in ModuleClassLoader succeeds
+    java.nio.file.Files.createFile(libFolderFile.toPath().resolve(libJar));
+
+    ModuleModelBuilder appModuleBuilder =
+      new AndroidModuleModelBuilder(
+        ":app",
+        "debug",
+        new AndroidProjectBuilder()
+      );
+
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      basePath,
+      JavaModuleModelBuilder.getRootModuleBuilder(),
+      appModuleBuilder
+    );
+
+    Module appModule = gradleModule(getProject(), ":app");
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getPrivate(null, ModuleRenderContext.forModule(appModule), this);
+    // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
+    assertTrue(loader.areDependenciesUpToDate());
+
+    ModuleModelBuilder updatedAppModuleBuilder =
+      new AndroidModuleModelBuilder(
+        ":app",
+        "debug",
+        new AndroidProjectBuilder()
+          .withAndroidLibraryDependencyList(
+            (it, variant) -> ImmutableList.of(ideAndroidLibrary(gradleFolder, "com.example:library:1.0", libFolder, libJar))));
+
+    updateTestProjectFromAndroidModel(
+      getProject(),
+      basePath,
+      JavaModuleModelBuilder.getRootModuleBuilder(),
+      updatedAppModuleBuilder
+    );
+    // Module has not changed
+    assertEquals(gradleModule(getProject(), ":app"), appModule);
+
+    assertFalse(loader.areDependenciesUpToDate());
+
+    ModuleClassLoaderManager.get().release(loader, this);
+  }
+
+  private static IdeAndroidLibraryImpl ideAndroidLibrary(File gradleCacheRoot, String artifactAddress, String folder, String libJar) {
+    return new IdeAndroidLibraryImpl(
+      artifactAddress,
+      gradleCacheRoot.toPath().resolve(folder).toFile(),
+      "manifest.xml",
+      ImmutableList.of("api.jar"),
+      ImmutableList.of(libJar),
+      "res",
+      new File(folder + File.separator + "res.apk"),
+      "assets",
+      "jni",
+      "aidl",
+      "renderscriptFolder",
+      "proguardRules",
+      "lint.jar",
+      "externalAnnotations",
+      "publicResources",
+      gradleCacheRoot.toPath().resolve("artifactFile").toFile(),
+      "symbolFile",
+      false);
   }
 }

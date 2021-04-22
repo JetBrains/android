@@ -22,12 +22,12 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeTestOptions;
-import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.AndroidLaunchTasksProvider;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
@@ -48,7 +48,6 @@ import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -153,17 +152,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
 
     // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
+    AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
-
-    // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
-    // Currently, the only information the model exports that we can use to detect whether the current build type
-    // is testable is by looking at the test task name and checking whether it is null.
-    IdeAndroidArtifact testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
-    String testTask = testArtifact != null ? testArtifact.getBuildInformation().getAssembleTaskName() : null;
-    return new Pair<>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
+    return new Pair<>(Boolean.TRUE, null);
   }
 
   @Override
@@ -188,12 +181,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-    return checkConfiguration(facet, AndroidModuleModel.get(facet.getModule()));
-  }
-
-  @NotNull
-  @VisibleForTesting
-  List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet, @Nullable AndroidModuleModel androidModel) {
     List<ValidationError> errors = Lists.newArrayList();
 
     Module module = facet.getModule();
@@ -241,15 +228,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         errors.add(ValidationError.fatal(shortMessage, quickFix));
       }
     }
-
-    if (androidModel != null) {
-      IdeAndroidArtifact testArtifact = androidModel.getArtifactForAndroidTest();
-      if (testArtifact == null) {
-        IdeVariant selectedVariant = androidModel.getSelectedVariant();
-        errors.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
-      }
-    }
-
     return errors;
   }
 
@@ -656,12 +634,10 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    *
    * @param facet Android facet to retrieve test execution option
    */
-  public IdeTestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
+  public TestExecutionOption getTestExecutionOption(@Nullable AndroidFacet facet) {
     return Optional.ofNullable(facet)
-      .map(f -> AndroidModuleModel.get(f))
-      .map(model -> model.getArtifactForAndroidTest())
-      .map(testArtifact -> testArtifact.getTestOptions())
-      .map(testOptions -> testOptions.getExecution())
-      .orElse(IdeTestOptions.Execution.HOST);
+      .map(AndroidModel::get)
+      .map(AndroidModel::getTestExecutionOption)
+      .orElse(TestExecutionOption.HOST);
   }
 }

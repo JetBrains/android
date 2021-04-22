@@ -15,46 +15,106 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
+import com.android.tools.idea.deviceManager.Device;
+import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Objects;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
+public final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
   private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
-    Comparator.comparing(device -> device.myConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()));
+    Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
+      .thenComparing(PhysicalDevice::getLastOnlineTime, Comparator.nullsLast(Comparator.reverseOrder()));
 
   private final @NotNull String mySerialNumber;
-  private final @Nullable Instant myConnectionTime;
+  private final @Nullable Instant myLastOnlineTime;
 
-  PhysicalDevice(@NotNull String serialNumber) {
-    this(serialNumber, null);
+  public static final class Builder extends Device.Builder {
+    private @Nullable String mySerialNumber;
+    private @Nullable Instant myLastOnlineTime;
+
+    // TODO Initialize myName and myTarget properly
+    public Builder() {
+      myName = "Physical Device";
+      myTarget = "Target";
+    }
+
+    public @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
+      mySerialNumber = serialNumber;
+      return this;
+    }
+
+    @NotNull Builder setLastOnlineTime(@Nullable Instant lastOnlineTime) {
+      myLastOnlineTime = lastOnlineTime;
+      return this;
+    }
+
+    @NotNull Builder setName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    public @NotNull Builder setOnline(@SuppressWarnings("SameParameterValue") boolean online) {
+      myOnline = online;
+      return this;
+    }
+
+    @NotNull Builder setTarget(@NotNull String target) {
+      myTarget = target;
+      return this;
+    }
+
+    @Override
+    public @NotNull PhysicalDevice build() {
+      return new PhysicalDevice(this);
+    }
   }
 
-  PhysicalDevice(@NotNull String serialNumber, @Nullable Instant connectionTime) {
-    mySerialNumber = serialNumber;
-    myConnectionTime = connectionTime;
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
+
+    assert builder.mySerialNumber != null;
+    mySerialNumber = builder.mySerialNumber;
+
+    myLastOnlineTime = builder.myLastOnlineTime;
   }
 
   @NotNull String getSerialNumber() {
     return mySerialNumber;
   }
 
-  boolean isConnected() {
-    return myConnectionTime != null;
+  @Nullable Instant getLastOnlineTime() {
+    return myLastOnlineTime;
   }
 
   @NotNull String toDebugString() {
     String separator = System.lineSeparator();
 
     return "serialNumber = " + mySerialNumber + separator
-           + "connectionTime = " + myConnectionTime + separator;
+           + "lastOnlineTime = " + myLastOnlineTime + separator
+           + "name = " + myName + separator
+           + "online = " + myOnline + separator
+           + "target = " + myTarget + separator;
+  }
+
+  @Override
+  protected @NotNull Icon getIcon() {
+    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
   }
 
   @Override
   public int hashCode() {
-    return 31 * mySerialNumber.hashCode() + Objects.hashCode(myConnectionTime);
+    int hashCode = mySerialNumber.hashCode();
+
+    hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
+    hashCode = 31 * hashCode + myName.hashCode();
+    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
+    hashCode = 31 * hashCode + myTarget.hashCode();
+
+    return hashCode;
   }
 
   @Override
@@ -64,7 +124,12 @@ final class PhysicalDevice implements Comparable<@NotNull PhysicalDevice> {
     }
 
     PhysicalDevice device = (PhysicalDevice)object;
-    return mySerialNumber.equals(device.mySerialNumber) && Objects.equals(myConnectionTime, device.myConnectionTime);
+
+    return mySerialNumber.equals(device.mySerialNumber) &&
+           Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
+           myName.equals(device.myName) &&
+           myOnline == device.myOnline &&
+           myTarget.equals(device.myTarget);
   }
 
   @Override

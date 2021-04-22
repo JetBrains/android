@@ -108,7 +108,9 @@ class DeviceViewPanel(
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings, disposableParent)
+  private val contentPanel = DeviceViewContentPanel(
+    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings, disposableParent
+  )
 
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
     private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||
@@ -170,6 +172,7 @@ class DeviceViewPanel(
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
+  private val loadingPane: JBLoadingPanel
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbarProvider
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.model.layerSpacing },
                                                               { contentPanel.rootLocation })
@@ -203,7 +206,7 @@ class DeviceViewPanel(
     }
 
   init {
-    val loadingPane = JBLoadingPanel(BorderLayout(), disposableParent)
+    loadingPane = JBLoadingPanel(BorderLayout(), disposableParent)
     loadingPane.addListener(object: JBLoadingPanelListener {
       override fun onLoadingStart() {
         contentPanel.showEmptyText = false
@@ -219,10 +222,7 @@ class DeviceViewPanel(
                                                   stopPresentation = SelectProcessAction.StopPresentation(
                                                     "Stop inspector",
                                                     "Stop running the layout inspector against the current process"),
-                                                  onStopAction = {
-                                                    loadingPane.stopLoading()
-                                                    processes.stop()
-                                                  })
+                                                  onStopAction = { stopInspectors() })
     contentPanel.selectProcessAction = selectProcessAction
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
@@ -343,6 +343,11 @@ class DeviceViewPanel(
     }
   }
 
+  fun stopInspectors() {
+    loadingPane.stopLoading()
+    processes.stop()
+  }
+
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
     val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
@@ -451,18 +456,16 @@ class DeviceViewPanel(
 
     override fun update(event: AnActionEvent) {
       val currentClient = client(event)
-      val isLiveInspector = currentClient.isConnected && currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
+      val isLiveInspector = !currentClient.isConnected || currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
       val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
       event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {
-        !currentClient.isConnected -> null
         isLowerThenApi29 -> "Live updates not available for devices below API 29"
         !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
         else -> "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device " +
                 "resources and might impact runtime performance."
       }
-      event.presentation.text = if (currentClient.isConnected) "Live Updates" else null
     }
 
     override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {

@@ -27,6 +27,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.application.subscribe
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
@@ -36,6 +37,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.CustomStatusBarWidget
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
@@ -51,6 +53,7 @@ import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Point
 import java.awt.event.MouseEvent
+import java.net.URL
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -65,8 +68,6 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   private val literalsService = LiveLiteralsService.getInstance(project)
   private val deployReportingService = LiveLiteralsDeploymentReportService.getInstance(project)
   private var statusBar: StatusBar? = null
-  /** Will be set to true the first time this indicator receives a notification from a device being available. */
-  private var hasEverBeenActive = false
 
   init {
     isVisible = false
@@ -78,7 +79,10 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
     }.installOn(this, false)
     deployReportingService.subscribe(this, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
-        hasEverBeenActive = true
+        if (!LiveLiteralsAvailableIndicatorFactory.hasEverBeenActive) {
+          LiveLiteralsAvailableIndicatorFactory.showIsAvailablePopup(project)
+        }
+        LiveLiteralsAvailableIndicatorFactory.indicatorActivated()
         LiveLiteralsAvailableIndicatorFactory.updateWidget(project)
       }
 
@@ -126,16 +130,25 @@ private class LiveLiteralsAvailableIndicator(private val project: Project) :
   }
 
   private fun getIconAndTextForCurrentState(): Pair<String, Icon?> = when {
-    !isComposeProject() || !hasEverBeenActive -> message("live.literals.is.disabled") to null // No device has reported having literals
+    // No device has ever reported having literals
+    !isComposeProject() || !LiveLiteralsAvailableIndicatorFactory.hasEverBeenActive -> message("live.literals.is.disabled") to null
     !literalsService.isAvailable -> message("live.literals.is.disabled") to NOT_AVAILABLE_ICON
     deployReportingService.hasProblems -> message("live.literals.is.enabled") to ERROR_ICON
     else -> message("live.literals.is.enabled") to AVAILABLE_ICON
   }
 
-  override fun getToolTipText(): String = getIconAndTextForCurrentState().first
-
   fun updateWidget() {
-    icon = getIconAndTextForCurrentState().second
+    val state = getIconAndTextForCurrentState()
+    icon = state.second
+    val title = state.first
+
+    HelpTooltip.dispose(this)
+    HelpTooltip()
+      .setTitle(title)
+      .setDescription(message("live.literals.tooltip.description"))
+      .setBrowserLink(message("live.literals.tooltip.url.label"), URL("https://developer.android.com/jetpack/compose/tooling#live-literals"))
+      .installOn(this)
+
     isVisible = icon != null
     revalidate()
     repaint()
@@ -164,11 +177,19 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
   override fun getId(): String = "LiveLiteralsAvailableWidget"
   override fun getDisplayName(): String = message("live.literals.tracking.display.name")
   override fun isAvailable(project: Project): Boolean = LiveLiteralsService.getInstance(project).isEnabled
-  override fun createWidget(project: Project): StatusBarWidget = LiveLiteralsAvailableIndicator(project)
-  override fun disposeWidget(widget: StatusBarWidget) {}
+  override fun createWidget(project: Project): StatusBarWidget = LiveLiteralsAvailableIndicator(project).also {
+    DumbService.getInstance(project).runWhenSmart { it.updateWidget() }
+  }
+  override fun disposeWidget(widget: StatusBarWidget) {
+    Disposer.dispose(widget)
+  }
   override fun canBeEnabledOn(statusBar: StatusBar): Boolean = true
 
   companion object {
+    /** Will be set to true the first time an indicator created by this factory receives a notification from a device being available. */
+    var hasEverBeenActive = false
+      private set
+
     private fun findLiveLiteralsIndicator(project: Project): LiveLiteralsAvailableIndicator? =
       WindowManager.getInstance()?.getStatusBar(project)?.getWidget(WIDGET_ID) as? LiveLiteralsAvailableIndicator
 
@@ -183,6 +204,10 @@ class LiveLiteralsAvailableIndicatorFactory : StatusBarWidgetFactory {
     fun updateAllWidgets() {
       ProjectManager.getInstance().openProjects
         .forEach { updateWidget(it) }
+    }
+
+    fun indicatorActivated() {
+      hasEverBeenActive = true
     }
   }
 }

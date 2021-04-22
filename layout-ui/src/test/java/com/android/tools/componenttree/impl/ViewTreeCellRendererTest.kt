@@ -73,7 +73,7 @@ class ViewTreeCellRendererTest {
   fun setUp() {
     doAnswer { focusOwner }.`when`(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree")
+    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree", null)
     tree!!.expandableTreeItemsHandler = TestTreeExpansionHandler(tree!!)
   }
 

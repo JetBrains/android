@@ -67,6 +67,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuKernelModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.util.ArrayList;
@@ -336,7 +337,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
     CodeNavigator navigator = getStudioProfilers().getIdeServices().getCodeNavigator();
     navigator.addListener(this);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.PROCESSES, myProfilerConfigModel::updateProfilingConfigurations);
 
@@ -364,6 +365,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     myCaptureParser.abortParsing();
     myRangeSelectionModel.clearListeners();
     myUpdatableManager.releaseAll();
+  }
+
+  @Override
+  public AndroidProfilerEvent.Stage getStageType() {
+    return AndroidProfilerEvent.Stage.CPU_STAGE;
   }
 
   @NotNull

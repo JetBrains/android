@@ -19,9 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.builder.model.ApiVersion;
-import com.android.ide.common.gradle.model.impl.IdeApiVersionImpl;
-import com.android.ide.common.gradle.model.stubs.ApiVersionStub;
+import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl;
+import com.android.tools.idea.gradle.model.stubs.ApiVersionStub;
 import com.android.testutils.Serialization;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
+import com.android.tools.idea.gradle.project.sync.ModelCacheTesting;
 import java.io.Serializable;
 import org.junit.Before;
 import org.junit.Test;

@@ -61,7 +61,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   fun testUnresolvedSymbol_nonAndroidX() {
     // Like testUnresolvedSymbolInKotlin but in a Java file
     projectRule.loadProject(TestProjectPaths.MIGRATE_TO_APP_COMPAT)
-    assertBuildGradle(projectRule) { !it.contains("com.android.support:recyclerview-v7:") }
+    assertBuildGradle(projectRule.project) { !it.contains("com.android.support:recyclerview-v7:") }
     projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.java", """
       package test.pkg.imports;
       public class Test {
@@ -78,8 +78,7 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
   @Test
   fun doNotSuggestIfAnyIsAlreadyDepended() {
     projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
-    assertBuildGradle(projectRule) {
-      !it.contains("androidx.palette:palette:") &&
+    assertBuildGradle(projectRule.project) {
       !it.contains("androidx.palette:palette-ktx:") &&
       !it.contains("androidx.room:room-runtime:")
     }
@@ -97,13 +96,13 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
     assertThat(available).isTrue()
     // Since we have more than one suggestion, we just show general text `Add library dependency` here.
     assertThat(action.text).isEqualTo("Add library dependency and import")
-    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
-    // in the test prebuilts right now
-    performWithoutSync(projectRule, action, element)
+
+    performAndWaitForSyncEnd(projectRule) {
+      action.perform(projectRule.project, projectRule.fixture.editor, element, true)
+    }
 
     // The deterministic order of suggestions are ensured, so the first option `androidx.palette:palette` is applied.
-    assertBuildGradle(projectRule) {
-      it.contains("implementation 'androidx.palette:palette:") &&
+    assertBuildGradle(projectRule.project) {
       it.contains("implementation 'androidx.palette:palette-ktx:")
     }
 
@@ -124,5 +123,63 @@ class AndroidMavenImportIntentionActionSuggestedImportEnabledTest {
     element = projectRule.fixture.moveCaret("FakeClass|()")
     available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
     assertThat(available).isFalse()
+  }
+
+  @Test
+  fun doNotImportWhenAlreadyFullyQualifiedKotlin_userTypeCase() {
+    // Like testDoNotImportWhenAlreadyFullyQualifiedJava, but for Kotlin
+    // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
+    // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.camera:camera-core:") }
+    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val builder = object : androidx.camera.core.ExtendableBuilder { // Here `camera` (package segment) is an unresolvable symbol
+      """.trimIndent())
+    val source = projectRule.fixture.editor.document.text
+
+    val action = AndroidMavenImportIntentionAction()
+    val element = projectRule.fixture.moveCaret("came|ra")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-core (alpha) and import")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.camera:camera-core:") }
+
+    // Make sure we haven't added an import statement since the reference is already fully qualified
+    val newSource = projectRule.fixture.editor.document.text
+    assertThat(source).isEqualTo(newSource)
+  }
+
+  @Test
+  fun doNotImportWhenAlreadyFullyQualifiedKotlin_userTypeCase_nestedClass() {
+    // Like testDoNotImportWhenAlreadyFullyQualifiedJava, but for Kotlin
+    // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
+    // must be mapped both in the display name and in the dependency inserted into the build.gradle file)
+    projectRule.loadProject(TestProjectPaths.ANDROIDX_SIMPLE) // this project uses AndroidX
+    assertBuildGradle(projectRule.project) { !it.contains("androidx.camera:camera-core:") }
+    projectRule.fixture.loadNewFile("app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val callback = object : androidx.camera.core.ImageCapture.OnImageSavedCallback { // Here `camera` is an unresolvable symbol
+      """.trimIndent())
+    val source = projectRule.fixture.editor.document.text
+
+    val action = AndroidMavenImportIntentionAction()
+    val element = projectRule.fixture.moveCaret("came|ra")
+    val available = action.isAvailable(projectRule.project, projectRule.fixture.editor, element)
+    assertThat(available).isTrue()
+    assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-core (alpha) and import")
+    // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+    // in the test prebuilts right now
+    performWithoutSync(projectRule, action, element)
+
+    assertBuildGradle(projectRule.project) { it.contains("implementation 'androidx.camera:camera-core:") }
+
+    // Make sure we haven't added an import statement since the reference is already fully qualified
+    val newSource = projectRule.fixture.editor.document.text
+    assertThat(source).isEqualTo(newSource)
   }
 }

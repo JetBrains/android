@@ -129,7 +129,7 @@ data class ProjectChecker(
     refreshProjectFiles()
     if (syncProject) {
       assertEquals(projectRoot, getBaseDirPath(this))
-      AndroidGradleTests.importProject(this, Request.testRequest(), null)
+      AndroidGradleTests.importProject(this, Request.testRequest())
     }
   }
 

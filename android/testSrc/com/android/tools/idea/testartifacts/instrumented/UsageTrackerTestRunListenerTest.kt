@@ -18,8 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.builder.model.AndroidProject
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
-import com.android.ide.common.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.project.model.ModelCache
+import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

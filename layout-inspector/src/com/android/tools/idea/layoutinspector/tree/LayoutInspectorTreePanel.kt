@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
 import com.intellij.openapi.Disposable
@@ -82,6 +83,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
+      .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
 
     val (scrollPane, model, selectionModel) = builder.build()
     componentTree = scrollPane
@@ -93,11 +95,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       layoutInspector?.layoutInspectorModel?.apply {
         val view = (it.firstOrNull() as? TreeViewNode)?.view
         setSelection(view, SelectionOrigin.COMPONENT_TREE)
-        stats.selectionMadeFromComponentTree(view)
+        layoutInspector?.stats?.selectionMadeFromComponentTree(view)
       }
     }
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, _, _ -> componentTree.repaint() }
-    tree?.setDefaultPainter()
     tree?.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.toInt())) {
@@ -107,7 +108,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     })
     val commonActionManager = CommonActionsManager.getInstance()
     additionalActions = listOf(
-      FilterNodeAction,
+      FilterGroupAction,
       commonActionManager.createExpandAllHeaderAction(tree),
       commonActionManager.createCollapseAllHeaderAction(tree)
     )
@@ -198,7 +199,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
         layoutInspector?.layoutInspectorModel?.apply {
           setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
-          stats.selectionMadeFromComponentTree(node.view)
+          layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
         }
       }
       return true
@@ -254,7 +255,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {
     temp.children.clear()
-    updateHierarchy(window.root, temp)
+    updateHierarchy(window.root, temp, temp)
     temp.children.forEach { it.parent = root }
     val changedNode = temp.children.singleOrNull()
     val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
@@ -281,15 +282,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.hierarchyChanged(root)
   }
 
-  private fun updateHierarchy(node: ViewNode, parent: TreeViewNode) {
-    val nextParent = if (!node.isInComponentTree) parent else {
+  private fun updateHierarchy(node: ViewNode, previous: TreeViewNode, parent: TreeViewNode) {
+    val treeSettings = layoutInspector?.treeSettings ?: return
+    val current = if (!node.isInComponentTree(treeSettings)) previous else {
       val treeNode = node.treeNode
       parent.children.add(treeNode)
       treeNode.parent = parent
       treeNode.children.clear()
-      if (node.isSingleCall) parent else treeNode
+      treeNode
     }
-    node.children.forEach { updateHierarchy(it, nextParent) }
+    val nextParent = if (node.isSingleCall(treeSettings)) parent else current
+    node.children.forEach { updateHierarchy(it, current, nextParent) }
   }
 
   @Suppress("UNUSED_PARAMETER")

@@ -114,7 +114,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       }
     }
 
-  abstract val captureSeries: List<DurationDataModel<CaptureDurationData<CaptureObject>>>
+  abstract val captureSeries: List<DurationDataModel<CaptureDurationData<out CaptureObject>>>
 
   private val updatables
     get() =
@@ -177,7 +177,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
     studioProfilers.ideServices.codeNavigator.addListener(this)
-    studioProfilers.ideServices.featureTracker.trackEnterStage(this.javaClass)
+    studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
   override fun exit() {
@@ -292,7 +292,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
    * Perform selecting the given capture.
    * This is called when selecting the latest capture is enabled.
    */
-  protected abstract fun onCaptureToSelect(data: SeriesData<CaptureDurationData<CaptureObject>>, loadJoiner: Executor)
+  protected abstract fun onCaptureToSelect(data: SeriesData<CaptureDurationData<out CaptureObject>>, loadJoiner: Executor)
 
   protected fun <T : DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))
 

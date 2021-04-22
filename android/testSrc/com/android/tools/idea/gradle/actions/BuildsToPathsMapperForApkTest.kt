@@ -22,7 +22,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput
 import com.android.builder.model.InstantAppVariantBuildOutput
 import com.android.builder.model.ProjectBuildOutput
 import com.android.builder.model.VariantBuildOutput
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels

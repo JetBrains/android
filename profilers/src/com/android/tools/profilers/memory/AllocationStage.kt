@@ -7,6 +7,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.adapters.CaptureObject
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import javax.swing.SwingUtilities
@@ -52,7 +53,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     }
   }
 
-  override fun onCaptureToSelect(captureToSelect: SeriesData<CaptureDurationData<CaptureObject>>, loadJoiner: Executor) =
+  override fun onCaptureToSelect(captureToSelect: SeriesData<CaptureDurationData<out CaptureObject>>, loadJoiner: Executor) =
     doSelectCaptureDuration(captureToSelect.value, loadJoiner)
 
   fun selectAll() = timeline.selectionRange.set(minTrackingTimeUs, min(maxTrackingTimeUs, timeline.dataRange.max))
@@ -132,6 +133,8 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       selectionRange.set(minTrackingTimeUs, dataMax)
     }
   }
+
+  override fun getStageType() = AndroidProfilerEvent.Stage.MEMORY_JVM_RECORDING_STAGE
 
   companion object {
     @JvmStatic @JvmOverloads

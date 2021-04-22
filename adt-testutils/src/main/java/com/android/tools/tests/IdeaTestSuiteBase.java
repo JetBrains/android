@@ -20,12 +20,14 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
+import com.android.tools.bazel.repolinker.RepoLinker;
 import com.intellij.testFramework.TestApplicationManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +62,6 @@ public class IdeaTestSuiteBase {
     System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
     System.setProperty("java.util.prefs.systemRoot", createTmpDir("systemRoot").toString());
 
-    System.setProperty("local.gradle.distribution.path", TestUtils.getWorkspaceRoot().resolve("tools/external/gradle/").toString());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_PREFS_ROOT", createTmpDir(".android").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
@@ -164,6 +165,22 @@ public class IdeaTestSuiteBase {
     File outDir = TestUtils.getPrebuiltOfflineMavenRepo().toFile();
     System.out.printf("Unzipping offline repo %s to %s%n", offlineRepoZip, outDir);
     unzip(offlineRepoZip, outDir);
+  }
+
+  protected static void linkIntoOfflineMavenRepo(@NotNull String repoManifest) {
+    Path offlineRepoManifest = getWorkspaceFileAndEnsureExistence(repoManifest).toPath();
+    Path outDir = TestUtils.getPrebuiltOfflineMavenRepo();
+    System.out.printf("Linking offline repo %s to %s%n", offlineRepoManifest, outDir);
+
+    try {
+      RepoLinker linker = new RepoLinker();
+      List<String> artifacts = Files.readAllLines(offlineRepoManifest);
+      linker.link(outDir, artifacts);
+    } catch (Exception e) {
+      // linkIntoOfflineMavenRepo is only called from Java static blocks in test suites, which can
+      // only throw RuntimeExceptions, so convert all exceptions into RuntimeExceptions.
+      throw new RuntimeException(e);
+    }
   }
 
   @NotNull

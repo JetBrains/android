@@ -153,7 +153,7 @@ class CompactResourcePicker(
   private val headerToolbar = JPanel(BorderLayout()).apply {
     background = PICKER_BACKGROUND_COLOR
     add(searchTextField, BorderLayout.WEST)
-    add(resourceSourceComboBox)
+    add(resourceSourceComboBox, BorderLayout.CENTER)
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createMatteBorder(0, 0, JBUIScale.scale(1), 0, JBUI.CurrentTheme.Popup.separatorColor()),
       componentPadding
@@ -243,8 +243,7 @@ class CompactResourcePicker(
     add(resourcesView)
     add(bottomToolbar, BorderLayout.SOUTH)
     background = PICKER_BACKGROUND_COLOR
-    searchTextField.preferredSize = Dimension(this.preferredSize.width - resourceSourceComboBox.preferredSize.width,
-                                              searchTextField.preferredSize.height)
+    searchTextField.preferredSize = Dimension(headerToolbar.preferredSize.width / 2, searchTextField.preferredSize.height)
 
     // Setup focus logic
     isFocusCycleRoot = true

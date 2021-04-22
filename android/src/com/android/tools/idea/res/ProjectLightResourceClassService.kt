@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
-import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.model.Namespacing
@@ -92,18 +92,18 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   /** Cache of AAR package names. */
-  private val aarPackageNamesCache: Cache<ExternalLibrary, String> = CacheBuilder.newBuilder().build()
+  private val aarPackageNamesCache: Cache<ExternalAndroidLibrary, String> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val aarClassesCache: Cache<ExternalLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
+  private val aarClassesCache: Cache<ExternalAndroidLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
   private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /**
-   * [Multimap] of all [ExternalLibrary] dependencies in the project, indexed by their package name (read from Manifest).
+   * [Multimap] of all [ExternalAndroidLibrary] dependencies in the project, indexed by their package name (read from Manifest).
    */
-  private var aarsByPackage: CachedValue<Multimap<String, ExternalLibrary>>
+  private var aarsByPackage: CachedValue<Multimap<String, ExternalAndroidLibrary>>
 
   init {
     val connection = project.messageBus.connect()
@@ -119,7 +119,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
       val libsWithResources = findAllLibrariesWithResources(project).values
       aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
-      CachedValueProvider.Result<Multimap<String, ExternalLibrary>>(
+      CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
         Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
         ProjectRootManager.getInstance(project)
       )
@@ -232,7 +232,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     return aarsByPackage.value.get(packageName).asSequence().map { aarLibrary -> getAarRClasses(aarLibrary, packageName) }
   }
 
-  private fun getAarRClasses(aarLibrary: ExternalLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
+  private fun getAarRClasses(aarLibrary: ExternalAndroidLibrary, packageName: String = getAarPackageName(aarLibrary)): ResourceClasses {
     val ideaLibrary = findIdeaLibrary(aarLibrary) ?: return ResourceClasses.Empty
 
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
@@ -260,7 +260,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     }
   }
 
-  private fun findIdeaLibrary(modelLibrary: ExternalLibrary): Library? {
+  private fun findIdeaLibrary(modelLibrary: ExternalAndroidLibrary): Library? {
     // TODO(b/118485835): Store this mapping at sync time and use it here.
     return LibraryTablesRegistrar.getInstance()
       .getLibraryTable(project)
@@ -303,7 +303,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     }
   }
 
-  private fun getAarPackageName(aarLibrary: ExternalLibrary): String {
+  private fun getAarPackageName(aarLibrary: ExternalAndroidLibrary): String {
     val packageName = aarLibrary.packageName
     if (packageName != null) {
       return packageName

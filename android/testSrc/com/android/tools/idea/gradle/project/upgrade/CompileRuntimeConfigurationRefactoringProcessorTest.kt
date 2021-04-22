@@ -193,6 +193,31 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   }
 
   @Test
+  fun testSimpleBasePlugin() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleBasePlugin"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleBasePluginExpected"))
+  }
+
+  @Test
+  fun testSimpleAndroidPlugin() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleAndroidPlugin"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleAndroidPluginExpected"))
+
+  }
+
+  @Test
+  fun testSimpleAndroidAndBasePlugin() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleAndroidAndBasePlugin"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleAndroidAndBasePluginExpected"))
+  }
+
+  @Test
   fun testIsNotAlwaysNoOpOnSimpleApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
     val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))

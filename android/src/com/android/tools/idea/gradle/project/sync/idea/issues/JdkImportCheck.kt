@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks

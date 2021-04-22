@@ -40,6 +40,7 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -1548,6 +1549,11 @@ public final class StudioProfilersTest {
 
     @Override
     public void exit() {
+    }
+
+    @Override
+    public AndroidProfilerEvent.Stage getStageType() {
+      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
     }
   }
 }

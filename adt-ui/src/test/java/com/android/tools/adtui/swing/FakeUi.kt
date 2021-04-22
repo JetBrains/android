@@ -19,16 +19,13 @@ package com.android.tools.adtui.swing
 import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration
 import java.awt.GraphicsDevice
-import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.geom.AffineTransform
@@ -142,12 +139,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   /**
    * Simulates pressing and releasing the left mouse button over the given component.
    */
-  @Throws(InterruptedException::class)
   fun clickOn(component: Component) {
     val location = getPosition(component)
     mouse.click(location.x + component.width / 2, location.y + component.height / 2)
-    // Allow events to propagate.
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
   /**
@@ -354,14 +348,4 @@ fun setPortableUiFont(scale: Float = 1.0f) {
       UIManager.put(key, FontUIResource(font))
     }
   }
-}
-
-/**
- * Replaces the keyboard focus manager with [focusManager]. The original focus manager is restored
- * when [parentDisposable] is disposed.
- */
-fun replaceKeyboardFocusManager(focusManager: KeyboardFocusManager, parentDisposable: Disposable) {
-  val originalFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-  Disposer.register(parentDisposable) { KeyboardFocusManager.setCurrentKeyboardFocusManager(originalFocusManager) }
-  KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
 }

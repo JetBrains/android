@@ -127,7 +127,7 @@ class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
   : ConnectDebuggerTask(applicationIdProvider,
                         mock(AndroidDebugger::class.java),
                         mock(Project::class.java),
-                        true) {
+                        false) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,

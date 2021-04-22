@@ -62,42 +62,8 @@ class MemoryTimelineComponent(stageView: MainMemoryProfilerStageView, timeAxis: 
 
   override fun shouldShowTooltip() = !heapDumpRenderer.isMouseOverHeapDump
 
-  override fun makeMonitorPanel(overlayPanel: JBPanel<*>) = super.makeMonitorPanel(overlayPanel).apply {
-    if (!stage.hasUserUsedMemoryCapture()) {
-      installProfilingInstructions()
-    }
-  }
-
   override fun makeLineChart() = super.makeLineChart().apply {
     configure(stage.detailedMemoryUsage.objectsSeries, LineConfig(Color(0, 0, 0, 0)))
-  }
-
-  private fun installProfilingInstructions() {
-    assert(layout.javaClass == TabularLayout::class.java)
-    // The heap dump icon's contrast does not stand out as well as the record icon so we use a higher tones value.
-    val heapDumpIcon =
-      if (UIUtil.isUnderDarcula()) IconUtil.darker(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
-      else IconUtil.brighter(StudioIcons.Profiler.Toolbar.HEAP_DUMP, 6)
-    val metrics = UIUtilities.getFontMetrics(this, ProfilerFonts.H2_FONT)
-    val instructions =
-      if (stage.isLiveAllocationTrackingReady)
-        arrayOf(TextInstruction(metrics, "Select a range to inspect allocations"),
-                NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-                TextInstruction(metrics, "or click "),
-                IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-                TextInstruction(metrics, " for a heap dump")
-        )
-      else
-        arrayOf(TextInstruction(metrics, "Click the record button to inspect allocations"),
-                NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-                TextInstruction(metrics, "or "),
-                IconInstruction(heapDumpIcon, PROFILING_INSTRUCTIONS_ICON_PADDING, null),
-                TextInstruction(metrics, " for a heap dump")
-        )
-    val panel = InstructionsPanel.Builder(*instructions)
-      .setBackgroundCornerRadius(PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER, PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER)
-      .build()
-    add(panel, TabularLayout.Constraint(0, 0))
   }
 
   private fun makeHeapDumpRenderer() = HeapDumpRenderer(stage.heapDumpSampleDurations, stage.timeline.viewRange).apply {

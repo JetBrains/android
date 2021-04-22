@@ -17,15 +17,14 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class VisualizationToolWindowFactoryTest {
@@ -38,23 +37,18 @@ class VisualizationToolWindowFactoryTest {
   @Rule
   val edtRule = EdtRule()
 
-  @Before
-  fun setupToolWindowManager() {
-    // The HeadlessToolWindowManager doesn't record the status of ToolWindow. We create a simple one to record it.
+  @Test
+  fun testToolWindowIsRegistered() {
+    // VisualizationTestToolWindowManager loads the tool window from extension point.
     val toolManager = VisualizationTestToolWindowManager(projectRule.project, projectRule.fixture.testRootDisposable)
     projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-  }
-
-  @After
-  fun tearDown() {
-    // The plugin service doesn't not be disposed automatically. Dispose it manually to avoid the leakage in unit test.
-    // TODO(b/180927397): Remove this when VisualizationManager is not a Project Service.
-    VisualizationManager.getInstance(projectRule.project)?.let { Disposer.dispose(it) }
+    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID))
   }
 
   @Test
   fun testAvailableWhenOpeningProject() {
-    val toolWindow = ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationManager.TOOL_WINDOW_ID)!!
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+
     val factory = VisualizationToolWindowFactory()
     factory.isApplicable(projectRule.project)
 
@@ -70,6 +64,53 @@ class VisualizationToolWindowFactoryTest {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(ktFile.virtualFile)
       factory.init(toolWindow)
+    }
+    assertFalse(toolWindow.isAvailable)
+  }
+
+  @Test
+  fun testAvailableWhenSwitchingFile() {
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val factory = VisualizationToolWindowFactory()
+    factory.isApplicable(projectRule.project)
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { factory.init(toolWindow) }
+
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
+
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    assertTrue(toolWindow.isAvailable)
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
+    assertFalse(toolWindow.isAvailable)
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    assertTrue(toolWindow.isAvailable)
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
+      FileEditorManager.getInstance(projectRule.project).closeFile(ktFile.virtualFile)
+    }
+    assertFalse(toolWindow.isAvailable)
+  }
+
+  @Test
+  fun testAvailableWhenClosingFile() {
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val factory = VisualizationToolWindowFactory()
+    factory.isApplicable(projectRule.project)
+
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
+      factory.init(toolWindow)
+    }
+    assertTrue(toolWindow.isAvailable)
+
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
     }
     assertFalse(toolWindow.isAvailable)
   }

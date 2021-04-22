@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.analytics
 
-import com.android.ide.common.gradle.model.impl.IdeViewBindingOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker

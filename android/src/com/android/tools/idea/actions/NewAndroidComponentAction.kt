@@ -40,7 +40,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.module.Module
-import icons.AndroidIcons
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.hasAndroidxProperty
@@ -77,7 +76,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     get() = NEW_WIZARD_CATEGORIES.contains(category)
 
   init {
-    templatePresentation.icon = if (isActivityTemplate) AndroidIcons.Activity else StudioIcons.Shell.Filetree.ANDROID_FILE
+    templatePresentation.icon = if (isActivityTemplate) StudioIcons.Shell.Filetree.ACTIVITY else StudioIcons.Shell.Filetree.ANDROID_FILE
   }
 
   @Suppress("DialogTitleCapitalization")

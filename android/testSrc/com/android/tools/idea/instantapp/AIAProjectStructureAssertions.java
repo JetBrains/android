@@ -17,19 +17,15 @@ package com.android.tools.idea.instantapp;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.AndroidProjectTypes;
-import com.android.ide.common.gradle.model.IdeAndroidProjectType;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeLibrary;
-import com.android.ide.common.gradle.model.IdeModuleLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**

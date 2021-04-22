@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.internal
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
-import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -154,7 +153,8 @@ class AppInspectorConnectionTest {
     val received = mutableListOf<ByteArray>()
     connection.eventFlow.take(3).collect { received.add(it) }
 
-    assertThat(received.map { it.contentToString()}).containsExactly(data2.contentToString(), data1.contentToString(), data3.contentToString()).inOrder()
+    assertThat(received.map { it.contentToString() }).containsExactly(data2.contentToString(), data1.contentToString(),
+                                                                      data3.contentToString()).inOrder()
   }
 
   @Test
@@ -175,7 +175,7 @@ class AppInspectorConnectionTest {
   }
 
   @Test
-  fun receiveCrashEventClosesConnection() = runBlocking<Unit> {
+  fun receiveDisposedEvent_cancelsSendingCommands() = runBlocking<Unit> {
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
     val sendRawCommandCalled = CompletableDeferred<Unit>()
@@ -185,7 +185,7 @@ class AppInspectorConnectionTest {
       }
     })
 
-    val crashed = CompletableDeferred<Unit>()
+    val disposedDeferred = CompletableDeferred<Unit>()
     launch {
       try {
         // This next line should get stuck (because of the disabled handler above) until the
@@ -194,8 +194,8 @@ class AppInspectorConnectionTest {
         fail()
       }
       catch (e: AppInspectionConnectionException) {
-        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
-        crashed.complete(Unit)
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has been disposed.")
+        disposedDeferred.complete(Unit)
       }
     }
 
@@ -203,15 +203,52 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
         .setInspectorId(INSPECTOR_ID)
-        .setCrashEvent(
-          CrashEvent.newBuilder()
-            .setErrorMessage("error")
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
             .build()
         )
         .build()
     )
 
-    crashed.join()
+    disposedDeferred.join()
+
+    assertThat(client.awaitForDisposal()).isTrue()
+  }
+
+
+  @Test
+  fun receiveDisposedEvent() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    appInspectionRule.addAppInspectionEvent(
+      AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
+            .build()
+        )
+        .build()
+    )
+
+    assertThat(client.awaitForDisposal()).isTrue()
+  }
+
+  @Test
+  fun receiveCrashEvent() = runBlocking<Unit> {
+    val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    appInspectionRule.addAppInspectionEvent(
+      AppInspectionEvent.newBuilder()
+        .setInspectorId(INSPECTOR_ID)
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
+            .setErrorMessage("ERROR")
+            .build()
+        )
+        .build()
+    )
+
+    assertThat(client.awaitForDisposal()).isFalse()
   }
 
   @Test
@@ -270,8 +307,8 @@ class AppInspectorConnectionTest {
       appInspectionRule.addAppInspectionEvent(
         AppInspectionEvent.newBuilder()
           .setInspectorId(INSPECTOR_ID)
-          .setCrashEvent(
-            CrashEvent.newBuilder()
+          .setDisposedEvent(
+            AppInspection.DisposedEvent.newBuilder()
               .setErrorMessage("error")
               .build()
           )
@@ -406,8 +443,8 @@ class AppInspectorConnectionTest {
     appInspectionRule.addAppInspectionEvent(
       AppInspectionEvent.newBuilder()
         .setInspectorId(INSPECTOR_ID)
-        .setCrashEvent(
-          CrashEvent.newBuilder()
+        .setDisposedEvent(
+          AppInspection.DisposedEvent.newBuilder()
             .setErrorMessage("error")
             .build()
         )

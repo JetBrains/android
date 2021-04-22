@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.model.IdeAndroidProjectType
-import com.android.ide.common.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -494,12 +494,11 @@ private fun ideAndroidLibrary(artifactAddress: String) =
     artifactAddress = artifactAddress,
     folder = File("libraryFolder"),
     manifest = "manifest.xml",
-    jarFile = "file.jar",
-    compileJarFile = "api.jar",
+    compileJarFiles = listOf("file.jar"),
+    runtimeJarFiles = listOf("api.jar"),
     resFolder = "res",
     resStaticLibrary = File("libraryFolder/res.apk"),
     assetsFolder = "assets",
-    localJars = listOf(),
     jniFolder = "jni",
     aidlFolder = "aidl",
     renderscriptFolder = "renderscriptFolder",
