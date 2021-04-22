@@ -1,0 +1,6 @@
+ext {
+  def activity = [:]
+  activity.foo = 'bar'
+  deps = [:]
+  deps.activity = activity
+}

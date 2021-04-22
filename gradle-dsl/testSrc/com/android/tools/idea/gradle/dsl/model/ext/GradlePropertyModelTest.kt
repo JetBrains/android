@@ -2908,6 +2908,18 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
   }
 
   @Test
+  fun testReferenceToMapInMap() {
+    writeToBuildFile(TestFile.REFERENCE_TO_MAP_IN_MAP)
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val depsModel = extModel.findProperty("deps")
+    val reference = ReferenceTo.createReferenceFromText("activity", depsModel)!!
+    extModel.findProperty("newDeps").convertToEmptyMap().getMapValue("newActivity").setValue(reference)
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REFERENCE_TO_MAP_IN_MAP_EXPECTED)
+  }
+
+  @Test
   fun testRename() {
     writeToBuildFile(TestFile.RENAME)
 
@@ -3980,7 +3992,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected"),
     WRITE_REFERENCE_TO_BUILDSCRIPT_EXT("writeReferenceToBuildscriptExt"),
     WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP("writeReferenceToBuildscriptExtApp"),
-    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected")
+    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected"),
+    REFERENCE_TO_MAP_IN_MAP("referenceToMapInMap"),
+    REFERENCE_TO_MAP_IN_MAP_EXPECTED("referenceToMapInMapExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
