@@ -11,9 +11,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/common/212-1.4.32-release-IJ1314/common-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/common/212-1.4.32-release-IJ1314/common-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -23,9 +21,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-allopen/212-1.4.32-release-IJ1314/compiler-plugins-allopen-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-allopen/212-1.4.32-release-IJ1314/compiler-plugins-allopen-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -35,9 +31,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-annotation-based-compiler-support/212-1.4.32-release-IJ1314/compiler-plugins-annotation-based-compiler-support-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-annotation-based-compiler-support/212-1.4.32-release-IJ1314/compiler-plugins-annotation-based-compiler-support-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -47,9 +41,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kapt/212-1.4.32-release-IJ1314/compiler-plugins-kapt-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kapt/212-1.4.32-release-IJ1314/compiler-plugins-kapt-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -59,9 +51,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kotlinx-serialization/212-1.4.32-release-IJ1314/compiler-plugins-kotlinx-serialization-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-kotlinx-serialization/212-1.4.32-release-IJ1314/compiler-plugins-kotlinx-serialization-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -71,9 +61,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-noarg/212-1.4.32-release-IJ1314/compiler-plugins-noarg-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-noarg/212-1.4.32-release-IJ1314/compiler-plugins-noarg-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -83,9 +71,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-sam-with-receiver/212-1.4.32-release-IJ1314/compiler-plugins-sam-with-receiver-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-sam-with-receiver/212-1.4.32-release-IJ1314/compiler-plugins-sam-with-receiver-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -95,9 +81,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-scripting/212-1.4.32-release-IJ1314/compiler-plugins-scripting-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-scripting/212-1.4.32-release-IJ1314/compiler-plugins-scripting-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -107,9 +91,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-parcelize/212-1.4.32-release-IJ1314/compiler-plugins-parcelize-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/compiler-plugins-parcelize/212-1.4.32-release-IJ1314/compiler-plugins-parcelize-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -119,9 +101,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/core/212-1.4.32-release-IJ1314/core-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/core/212-1.4.32-release-IJ1314/core-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -131,9 +111,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/eval4j/212-1.4.32-release-IJ1314/eval4j-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/eval4j/212-1.4.32-release-IJ1314/eval4j-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -143,9 +121,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/fir-frontend-independent/212-1.4.32-release-IJ1314/fir-frontend-independent-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/fir-frontend-independent/212-1.4.32-release-IJ1314/fir-frontend-independent-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -155,9 +131,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/formatter/212-1.4.32-release-IJ1314/formatter-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/formatter/212-1.4.32-release-IJ1314/formatter-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -167,9 +141,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-idea/212-1.4.32-release-IJ1314/gradle-idea-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-idea/212-1.4.32-release-IJ1314/gradle-idea-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -179,9 +151,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-native/212-1.4.32-release-IJ1314/gradle-native-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-native/212-1.4.32-release-IJ1314/gradle-native-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -191,9 +161,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-tooling/212-1.4.32-release-IJ1314/gradle-tooling-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/gradle-tooling/212-1.4.32-release-IJ1314/gradle-tooling-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -203,9 +171,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/idea/212-1.4.32-release-IJ1314/idea-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/idea/212-1.4.32-release-IJ1314/idea-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -215,9 +181,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-idea/212-1.4.32-release-IJ1314/j2k-idea-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-idea/212-1.4.32-release-IJ1314/j2k-idea-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -227,9 +191,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-new/212-1.4.32-release-IJ1314/j2k-new-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-new/212-1.4.32-release-IJ1314/j2k-new-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -239,9 +201,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-old/212-1.4.32-release-IJ1314/j2k-old-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/j2k-old/212-1.4.32-release-IJ1314/j2k-old-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -251,9 +211,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jps-common/212-1.4.32-release-IJ1314/jps-common-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jps-common/212-1.4.32-release-IJ1314/jps-common-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -263,9 +221,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm/212-1.4.32-release-IJ1314/jvm-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm/212-1.4.32-release-IJ1314/jvm-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -275,9 +231,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-core/212-1.4.32-release-IJ1314/jvm-debugger-core-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-core/212-1.4.32-release-IJ1314/jvm-debugger-core-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -287,9 +241,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-coroutines/212-1.4.32-release-IJ1314/jvm-debugger-coroutines-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-coroutines/212-1.4.32-release-IJ1314/jvm-debugger-coroutines-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -299,9 +251,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-evaluation/212-1.4.32-release-IJ1314/jvm-debugger-evaluation-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-evaluation/212-1.4.32-release-IJ1314/jvm-debugger-evaluation-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -311,9 +261,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-util/212-1.4.32-release-IJ1314/jvm-debugger-util-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/jvm-debugger-util/212-1.4.32-release-IJ1314/jvm-debugger-util-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -323,9 +271,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/line-indent-provider/212-1.4.32-release-IJ1314/line-indent-provider-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/line-indent-provider/212-1.4.32-release-IJ1314/line-indent-provider-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -335,9 +281,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/maven/212-1.4.32-release-IJ1314/maven-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/maven/212-1.4.32-release-IJ1314/maven-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -347,9 +291,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/native/212-1.4.32-release-IJ1314/native-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/native/212-1.4.32-release-IJ1314/native-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -359,9 +301,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-core/212-1.4.32-release-IJ1314/project-wizard-core-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-core/212-1.4.32-release-IJ1314/project-wizard-core-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -371,9 +311,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-idea/212-1.4.32-release-IJ1314/project-wizard-idea-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/project-wizard-idea/212-1.4.32-release-IJ1314/project-wizard-idea-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -383,9 +321,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/repl/212-1.4.32-release-IJ1314/repl-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/repl/212-1.4.32-release-IJ1314/repl-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -395,9 +331,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/scripting/212-1.4.32-release-IJ1314/scripting-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/scripting/212-1.4.32-release-IJ1314/scripting-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -407,9 +341,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin/212-1.4.32-release-IJ1314/uast-kotlin-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin/212-1.4.32-release-IJ1314/uast-kotlin-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -419,9 +351,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin-idea/212-1.4.32-release-IJ1314/uast-kotlin-idea-212-1.4.32-release-IJ1314.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/uast-kotlin-idea/212-1.4.32-release-IJ1314/uast-kotlin-idea-212-1.4.32-release-IJ1314-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -431,9 +361,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compiler-for-ide/1.4.32-release-371/kotlin-compiler-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-compiler-for-ide/1.4.32-release-371/kotlin-compiler-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -443,9 +371,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-common/1.4.32-release-371/kotlin-scripting-common-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-common/1.4.32-release-371/kotlin-scripting-common-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -455,9 +381,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler/1.4.32-release-371/kotlin-scripting-compiler-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler/1.4.32-release-371/kotlin-scripting-compiler-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -467,9 +391,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler-impl/1.4.32-release-371/kotlin-scripting-compiler-impl-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-compiler-impl/1.4.32-release-371/kotlin-scripting-compiler-impl-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -479,9 +401,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-jvm/1.4.32-release-371/kotlin-scripting-jvm-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-scripting-jvm/1.4.32-release-371/kotlin-scripting-jvm-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -491,9 +411,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-runtime/1.4.32-release-371/kotlin-script-runtime-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-runtime/1.4.32-release-371/kotlin-script-runtime-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -503,9 +421,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-util/1.4.32-release-371/kotlin-script-util-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-script-util/1.4.32-release-371/kotlin-script-util-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -515,9 +431,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/allopen-compiler-plugin-for-ide/1.4.32-release-371/allopen-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/allopen-compiler-plugin-for-ide/1.4.32-release-371/allopen-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -527,9 +441,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlinx-serialization-compiler-plugin-for-ide/1.4.32-release-371/kotlinx-serialization-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlinx-serialization-compiler-plugin-for-ide/1.4.32-release-371/kotlinx-serialization-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -539,9 +451,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/noarg-compiler-plugin-for-ide/1.4.32-release-371/noarg-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/noarg-compiler-plugin-for-ide/1.4.32-release-371/noarg-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -551,9 +461,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/sam-with-receiver-compiler-plugin-for-ide/1.4.32-release-371/sam-with-receiver-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/sam-with-receiver-compiler-plugin-for-ide/1.4.32-release-371/sam-with-receiver-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="PROVIDED">
@@ -563,9 +471,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-gradle-statistics-for-ide/1.4.32-release-371/kotlin-gradle-statistics-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-gradle-statistics-for-ide/1.4.32-release-371/kotlin-gradle-statistics-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.android-extensions-compiler-plugin" level="project" />
@@ -576,9 +482,7 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/parcelize-compiler-plugin-for-ide/1.4.32-release-371/parcelize-compiler-plugin-for-ide-1.4.32-release-371.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/parcelize-compiler-plugin-for-ide/1.4.32-release-371/parcelize-compiler-plugin-for-ide-1.4.32-release-371-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="library" scope="PROVIDED" name="javaslang" level="project" />
