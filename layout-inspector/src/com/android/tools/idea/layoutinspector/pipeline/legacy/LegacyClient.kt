@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLook
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.application.invokeLater
 
 /**
  * [InspectorClient] that supports pre-api 29 devices.
@@ -50,6 +51,7 @@ class LegacyClient(
   private var loggedInitialRender = false
 
   private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
+  private val composeWarning = ComposeWarning(model.project)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
@@ -104,6 +106,9 @@ class LegacyClient(
       return false
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+    invokeLater {
+      composeWarning.performCheck(this)
+    }
     return true
   }
 
