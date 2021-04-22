@@ -38,9 +38,17 @@ class SearchableOptionTests(unittest.TestCase):
         for jar in os.listdir(lib_dir):
           if jar.endswith(".jar"):
             with zipfile.ZipFile(os.path.join(lib_dir, jar)) as jar_file:
+              has_searchable_options = False
+              has_search_entry = False
               for name in jar_file.namelist():
                 if re.match(r"search/.*searchableOptions\.xml", name):
                   jar_file.extract(name, path=os.path.join(actual_dir, plugin, jar))
+                  has_searchable_options = True
+                if name == "search/":
+                  has_search_entry = True
+              if has_searchable_options and not has_search_entry:
+                self.fail("Jar %s contains searchable options xmls, but it does " % jar +
+                  "not have a search/ directory entry. IntelliJ requires the directory entry to find the .xmls")
 
     eq = self.same_folders(filecmp.dircmp(expected_dir, actual_dir))
     if not eq:
