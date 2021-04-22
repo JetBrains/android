@@ -161,7 +161,7 @@ class IdListProvider(private val client: WorkManagerInspectorClient,
             val work = works.firstOrNull { it.id == id }
             if (work != null) {
               add(HyperlinkLabel().apply {
-                val suffix = if (id == currId) " (Current)" else ""
+                val suffix = if (id == currId) "  (Current)" else ""
                 setHyperlinkText("", id, suffix)
                 addHyperlinkListener {
                   selectWork(work)
