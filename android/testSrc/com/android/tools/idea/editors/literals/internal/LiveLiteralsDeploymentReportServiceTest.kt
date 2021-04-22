@@ -69,10 +69,14 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     // Push to a different device should not trigger a deployment
     service.liveLiteralPushed("DeviceB", "0")
     assertTrue(service.hasActiveDevices)
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW))
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW, LiveLiteralsMonitorHandler.DeviceType.EMULATOR))
+    assertFalse(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.EMULATOR))
     assertEquals(0, deployments)
 
     service.liveLiteralPushed("DeviceA", "0")
     assertTrue(service.hasActiveDevices)
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW))
     assertEquals(1, deployments)
   }
 
@@ -118,7 +122,17 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     assertEquals("The device was not active, no deployments expected", 0, deployments)
 
     service.liveLiteralsMonitorStarted("DeviceA", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
-    service.liveLiteralsMonitorStarted("DeviceB", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW))
+    assertFalse(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.EMULATOR))
+    assertFalse(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PHYSICAL))
+    assertFalse(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PHYSICAL, LiveLiteralsMonitorHandler.DeviceType.EMULATOR))
+
+    service.liveLiteralsMonitorStarted("DeviceB", LiveLiteralsMonitorHandler.DeviceType.EMULATOR)
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW, LiveLiteralsMonitorHandler.DeviceType.EMULATOR))
+    assertTrue(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PREVIEW,
+                                             LiveLiteralsMonitorHandler.DeviceType.EMULATOR,
+                                             LiveLiteralsMonitorHandler.DeviceType.PHYSICAL))
+    assertFalse(service.hasActiveDeviceOfType(LiveLiteralsMonitorHandler.DeviceType.PHYSICAL))
     service.liveLiteralPushed("DeviceB", "0")
     assertTrue(service.hasActiveDevices)
     assertEquals(1, deployments)
@@ -138,6 +152,8 @@ internal class LiveLiteralsDeploymentReportServiceTest {
     assertFalse(service.hasProblems)
     service.liveLiteralPushed("DeviceA", "0", listOf(LiveLiteralsMonitorHandler.Problem.info("Test")))
     assertTrue(service.hasProblems)
+
+    service.liveLiteralsMonitorStarted("DeviceC", LiveLiteralsMonitorHandler.DeviceType.PHYSICAL)
   }
 
   private fun runWithSynchronizedStartStop(iterations: Int, blocks: List<() -> Unit>) {
