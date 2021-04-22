@@ -48,7 +48,7 @@ PROJECT                       : LightSyncBasedTestsWithCMakeLikeStructureTest
             GradlePath                    : :
         FACET                         : Native-Android-Gradle
             TypeId                        : native-android-gradle
-            SelectedVariantAbi            : null
+            SelectedVariantAbi            : VariantAbi(variant=debug, abi=x86_64)
         CONENT_ENTRY                  : file://<PROJECT>
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/src/androidTest/aidl [-]

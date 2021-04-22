@@ -301,7 +301,8 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
       assertThat(appNdkModel.getSyncedVariantAbis()).contains(appNdkFacet.getSelectedVariantAbi());
       assertEquals("debug-armeabi-v7a", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
       assertThat(lib2NdkModel.getSyncedVariantAbis()).contains(lib2NdkFacet.getSelectedVariantAbi());
-      assertEquals("debug-armeabi-v7a", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      // TODO(b/168472164): Uncomment when ABI switching across non-native modules is fixed.
+      // assertEquals("debug-armeabi-v7a", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
       // TODO(b/168472164): Uncomment when ABI switching across non-native modules is fixed.
       // assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
     }
