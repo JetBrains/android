@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
-import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,34 +43,31 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class DexGroupNode extends ProjectViewNode<VirtualFile> {
-  @NotNull private final DexSourceFiles myDexSourceFiles;
+  private static final AndroidSourceType SOURCE_TYPE = AndroidSourceType.JAVA;
 
-  @Nullable private final DexFileStructure myDexFileStructure;
+  private final @NotNull DexSourceFiles myDexSourceFiles;
+
+  private final @Nullable DexFileStructure myDexFileStructure;
 
   private Collection<ApkPackage> myPackages = Collections.emptyList();
 
   public DexGroupNode(@NotNull Project project, @NotNull ViewSettings settings, @Nullable VirtualFile dexFile) {
     this(project, settings, DexSourceFiles.getInstance(project), dexFile);
   }
+
   private static final VirtualFile NULL_DEX = new StubVirtualFile();
 
   DexGroupNode(@NotNull Project project,
                @NotNull ViewSettings settings,
                @NotNull DexSourceFiles dexSourceFiles,
                @Nullable VirtualFile dexFile) {
-    super(project, ObjectUtils.notNull(dexFile, NULL_DEX), settings);
+    super(project, dexFile != null ? dexFile : NULL_DEX, settings);
     myDexSourceFiles = dexSourceFiles;
-    if (dexFile != null) {
-      myDexFileStructure = new DexFileStructure(dexFile);
-    }
-    else {
-      myDexFileStructure = null;
-    }
+    myDexFileStructure = dexFile != null ? new DexFileStructure(dexFile) : null;
   }
 
   @Override
-  @NotNull
-  public Collection<? extends AbstractTreeNode<?>> getChildren() {
+  public @NotNull Collection<? extends AbstractTreeNode<?>> getChildren() {
     if (myDexFileStructure != null) {
       try {
         myPackages = myDexFileStructure.getPackages();
@@ -85,8 +81,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
     return Collections.emptyList();
   }
 
-  @NotNull
-  private Collection<? extends AbstractTreeNode<?>> getChildren(@NotNull Collection<ApkPackage> packages) {
+  private @NotNull Collection<? extends AbstractTreeNode<?>> getChildren(@NotNull Collection<ApkPackage> packages) {
     assert myProject != null;
     List<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
@@ -163,28 +158,21 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(SourceRoot);
-    presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
+    presentation.addText(SOURCE_TYPE.getName(), REGULAR_ATTRIBUTES);
     VirtualFile dexFile = getValue();
-    if (dexFile != NULL_DEX) {
+    if (!NULL_DEX.equals(dexFile)) {
       presentation.addText(" (" + dexFile.getName() + ")", GRAY_ATTRIBUTES);
     }
   }
 
   @Override
-  @Nullable
-  public Comparable getSortKey() {
+  public @Nullable Comparable<AndroidSourceType> getSortKey() {
     return getTypeSortKey();
   }
 
   @Override
-  @Nullable
-  public Comparable getTypeSortKey() {
-    return getSourceType();
-  }
-
-  @NotNull
-  private static AndroidSourceType getSourceType() {
-    return AndroidSourceType.JAVA;
+  public @Nullable Comparable<AndroidSourceType> getTypeSortKey() {
+    return SOURCE_TYPE;
   }
 
   @Override
@@ -198,11 +186,10 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   }
 
   @Override
-  @Nullable
-  public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    String text = getSourceType().getName();
+  public @Nullable String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    String text = SOURCE_TYPE.getName();
     VirtualFile dexFile = getValue();
-    if (dexFile != NULL_DEX) {
+    if (!NULL_DEX.equals(dexFile)) {
       text = text + " (" + dexFile.getName() + ")";
     }
 
