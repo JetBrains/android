@@ -58,6 +58,12 @@ private const val BOTTOM_BAR_TOP_MARGIN = 3
 private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 
 /**
+ * Minimum allowed width for the model name label.
+ */
+@SwingCoordinate
+private const val MODEL_NAME_LABEL_MIN_WIDTH = 20
+
+/**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
 class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
@@ -225,6 +231,11 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     if (sceneViewToolbar != null) {
       add(sceneViewToolbar, BorderLayout.LINE_END)
     }
+    // The space of name label is sacrified when there is no enough width to display the toolbar.
+    // When it happens, the label will be trimmed and show the ellipsis at its tail.
+    // User can still hover it to see the full label in the tooltips.
+    val minWidth = MODEL_NAME_LABEL_MIN_WIDTH + (sceneViewToolbar?.minimumSize?.width ?: 0)
+    minimumSize = Dimension(minWidth, minimumSize.height)
   }
 
   val sceneViewBottomPanel = JPanel(BorderLayout()).apply {
