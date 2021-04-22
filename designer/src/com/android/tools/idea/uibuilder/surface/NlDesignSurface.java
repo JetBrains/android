@@ -420,6 +420,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @SwingCoordinate
   @NotNull
   private final Point myZoomCenter = new Point();
+  /**
+   * Flag to indicate the view port should have same center when viewport changed.
+   */
+  private boolean myNeedsKeepSameViewportCenter = false;
 
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
@@ -471,6 +475,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMaxScale = maxScale;
 
     getViewport().addChangeListener(e -> {
+      if (!myNeedsKeepSameViewportCenter) {
+        // We only change the viewport position when viewport is changed by scaling.
+        // For example, we don't want to change the position when user resize the window.
+        return;
+      }
+      // Reset the flag so it won't update the center point if the following change is caused by window resizing.
+      myNeedsKeepSameViewportCenter = false;
       // Calculate the viewport position of scroll view when its size is changed.
       // When the view size is changed, the new center position should have same weight in both x and y axis as before.
       // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
@@ -939,7 +950,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       myZoomCenter.x = center.x;
       myZoomCenter.y = center.y;
     }
-    return super.setScale(scale, x, y);
+    myNeedsKeepSameViewportCenter = super.setScale(scale, x, y);
+    return myNeedsKeepSameViewportCenter;
   }
 
   @Override
