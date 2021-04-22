@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.deviceManager.physicaltab;
 
-import com.android.annotations.concurrency.WorkerThread;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
@@ -25,7 +25,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
@@ -35,10 +35,7 @@ import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The methods in this class are called by application pool threads
- */
-@WorkerThread
+@UiThread
 @Service
 final class BuilderService {
   private final @NotNull Map<@NotNull String, @Nullable Instant> mySerialNumberToOnlineTimeMap;
@@ -64,7 +61,7 @@ final class BuilderService {
     ListenableFuture<String> modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     ListenableFuture<String> manufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
 
-    Executor executor = AppExecutorUtil.getAppExecutorService();
+    Executor executor = EdtExecutorService.getInstance();
 
     // noinspection UnstableApiUsage
     return Futures.whenAllComplete(modelFuture, manufacturerFuture).call(() -> build(device, modelFuture, manufacturerFuture), executor);
