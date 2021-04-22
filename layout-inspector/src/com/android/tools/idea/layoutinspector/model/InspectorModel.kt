@@ -278,7 +278,9 @@ class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
       }
 
       oldNode.children.clear()
-      ViewNode.writeDrawChildren { drawChildren -> oldNode.drawChildren().clear() }
+      // Don't update or clear the drawChildren at this point. They will be refreshed by a listener after the update is complete,
+      // and we can continue using the old ones for view sizing calculations until that happens.
+
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
