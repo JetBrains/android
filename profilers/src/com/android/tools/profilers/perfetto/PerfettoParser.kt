@@ -76,8 +76,12 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       if (traceUIMetadata.isNotEmpty()) {
         try {
           val uiState = PerfettoTrace.UiState.parseFrom(Base64.getDecoder().decode(traceUIMetadata.last()))
-          val wantedProcessId = uiState.getHighlightProcess().getPid()
-          processHint = processList.find { it.id == wantedProcessId }?.getSafeProcessName() ?: mainProcessSelector.nameHint
+          if (uiState.highlightProcess.hasPid()) {
+            val wantedProcessId = uiState.getHighlightProcess().getPid()
+            processHint = processList.find { it.id == wantedProcessId }?.getSafeProcessName() ?: mainProcessSelector.nameHint
+          } else if (uiState.highlightProcess.hasCmdline()) {
+            processHint = uiState.highlightProcess.cmdline
+          }
           if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
             initialViewRange.set(TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
                                  TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble());
