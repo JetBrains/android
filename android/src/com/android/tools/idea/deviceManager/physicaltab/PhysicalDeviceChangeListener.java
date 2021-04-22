@@ -27,9 +27,9 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +94,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
                                @NotNull PhysicalDeviceFutureCallbackSupplier newFutureCallback) {
     myModel = model;
     myBridge = bridge;
-    myExecutorService = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
+    myExecutorService = MoreExecutors.listeningDecorator(EdtExecutorService.getInstance());
     myBuilderServiceGetInstance = builderServiceGetInstance;
     myNewFutureCallback = newFutureCallback;
 
@@ -145,9 +145,11 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
    */
   @WorkerThread
   private void buildPhysicalDevice(@NotNull IDevice device, @NotNull Consumer<@NotNull PhysicalDevice> onSuccess) {
+    Executor executor = EdtExecutorService.getInstance();
+
     // noinspection UnstableApiUsage
     FluentFuture.from(myExecutorService.submit(myBuilderServiceGetInstance::get))
-      .transformAsync(builderService -> Objects.requireNonNull(builderService).build(device), myExecutorService)
-      .addCallback(myNewFutureCallback.get(onSuccess), EdtExecutorService.getInstance());
+      .transformAsync(builderService -> Objects.requireNonNull(builderService).build(device), executor)
+      .addCallback(myNewFutureCallback.get(onSuccess), executor);
   }
 }
