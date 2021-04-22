@@ -218,9 +218,8 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
       NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
       NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
       assertEquals("release-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
-      // TODO(b/168472164): Uncomment when variant switching with native variants is fixed.
-//      assertEquals("release-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
-//      assertEquals("release-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("release-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("release-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
     }
     // Gets served from cache.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
@@ -301,10 +300,8 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
       assertThat(appNdkModel.getSyncedVariantAbis()).contains(appNdkFacet.getSelectedVariantAbi());
       assertEquals("debug-armeabi-v7a", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
       assertThat(lib2NdkModel.getSyncedVariantAbis()).contains(lib2NdkFacet.getSelectedVariantAbi());
-      // TODO(b/168472164): Uncomment when ABI switching across non-native modules is fixed.
-      // assertEquals("debug-armeabi-v7a", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
-      // TODO(b/168472164): Uncomment when ABI switching across non-native modules is fixed.
-      // assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-armeabi-v7a", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
     }
 
     // Gets served from cache.
