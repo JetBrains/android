@@ -2220,7 +2220,7 @@ fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
  * XML files higher than non-XML files.
  */
 fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
-  return if (file1 != null && file1 == file2 || file1 === file2) {
+  return if (file1 == file2) {
     0
   }
   else if (file1 != null && file2 != null) {
