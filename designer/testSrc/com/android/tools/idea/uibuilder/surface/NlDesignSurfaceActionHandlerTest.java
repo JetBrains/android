@@ -149,8 +149,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     verify(myCopyPasteManager).setContents(notNull());
   }
 
-  // Disabled because it is flaky: b/157650498
-  public void ignore_testPasteWillChangeSelectionToPastedComponent() {
+  public void testPasteWillChangeSelectionToPastedComponent() {
     // Need to use the real copyPasteManager for checking the result of selection model.
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 
