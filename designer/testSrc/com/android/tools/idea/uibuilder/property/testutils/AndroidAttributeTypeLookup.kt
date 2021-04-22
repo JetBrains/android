@@ -62,13 +62,13 @@ object AndroidAttributeFact {
       "closeIconTint" -> return NlPropertyType.COLOR_STATE_LIST
       "closeIconVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "collapsedSize" -> return NlPropertyType.DIMENSION
-      "contentPadding" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
-      "contentPaddingBottom" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPadding" -> return NlPropertyType.DIMENSION
+      "contentPaddingBottom" -> return NlPropertyType.DIMENSION
       "contentPaddingEnd" -> return NlPropertyType.DIMENSION
-      "contentPaddingLeft" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
-      "contentPaddingRight" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingLeft" -> return NlPropertyType.DIMENSION
+      "contentPaddingRight" -> return NlPropertyType.DIMENSION
       "contentPaddingStart" -> return NlPropertyType.DIMENSION
-      "contentPaddingTop" -> return NlPropertyType.STRING // b/186080724 DIMENSION?
+      "contentPaddingTop" -> return NlPropertyType.DIMENSION
       "cornerRadius" -> return NlPropertyType.DIMENSION
       "counterOverflowTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "counterTextColor" -> return NlPropertyType.COLOR_STATE_LIST
@@ -195,7 +195,7 @@ object AndroidAttributeFact {
       "thumbColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbElevation" -> return NlPropertyType.DIMENSION
       "thumbRadius" -> return NlPropertyType.DIMENSION
-      "thumbStrokeColor" -> return NlPropertyType.COLOR // b/186080724 COLOR_STATE_LIST?
+      "thumbStrokeColor" -> return NlPropertyType.COLOR_STATE_LIST
       "thumbStrokeWidth" -> return NlPropertyType.DIMENSION
       "tickVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "trackColor" -> return NlPropertyType.COLOR_STATE_LIST
