@@ -333,7 +333,7 @@ class WorkManagerInspectorTabTest {
       assertThat((nextComponent.getComponent(0) as JLabel).text).isEqualTo("dependentsId")
       val chainComponent = workContinuationPanel.getValueComponent("Unique work chain") as JPanel
       assertThat(chainComponent.componentCount).isEqualTo(1)
-      assertThat((chainComponent.getComponent(0) as HyperlinkLabel).text).isEqualTo("ID1 (Current)")
+      assertThat((chainComponent.getComponent(0) as HyperlinkLabel).text).isEqualTo("ID1  (Current)")
 
       val resultsPanel = detailedPanel.getCategoryPanel("Results") as JPanel
       val timeStartedComponent = resultsPanel.getValueComponent("Time Started") as JLabel
