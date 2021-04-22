@@ -222,6 +222,7 @@ object TypeResolver {
       "prefixTextColor",
       "suffixTextColor",
       "thumbColor",
+      "thumbStrokeColor",
       "tickColor",
       "tickColorActive",
       "tickColorInactive",
@@ -249,6 +250,11 @@ object TypeResolver {
       SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
       SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS -> NlPropertyType.FRACTION
 
+      "contentPadding",
+      "contentPaddingBottom",
+      "contentPaddingLeft",
+      "contentPaddingRight",
+      "contentPaddingTop",
       SdkConstants.ATTR_ELEVATION -> NlPropertyType.DIMENSION
 
       SdkConstants.ATTR_MENU -> NlPropertyType.MENU
