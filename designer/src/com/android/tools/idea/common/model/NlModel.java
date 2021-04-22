@@ -50,6 +50,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -765,9 +766,14 @@ public class NlModel implements Disposable, ModificationTracker {
       return;
     }
 
-    ApplicationManager.getApplication().invokeLater(() -> {
-      NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback);
-    });
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
+      // Since there is no UI in unit test or headless environment, we invoke and wait directly for testing purpose.
+      application.invokeAndWait(() -> NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback));
+    }
+    else {
+      application.invokeLater(() -> NlDependencyManager.getInstance().addDependencies(toAdd, getFacet(), false, callback));
+    }
   }
 
   private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
