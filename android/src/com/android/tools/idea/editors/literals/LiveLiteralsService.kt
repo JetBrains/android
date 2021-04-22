@@ -120,10 +120,6 @@ interface LiveLiteralsMonitorHandler {
 class LiveLiteralsService private constructor(private val project: Project,
                                               listenerExecutor: Executor,
                                               private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
-  /** Will be set to true the first time this project receives a notification of live literals being available. */
-  var hasEverBeenActive = false
-    private set
-
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       private var wasActive = AtomicBoolean(false)
@@ -131,7 +127,6 @@ class LiveLiteralsService private constructor(private val project: Project,
       override fun onMonitorStarted(deviceId: String) {
         DumbService.getInstance(project).runWhenSmart {
           if (deploymentReportService.hasActiveDevices) {
-            hasEverBeenActive = true
             activateTracking()
             if (!wasActive.getAndSet(true)) {
               fireOnLiteralsAvailability(true)
@@ -367,8 +362,7 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
     }
 
-
-    if (!updateList.isEmpty()) {
+    if (updateList.isNotEmpty()) {
       fireOnLiteralsChanged(updateList)
     }
   }
