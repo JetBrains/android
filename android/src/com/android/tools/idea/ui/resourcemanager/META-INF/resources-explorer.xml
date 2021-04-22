@@ -58,8 +58,6 @@
       <reference ref="FindUsages"/>
       <reference ref="SelectIn"/>
       <reference ref="RevealIn"/>
-      <separator/>
-      <reference ref="ConvertToWebp" />
     </group>
 
     <action class="com.android.tools.idea.ui.resourcemanager.actions.ShowFileInResourceManagerAction"

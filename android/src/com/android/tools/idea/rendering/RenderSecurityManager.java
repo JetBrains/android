@@ -20,7 +20,6 @@ import static com.android.SdkConstants.DOT_JAR;
 import static com.android.SdkConstants.VALUE_FALSE;
 
 import com.android.annotations.Nullable;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -304,7 +303,7 @@ public class RenderSecurityManager extends SecurityManager {
         return; // Allow loading JRE libraries
       }
       // Allow loading webp library
-      if (lib.equals(new File(WebpNativeLibHelper.getLibLocation(), WebpNativeLibHelper.getLibName()).getAbsolutePath())) {
+      if (RenderPropertiesAccessUtil.isLibraryLinkingAllowed(lib)) {
         return;
       }
       throw RenderSecurityException.create("Link", lib);
