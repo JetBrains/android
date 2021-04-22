@@ -15,42 +15,68 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.Log;
 import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-
 public class AndroidLogcatServiceTest {
+  private static final ImmutableList<String> LOG_LINES = ImmutableList.of(
+    "[ 1534635551.439 1493:1595 W/DummyFirst     ]",
+    "First Line1",
+    "First Line2",
+    "First Line3",
+    "[ 1537486751.439 1493:1595 W/DummySecond     ]",
+    "Second Line1"
+  );
+
+  private static final ImmutableList<LogCatMessage> EXPECTED_LOG_MESSAGES = ImmutableList.of(
+    new LogCatMessage(
+      new LogCatHeader(Log.LogLevel.WARN, 1493, 1595, "?", "DummyFirst", Instant.ofEpochMilli(1534635551439L)),
+      "First Line1"),
+    new LogCatMessage(
+      new LogCatHeader(Log.LogLevel.WARN, 1493, 1595, "?", "DummyFirst", Instant.ofEpochMilli(1534635551439L)),
+      "First Line2"),
+    new LogCatMessage(
+      new LogCatHeader(Log.LogLevel.WARN, 1493, 1595, "?", "DummyFirst", Instant.ofEpochMilli(1534635551439L)),
+      "First Line3"),
+    new LogCatMessage(
+      new LogCatHeader(Log.LogLevel.WARN, 1493, 1595, "?", "DummySecond", Instant.ofEpochMilli(1537486751439L)),
+      "Second Line1")
+  );
+
   private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
 
-    private static final List<String> EXPECTED_LOGS = ImmutableList.of(
-      "1534635551.439: W/DummyFirst(1493): First Line1",
-      "1534635551.439: W/DummyFirst(1493): First Line2",
-      "1534635551.439: W/DummyFirst(1493): First Line3",
-      "1537486751.439: W/DummySecond(1493): Second Line1");
 
-    private final List<String> myReceivedMessages = new ArrayList<String>();
+    private final List<LogCatMessage> myReceivedMessages = new ArrayList<>();
     private boolean myCleared;
 
     @Override
-    public void onLogLineReceived(@NotNull LogCatMessage line) {
-      myReceivedMessages.add(line.toString());
+    public void onLogLineReceived(@NotNull LogCatMessage logCatMessage) {
+      myReceivedMessages.add(logCatMessage);
     }
 
     @Override
@@ -65,7 +91,7 @@ public class AndroidLogcatServiceTest {
     }
 
     public void assertAllReceived() {
-      assertEquals(EXPECTED_LOGS, myReceivedMessages);
+      assertThat(myReceivedMessages).containsExactlyElementsIn(EXPECTED_LOG_MESSAGES);
     }
 
     public void assertNothingReceived() {
@@ -78,7 +104,7 @@ public class AndroidLogcatServiceTest {
   }
 
   private TestLogcatListener myLogcatListener;
-  private IDevice mockDevice = mock(IDevice.class);
+  private final IDevice mockDevice = mock(IDevice.class);
   private AndroidLogcatService myLogcatService;
   private volatile CountDownLatch myExecuteShellCommandLatch;
 
@@ -99,7 +125,7 @@ public class AndroidLogcatServiceTest {
   }
 
   private void stubExecuteLogcatHelp() throws Exception {
-    Answer answer = invocation -> {
+    Answer<Void> answer = invocation -> {
       ((MultiLineReceiver)invocation.getArgument(1)).processNewLines(new String[]{"epoch"});
       myExecuteShellCommandLatch.countDown();
 
@@ -110,15 +136,12 @@ public class AndroidLogcatServiceTest {
   }
 
   private void stubExecuteLogcatVLongVEpoch() throws Exception {
-    Answer answer = invocation -> {
+    Answer<Void> answer = invocation -> {
       AndroidLogcatReceiver receiver = invocation.getArgument(1);
 
-      receiver.processNewLine("[ 1534635551.439 1493:1595 W/DummyFirst     ]");
-      receiver.processNewLine("First Line1");
-      receiver.processNewLine("First Line2");
-      receiver.processNewLine("First Line3");
-      receiver.processNewLine("[ 1537486751.439 1493:1595 W/DummySecond     ]");
-      receiver.processNewLine("Second Line1");
+      for (String line : LOG_LINES) {
+        receiver.processNewLine(line);
+      }
       receiver.cancel();
 
       myExecuteShellCommandLatch.countDown();
