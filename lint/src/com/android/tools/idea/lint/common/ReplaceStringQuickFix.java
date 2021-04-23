@@ -66,7 +66,7 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
    * @param name       the quickfix description, which is optional (if not specified, it will be Replace with X)
    * @param familyName the name to use for this fix <b>if</b> it is safe to apply along with all other fixes of the same family name
    * @param regexp     the regular expression, or {@link ReplaceString#INSERT_BEGINNING} or {@link ReplaceString#INSERT_END}
-   * @param newValue
+   * @param newValue   the value to write into the document
    */
   public ReplaceStringQuickFix(@Nullable String name,
                                @Nullable String familyName,
@@ -279,7 +279,7 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
       if (segment != null) {
         start = segment.getStartOffset();
         end = segment.getEndOffset();
-        if (myRegexp != null && myRegexp != INSERT_BEGINNING && myRegexp != INSERT_END) {
+        if (myRegexp != null && !INSERT_BEGINNING.equals(myRegexp) && !INSERT_END.equals(myRegexp)) {
           startElement = file.findElementAt(start);
           endElement = file.findElementAt(end);
           if (startElement == null || endElement == null) {
