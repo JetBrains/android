@@ -26,10 +26,9 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import javax.swing.Icon
 
 class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
@@ -49,12 +48,13 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger): AppInspectorTab {
-    val projectScope = AndroidCoroutineScope(project)
-    val moduleScope = CoroutineScope(projectScope.coroutineContext + Job(projectScope.coroutineContext[Job]))
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
+  ): AppInspectorTab {
+    val scope = AndroidCoroutineScope(parentDisposable)
     return object : AppInspectorTab {
       override val messenger = messenger
-      private val client = BackgroundTaskInspectorClient(messenger, moduleScope)
+      private val client = BackgroundTaskInspectorClient(messenger, scope)
 
       override val component = BackgroundTaskInspectorTab(client).component
     }

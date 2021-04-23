@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import javax.swing.JPanel
 
@@ -36,10 +37,13 @@ class StubTestAppInspectorTabProvider(
 ) : AppInspectorTabProvider {
   override val displayName = inspectorId
 
-  override fun createTab(project: Project,
-                         ideServices: AppInspectionIdeServices,
-                         processDescriptor: ProcessDescriptor,
-                         messenger: AppInspectorMessenger): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
+  ): AppInspectorTab {
     return object : AppInspectorTab {
       override val messenger: AppInspectorMessenger = StubTestAppInspectorMessenger()
       override val component = JPanel()
