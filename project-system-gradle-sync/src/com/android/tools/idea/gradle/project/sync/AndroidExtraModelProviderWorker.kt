@@ -456,7 +456,7 @@ internal class AndroidExtraModelProviderWorker(
         val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
 
         val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-          variantDiffChange ?: VariantSelectionChange.EMPTY
+          variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
         )
                                         ?: return null
 
