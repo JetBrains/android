@@ -431,4 +431,27 @@ class ComposeModifierCompletionContributorTest {
       """.trimIndent()
     )
   }
+
+  @RunsInEdt
+  @Test
+  fun testNewExtensionFunction() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.ui.Modifier
+      import androidx.compose.ui.extensionFunction
+
+      fun Modifier.foo() = extensionFunction().<caret>
+
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    val lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("extensionFunction")
+    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
+    assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+  }
 }
