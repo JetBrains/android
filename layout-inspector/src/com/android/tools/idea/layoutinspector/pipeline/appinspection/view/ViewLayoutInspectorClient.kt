@@ -136,7 +136,7 @@ class ViewLayoutInspectorClient(
         }
         .buffer(capacity = UNLIMITED) // Buffering allows event collection to keep happening even as we're still processing older ones
         .filter { event ->
-          event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT || event.layoutEvent == recentLayouts[event.layoutEvent.rootView.id]
+          event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT || event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
         }
         .collect { event ->
           when (event.specializedCase) {
