@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -32,6 +33,7 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 import java.util.concurrent.Executors
+import kotlin.test.fail
 
 class NetworkInspectorDataSourceTest {
   private val executor = Executors.newSingleThreadExecutor()
@@ -119,6 +121,25 @@ class NetworkInspectorDataSourceTest {
     }
 
   }
+
+  @Test
+  fun cleanUpChannelOnDispose() = runBlocking<Unit> {
+    val testMessenger = TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
+    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    testMessenger.await()
+    try {
+      dataSource.queryForSpeedData(Range(0.0, 5.0))
+      fail()
+    }
+    catch (e: Throwable) {
+      assertThat(e).isInstanceOf(CancellationException::class.java)
+      var cause: Throwable? = e.cause
+      while (cause != null && cause !is ArithmeticException) {
+        cause = cause.cause
+      }
+      assertThat(cause).isInstanceOf(ArithmeticException::class.java)
+    }
+  }
 }
 
 
@@ -130,8 +151,12 @@ private class TestMessenger(override val scope: CoroutineScope, val flow: Flow<B
   }
 
   override val eventFlow = flow {
-    flow.collect { value -> emit(value) }
-    isCollected.complete(true)
+    try {
+      flow.collect { value -> emit(value) }
+    }
+    finally {
+      isCollected.complete(true)
+    }
   }
 
   suspend fun await() {

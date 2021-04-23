@@ -17,15 +17,18 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.concurrency.createChildScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
+import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 
 
@@ -135,31 +138,33 @@ interface NetworkInspectorDataSource {
 
 class NetworkInspectorDataSourceImpl(
   messenger: AppInspectorMessenger,
-  scope: CoroutineScope
+  parentScope: CoroutineScope
 ) : NetworkInspectorDataSource {
+  private val scope = parentScope.createChildScope()
   private val channel = Channel<Intention>()
 
   init {
+    scope.coroutineContext[Job]!!.invokeOnCompletion { e ->
+      channel.close(e)
+    }
     scope.launch {
-      supervisorScope {
-        processEvents(channel)
-        messenger.eventFlow.collect {
-          val event = Event.parseFrom(it)
-          channel.send(Intention.InsertData(event))
-        }
+      processEvents(channel)
+      messenger.eventFlow.collect {
+        val event = Event.parseFrom(it)
+        channel.send(Intention.InsertData(event))
       }
     }
   }
 
-  override suspend fun queryForHttpData(range: Range): List<Event> {
+  override suspend fun queryForHttpData(range: Range) = withContext(scope.coroutineContext) {
     val deferred = CompletableDeferred<List<Event>>()
     channel.send(Intention.QueryForHttpData(range, deferred))
-    return deferred.await()
+    deferred.await()
   }
 
-  override suspend fun queryForSpeedData(range: Range): List<Event> {
+  override suspend fun queryForSpeedData(range: Range) = withContext(scope.coroutineContext) {
     val deferred = CompletableDeferred<List<Event>>()
     channel.send(Intention.QueryForSpeedData(range, deferred))
-    return deferred.await()
+    deferred.await()
   }
 }
