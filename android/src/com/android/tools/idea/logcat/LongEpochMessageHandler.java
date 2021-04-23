@@ -110,8 +110,11 @@ final class LongEpochMessageHandler implements MessageParser {
   @Nullable
   @Override
   public LogCatMessage tryParse(@NotNull String message) {
+    // We use this flag twice. Once for selecting a matcher and again when parsing a timestamp. Since we are running in a BG thread and the
+    // preference can change in the UI thread between these 2 calls, we snapshot the value in a local variable.
+    boolean showAsSecondsSinceEpoch = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH;
     Matcher matcher =
-      myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH ? EPOCH_TIME_HEADER_MESSAGE.matcher(message) : DATE_TIME_HEADER_MESSAGE.matcher(message);
+      showAsSecondsSinceEpoch ? EPOCH_TIME_HEADER_MESSAGE.matcher(message) : DATE_TIME_HEADER_MESSAGE.matcher(message);
 
     if (!matcher.matches()) {
       return null;
@@ -126,7 +129,7 @@ final class LongEpochMessageHandler implements MessageParser {
 
     Instant timestampInstant;
 
-    if (myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH) {
+    if (showAsSecondsSinceEpoch) {
       timestampInstant = LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.parse(matcher.group(1), Instant::from);
     }
     else {
