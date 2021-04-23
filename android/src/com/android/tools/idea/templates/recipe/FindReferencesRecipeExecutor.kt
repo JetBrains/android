@@ -27,7 +27,7 @@ import java.io.File
 internal class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean = false
 
-  override fun save(source: String, to: File, commitDocument: Boolean) {
+  override fun save(source: String, to: File) {
     addTargetFile(to)
   }
 

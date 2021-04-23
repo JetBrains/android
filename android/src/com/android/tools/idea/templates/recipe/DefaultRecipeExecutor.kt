@@ -280,7 +280,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       else -> {
         val document = FileDocumentManager.getInstance().getDocument(sourceFile)
         if (document != null) {
-          io.writeFile(this, document.text, target)
+          io.writeFile(this, document.text, target, project)
         }
         else {
           io.copyFile(this, sourceFile, destPath, target.name)
@@ -295,7 +295,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * Note: It removes trailing whitespace both from beginning and end of source.
    *       Also, it replaces any 2+ consequent empty lines with single empty line.
    */
-  override fun save(source: String, to: File, commitDocument: Boolean) {
+  override fun save(source: String, to: File) {
     val targetFile = getTargetFile(to)
     val content = extractFullyQualifiedNames(to, source.withoutSkipLines()).trim().squishEmptyLines()
 
@@ -305,17 +305,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
       return
     }
-    io.writeFile(this, content, targetFile)
+    io.writeFile(this, content, targetFile, project)
     referencesExecutor.addTargetFile(targetFile)
-    if (commitDocument) {
-      val virtualFile = findFileByIoFile(targetFile, true) ?: return
-      // RecipeIO.writeTextFile saves Documents but doesn't commit them, since there might not be a Project to speak of yet.
-      // ProjectBuildModel uses PSI, so let's make sure the Document is committed, since it's illegal to modify PSI for a file with
-      // and uncommitted Document.
-      FileDocumentManager.getInstance()
-        .getCachedDocument(virtualFile)
-        ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
-    }
   }
 
   override fun createDirectory(at: File) {
@@ -615,7 +606,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private fun writeTargetFile(requestor: Any, contents: String?, to: File) {
-    io.writeFile(requestor, contents, to)
+    io.writeFile(requestor, contents, to, project)
     referencesExecutor.addTargetFile(to)
   }
 
@@ -639,7 +630,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
      * text in UTF-8 character encoding. The file is created if it does not
      * already exist.
      */
-    open fun writeFile(requestor: Any, contents: String?, to: File) {
+    open fun writeFile(requestor: Any, contents: String?, to: File, project: Project) {
       if (contents == null) {
         return
       }
@@ -647,6 +638,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       val parentDir = checkedCreateDirectoryIfMissing(to.parentFile)
       val vf = LocalFileSystem.getInstance().findFileByIoFile(to) ?: parentDir.createChildData(requestor, to.name)
       vf.setBinaryContent(contents.toByteArray(Charsets.UTF_8), -1, -1, requestor)
+
+      // ProjectBuildModel uses PSI, let's committed document, since it's illegal to modify PSI on uncommitted Document.
+      //FileDocumentManager.getInstance()
+      //  .getDocument(vf)
+      //  ?.let(PsiDocumentManager.getInstance(project)::commitDocument) <==== DOESN'T WORK!! ::commitDocument thinks doc is already committed
+      PsiDocumentManager.getInstance(project).commitAllDocuments()
     }
 
     open fun copyFile(requestor: Any, file: VirtualFile, toFile: File) {
@@ -665,7 +662,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private class DryRunRecipeIO : RecipeIO() {
-    override fun writeFile(requestor: Any, contents: String?, to: File) {
+    override fun writeFile(requestor: Any, contents: String?, to: File, project: Project) {
       checkDirectoryIsWriteable(to.parentFile)
     }
 
