@@ -18,6 +18,36 @@ def _zipper(ctx, desc, map, out, deps = []):
         mnemonic = "zipper",
     )
 
+def _lnzipper(ctx, desc, filemap, out, deps = []):
+    """Creates a ZIP out while preserving symlinks.
+
+    Note: This action needs to run outside the sandbox to capture an accurate
+    representation of the workspace filesystem. Otherwise, files inside the
+    sandbox are created as symbolic links, and the output ZIP would only
+    contain entries which are sandbox symlinks."""
+    files = []
+    fileargs = []
+    for zip_path, f in filemap:
+        files.append(f)
+        fileargs.append("%s=%s\n" % (zip_path, f.path if f else ""))
+
+    lnzipper_options = "-cs"
+    if ctx.attr.compress:
+        lnzipper_options += "C"
+
+    args = [lnzipper_options, out.path]
+    argfile = create_option_file(ctx, out.basename + ".res.lst", "".join(fileargs))
+    args.append("@" + argfile.path)
+    ctx.actions.run(
+        inputs = files + [argfile] + deps,
+        outputs = [out],
+        executable = ctx.executable._lnzipper,
+        execution_requirements = {"no-sandbox": "true", "no-remote": "true"},
+        arguments = args,
+        progress_message = "lnzipping %s" % desc,
+        mnemonic = "lnzipper",
+    )
+
 # Bazel does not support attributes of type 'dict of string -> list of labels',
 # and in order to support them we must 'unpack' the dictionary to two lists
 # of keys and value. The following two functions perform the mapping back and forth
@@ -483,7 +513,12 @@ def _android_studio_os(ctx, platform, out):
     if ctx.attr.jre:
         jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
         jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
-        _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
+
+        # We want to preserve symlinks for the MAC_ARM JRE, b/185519599
+        if platform == MAC_ARM:
+            _lnzipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
+        else:
+            _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
         zips += [(platform_prefix + platform.base_path + platform.jre, jre_zip)]
 
     # Stamp the platform and its plugins
@@ -602,6 +637,11 @@ _android_studio = rule(
         "_unzipper": attr.label(
             default = Label("//tools/base/bazel:unzipper"),
             cfg = "host",
+            executable = True,
+        ),
+        "_lnzipper": attr.label(
+            default = Label("//tools/base/bazel/lnzipper:lnzipper"),
+            cfg = "exec",
             executable = True,
         ),
     },
