@@ -1194,6 +1194,14 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_FOR_DEV -> GradleVersion.parse("2.5.2")
       }
 
+    fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN -> GradleVersion.parse("1.0.0")
+        VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> GradleVersion.parse("1.1.0")
+        VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("1.4.0")
+        VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
+      }
+
     /**
      * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
      * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
@@ -1213,6 +1221,8 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
       "com.google.firebase:firebase-crashlytics-gradle" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
       "com.google.firebase.crashlytics" to ::`com-google-firebase-crashlytics-plugin-compatibility-info`,
 
+      "com.google.firebase:firebase-appdistribution-gradle" to ::`com-google-firebase-appdistribution-plugin-compatibility-info`,
+      "com.google.firebase.appdistribution" to ::`com-google-firebase-appdistribution-plugin-compatibility-info`,
       )
   }
 }
