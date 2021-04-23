@@ -198,6 +198,29 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     }
   }
 
+  @Test
+  fun `switch reopen and switch back with Kotlin and Kapt`() {
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      val debugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "release")
+      expect.thatModuleVariantIs(project, ":app", "release")
+      debugSnapshot to project.saveAndDump()
+    }
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      // TODO(b/184824343): expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+
+      switchVariant(project, ":app", "debug")
+      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+    }
+  }
+
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
