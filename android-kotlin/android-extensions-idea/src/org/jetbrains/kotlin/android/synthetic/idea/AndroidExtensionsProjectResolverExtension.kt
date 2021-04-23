@@ -17,10 +17,10 @@
 package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.util.Key
 import org.gradle.api.Project
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Companion.ANDROID_COMPILER_PLUGIN_ID
@@ -30,25 +30,21 @@ import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor.Compan
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.idea.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.idea.util.NotNullableCopyableDataNodeUserDataProperty
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.Serializable
-import java.lang.Exception
 
-var DataNode<ModuleData>.hasAndroidExtensionsPlugin: Boolean
-        by NotNullableCopyableDataNodeUserDataProperty(Key.create<Boolean>("HAS_ANDROID_EXTENSIONS_PLUGIN"), false)
+class AndroidExtensionProperties {
+  var hasAndroidExtensionsPlugin: Boolean = false
+  var isExperimental: Boolean = false
+  var defaultCacheImplementation: String = ""
+}
 
-var DataNode<ModuleData>.isExperimental: Boolean
-        by NotNullableCopyableDataNodeUserDataProperty(Key.create<Boolean>("ANDROID_EXTENSIONS_IS_EXPERIMENTAL"), false)
+val ANDROID_EXTENSION_PROPERTIES = Key.create(AndroidExtensionProperties::class.java, 1)
 
 private const val DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE = "hashMap"
-
-var DataNode<ModuleData>.defaultCacheImplementation: String
-        by NotNullableCopyableDataNodeUserDataProperty(Key.create<String>("ANDROID_EXTENSIONS_DEFAULT_CACHE_IMPL"),
-                                                       DEFAULT_CACHE_IMPLEMENTATION_DEFAULT_VALUE)
 
 interface AndroidExtensionsGradleModel : Serializable {
     val hasAndroidExtensionsPlugin: Boolean
@@ -69,11 +65,11 @@ class AndroidExtensionsProjectResolverExtension : AbstractProjectResolverExtensi
 
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
         val androidExtensionsModel = resolverCtx.getExtraProject(gradleModule, AndroidExtensionsGradleModel::class.java) ?: return
-
-        ideModule.hasAndroidExtensionsPlugin = androidExtensionsModel.hasAndroidExtensionsPlugin
-        ideModule.isExperimental = androidExtensionsModel.isExperimental
-        ideModule.defaultCacheImplementation = androidExtensionsModel.defaultCacheImplementation
-
+        ideModule.createChild(ANDROID_EXTENSION_PROPERTIES, AndroidExtensionProperties().apply {
+            hasAndroidExtensionsPlugin = androidExtensionsModel.hasAndroidExtensionsPlugin
+            isExperimental = androidExtensionsModel.isExperimental
+            defaultCacheImplementation = androidExtensionsModel.defaultCacheImplementation
+        })
         super.populateModuleExtraModels(gradleModule, ideModule)
     }
 }
@@ -132,10 +128,12 @@ class AndroidExtensionsGradleImportHandler : GradleProjectImportHandler {
         val newPluginOptions = (commonArguments.pluginOptions ?: emptyArray())
                 .filterTo(mutableListOf()) { !it.startsWith("plugin:$ANDROID_COMPILER_PLUGIN_ID:") } // Filter out old options
 
-        if (moduleNode.hasAndroidExtensionsPlugin) {
-            newPluginOptions += makePluginOption(EXPERIMENTAL_OPTION.optionName, moduleNode.isExperimental.toString())
-            newPluginOptions += makePluginOption(ENABLED_OPTION.optionName, moduleNode.hasAndroidExtensionsPlugin.toString())
-            newPluginOptions += makePluginOption(DEFAULT_CACHE_IMPL_OPTION.optionName, moduleNode.defaultCacheImplementation)
+        val propertiesNode = ExternalSystemApiUtil.find(moduleNode, ANDROID_EXTENSION_PROPERTIES)
+        val propertiesData = propertiesNode?.data
+        if (propertiesData?.hasAndroidExtensionsPlugin == true) {
+            newPluginOptions += makePluginOption(EXPERIMENTAL_OPTION.optionName, propertiesData.isExperimental.toString())
+            newPluginOptions += makePluginOption(ENABLED_OPTION.optionName, propertiesData.hasAndroidExtensionsPlugin.toString())
+            newPluginOptions += makePluginOption(DEFAULT_CACHE_IMPL_OPTION.optionName, propertiesData.defaultCacheImplementation)
         }
 
         commonArguments.pluginOptions = newPluginOptions.toTypedArray()
