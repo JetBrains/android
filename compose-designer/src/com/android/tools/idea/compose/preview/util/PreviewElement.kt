@@ -29,6 +29,7 @@ import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.notebook.editor.BackedVirtualFile
@@ -208,6 +209,7 @@ private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
     renderConfiguration.setTheme(theme)
   }
 
+  renderConfiguration.locale = Locale.create(locale)
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
 
@@ -239,6 +241,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val theme: String?,
                                                      val width: Int,
                                                      val height: Int,
+                                                     val locale: String,
                                                      val fontScale: Float,
                                                      val uiMode: Int,
                                                      val deviceSpec: String) {
@@ -261,6 +264,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                     theme: String?,
                     width: Int?,
                     height: Int?,
+                    locale: String?,
                     fontScale: Float?,
                     uiMode: Int?,
                     device: String?): PreviewConfiguration =
@@ -270,6 +274,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                            theme = theme,
                            width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
+                           locale = locale ?: "",
                            fontScale = fontScale ?: 1f,
                            uiMode = uiMode ?: 0,
                            deviceSpec = device ?: NO_DEVICE_SPEC)
@@ -277,7 +282,7 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
 }
 
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
 
 enum class DisplayPositioning {
   TOP, // Previews with this priority will be displayed at the top

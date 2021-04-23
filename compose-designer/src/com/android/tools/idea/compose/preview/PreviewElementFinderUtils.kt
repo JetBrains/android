@@ -106,8 +106,9 @@ private fun attributesToConfiguration(node: UAnnotation, defaultValues: Map<Stri
   val fontScale = node.getFloatAttribute(PARAMETER_FONT_SCALE, defaultValues)
   val uiMode = node.getIntAttribute(PARAMETER_UI_MODE, defaultValues)
   val device = node.getStringAttribute(PARAMETER_DEVICE, defaultValues)
+  val locale = node.getStringAttribute(PARAMETER_LOCALE, defaultValues)
 
-  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, fontScale, uiMode, device)
+  return PreviewConfiguration.cleanAndGet(apiLevel, theme, width, height, locale, fontScale, uiMode, device)
 }
 
 /**

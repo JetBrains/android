@@ -162,6 +162,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: Strin
       val theme: String = "",
       val widthDp: Int = -1,
       val heightDp: Int = -1,
+      val locale: String = ""
       val fontScale: Float = 1f,
       val showDecoration: Boolean = false,
       val showBackground: Boolean = false,

@@ -71,7 +71,7 @@ class ComposeDocumentationProviderTest {
     assertTrue(generatedDoc.contains("<div class='content'><img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'></div>".toRegex()))
 
     val previewImage = composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as BufferedImage
-    ImageDiffUtil.assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
+    ImageDiffUtil.assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultDocRender.png"),
                                      previewImage, 0.0)
   }
 }
