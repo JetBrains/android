@@ -18,8 +18,6 @@ package com.android.tools.idea.res;
 import static com.android.SdkConstants.ANDROID_PREFIX;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
@@ -29,8 +27,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -52,13 +49,16 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@linkplain ResourceNotificationManager} provides notifications to editors that
@@ -91,17 +91,17 @@ public class ResourceNotificationManager {
   /**
    * Module observers: one per observed module in the project, with potentially multiple listeners
    */
-  private final Map<Module, ModuleEventObserver> myModuleToObserverMap = Maps.newHashMap();
+  private final Map<Module, ModuleEventObserver> myModuleToObserverMap = new HashMap<>();
 
   /**
    * File observers: one per observed file, with potentially multiple listeners
    */
-  private final Map<VirtualFile, FileEventObserver> myFileToObserverMap = Maps.newHashMap();
+  private final Map<VirtualFile, FileEventObserver> myFileToObserverMap = new HashMap<>();
 
   /**
    * Configuration observers: one per observed configuration, with potentially multiple listeners
    */
-  private final Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = Maps.newHashMap();
+  private final Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = new HashMap<>();
 
   /**
    * Project wide observer: a single one will do
@@ -166,58 +166,58 @@ public class ResourceNotificationManager {
     }
   }
 
-    /**
-     * Registers an interest in resources accessible from the given module
-     *
-     * @param listener      the listener to notify when there is a resource change
-     * @param facet         the facet for the Android module whose resources the listener is interested in
-     * @param file          an optional file to observe for any edits. Note that this is not currently
-     *                      limited to this listener; all listeners in the module will be notified when
-     *                      there is an edit of this file.
-     * @param configuration if file is non null, this is an optional configuration
-     *                      you can listen for changes in (must be a configuration corresponding to the file)
-     * @return the current resource modification stamp of the given module
-     */
-    public synchronized ResourceVersion addListener(@NotNull ResourceChangeListener listener,
-                                                    @NotNull AndroidFacet facet,
-                                                    @Nullable VirtualFile file,
-                                                    @Nullable Configuration configuration) {
-      Module module = facet.getModule();
-      ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
-      if (moduleEventObserver == null) {
-        if (myModuleToObserverMap.isEmpty()) {
-          if (myProjectPsiTreeObserver == null) {
-            myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
-          }
-          myProjectBuildObserver.startListening();
+  /**
+   * Registers an interest in resources accessible from the given module
+   *
+   * @param listener      the listener to notify when there is a resource change
+   * @param facet         the facet for the Android module whose resources the listener is interested in
+   * @param file          an optional file to observe for any edits. Note that this is not currently
+   *                      limited to this listener; all listeners in the module will be notified when
+   *                      there is an edit of this file.
+   * @param configuration if file is non null, this is an optional configuration
+   *                      you can listen for changes in (must be a configuration corresponding to the file)
+   * @return the current resource modification stamp of the given module
+   */
+  public synchronized ResourceVersion addListener(@NotNull ResourceChangeListener listener,
+                                                  @NotNull AndroidFacet facet,
+                                                  @Nullable VirtualFile file,
+                                                  @Nullable Configuration configuration) {
+    Module module = facet.getModule();
+    ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
+    if (moduleEventObserver == null) {
+      if (myModuleToObserverMap.isEmpty()) {
+        if (myProjectPsiTreeObserver == null) {
+          myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
         }
-        moduleEventObserver = new ModuleEventObserver(facet);
-        myModuleToObserverMap.put(module, moduleEventObserver);
+        myProjectBuildObserver.startListening();
       }
-      moduleEventObserver.addListener(listener);
+      moduleEventObserver = new ModuleEventObserver(facet);
+      myModuleToObserverMap.put(module, moduleEventObserver);
+    }
+    moduleEventObserver.addListener(listener);
 
-      if (file != null) {
-        FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
-        if (fileEventObserver == null) {
-          fileEventObserver = new FileEventObserver(module);
-          myFileToObserverMap.put(file, fileEventObserver);
+    if (file != null) {
+      FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
+      if (fileEventObserver == null) {
+        fileEventObserver = new FileEventObserver(module);
+        myFileToObserverMap.put(file, fileEventObserver);
+      }
+      fileEventObserver.addListener(listener);
+
+      if (configuration != null) {
+        ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
+        if (configurationEventObserver == null) {
+          configurationEventObserver = new ConfigurationEventObserver(configuration);
+          myConfigurationToObserverMap.put(configuration, configurationEventObserver);
         }
-        fileEventObserver.addListener(listener);
-
-        if (configuration != null) {
-          ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
-          if (configurationEventObserver == null) {
-            configurationEventObserver = new ConfigurationEventObserver(configuration);
-            myConfigurationToObserverMap.put(configuration, configurationEventObserver);
-          }
-          configurationEventObserver.addListener(listener);
-        }
+        configurationEventObserver.addListener(listener);
       }
-      else {
-        assert configuration == null : configuration;
-      }
+    }
+    else {
+      assert configuration == null : configuration;
+    }
 
-      return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
+    return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
   }
 
   /**
@@ -229,7 +229,7 @@ public class ResourceNotificationManager {
    * @param configuration the configuration passed in to the corresponding {@link #addListener} call
    */
   public synchronized void removeListener(@NotNull ResourceChangeListener listener,
-                                          @NonNull AndroidFacet facet,
+                                          @NotNull AndroidFacet facet,
                                           @Nullable VirtualFile file,
                                           @Nullable Configuration configuration) {
       if (file != null) {
@@ -316,7 +316,7 @@ public class ResourceNotificationManager {
     });
   }
 
-  private void notifyListeners(@NonNull EnumSet<Reason> reason) {
+  private void notifyListeners(@NotNull EnumSet<Reason> reason) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     for (ModuleEventObserver moduleEventObserver : myModuleToObserverMap.values()) {
@@ -336,7 +336,7 @@ public class ResourceNotificationManager {
     private MessageBusConnection myConnection;
 
     @GuardedBy("myListenersLock")
-    private final List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(4);
+    private final List<ResourceChangeListener> myListeners = new ArrayList<>(4);
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
@@ -388,7 +388,7 @@ public class ResourceNotificationManager {
       }
     }
 
-    private void notifyListeners(@NonNull EnumSet<Reason> reason) {
+    private void notifyListeners(@NotNull EnumSet<Reason> reason) {
       if (myFacet.isDisposed()) {
         return;
       }
@@ -404,7 +404,7 @@ public class ResourceNotificationManager {
       ApplicationManager.getApplication().assertIsDispatchThread();
       List<ResourceChangeListener> listeners;
       synchronized (myListenersLock) {
-        listeners = Lists.newArrayList(myListeners);
+        listeners = new ArrayList<>(myListeners);
       }
       for (ResourceChangeListener listener : listeners) {
         listener.resourcesChanged(reason);
@@ -655,7 +655,7 @@ public class ResourceNotificationManager {
      */
     private boolean isRelevantFile(PsiTreeChangeEvent event) {
       if (!myFileToObserverMap.isEmpty()) {
-        final PsiFile file = event.getFile();
+        PsiFile file = event.getFile();
         if (file != null && myFileToObserverMap.containsKey(file.getVirtualFile())) {
           return true;
         }
@@ -673,25 +673,20 @@ public class ResourceNotificationManager {
       // so we will NOT ignore the event.
       PsiElement child = event.getChild();
       PsiElement parent = event.getParent();
-      if (child instanceof PsiErrorElement ||
-          parent instanceof XmlComment) {
+      if (child instanceof PsiErrorElement || parent instanceof XmlComment) {
         return true;
       }
 
       if ((child instanceof PsiWhiteSpace || child instanceof XmlText || parent instanceof XmlText)
           && IdeResourcesUtil.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
-        // Editing text or whitespace has no effect outside of values files
+        // Editing text or whitespace has no effect outside of values files.
         return true;
       }
 
       PsiFile file = event.getFile();
-      if (file != null && (file.getParent() == null || !file.getViewProvider().isPhysical())) {
-        // Spurious events from the IDE doing internal things, such as the formatter using a light virtual
-        // filesystem to process text formatting chunks etc
-        return true;
-      }
-
-      return false;
+      // Spurious events from the IDE doing internal things, such as the formatter using a light virtual
+      // filesystem to process text formatting chunks etc.
+      return file != null && (file.getParent() == null || !file.getViewProvider().isPhysical());
     }
 
     private void check(PsiTreeChangeEvent event) {
@@ -712,8 +707,8 @@ public class ResourceNotificationManager {
   }
 
   private class FileEventObserver implements BulkFileListener {
-    private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
-    private Module myModule;
+    private final List<ResourceChangeListener> myListeners = new ArrayList<>(2);
+    private final Module myModule;
     private MessageBusConnection myMessageBusConnection;
 
     private FileEventObserver(Module module) {
@@ -773,7 +768,7 @@ public class ResourceNotificationManager {
 
   private class ConfigurationEventObserver implements ConfigurationListener {
     private final Configuration myConfiguration;
-    private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
+    private final List<ResourceChangeListener> myListeners = new ArrayList<>(2);
 
     private ConfigurationEventObserver(Configuration configuration) {
       myConfiguration = configuration;
@@ -870,12 +865,11 @@ public class ResourceNotificationManager {
 
     @Override
     public int hashCode() {
-      int result = (int)(myResourceGeneration ^ (myResourceGeneration >>> 32));
-      result = 31 * result + (int)(myFileGeneration ^ (myFileGeneration >>> 32));
-      result = 31 * result + (int)(myConfigurationGeneration ^ (myConfigurationGeneration >>> 32));
-      result = 31 * result + (int)(myProjectConfigurationGeneration ^ (myProjectConfigurationGeneration >>> 32));
-      result = 31 * result + (int)(myOtherGeneration ^ (myOtherGeneration >>> 32));
-      return result;
+      return HashCodes.mix(Long.hashCode(myResourceGeneration),
+                           Long.hashCode(myFileGeneration),
+                           Long.hashCode(myConfigurationGeneration),
+                           Long.hashCode(myProjectConfigurationGeneration),
+                           Long.hashCode(myOtherGeneration));
     }
 
     @Override

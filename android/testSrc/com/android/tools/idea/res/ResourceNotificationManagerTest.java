@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import static org.junit.Assert.assertNotEquals;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -34,17 +35,19 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.util.ui.UIUtil;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Tests for {@link ResourceNotificationManager}.
+ */
 public class ResourceNotificationManagerTest extends AndroidTestCase {
-  public void test() {
+
+  public void test() throws Exception {
     @Language("XML") String xml;
 
     // Setup sample project: a strings file, and a couple of layout file
@@ -59,7 +62,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "        android:layout_height=\"match_parent\"\n" +
           "        android:text=\"@string/hello\" />\n" +
           "</FrameLayout>";
-    final XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
+    XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
     @SuppressWarnings("ConstantConditions")
     VirtualFile resourceDir = layout1.getParent().getParent().getVirtualFile();
     assertNotNull(resourceDir);
@@ -68,7 +71,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
           "    android:layout_width=\"match_parent\"\n" +
           "    android:layout_height=\"match_parent\" />\n";
-    final XmlFile layout2 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout2.xml", xml);
+    XmlFile layout2 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout2.xml", xml);
 
     xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
           "<resources>\n" +
@@ -80,7 +83,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "        <item name=\"android:colorBackground\">#ff0000</item>\n" +
           "    </style>" +
           "</resources>";
-    final XmlFile values1 = (XmlFile)myFixture.addFileToProject("res/values/my_values1.xml", xml);
+    XmlFile values1 = (XmlFile)myFixture.addFileToProject("res/values/my_values1.xml", xml);
 
     xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
           "<resources>\n" +
@@ -88,20 +91,20 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "</resources>";
     myFixture.addFileToProject("res/values/colors.xml", xml);
 
-    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
-    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+    Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
-    // Listener 1: Listens for changes in layout 1
-    final Ref<Boolean> called1 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue1 = new Ref<>();
+    // Listener 1: Listens for changes in layout 1.
+    Ref<Boolean> called1 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue1 = new Ref<>();
     ResourceChangeListener listener1 = reason -> {
       called1.set(true);
       calledValue1.set(reason);
     };
 
-    // Listener 2: Only listens for general changes in the module
-    final Ref<Boolean> called2 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue2 = new Ref<>();
+    // Listener 2: Only listens for general changes in the module.
+    Ref<Boolean> called2 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue2 = new Ref<>();
     ResourceChangeListener listener2 = reason -> {
       called2.set(true);
       calledValue2.set(reason);
@@ -129,7 +132,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
     clear(called1, calledValue1, called2, calledValue2);
     @SuppressWarnings("ConstantConditions")
-    final XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
+    XmlTag tag = values1.getDocument().getRootTag().getSubTags()[1].getSubTags()[0];
     assertEquals("item", tag.getName());
     WriteCommandAction.runWriteCommandAction(getProject(), () -> tag.getValue().setEscapedText("@color/color2"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
@@ -140,7 +143,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     addText(layout1, "@string/hello^", "_world");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
     ResourceVersion version2 = manager.getCurrentVersion(myFacet, layout1, configuration1);
-    assertFalse(version1.toString(), version1.equals(version2));
+    assertNotEquals(version1.toString(), version1, version2);
 
     // Next check: Modify a <string> value definition in a values file
     // and check that those changes are flagged too
@@ -149,7 +152,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     addText(values1, "name=\"hello^\"", "_world");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
     ResourceVersion version4 = manager.getCurrentVersion(myFacet, layout1, configuration1);
-    assertFalse(version4.toString(), version3.equals(version4));
+    assertNotEquals(version4.toString(), version3, version4);
 
     // Next check: Modify content in a comment and verify that no changes are fired
     clear(called1, calledValue1, called2, calledValue2);
@@ -171,13 +174,13 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
 
     // Check that editing text in a *values file* -does- have an effect
     // Read the value first to ensure that we trigger it as a read (see comment above for previous
-    // resource resolver lookup)
+    // resource resolver lookup).
     //noinspection ConstantConditions
     assertEquals("Hello", configuration1.getResourceResolver().findResValue("@string/hello_world", false).getValue());
     addText(values1, "Hello^</string>", " World");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
-    // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager
+    // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager.
     clear(called1, calledValue1, called2, calledValue2);
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
     IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
@@ -194,7 +197,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     replaceText(layout1, "^android:text=", 37,"<!--android:text=\"@string/hello_world\" />-->");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
     ResourceVersion version6 = manager.getCurrentVersion(myFacet, layout1, configuration1);
-    assertFalse(version6.toString(), version5.equals(version6));
+    assertNotEquals(version6.toString(), version5, version6);
 
     // Next check: Un-mark the comments of the lines between <!--<TextView ... />--> (which we just commented in previous check)
     // and verify that our listeners are called.
@@ -206,22 +209,21 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     replaceText(layout1, "^<!--android:text=\"@string/hello_world\" />-->", 44, "android:text=\"@string/hello_world\" />");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
     ResourceVersion version8 = manager.getCurrentVersion(myFacet, layout1, configuration1);
-    assertFalse(version8.toString(), version7.equals(version8));
+    assertNotEquals(version8.toString(), version7, version8);
 
-    // Finally check that once we remove the listeners there are no more notifications
+    // Finally check that once we remove the listeners there are no more notifications.
     manager.removeListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.removeListener(listener2, myFacet, layout2.getVirtualFile(), configuration1);
     clear(called1, calledValue1, called2, calledValue2);
     addText(layout1, "@string/hello_world^", "2");
     ensureNotCalled(called1, called2);
 
-    // TODO: Check that editing a partial URL doesn't re-render
+    // TODO: Check that editing a partial URL doesn't re-render.
     // Check module dependency triggers!
-    // TODO: Test that remove and replace editing also works as expected
+    // TODO: Test that remove and replace editing also works as expected.
   }
 
-  public void testNotifyOnRename() {
-
+  public void testNotifyOnRename() throws Exception {
     // Setup sample project: a strings file, and a couple of layout file
     @Language("XML") String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                   "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -233,126 +235,116 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
                                   "        android:layout_height=\"match_parent\"\n" +
                                   "        android:text=\"@string/hello\" />\n" +
                                   "</FrameLayout>";
-    final XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
+    XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
     VirtualFile resourceDir = layout1.getParent().getParent().getVirtualFile();
     assertNotNull(resourceDir);
 
 
-    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
-    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+    Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
-    // Listener 1: Listens for changes in layout 1
-    final Ref<Boolean> called1 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue1 = new Ref<>();
+    // Listener 1: Listens for changes in layout 1.
+    Ref<Boolean> called1 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue1 = new Ref<>();
     ResourceChangeListener listener1 = reason -> {
       called1.set(true);
       calledValue1.set(reason);
     };
 
-    // Listener 2: Only listens for general changes in the module
-    final Ref<Boolean> called2 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue2 = new Ref<>();
+    // Listener 2: Only listens for general changes in the module.
+    Ref<Boolean> called2 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue2 = new Ref<>();
     ResourceChangeListener listener2 = reason -> {
       called2.set(true);
       calledValue2.set(reason);
     };
     manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
-    ApplicationManager.getApplication()
-      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout"));
+    ApplicationManager.getApplication().invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout"));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
   }
 
-  public void testNotNotifiedOnRenameNonResourceFile() {
-
-    // Setup sample project: a strings file, and a couple of layout file
+  public void testNotNotifiedOnRenameNonResourceFile() throws Exception {
+    // Setup sample project: a strings file, and a couple of layout file.
     @Language("JAVA") String java = "class Hello {}";
-    final PsiFile javeFile = myFixture.addFileToProject("src/hello.java", java);
-    VirtualFile resourceDir = javeFile.getParent().getParent().getVirtualFile();
+    PsiFile javaFile = myFixture.addFileToProject("src/hello.java", java);
+    VirtualFile resourceDir = javaFile.getParent().getParent().getVirtualFile();
     assertNotNull(resourceDir);
 
+    Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(javaFile.getVirtualFile());
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
 
-    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(javeFile.getVirtualFile());
-    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-
-    // Listener 1: Listens for changes in layout 1
-    final Ref<Boolean> called1 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue1 = new Ref<>();
+    // Listener 1: Listens for changes in layout 1.
+    Ref<Boolean> called1 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue1 = new Ref<>();
     ResourceChangeListener listener1 = reason -> {
       called1.set(true);
       calledValue1.set(reason);
     };
 
-    // Listener 2: Only listens for general changes in the module
-    final Ref<Boolean> called2 = new Ref<>(false);
-    final Ref<Set<Reason>> calledValue2 = new Ref<>();
+    // Listener 2: Only listens for general changes in the module.
+    Ref<Boolean> called2 = new Ref<>(false);
+    Ref<Set<Reason>> calledValue2 = new Ref<>();
     ResourceChangeListener listener2 = reason -> {
       called2.set(true);
       calledValue2.set(reason);
     };
-    manager.addListener(listener1, myFacet, javeFile.getVirtualFile(), configuration1);
+    manager.addListener(listener1, myFacet, javaFile.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
     ApplicationManager.getApplication()
-      .invokeAndWait(() -> new RenameDialog(getProject(), javeFile, null, null).performRename("newFile.java"));
+        .invokeAndWait(() -> new RenameDialog(getProject(), javaFile, null, null).performRename("newFile.java"));
     ensureNotCalled(called1, called2);
   }
 
-  private static void ensureCalled(final Ref<Boolean> called1,
-                                   final Ref<Set<Reason>> calledValue1,
-                                   final Ref<Boolean> called2,
-                                   final Ref<Set<Reason>> calledValue2,
-                                   final Reason reason) {
+  private static void ensureCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
+                                   @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2,
+                                   @NotNull Reason reason) {
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        assertTrue(called1.get());
-        assertEquals(EnumSet.of(reason), calledValue1.get());
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      assertTrue(called1.get());
+      assertEquals(EnumSet.of(reason), calledValue1.get());
 
-        assertTrue(called2.get());
-        assertEquals(EnumSet.of(reason), calledValue2.get());
-      }
+      assertTrue(called2.get());
+      assertEquals(EnumSet.of(reason), calledValue2.get());
     });
   }
 
-  private static void clear(Ref<Boolean> called1, Ref<Set<Reason>> calledValue1, Ref<Boolean> called2, Ref<Set<Reason>> calledValue2) {
+  private static void clear(@NotNull Ref<Boolean> called1, @NotNull Ref<Set<Reason>> calledValue1,
+                            @NotNull Ref<Boolean> called2, @NotNull Ref<Set<Reason>> calledValue2) {
     called1.set(false);
     called2.set(false);
     calledValue1.set(null);
     calledValue2.set(null);
   }
 
-  private static void ensureNotCalled(final Ref<Boolean> called1, final Ref<Boolean> called2) {
+  private static void ensureNotCalled(@NotNull Ref<Boolean> called1, @NotNull Ref<Boolean> called2) {
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        assertFalse(called1.get());
-        assertFalse(called2.get());
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      assertFalse(called1.get());
+      assertFalse(called2.get());
     });
   }
 
-  private void addText(@NotNull PsiFile file, final String location, final String insertedText) {
+  private void addText(@NotNull PsiFile file, @NotNull String location, @NotNull String insertedText) {
     editText(file, location, 0, insertedText);
   }
 
-  private void removeText(@NotNull PsiFile file, final String location, final int length) {
-    editText(file, location, length, null);
+  private void removeText(@NotNull PsiFile file, @NotNull String location, int length) {
+    editText(file, location, length, "");
   }
 
-  private void replaceText(@NotNull PsiFile file, final String location, final int length, final String replaceText) {
+  private void replaceText(@NotNull PsiFile file, @NotNull String location, int length, @NotNull String replaceText) {
     editText(file, location, length, replaceText);
   }
 
-  private void editText(@NotNull PsiFile file, final String location, final int length, @Nullable final String text) {
-    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    final Document document = documentManager.getDocument(file);
+  private void editText(@NotNull PsiFile file, @NotNull String location, int length, @NotNull String text) {
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    Document document = documentManager.getDocument(file);
     assertNotNull(document);
 
     // Insert a comment at the beginning
     WriteCommandAction.runWriteCommandAction(null, () -> {
-      final String documentText = document.getText();
+      String documentText = document.getText();
 
       int delta = location.indexOf('^');
       assertTrue("Missing ^ describing caret offset in text window " + location, delta != -1);
@@ -360,7 +352,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
       int offset = documentText.indexOf(target);
       assertTrue("Could not find " + target + " in " + documentText, offset != -1);
 
-      if (text != null) {
+      if (!text.isEmpty()) {
         if (length == 0) {
           document.insertString(offset + delta, text);
         } else {
