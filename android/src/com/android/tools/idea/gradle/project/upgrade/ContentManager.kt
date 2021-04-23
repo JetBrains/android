@@ -260,7 +260,8 @@ class ToolWindowModel(
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
     val root = treeModel.root as CheckedTreeNode
     if (root.childCount > 0) {
-      LOG.error("Tree not empty in refreshTree()")
+      // this can happen if we call refresh() twice in quick succession: both refreshes clear the tree before either
+      // gets here.
       root.removeAllChildren()
       showFinishedMessage.set(false)
     }
