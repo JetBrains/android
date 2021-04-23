@@ -905,6 +905,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess;
   }
 
+  @NotNull
+  public SupportLevel getProcessSupportLevel(int pid) {
+    return myProcesses.values().stream().flatMap(Collection::stream)
+      .filter(p -> p.getPid() == pid).findFirst()
+      .map(p -> SupportLevel.of(p.getExposureLevel()))
+      .orElse(SupportLevel.NONE);
+  }
+
+  @NotNull
+  public SupportLevel getSelectedSessionSupportLevel() {
+    return getProcessSupportLevel(mySessionsManager.getSelectedSession().getPid());
+  }
+
   public boolean isAgentAttached() {
     return myAgentData.getStatus() == AgentData.Status.ATTACHED;
   }
