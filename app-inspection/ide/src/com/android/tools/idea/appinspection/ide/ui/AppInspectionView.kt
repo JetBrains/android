@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -60,7 +61,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -380,7 +380,8 @@ class AppInspectionView @VisibleForTesting constructor(
     inspectorPanel.removeAll()
 
     // Active inspectors are sorted to the front, so make sure one of them gets default focus
-    val inspectorTabsPane = CommonTabbedPane()
+    // Use same text colors for both active and inactive tabs, which is consistent AS components.
+    val inspectorTabsPane = CommonTabbedPane(CommonTabbedPaneUI(CommonTabbedPaneUI.TEXT_COLOR, CommonTabbedPaneUI.TEXT_COLOR))
     inspectorTabs.forEach { tab -> tab.addTo(inspectorTabsPane) }
     inspectorTabsPane.selectedIndex = if (inspectorTabs.size > 0) 0 else -1
 
