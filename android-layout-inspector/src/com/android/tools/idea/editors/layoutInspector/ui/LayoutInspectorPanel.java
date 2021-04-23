@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.editors.layoutInspector.actions.LoadOverlayAction;
 import com.android.tools.idea.editors.layoutInspector.actions.SetOverlayAlphaAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
@@ -38,7 +38,6 @@ import org.intellij.images.ui.ImageComponentDecorator;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
@@ -85,21 +84,13 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     ActionManager actionManager = ActionManager.getInstance();
 
     DefaultActionGroup liActionGroup = getInspectorActionGroup();
-    ActionToolbar liActionToolbar = actionManager.createActionToolbar(
-      "LiActionsToolbar", liActionGroup, true
-    );
-    liActionToolbar.updateActionsImmediately();
+    ActionToolbar liActionToolbar = actionManager.createActionToolbar("LiActionsToolbar", liActionGroup, true);
     liActionToolbar.setTargetComponent(this);
     JComponent actionToolbarPanel = liActionToolbar.getComponent();
     actionToolbarPanel.setName("LiActionsToolbar");
 
     ActionGroup actionGroup = getZoomActionGroup(actionManager);
-    ActionToolbar actionToolbar = actionManager.createActionToolbar(
-      ImageEditorActions.ACTION_PLACE, actionGroup, true
-    );
-    // Make sure toolbar is 'ready' before it's added to component hierarchy
-    // to prevent ActionToolbarImpl.updateActionsImpl(boolean, boolean) from increasing popup size unnecessarily
-    actionToolbar.updateActionsImmediately();
+    ActionToolbar actionToolbar = actionManager.createActionToolbar(ImageEditorActions.ACTION_PLACE, actionGroup, true);
     actionToolbar.setTargetComponent(this);
     JComponent toolbarPanel = actionToolbar.getComponent();
 
