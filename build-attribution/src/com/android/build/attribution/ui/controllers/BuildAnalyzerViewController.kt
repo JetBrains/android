@@ -267,12 +267,9 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
         """
-        |This test will rerun the latest build twice with configuration cache temporarily enabled.
-        |The first build makes sure that Gradle is able to serialize the task graph of the current build.
-        |The second build verifies that this serialized task graph can be reused from the cache.
-        |
-        |If any incompatibilities are detected by Gradle, the build fails and a detailed report is generated
-        |in the build output. The build runs in background, you will be notified once it finishes.
+          |This test will rerun the latest build twice to check that Gradle can serialize the task graph
+          |and then reuse it from the cache. The builds will run in the background and they will fail
+          |with details if any incompatibilities are detected.
         """.trimMargin(),
         confirmationDialogHeader,
         arrayOf("Run Builds", Messages.getCancelButton()), 0,
@@ -291,13 +288,11 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
         """
-        |Both build reruns with Configuration cache on finished successfully.
-        |This means Gradle was able to serialize the task graph of this build and reuse it for the second run.
-        |You can turn on the configuration cache permanently in gradle.properties.
+        |Both trial builds with Configuration cache on were successful. You can turn on
+        |Configuration cache in gradle.properties.
         |
-        |Note: This test covered only a set of tasks of the latest build and more incompatibilities
-        |might be hit later while using the feature. If any problems are detected by Gradle,
-        |a detailed report is generated in build output.
+        |Note: Configuration cache is an experimental feature of Gradle and there may be
+        |incompatibilities with different tasks’ runs in the future.
         """.trimMargin(),
         confirmationDialogHeader,
         arrayOf("Enable Configuration Cache", Messages.getCancelButton()), 0,
@@ -333,7 +328,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
           Messages.getInformationIcon(), null
         )
       }
-      //TODO (mlazeba): we have configuration cache exception with a detailed message and a link to the html report inside.
+      //TODO(b/186203445): we have configuration cache exception with a detailed message and a link to the html report inside.
       // So I can present that in the Dialog. find cause recursively?
       Messages.showIdeaMessageDialog(
         project,
