@@ -69,6 +69,7 @@ import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
@@ -836,6 +837,8 @@ private fun setupTestProjectFromAndroidModelCore(
   moduleBuilders: Array<out ModuleModelBuilder>,
   setupAllVariants: Boolean
 ) {
+  // Always skip SYNC in light sync tests.
+  project.putUserData(ALWAYS_SKIP_SYNC, true)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val gradlePlugins = listOf(
