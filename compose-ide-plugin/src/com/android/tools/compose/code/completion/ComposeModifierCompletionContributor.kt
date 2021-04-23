@@ -107,9 +107,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     ProgressManager.checkCanceled()
 
-    //If code completion is called on existing modifier or Modifier object (that is imported) - use it,
-    // otherwise create fake "Modifier.<caret>" expression where Modifier is resolvable.
-    val nameExpression = if (isMethodCalledOnImportedModifier) element.parent as KtSimpleNameExpression else createFakeExpression(element)
+    val nameExpression = createNameExpression(element)
 
     val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element)
 
@@ -180,7 +178,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   /**
    * Creates "Modifier.call" expression as it would be if user typed "Modifier.<caret>" themselves.
    */
-  private fun createFakeExpression(originalElement: PsiElement): KtSimpleNameExpression {
+  private fun createNameExpression(originalElement: PsiElement): KtSimpleNameExpression {
     val originalFile = originalElement.containingFile.safeAs<KtFile>()!!
 
     val file = KtPsiFactory(originalFile.project).createAnalyzableFile("temp.kt", "val x = $modifierFqName.call", originalFile)
