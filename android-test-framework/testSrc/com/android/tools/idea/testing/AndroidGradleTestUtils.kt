@@ -17,6 +17,14 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -49,14 +57,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
-import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
@@ -167,6 +167,9 @@ data class AndroidModuleModelBuilder(
     projectBuilder: AndroidProjectBuilder
   )
     : this(gradlePath, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant, selectedAbiVariant = null)
+
+  fun withSelectedAbi(abi: String) = copy(selectedAbiVariant = abi)
+  fun withSelectedBuildVariant(variant: String) = copy(selectedBuildVariant = variant)
 }
 
 data class JavaModuleModelBuilder(
@@ -822,6 +825,19 @@ fun setupTestProjectFromAndroidModel(
  * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
  */
 fun updateTestProjectFromAndroidModel(
+  project: Project,
+  basePath: File,
+  vararg moduleBuilders: ModuleModelBuilder
+) {
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false)
+  getInstance(project).syncSkipped(null)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
+
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun switchTestProjectVariantsFromAndroidModel(
   project: Project,
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
