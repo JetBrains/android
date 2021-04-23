@@ -17,5 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>
