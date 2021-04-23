@@ -96,7 +96,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
         }
 
         @Composable
-        @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
+        @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true, locale = "en-rUS")
         fun Preview2() {
         }
 
@@ -185,6 +185,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertEquals("en-rUS", it.configuration.locale)
       assertEquals(1f, it.configuration.fontScale)
       assertTrue(it.displaySettings.showBackground)
       assertFalse(it.displaySettings.showDecoration)
@@ -192,7 +193,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
 
       ReadAction.run<Throwable> {
         assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
-        assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
+        assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true, locale = \"en-rUS\")",
                      it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -202,6 +203,7 @@ class AnnotationFilePreviewElementFinderTest(previewAnnotationPackage: String, c
       assertNull(it.displaySettings.group)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
+      assertEquals("", it.configuration.locale)
       assertEquals(0.2f, it.configuration.fontScale)
       assertFalse(it.displaySettings.showBackground)
       assertTrue(it.displaySettings.showDecoration)

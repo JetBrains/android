@@ -181,7 +181,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       }
   }
 
-  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
+  private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, null)
 
   private fun previewFromMethodName(fqName: String, composeLibraryNamespace: ComposeLibraryNamespace): SinglePreviewElementInstance {
     val scheme = EditorColorsManager.getInstance().globalScheme

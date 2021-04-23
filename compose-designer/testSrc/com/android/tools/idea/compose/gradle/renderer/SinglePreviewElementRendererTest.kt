@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.io.writeImage
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SinglePreviewElementInstance
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,9 +36,12 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testInvalidPreview() {
-    assertNull(renderPreviewElement(projectRule.androidFacet(":app"),
-                                    SinglePreviewElementInstance.forTesting(
-                                        "google.simpleapplication.MainActivityKt.InvalidPreview")).get())
+    assertNull(
+      renderPreviewElement(
+        projectRule.androidFacet(":app"),
+        SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")
+      ).get()
+    )
   }
 
   /**
@@ -48,10 +51,13 @@ class SinglePreviewElementRendererTest {
   fun testDefaultPreviewRendering() {
     val defaultRender = renderPreviewElement(
       projectRule.androidFacet(":app"),
-      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()!!
-    val path = Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png")
-    defaultRender.writeImage("png", path)
-    assertImageSimilar(path, defaultRender, 0.0)
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")
+    ).get()!!
+    assertImageSimilar(
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
+      defaultRender,
+      0.0
+    )
   }
 
   /**
@@ -64,10 +70,30 @@ class SinglePreviewElementRendererTest {
       SinglePreviewElementInstance.forTesting(
         "google.simpleapplication.MainActivityKt.DefaultPreview",
         showBackground = true,
-        backgroundColor = "#F00")).get()!!
-    assertImageSimilar(Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
-                       defaultRenderWithBackground,
-                       0.0)
+        backgroundColor = "#F00"
+      )
+    ).get()!!
+    assertImageSimilar(
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
+      defaultRenderWithBackground,
+      0.0
+    )
+  }
+
+  @Test
+  fun testDefaultPreviewRenderingWithDifferentLocale() {
+    val defaultRenderWithLocale = renderPreviewElement(
+      projectRule.androidFacet(":app"),
+      SinglePreviewElementInstance.forTesting(
+        "google.simpleapplication.MainActivityKt.DefaultPreview",
+        configuration = PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
+      )
+    ).get()!!
+    assertImageSimilar(
+      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withEnUsLocale.png"),
+      defaultRenderWithLocale,
+      0.0
+    )
   }
 
   /**
