@@ -71,6 +71,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,6 +90,7 @@ public class GradleSyncExecutor {
   @NotNull private final Project myProject;
 
   @NotNull public static final Key<Boolean> FULL_SYNC_KEY = new Key<>("android.full.sync");
+  @NotNull public static final Key<Boolean> ALWAYS_SKIP_SYNC = new Key<>("android.always.skip.sync");
 
   public GradleSyncExecutor(@NotNull Project project) {
     myProject = project;
@@ -96,6 +98,10 @@ public class GradleSyncExecutor {
 
   @WorkerThread
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
+    if (Objects.equals(myProject.getUserData(ALWAYS_SKIP_SYNC), true)) {
+      GradleSyncState.getInstance(myProject).syncSkipped(listener);
+      return;
+    }
     // Setup the settings for setup.
     // Setup the settings for the resolver.
     myProject.putUserData(FULL_SYNC_KEY, request.forceFullVariantsSync);
