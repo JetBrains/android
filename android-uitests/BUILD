@@ -688,9 +688,10 @@ java_test(
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
+    flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
-        "qa_sanity",
+        "ui_test",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
