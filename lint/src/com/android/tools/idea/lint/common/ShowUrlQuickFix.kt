@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nls
 class ShowUrlQuickFix(private val fix: ShowUrl) : DefaultLintQuickFix(null) {
   @Nls
   override fun getName(): String {
-    return fix.displayName ?: fix.familyName ?: "Show ${fix.url}"
+    return fix.getDisplayName() ?: fix.getFamilyName() ?: "Show ${fix.url}"
   }
 
   override fun startInWriteAction(): Boolean = false

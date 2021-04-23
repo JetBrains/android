@@ -16,6 +16,8 @@
 package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
 import static com.android.tools.lint.detector.api.TextFormat.HTML_WITH_UNICODE;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
@@ -32,10 +34,12 @@ import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.LintFix.AnnotateFix;
+import com.android.tools.lint.detector.api.LintFix.CreateFileFix;
 import com.android.tools.lint.detector.api.LintFix.LintFixGroup;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.LintFix.SetAttribute;
 import com.android.tools.lint.detector.api.LintFix.ShowUrl;
+import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
@@ -668,42 +672,60 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     if (lintFix instanceof ReplaceString) {
       ReplaceString data = (ReplaceString)lintFix;
       @RegExp String regexp;
-      if (data.oldPattern != null) {
-        regexp = data.oldPattern;
+      @RegExp String pattern = data.getOldPattern();
+      String oldString = data.getOldString();
+      if (pattern != null) {
+        regexp = pattern;
       }
-      else if (data.oldString != null) {
-        if (data.oldString == ReplaceString.INSERT_BEGINNING || data.oldString == ReplaceString.INSERT_END) {
+      else if (oldString != null) {
+        if (INSERT_BEGINNING.equals(oldString) || INSERT_END.equals(oldString)) {
           //noinspection LanguageMismatch
-          regexp = data.oldString;
+          regexp = oldString;
         }
         else {
-          regexp = "(" + Pattern.quote(data.oldString) + ")";
+          regexp = "(" + Pattern.quote(oldString) + ")";
         }
       }
       else {
         regexp = null;
       }
-      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(data.getDisplayName(), data.getFamilyName(), regexp, data.replacement);
-      if (data.shortenNames) {
+      String displayName = data.getDisplayName();
+      String familyName = data.getFamilyName();
+      String replacement = data.getReplacement();
+      boolean shortenNames = data.getShortenNames();
+      boolean reformat = data.getReformat();
+      String selectPattern = data.getSelectPattern();
+      Location range = data.getRange();
+      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(displayName, familyName, regexp, replacement);
+      if (shortenNames) {
         fix.setShortenNames(true);
       }
-      if (data.reformat) {
+      if (reformat) {
         fix.setFormat(true);
       }
-      if (data.selectPattern != null) {
-        fix.setSelectPattern(data.selectPattern);
+      if (selectPattern != null) {
+        fix.setSelectPattern(selectPattern);
       }
-      if (data.range != null && file != null) {
+      if (range != null && file != null) {
         PsiFile rangeFile = file;
-        VirtualFile virtualFile = VfsUtil.findFileByIoFile(data.range.getFile(), false);
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(range.getFile(), false);
         if (virtualFile != null) {
           PsiFile psiFile = file.getManager().findFile(virtualFile);
           if (psiFile != null) {
             rangeFile = psiFile;
           }
+        } else {
+          // Creating a new file
+          // Can't use the normal replace action, which works on top of PSI and virtual
+          // files (which we don't have here). Creation is simple so we use a custom
+          // quickfix instead.
+          File path = range.getFile();
+          LintIdeQuickFix createFix = new CreateFileQuickFix(path, replacement, null,
+                                                             null, false, data.getDisplayName(), familyName);
+          return new LintIdeQuickFix[]{createFix};
         }
-        Position start = data.range.getStart();
-        Position end = data.range.getEnd();
+        Position start = range.getStart();
+        Position end = range.getEnd();
         if (start != null && end != null) {
           SmartPointerManager manager = SmartPointerManager.getInstance(rangeFile.getProject());
           int startOffset = start.getOffset();
@@ -719,28 +741,34 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
     else if (lintFix instanceof SetAttribute) {
       SetAttribute data = (SetAttribute)lintFix;
-      if (data.value == null) {
+      if (data.getValue() == null) {
         return new LintIdeQuickFix[]{new RemoteAttributeFix(data)};
       }
 
       // TODO: SetAttribute can now have a custom range!
-      return new LintIdeQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.getFamilyName(), data.attribute,
-                                                            data.namespace, data.value,
-                                                            data.dot, data.mark)};
+      return new LintIdeQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.getFamilyName(), data.getAttribute(),
+                                                            data.getNamespace(), data.getValue(),
+                                                            data.getDot(), data.getMark())};
+    }
+    else if (lintFix instanceof CreateFileFix) {
+      CreateFileFix fix = (CreateFileFix)lintFix;
+      return new LintIdeQuickFix[]{
+        new CreateFileQuickFix(fix.getFile(), fix.getText(), fix.getBinary(), fix.getSelectPattern(), fix.getReformat(),
+                               fix.getDisplayName(), fix.getFamilyName())};
     }
     else if (lintFix instanceof AnnotateFix) {
       AnnotateFix fix = (AnnotateFix)lintFix;
-      return new LintIdeQuickFix[]{new AnnotateQuickFix(fix.getDisplayName(), fix.getFamilyName(), fix.annotation, fix.replace)};
+      return new LintIdeQuickFix[]{new AnnotateQuickFix(fix.getDisplayName(), fix.getFamilyName(), fix.getAnnotation(), fix.getReplace())};
     }
     else if (lintFix instanceof LintFixGroup) {
       LintFixGroup group = (LintFixGroup)lintFix;
       List<LintIdeQuickFix> fixList = Lists.newArrayList();
-      for (LintFix fix : group.fixes) {
+      for (LintFix fix : group.getFixes()) {
         Collections.addAll(fixList, createFixes(file, fix));
       }
       LintIdeQuickFix[] fixes = fixList.toArray(LintIdeQuickFix.EMPTY_ARRAY);
 
-      switch (group.type) {
+      switch (group.getType()) {
         case COMPOSITE:
           return new LintIdeQuickFix[]{new CompositeLintFix(lintFix.getDisplayName(), lintFix.getFamilyName(), fixes)};
         case ALTERNATIVES:
@@ -829,8 +857,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         return null;
       }
 
-      return myData.namespace != null ? tag.getAttribute(myData.attribute, myData.namespace) :
-             tag.getAttribute(myData.attribute);
+      return myData.getNamespace() != null ? tag.getAttribute(myData.getAttribute(), myData.getNamespace()) :
+             tag.getAttribute(myData.getAttribute());
     }
 
     @NotNull
