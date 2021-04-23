@@ -46,52 +46,47 @@ class PreviewNavigationTest {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module
 
-    renderPreviewElementForResult(facet,
-                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
-      .thenAccept { renderResult ->
-        val rootView = renderResult!!.rootViews.single()!!
-        ReadAction.run<Throwable> {
-          // Find the boundaries for the root element. This will cover the whole layout
-          val bounds = parseViewInfo(rootView, logger = LOG).map { it.bounds }.first()
+    renderPreviewElementForResult(
+      facet,
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview")
+    ).thenAccept { renderResult ->
+      val rootView = renderResult!!.rootViews.single()!!
+      ReadAction.run<Throwable> {
+        // Find the boundaries for the root element. This will cover the whole layout
+        val bounds = parseViewInfo(rootView, logger = LOG).map { it.bounds }.first()
 
-          // Check clicking outside of the boundaries
-          assertTrue(findComponentHits(module, rootView, -30, -30).isEmpty())
-          assertNull(
-            findNavigatableComponentHit(module, rootView, -30, -30))
-          assertTrue(findComponentHits(module, rootView, -1, 0).isEmpty())
-          assertTrue(
-            findComponentHits(module, rootView, bounds.right * 2, 10).isEmpty())
-          assertTrue(
-            findComponentHits(module, rootView, 10, bounds.bottom * 2).isEmpty())
+        // Check clicking outside of the boundaries
+        assertTrue(findComponentHits(module, rootView, -30, -30).isEmpty())
+        assertNull(findNavigatableComponentHit(module, rootView, -30, -30))
+        assertTrue(findComponentHits(module, rootView, -1, 0).isEmpty())
+        assertTrue(findComponentHits(module, rootView, bounds.right * 2, 10).isEmpty())
+        assertTrue(findComponentHits(module, rootView, 10, bounds.bottom * 2).isEmpty())
 
-          // Check filtering
-          assertNotNull(
-            findNavigatableComponentHit(module, rootView, 0, 0))
-          assertNull(findNavigatableComponentHit(module, rootView, 0,
-                                                 0) { false })
+        // Check filtering
+        assertNotNull(findNavigatableComponentHit(module, rootView, 0, 0))
+        assertNull(findNavigatableComponentHit(module, rootView, 0, 0) { false })
 
-          // Click the Text("Hello 2") by clicking (0, 0)
-          // The hits will be, in that other: Text > Column > MaterialTheme
-          assertEquals("""
-            MainActivity.kt:48
-            MainActivity.kt:47
-            MainActivity.kt:46
-          """.trimIndent(), findComponentHits(module, rootView, 0, 0)
-            .filter { it.fileName == "MainActivity.kt" }
-            .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
-
-          // Click the Button by clicking (0, bounds.bottom)
-          // The hits will be, in that other: Button > Column > MaterialTheme
-          assertEquals("""
+        // Click the Text("Hello 2") by clicking (0, 0)
+        // The hits will be, in that other: Text > Column > MaterialTheme
+        assertEquals("""
+            MainActivity.kt:50
             MainActivity.kt:49
-            MainActivity.kt:47
-            MainActivity.kt:46
-          """.trimIndent(), findComponentHits(module, rootView, 0,
-                                                                                                                   bounds.bottom)
-            .filter { it.fileName == "MainActivity.kt" }
-            .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
-        }
-      }.join()
+            MainActivity.kt:48
+          """.trimIndent(), findComponentHits(module, rootView, 0, 0)
+          .filter { it.fileName == "MainActivity.kt" }
+          .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
+
+        // Click the Button by clicking (0, bounds.bottom)
+        // The hits will be, in that other: Button > Column > MaterialTheme
+        assertEquals("""
+            MainActivity.kt:51
+            MainActivity.kt:49
+            MainActivity.kt:48
+          """.trimIndent(), findComponentHits(module, rootView, 0, bounds.bottom)
+          .filter { it.fileName == "MainActivity.kt" }
+          .joinToString("\n") { "${it.fileName}:${it.lineNumber}" })
+      }
+    }.join()
   }
 
   /**
@@ -102,25 +97,23 @@ class PreviewNavigationTest {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module
 
-    renderPreviewElementForResult(facet,
-                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview"))
-      .thenAccept { renderResult ->
-        val rootView = renderResult!!.rootViews.single()!!
-        ReadAction.run<Throwable> {
-          val descriptor = findNavigatableComponentHit(module,
-                                                                                                                            rootView, 0,
-                                                                                                                            0) { it.fileName == "MainActivity.kt" } as OpenFileDescriptor
-          assertEquals("MainActivity.kt", descriptor.file.name)
-          //TODO(b/156744111)
-          //assertEquals(46, descriptor.line)
+    renderPreviewElementForResult(
+      facet,
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.NavigatablePreview")
+    ).thenAccept { renderResult ->
+      val rootView = renderResult!!.rootViews.single()!!
+      ReadAction.run<Throwable> {
+        val descriptor = findNavigatableComponentHit(module, rootView, 0, 0) { it.fileName == "MainActivity.kt" } as OpenFileDescriptor
+        assertEquals("MainActivity.kt", descriptor.file.name)
+        //TODO(b/156744111)
+        //assertEquals(46, descriptor.line)
 
-          val descriptorInOtherFile = findNavigatableComponentHit(
-            module, rootView, 0, 0) as OpenFileDescriptor
-          assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
-          //TODO(b/156744111)
-          //assertEquals(31, descriptor.line)
-        }
-      }.join()
+        val descriptorInOtherFile = findNavigatableComponentHit(module, rootView, 0, 0) as OpenFileDescriptor
+        assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
+        //TODO(b/156744111)
+        //assertEquals(31, descriptor.line)
+      }
+    }.join()
   }
 
   /**
@@ -131,18 +124,18 @@ class PreviewNavigationTest {
     val facet = projectRule.androidFacet(":app")
     val module = facet.module
 
-    renderPreviewElementForResult(facet,
-                                  SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.OnlyATextNavigation"))
-      .thenAccept { renderResult ->
-        val rootView = renderResult!!.rootViews.single()!!
-        ReadAction.run<Throwable> {
-          // We click a Text() but we should not navigate to the local Text.kt file since it's not
-          // related to the androidx.compose.ui.foundation.Text
-          // Assert disabled for dev16 because of b/162066489
-          // assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
-          assertTrue((findNavigatableComponentHit(module, rootView, 2,
-                                                  2) as OpenFileDescriptor).file.name == "MainActivity.kt")
-        }
-      }.join()
+    renderPreviewElementForResult(
+      facet,
+      SinglePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.OnlyATextNavigation")
+    ).thenAccept { renderResult ->
+      val rootView = renderResult!!.rootViews.single()!!
+      ReadAction.run<Throwable> {
+        // We click a Text() but we should not navigate to the local Text.kt file since it's not
+        // related to the androidx.compose.ui.foundation.Text
+        // Assert disabled for dev16 because of b/162066489
+        // assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
+        assertTrue((findNavigatableComponentHit(module, rootView, 2, 2) as OpenFileDescriptor).file.name == "MainActivity.kt")
+      }
+    }.join()
   }
 }
