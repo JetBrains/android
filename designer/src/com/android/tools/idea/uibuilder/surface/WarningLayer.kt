@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.intellij.ui.scale.JBUIScale
+import icons.StudioIcons
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
@@ -38,6 +39,8 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     }
     val sceneSize = screenView.scaledContentSize
     gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
+    val icon = StudioIcons.Common.WARNING
+    icon.paintIcon(screenView.surface, gc, screenView.x + sceneSize.width - icon.iconWidth - 1, screenView.y + 1)
   }
 
   override val isVisible: Boolean
