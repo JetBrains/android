@@ -416,6 +416,25 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
 
     verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionInDslTo700Expected"))
   }
+
+  @Test
+  fun testGoogleOssLicensesVersionTo700() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/GoogleOssLicensesVersion"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/GoogleOssLicensesVersionTo700Expected"))
+  }
+
+  @Test
+  fun testGoogleOssLicensesVersionInDslTo700() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/GoogleOssLicensesVersionInDsl"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/GoogleOssLicensesVersionInDslTo700Expected"))
+  }
+
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
   //  GRADLE_MINIMUM_VERSION changes)

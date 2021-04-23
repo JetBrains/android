@@ -1202,6 +1202,13 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         VERSION_FOR_DEV -> GradleVersion.parse("2.1.1")
       }
 
+    fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> GradleVersion.parse("0.9.3")
+        VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> GradleVersion.parse("0.10.1")
+        VERSION_FOR_DEV -> GradleVersion.parse("0.10.4")
+    }
+
     /**
      * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
      * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
@@ -1223,6 +1230,9 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
       "com.google.firebase:firebase-appdistribution-gradle" to ::`com-google-firebase-appdistribution-plugin-compatibility-info`,
       "com.google.firebase.appdistribution" to ::`com-google-firebase-appdistribution-plugin-compatibility-info`,
+
+      "com.google.android.gms:oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
+      "com.google.android.gms.oss-licenses-plugin" to ::`com-google-android-gms-oss-licenses-plugin-compatibility-info`,
       )
   }
 }
