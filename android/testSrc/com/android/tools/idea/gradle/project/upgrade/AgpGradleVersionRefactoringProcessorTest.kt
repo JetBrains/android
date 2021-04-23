@@ -381,6 +381,41 @@ class AgpGradleVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase(
     verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseCrashlyticsVersionInDslTo700Expected"))
   }
 
+  @Test
+  fun testFirebaseAppdistributionVersionTo400() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/FirebaseAppdistributionVersion"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionTo400Expected"))
+  }
+
+  @Test
+  fun testFirebaseAppdistributionVersionTo700() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/FirebaseAppdistributionVersion"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionTo700Expected"))
+  }
+
+  @Test
+  fun testFirebaseAppdistributionVersionInDslTo400() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionInDsl"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionInDslTo400Expected"))
+  }
+
+  @Test
+  fun testFirebaseAppdistributionVersionInDslTo700() {
+    writeToBuildFile(TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionInDsl"))
+    val processor = AgpGradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("AgpGradleVersion/FirebaseAppdistributionVersionInDslTo700Expected"))
+  }
   // TODO(b/159420573): test that with a sufficiently new (>= GRADLE_MINIMUM_VERSION) declared version of gradle, this
   //  processor does nothing.  (Need to programmatically write the properties file so that it doesn't fail when
   //  GRADLE_MINIMUM_VERSION changes)
