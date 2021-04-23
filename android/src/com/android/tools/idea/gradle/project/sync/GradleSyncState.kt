@@ -576,7 +576,12 @@ open class GradleSyncState @NonInjectable internal constructor (
   class DataImportListener(val project: Project) : ProjectDataImportListener {
     override fun onImportFinished(projectPath: String?) {
       LOG.info("onImportFinished($projectPath)")
-      GradleSyncState.getInstance(project).syncSucceeded()
+      val syncState = GradleSyncState.getInstance(project)
+      if (syncState.lastSyncFailed()) {
+        syncState.syncFailed("", null, null)
+      } else {
+        syncState.syncSucceeded()
+      }
     }
 
     override fun onImportFailed(projectPath: String?) {
