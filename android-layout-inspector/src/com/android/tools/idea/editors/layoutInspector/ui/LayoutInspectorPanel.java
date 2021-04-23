@@ -88,7 +88,6 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     ActionToolbar liActionToolbar = actionManager.createActionToolbar(
       "LiActionsToolbar", liActionGroup, true
     );
-    liActionToolbar.updateActionsImmediately();
     liActionToolbar.setTargetComponent(this);
     JComponent actionToolbarPanel = liActionToolbar.getComponent();
     actionToolbarPanel.setName("LiActionsToolbar");
@@ -97,9 +96,6 @@ public class LayoutInspectorPanel extends JPanel implements DataProvider, ImageC
     ActionToolbar actionToolbar = actionManager.createActionToolbar(
       ImageEditorActions.ACTION_PLACE, actionGroup, true
     );
-    // Make sure toolbar is 'ready' before it's added to component hierarchy
-    // to prevent ActionToolbarImpl.updateActionsImpl(boolean, boolean) from increasing popup size unnecessarily
-    actionToolbar.updateActionsImmediately();
     actionToolbar.setTargetComponent(this);
     JComponent toolbarPanel = actionToolbar.getComponent();
 

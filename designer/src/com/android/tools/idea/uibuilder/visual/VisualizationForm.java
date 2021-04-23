@@ -293,7 +293,6 @@ public class VisualizationForm
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
     ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, group, true);
-    actionToolbar.updateActionsImmediately();
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     myActionToolbarPanel.add(actionToolbar.getComponent(), BorderLayout.CENTER);
 
