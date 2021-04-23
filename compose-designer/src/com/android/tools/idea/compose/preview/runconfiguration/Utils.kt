@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.idea.compose.ComposeExperimentalConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
+
+internal fun isComposeRunConfigurationEnabled() =
+  StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get() &&
+  ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled
 
 internal fun Module?.isNonLibraryAndroidModule() = this?.let { AndroidFacet.getInstance(it) }?.configuration?.isLibraryProject == false
