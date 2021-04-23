@@ -23,6 +23,7 @@ import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.crea
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.adb.AdbOptionsService;
+import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -75,6 +76,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private TextFieldWithBrowseButton myTraceProfilePathField;
   private TitledSeparator myAdbMdnsOpenScreenSeparator;
   private JCheckBox myAdbMdnsOpenScreenCheckbox;
+  private JCheckBox myPreviewDeployToCheckBox;
+  private JCheckBox myInteractiveAndAnimationsComboBox;
 
   private Runnable myRestartCallback;
 
@@ -152,7 +155,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
-           (myAdbMdnsOpenScreenCheckbox.isSelected() != myAdbSettings.shouldUseMdnsOpenScreen());
+           (myAdbMdnsOpenScreenCheckbox.isSelected() != myAdbSettings.shouldUseMdnsOpenScreen()) ||
+           myPreviewDeployToCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled() ||
+           myInteractiveAndAnimationsComboBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled();
   }
 
   private int getQualitySetting() {
@@ -190,6 +195,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
       UsageTracker.log(studioEvent);
     }
     applyTraceSettings();
+    ComposeExperimentalConfiguration.getInstance().setInteractiveEnabled(myInteractiveAndAnimationsComboBox.isSelected());
+    ComposeExperimentalConfiguration.getInstance().setDeployToDeviceEnabled(myPreviewDeployToCheckBox.isSelected());
   }
 
   @Override
@@ -355,6 +362,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     updateTraceComponents();
+    myPreviewDeployToCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled());
+    myInteractiveAndAnimationsComboBox.setSelected(ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled());
   }
 
   public enum TraceProfileItem {

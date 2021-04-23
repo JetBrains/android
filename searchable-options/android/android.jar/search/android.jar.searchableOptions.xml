@@ -1021,7 +1021,7 @@
     <option name="test" hit="Enable test runs across multiple devices in parallel." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="android.live.literals" configurable_name="Live Literals">
+  <configurable id="android.live.literals" configurable_name="Live Editing of literals">
     <option name="" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
     <option name="after" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
     <option name="building" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
@@ -1043,8 +1043,10 @@
     <option name="literals" hit="Enable Live Editing of literals" />
     <option name="live" hit="Enable Live Editing of literals" />
     <option name="of" hit="Enable Live Editing of literals" />
-    <option name="literals" hit="Live Literals" />
-    <option name="live" hit="Live Literals" />
+    <option name="editing" hit="Live Editing of literals" />
+    <option name="literals" hit="Live Editing of literals" />
+    <option name="live" hit="Live Editing of literals" />
+    <option name="of" hit="Live Editing of literals" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
@@ -1344,6 +1346,16 @@
     <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
+    <option name="a" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="allows" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="deploying" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="device" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="elements" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="emulator" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="individial" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="or" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="preview" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="to" hit="Allows deploying individial @Preview elements to a device or emulator" />
     <option name="adb" hit="Android Debug Bridge (adb)" />
     <option name="android" hit="Android Debug Bridge (adb)" />
     <option name="bridge" hit="Android Debug Bridge (adb)" />
@@ -1358,6 +1370,11 @@
     <option name="not" hit="Do not build Gradle task list during Gradle sync" />
     <option name="sync" hit="Do not build Gradle task list during Gradle sync" />
     <option name="task" hit="Do not build Gradle task list during Gradle sync" />
+    <option name="deploy" hit="Enable @Preview deploy to device" />
+    <option name="device" hit="Enable @Preview deploy to device" />
+    <option name="enable" hit="Enable @Preview deploy to device" />
+    <option name="preview" hit="Enable @Preview deploy to device" />
+    <option name="to" hit="Enable @Preview deploy to device" />
     <option name="enable" hit="Enable Live Layout Inspector" />
     <option name="inspector" hit="Enable Live Layout Inspector" />
     <option name="layout" hit="Enable Live Layout Inspector" />
@@ -1368,12 +1385,28 @@
     <option name="for" hit="Enable adb mDNS for Wireless Debugging" />
     <option name="mdns" hit="Enable adb mDNS for Wireless Debugging" />
     <option name="wireless" hit="Enable adb mDNS for Wireless Debugging" />
+    <option name="and" hit="Enable interactive and animation preview tools" />
+    <option name="animation" hit="Enable interactive and animation preview tools" />
+    <option name="enable" hit="Enable interactive and animation preview tools" />
+    <option name="interactive" hit="Enable interactive and animation preview tools" />
+    <option name="preview" hit="Enable interactive and animation preview tools" />
+    <option name="tools" hit="Enable interactive and animation preview tools" />
     <option name="experimental" hit="Experimental" />
     <option name="gradle" hit="Gradle" />
+    <option name="compose" hit="Jetpack Compose" />
+    <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
     <option name="inspector" hit="Layout Inspector" />
     <option name="layout" hit="Layout Inspector" />
+    <option name="and" hit="Live preview to test gestures and inspect animations" />
+    <option name="animations" hit="Live preview to test gestures and inspect animations" />
+    <option name="gestures" hit="Live preview to test gestures and inspect animations" />
+    <option name="inspect" hit="Live preview to test gestures and inspect animations" />
+    <option name="live" hit="Live preview to test gestures and inspect animations" />
+    <option name="preview" hit="Live preview to test gestures and inspect animations" />
+    <option name="test" hit="Live preview to test gestures and inspect animations" />
+    <option name="to" hit="Live preview to test gestures and inspect animations" />
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />
