@@ -61,6 +61,8 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.awt.BorderLayout
 import java.util.EventListener
 import javax.swing.BoxLayout
@@ -223,6 +225,7 @@ class ToolWindowModel(
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
     val classpathUsageFound = !newProcessor.classpathRefactoringProcessor.isAlwaysNoOpForProject
+    newProcessor.componentRefactoringProcessors.firstIsInstanceOrNull<AgpGradleVersionRefactoringProcessor>()?.findUsages()
     if (application.isUnitTestMode) {
       setEnabled(newProcessor, projectFilesClean, classpathUsageFound)
     } else {
@@ -310,6 +313,8 @@ class ToolWindowModel(
     val treeText: String
     val helpLinkUrl: String?
     val shortDescription: String?
+    val additionalInfo: String?
+      get() = null
   }
 
   interface StepUiWithComboSelectorPresentation {
@@ -339,6 +344,19 @@ class ToolWindowModel(
       init {
         selectedValue = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
       }
+    }
+    is AgpGradleVersionRefactoringProcessor -> object : DefaultStepPresentation(processor) {
+      override val additionalInfo: String? =
+        processor.cachedUsages
+          .filter { it is WellKnownGradlePluginDependencyUsageInfo || it is WellKnownGradlePluginDslUsageInfo }
+          .map { it.tooltipText }.toSortedSet().ifNotEmpty {
+            val result = StringBuilder()
+            result.append("<p>This will also perform the following actions to maintain plugin compatibility:</p>\n")
+            result.append("<ul>\n")
+            forEach { result.append("<li>$it</li>\n") }
+            result.append("</ul>\n")
+            result.toString()
+          }
     }
     else -> DefaultStepPresentation(processor)
   }
@@ -613,6 +631,7 @@ class ContentManager(val project: Project) {
             // TODO(xof): what if we end near the end of the line, and this sticks out in an ugly fashion?
             text.append("<a href='$url'>Read more</a><icon src='ide/external_link_arrow.svg'>.")
           }
+          selectedStep.additionalInfo?.let { text.append(it) }
           label.text = text.toString()
           detailsPanel.add(label)
           if (selectedStep is ToolWindowModel.StepUiWithComboSelectorPresentation) {
