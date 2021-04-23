@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnect
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -60,7 +61,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
   ): AppInspectorTab {
     return object : AppInspectorTab {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
@@ -80,7 +82,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
 
       private val dbClient = DatabaseInspectorClient(
         messenger,
-        project,
+        parentDisposable,
         handleError,
         openDatabase,
         onDatabasePossiblyChanged,

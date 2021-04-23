@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspe
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
@@ -50,18 +51,19 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
   ): AppInspectorTab {
     val componentsProvider = DefaultUiComponentsProvider(project)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
-    val scope = AndroidCoroutineScope(project)
+    val scope = AndroidCoroutineScope(parentDisposable)
     val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
 
     return object : AppInspectorTab {
       override val messenger = messenger
       private val client = NetworkInspectorClient(messenger)
       override val component = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
-                                                   AndroidDispatchers.uiThread, project).component
+                                                   AndroidDispatchers.uiThread, parentDisposable).component
     }
   }
 }
