@@ -23,10 +23,13 @@ import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.rendering.Locale
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -34,6 +37,7 @@ import com.intellij.openapi.roots.impl.LibraryScopeCache
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.util.text.nullize
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
@@ -66,6 +70,8 @@ class PsiCallEnumSupportValuesProvider private constructor(
       containingFile?.let {
         providersMap[PARAMETER_GROUP] = createGroupEnumProvider(module, containingFile)
       }
+
+      providersMap[PARAMETER_LOCALE] = createLocaleEnumProvider(module)
 
       return PsiCallEnumSupportValuesProvider(providersMap)
     }
@@ -206,6 +212,13 @@ private fun createGroupEnumProvider(module: Module, containingFile: VirtualFile)
     }.distinct().map { group ->
       EnumValue.Companion.item(group)
     }
+  }
+
+private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
+  {
+    ResourceRepositoryManager.getInstance(module)?.localesInProject?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)?.mapNotNull { locale ->
+      locale.qualifier.full.nullize()?.let { EnumValue.Companion.item(it, locale.toLocaleId()) }
+    } ?: emptyList()
   }
 
 private data class ClassEnumValueParams(

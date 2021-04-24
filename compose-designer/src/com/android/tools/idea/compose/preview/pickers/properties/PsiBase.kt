@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_GROUP
+import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
@@ -143,6 +144,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
         return@EnumSupportWithConstantData Device.DEFAULT
       }
       PARAMETER_GROUP,
+      PARAMETER_LOCALE,
       PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
       PARAMETER_FONT_SCALE -> object : EnumSupport {
         override val values: List<EnumValue> = FontScale.values().toList()
@@ -164,6 +166,7 @@ object PsiPropertyItemControlTypeProvider : ControlTypeProvider<PsiPropertyItem>
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
       PARAMETER_GROUP,
+      PARAMETER_LOCALE,
       PARAMETER_FONT_SCALE,
       PARAMETER_API_LEVEL -> ControlType.COMBO_BOX
       else -> ControlType.TEXT_EDITOR
