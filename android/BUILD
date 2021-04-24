@@ -172,12 +172,6 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "gradle.variant.view.BuildVariantUpdaterIntegTest": {
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            # Sync error with cmake (b/152814925)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.variant.view.BuildVariantUpdaterIntegTest",
-        },
         "avd": {
             "test_filter": "com.android.tools.idea.avdmanager",
         },

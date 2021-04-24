@@ -123,9 +123,9 @@ public class BuildVariantUpdater {
    * @param selectedAbiName the name of the selected ABI.
    * @return true if there are affected facets.
    */
-  boolean updateSelectedAbi(@NotNull Project project,
-                            @NotNull String moduleName,
-                            @NotNull String selectedAbiName) {
+  public boolean updateSelectedAbi(@NotNull Project project,
+                                   @NotNull String moduleName,
+                                   @NotNull String selectedAbiName) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
       logAndShowAbiNameFailure(String.format("Cannot find module '%1$s'.", moduleName));
