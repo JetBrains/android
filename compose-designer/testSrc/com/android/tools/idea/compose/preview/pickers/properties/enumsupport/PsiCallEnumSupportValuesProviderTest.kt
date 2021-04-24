@@ -15,26 +15,39 @@
  */
 package com.android.tools.idea.compose.preview.pickers.properties.enumsupport
 
+import com.android.SdkConstants
 import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.android.compose.stubDevicesAsLibrary
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+@Language("XML")
+private const val STRINGS_CONTENT = """<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">my app</string>
+</resources>
+"""
 
 @RunWith(Parameterized::class)
 class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
@@ -68,6 +81,19 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   fun testValuesProvider() {
     rule.fixture.stubConfigurationAsLibrary()
 
+    val manifest = rule.fixture.addFileToProjectAndInvalidate(SdkConstants.FN_ANDROID_MANIFEST_XML, "")
+    rule.fixture.addFileToProjectAndInvalidate("res/values/strings.xml", STRINGS_CONTENT) // Should not affect locale options
+    rule.fixture.addFileToProjectAndInvalidate("res/values-es-rES/strings.xml", STRINGS_CONTENT)
+    rule.fixture.addFileToProjectAndInvalidate("res/values-en-rUS/strings.xml", STRINGS_CONTENT)
+    rule.fixture.addFileToProjectAndInvalidate("res/values-en-rGB/strings.xml", STRINGS_CONTENT)
+    SourceProviderManager.replaceForTest(
+      module.androidFacet!!,
+      rule.fixture.projectDisposable,
+      NamedIdeaSourceProviderBuilder.create(
+        "main", manifest.virtualFile.url
+      ).withResDirectoryUrls(listOf(rule.fixture.findFileInTempDir("res").url)).build()
+    )
+
     val valuesProvider = PsiCallEnumSupportValuesProvider.createPreviewValuesProvider(module, composeLibraryNamespace, null)
     val uiModeValues = valuesProvider.getValuesProvider("uiMode")!!.invoke()
     assertEquals(10, uiModeValues.size)
@@ -90,6 +116,15 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     assertEquals("Nexus 10", deviceValues[4].display)
     assertEquals("Nexus 7", deviceValues[5].display)
     assertEquals("Automotive 1024p", deviceValues[6].display)
+
+    val localeValues = valuesProvider.getValuesProvider("locale")!!.invoke()
+    assertEquals(3, localeValues.size)
+    assertEquals("en-GB", localeValues[0].display)
+    assertEquals("en-rGB", localeValues[0].value)
+    assertEquals("en-US", localeValues[1].display)
+    assertEquals("en-rUS", localeValues[1].value)
+    assertEquals("es-ES", localeValues[2].display)
+    assertEquals("es-rES", localeValues[2].value)
   }
 
   @RunsInEdt
@@ -115,11 +150,13 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
     // With Sdk we just check that there's a Device Manager separator, the Library options are constant from the test setup
     assertEquals("Library", (deviceValues[0] as HeaderEnumValue).header)
     assertEquals("Device Manager", (deviceValues[7] as HeaderEnumValue).header)
-    assert(deviceValues.size > 8)
+    assertTrue(deviceValues.size > 8)
+    // Can't control what Devices may show up here, but we can at least validate part of the EnumValue
+    assertTrue(deviceValues[8].value!!.startsWith("id:"))
 
     // For api, we just check that there's at least an element available
     val apiLevelValues = valuesProvider.getValuesProvider("apiLevel")!!.invoke()
-    assert(apiLevelValues.isNotEmpty())
+    assertTrue(apiLevelValues.isNotEmpty())
   }
 
   @RunsInEdt
