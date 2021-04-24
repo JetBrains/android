@@ -17,8 +17,8 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.ImageUtils;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -27,7 +27,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,7 +47,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +64,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     mySurface = new NavDesignSurface(myFacet.getModule().getProject(), getMyRootDisposable());
   }
 
-  public void testCaching() {
+  public void testCaching() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
@@ -92,7 +91,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile resDir = myFixture.findFileInTempDir("res");
     IdeResourcesUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
                                          Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
-    ResourceRepositoryManager.getAppResources(myFacet).sync();
+    waitForResourceRepositoryUpdates();
 
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     assertNotSame(image, imageFuture.getTerminalImage());

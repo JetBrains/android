@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourcesTestsUtil;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.util.Collections;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.AndroidTestCase;
 
 public final class StringsWriteUtilsTest extends AndroidTestCase {
   private Project myProject;
@@ -68,18 +70,24 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
     assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key2"));
   }
 
-  public void testCreateItem() {
-    StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "L'Étranger", true);
+  public void testCreateItem() throws Exception {
+    ListenableFuture<ResourceItem> future =
+        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "L'Étranger", true);
+    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
     assertEquals("L\\'Étranger", getText("values-fr/strings.xml", "key11"));
   }
 
-  public void testCreateItemCdata() {
-    StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<![CDATA[L'Étranger]]>", true);
+  public void testCreateItemCdata() throws Exception {
+    ListenableFuture<ResourceItem> future =
+        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<![CDATA[L'Étranger]]>", true);
+    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
     assertEquals("<![CDATA[L'Étranger]]>", getText("values-fr/strings.xml", "key11"));
   }
 
-  public void testCreateItemXliff() {
-    StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<xliff:g>L'Étranger</xliff:g>", true);
+  public void testCreateItemXliff() throws Exception {
+    ListenableFuture<ResourceItem> future =
+        StringsWriteUtils.createItem(myFacet, myResourceDirectory, Locale.create("fr"), "key11", "<xliff:g>L'Étranger</xliff:g>", true);
+    FutureUtils.pumpEventsAndWaitForFuture(future, 2, TimeUnit.SECONDS);
     assertEquals("<xliff:g>L\\'Étranger</xliff:g>", getText("values-fr/strings.xml", "key11"));
   }
 

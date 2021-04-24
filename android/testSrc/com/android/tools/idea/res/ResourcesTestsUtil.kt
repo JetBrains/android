@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
@@ -244,22 +243,13 @@ fun addBinaryAarDependency(module: Module) {
   )
 }
 
-/**
- * Exposes the package-private method [LocalResourceRepository.isScanPending] for usage in tests.
- */
-fun LocalResourceRepository.isScanPending(psiFile: PsiFile): Boolean {
-  val file = psiFile.virtualFile ?: return false
-  return isScanPending(file)
-}
-
 fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   assertThat(list).hasSize(1)
   return list[0]
 }
 
-fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String,
-                  filter: Predicate<ResourceItem>): ResourceItem {
+fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String, filter: Predicate<ResourceItem>): ResourceItem {
   val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
   var found: ResourceItem? = null
   for (item in list) {
@@ -278,4 +268,3 @@ class DefinedInOrUnder internal constructor(fileOrDirectory: VirtualFile) : Pred
     return item.source!!.startsWith(myFileOrDirectory)
   }
 }
-

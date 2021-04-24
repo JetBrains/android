@@ -16,7 +16,7 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
@@ -30,7 +30,7 @@ import org.jetbrains.android.AndroidTestCase;
 public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
 
-  public void testLocalResourceRepository() {
+  public void testLocalResourceRepository() throws Exception {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");
@@ -49,7 +49,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
 
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
-    dispatchAllInvocationEvents();
+    waitForUpdates(resources);
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
 
@@ -59,7 +59,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     Collection<String> drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(drawables.toString(), 0, drawables.size());
     VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/drawable-mdpi/foo.png");
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
     PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
     assertNotNull(psiFile4);
     drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
@@ -67,6 +67,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertEquals("foo", drawables.iterator().next());
 
     WriteCommandAction.runWriteCommandAction(null, psiFile4::delete);
+    waitForUpdates(resources);
     drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(0, drawables.size());
 

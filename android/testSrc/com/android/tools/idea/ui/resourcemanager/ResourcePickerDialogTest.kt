@@ -50,6 +50,7 @@ class ResourcePickerDialogTest {
     projectRule.fixture.testDataPath = getTestDataDirectory()
     projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML, FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    projectRule.waitForResourceRepositoryUpdates()
     pickerDialog = createResourcePickerDialog(false)
     Disposer.register(projectRule.project, pickerDialog.disposable)
   }

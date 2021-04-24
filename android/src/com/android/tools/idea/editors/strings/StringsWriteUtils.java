@@ -28,12 +28,13 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -43,6 +44,7 @@ import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -167,23 +169,23 @@ public class StringsWriteUtils {
   /**
    * Creates a string resource in the specified locale.
    *
-   * @return the resource item that was created, null if it wasn't created or could not be read back
+   * @return a future referencing the resource item that was created, or null if it wasn't created or could not be read back.
+   *     The future is guaranteed to be completed on the UI thread.
    */
-  @Nullable
-  public static ResourceItem createItem(@NotNull AndroidFacet facet,
-                                        @NotNull VirtualFile resFolder,
-                                        @Nullable Locale locale,
-                                        @NotNull String name,
-                                        @NotNull String value,
-                                        boolean translatable) {
+  public static @NotNull ListenableFuture<ResourceItem> createItem(@NotNull AndroidFacet facet,
+                                                                   @NotNull VirtualFile resFolder,
+                                                                   @Nullable Locale locale,
+                                                                   @NotNull String name,
+                                                                   @NotNull String value,
+                                                                   boolean translatable) {
     Project project = facet.getModule().getProject();
     XmlFile resourceFile = getStringResourceFile(project, resFolder, locale);
     if (resourceFile == null) {
-      return null;
+      return Futures.immediateFuture(null);
     }
     XmlTag root = resourceFile.getRootTag();
     if (root == null) {
-      return null;
+      return Futures.immediateFuture(null);
     }
     WriteCommandAction.writeCommandAction(project, resourceFile).withName("Creating string " + name).run(() -> {
       // Makes the command global even if only one xml file is modified
@@ -199,41 +201,27 @@ public class StringsWriteUtils {
       root.addSubTag(child, false);
     });
 
-    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return getStringResourceItem(facet, name, locale);
-    }
-    else {
-      return ApplicationManager.getApplication().runReadAction((Computable<ResourceItem>)() -> getStringResourceItem(facet, name, locale));
-    }
-  }
-
-  @Nullable
-  private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
+    SettableFuture<ResourceItem> result = SettableFuture.create();
     LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(facet);
-    // Ensure that items *just* created are processed by the resource repository
-    repository.sync();
-    List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, key);
+    // Ensure that items *just* created are processed by the resource repository.
+    repository.invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), () -> {
+      List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, name);
 
-    for (ResourceItem item : items) {
-      FolderConfiguration config = item.getConfiguration();
-      LocaleQualifier qualifier = config.getLocaleQualifier();
+      for (ResourceItem item : items) {
+        FolderConfiguration config = item.getConfiguration();
+        LocaleQualifier qualifier = config.getLocaleQualifier();
 
-      if (qualifier == null) {
-        if (locale == null) {
-          return item;
-        }
-        else {
-          continue;
+        Locale l = qualifier == null ? null : Locale.create(qualifier);
+        if (Objects.equals(l, locale)) {
+          result.set(item);
+          break;
         }
       }
 
-      Locale l = Locale.create(qualifier);
-      if (l.equals(locale)) {
-        return item;
-      }
-    }
+      result.set(null);
+    });
 
-    return null;
+    return result;
   }
 
   @Nullable

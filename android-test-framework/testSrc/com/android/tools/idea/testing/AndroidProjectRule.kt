@@ -57,6 +57,7 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
+import java.util.concurrent.TimeoutException
 
 /**
  * Rule that provides access to a [Project] containing one module configured
@@ -345,6 +346,12 @@ class AndroidProjectRule private constructor(
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
     mockitoCleaner.cleanupAndTearDown()
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
+  }
+
+  /** Waits 2 seconds for the app resource repository to finish currently pending updates. */
+  @Throws(InterruptedException::class, TimeoutException::class)
+  fun waitForResourceRepositoryUpdates() {
+    waitForResourceRepositoryUpdates(module)
   }
 }
 

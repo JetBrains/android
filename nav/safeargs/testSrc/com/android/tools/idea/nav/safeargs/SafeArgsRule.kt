@@ -52,6 +52,10 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
   val project
     get() = module.project
 
+  fun waitForResourceRepositoryUpdates() {
+    projectRule.waitForResourceRepositoryUpdates()
+  }
+
   override fun before() {
     StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
 

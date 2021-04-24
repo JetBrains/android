@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.intellij.lang.annotations.Language
 
 class AndroidDynamicFeatureNavTest : NavTestCase() {
@@ -52,7 +51,7 @@ class AndroidDynamicFeatureNavTest : NavTestCase() {
               tools:layout="@layo${caret}" />
       </navigation>""".trimIndent()
     val psiFile = myFixture.addFileToProject("res/navigation/nav_graph2.xml", navGraph)
-    dispatchAllInvocationEvents()
+    waitForResourceRepositoryUpdates()
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly(

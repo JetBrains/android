@@ -304,7 +304,7 @@ class NavLogEventTest : NavTestCase() {
                        "public class CustomFragmentNavigator extends FragmentNavigator {}\n")
 
     ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
-    ResourceRepositoryManager.getAppResources(myFacet).sync()
+    waitForResourceRepositoryUpdates();
 
     val model = model("nav.xml") {
       navigation {

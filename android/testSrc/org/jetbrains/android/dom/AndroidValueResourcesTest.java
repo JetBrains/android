@@ -17,7 +17,6 @@
 package org.jetbrains.android.dom;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
@@ -410,7 +409,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
     // Add a mipmap to resources and expect for it to be listed
     myFixture.copyFileToProject(myTestFolder + "/icon.png", "res/mipmap/icon.png");
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
     myFixture.complete(CompletionType.BASIC);
     assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }

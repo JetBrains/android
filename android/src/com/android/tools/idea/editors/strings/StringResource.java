@@ -25,12 +25,16 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicValueResourceItem;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.PsiResourceItem;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,55 +121,59 @@ public final class StringResource {
     return myDefaultValue.myString;
   }
 
-  public boolean setDefaultValue(@NotNull String defaultValue) {
+  public @NotNull ListenableFuture<@NotNull Boolean> setDefaultValue(@NotNull String defaultValue) {
     if (myDefaultValue.myResourceItem == null) {
-      ResourceItem item = createDefaultValue(defaultValue);
+      ListenableFuture<ResourceItem> futureItem = createDefaultValue(defaultValue);
+      return Futures.transform(futureItem, item -> {
+        if (item == null) {
+          return false;
+        }
 
-      if (item == null) {
-        return false;
-      }
-
-      myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
-      return true;
+        myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
+        return true;
+      }, SameThreadExecutor.INSTANCE);
     }
 
     if (myDefaultValue.myString.equals(defaultValue)) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
     boolean changed = StringsWriteUtils.setItemText(myData.getProject(), myDefaultValue.myResourceItem, defaultValue);
 
     if (!changed) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
     if (defaultValue.isEmpty()) {
       myDefaultValue = new ResourceItemEntry();
-      return true;
+      return Futures.immediateFuture(true);
     }
 
     ResourceItem item = myData.getRepository().getDefaultValue(myKey);
     assert item != null;
 
     myDefaultValue = new ResourceItemEntry(item, myData.getUnescaper());
-    return true;
+    return Futures.immediateFuture(true);
   }
 
-  @Nullable
-  private ResourceItem createDefaultValue(@NotNull String value) {
+  private @NotNull ListenableFuture<@Nullable ResourceItem> createDefaultValue(@NotNull String value) {
     if (value.isEmpty()) {
-      return null;
+      return Futures.immediateFuture(null);
     }
 
     Project project = myData.getProject();
     XmlFile file = StringPsiUtils.getDefaultStringResourceFile(project, myKey);
 
     if (file == null) {
-      return null;
+      return Futures.immediateFuture(null);
     }
 
     WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(file, myKey, myTranslatable, value));
-    return myData.getRepository().getDefaultValue(myKey);
+
+    SettableFuture<ResourceItem> futureItem = SettableFuture.create();
+    StringResourceRepository stringRepository = myData.getRepository();
+    stringRepository.invokeAfterPendingUpdatesFinish(myKey, () -> futureItem.set(stringRepository.getDefaultValue(myKey)));
+    return futureItem;
   }
 
   @Nullable
@@ -201,20 +209,20 @@ public final class StringResource {
     return resourceItemEntry == null ? "" : resourceItemEntry.myString;
   }
 
-  public boolean putTranslation(@NotNull Locale locale, @NotNull String translation) {
+  public @NotNull ListenableFuture<@NotNull Boolean> putTranslation(@NotNull final Locale locale, @NotNull String translation) {
     if (getTranslationAsResourceItem(locale) == null) {
-      ResourceItem item = createTranslation(locale, translation);
+      return Futures.transform(createTranslation(locale, translation), item -> {
+        if (item == null) {
+          return false;
+        }
 
-      if (item == null) {
-        return false;
-      }
-
-      myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
-      return true;
+        myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
+        return true;
+      }, SameThreadExecutor.INSTANCE);
     }
 
     if (getTranslationAsString(locale).equals(translation)) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
     ResourceItem item = getTranslationAsResourceItem(locale);
@@ -223,25 +231,24 @@ public final class StringResource {
     boolean changed = StringsWriteUtils.setItemText(myData.getProject(), item, translation);
 
     if (!changed) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
     if (translation.isEmpty()) {
       myLocaleToTranslationMap.remove(locale);
-      return true;
+      return Futures.immediateFuture(true);
     }
 
     item = myData.getRepository().getTranslation(myKey, locale);
     assert item != null;
 
     myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item, myData.getUnescaper()));
-    return true;
+    return Futures.immediateFuture(true);
   }
 
-  @Nullable
-  private ResourceItem createTranslation(@NotNull Locale locale, @NotNull String value) {
+  private @NotNull ListenableFuture<@Nullable ResourceItem> createTranslation(@NotNull Locale locale, @NotNull String value) {
     if (value.isEmpty()) {
-      return null;
+      return Futures.immediateFuture(null);
     }
 
     Project project = myData.getProject();
@@ -250,13 +257,17 @@ public final class StringResource {
     if (file == null) {
       file = StringPsiUtils.getStringResourceFile(project, myKey, locale);
       if (file == null) {
-        return null;
+        return Futures.immediateFuture(null);
       }
     }
 
     XmlFile finalFile = file;
     WriteCommandAction.runWriteCommandAction(project, null, null, () -> StringPsiUtils.addString(finalFile, myKey, myTranslatable, value));
-    return myData.getRepository().getTranslation(myKey, locale);
+
+    SettableFuture<ResourceItem> futureItem = SettableFuture.create();
+    StringResourceRepository stringRepository = myData.getRepository();
+    stringRepository.invokeAfterPendingUpdatesFinish(myKey, () -> futureItem.set(stringRepository.getTranslation(myKey, locale)));
+    return futureItem;
   }
 
   @Nullable

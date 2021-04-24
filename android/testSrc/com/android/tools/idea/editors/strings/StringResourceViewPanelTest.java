@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+
 import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -24,8 +27,12 @@ import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.AbstractButton;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
@@ -37,6 +44,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   private Disposable myParentDisposable;
   private StringResourceViewPanel myPanel;
   private StringResourceTable myTable;
+  private LocalResourceRepository myRepository;
 
   @Override
   protected void setUp() throws Exception {
@@ -47,10 +55,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable = myPanel.getTable();
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    LocalResourceRepository parent =
-      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
-
-    myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet.getModule().getProject()));
+    myRepository = ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
+    myPanel.getTable().setModel(new StringResourceTableModel(Utils.createStringRepository(myRepository), myFacet.getModule().getProject()));
   }
 
   @Override
@@ -73,8 +79,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key5",
       "key6",
       "key7",
-      "key4",
       "key8",
+      "key4",
       "key9",
       "key10");
 
@@ -86,15 +92,15 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key4",
       "key8",
+      "key4",
       "key9",
       "key10");
 
     assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
   }
 
-  public void testTableDoesntRefilterAfterEditingUntranslatableCell() {
+  public void testTableDoesntRefilterAfterEditingUntranslatableCell() throws Exception {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
@@ -102,15 +108,15 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key4",
       "key8",
+      "key4",
       "key9",
       "key10");
 
     assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
   }
 
-  public void testTableDoesntRefilterAfterEditingTranslationCell() {
+  public void testTableDoesntRefilterAfterEditingTranslationCell() throws Exception {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt("Key 3 en-rGB", 2, 6);
 
@@ -118,8 +124,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       "key1",
       "key3",
       "key7",
-      "key4",
       "key8",
+      "key4",
       "key9",
       "key10");
 
@@ -133,7 +139,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
   }
 
-  private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) {
+  private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {
     myTable.selectCellAt(viewRowIndex, viewColumnIndex);
     myTable.editCellAt(viewRowIndex, viewColumnIndex);
 
@@ -148,5 +154,10 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     }
 
     cellEditor.stopCellEditing();
+
+    AtomicBoolean done = new AtomicBoolean();
+    myRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> done.set(true));
+    waitForCondition(2, TimeUnit.SECONDS, done::get);
+    dispatchAllInvocationEvents();
   }
 }

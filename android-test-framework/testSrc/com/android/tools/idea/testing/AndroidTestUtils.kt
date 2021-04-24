@@ -17,11 +17,14 @@
 
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -34,12 +37,19 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.util.concurrency.SameThreadExecutor
+import com.intellij.util.ui.EdtInvocationManager
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import javax.swing.SwingUtilities
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -171,4 +181,35 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
   val value = runBlocking { result.await() } // Re-throws exceptions, if any.
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   return value
+}
+
+/** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
+@Throws(InterruptedException::class, TimeoutException::class)
+fun waitForResourceRepositoryUpdates(facet: AndroidFacet) {
+  waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources)
+}
+
+/** Waits 2 seconds for the app resource repository to finish currently pending updates.  */
+@Throws(InterruptedException::class, TimeoutException::class)
+fun waitForResourceRepositoryUpdates(module: Module) {
+  waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources)
+}
+
+/** Waits 2 seconds for the given resource repository to finish currently pending updates. */
+@Throws(InterruptedException::class, TimeoutException::class)
+fun waitForUpdates(repository: LocalResourceRepository) {
+  waitForUpdates(2, TimeUnit.SECONDS, repository)
+}
+
+/** Waits for the app resource repository to finish currently pending updates.  */
+@Throws(InterruptedException::class, TimeoutException::class)
+fun waitForUpdates(timeout: Long, unit: TimeUnit, repository: LocalResourceRepository) {
+  if (EdtInvocationManager.getInstance().isEventDispatchThread) {
+    UIUtil.dispatchAllInvocationEvents()
+  }
+  val latch = CountDownLatch(1)
+  repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) { latch.countDown() }
+  if (!latch.await(timeout, unit)) {
+    throw TimeoutException()
+  }
 }

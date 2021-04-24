@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -35,7 +36,6 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.UIUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -161,7 +161,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertEquals("layout_ids2.xml", sorted.get(1).getSource().getFileName());
   }
 
-  public void testOverlayUpdates1() {
+  public void testOverlayUpdates1() throws Exception {
     VirtualFile layout = myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     VirtualFile layoutOverlay = myFixture.copyFileToProject(LAYOUT_OVERLAY, "res2/layout/layout1.xml");
     VirtualFile res1 = myFixture.copyFileToProject(VALUES_OVERLAY2, "res1/values/nameDoesNotMatter.xml").getParent().getParent();
@@ -194,8 +194,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    UIUtil.dispatchAllInvocationEvents();
-
+    waitForUpdates(resources);
     assertTrue(resources.getModificationCount() > generation);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
@@ -220,6 +219,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    waitForUpdates(resources);
     assertTrue(resources.getModificationCount() > generation);
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
@@ -229,7 +229,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertItemIsInDir(res2, layout2);
   }
 
-  public void testOverlayUpdates2() {
+  public void testOverlayUpdates2() throws Exception {
     // Like testOverlayUpdates1, but rather than testing changes to layout resources (file-based resource)
     // perform document edits in value-documents
 
@@ -272,6 +272,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertThat(appName.getResourceValue().getValue()).isEqualTo("Very Different App Name");
 
     long generation = resources.getModificationCount();
+    int rescans = resources.getFileRescans();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     Document document = documentManager.getDocument(psiValues1);
     assertNotNull(document);
@@ -280,10 +281,9 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "Not ");
       documentManager.commitDocument(document);
     });
-    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
-    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiValues1));
-    UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.getModificationCount() > generation);
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
 
     // Should still be defined in res1 but have new value.
     // The order of items may have swapped if a full rescan is done.
@@ -298,12 +298,15 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Try renaming the item name.
     generation = resources.getModificationCount();
+    rescans = resources.getFileRescans();
     WriteCommandAction.runWriteCommandAction(null, () -> {
       int offset = document.getText().indexOf("app_name");
       document.insertString(offset, "r");
       documentManager.commitDocument(document);
     });
-    assertTrue(resources.getModificationCount() > generation);
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans);
     assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "rapp_name")).hasSize(1);
 
     assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
@@ -314,6 +317,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
 
     // Delete that file:
     generation = resources.getModificationCount();
+    rescans = resources.getFileRescans();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -325,13 +329,17 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    assertTrue(resources.getModificationCount() > generation);
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans);
 
     // Now the item is no longer available in res1; should fallback to res2.
     appName = getSingleItem(resources, ResourceType.STRING, "app_name");
     assertItemIsInDir(res2, appName);
     assertStringIs(resources, "app_name", "Different App Name");
 
+    generation = resources.getModificationCount();
+    rescans = resources.getFileRescans();
     // Check that editing an overridden attribute does not count as a change
     Document document2 = documentManager.getDocument(psiValues3);
     assertNotNull(document2);
@@ -340,14 +348,15 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document2.insertString(offset, "Cool ");
       documentManager.commitDocument(document2);
     });
-    // The first edit to psiValues3 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
-    assertTrue(ResourcesTestsUtil.isScanPending(resources, psiValues3));
-    UIUtil.dispatchAllInvocationEvents();
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
     // Unaffected by above change
     assertStringIs(resources, "app_name", "Different App Name");
 
     // Finally check that editing an non-overridden attribute also gets picked up as a change
     generation = resources.getModificationCount();
+    rescans = resources.getFileRescans();
     // Observe after the rescan, so that an edit causes a generation bump.
     assertStringIs(resources, "title_layout_changes", "Layout Changes");
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -355,11 +364,13 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document2.insertString(offset, "New ");
       documentManager.commitDocument(document2);
     });
-    assertTrue(resources.getModificationCount() > generation);
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans);
     assertStringIs(resources, "title_layout_changes", "New Layout Changes");
   }
 
-  public void testHasResourcesOfType() {
+  public void testHasResourcesOfType() throws Exception {
     // Test hasResourcesOfType merging (which may be optimized to be lighter-weight than map merging).
     VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml").getParent().getParent();
     VirtualFile res2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "res2/values/values.xml").getParent().getParent();
@@ -385,6 +396,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
     assertNotNull(psiValues3);
     WriteCommandAction.runWriteCommandAction(null, psiValues3::delete);
+    waitForUpdates(resources);
     assertHasExactResourceTypes(resources, typesWithoutRes3);
   }
 
@@ -427,8 +439,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    UIUtil.dispatchAllInvocationEvents();
-
+    waitForUpdates(resources);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "bar_activity"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "foo_activity"));
     assertTrue(resources.getModificationCount() > generation);

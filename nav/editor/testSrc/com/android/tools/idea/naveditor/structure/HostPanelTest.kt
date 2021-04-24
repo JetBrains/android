@@ -19,7 +19,6 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.project.DumbServiceImpl
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import javax.swing.DefaultListModel
 
 class HostPanelTest : NavTestCase() {
@@ -38,9 +37,8 @@ class HostPanelTest : NavTestCase() {
                                                        "\n" +
                                                        "</LinearLayout>")
     val model = model("nav.xml") { navigation() }
-    dispatchAllInvocationEvents()
+    waitForResourceRepositoryUpdates()
     val panel = HostPanel(model.surface as NavDesignSurface)
-    var i = 0
     val listModel = panel.list.model as DefaultListModel
     waitFor("list was never populated") { !listModel.isEmpty }
     panel.list.model = listModel
@@ -104,7 +102,7 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
-    dispatchAllInvocationEvents()
+    waitForResourceRepositoryUpdates()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)
@@ -137,7 +135,7 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
-    dispatchAllInvocationEvents()
+    waitForResourceRepositoryUpdates()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)

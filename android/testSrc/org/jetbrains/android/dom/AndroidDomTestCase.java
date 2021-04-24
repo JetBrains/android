@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom;
 
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
-
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.google.common.base.CaseFormat;
@@ -44,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
@@ -141,13 +140,13 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
   /**
    * Loads file, invokes code completion at &lt;caret&gt; marker and verifies the resulting completion variants as strings.
    */
-  protected final void doTestCompletionVariants(String fileName, String... variants) throws Throwable {
+  protected final void doTestCompletionVariants(@NotNull String fileName, @NotNull String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     assertSameElements(lookupElementStrings, variants);
   }
 
-  protected final void doTestCompletionVariantsContains(String fileName, String... variants) throws Throwable {
+  protected final void doTestCompletionVariantsContains(@NotNull String fileName, @NotNull String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
     assertNotNull(lookupElementStrings);
     assertContainsElements(lookupElementStrings, variants);
@@ -163,9 +162,9 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     assertSameElements(lookupElementStrings, variants);
   }
 
-  private List<String> getCompletionElements(String fileName) throws IOException {
+  private List<String> getCompletionElements(@NotNull String fileName) throws IOException, InterruptedException, TimeoutException {
     VirtualFile file = copyFileToProject(fileName);
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     return myFixture.getLookupElementStrings();

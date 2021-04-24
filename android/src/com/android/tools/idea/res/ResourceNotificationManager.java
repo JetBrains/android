@@ -48,6 +48,7 @@ import com.intellij.psi.xml.XmlComment;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.psi.xml.XmlToken;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -55,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -116,6 +118,8 @@ public class ResourceNotificationManager {
    * Whether we've already been notified about a change and we'll be firing it shortly
    */
   private boolean myPendingNotify;
+
+  private boolean myIgnoreChildrenChanged;
 
   /**
    * Counter for events other than resource repository, configuration or file events. For example,
@@ -284,7 +288,7 @@ public class ResourceNotificationManager {
   /**
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
    */
-  private void notice(Reason reason) {
+  private void notice(@NotNull Reason reason, @Nullable VirtualFile source) {
     myEvents.add(reason);
     synchronized (CHANGE_PENDING_LOCK) {
       if (myPendingNotify) {
@@ -299,20 +303,46 @@ public class ResourceNotificationManager {
         }
         myPendingNotify = false;
       }
-      // Ensure that the notify happens after all pending Swing Runnables
-      // have been processed, including any created *after* the initial notice()
-      // call which scheduled this runnable, since they could for example be
-      // ResourceFolderRepository#rescan() Runnables, and we want those to finish
-      // before the final notify. Notice how we clear the pending notify flag
-      // above though, such that if another event appears between the first
-      // invoke later and the second, it will schedule another complete notification
-      // event.
-      ApplicationManager.getApplication().invokeLater(() -> {
-        EnumSet<Reason> reason1 = myEvents;
-        myEvents = EnumSet.noneOf(Reason.class);
-        notifyListeners(reason1);
-        myEvents.clear();
-      });
+
+      if (source == null) {
+        // Ensure that the notify happens after all pending Swing Runnables
+        // have been processed, including any created *after* the initial notice()
+        // call which scheduled this runnable, since they could for example be
+        // ResourceFolderRepository#rescan() Runnables, and we want those to finish
+        // before the final notify. Notice how we clear the pending notify flag
+        // above though, such that if another event appears between the first
+        // invoke later and the second, it will schedule another complete notification
+        // event.
+        scheduleFinalNotification();
+      }
+      else {
+        // The following code calls scheduleFinalNotification exactly once after the dispatchToRepositories
+        // call returns and all callbacks passed to runAfterPendingUpdatesFinish are called. To avoid
+        // calling scheduleFinalNotification prematurely, the initial value of count is set to 1.
+        // This guarantees that it stays positive until the dispatchToRepositories method returns.
+        AtomicInteger count = new AtomicInteger(1);
+        ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(myProject);
+        resourceFolderRegistry.dispatchToRepositories(source, (repository, file) -> {
+          count.incrementAndGet();
+          repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> {
+            if (count.decrementAndGet() == 0) {
+              scheduleFinalNotification();
+            }
+          });
+        });
+        if (count.decrementAndGet() == 0) {
+          scheduleFinalNotification();
+        }
+      }
+    });
+  }
+
+  private void scheduleFinalNotification() {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      EnumSet<Reason> reason = myEvents;
+      myEvents = EnumSet.noneOf(Reason.class);
+      notifyListeners(reason);
+      myEvents.clear();
     });
   }
 
@@ -327,7 +357,7 @@ public class ResourceNotificationManager {
 
   /**
    * A {@linkplain ModuleEventObserver} registers listeners for various module-specific events (such as
-   * resource folder manager changes) and then notifies {@link #notice(Reason)} when it sees an event
+   * resource folder manager changes) and then notifies {@link #notice(Reason, VirtualFile)} when it sees an event
    */
   private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
@@ -427,13 +457,13 @@ public class ResourceNotificationManager {
     @Override
     public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
-      notice(Reason.GRADLE_SYNC);
+      notice(Reason.GRADLE_SYNC, null);
     }
 
     @Override
     public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
-      notice(Reason.GRADLE_SYNC);
+      notice(Reason.GRADLE_SYNC, null);
     }
   }
 
@@ -464,7 +494,7 @@ public class ResourceNotificationManager {
     public void buildComplete(@NotNull AndroidProjectBuildNotifications.BuildContext context) {
       if (!myIgnoreBuildEvents) {
         myModificationCount++;
-        notice(Reason.PROJECT_BUILD);
+        notice(Reason.PROJECT_BUILD, null);
       }
     }
   }
@@ -507,7 +537,8 @@ public class ResourceNotificationManager {
         return;
       }
 
-      if (isRelevantFile(event)) {
+      VirtualFile file = getVirtualFile(event);
+      if (file != null && isRelevantFile(file)) {
         PsiElement child = event.getChild();
         PsiElement parent = event.getParent();
 
@@ -542,10 +573,10 @@ public class ResourceNotificationManager {
             }
           }
         }
-        notice(Reason.EDIT);
+        notice(Reason.EDIT, file);
       }
       else {
-        notice(Reason.RESOURCE_EDIT);
+        notice(Reason.RESOURCE_EDIT, file);
       }
     }
 
@@ -557,7 +588,8 @@ public class ResourceNotificationManager {
         return;
       }
 
-      if (isRelevantFile(event)) {
+      VirtualFile file = getVirtualFile(event);
+      if (file != null && isRelevantFile(file)) {
         PsiElement child = event.getChild();
         PsiElement parent = event.getParent();
         if (parent instanceof XmlAttribute && child instanceof XmlToken) {
@@ -569,9 +601,9 @@ public class ResourceNotificationManager {
           }
         }
 
-        notice(Reason.EDIT);
+        notice(Reason.EDIT, file);
       } else {
-        notice(Reason.RESOURCE_EDIT);
+        notice(Reason.RESOURCE_EDIT, file);
       }
     }
 
@@ -583,7 +615,8 @@ public class ResourceNotificationManager {
         return;
       }
 
-      if (isRelevantFile(event)) {
+      VirtualFile file = getVirtualFile(event);
+      if (file != null && isRelevantFile(file)) {
         PsiElement child = event.getChild();
         PsiElement parent = event.getParent();
         if (parent instanceof XmlAttribute && child instanceof XmlToken) {
@@ -612,10 +645,10 @@ public class ResourceNotificationManager {
             }
           }
         }
-        notice(Reason.EDIT);
+        notice(Reason.EDIT, file);
       }
       else {
-        notice(Reason.RESOURCE_EDIT);
+        notice(Reason.RESOURCE_EDIT, file);
       }
     }
 
@@ -623,8 +656,6 @@ public class ResourceNotificationManager {
     public void childMoved(@NotNull PsiTreeChangeEvent event) {
       check(event);
     }
-
-    boolean myIgnoreChildrenChanged;
 
     @Override
     public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
@@ -644,26 +675,25 @@ public class ResourceNotificationManager {
       // trigger "childReplaced()" instead, the parent being the file's directory and the renamed
       // file being the new child.
       if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
-        notice(Reason.RESOURCE_EDIT);
+        PsiElement child = event.getElement();
+        VirtualFile file = child instanceof PsiFile ? ((PsiFile)child).getVirtualFile() : null;
+        notice(Reason.RESOURCE_EDIT, file);
       }
+    }
+
+    private @Nullable VirtualFile getVirtualFile(@NotNull PsiTreeChangeEvent event) {
+      PsiFile psiFile = event.getFile();
+      return psiFile == null ? null : psiFile.getVirtualFile();
     }
 
     /**
-     * Returns true if the event's file is being observed by a listener (addListener(...) has
-     * been called with a non-null VirtualFile.)
-     * @see ResourceNotificationManager#addListener(ResourceChangeListener, AndroidFacet, VirtualFile, Configuration)
+     * Checks if the file is present in {@link #myFileToObserverMap}.
      */
-    private boolean isRelevantFile(PsiTreeChangeEvent event) {
-      if (!myFileToObserverMap.isEmpty()) {
-        PsiFile file = event.getFile();
-        if (file != null && myFileToObserverMap.containsKey(file.getVirtualFile())) {
-          return true;
-        }
-      }
-      return false;
+    private boolean isRelevantFile(@NotNull VirtualFile virtualFile) {
+      return myFileToObserverMap.containsKey(virtualFile);
     }
 
-    private boolean isIgnorable(PsiTreeChangeEvent event) {
+    private boolean isIgnorable(@NotNull PsiTreeChangeEvent event) {
       // We can ignore edits in whitespace, XML error nodes, and modification in comments.
       // (Note that editing text in an attribute value, including whitespace characters,
       // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
@@ -689,20 +719,18 @@ public class ResourceNotificationManager {
       return file != null && (file.getParent() == null || !file.getViewProvider().isPhysical());
     }
 
-    private void check(PsiTreeChangeEvent event) {
+    private void check(@NotNull PsiTreeChangeEvent event) {
       if (isIgnorable(event)) {
         return;
       }
 
-      if (isRelevantFile(event)) {
-        final PsiFile file = event.getFile();
-        if (file != null) {
-          notice(Reason.EDIT);
-          return;
-        }
+      VirtualFile file = getVirtualFile(event);
+      if (file != null && isRelevantFile(file)) {
+        notice(Reason.EDIT, file);
       }
-
-      notice(Reason.RESOURCE_EDIT);
+      else {
+        notice(Reason.RESOURCE_EDIT, file);
+      }
     }
   }
 
@@ -742,8 +770,8 @@ public class ResourceNotificationManager {
     @Override
     public void after(@NotNull List<? extends VFileEvent> events) {
       events.stream()
-        .filter(e -> {
-          VirtualFile file = e.getFile();
+        .filter(event -> {
+          VirtualFile file = event.getFile();
           if (file == null) {
             return false;
           }
@@ -758,7 +786,7 @@ public class ResourceNotificationManager {
                  ResourceFolderType.MIPMAP == resType;
         })
         .findAny()
-        .ifPresent((e) -> notice(Reason.IMAGE_RESOURCE_CHANGED));
+        .ifPresent(event -> notice(Reason.IMAGE_RESOURCE_CHANGED, event.getFile()));
     }
 
     private boolean hasListeners() {
@@ -770,7 +798,7 @@ public class ResourceNotificationManager {
     private final Configuration myConfiguration;
     private final List<ResourceChangeListener> myListeners = new ArrayList<>(2);
 
-    private ConfigurationEventObserver(Configuration configuration) {
+    private ConfigurationEventObserver(@NotNull Configuration configuration) {
       myConfiguration = configuration;
     }
 
@@ -806,7 +834,7 @@ public class ResourceNotificationManager {
     @Override
     public boolean changed(int flags) {
       if ((flags & MASK_RENDERING) != 0) {
-        notice(Reason.CONFIGURATION_CHANGED);
+        notice(Reason.CONFIGURATION_CHANGED, null);
       }
       return true;
     }

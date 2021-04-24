@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +43,18 @@ final class Utils {
       .collect(Collectors.toList());
 
     LocalResourceRepository repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
-    panel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(repository), facet.getModule().getProject()));
+    StringResourceRepository stringRepository = createStringRepository(repository);
+    panel.getTable().setModel(new StringResourceTableModel(stringRepository, facet.getModule().getProject()));
+  }
+
+  static @NotNull StringResourceRepository createStringRepository(@NotNull LocalResourceRepository repository) {
+    try {
+      ListenableFuture<@NotNull StringResourceRepository> future = StringResourceRepository.create(repository);
+      waitForCondition(2, TimeUnit.SECONDS, future::isDone);
+      return future.get();
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

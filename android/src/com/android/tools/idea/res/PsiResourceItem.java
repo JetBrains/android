@@ -63,7 +63,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiInvalidElementAccessException;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlComment;
@@ -85,62 +84,28 @@ public final class PsiResourceItem implements ResourceItem {
   @NotNull private final ResourceFolderRepository myOwner;
   @Nullable private ResourceValue myResourceValue;
   @Nullable private PsiResourceFile mySourceFile;
+  @Nullable private final SmartPsiElementPointer<PsiFile> myFilePointer;
+  @Nullable private final SmartPsiElementPointer<XmlTag> myTagPointer;
   /**
    * This weak reference is kept exclusively for the {@link #wasTag(XmlTag)} method. Once the original
    * tag is garbage collected, the {@link #wasTag(XmlTag)} method will return false for any tag except
    * the one pointed to by {@link #myTagPointer}.
    */
   @Nullable private final WeakReference<XmlTag> myOriginalTag;
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  @Nullable private SmartPsiElementPointer<PsiFile> myFilePointer; // Guarded by myAsyncInitData if myAsyncInitData is not null.
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  @Nullable private SmartPsiElementPointer<XmlTag> myTagPointer; // Guarded by myAsyncInitData if myAsyncInitData is not null.
-  // No need to make myAsyncInitData volatile since it is not a problem if a thread sees a non-null myAsyncInitData after
-  // it has already been set to null. On the other hand, a thread cannot see a null myAsyncInitData before it has been set to
-  // a non-null value by the constructor due to synchronization in AbstractResourceRepositoryWithLocking.
-  @Nullable private AsyncInitializationData myAsyncInitData;
 
   private PsiResourceItem(@NotNull String name,
                           @NotNull ResourceType type,
                           @NotNull ResourceFolderRepository owner,
                           @Nullable XmlTag tag,
-                          @NotNull PsiFile file,
-                          boolean calledFromPsiListener) {
+                          @NotNull PsiFile file) {
     myName = name;
     myType = type;
-
-    myOriginalTag = tag == null ? null : new WeakReference<>(tag);
     myOwner = owner;
 
     SmartPointerManager pointerManager = SmartPointerManager.getInstance(file.getProject());
-    if (calledFromPsiListener) {
-      // Smart pointers have to be created asynchronously to avoid the "Smart pointers shouldn't be created during PSI changes" error.
-      AsyncInitializationData initData = new AsyncInitializationData(file, tag);
-      myAsyncInitData = initData;
-      Application application = ApplicationManager.getApplication();
-      application.executeOnPooledThread(() -> application.runReadAction(() -> {
-        try {
-          SmartPsiElementPointer<PsiFile> filePointer = pointerManager.createSmartPsiElementPointer(initData.psiFile);
-          SmartPsiElementPointer<XmlTag> tagPointer =
-              initData.xmlTag == null ? null : pointerManager.createSmartPsiElementPointer(initData.xmlTag, initData.psiFile);
-          synchronized (initData) {
-            myFilePointer = filePointer;
-            myTagPointer = tagPointer;
-          }
-        } catch (PsiInvalidElementAccessException e) {
-          // The PSI element became invalid while we were waiting for this code to be executed.
-          // myTagPointer and, possibly, myFilePointer will be null. A PsiResourceItem without
-          // a pointer to a valid XmlTag element has almost no use. Resource repository update
-          // logic makes sure that such PsiResourceItem will be removed from the repository as
-          // soon as its containing file is reparsed.
-        }
-        myAsyncInitData = null; // Done with initialization. Remove a strong reference pinning PSI to memory.
-      }));
-    }
-    else {
-      myFilePointer = pointerManager.createSmartPsiElementPointer(file);
-      myTagPointer = tag == null ? null : pointerManager.createSmartPsiElementPointer(tag, file);
-    }
+    myFilePointer = pointerManager.createSmartPsiElementPointer(file);
+    myTagPointer = tag == null ? null : pointerManager.createSmartPsiElementPointer(tag, file);
+    myOriginalTag = tag == null ? null : new WeakReference<>(tag);
   }
 
   /**
@@ -150,15 +115,13 @@ public final class PsiResourceItem implements ResourceItem {
    * @param type the type of the resource
    * @param owner the owning resource repository
    * @param tag the XML tag to create the resource from
-   * @param calledFromPsiListener true if the method was called from a PSI listener
    */
   @NotNull
   public static PsiResourceItem forXmlTag(@NotNull String name,
                                           @NotNull ResourceType type,
                                           @NotNull ResourceFolderRepository owner,
-                                          @NotNull XmlTag tag,
-                                          boolean calledFromPsiListener) {
-    return new PsiResourceItem(name, type, owner, tag, tag.getContainingFile(), calledFromPsiListener);
+                                          @NotNull XmlTag tag) {
+    return new PsiResourceItem(name, type, owner, tag, tag.getContainingFile());
   }
 
   /**
@@ -168,15 +131,13 @@ public final class PsiResourceItem implements ResourceItem {
    * @param type the type of the resource
    * @param owner the owning resource repository
    * @param file the XML file to create the resource from
-   * @param calledFromPsiListener true if the method was called from a PSI listener
    */
   @NotNull
   public static PsiResourceItem forFile(@NotNull String name,
                                         @NotNull ResourceType type,
                                         @NotNull ResourceFolderRepository owner,
-                                        @NotNull PsiFile file,
-                                        boolean calledFromPsiListener) {
-    return new PsiResourceItem(name, type, owner, null, file, calledFromPsiListener);
+                                        @NotNull PsiFile file) {
+    return new PsiResourceItem(name, type, owner, null, file);
   }
 
   @Override
@@ -314,7 +275,7 @@ public final class PsiResourceItem implements ResourceItem {
 
   @Override
   public boolean isFileBased() {
-    return myOriginalTag == null;
+    return myTagPointer == null;
   }
 
   @Nullable
@@ -530,17 +491,7 @@ public final class PsiResourceItem implements ResourceItem {
    */
   @Nullable
   public XmlTag getTag() {
-    AsyncInitializationData initData = myAsyncInitData;
-    if (initData == null) {
-      return validElementOrNull(myTagPointer == null ? null : myTagPointer.getElement());
-    } else {
-      //noinspection SynchronizationOnLocalVariableOrMethodParameter
-      synchronized (initData) {
-        // myTagPointer is being initialized asynchronously.
-        // Check myTagPointer first to make sure that the returned XmlTag is up to date.
-        return validElementOrNull(myTagPointer != null ? myTagPointer.getElement() : initData.xmlTag);
-      }
-    }
+    return validElementOrNull(myTagPointer == null ? null : myTagPointer.getElement());
   }
 
   /**
@@ -548,17 +499,7 @@ public final class PsiResourceItem implements ResourceItem {
    */
   @Nullable
   public PsiFile getPsiFile() {
-    AsyncInitializationData initData = myAsyncInitData;
-    if (initData == null) {
-      return validElementOrNull(myFilePointer == null ? null : myFilePointer.getElement());
-    } else {
-      //noinspection SynchronizationOnLocalVariableOrMethodParameter
-      synchronized (initData) {
-        // myFilePointer is being initialized asynchronously.
-        // Check myFilePointer first to make sure that the returned PsiFile is up to date.
-        return validElementOrNull(myFilePointer != null ? myFilePointer.getElement() : initData.psiFile);
-      }
-    }
+    return validElementOrNull(myFilePointer == null ? null : myFilePointer.getElement());
   }
 
   private static <E extends PsiElement> E validElementOrNull(@Nullable E psiElement) {
@@ -585,8 +526,8 @@ public final class PsiResourceItem implements ResourceItem {
 
   @Override
   public boolean equals(Object o) {
-    // Only reference equality; we need to be able to distinguish duplicate elements which can happen during editing
-    // for incremental updating to handle temporarily aliasing items.
+    // Only reference equality; we need to be able to distinguish duplicate elements which can
+    // happen during editing for incremental updating to handle temporarily aliasing items.
     return this == o;
   }
 
@@ -610,21 +551,11 @@ public final class PsiResourceItem implements ResourceItem {
         helper.add("tag", ReadAction.compute(() -> IdeResourcesUtil.getTextContent(tag)));
       }
     }
-    PsiFile file = getPsiFile();
+    PathString file = getSource();
     if (file != null) {
-      helper.add("file", file.getName());
+      helper.add("file", file.getParentFileName() + '/' + file.getFileName());
     }
     return helper.toString();
-  }
-
-  private static class AsyncInitializationData {
-    @NotNull final PsiFile psiFile;
-    @Nullable final XmlTag xmlTag;
-
-    private AsyncInitializationData(@NotNull PsiFile file, @Nullable XmlTag tag) {
-      psiFile = file;
-      xmlTag = tag;
-    }
   }
 
   private class PsiTextResourceValue extends TextResourceValueImpl {

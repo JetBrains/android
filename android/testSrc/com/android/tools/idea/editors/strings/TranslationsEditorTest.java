@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
@@ -23,40 +25,38 @@ import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import org.intellij.lang.annotations.Language;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
+@RunsInEdt
 public final class TranslationsEditorTest {
+  private final AndroidProjectRule projectRule = AndroidProjectRule.onDisk();
   @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+  public RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
-  private Application myApplication;
   private Path myRes;
-  private StringResourceEditor myEditor;
   private StringResourceViewPanel myPanel;
-  private FrozenColumnTable myTable;
+  private FrozenColumnTable<?> myTable;
 
   @Before
   public void setUp() throws Exception {
-    myApplication = ApplicationManager.getApplication();
-
-    Module module = myRule.getModule();
-    myRes = Paths.get(module.getProject().getBasePath(), "app", "src", "main", "res");
+    myRes = Paths.get(projectRule.getProject().getBasePath(), "app/src/main/res");
 
     @Language("XML")
     String contents = "<resources>\n" +
@@ -65,28 +65,23 @@ public final class TranslationsEditorTest {
 
     TestFileUtils.writeFileAndRefreshVfs(myRes.resolve(Paths.get("values", "strings.xml")), contents);
 
-    myEditor = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module));
-    myPanel = myEditor.getPanel();
+    Module module = projectRule.getModule();
+    StringResourceEditor editor = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module));
+    Disposer.register(projectRule.getFixture().getTestRootDisposable(), editor);
+    myPanel = editor.getPanel();
     myTable = myPanel.getTable();
-  }
-
-  @After
-  public void tearDown() {
-    Disposer.dispose(myEditor);
   }
 
   @Test
   public void reusedColumnHeaderValuesAreCleared() {
-    myApplication.invokeAndWait(() -> {
-      Utils.loadResources(myPanel, Collections.singletonList(myRes));
+    Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
-      AddLocaleAction action = myPanel.getAddLocaleAction();
-      action.createItem(Locale.create("b+ace"));
-      Utils.loadResources(myPanel, Collections.singletonList(myRes));
+    AddLocaleAction action = myPanel.getAddLocaleAction();
+    action.createItem(Locale.create("b+ace"));
+    Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
-      action.createItem(Locale.create("ab"));
-      Utils.loadResources(myPanel, Collections.singletonList(myRes));
-    });
+    action.createItem(Locale.create("ab"));
+    Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
     TableColumnModel model = myTable.getScrollableTable().getColumnModel();
 
@@ -99,26 +94,24 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void setKeyName() {
-    myApplication.invokeAndWait(() -> {
-      Utils.loadResources(myPanel, Collections.singletonList(myRes));
-      myTable.editCellAt(0, StringResourceTableModel.KEY_COLUMN);
+  public void setKeyName() throws Exception {
+    Utils.loadResources(myPanel, Collections.singletonList(myRes));
+    myTable.editCellAt(0, StringResourceTableModel.KEY_COLUMN);
 
-      StringTableCellEditor cellEditor = (StringTableCellEditor)myTable.getCellEditor();
-      cellEditor.setCellEditorValue("key_2");
-      cellEditor.stopCellEditing();
-    });
+    StringTableCellEditor cellEditor = (StringTableCellEditor)myTable.getCellEditor();
+    cellEditor.setCellEditorValue("key_2");
+    cellEditor.stopCellEditing();
 
-    myApplication.invokeAndWait(() -> assertEquals("key_2", myTable.getValueAt(0, StringResourceTableModel.KEY_COLUMN)));
+    dispatchAllInvocationEvents();
+    assertEquals("key_2", myTable.getValueAt(0, StringResourceTableModel.KEY_COLUMN));
 
-    myApplication.invokeAndWait(() -> {
-      myTable.editCellAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    myTable.editCellAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
-      StringTableCellEditor cellEditor = (StringTableCellEditor)myTable.getCellEditor();
-      cellEditor.setCellEditorValue("key_2_default");
-      cellEditor.stopCellEditing();
-    });
+    cellEditor.setCellEditorValue("key_2_default");
+    cellEditor.stopCellEditing();
 
-    myApplication.invokeAndWait(() -> assertEquals("key_2_default", myTable.getValueAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN)));
+    // Updates of the default value column are asynchronous. Wait for the update to complete.
+    waitForCondition(2, TimeUnit.SECONDS, () -> !myTable.getValueAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN).equals(""));
+    assertEquals("key_2_default", myTable.getValueAt(0, StringResourceTableModel.DEFAULT_VALUE_COLUMN));
   }
 }

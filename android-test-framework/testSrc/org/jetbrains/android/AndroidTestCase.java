@@ -9,6 +9,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
@@ -64,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
@@ -464,6 +466,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
     myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
+  }
+
+  /** Waits 2 seconds for the app resource repository to finish currently pending updates. */
+  protected void waitForResourceRepositoryUpdates() throws InterruptedException, TimeoutException {
+    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet);
   }
 
   protected final static class MyAdditionalModuleData {
