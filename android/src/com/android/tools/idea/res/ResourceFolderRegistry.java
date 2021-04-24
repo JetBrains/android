@@ -50,9 +50,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A project service that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
- * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
- * needed.
+ * A project service that manages {@link ResourceFolderRepository} instances, creating them as necessary and reusing repositories for
+ * the same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created,
+ * if needed.
  */
 public class ResourceFolderRegistry implements Disposable {
   @NotNull private final Project myProject;
