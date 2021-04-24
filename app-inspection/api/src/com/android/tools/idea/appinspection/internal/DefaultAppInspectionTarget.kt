@@ -39,12 +39,11 @@ import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGEN
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
+import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
@@ -55,6 +54,21 @@ internal suspend fun attachAppInspectionTarget(
   jarCopier: AppInspectionJarCopier,
   parentScope: CoroutineScope
 ): AppInspectionTarget {
+
+  // It is possible for a user to cause app inspection to attach, detach, and reattach again later. However, below, when we query the event
+  // stream, if the previous attach event isn't excluded from the results, we'll get that result, which will cause us to report successful
+  // attachment too early. Therefore, before that query, we need to fetch a timestamp that will exclude prior results.
+  val startTimeNs = run {
+    val response = transport.client.transportStub.getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(transport.process.streamId)
+        .setPid(transport.process.pid)
+        .setKind(AGENT)
+        .build()
+    )
+    response.groupsList.flatMap { it.eventsList }.lastOrNull()?.timestamp?.plus(1) ?: Long.MIN_VALUE
+  }
+
   // The device daemon takes care of the case if and when the agent is previously attached already.
   val attachCommand = Command.newBuilder()
     .setStreamId(transport.process.streamId)
@@ -69,6 +83,7 @@ internal suspend fun attachAppInspectionTarget(
 
   val streamEventQuery = transport.createStreamEventQuery(
     eventKind = AGENT,
+    startTimeNs = { startTimeNs },
     filter = { it.agentData.status == ATTACHED }
   )
   transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
