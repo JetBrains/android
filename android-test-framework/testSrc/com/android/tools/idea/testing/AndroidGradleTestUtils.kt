@@ -1316,6 +1316,9 @@ fun switchVariant(project: Project, moduleGradlePath: String, variant: String) {
   BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.gradleModule(moduleGradlePath)!!.name, variant)
 }
 
+fun switchAbi(project: Project, moduleGradlePath: String, abi: String) {
+  BuildVariantUpdater.getInstance(project).updateSelectedAbi(project, project.gradleModule(moduleGradlePath)!!.name, abi)
+}
 
 inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
   val facet = getFacet()
