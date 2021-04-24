@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -38,10 +37,10 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SmartList;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -56,9 +55,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A super class for several of the other repositories. Its only purpose is to be able to combine
@@ -456,26 +458,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   @Override
-  final boolean isScanPending(@NotNull VirtualFile file) {
-    synchronized (ITEM_MAP_LOCK) {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-      for (LocalResourceRepository child : myLocalResources) {
-        if (child.isScanPending(file)) {
-          return true;
+  public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
+    List<LocalResourceRepository> repositories = getLocalResources();
+    AtomicInteger count = new AtomicInteger(repositories.size());
+    for (LocalResourceRepository childRepository : repositories) {
+      childRepository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, () -> {
+        if (count.decrementAndGet() == 0) {
+          executor.execute(callback);
         }
-      }
-
-      return false;
-    }
-  }
-
-  @UiThread
-  @Override
-  public void sync() {
-    super.sync();
-
-    for (LocalResourceRepository childRepository : getLocalResources()) {
-      childRepository.sync();
+      });
     }
   }
 
@@ -496,6 +487,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
     synchronized (ITEM_MAP_LOCK) {
       return myLeafsByNamespace.values();
+    }
+  }
+
+  @VisibleForTesting
+  @Override
+  public int getFileRescans() {
+    synchronized (ITEM_MAP_LOCK) {
+      int count = 0;
+      for (LocalResourceRepository resourceRepository : myLocalResources) {
+        count += resourceRepository.getFileRescans();
+      }
+      return count;
     }
   }
 
@@ -877,7 +880,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
     private class Values extends AbstractCollection<ResourceItem> {
       @Override
-      public Iterator<ResourceItem> iterator() {
+      public @NotNull Iterator<ResourceItem> iterator() {
         return new ValuesIterator();
       }
 

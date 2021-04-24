@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static org.junit.Assert.assertEquals;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
-import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.rendering.Locale;
@@ -27,10 +26,10 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.junit.Rule;
@@ -41,13 +40,13 @@ public final class TranslationsEditorGradleTest {
   public final AndroidGradleProjectRule myRule = new AndroidGradleProjectRule();
 
   @Test
-  public void removeLocale() throws IOException {
+  public void removeLocale() throws Exception {
     // Arrange.
     myRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
     myRule.load("stringsEditor/MyApplication", null, null);
 
     String projectBasePath = myRule.getProject().getBasePath();
-    Path mainRes = Paths.get(projectBasePath, "app", "src", "main", "res");
+    Path mainRes = Paths.get(projectBasePath, "app/src/main/res");
 
     @Language("XML")
     String mainContents = "<resources>\n" +
@@ -56,7 +55,7 @@ public final class TranslationsEditorGradleTest {
 
     TestFileUtils.writeFileAndRefreshVfs(mainRes.resolve(Paths.get("values-ab", "strings.xml")), mainContents);
 
-    Path debugRes = Paths.get(projectBasePath, "app", "src", "debug", "res");
+    Path debugRes = Paths.get(projectBasePath, "app/src/debug/res");
 
     @Language("XML")
     String debugContents = "<resources>\n" +
@@ -79,6 +78,6 @@ public final class TranslationsEditorGradleTest {
     application.invokeAndWait(loadResources);
 
     // Assert.
-    assertEquals(0, panel.getTable().getRowCount());
+    waitForCondition(2, TimeUnit.SECONDS, () -> panel.getTable().getRowCount() == 0);
   }
 }

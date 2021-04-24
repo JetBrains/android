@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourcesTestsUtil.addBinaryAarDependency;
 import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -33,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -41,7 +41,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ui.UIUtil;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,7 +85,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
    * Like {@link ModuleResourceRepositoryTest#testOverlayUpdates1}, but rather than testing changes to layout
    * resources (file-based resource) performs document edits in value-documents.
    */
-  public void testMerging() {
+  public void testMerging() throws Exception {
     VirtualFile layoutFile = myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
 
     VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
@@ -133,6 +132,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     ResourceItem item = getSingleItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
 
     long generation = moduleRepository.getModificationCount();
+    int rescans = moduleRepository.getFileRescans();
     long projectGeneration = projectResources.getModificationCount();
     long appGeneration = appResources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -144,22 +144,19 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       document.deleteString(offset, offset + string.length());
       documentManager.commitDocument(document);
     });
-
-    assertTrue(ResourcesTestsUtil.isScanPending(moduleRepository, layoutPsiFile));
-    ApplicationManager.getApplication().invokeLater(() -> {
-      assertTrue(generation < moduleRepository.getModificationCount());
-      assertTrue(projectGeneration < projectResources.getModificationCount());
-      assertTrue(appGeneration < appResources.getModificationCount());
-      // Should still be defined:
-      assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      assertTrue(appResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      assertTrue(projectResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      ResourceItem newItem = getSingleItem(appResources, ResourceType.ID, "btn_title_refresh");
-      assertNotNull(newItem.getSource());
-      // However, should be a different item.
-      assertNotSame(item, newItem);
-    });
-    UIUtil.dispatchAllInvocationEvents();
+    waitForUpdates(moduleRepository);
+    assertTrue(generation < moduleRepository.getModificationCount());
+    assertTrue(projectGeneration < projectResources.getModificationCount());
+    assertTrue(appGeneration < appResources.getModificationCount());
+    assertThat(moduleRepository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
+    // Should still be defined:
+    assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+    assertTrue(appResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+    assertTrue(projectResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+    ResourceItem newItem = getSingleItem(appResources, ResourceType.ID, "btn_title_refresh");
+    assertNotNull(newItem.getSource());
+    // However, should be a different item.
+    assertNotSame(item, newItem);
   }
 
   public void testGetResourceDirs() {

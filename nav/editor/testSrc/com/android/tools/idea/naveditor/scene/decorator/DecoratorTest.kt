@@ -38,7 +38,6 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
@@ -157,7 +156,7 @@ class DecoratorTest : NavTestCase() {
   fun testFragmentWithImage() {
     val layoutFile = myFixture.addFileToProject("res/layout/mylayout.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                                                            "<android.support.constraint.ConstraintLayout/>") as XmlFile
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates()
     val model = model("nav.xml") {
       navigation {
         fragment(FRAGMENT_ID, layout = "mylayout")

@@ -154,7 +154,7 @@ class AddDestinationMenuTest : NavTestCase() {
       parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile)
     val mainActivity = Destination.RegularDestination(
       parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile)
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates()
 
     val expected = mutableListOf(placeHolder, blankFragment, dynamicFragment, fragment1, fragment2, fragment3, include1, include2, include3,
                                  includeNav, activity2, activity3, mainActivity)

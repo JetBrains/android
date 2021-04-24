@@ -55,9 +55,8 @@ import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
-import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor
+import org.jetbrains.android.AndroidNonTransitiveRClassKotlinCompletionContributor
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -470,7 +469,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       ).containsExactly("appString", "foo")
 
       myFixture.renameElementAtCaretUsingHandler("bar")
-      UIUtil.dispatchAllInvocationEvents()
+      waitForResourceRepositoryUpdates()
 
       assertThat(
         myFixture.javaFacade
@@ -508,14 +507,14 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       // Make sure light classes pick up changes to repositories:
       val barXml = myFixture.addFileToProject("res/drawable/bar.xml", "<vector-drawable />")
-      UIUtil.dispatchAllInvocationEvents()
+      waitForResourceRepositoryUpdates()
       assertThat(myFixture.doHighlighting(ERROR)).isEmpty()
 
       // Regression test for b/144585792. Caches in ResourceRepositoryManager can be dropped for various reasons, we need to make sure we
       // keep track of changes even after new repository instances are created.
       ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
       runWriteAction { barXml.delete() }
-      UIUtil.dispatchAllInvocationEvents()
+      waitForResourceRepositoryUpdates()
       assertThat(myFixture.doHighlighting(ERROR)).hasSize(1)
     }
 

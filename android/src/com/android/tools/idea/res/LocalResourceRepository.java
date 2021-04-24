@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -25,7 +24,6 @@ import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
@@ -33,9 +31,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}
@@ -217,17 +217,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     myGeneration = count;
   }
 
-  boolean isScanPending(@NotNull VirtualFile file) {
-    return false;
-  }
-
   /**
-   * Forces the repository to update itself synchronously, if necessary (in case there
-   * are pending updates). This method must be called on the event dispatch thread!
+   * Executes the given callback using the given executor after all currently pending updates have been processed.
    */
-  @UiThread
-  public void sync() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+  public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
+    executor.execute(callback);
   }
 
   @NotNull
@@ -271,6 +265,15 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @Nullable
   ListMultimap<String, ResourceItem> getMapPackageAccessible(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     return getMap(namespace, type);
+  }
+
+  /**
+   * Returns the current count of full file rescans. Subclasses that do file scans should override.
+   * Intended exclusively for testing.
+   */
+  @VisibleForTesting
+  public int getFileRescans() {
+    return 0;
   }
 
   public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {

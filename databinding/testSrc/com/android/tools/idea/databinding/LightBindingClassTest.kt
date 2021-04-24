@@ -46,7 +46,6 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -85,7 +84,7 @@ class LightBindingClassTest {
       document.insertString(offset, xml)
       documentManager.commitDocument(document)
     }
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
   }
 
   private fun deleteXml(psiFile: PsiFile, range: TextRange) {
@@ -95,7 +94,7 @@ class LightBindingClassTest {
       document.deleteString(range.startOffset, range.endOffset)
       documentManager.commitDocument(document)
     }
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
   }
 
   private fun updateXml(psiFile: PsiFile, range: TextRange, xml: String) {
@@ -105,7 +104,7 @@ class LightBindingClassTest {
       document.replaceString(range.startOffset, range.endOffset, xml)
       documentManager.commitDocument(document)
     }
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
   }
 
   private inline fun <reified X : XmlElement> findChild(psiFile: PsiFile, predicate: (X) -> Boolean): X {
@@ -240,7 +239,7 @@ class LightBindingClassTest {
         <LinearLayout />
       </layout>
     """.trimIndent())
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
 
     // This second file should be findable, meaning the cache was updated
     fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass
@@ -254,11 +253,12 @@ class LightBindingClassTest {
         <LinearLayout />
       </layout>
     """.trimIndent())
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
 
     assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNotNull()
 
     WriteCommandAction.runWriteCommandAction(project) { firstFile.delete() }
+    projectRule.waitForResourceRepositoryUpdates()
     assertThat(fixture.findClass("test.db.databinding.ActivityFirstBinding", context)).isNull()
   }
 
@@ -858,7 +858,7 @@ class LightBindingClassTest {
     assertThat(noResourcesGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
     fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
 
     val oneResourceGroups = bindingCache.bindingLayoutGroups
     assertThat(oneResourceGroups.size).isEqualTo(1)
@@ -866,7 +866,8 @@ class LightBindingClassTest {
     assertThat(oneResourceGroups).isSameAs(bindingCache.bindingLayoutGroups)
 
     fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
+
     val twoResourcesGroups = bindingCache.bindingLayoutGroups
     assertThat(twoResourcesGroups.size).isEqualTo(2)
     assertThat(twoResourcesGroups).isNotSameAs(noResourcesGroups)
@@ -901,7 +902,7 @@ class LightBindingClassTest {
 
     // XML updates are ignored in dumb mode
     fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
-    UIUtil.dispatchAllInvocationEvents()
+    projectRule.waitForResourceRepositoryUpdates()
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 

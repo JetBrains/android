@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.configurations;
 
-import static com.android.tools.idea.res.ResourcesTestsUtil.isScanPending;
+import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.devices.Device;
@@ -23,7 +24,6 @@ import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,11 +50,11 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     PsiFile psiFile2 = PsiManager.getInstance(project).findFile(file2);
     assertNotNull(psiFile2);
-    final PsiFile psiFile3 = PsiManager.getInstance(project).findFile(file3);
+    PsiFile psiFile3 = PsiManager.getInstance(project).findFile(file3);
     assertNotNull(psiFile3);
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(configurationManager);
-    final Configuration configuration1 = configurationManager.getConfiguration(file1);
+    Configuration configuration1 = configurationManager.getConfiguration(file1);
     Configuration configuration2 = configurationManager.getConfiguration(file2);
 
     assertNotNull(configuration1.getTheme());
@@ -66,7 +66,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertSame(resolver1, configuration1.getResourceResolver());
 
     configuration1.setTheme("Theme.Light");
-    final ResourceResolver resolver1b = configuration1.getResourceResolver();
+    ResourceResolver resolver1b = configuration1.getResourceResolver();
     assertNotSame(resolver1b, resolver1);
     assertNotSame(resolver1b, resolver2);
     assertSame(resolver1b, configuration1.getResourceResolver());
@@ -75,21 +75,22 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertSame(resolver1b, configuration2.getResourceResolver());
 
     // Test project resource changes, should invalidate
-    final LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(myFacet);
-    assertNotNull(resources); final long generation = resources.getModificationCount();
+    LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(myFacet);
+    assertNotNull(resources);
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
+    long generation = resources.getModificationCount();
+    int rescans = resources.getFileRescans();
     WriteCommandAction.runWriteCommandAction(null, () -> {
       //noinspection ConstantConditions
       XmlTagValue value = ((XmlFile)psiFile3).getRootTag().getSubTags()[1].getValue();
       assertEquals("Cancel", value.getTrimmedText());
       value.setText("\"FooBar\"");
     });
-    assertTrue(isScanPending(resources, psiFile3));
-    ApplicationManager.getApplication().invokeLater(() -> {
-      assertTrue(generation < resources.getModificationCount());
-      assertNotSame(resolver1b, configuration1.getResourceResolver());
-      assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
-    });
+    waitForUpdates(resources);
+    assertThat(resources.getModificationCount()).isGreaterThan(generation);
+    assertThat(resources.getFileRescans()).isEqualTo(rescans + 1);
+    assertNotSame(resolver1b, configuration1.getResourceResolver());
+    assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
 
     ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();
     assertSame(cache, configuration2.getConfigurationManager().getResolverCache());
@@ -98,7 +99,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
   public void testCustomConfiguration() {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
-    final Configuration configuration = configurationManager.getConfiguration(file1);
+    Configuration configuration = configurationManager.getConfiguration(file1);
     ResourceResolverCache cache = configurationManager.getResolverCache();
 
     assertTrue(cache.myResolverMap.isEmpty());
@@ -149,7 +150,6 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertNotSame(resolver, newResolver);
     assertSame(newResolver, configuration.getResourceResolver());
     resolver = newResolver;
-    newResolver = null;
 
     // No new configuration created
     assertEquals(2, cache.myResolverMap.size());

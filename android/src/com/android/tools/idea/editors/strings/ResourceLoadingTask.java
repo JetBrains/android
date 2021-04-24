@@ -50,7 +50,12 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
-    myRepository = StringResourceRepository.create(myGetModuleResources.get());
+    try {
+      myRepository = StringResourceRepository.create(myGetModuleResources.get()).get();
+    }
+    catch (Throwable e) {
+      onThrowable(e);
+    }
   }
 
   @Override

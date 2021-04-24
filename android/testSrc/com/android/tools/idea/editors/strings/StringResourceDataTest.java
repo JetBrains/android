@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 
 import com.android.SdkConstants;
 import com.android.projectmodel.DynamicResourceValue;
@@ -26,6 +27,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -34,6 +36,9 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +56,8 @@ public class StringResourceDataTest extends AndroidTestCase {
     setUpData();
   }
 
-  private void setUpData() {
-    DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, "L\'Étranger");
+  private void setUpData() throws Exception {
+    DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, "L'Étranger");
 
     DynamicValueResourceRepository dynamicRepository =
       DynamicValueResourceRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
@@ -60,7 +65,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     LocalResourceRepository moduleRepository =
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicRepository);
 
-    data = StringResourceData.create(myModule.getProject(), StringResourceRepository.create(moduleRepository));
+    data = StringResourceData.create(myModule.getProject(), Utils.createStringRepository(moduleRepository));
   }
 
   public void testSummarizeLocales() {
@@ -182,7 +187,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
   }
 
-  public void testEditingCdata() {
+  public void testEditingCdata() throws Exception {
     String expected = "<![CDATA[\n" +
                       "        <b>Google I/O 2014</b><br>\n" +
                       "        Version %s<br><br>\n" +
@@ -200,7 +205,7 @@ public class StringResourceDataTest extends AndroidTestCase {
                "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
                "  ]]>";
 
-    assertTrue(resource.putTranslation(locale, expected));
+    assertTrue(putTranslation(resource, locale, expected));
     assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
@@ -212,7 +217,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals(expected, tag.getValue().getText());
   }
 
-  public void testEditingXliff() {
+  public void testEditingXliff() throws Exception {
     StringResource resource = data.getStringResource(newStringResourceKey("key3"));
     Locale locale = Locale.create("en-rIN");
 
@@ -220,7 +225,7 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
 
-    assertTrue(resource.putTranslation(locale, expected));
+    assertTrue(putTranslation(resource, locale, expected));
     assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
@@ -232,12 +237,12 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals(expected, tag.getValue().getText());
   }
 
-  public void testAddingTranslation() {
+  public void testAddingTranslation() throws Exception {
     StringResource resource = data.getStringResource(newStringResourceKey("key4"));
     Locale locale = Locale.create("en");
 
     assertNull(resource.getTranslationAsResourceItem(locale));
-    assertTrue(resource.putTranslation(locale, "Hello"));
+    assertTrue(putTranslation(resource, locale, "Hello"));
     assertEquals("Hello", resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
@@ -247,6 +252,13 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
+  }
+
+  private boolean putTranslation(@NotNull StringResource resource, @NotNull Locale locale, @NotNull String value)
+      throws TimeoutException, InterruptedException, ExecutionException {
+    ListenableFuture<@NotNull Boolean> futureResult = resource.putTranslation(locale, value);
+    waitForCondition(2, TimeUnit.SECONDS, futureResult::isDone);
+    return futureResult.get();
   }
 
   @NotNull

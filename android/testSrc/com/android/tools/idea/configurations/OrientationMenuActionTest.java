@@ -16,7 +16,6 @@
 package com.android.tools.idea.configurations;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -70,9 +69,9 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     assertThat(actions).hasLength(index);
   }
 
-  public void testActionWithExistingLandscapeVariation() {
+  public void testActionWithExistingLandscapeVariation() throws Exception {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
     action.updateActions(DataContext.EMPTY_CONTEXT);
@@ -92,10 +91,10 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     assertThat(actions).hasLength(index);
   }
 
-  public void testActionWithExistingLandscapeAndTabletVariation() {
+  public void testActionWithExistingLandscapeAndTabletVariation() throws Exception {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
@@ -119,16 +118,10 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     assertThat(action).isInstanceOf(actionClass);
   }
 
-  private ConfigurationHolder createConfigurationAndHolder() {
+  private @NotNull ConfigurationHolder createConfigurationAndHolder() {
     VirtualFile file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml");
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(file);
-    return new ConfigurationHolder() {
-      @NotNull
-      @Override
-      public Configuration getConfiguration() {
-        return configuration;
-      }
-    };
+    return () -> configuration;
   }
 }
