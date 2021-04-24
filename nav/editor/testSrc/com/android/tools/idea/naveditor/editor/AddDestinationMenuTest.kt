@@ -551,7 +551,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
 
     val blankFragment = Destination.RegularDestination(
       model.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
-    dispatchAllInvocationEvents();
+    waitForResourceRepositoryUpdates();
 
     val menu = AddDestinationMenu(surface)
     assertEquals(blankFragment, menu.destinations[1])
