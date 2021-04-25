@@ -247,16 +247,12 @@ private fun IdeLibrary.isModuleLevel(modulePath: String) = try {
  */
 private fun computeModuleIdForLibraryTarget(
   library: IdeModuleLibrary,
-  projectData: ProjectData?,
+  projectData: ProjectData,
   compositeData: CompositeBuildData?
-) : String {
-  // If we don't have a ProjectData or CompositeData we assume that the target module is contained within the
-  // main Gradle build.
-  if (projectData == null) {
-    return library.projectPath
-  }
+): String {
   val libraryBuildId = library.buildId?.let { toSystemIndependentName(it) }
-  if (libraryBuildId == projectData.linkedExternalProjectPath ||
+  if (libraryBuildId == null ||
+      libraryBuildId == projectData.linkedExternalProjectPath ||
       compositeData == null) {
     return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
   }
@@ -264,9 +260,11 @@ private fun computeModuleIdForLibraryTarget(
   // Since the dependency doesn't have the same root path as the module's project it must be pointing to a
   // module in an included build. We now need to find the name of the root Gradle build that the module
   // belongs to in order to construct the module ID.
-  val projectName = compositeData.compositeParticipants.firstOrNull {
-    it.rootPath == libraryBuildId
-  }?.rootProjectName ?: return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
+  val projectName =
+    compositeData.compositeParticipants.firstOrNull { it.rootPath == libraryBuildId }?.rootProjectName
+    ?: return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName).also {
+      LOG.error("Cannot resolve buildId '$libraryBuildId' for '$library'")
+    }
 
   return if (library.projectPath == ":") projectName else projectName + library.projectPath
 }
