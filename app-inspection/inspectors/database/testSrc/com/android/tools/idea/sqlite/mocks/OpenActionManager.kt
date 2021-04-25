@@ -45,7 +45,7 @@ open class OpenActionManager(private val wrapped: ActionManager) : ActionManager
   override fun getActionOrStub(id: String): AnAction?  = wrapped.getActionOrStub(id)
   override fun addTimerListener(delay: Int, listener: TimerListener)  = wrapped.addTimerListener(delay, listener)
   override fun removeTimerListener(listener: TimerListener)  = wrapped.removeTimerListener(listener)
-  override fun tryToExecute(action: AnAction, inputEvent: InputEvent, contextComponent: Component?, place: String?, now: Boolean): ActionCallback = wrapped.tryToExecute(action, inputEvent, contextComponent, place, now)
+  override fun tryToExecute(action: AnAction, inputEvent: InputEvent?, contextComponent: Component?, place: String?, now: Boolean): ActionCallback = wrapped.tryToExecute(action, inputEvent, contextComponent, place, now)
   override fun addAnActionListener(listener: AnActionListener?)  = wrapped.addAnActionListener(listener)
   override fun removeAnActionListener(listener: AnActionListener?)  = wrapped.removeAnActionListener(listener)
   override fun getKeyboardShortcut(actionId: String): KeyboardShortcut?  = wrapped.getKeyboardShortcut(actionId)
