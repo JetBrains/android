@@ -47,7 +47,6 @@ public class GotoComponentAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    super.update(e);
     InputEvent inputEvent = e.getInputEvent();
     if (inputEvent instanceof MouseEvent) {
       if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
