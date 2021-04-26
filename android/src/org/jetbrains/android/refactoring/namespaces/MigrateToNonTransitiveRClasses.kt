@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.refactoring.namespaces
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.stats.withProjectId
@@ -30,11 +32,15 @@ import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.N
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SKIPPED
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SUCCEEDED
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.migration.PsiMigrationManager
@@ -42,8 +48,13 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
+import com.intellij.usages.UsageView
+import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.project
@@ -88,7 +99,21 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
   private fun invoke(project: Project) {
-    val processor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project)
+    val pluginInfo = AndroidPluginInfo.find(project)
+
+    // If for some reason Android Gradle Plugin version cannot be found, assume users have the correct version for the refactoring ie. 7.0.0
+    val pluginVersion = pluginInfo?.pluginVersion ?: GradleVersion(7,0,0)
+
+    // Android Gradle Plugin version less than 4.2.0 is not supported.
+    if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, false)) {
+      Messages.showErrorDialog(
+        project,
+        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.message"),
+        AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.title")
+      )
+      return
+    }
+    val processor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, pluginVersion)
     processor.setPreviewUsages(true)
     processor.run()
   }
@@ -100,21 +125,30 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
 class MigrateToNonTransitiveRClassesProcessor private constructor(
   project: Project,
   private val facetsToMigrate: Collection<AndroidFacet>,
-  private val updateTopLevelGradleProperties: Boolean
+  private val updateTopLevelGradleProperties: Boolean,
+  private val gradleVersion: GradleVersion
 ) : BaseRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
 
   companion object {
-    fun forSingleModule(facet: AndroidFacet): MigrateToNonTransitiveRClassesProcessor {
-      return MigrateToNonTransitiveRClassesProcessor(facet.module.project, setOf(facet), updateTopLevelGradleProperties = false)
+    private val LOG = Logger.getInstance(BaseRefactoringProcessor::class.java)
+
+    fun forSingleModule(facet: AndroidFacet, gradleVersion: GradleVersion): MigrateToNonTransitiveRClassesProcessor {
+      return MigrateToNonTransitiveRClassesProcessor(
+        facet.module.project,
+        setOf(facet),
+        updateTopLevelGradleProperties = false,
+        gradleVersion
+      )
     }
 
-    fun forEntireProject(project: Project): MigrateToNonTransitiveRClassesProcessor {
+    fun forEntireProject(project: Project, gradleVersion: GradleVersion): MigrateToNonTransitiveRClassesProcessor {
       return MigrateToNonTransitiveRClassesProcessor(
         project,
         facetsToMigrate = findFacetsToMigrate(project),
-        updateTopLevelGradleProperties = true
+        updateTopLevelGradleProperties = true,
+        gradleVersion
       )
     }
   }
@@ -145,6 +179,37 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     return usages.toTypedArray()
   }
 
+  override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
+    val shouldRecommendPluginUpgrade = gradleVersion.isAtLeast(4, 2, 0,"alpha", 0, false) &&
+                                       !gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, false)
+    val hasUncommittedChanges = doesProjectHaveUncommittedChanges()
+    if (hasUncommittedChanges || shouldRecommendPluginUpgrade) {
+      val panel = JBPanel<JBPanel<*>>(VerticalLayout(5))
+      panel.border = JBUI.Borders.empty(5)
+      if (shouldRecommendPluginUpgrade) {
+        panel.add(createWarningLabel(AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.warning.recommend.upgrade")))
+      }
+      if (hasUncommittedChanges) {
+        panel.add(createWarningLabel(AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.warning.uncommitted.changes")))
+      }
+
+      usageView.setAdditionalComponent(panel)
+    }
+    super.customizeUsagesView(viewDescriptor, usageView)
+  }
+
+  private fun createWarningLabel(message: String): JBLabel {
+    return JBLabel().apply {
+      icon = StudioIcons.Common.WARNING
+      text = message
+    }
+  }
+
+  private fun doesProjectHaveUncommittedChanges(): Boolean {
+    val changeListManager = ChangeListManager.getInstance(myProject)
+    return changeListManager.areChangeListsEnabled() && changeListManager.allChanges.isNotEmpty()
+  }
+
   override fun performRefactoring(usages: Array<out UsageInfo>) {
     trackProcessorUsage(EXECUTE, usages.size)
     val progressIndicator = ProgressManager.getInstance().progressIndicator
@@ -168,6 +233,25 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     }
 
     if (updateTopLevelGradleProperties) {
+      val propertiesFile = myProject.getProjectProperties(createIfNotExists = true)
+      if (propertiesFile != null) {
+        when {
+          gradleVersion.isAtLeast(7, 0, 0) -> {
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
+              NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
+          }
+          gradleVersion.isAtLeast(4, 2, 0) -> {
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
+              NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
+              NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
+          }
+          else -> {
+            LOG.error("Gradle version too low for MigrateToNonTransitiveRClasses $gradleVersion")
+          }
+        }
+      }
+
       myProject.getProjectProperties(createIfNotExists = true)?.apply {
         findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
       }
