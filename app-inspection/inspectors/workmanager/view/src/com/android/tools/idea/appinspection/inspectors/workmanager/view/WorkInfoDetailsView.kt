@@ -64,7 +64,9 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   }
 
   private fun updateSelectedWork(work: WorkInfo) {
-    val detailsPanel = ScrollablePanel(VerticalLayout(18))
+    val detailsPanel = object : ScrollablePanel(VerticalLayout(18)) {
+      override fun getScrollableTracksViewportWidth() = false
+    }
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
     val idListProvider = IdListProvider(client, work) {
