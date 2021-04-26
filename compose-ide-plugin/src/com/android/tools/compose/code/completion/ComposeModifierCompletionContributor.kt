@@ -203,7 +203,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     val indicesHelper = KotlinIndicesHelper(resolutionFacade, searchScope, ::isVisible, file = file)
-    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext) { true }
+    return indicesHelper.getCallableTopLevelExtensions(callTypeAndReceiver, nameExpression, bindingContext, null) { true }
   }
 
   private val PsiElement.isModifierProperty: Boolean

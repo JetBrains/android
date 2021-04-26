@@ -294,7 +294,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
           fun Leaf() {}
 
           fun foo() {
-              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() () -> Unit but () -> Unit was expected">@Composable { Leaf() }</error>
+              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">@Composable { Leaf() }</error>
               print(myVariable)
           }
           """
@@ -443,7 +443,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
           import androidx.compose.runtime.*;
 
           fun foo(v: @Composable ()->Unit) {
-              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() () -> Unit but () -> Unit was expected">v</error>
+              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">v</error>
               myVariable()
           }
           """
@@ -511,7 +511,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
 
           @Composable
           fun test(f: @Composable ()->Unit) {
-              val f2: @Composable ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable() () -> Unit was expected">identity (<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() () -> Unit but () -> Unit was expected">f</error>)</error>;
+              val f2: @Composable ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected">identity (<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">f</error>)</error>;
               f2()
           }
           """
@@ -537,7 +537,7 @@ class ComposableCallCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
           import androidx.compose.runtime.*
 
-          fun composeInto(l: @Composable ()->Unit) { print(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() () -> Unit but Any? was expected">l</error>) }
+          fun composeInto(l: @Composable ()->Unit) { print(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but Any? was expected">l</error>) }
 
           fun Foo() {
               composeInto {

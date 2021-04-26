@@ -891,13 +891,10 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotations-android.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotations-jvm-sources.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotations-jvm.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-ant.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-coroutines-experimental-compat-sources.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-coroutines-experimental-compat.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-daemon.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-imports-dumper-compiler-plugin.jar
@@ -940,6 +937,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/parcelize-runtime
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/sam-with-receiver-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/trove4j.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/COPYRIGHT.txt
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/COPYRIGHT_HEADER.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/NOTICE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/README.md
@@ -993,7 +991,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-n
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-sam-with-receiver.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-scripting.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-core.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-coroutines-experimental-compat.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-eval4j.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-formatter.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-frontend-independent.jar
@@ -1024,6 +1021,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-project-wizard-cor
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-project-wizard-idea.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-reflect.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-repl.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-resources-descriptors.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-script-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-script-util.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-scripting-common.jar
