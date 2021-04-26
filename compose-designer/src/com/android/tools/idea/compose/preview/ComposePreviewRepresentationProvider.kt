@@ -87,9 +87,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
         layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
       ) { !isAnyPreviewRefreshing(it.dataContext) }.visibleOnlyInComposeStaticPreview(),
       StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-      StudioFlags.COMPOSE_BLUEPRINT_MODE.ifEnabled {
-        if (surface is NlDesignSurface) BlueprintModeDropDownAction(surface).visibleOnlyInComposeStaticPreview() else null
-      }
+      if (surface is NlDesignSurface) ViewModesDropDownAction(surface).visibleOnlyInComposeStaticPreview() else null
     )
   )
 
@@ -99,18 +97,29 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
     ComposeIssueNotificationAction.getInstance()
   ))
 
-  private class BlueprintModeDropDownAction(private val surface: NlDesignSurface)
-    : DropDownAction(message("action.scene.mode.title"),
-                     message("action.scene.mode.description"),
+  /**
+   * [DropDownAction] to toggle through the available viewing modes for the Compose preview.
+   */
+  private class ViewModesDropDownAction(
+    private val surface: NlDesignSurface
+  ) : DropDownAction(
+    message("action.scene.mode.title"),
+    message("action.scene.mode.description"),
     // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design Surface'
-                     StudioIcons.LayoutEditor.Toolbar.VIEW_MODE) {
-
+    StudioIcons.LayoutEditor.Toolbar.VIEW_MODE
+  ) {
     private val disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
 
     init {
-      addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
-      addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
-      StudioFlags.COMPOSE_COLORBLIND_MODE.ifEnabled {
+      val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
+      val colorBlindEnabled = StudioFlags.COMPOSE_COLORBLIND_MODE.get()
+      if (blueprintEnabled || colorBlindEnabled) {
+        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE, surface))
+      }
+      if (blueprintEnabled) {
+        addAction(SetScreenViewProviderAction(NlScreenViewProvider.COMPOSE_BLUEPRINT, surface))
+      }
+      if (colorBlindEnabled) {
         addAction(DefaultActionGroup.createPopupGroup { message("action.scene.mode.colorblind.dropdown.title") }.apply {
           addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
           addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
@@ -120,6 +129,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
         })
       }
     }
+
+    override fun hideIfNoVisibleChildren() = true
 
     override fun createCustomComponent(presentation: Presentation, place: String) =
       ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
