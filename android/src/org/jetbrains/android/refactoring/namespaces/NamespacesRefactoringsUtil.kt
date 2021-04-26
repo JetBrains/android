@@ -58,6 +58,9 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
 
+// Flag used for gradle version >4.2.0 and <7.0.0
+const val NON_TRANSITIVE_APP_R_CLASSES_PROPERTY = "android.experimental.nonTransitiveAppRClass"
+
 private val LOG: Logger by lazy { Logger.getInstance("NamespaceRefactoringsUtil.kt") }
 
 /**

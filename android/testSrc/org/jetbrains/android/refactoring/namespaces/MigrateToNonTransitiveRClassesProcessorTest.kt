@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -323,7 +324,8 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testMiddleModule_Java() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!,
+                                                            GradleVersion.tryParse("7.0.0")!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppJavaClass.java",
@@ -392,7 +394,8 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testMiddleModule_Kotlin() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!,
+                                                            GradleVersion.tryParse("7.0.0")!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppKotlinClass.kt",
@@ -450,7 +453,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testAppModule_Java() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet, GradleVersion.tryParse("7.0.0")!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppJavaClass.java",
@@ -508,7 +511,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testAppModule_Kotlin() {
-    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet).run()
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet, GradleVersion.tryParse("7.0.0")!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppKotlinClass.kt",
@@ -565,8 +568,51 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
   }
 
+  fun testWholeProjectOlderAGP() {
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, GradleVersion.tryParse("4.2.0")!!).run()
+
+    val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo(
+      """
+        android.experimental.nonTransitiveAppRClass=true
+        android.nonTransitiveRClass=true
+      """.trimIndent()
+    )
+
+    myFixture.checkResult(
+      "src/com/example/app/AppJavaClass.java",
+      // language=java
+      """
+        package com.example.app;
+
+        public class AppJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_app,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                };
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+  }
+
   fun testWholeProjectUsageView() {
-    val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project)
+    val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project,
+                                                                                        GradleVersion.tryParse("7.0.0")!!)
 
     // gradle.properties only shows up as a usage when the file exists before the refactoring.
     myFixture.addFileToProject("gradle.properties", "")
@@ -653,7 +699,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testWholeProject() {
-    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project).run()
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, GradleVersion.tryParse("7.0.0")!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppJavaClass.java",
