@@ -24,9 +24,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class LayoutNavigationManager implements Disposable {
 
@@ -58,6 +60,18 @@ public class LayoutNavigationManager implements Disposable {
    * @return true if the editor for destination file has been open
    */
   public boolean pushFile(@NotNull VirtualFile source, @NotNull VirtualFile destination) {
+    return pushFile(source, destination, null);
+  }
+
+  /**
+   * Open the given destination file and add it to the file stack after source
+   *
+   * @param source           The file below destination on the stack.
+   * @param destination      The file to open
+   * @param onEditorSelected The callback function which is invoked when new editor is open or selected.
+   * @return true if the editor for destination file has been open or selected
+   */
+  public boolean pushFile(@NotNull VirtualFile source, @NotNull VirtualFile destination, @Nullable Consumer<FileEditor> onEditorSelected) {
     ourNavigationCache.put(destination, source);
     FileEditorManager manager = FileEditorManager.getInstance(myProject);
     FileEditor sourceEditor = manager.getSelectedEditor(source);
@@ -79,6 +93,15 @@ public class LayoutNavigationManager implements Disposable {
     boolean isInDesignerMode = sourceEditor instanceof DesignerEditor;
     manager.setSelectedEditor(destination, isInDesignerMode ? ((DesignerEditor)sourceEditor).getEditorId()
                                                             : TextEditorProvider.getInstance().getEditorTypeId());
+    FileEditor newSelectedEditor = manager.getSelectedEditor();
+    if (newSelectedEditor == null) {
+      Logger.getInstance(LayoutNavigationManager.class).warn("Cannot find the new selected editor");
+      return false;
+    }
+
+    if (onEditorSelected != null) {
+      onEditorSelected.accept(newSelectedEditor);
+    }
     return true;
   }
 

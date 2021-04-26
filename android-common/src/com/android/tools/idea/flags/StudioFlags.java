@@ -307,6 +307,11 @@ public final class StudioFlags {
     "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
     true);
 
+  public static final Flag<Boolean> NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR = Flag.create(
+    NELE, "visualization.apply.config", "Apply Selected Configuration in Validation Tool to Layout Editor",
+    "Apply the configuration to Layout Editor by double clicking the preview in Validation Tool",
+    false);
+
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
