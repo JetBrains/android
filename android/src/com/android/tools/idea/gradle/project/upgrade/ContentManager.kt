@@ -546,9 +546,14 @@ class ContentManager(val project: Project) {
     init {
       model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun treeStructureChanged(event: TreeModelEvent?) {
-          tree.setHoldSize(false)
-          TreeUtil.expandAll(tree)
-          tree.setHoldSize(true)
+          // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
+          // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
+          // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
+          invokeLater(ModalityState.NON_MODAL) {
+            tree.setHoldSize(false)
+            TreeUtil.expandAll(tree)
+            tree.setHoldSize(true)
+          }
         }
       })
       TreeUtil.expandAll(tree)
@@ -736,7 +741,7 @@ fun GradleVersion?.upgradeLabelText() = when (this) {
   else -> "Upgrading Android Gradle Plugin from version $this to"
 }
 
-fun GradleVersion?.contentDisplayName() = when(this) {
+fun GradleVersion?.contentDisplayName() = when (this) {
   null -> "Upgrading project from unknown AGP"
   else -> "Upgrading project from AGP $this"
 }
