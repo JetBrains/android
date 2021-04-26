@@ -41,13 +41,18 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     myDevices = devices;
   }
 
-  void deviceConnected(@NotNull PhysicalDevice device) {
-  }
+  void addOrSet(@NotNull PhysicalDevice device) {
+    int modelRowIndex = PhysicalDevices.indexOf(myDevices, device);
 
-  void deviceDisconnected(@NotNull PhysicalDevice device) {
-  }
+    if (modelRowIndex == -1) {
+      myDevices.add(device);
+    }
+    else {
+      myDevices.set(modelRowIndex, device);
+    }
 
-  void deviceChanged(@NotNull PhysicalDevice device) {
+    myDevices.sort(null);
+    fireTableDataChanged();
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> getDevices() {

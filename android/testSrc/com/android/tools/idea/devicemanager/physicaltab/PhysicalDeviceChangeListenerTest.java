@@ -17,12 +17,12 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceChangeListener.PhysicalDeviceFutureCallback;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceChangeListener.AddOrSet;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
@@ -40,66 +40,15 @@ public final class PhysicalDeviceChangeListenerTest {
   private final @NotNull BuilderService myService = Mockito.mock(BuilderService.class);
 
   @Test
-  public void deviceConnected() throws InterruptedException {
-    // Arrange
-    PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
-    Mockito.when(myService.build(myDevice)).thenReturn(Futures.immediateFuture(physicalDevice));
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myModel,
-                                                                      myBridge,
-                                                                      () -> myService,
-                                                                      onSuccess -> new MyFutureCallback(onSuccess, latch));
-
-    // Act
-    listener.deviceConnected(myDevice);
-
-    // Assert
-    waitFor(latch, Duration.ofMillis(512));
-    Mockito.verify(myModel).deviceConnected(physicalDevice);
-  }
-
-  @Test
-  public void deviceDisconnected() throws InterruptedException {
-    // Arrange
-    PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
-    Mockito.when(myService.build(myDevice)).thenReturn(Futures.immediateFuture(physicalDevice));
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myModel,
-                                                                      myBridge,
-                                                                      () -> myService,
-                                                                      onSuccess -> new MyFutureCallback(onSuccess, latch));
-
-    // Act
-    listener.deviceDisconnected(myDevice);
-
-    // Assert
-    waitFor(latch, Duration.ofMillis(512));
-    Mockito.verify(myModel).deviceDisconnected(physicalDevice);
-  }
-
-  @Test
   public void deviceChangedMaskEqualsChangeProfileableClientList() {
     // Arrange
-    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myModel,
-                                                                      myBridge,
-                                                                      () -> myService,
-                                                                      PhysicalDeviceFutureCallback::new);
+    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, new AddOrSet(myModel));
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_PROFILEABLE_CLIENT_LIST);
 
     // Assert
-    Mockito.verify(myModel, Mockito.never()).deviceChanged(ArgumentMatchers.any());
+    Mockito.verify(myModel, Mockito.never()).addOrSet(ArgumentMatchers.any());
   }
 
   @Test
@@ -113,24 +62,22 @@ public final class PhysicalDeviceChangeListenerTest {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myModel,
-                                                                      myBridge,
-                                                                      () -> myService,
-                                                                      onSuccess -> new MyFutureCallback(onSuccess, latch));
+    FutureCallback<PhysicalDevice> callback = new CountDownLatchAddOrSet(myModel, latch);
+    IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, callback);
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
 
     // Assert
     waitFor(latch, Duration.ofMillis(512));
-    Mockito.verify(myModel).deviceChanged(physicalDevice);
+    Mockito.verify(myModel).addOrSet(physicalDevice);
   }
 
-  private static final class MyFutureCallback extends PhysicalDeviceFutureCallback {
+  private static final class CountDownLatchAddOrSet extends AddOrSet {
     private final @NotNull CountDownLatch myLatch;
 
-    private MyFutureCallback(@NotNull Consumer<@NotNull PhysicalDevice> onSuccess, @NotNull CountDownLatch latch) {
-      super(onSuccess);
+    private CountDownLatchAddOrSet(@NotNull PhysicalDeviceTableModel model, @NotNull CountDownLatch latch) {
+      super(model);
       myLatch = latch;
     }
 
