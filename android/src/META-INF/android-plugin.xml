@@ -627,7 +627,7 @@
                       facetIdList="android,apk"
                       anchor="right"
                       icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
-                      factoryClass="com.android.tools.idea.deviceManager.DeviceManagerFactory"/>
+                      factoryClass="com.android.tools.idea.devicemanager.DeviceManagerFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
