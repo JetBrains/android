@@ -39,6 +39,8 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
                           private val workSelectionModel: WorkSelectionModel,
                           private val contentView: WorksContentView) : JPanel() {
 
+  // A configuration map to add extra paddings at the bottom of certain components.
+  private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
   private val scrollPane = JBScrollPane()
 
   init {
@@ -101,10 +103,11 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     }
 
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
-      switchContentModeLabel,
+      // Visually separate switchContentModeLabel and work chain labels.
+      switchContentModeLabel.apply { extraBottomPaddingMap[this] = 10 },
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
-      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
-      buildKeyValuePair(" ", ""), // Visually separate work chain or else UUIDs run together
+      // Visually separate work chain or else UUIDs run together.
+      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },
       buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
     )))
 
@@ -119,16 +122,17 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     repaint()
   }
 
-  private fun buildCategoryPanel(name: String, subPanels: List<Component>): JPanel {
+  private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
     val panel = JPanel(VerticalLayout(0))
 
     val headingPanel = TitledSeparator(name)
     panel.add(headingPanel)
 
-    for (subPanel in subPanels) {
+    for (component in entryComponents) {
       val borderedPanel = JPanel(BorderLayout())
-      borderedPanel.add(subPanel, BorderLayout.WEST)
-      borderedPanel.border = BorderFactory.createEmptyBorder(0, 20, 0, 0)
+      borderedPanel.add(component, BorderLayout.WEST)
+      borderedPanel.border =
+        BorderFactory.createEmptyBorder(0, 18, extraBottomPaddingMap.getOrDefault(component, 0), 0)
       panel.add(borderedPanel)
     }
     return panel
