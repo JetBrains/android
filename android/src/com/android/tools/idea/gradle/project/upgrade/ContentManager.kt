@@ -546,10 +546,13 @@ class ContentManager(val project: Project) {
     init {
       model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun treeStructureChanged(event: TreeModelEvent?) {
+          tree.setHoldSize(false)
           TreeUtil.expandAll(tree)
+          tree.setHoldSize(true)
         }
       })
       TreeUtil.expandAll(tree)
+      tree.setHoldSize(true)
     }
 
     private fun makeTopComponent() = JBPanel<JBPanel<*>>().apply {
