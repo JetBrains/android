@@ -43,9 +43,11 @@ which will generate a set of artifacts in `tools/idea/out/studio/dist`. To updat
 $SRC/tools/adt/idea/studio/update_sdk.py --path $SRC/tools/idea/out/studio/dist
 ```
 
-Note: `build_studio.sh` does a clean build by default. You can do an incremental
-build instead by specifying `-Dintellij.build.incremental.compilation=true`
-in the `BUILD_PROPERTIES` array within `build_studio.sh`.
+Note: `build_studio.sh` does a clean build by default. You can use the
+`--incremental` flag to do an incremental build instead, which is much faster
+for repeated builds. There are also some additional build options you can set
+via system properties; see `$SRC/tools/idea/platform/build-scripts/groovy/org/jetbrains/intellij/build/BuildOptions.groovy`
+for details.
 
 ### Isolated builds
 
