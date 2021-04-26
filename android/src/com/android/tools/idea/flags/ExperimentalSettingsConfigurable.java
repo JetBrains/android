@@ -22,7 +22,6 @@ import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.adb.AdbOptionsService;
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
@@ -62,7 +61,6 @@ import org.jetbrains.annotations.TestOnly;
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
-  @NotNull private final AdbOptionsService myAdbSettings;
 
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
@@ -74,8 +72,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
-  private TitledSeparator myAdbMdnsOpenScreenSeparator;
-  private JCheckBox myAdbMdnsOpenScreenCheckbox;
   private JCheckBox myPreviewDeployToCheckBox;
   private JCheckBox myInteractiveAndAnimationsComboBox;
 
@@ -83,16 +79,14 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), AdbOptionsService.getInstance());
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull RenderSettings renderSettings,
-                                   @NotNull AdbOptionsService adbSettings) {
+                                   @NotNull RenderSettings renderSettings) {
     mySettings = settings;
     myRenderSettings = renderSettings;
-    myAdbSettings = adbSettings;
 
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
@@ -108,9 +102,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
     myUseLayoutlibNative.setVisible(StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get());
-    boolean showAdbOpenScreenSeparator = StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get();
-    myAdbMdnsOpenScreenSeparator.setVisible(showAdbOpenScreenSeparator);
-    myAdbMdnsOpenScreenCheckbox.setVisible(showAdbOpenScreenSeparator);
     initTraceComponents();
     reset();
   }
@@ -155,7 +146,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
-           (myAdbMdnsOpenScreenCheckbox.isSelected() != myAdbSettings.shouldUseMdnsOpenScreen()) ||
            myPreviewDeployToCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled() ||
            myInteractiveAndAnimationsComboBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled();
   }
@@ -170,10 +160,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
-
-    myAdbSettings.getOptionsUpdater()
-      .setUseMdnsOpenScreen(myAdbMdnsOpenScreenCheckbox.isSelected())
-      .commit();
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
@@ -253,16 +239,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @TestOnly
   void setTraceProfileLocation(@NotNull String value) {
     myTraceProfilePathField.setText(value);
-  }
-
-  @TestOnly
-  void setUseAdbMdnsOpenScreen(boolean value) {
-    myAdbMdnsOpenScreenCheckbox.setSelected(value);
-  }
-
-  @TestOnly
-  boolean useAdbMdnsOpenScreen() {
-    return myAdbMdnsOpenScreenCheckbox.isSelected();
   }
 
   private void initTraceComponents() {
@@ -357,7 +333,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     myUseLayoutlibNative.setSelected(!PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
-    myAdbMdnsOpenScreenCheckbox.setSelected(myAdbSettings.shouldUseMdnsOpenScreen());
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);

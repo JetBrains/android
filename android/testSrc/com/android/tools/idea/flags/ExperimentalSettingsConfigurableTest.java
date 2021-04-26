@@ -19,7 +19,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.adb.AdbOptionsService;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.intellij.openapi.options.ConfigurationException;
@@ -32,15 +31,13 @@ import org.mockito.Mock;
 public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase {
   @Mock private GradleExperimentalSettings mySettings;
   private ExperimentalSettingsConfigurable myConfigurable;
-  /*@Mock*/ private AdbOptionsService myAdbOptionsService;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
     mySettings.TRACE_PROFILE_LOCATION = "";
-    myAdbOptionsService  = AdbOptionsService.getInstance();
-    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings(), myAdbOptionsService);
+    myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings());
   }
 
   public void testIsModified() {
@@ -73,12 +70,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     assertFalse(myConfigurable.isModified());
-
-    boolean useMdnsOpenScreen = myAdbOptionsService.shouldUseMdnsOpenScreen();
-    myConfigurable.setUseAdbMdnsOpenScreen(!useMdnsOpenScreen);
-    assertTrue(myConfigurable.isModified());
-    myConfigurable.setUseAdbMdnsOpenScreen(useMdnsOpenScreen);
-    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
@@ -87,7 +78,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.setTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
     myConfigurable.setTraceProfileSelection(DEFAULT);
-    myConfigurable.setUseAdbMdnsOpenScreen(true);
 
     myConfigurable.apply();
 
@@ -96,14 +86,12 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
-    assertTrue(myAdbOptionsService.shouldUseMdnsOpenScreen());
 
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setSkipGradleTasksList(false);
     myConfigurable.setTraceGradleSync(false);
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
-    myConfigurable.setUseAdbMdnsOpenScreen(false);
 
     myConfigurable.apply();
 
@@ -112,7 +100,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertFalse(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
-    assertFalse(myAdbOptionsService.shouldUseMdnsOpenScreen());
   }
 
   public void testReset() {
@@ -121,7 +108,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_GRADLE_SYNC = true;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
-    myAdbOptionsService.getOptionsUpdater().setUseMdnsOpenScreen(true).commit();
 
     myConfigurable.reset();
 
@@ -130,14 +116,12 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.traceGradleSync());
     assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
-    assertTrue(myConfigurable.useAdbMdnsOpenScreen());
 
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     mySettings.TRACE_GRADLE_SYNC = false;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
     mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
-    myAdbOptionsService.getOptionsUpdater().setUseMdnsOpenScreen(false).commit();
 
     myConfigurable.reset();
 
@@ -146,7 +130,6 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertFalse(myConfigurable.traceGradleSync());
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
-    assertFalse(myConfigurable.useAdbMdnsOpenScreen());
   }
 
   public void testIsTraceProfileValid() {
