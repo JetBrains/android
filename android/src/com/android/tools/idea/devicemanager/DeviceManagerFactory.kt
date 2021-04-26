@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.devicemanager
 
-import com.android.tools.idea.devicemanager.groups.DeviceGroupsTabPanel
+import com.android.tools.idea.devicemanager.groupstab.DeviceGroupsTabPanel
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabContent
+import com.android.tools.idea.devicemanager.virtualtab.VirtualTab
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking

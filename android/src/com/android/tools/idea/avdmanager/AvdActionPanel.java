@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.devicemanager.actions.ExploreAvdAction;
+import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
