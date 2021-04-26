@@ -174,7 +174,7 @@ def _studio_plugin_impl(ctx):
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
-        fail("Whilae analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
+        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
     return struct(
         directory = ctx.attr.directory,
