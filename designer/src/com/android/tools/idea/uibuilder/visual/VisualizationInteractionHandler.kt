@@ -16,11 +16,14 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,6 +31,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.fileEditor.FileEditorManager
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Component
 import java.awt.Cursor
@@ -58,9 +62,44 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
   override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     val view = surface.getSceneViewAt(x, y) ?: return
-    val sourceFile = surface.sceneManager?.model?.virtualFile ?: return
+
+    val currentEditor = FileEditorManager.getInstance(surface.project).selectedEditor ?: return
+    val sourceFile = currentEditor.file ?: return
     val targetFile = view.sceneManager.model.virtualFile
-    LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
+    if (!StudioFlags.NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR.get()) {
+      // Simply open another file.
+      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
+      return
+    }
+
+    if (sourceFile == targetFile) {
+      // Same file, just apply the config to it.
+      val configInLayoutEditor = (currentEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+      if (configInLayoutEditor != null) {
+        applyConfiguration(configInLayoutEditor, view.configuration)
+      }
+    }
+    else {
+      // Open another file, or switch to it if it has been open. Then, apply the config to it.
+      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile) { newEditor ->
+        val configInDestinationEditor = (newEditor as DesignToolsSplitEditor).designerEditor.component.surface.model?.configuration
+        if (configInDestinationEditor != null) {
+          applyConfiguration(configInDestinationEditor, view.configuration)
+        }
+      }
+    }
+  }
+
+  private fun applyConfiguration(destination: Configuration, source: Configuration) {
+    with(destination) {
+      startBulkEditing()
+      setDevice(source.device, true)
+      deviceState = source.deviceState
+      nightMode = source.nightMode
+      uiMode = source.uiMode
+      locale = source.locale
+      finishBulkEditing()
+    }
   }
 
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
