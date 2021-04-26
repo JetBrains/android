@@ -3,6 +3,7 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.toChainInfo
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
@@ -176,6 +177,8 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
 
     contentScrollPane = JBScrollPane()
+    // Remove redundant borders from left, right and bottom.
+    contentScrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
     tableView = WorksTableView(tab, client, workSelectionModel)
     graphView = WorkDependencyGraphView(tab, client, workSelectionModel) {
       contentMode = Mode.TABLE
