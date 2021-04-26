@@ -249,6 +249,10 @@ public class AnimationToolbar extends JPanel implements Disposable {
     button.setIcon(baseIcon);
     button.addActionListener((e) -> {
       myAnalyticsManager.trackAction(myToolbarType, action);
+      // When action is performed, some buttons are disabled or become invisible, which may make the focus move to the next component in the
+      // editor. We move the focus to toolbar here, so the next traversed component is still in the toolbar after action is performed.
+      // In practice, when user presses tab after action performed, the first enabled button in the toolbar will gain the focus.
+      AnimationToolbar.this.requestFocusInWindow();
       callback.run();
     });
 
