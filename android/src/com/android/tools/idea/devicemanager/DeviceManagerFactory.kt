@@ -32,19 +32,19 @@ import javax.swing.JComponent
 
 // It should match id in a corresponding .xml
 const val DEVICE_MANAGER_ID = "Device Manager"
-const val emulatorTabName = "Emulator"
+const val virtualTabName = "Virtual"
 const val deviceGroupsTabName = "Device Groups"
 
 class DeviceManagerFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val emulatorTab = EmulatorTab(project, toolWindow)
+    val virtualTab = VirtualTab(project, toolWindow)
     val contentFactory = ContentFactory.SERVICE.getInstance()
 
     fun createTab(content: JComponent, name: String) {
       toolWindow.contentManager.addContent(contentFactory.createContent(content, name, false))
     }
 
-    createTab(emulatorTab.content, emulatorTabName)
+    createTab(virtualTab.content, virtualTabName)
     toolWindow.contentManager.addContent(PhysicalTabContent.create(contentFactory, project))
 
     if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {

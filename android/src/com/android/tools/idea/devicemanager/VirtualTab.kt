@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager
 
-import com.android.tools.idea.devicemanager.displayList.EmulatorDisplayList
+import com.android.tools.idea.devicemanager.displayList.VirtualDisplayList
 import com.android.tools.idea.devicemanager.displayList.PreconfiguredDisplayList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -26,8 +26,8 @@ import javax.swing.event.DocumentListener
 import javax.swing.text.BadLocationException
 import javax.swing.text.Document
 
-class EmulatorTab(project: Project, toolWindow: ToolWindow) {
-  val avdDisplayList = EmulatorDisplayList(project)
+class VirtualTab(project: Project, toolWindow: ToolWindow) {
+  val avdDisplayList = VirtualDisplayList(project)
   val preconfiguredDisplayList = PreconfiguredDisplayList(project, avdList = avdDisplayList)
 
   private val searchDocumentListener = object : DocumentListener {
@@ -53,7 +53,7 @@ class EmulatorTab(project: Project, toolWindow: ToolWindow) {
     }
   }
 
-  val toolbar = EmulatorToolbar(avdDisplayList, avdDisplayList, searchDocumentListener)
+  val toolbar = VirtualToolbar(avdDisplayList, avdDisplayList, searchDocumentListener)
 
   val content = panel(LCFlags.fill) {
     row {

@@ -37,7 +37,7 @@ import javax.swing.event.DocumentListener
 /**
  * A toolbar which contains a [panel] which is an UI element.
  */
-class EmulatorToolbar(
+class VirtualToolbar(
   avdInfoProvider: AvdUiAction.AvdInfoProvider,
   private val avdRefreshProvider: AvdActionPanel.AvdRefreshProvider,
   searchDocumentListener: DocumentListener

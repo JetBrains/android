@@ -84,7 +84,7 @@ import javax.swing.table.TableCellRenderer
 /**
  * A UI component which lists the existing AVDs
  */
-class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
+class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
   private val centerCardPanel: JPanel
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
@@ -94,7 +94,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
   }
   private val table: VirtualTableView
   private val listeners: MutableSet<AvdSelectionListener> = Sets.newHashSet()
-  private val logger: Logger get() = logger<EmulatorDisplayList>()
+  private val logger: Logger get() = logger<VirtualDisplayList>()
 
   private var avds: List<AvdInfo> = listOf()
 
@@ -118,7 +118,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
       }
       row {
         link("Create virtual device") {
-          CreateAvdAction(this@EmulatorDisplayList).actionPerformed(null)
+          CreateAvdAction(this@VirtualDisplayList).actionPerformed(null)
         }
       }
     }
@@ -146,7 +146,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
     table.actionMap.apply {
       // put("selectPreviousColumnCell", CycleAction(true))
       // put("selectNextColumnCell", CycleAction(false))
-      put("deleteAvd", DeleteAvdAction(this@EmulatorDisplayList))
+      put("deleteAvd", DeleteAvdAction(this@VirtualDisplayList))
       put("enter", object : AbstractAction() {
         override fun actionPerformed(e: ActionEvent) {
           doAction()
@@ -429,7 +429,7 @@ class EmulatorDisplayList(private val project: Project?) : JPanel(), ListSelecti
         val path = "/studio/icons/avd/${id.replaceFirst("android", "device")}-large.svg"
         thisClassPair = deviceClassIcons[path]
         if (thisClassPair == null) {
-          thisClassPair = HighlightableIconPair(IconLoader.getIcon(path, EmulatorDisplayList::class.java))
+          thisClassPair = HighlightableIconPair(IconLoader.getIcon(path, VirtualDisplayList::class.java))
           deviceClassIcons[path] = thisClassPair
         }
       }
