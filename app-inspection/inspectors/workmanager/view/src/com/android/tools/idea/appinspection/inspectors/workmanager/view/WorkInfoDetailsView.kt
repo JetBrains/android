@@ -48,7 +48,7 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     border = BorderFactory.createEmptyBorder()
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Work Details")
-    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
     headingPanel.add(instanceViewLabel, BorderLayout.WEST)
     val closeButton = CloseButton { tab.isDetailsViewVisible = false }
     headingPanel.add(closeButton, BorderLayout.EAST)
@@ -123,9 +123,10 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   }
 
   private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
-    val panel = JPanel(VerticalLayout(0))
+    val panel = JPanel(VerticalLayout(6))
 
     val headingPanel = TitledSeparator(name)
+    headingPanel.minimumSize = Dimension(0, 34)
     panel.add(headingPanel)
 
     for (component in entryComponents) {
@@ -141,7 +142,7 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   private fun <T> buildKeyValuePair(key: String,
                                     value: T,
                                     componentProvider: ComponentProvider<T> = ToStringProvider()): JPanel {
-    val panel = JPanel(TabularLayout("180px,*")).apply {
+    val panel = JPanel(TabularLayout("155px,*")).apply {
       // Add a 2px text offset to align this panel with a [HyperlinkLabel] properly.
       // See HyperlinkLabel.getTextOffset() for more details.
       border = BorderFactory.createEmptyBorder(0, 2, 0, 0)
