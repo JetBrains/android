@@ -16,7 +16,7 @@
 package org.jetbrains.android.actions;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
-import static com.android.tools.idea.deviceManager.DeviceManagerFactoryKt.DEVICE_MANAGER_ID;
+import static com.android.tools.idea.devicemanager.DeviceManagerFactoryKt.DEVICE_MANAGER_ID;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
