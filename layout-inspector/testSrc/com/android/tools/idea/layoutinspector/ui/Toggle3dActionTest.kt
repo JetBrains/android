@@ -85,7 +85,7 @@ class Toggle3dActionTest {
     Toggle3dAction.update(event)
     verify(presentation).isEnabled = true
     verify(presentation).text = "3D Mode"
-    verify(presentation).description = "Visually inspect the hierarchy by clinking and dragging to rotate the layout. Enabling this " +
+    verify(presentation).description = "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
                                        "mode consumes more device resources and might impact runtime performance."
     verify(presentation).icon = StudioIcons.LayoutInspector.MODE_3D
   }
