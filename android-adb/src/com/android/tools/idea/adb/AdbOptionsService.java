@@ -41,17 +41,15 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
   static final int USER_MANAGED_ADB_PORT_MAX_VALUE = 65535;
 
   private static final String USE_LIBUSB = "adb.use.libusb";
-  private static final String USE_MDNS_OPENSCREEN = "adb.use.mdns.openscreen";
   private static final String USE_USER_MANAGED_ADB = "AdbOptionsService.use.user.managed.adb";
   private static final String USER_MANAGED_ADB_PORT = "AdbOptionsService.user.managed.adb.port";
   private static final boolean LIBUSB_DEFAULT = false;
-  public static final boolean USE_MDNS_OPENSCREEN_DEFAULT = true;
   private static final boolean USE_USER_MANAGED_ADB_DEFAULT = false;
 
   private final Object LOCK = new Object();
 
   @GuardedBy("LOCK")
-  @NotNull private final List<AdbOptionsListener> myListeners = new SmartList<>();
+  private List<AdbOptionsListener> myListeners = new SmartList<>();
 
   public interface AdbOptionsListener {
     void optionsChanged();
@@ -70,29 +68,19 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
     return PropertiesComponent.getInstance().getBoolean(USE_LIBUSB, LIBUSB_DEFAULT);
   }
 
-  public boolean shouldUseMdnsOpenScreen() {
-    return PropertiesComponent.getInstance().getBoolean(USE_MDNS_OPENSCREEN, USE_MDNS_OPENSCREEN_DEFAULT);
-  }
-
-  public boolean shouldUseUserManagedAdb() {
+  boolean shouldUseUserManagedAdb() {
     return PropertiesComponent.getInstance().getBoolean(USE_USER_MANAGED_ADB, USE_USER_MANAGED_ADB_DEFAULT);
   }
 
-  public int getUserManagedAdbPort() {
+  int getUserManagedAdbPort() {
     return PropertiesComponent.getInstance().getInt(USER_MANAGED_ADB_PORT, USER_MANAGED_ADB_PORT_DEFAULT);
   }
 
-  @NotNull
-  public AdbOptionsUpdater getOptionsUpdater() {
-    return new AdbOptionsUpdater(this);
-  }
-
-  private void commitOptions(@NotNull AdbOptionsUpdater options) {
+  public void setAdbConfigs(boolean useLibusb, boolean useUserManagedAdb, int userManagedAdbPort) {
     PropertiesComponent props = PropertiesComponent.getInstance();
-    props.setValue(USE_LIBUSB, options.useLibusb(), LIBUSB_DEFAULT);
-    props.setValue(USE_USER_MANAGED_ADB, options.useUserManagedAdb(), USE_USER_MANAGED_ADB_DEFAULT);
-    props.setValue(USER_MANAGED_ADB_PORT, options.getUserManagedAdbPort(), USER_MANAGED_ADB_PORT_DEFAULT);
-    props.setValue(USE_MDNS_OPENSCREEN, options.useMdnsOpenScreen(), USE_MDNS_OPENSCREEN_DEFAULT);
+    props.setValue(USE_LIBUSB, useLibusb);
+    props.setValue(USE_USER_MANAGED_ADB, useUserManagedAdb);
+    props.setValue(USER_MANAGED_ADB_PORT, userManagedAdbPort, USER_MANAGED_ADB_PORT_DEFAULT);
     updateListeners();
   }
 
@@ -116,62 +104,6 @@ public class AdbOptionsService implements Getter<AdbOptionsService> {
   public void removeListener(@NotNull AdbOptionsListener listener) {
     synchronized (LOCK) {
       myListeners.remove(listener);
-    }
-  }
-
-  public static class AdbOptionsUpdater {
-    @NotNull private final AdbOptionsService myService;
-    private boolean myUseLibusb;
-    private boolean myUseUserManagedAdb;
-    private int myUserManagedAdbPort;
-    private boolean myUseMdnsOpenScreen;
-
-    private AdbOptionsUpdater(@NotNull AdbOptionsService service) {
-      myService = service;
-      myUseLibusb = service.shouldUseLibusb();
-      myUseUserManagedAdb = service.shouldUseUserManagedAdb();
-      myUserManagedAdbPort = service.getUserManagedAdbPort();
-      myUseMdnsOpenScreen = service.shouldUseMdnsOpenScreen();
-    }
-
-    public boolean useLibusb() {
-      return myUseLibusb;
-    }
-
-    public AdbOptionsUpdater setUseLibusb(boolean useLibusb) {
-      myUseLibusb = useLibusb;
-      return this;
-    }
-
-    public boolean useUserManagedAdb() {
-      return myUseUserManagedAdb;
-    }
-
-    public AdbOptionsUpdater setUseUserManagedAdb(boolean useUserManagedAdb) {
-      myUseUserManagedAdb = useUserManagedAdb;
-      return this;
-    }
-
-    public int getUserManagedAdbPort() {
-      return myUserManagedAdbPort;
-    }
-
-    public AdbOptionsUpdater setUserManagedAdbPort(int userManagedAdbPort) {
-      myUserManagedAdbPort = userManagedAdbPort;
-      return this;
-    }
-
-    public boolean useMdnsOpenScreen() {
-      return myUseMdnsOpenScreen;
-    }
-
-    public AdbOptionsUpdater setUseMdnsOpenScreen(boolean useMdnsOpenScreen) {
-      myUseMdnsOpenScreen = useMdnsOpenScreen;
-      return this;
-    }
-
-    public void commit() {
-      myService.commitOptions(this);
     }
   }
 }
