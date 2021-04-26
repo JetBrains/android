@@ -60,7 +60,7 @@ data class PreconfiguredDeviceDefinition(
   val estimatedSize: Int // In megabytes
 )
 
-// TODO(qumeric): this class has a lot in common with EmulatorDisplayList.
+// TODO(qumeric): this class has a lot in common with VirtualDisplayList.
 /**
  * A UI component which lists the existing AVDs
  */
