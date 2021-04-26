@@ -2,6 +2,7 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
@@ -24,7 +25,6 @@ import java.awt.event.ActionListener
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JSeparator
 
 private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
@@ -44,7 +44,8 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   private val scrollPane = JBScrollPane()
 
   init {
-    layout = TabularLayout("*", "Fit,Fit,*")
+    layout = TabularLayout("*", "28px,*")
+    border = BorderFactory.createEmptyBorder()
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Work Details")
     instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
@@ -52,9 +53,8 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     val closeButton = CloseButton { tab.isDetailsViewVisible = false }
     headingPanel.add(closeButton, BorderLayout.EAST)
     add(headingPanel, TabularLayout.Constraint(0, 0))
-    add(JSeparator(), TabularLayout.Constraint(1, 0))
-    scrollPane.border = BorderFactory.createEmptyBorder()
-    add(scrollPane, TabularLayout.Constraint(2, 0))
+    scrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
+    add(scrollPane, TabularLayout.Constraint(1, 0))
 
     workSelectionModel.registerWorkSelectionListener { work, _ ->
       if (work != null && tab.isDetailsViewVisible) {
