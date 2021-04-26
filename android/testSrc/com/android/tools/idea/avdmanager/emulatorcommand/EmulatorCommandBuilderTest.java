@@ -140,8 +140,7 @@ public final class EmulatorCommandBuilderTest {
     GeneralCommandLine command = builder.build();
 
     // Assert
-    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -qt-hide-window -grpc-use-token -idle-grpc-timeout 300" +
-                 " -experimental-enable-multidisplay",
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -qt-hide-window -grpc-use-token -idle-grpc-timeout 300",
                  command.getCommandLineString());
   }
 
