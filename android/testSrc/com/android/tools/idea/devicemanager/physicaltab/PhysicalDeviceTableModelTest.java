@@ -17,15 +17,21 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
+import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableModelTest {
@@ -49,6 +55,52 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+  }
+
+  @Test
+  public void addOrSetModelRowIndexEqualsNegativeOne() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(OFFLINE_PIXEL_3));
+    model.addTableModelListener(listener);
+
+    PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
+      .setSerialNumber("0A071FDD4003ZG")
+      .setOnline(true)
+      .build();
+
+    // Act
+    model.addOrSet(onlinePixel5);
+
+    // Assert
+    assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+  }
+
+  @Test
+  public void addOrSetModelRowIndexDoesntEqualNegativeOne() {
+    // Arrange
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
+      .setSerialNumber("0A071FDD4003ZG")
+      .build();
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Arrays.asList(OFFLINE_PIXEL_3, offlinePixel5));
+    model.addTableModelListener(listener);
+
+    PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
+      .setSerialNumber("0A071FDD4003ZG")
+      .setOnline(true)
+      .build();
+
+    // Act
+    model.addOrSet(onlinePixel5);
+
+    // Assert
+    assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
