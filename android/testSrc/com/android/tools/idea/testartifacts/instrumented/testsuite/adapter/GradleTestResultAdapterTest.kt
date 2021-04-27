@@ -267,7 +267,7 @@ class GradleTestResultAdapterTest {
     val logcatFile = tempFolder.newFile("logcat-com.example.test.ExampleTest.testExample.txt")
     val logcatPath = logcatFile.absolutePath
     logcatFile.writeText("test logs")
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+    val adapter = createAdapter().apply {
       onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
         scheduledTestCaseCount = 1
       }.build())
@@ -305,7 +305,7 @@ class GradleTestResultAdapterTest {
   @Test
   fun runTestSuiteWithLogcatFileDoesNotExist() {
     val logcatPath = "path-to-logcat-com.example.test.ExampleTest.testExample.txt"
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+    val adapter = createAdapter().apply {
       onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
         scheduledTestCaseCount = 1
       }.build())
