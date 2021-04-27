@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.LaunchStatus;
+import java.util.List;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,23 +45,25 @@ public class ErrorMatchingReceiver extends AndroidOutputReceiver {
   }
 
   @Override
-  protected void processNewLine(@NotNull String line) {
-    if (!line.isEmpty()) {
-      Matcher failureMatcher = FAILURE.matcher(line);
-      if (failureMatcher.matches()) {
-        failureMessage = failureMatcher.group(1);
+  protected void processNewLines(@NotNull List<String> newLines) {
+    for (String line : newLines) {
+      if (!line.isEmpty()) {
+        Matcher failureMatcher = FAILURE.matcher(line);
+        if (failureMatcher.matches()) {
+          failureMessage = failureMatcher.group(1);
+        }
+        Matcher errorMatcher = TYPED_ERROR.matcher(line);
+        if (errorMatcher.matches()) {
+          errorType = Integer.parseInt(errorMatcher.group(1));
+          failureMessage = line;
+        }
+        else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
+          errorType = UNTYPED_ERROR;
+          failureMessage = line;
+        }
       }
-      Matcher errorMatcher = TYPED_ERROR.matcher(line);
-      if (errorMatcher.matches()) {
-        errorType = Integer.parseInt(errorMatcher.group(1));
-        failureMessage = line;
-      }
-      else if (line.startsWith(ERROR_PREFIX) && errorType == NO_ERROR) {
-        errorType = UNTYPED_ERROR;
-        failureMessage = line;
-      }
+      output.append(line).append('\n');
     }
-    output.append(line).append('\n');
   }
 
   public int getErrorType() {

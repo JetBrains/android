@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -80,7 +80,7 @@ public class AndroidLogcatView {
 
   private final Project myProject;
   final Disposable parentDisposable;
-  private final FormattedLogcatReceiver myLogcatReceiver;
+  private final AndroidLogcatService.LogcatListener myLogcatReceiver;
   private final AndroidLogConsole myLogConsole;
   private final DeviceContext myDeviceContext;
   private final AndroidLogFilterModel myLogFilterModel;
@@ -154,7 +154,7 @@ public class AndroidLogcatView {
 
     myLogFilterModel = new AndroidLogFilterModel(formatter, preferences);
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
-    myLogcatReceiver = new ViewListener(formatter, this);
+    myLogcatReceiver = new ViewListener(this);
 
     Disposer.register(parentDisposable, () -> {
       if (myDevice != null) {

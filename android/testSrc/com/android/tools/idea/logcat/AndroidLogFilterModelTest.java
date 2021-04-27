@@ -17,9 +17,13 @@
 package com.android.tools.idea.logcat;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 
 import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.LogFilterModel;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.regex.Pattern;
 import org.junit.Before;
@@ -37,29 +41,30 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void filterAcceptsCorrectLogcatLine() {
-    LogFilterModel.MyProcessingResult result = myFilterModel.processLine("2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
+  public void processLine_validLine_accepted() {
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(new LogLineBuilder().build());
+
     assertThat(result.isApplicable()).isTrue();
   }
 
   @Test
-  public void filterRejectsIncorrectLogcatLine() {
-    LogFilterModel.MyProcessingResult result = myFilterModel.processLine("--- INVALID LINE ---");
-    assertThat(result.isApplicable()).isFalse();
+  public void processLine_invalidLine_throws() {
+    assertThrows(RuntimeException.class, () ->myFilterModel.processLine("--- INVALID LINE ---"));
   }
 
   @Test
-  public void filterRejectsBelowMinimumLogLevelLine() {
+  public void processLine_bellowLogLevel_rejected() {
     myPreferences.TOOL_WINDOW_LOG_LEVEL = LogLevel.ERROR.getStringValue();
-    LogFilterModel.MyProcessingResult result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
-    assertThat(result.isApplicable()).isFalse();
+
+    assertThat(myFilterModel.processLine(new LogLineBuilder().setLogLevel(LogLevel.ERROR).build()).isApplicable()).isTrue();
+    assertThat(myFilterModel.processLine(new LogLineBuilder().setLogLevel(LogLevel.WARN).build()).isApplicable()).isFalse();
   }
 
   @Test
-  public void filterRejectsOldMessages() {
-    String dateOld = "2018-01-22 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
-    String dateNow = "2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
-    String dateNew = "2018-01-24 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message";
+  public void processLine_oldMessage_rejected() {
+    String dateOld = new LogLineBuilder().setTimestamp("2018-01-22T12:34:56.79Z").build();
+    String dateNow = new LogLineBuilder().setTimestamp("2018-01-23T12:34:56.79Z").build();
+    String dateNew = new LogLineBuilder().setTimestamp("2018-01-24T12:34:56.79Z").build();
 
     myFilterModel.processLine(dateNow);
     myFilterModel.beginRejectingOldMessages();
@@ -72,106 +77,97 @@ public class AndroidLogFilterModelTest {
   }
 
   @Test
-  public void configuredFilterRejectsLinesThatDontMatch() {
+  public void processLine_doesNotMatchFilter_rejected() {
     PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
-    filterData.setLogMessagePattern("Dummy Message");
-    filterData.setLogTagPattern("DummyTag");
-
+    filterData.setLogMessagePattern("Some Message");
+    filterData.setLogTagPattern("SomeTag");
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
+    LogLineBuilder builder = new LogLineBuilder();
 
-    LogFilterModel.MyProcessingResult result = myFilterModel.processLine("2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(builder.setTag("SomeTag").setMessage("Some Message").build());
     assertThat(result.isApplicable()).isTrue();
 
-    result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Invalid Message");
+    result = myFilterModel.processLine(builder.setTag("SomeTag").setMessage("Invalid Message").build());
     assertThat(result.isApplicable()).isFalse();
 
-    result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/InvalidTag: Dummy Message");
+    result = myFilterModel.processLine(builder.setTag("InvalidTag").setMessage("Some Message").build());
     assertThat(result.isApplicable()).isFalse();
   }
 
   @Test
-  public void customPatternRejectsLinesThatDontMatch() {
-    myFilterModel.updateCustomPattern(Pattern.compile("^.+/DummyTag: Dummy Message$"));
+  public void processLine_doesNotMatchCustomPattern_rejected() {
+    myFilterModel.updateCustomPattern(Pattern.compile("^.+/SomeTag: Some Message$"));
+    LogLineBuilder builder = new LogLineBuilder();
 
-    LogFilterModel.MyProcessingResult result = myFilterModel.processLine("2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: Dummy Message");
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(builder.setTag("SomeTag").setMessage("Some Message").build());
     assertThat(result.isApplicable()).isTrue();
 
-    result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/DummyTag: Invalid Message");
+    result = myFilterModel.processLine(builder.setTag("SomeTag").setMessage("Invalid Message").build());
     assertThat(result.isApplicable()).isFalse();
 
-    result = myFilterModel.processLine("01-23 12:34:56.789 1234-5678/? I/InvalidTag: Dummy Message");
+    result = myFilterModel.processLine(builder.setTag("InvalidTag").setMessage("Some Message").build());
     assertThat(result.isApplicable()).isFalse();
   }
 
   @Test
-  public void filterCanMatchAgainstAnyLineInAMultiLineLog() {
+  public void processLine_filterCanMatchAgainstAnyLineInAMultiLineLog() {
     PersistentAndroidLogFilters.FilterData filterData = new PersistentAndroidLogFilters.FilterData();
-
-    String[] lines = "2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n+ line 3".split("\n");
-    LogFilterModel.MyProcessingResult result;
+    String line = new LogLineBuilder().setMessage("line 1\n+ line 2\n+ line 3").build();
 
     // Test multiline log against first line
     filterData.setLogMessagePattern("line 1");
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
-    result = myFilterModel.processLine(lines[0]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEmpty();
-
-    result = myFilterModel.processLine(lines[1]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEmpty();
-
-    result = myFilterModel.processLine(lines[2]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEmpty();
+    assertThat(myFilterModel.processLine(line).isApplicable()).isTrue();
 
     // Test multiline log against second line
     filterData.setLogMessagePattern("line 2");
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
-    result = myFilterModel.processLine(lines[0]);
-    assertThat(result.isApplicable()).isFalse();
-
-    result = myFilterModel.processLine(lines[1]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEqualTo("2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n");
-
-    result = myFilterModel.processLine(lines[2]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEmpty();
+    assertThat(myFilterModel.processLine(line).isApplicable()).isTrue();
 
     // Test multiline log against third line
     filterData.setLogMessagePattern("line 3");
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
-    result = myFilterModel.processLine(lines[0]);
-    assertThat(result.isApplicable()).isFalse();
-
-    result = myFilterModel.processLine(lines[1]);
-    assertThat(result.isApplicable()).isFalse();
-
-    result = myFilterModel.processLine(lines[2]);
-    assertThat(result.isApplicable()).isTrue();
-    assert (result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix()).isEqualTo("2018-01-23 12:34:56.789 1234-5678/? I/DummyTag: line 1\n+ line 2\n");
+    assertThat(myFilterModel.processLine(line).isApplicable()).isTrue();
 
     // Test multiline log against non-existent line
     filterData.setLogMessagePattern("line x");
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
-    result = myFilterModel.processLine(lines[0]);
-    assertThat(result.isApplicable()).isFalse();
+    assertThat(myFilterModel.processLine(line).isApplicable()).isFalse();
+  }
 
-    result = myFilterModel.processLine(lines[1]);
-    assertThat(result.isApplicable()).isFalse();
+  private static class LogLineBuilder {
+    private LogLevel myLogLevel = LogLevel.INFO;
+    private String myTag = "Tag";
+    private String myMessage = "";
+    private Instant myTimestamp = Instant.ofEpochSecond(1534635551);
 
-    result = myFilterModel.processLine(lines[2]);
-    assertThat(result.isApplicable()).isFalse();
+    LogLineBuilder setLogLevel(LogLevel logLevel) {
+      myLogLevel = logLevel;
+      return this;
+    }
+
+    LogLineBuilder setTag(String tag) {
+      myTag = tag;
+      return this;
+    }
+
+    LogLineBuilder setMessage(String message) {
+      myMessage = message;
+      return this;
+    }
+
+    LogLineBuilder setTimestamp(String timestamp) {
+      myTimestamp = Instant.parse(timestamp);
+      return this;
+    }
+
+    String build() {
+      return LogcatJson.toJson(
+        new LogCatMessage(new LogCatHeader(myLogLevel, 99, 99, "?", myTag, myTimestamp), myMessage));
+    }
   }
 }

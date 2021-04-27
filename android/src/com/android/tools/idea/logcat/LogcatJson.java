@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import java.util.regex.Pattern;
+/**
+ * A utility class for converting a {@link LogCatMessage} to and from a Json string.
+ */
+final class LogcatJson {
+  private LogcatJson() {}
 
-interface MessageParser {
-  Pattern PROCESS_ID = Pattern.compile("\\d+");
-  Pattern THREAD_ID = Pattern.compile("\\d+");
-  Pattern PACKAGE = Pattern.compile("\\S+");
-  Pattern PRIORITY = Pattern.compile("[VDIWEAF]");
-  Pattern TAG = Pattern.compile("[^ ]+");
-  Pattern MESSAGE = Pattern.compile(".*");
+  private static final Gson myGson = new Gson();
 
-  @Nullable
-  LogCatMessage tryParse(@NotNull String message);
+  static String toJson(LogCatMessage logCatMessage) {
+    return myGson.toJson(logCatMessage);
+  }
+
+  static LogCatMessage fromJson(String json) {
+    return myGson.fromJson(json, LogCatMessage.class);
+  }
 }

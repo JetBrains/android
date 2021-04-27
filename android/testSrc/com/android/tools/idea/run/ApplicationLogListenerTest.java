@@ -38,9 +38,7 @@ public final class ApplicationLogListenerTest {
     Instant timestamp = Instant.parse("2018-04-03T20:27:49.161Z");
     LogCatHeader header = new LogCatHeader(LogLevel.INFO, 24314, 24314, "com.google.myapplication", "MainActivity", timestamp);
 
-    listener.onLogLineReceived(new LogCatMessage(header, "Line 1"));
-    listener.onLogLineReceived(new LogCatMessage(header, "Line 2"));
-    listener.onLogLineReceived(new LogCatMessage(header, "Line 3"));
+    listener.onLogLineReceived(new LogCatMessage(header, "Line 1\nLine 2\nLine 3"));
 
     Object expected = "I/MainActivity: Line 1\n" +
                       "    Line 2\n" +

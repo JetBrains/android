@@ -17,7 +17,9 @@
 package com.android.tools.idea.run;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.List;
 import org.jetbrains.android.util.AndroidOutputReceiver;
+import org.jetbrains.annotations.NotNull;
 
 public class LoggingReceiver extends AndroidOutputReceiver {
   private final Logger myLogger;
@@ -27,8 +29,10 @@ public class LoggingReceiver extends AndroidOutputReceiver {
   }
 
   @Override
-  public void processNewLine(String line) {
-    myLogger.info(line);
+  protected void processNewLines(@NotNull List<String> newLines) {
+    for (String line : newLines) {
+      myLogger.info(line);
+    }
   }
 
   @Override

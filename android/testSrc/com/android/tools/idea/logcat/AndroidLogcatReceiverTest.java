@@ -16,200 +16,342 @@
 
 package com.android.tools.idea.logcat;
 
+import static com.android.ddmlib.Log.LogLevel.ERROR;
+import static com.android.ddmlib.Log.LogLevel.INFO;
+import static com.android.ddmlib.Log.LogLevel.WARN;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
+import com.google.common.collect.ImmutableMap;
+import java.time.Instant;
+import java.util.Map;
 import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public class AndroidLogcatReceiverTest {
-  private AndroidLogcatService.LogcatListener myLogcatListener;
-  private AndroidLogcatReceiver myReceiver;
+  private static final String LOG_LINE_1 = "Log line 1";
+  private static final String LOG_LINE_2 = "Log line 2";
+  private static final String LOG_LINE_3 = "Log line 3";
+  private static final String TAG_1 = "Tag1";
+  private static final String TAG_2 = "Tag2";
+  private static final int SECONDS_1 = 1534635551;
+  private static final int SECONDS_2 = 1516739696;
+  private static final int MILLISECONDS_1 = 439;
+  private static final int MILLISECONDS_2 = 789;
+  private static final int PID_1 = 1493;
+  private static final int PID_2 = 11698;
+  private static final int PID_UNKNOWN = 99;
+  private static final int TID_1 = 1595;
+  private static final int TID_2 = 231;
+  private static final String APP_NAME_1 = "com.client.name";
+  private static final String APP_NAME_2 = "com.android.chattylogger";
+
+  private final static ImmutableMap<Integer, String> APPS = new ImmutableMap.Builder<Integer, String>()
+    .put(PID_1, APP_NAME_1)
+    .put(PID_2, APP_NAME_2)
+    .build();
+
+  private final TestFormattedLogcatReceiver myLogcatListener = new TestFormattedLogcatReceiver();
+  private final AndroidLogcatReceiver myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogcatListener);
+
+  @Test
+  public void processNewLines_simpleLogEntry() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_unknownPid_appIsQuestionMark() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_UNKNOWN, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_UNKNOWN, TID_1, "?", TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_multiLine() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      LOG_LINE_2,
+      LOG_LINE_3,
+      "",
+      formatLogHeader(SECONDS_2, MILLISECONDS_2, PID_2, String.valueOf(TID_2), ERROR, TAG_2),
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        String.join("\n", LOG_LINE_1, LOG_LINE_2, LOG_LINE_3)),
+      new LogCatMessage(
+        new LogCatHeader(ERROR, PID_2, TID_2, APP_NAME_2, TAG_2, Instant.ofEpochSecond(SECONDS_2, MILLISECONDS.toNanos(MILLISECONDS_2))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_embeddedEmptyLines() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+      LOG_LINE_2,
+      "",
+      "",
+      LOG_LINE_3,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        String.join("\n", LOG_LINE_1, "", LOG_LINE_2, "", "", LOG_LINE_3)));
+  }
+
+  @Test
+  public void processNewLines_trimOuterEmptyLines() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      "",
+      "",
+      "",
+      LOG_LINE_1,
+      "",
+      "",
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_withHexTid() {
+    String hexTid = "0x1ef";
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, hexTid, WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(
+          WARN, PID_1,
+          Integer.parseInt(hexTid.substring(2), 16),
+          APP_NAME_1,
+          TAG_1,
+          Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_allLogLevels() {
+    for (LogLevel logLevel : LogLevel.values()) {
+      myReceiver.processNewLines(new String[]{
+        formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), logLevel, TAG_1),
+        LOG_LINE_1,
+        "",
+      });
+
+      assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+        new LogCatMessage(
+          new LogCatHeader(
+            logLevel,
+            PID_1,
+            TID_1,
+            APP_NAME_1,
+            TAG_1,
+            Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+          LOG_LINE_1));
+      myLogcatListener.onCleared();
+    }
+  }
+
+  @Test
+  public void processNewLines_ignoreLinesBeforeFirstHeader() {
+    myReceiver.processNewLines(new String[]{
+      "ignore this line",
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_twoBatches_messagesAligned() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_2, MILLISECONDS_2, PID_2, String.valueOf(TID_2), INFO, TAG_2),
+      LOG_LINE_2,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1),
+      new LogCatMessage(
+        new LogCatHeader(INFO, PID_2, TID_2, APP_NAME_2, TAG_2, Instant.ofEpochSecond(SECONDS_2, MILLISECONDS.toNanos(MILLISECONDS_2))),
+        LOG_LINE_2)
+    );
+  }
+
+  @Test
+  public void processNewLines_twoBatches_messagesSplitOnHeader() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+    });
+
+    myReceiver.processNewLines(new String[]{
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1));
+  }
+
+  @Test
+  public void processNewLines_twoBatches_messagesSplitBetweenLines() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+    });
+
+    myReceiver.processNewLines(new String[]{
+      LOG_LINE_2,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        String.join("\n", LOG_LINE_1, LOG_LINE_2)));
+  }
+
+  @Test
+  public void processNewLines_twoBatches_messagesSplitBeforeEmptyLine() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      LOG_LINE_2,
+    });
+
+    myReceiver.processNewLines(new String[]{
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        String.join("\n", LOG_LINE_1, LOG_LINE_2)));
+  }
+
+  /**
+   * This is a compromise on a very rare use case where a user logs an empty line (already rare) and that line falls
+   * exactly at the end of a batch. This forces us to log the partial message assuming it's done only to find later
+   * on that there's more lines.
+   */
+  @Test
+  public void processNewLines_twoBatches_messagesWithEmptyLine() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      LOG_LINE_1,
+      "",
+    });
+
+    myReceiver.processNewLines(new String[]{
+      LOG_LINE_2,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1),
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_2)
+    );
+  }
+
+  /**
+   * If the first line of a split message is empty, we can assume it's a user emmited line.
+   */
+  @Test
+  public void processNewLines_twoBatches_messagesWithFirstLineEmpty() {
+    myReceiver.processNewLines(new String[]{
+      formatLogHeader(SECONDS_1, MILLISECONDS_1, PID_1, String.valueOf(TID_1), WARN, TAG_1),
+      "",
+    });
+
+    myReceiver.processNewLines(new String[]{
+      LOG_LINE_1,
+      "",
+    });
+
+    assertThat(myLogcatListener.getLogCatMessages()).containsExactly(
+      new LogCatMessage(
+        new LogCatHeader(WARN, PID_1, TID_1, APP_NAME_1, TAG_1, Instant.ofEpochSecond(SECONDS_1, MILLISECONDS.toNanos(MILLISECONDS_1))),
+        LOG_LINE_1)
+    );
+  }
+
+  // TODO(aalbert): Add a test for stack trace with "... n more"
+
+  /**
+   * Create a header as generated by logcat -v long,epoch. For example:
+   * <p>
+   * [ 1534635551.439 1493:1595 W/EDMNativeHelper     ]
+   */
+  private static String formatLogHeader(int seconds, int milliseconds, int pid, String tid, LogLevel level, String tag) {
+    return String.format("[ %d.%d %d:%s %s/%-20s]", seconds, milliseconds, pid, tid, level.getPriorityLetter(), tag);
+  }
 
   /**
    * Helper method that creates a mock device.
    */
-  static IDevice createMockDevice() {
+  private static IDevice createMockDevice() {
     IDevice d = EasyMock.createMock(IDevice.class);
-    EasyMock.expect(d.getClientName(1493)).andStubReturn("dummy.client.name");
-    EasyMock.expect(d.getClientName(11698)).andStubReturn("com.android.chattylogger");
+    for (Map.Entry<Integer, String> entry : APPS.entrySet()) {
+      EasyMock.expect(d.getClientName(entry.getKey())).andStubReturn(entry.getValue());
+    }
     EasyMock.expect(d.getClientName(EasyMock.anyInt())).andStubReturn("?");
     EasyMock.replay(d);
     return d;
-  }
-
-  @Before
-  public void setUp() {
-    myLogcatListener = new TestFormattedLogcatReceiver();
-    myReceiver = new AndroidLogcatReceiver(createMockDevice(), myLogcatListener);
-  }
-
-  @Test
-  public void processNewLineStripsCarriageReturns() {
-    myReceiver.processNewLine("\r");
-
-    assertThat(myReceiver.getDelayedNewlineCount()).isEqualTo(1);
-    assertThat(myLogcatListener.toString()).isEqualTo("");
-  }
-
-  @Test
-  public void processNewLineWorksOnSimpleLogEntry() {
-    // the following line is sample output from 'logcat -v long'
-    myReceiver.processNewLine("[ 1534635551.439 1493:1595 W/EDMNativeHelper     ]");
-    assertThat("").isEqualTo(myLogcatListener.toString()); // Nothing written until message is received
-
-    myReceiver.processNewLine("EDMNativeHelperService is published");
-    String expected = "2018-08-18 16:39:11.439 1493-1595/dummy.client.name W/EDMNativeHelper: EDMNativeHelperService is published\n";
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
-  }
-
-  @Test
-  public void processNewLineUsesQuestionMarkForUnknownClientIds() {
-    myReceiver.processNewLine("[ 1516739696.789 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("Dummy Message");
-
-    String expected = "2018-01-23 12:34:56.789 99-99/? V/UnknownClient: Dummy Message\n";
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
-  }
-
-  @Test
-  public void processNewLineHandlesMultilineLogs() {
-    myReceiver.processNewLine("[ 1516739696.789 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("Line 1");
-    myReceiver.processNewLine("Line 2");
-    myReceiver.processNewLine("Line 3");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("[ 1516741200.000 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("Line 1");
-
-    String expected = "2018-01-23 12:34:56.789 99-99/? V/UnknownClient: Line 1\n" +
-                      "+ Line 2\n" +
-                      "+ Line 3\n" +
-                      "2018-01-23 13:00:00.000 99-99/? V/UnknownClient: Line 1\n";
-
-
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
-  }
-
-  @Test
-  public void processNewLineHandlesUserNewlines() {
-    // Logcat output for "1: {\n}"
-    myReceiver.processNewLine("[ 1516739696.789 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("1: {");
-    myReceiver.processNewLine("}");
-    myReceiver.processNewLine("");
-    // Logcat output for "2: {\n\n}"
-    myReceiver.processNewLine("[ 1516739696.790 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("2: {");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("}");
-    myReceiver.processNewLine("");
-    // Logcat output for "3: {\n\n\n}"
-    myReceiver.processNewLine("[ 1516739696.791 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("3: {");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("}");
-    myReceiver.processNewLine("");
-    // Logcat output for "\n\nleading-trimmed"
-    myReceiver.processNewLine("[ 1516739696.792 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("leading-trimmed");
-    myReceiver.processNewLine("");
-    // Logcat output for "trailing-trimmed: {\n\n"
-    myReceiver.processNewLine("[ 1516739696.793 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("trailing-trimmed: {");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("");
-    myReceiver.processNewLine("");
-    // Logcat output for "spaces: { \n \n \n }"
-    myReceiver.processNewLine("[ 1516739696.794 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("spaces: { ");
-    myReceiver.processNewLine(" ");
-    myReceiver.processNewLine(" ");
-    myReceiver.processNewLine(" }");
-    myReceiver.processNewLine("");
-
-    // One final entry so any remaining newlines are processed
-    myReceiver.processNewLine("[ 1516739696.795 99:99 V/UnknownClient     ]");
-    myReceiver.processNewLine("normal log entry");
-
-    String expected = "2018-01-23 12:34:56.789 99-99/? V/UnknownClient: 1: {\n" +
-                      "+ }\n" +
-                      "2018-01-23 12:34:56.790 99-99/? V/UnknownClient: 2: {\n" +
-                      "+ \n" +
-                      "+ }\n" +
-                      "2018-01-23 12:34:56.791 99-99/? V/UnknownClient: 3: {\n" +
-                      "+ \n" +
-                      "+ \n" +
-                      "+ }\n" +
-                      "2018-01-23 12:34:56.792 99-99/? V/UnknownClient: leading-trimmed\n" +
-                      "2018-01-23 12:34:56.793 99-99/? V/UnknownClient: trailing-trimmed: {\n" +
-                      "2018-01-23 12:34:56.794 99-99/? V/UnknownClient: spaces: { \n" +
-                      "+  \n" +
-                      "+  \n" +
-                      "+  }\n" +
-                      "2018-01-23 12:34:56.795 99-99/? V/UnknownClient: normal log entry\n";
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
-  }
-
-  @Test
-  public void processNewLineHandlesException() {
-    myReceiver.processNewLine("[ 1534643988.771 11698:11811 E/AndroidRuntime ]");
-
-    myReceiver.processNewLine("FATAL EXCEPTION: Timer-0");
-    myReceiver.processNewLine("Process: com.android.chattylogger, PID: 11698");
-    myReceiver.processNewLine("java.lang.RuntimeException: Bad response");
-    myReceiver.processNewLine("       at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)");
-    myReceiver.processNewLine("       at java.util.Timer$TimerImpl.run(Timer.java:284)");
-
-
-    String expected = "2018-08-18 18:59:48.771 11698-11811/com.android.chattylogger E/AndroidRuntime: FATAL EXCEPTION: Timer-0\n" +
-                      "+ Process: com.android.chattylogger, PID: 11698\n" +
-                      "+ java.lang.RuntimeException: Bad response\n" +
-                      "+     at com.android.chattylogger.MainActivity$1.run(MainActivity.java:64)\n" +
-                      "+     at java.util.Timer$TimerImpl.run(Timer.java:284)\n";
-
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
-  }
-
-  @Test
-  public void testParseAllLogLevelsAndHexThreadIds() {
-    String[] messages = new String[]{
-      "[ 1534039867.132   495:0x1ef D/dtag     ]",
-      "debug message",
-      "[ 1534039867.132   495:  234 E/etag     ]",
-      "error message",
-      "[ 1534039867.132   495:0x1ef I/itag     ]",
-      "info message",
-      "[ 1534039867.132   495:0x1ef V/vtag     ]",
-      "verbose message",
-      "[ 1534039867.132   495:0x1ef W/wtag     ]",
-      "warning message",
-      "[ 1534039867.132   495:0x1ef F/wtftag   ]",
-      "wtf message",
-      "[ 1534047335.754   540:0x21c D/debug tag    ]",
-      "debug message",
-      "[ 1534047335.754   540:0x21c I/tag:with:colons ]",
-      "message:with:colons",
-    };
-
-    for (String message : messages) {
-      myReceiver.processNewLine(message);
-    }
-
-    String expected = "2018-08-11 19:11:07.132 495-495/? D/dtag: debug message\n" +
-                      "2018-08-11 19:11:07.132 495-234/? E/etag: error message\n" +
-                      "2018-08-11 19:11:07.132 495-495/? I/itag: info message\n" +
-                      "2018-08-11 19:11:07.132 495-495/? V/vtag: verbose message\n" +
-                      "2018-08-11 19:11:07.132 495-495/? W/wtag: warning message\n" +
-                      "2018-08-11 19:11:07.132 495-495/? A/wtftag: wtf message\n" +
-                      // NOTE: "debug tag" uses a special-case "no break" space character
-                      "2018-08-11 21:15:35.754 540-540/? D/debug tag: debug message\n" +
-                      "2018-08-11 21:15:35.754 540-540/? I/tag:with:colons: message:with:colons\n";
-
-    assertThat(myLogcatListener.toString()).isEqualTo(expected);
   }
 }

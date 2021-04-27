@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatUtils;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A logcat listener base class used by the run and debug console windows
  */
 public abstract class ApplicationLogListener implements AndroidLogcatService.LogcatListener {
-  @Nullable private LogCatHeader myActiveHeader;
   @NotNull private final String myPackageName;
   private final int myPid;
 
@@ -40,21 +36,10 @@ public abstract class ApplicationLogListener implements AndroidLogcatService.Log
   @Override
   public void onLogLineReceived(@NotNull LogCatMessage line) {
     if (!myPackageName.equals(line.getHeader().getAppName()) || myPid != line.getHeader().getPid()) {
-      myActiveHeader = null;
       return;
     }
 
-    String message;
-    if (!line.getHeader().equals(myActiveHeader)) {
-      myActiveHeader = line.getHeader();
-      message = formatLogLine(line);
-    }
-    else {
-      message = AndroidLogcatFormatter.CONTINUATION_INDENT + line.getMessage();
-    }
-
-    Key key = AndroidLogcatUtils.getProcessOutputType(myActiveHeader.getLogLevel());
-    notifyTextAvailable(message + "\n", key);
+    notifyTextAvailable(formatLogLine(line) + "\n", AndroidLogcatUtils.getProcessOutputType(line.getHeader().getLogLevel()));
   }
 
   protected abstract String formatLogLine(@NotNull LogCatMessage line);

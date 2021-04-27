@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.ddmlib.logcat.LogCatMessage;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.ZoneId;
+final class TestFormattedLogcatReceiver implements AndroidLogcatService.LogcatListener {
+  private final List<LogCatMessage> myLogCatMessages = new ArrayList<>();
 
-final class TestFormattedLogcatReceiver extends FormattedLogcatReceiver {
-  private final StringBuilder myBuilder;
-
-  TestFormattedLogcatReceiver() {
-    super(new AndroidLogcatFormatter(ZoneId.of("America/Los_Angeles"), new AndroidLogcatPreferences()));
-    myBuilder = new StringBuilder();
+  @Override
+  public void onLogLineReceived(@NotNull LogCatMessage line) {
+    myLogCatMessages.add(line);
   }
 
   @Override
-  void receiveFormattedLogLine(@NotNull String line) {
-    myBuilder
-      .append(line)
-      .append('\n');
+  public void onCleared() {
+    myLogCatMessages.clear();
   }
 
-  @NotNull
-  @Override
-  public String toString() {
-    return myBuilder.toString();
+  public List<LogCatMessage> getLogCatMessages() {
+    return myLogCatMessages;
   }
 }

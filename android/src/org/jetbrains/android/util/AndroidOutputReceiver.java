@@ -17,6 +17,8 @@
 package org.jetbrains.android.util;
 
 import com.android.ddmlib.MultiLineReceiver;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidOutputReceiver extends MultiLineReceiver {
@@ -29,18 +31,19 @@ public abstract class AndroidOutputReceiver extends MultiLineReceiver {
   }
 
   @Override
-  public void processNewLines(String[] lines) {
+  public final void processNewLines(String @NotNull [] lines) {
     if (myTryAgain) {
       return;
     }
-
+    List<String> newLines = new ArrayList<>();
     for (String line : lines) {
-      processNewLine(line);
+      newLines.add(line);
       if (line.contains(BAD_ACCESS_ERROR)) {
         myTryAgain = true;
         break;
       }
     }
+    processNewLines(newLines);
   }
 
   public boolean isTryAgain() {
@@ -51,5 +54,5 @@ public abstract class AndroidOutputReceiver extends MultiLineReceiver {
     myTryAgain = false;
   }
 
-  protected abstract void processNewLine(@NotNull String line);
+  protected abstract void processNewLines(@NotNull List<String> newLines);
 }

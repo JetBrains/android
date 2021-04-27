@@ -25,15 +25,13 @@ import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.diagnostic.logging.LogFilterModel;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A filter which plugs into {@link LogConsoleBase} for custom logcat filtering.
@@ -42,14 +40,6 @@ import java.util.regex.Pattern;
 final class AndroidLogFilterModel extends LogFilterModel {
 
   private final List<LogFilterListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-
-  /**
-   * LogCat messages can span multiple lines, and sometimes you won't get a filter match until
-   * you're a couple lines down. Therefore, we keep track of the part of the messages that came
-   * before the current line and, if we get a match a few lines down, we include the previous part
-   * as a prefix.
-   */
-  private final StringBuilder myMessageSoFar = new StringBuilder();
 
   @Nullable private LogCatHeader myPrevHeader;
   @Nullable private LogCatHeader myRejectBeforeHeader;
@@ -61,14 +51,12 @@ final class AndroidLogFilterModel extends LogFilterModel {
    * This is normally set by the Android Monitor search bar.
    */
   @Nullable private Pattern myCustomPattern;
-  private boolean myCustomApplicable = false; // True if myCustomPattern matches this message
-  private boolean myConfiguredApplicable = false;  // True if the active filter matches this message
 
   @Nullable private AndroidLogcatFilter myConfiguredFilter;
 
   @NotNull private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
-  @NotNull private final AndroidLogcatFormatter myFormatter;
   @NotNull private final AndroidLogcatPreferences myPreferences;
+  @NotNull private final AndroidLogcatFormatter myFormatter;
 
   AndroidLogFilterModel(@NotNull AndroidLogcatFormatter formatter, @NotNull AndroidLogcatPreferences preferences) {
     ImmutableList.Builder<AndroidLogLevelFilter> builder = ImmutableList.builder();
@@ -76,8 +64,8 @@ final class AndroidLogFilterModel extends LogFilterModel {
       builder.add(new AndroidLogLevelFilter(logLevel));
     }
     myLogLevelFilters = builder.build();
-    myFormatter = formatter;
     myPreferences = preferences;
+    myFormatter = formatter;
   }
 
   // Implemented because it is abstract in the parent, but the functionality is no longer used.
@@ -146,25 +134,34 @@ final class AndroidLogFilterModel extends LogFilterModel {
   }
 
   @Override
-  public final boolean isApplicable(String line) {
-    // Not calling the super class version, it does not do what we want with regular expression matching
-    if (myCustomPattern != null && !myCustomPattern.matcher(line).find()) return false;
-    final LogFilter selectedLogLevelFilter = getSelectedLogLevelFilter();
-    return selectedLogLevelFilter == null || selectedLogLevelFilter.isAcceptable(line);
+  public final boolean isApplicable(@Nullable String line) {
+    // Probably not used. We use isApplicable(LogCatMessage) ourselves and it looks like LogConsoleBase doesn't use this.
+    // Just in case, parse the json and evaluate.
+    if (line == null) {
+      return false;
+    }
+    return isApplicable(LogcatJson.fromJson(line));
+  }
+
+  private boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
+    if (myCustomPattern != null && !myCustomPattern.matcher(myFormatter.formatMessage(logCatMessage)).find()) {
+      return false;
+    }
+    final AndroidLogLevelFilter selectedLogLevelFilter = getSelectedLogLevelFilter();
+    return selectedLogLevelFilter == null || selectedLogLevelFilter.isAcceptable(logCatMessage);
   }
 
 
   // Checks if the log message (with header stripped) matches the active filter, if set. Note that
   // this should ONLY be called if myPrevHeader was already set (which is how the filter will test
   // against header information).
-  private boolean isApplicableByConfiguredFilter(@NotNull String message) {
+  private boolean isApplicableByConfiguredFilter(@NotNull LogCatMessage logCatMessage) {
     if (myConfiguredFilter == null) {
       return true;
     }
-
-    assert myPrevHeader != null; // We never call this method unless we already parsed a header
+    LogCatHeader header = logCatMessage.getHeader();
     return myConfiguredFilter
-      .isApplicable(message, myPrevHeader.getTag(), myPrevHeader.getAppName(), myPrevHeader.getPid(), myPrevHeader.getLogLevel());
+      .isApplicable(logCatMessage.getMessage(), header.getTag(), header.getAppName(), header.getPid(), header.getLogLevel());
   }
 
   @Override
@@ -172,7 +169,7 @@ final class AndroidLogFilterModel extends LogFilterModel {
     return myLogLevelFilters;
   }
 
-  private final class AndroidLogLevelFilter extends LogFilter {
+  private static final class AndroidLogLevelFilter extends LogFilter {
     final Log.LogLevel myLogLevel;
 
     private AndroidLogLevelFilter(Log.LogLevel logLevel) {
@@ -181,13 +178,22 @@ final class AndroidLogFilterModel extends LogFilterModel {
     }
 
     @Override
-    public boolean isAcceptable(String line) {
-      return myPrevHeader != null && myPrevHeader.getLogLevel().getPriority() >= myLogLevel.getPriority();
+    public boolean isAcceptable(@Nullable String line) {
+      // Probably not used. We expose these Log Filters to LogConsoleBase through getLogFilters but it looks like it uses them only for
+      // presenting the combo box. Just in case, we'll parse the json and evaluate.
+      if (line == null) {
+        return false;
+      }
+      return isAcceptable(LogcatJson.fromJson(line));
+    }
+
+    public boolean isAcceptable(@NotNull LogCatMessage logCatMessage) {
+      return logCatMessage.getHeader().getLogLevel().getPriority() >= myLogLevel.getPriority();
     }
   }
 
   @Nullable
-  private LogFilter getSelectedLogLevelFilter() {
+  private AndroidLogLevelFilter getSelectedLogLevelFilter() {
     final String filterName = myPreferences.TOOL_WINDOW_LOG_LEVEL;
     if (filterName != null) {
       for (AndroidLogLevelFilter logFilter : myLogLevelFilters) {
@@ -218,53 +224,28 @@ final class AndroidLogFilterModel extends LogFilterModel {
 
   @Override
   public void processingStarted() {
-    myPrevHeader = null;
     myRejectBeforeHeader = null;
-    myCustomApplicable = false;
-    myConfiguredApplicable = false;
-    myMessageSoFar.setLength(0);
   }
 
   @Override
   @NotNull
   public final MyProcessingResult processLine(String line) {
-    LogCatMessage message = myFormatter.tryParseMessage(line);
-    String continuation = (message == null) ? AndroidLogcatFormatter.tryParseContinuation(line) : null;
-
-    boolean validContinuation = continuation != null && myPrevHeader != null;
-    if (message == null && !validContinuation) {
+    LogCatMessage logCatMessage = LogcatJson.fromJson(line);
+    if (logCatMessage == null) {
+      // This line did not come from a logcat
       return new MyProcessingResult(ProcessOutputTypes.STDOUT, false, null);
     }
+    LogCatHeader header = logCatMessage.getHeader();
+    myPrevHeader = header;
 
-    if (message != null) {
-      myPrevHeader = message.getHeader();
-      myCustomApplicable = isApplicable(line);
-      myConfiguredApplicable = isApplicableByConfiguredFilter(message.getMessage());
-      myMessageSoFar.setLength(0);
-    }
-    else {
-      myCustomApplicable = myCustomApplicable || isApplicable(continuation);
-      myConfiguredApplicable = myConfiguredApplicable || isApplicableByConfiguredFilter(continuation);
-    }
-
-    boolean isApplicable = myCustomApplicable && myConfiguredApplicable;
-    if (isApplicable && myRejectBeforeHeader != null) {
-      isApplicable = !myPrevHeader.getTimestamp().isBefore(myRejectBeforeHeader.getTimestamp());
-    }
-
-    if (!isApplicable) {
-      // Even if this message isn't applicable right now, store it in case it becomes so later
-      myMessageSoFar.append(line);
-      myMessageSoFar.append('\n');
-    }
-
-    Key key = AndroidLogcatUtils.getProcessOutputType(myPrevHeader.getLogLevel());
-    MyProcessingResult result = new MyProcessingResult(key, isApplicable, myMessageSoFar.toString());
-
+    boolean isApplicable = isApplicable(logCatMessage) && isApplicableByConfiguredFilter(logCatMessage);
     if (isApplicable) {
-      myMessageSoFar.setLength(0); // Don't need anymore, already added as a prefix at this point
+      LogCatHeader rejectBeforeHeader = myRejectBeforeHeader;
+      if (rejectBeforeHeader != null) {
+        isApplicable = !header.getTimestamp().isBefore(myRejectBeforeHeader.getTimestamp());
+      }
     }
 
-    return result;
+    return new MyProcessingResult(AndroidLogcatUtils.getProcessOutputType(header.getLogLevel()), isApplicable, null);
   }
 }
