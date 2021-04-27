@@ -113,7 +113,7 @@ PROJECT                       : MainActivity
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
             JavaSource                    : file://<PROJECT>/app/build/generated/source/kaptKotlin/release
             JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/releaseUnitTest
@@ -416,7 +416,7 @@ PROJECT                       : MainActivity
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]

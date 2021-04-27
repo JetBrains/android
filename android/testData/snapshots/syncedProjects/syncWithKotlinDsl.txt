@@ -92,7 +92,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.4
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
             JavaSource                    : file://<PROJECT>/app/src/main/kotlin
             JavaResource                  : file://<PROJECT>/app/src/main/res
@@ -560,7 +560,7 @@ PROJECT                       : testSyncWithKotlinDsl
                 languageVersion               : 1.4
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/lib
             JavaSource                    : file://<PROJECT>/lib/src/main/kotlin
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]

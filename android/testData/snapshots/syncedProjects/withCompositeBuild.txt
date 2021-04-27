@@ -116,7 +116,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/app/src/main/java
@@ -625,7 +625,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
             JavaSource                    : file://<PROJECT>/TestCompositeLib1/lib/src/main/java
@@ -1137,7 +1137,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
             JavaSource (test)             : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/TestCompositeLib3/app/src/main/java
@@ -2134,7 +2134,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/app/src/main/java
@@ -2644,7 +2644,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             Platform                      : JVM (JVM_1_6)
             UseProjectSettings            : false
-            Version                       : 3
+            Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/lib
             JavaSource (test)             : file://<PROJECT>/lib/src/androidTest/java
             JavaSource                    : file://<PROJECT>/lib/src/main/java
