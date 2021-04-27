@@ -39,6 +39,7 @@ import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
@@ -48,12 +49,12 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 
-
 @RunWith(JUnit4::class)
 class GradleTestResultAdapterTest {
 
   @get:Rule val projectRule = ProjectRule()
   @get:Rule val mockitoJUnitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+  @get:Rule val tempFolder: TemporaryFolder = TemporaryFolder()
 
   @Mock private lateinit var mockDevice1: IDevice
   @Mock private lateinit var mockListener: AndroidTestResultListener
@@ -258,6 +259,84 @@ class GradleTestResultAdapterTest {
 
     verify(mockListener).onTestSuiteFinished(eq(adapter.device), argThat {
       it.id.isNotBlank() && it.name == "testName" && it.testCaseCount == 1 && it.result == AndroidTestSuiteResult.FAILED
+    })
+  }
+
+  @Test
+  fun runTestSuiteWithLogcat() {
+    val logcatFile = tempFolder.newFile("logcat-com.example.test.ExampleTest.testExample.txt")
+    val logcatPath = logcatFile.absolutePath
+    logcatFile.writeText("test logs")
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+        scheduledTestCaseCount = 1
+      }.build())
+      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }.build())
+      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+        testCaseBuilder.apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        testStatus = TestStatusProto.TestStatus.PASSED
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = "logcat"
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = logcatPath
+          }.build()
+        })
+      }.build())
+    }
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+      && it.logcat == "test logs"
+    })
+  }
+
+  @Test
+  fun runTestSuiteWithLogcatFileDoesNotExist() {
+    val logcatPath = "path-to-logcat-com.example.test.ExampleTest.testExample.txt"
+    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+        scheduledTestCaseCount = 1
+      }.build())
+      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }.build())
+      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+        testCaseBuilder.apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        testStatus = TestStatusProto.TestStatus.PASSED
+        addOutputArtifact(TestArtifactProto.Artifact.newBuilder().apply {
+          label = LabelProto.Label.newBuilder().apply {
+            namespace = "android"
+            label = "logcat"
+          }.build()
+          sourcePath = PathProto.Path.newBuilder().apply {
+            path = logcatPath
+          }.build()
+        })
+      }.build())
+    }
+
+    verify(mockListener).onTestCaseFinished(eq(adapter.device), any(), argThat {
+      it.packageName == "com.example.test" && it.className == "ExampleTest" &&
+      it.methodName == "testExample" && it.result == AndroidTestCaseResult.PASSED
+      && it.logcat == ""
     })
   }
 
