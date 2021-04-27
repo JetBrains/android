@@ -242,7 +242,7 @@ class ExportToFileDialogViewImpl(
       DatabaseInspectorBundle.message(
         "export.dialog.file.already.exists.overwrite.prompt",
         file.fileName.toString(), file.parent.toString()),
-      DatabaseInspectorBundle.message("export.dialog.title"),
+      DatabaseInspectorBundle.message("export.dialog.file.already.exists.overwrite.title"),
       CommonBundle.message("button.overwrite"),
       CommonBundle.message("button.cancel"),
       Messages.getWarningIcon())
