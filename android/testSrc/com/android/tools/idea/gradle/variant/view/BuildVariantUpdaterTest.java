@@ -231,8 +231,7 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
       );
 
       assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
-      // TODO(b/184824343): Re-enable when fixed.
-      //  assertThat(mySelectionChangeCounter).isEqualTo(1);
+      assertThat(mySelectionChangeCounter).isEqualTo(1);
     }
   }
 
@@ -535,8 +534,7 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   }
 
   private void assertChangeHappened() {
-    // TODO(b/184824343): Re-enable when fixed.
-    //  assertThat(mySelectionChangeCounter).isEqualTo(1);
+    assertThat(mySelectionChangeCounter).isEqualTo(1);
     assertThat(getProjectSystem(getProject()).getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
   }
 }

@@ -21,8 +21,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 object AndroidGradleProjectResolverKeys {
   @JvmField
   val MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI: Key<String> = Key.create("module.with.build.variant.switched.from.ui")
-  @JvmField
-  val USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS: Key<Boolean> = Key.create("use.variants.from.previous.gradle.syncs")
+
   @JvmField
   val REFRESH_EXTERNAL_NATIVE_MODELS_KEY: Key<Boolean> = Key.create("refresh.external.native.models")
 
