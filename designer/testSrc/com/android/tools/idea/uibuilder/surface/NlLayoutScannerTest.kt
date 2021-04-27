@@ -63,6 +63,13 @@ class NlLayoutScannerTest {
   }
 
   @Test
+  fun testEnsureObtainCharacterLocationsOn() {
+    createScanner()
+
+    assertTrue(LayoutValidator.obtainCharacterLocations())
+  }
+
+  @Test
   fun issuePanelExpanded() {
     val scanner = createScanner()
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
