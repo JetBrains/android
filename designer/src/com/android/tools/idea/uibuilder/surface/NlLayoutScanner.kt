@@ -91,6 +91,10 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   init {
     Disposer.register(parent, this)
     surface.issuePanel.addEventListener(issuePanelListener)
+
+    // Enable retrieving text character locations from TextView to improve the
+    // accuracy of TextContrastCheck in ATF
+    LayoutValidator.setObtainCharacterLocations(true)
   }
 
   override fun pause() {
