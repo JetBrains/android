@@ -72,7 +72,6 @@ abstract class MavenClassRegistryBase {
       "androidx.paging:paging-rxjava2" -> "androidx.paging:paging-rxjava2-ktx"
       "androidx.palette:palette" -> "androidx.palette:palette-ktx"
       "androidx.preference:preference" -> "androidx.preference:preference-ktx"
-      "androidx.room:room" -> "androidx.room:room-ktx"
       "androidx.slice:slice-builders" -> "androidx.slice:slice-builders-ktx"
       "androidx.sqlite:sqlite" -> "androidx.sqlite:sqlite-ktx"
       "androidx.work:work-runtime" -> "androidx.work:work-runtime-ktx"
