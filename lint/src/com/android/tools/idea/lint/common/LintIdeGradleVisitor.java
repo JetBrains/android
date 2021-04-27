@@ -166,6 +166,15 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
                     String property = propertyRef.getReferenceName();
                     if (property != null) {
+                      GrExpression qualifierExpression = propertyRef.getQualifierExpression();
+                      if (qualifierExpression instanceof GrReferenceExpression) {
+                        GrReferenceExpression qualifierRef = (GrReferenceExpression)qualifierExpression;
+                        String qualifier = qualifierRef.getReferenceName();
+                        if (qualifier != null) {
+                          parentParentName = parentName;
+                          parentName = qualifier;
+                        }
+                      }
                       GrExpression rValue = assignment.getRValue();
                       if (rValue != null) {
                         String value = rValue.getText();
