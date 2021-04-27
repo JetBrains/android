@@ -10,9 +10,6 @@ Package 'android' is not found
 Package 'android.os' is not found
 Package 'android.view' is not found
 
-// Referenced by fir (which is currently unused).
-Package 'org.jetbrains.kotlin.ir.interpreter' is not found
-
 // Referenced from PlainTextMessageRenderer, which already handles UnsatisfiedLinkError gracefully.
 Package 'org.fusesource' is not found
 
@@ -30,3 +27,5 @@ Package 'org.jetbrains.kotlin.javac' is not found
 // We do not bundle the Maven plugin (and Kotlin's dependency on Maven is optional).
 Package 'org.jetbrains.idea.maven.plugins' is not found
 Package 'org.jetbrains.idea.maven.project' is not found
+
+Package 'org.jetbrains.kotlin.fir.lightTree' is not found

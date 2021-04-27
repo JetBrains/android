@@ -17,7 +17,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-compiler-plugins-sam-with-receiver.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-compiler-plugins-scripting.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-core.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-coroutines-experimental-compat.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-eval4j.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-formatter.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-frontend-independent.jar!/" />
@@ -48,6 +47,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-project-wizard-idea.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-reflect.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-repl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-resources-descriptors.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-script-runtime.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-script-util.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-203/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlin-scripting-common.jar!/" />
