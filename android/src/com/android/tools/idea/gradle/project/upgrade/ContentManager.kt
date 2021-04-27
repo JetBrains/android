@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -198,6 +199,7 @@ class ToolWindowModel(
         if (newVersion >= current) AgpUpgradeRefactoringProcessor(project, current, it) else null
       }
     }
+    processor?.usageView?.close()
     processor = newProcessor
 
     if (newProcessor == null) {
@@ -291,6 +293,7 @@ class ToolWindowModel(
     }
     else {
       DumbService.getInstance(processor.project).smartInvokeLater {
+        processor.usageView?.close()
         processor.setPreviewUsages(showPreview)
         processor.run()
       }
@@ -364,7 +367,10 @@ class ContentManager(val project: Project) {
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
-    content.setDisposer(model.connection)
+    content.setDisposer {
+      model.processor?.usageView?.close()
+      Disposer.dispose(model.connection)
+    }
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
