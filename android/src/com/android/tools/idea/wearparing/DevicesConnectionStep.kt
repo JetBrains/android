@@ -26,11 +26,13 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
@@ -50,6 +52,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.commons.lang.time.StopWatch
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
@@ -79,6 +82,7 @@ private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
 private const val PATH_PLAY_SCREEN = "/wearPairing/screens/playStore.png"
 private const val PATH_PAIR_SCREEN = "/wearPairing/screens/wearPair.png"
 
+private val LOG get() = logger<WearPairingManager>()
 
 class DevicesConnectionStep(model: WearDevicePairingModel,
                             val project: Project,
@@ -114,14 +118,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         killNonSelectedRunningWearEmulators()
       }
 
-      val wearPairingDevice = model.selectedWearDevice.value
-      val wearDevice = wearPairingDevice.launchDeviceIfNeeded()
-      val phonePairingDevice = model.selectedPhoneDevice.value
-      val phoneDevice = phonePairingDevice.launchDeviceIfNeeded()
+      val wearDevice = model.selectedWearDevice.launchDeviceIfNeeded()
+      val phoneDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
 
+      LOG.warn("Devices are online")
       prepareErrorListener()
       if (showFirstStage) {
-        showFirstPhase(phonePairingDevice, phoneDevice, wearPairingDevice, wearDevice)
+        showFirstPhase(model.selectedPhoneDevice.value, phoneDevice, model.selectedWearDevice.value, wearDevice)
       }
       else {
         showPairingPhase(phoneDevice, wearDevice)
@@ -190,19 +193,27 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
   }
 
-  private suspend fun PairingDevice.launchDeviceIfNeeded(): IDevice {
-    val futureDevice = launch(project)
-    if (!futureDevice.isDone) {
-      showUiLaunchingDevice(displayName)
-    }
-
+  private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice {
     try {
+      val futureDevice = value.launch(project)
+      if (!futureDevice.isDone) {
+        showUiLaunchingDevice(value.displayName)
+      }
+
       val iDevice = futureDevice.await()
-      launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
+      value.launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
+
+      // Wait for device to be reported Online
+      withTimeoutOrNull(5_000) {
+        while (!value.isOnline()) {
+          delay(200)
+        }
+      }
+
       return iDevice
     }
     catch (ex: Throwable) {
-      showDeviceError(this)
+      showDeviceError(value)
       throw RuntimeException(ex)
     }
   }
