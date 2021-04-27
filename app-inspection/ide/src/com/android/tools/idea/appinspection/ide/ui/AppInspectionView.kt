@@ -69,7 +69,6 @@ import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.HierarchyEvent.SHOWING_CHANGED
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 
@@ -128,6 +127,8 @@ class AppInspectionView @VisibleForTesting constructor(
   val processesModel: ProcessesModel
 
   private val selectProcessAction: SelectProcessAction
+
+  private lateinit var lastSelectedTabName: String
 
   /**
    * If enabled, this view will respond to new processes by connecting inspectors to them.
@@ -380,22 +381,37 @@ class AppInspectionView @VisibleForTesting constructor(
     }
   }
 
-
   private fun fireTabsChangedListener() {
     tabsChangedListener?.invoke()
+  }
+
+  private fun createInspectorTabsPane(): CommonTabbedPane {
+    // Active inspectors are sorted to the front, so make sure one of them gets default focus
+    // Use same text colors for both active and inactive tabs, which is consistent with AS components.
+    val inspectorTabsPane = CommonTabbedPane(CommonTabbedPaneUI(CommonTabbedPaneUI.TEXT_COLOR, CommonTabbedPaneUI.TEXT_COLOR))
+    inspectorTabs.forEach { tab -> tab.addTo(inspectorTabsPane) }
+    // Set the selected tab to the previous tab that was selected if possible. Otherwise, default to the first one.
+    inspectorTabsPane.selectedIndex = if (inspectorTabs.size > 0 && this::lastSelectedTabName.isInitialized) {
+      inspectorTabs.indexOfFirst { it.provider.displayName == lastSelectedTabName }.takeIf { it >= 0 } ?: 0
+    }
+    else 0
+    // Add after selection has been set to avoid setting off the listener prematurely.
+    inspectorTabsPane.addChangeListener { event ->
+      if (currentProcess?.isRunning == true) {
+        (event.source as? CommonTabbedPane)?.let { tabbedPane ->
+          if (tabbedPane.selectedIndex >= 0) {
+            lastSelectedTabName = tabbedPane.getTitleAt(tabbedPane.selectedIndex)
+          }
+        }
+      }
+    }
+    return inspectorTabsPane
   }
 
   @UiThread
   private fun updateUi() {
     inspectorPanel.removeAll()
-
-    // Active inspectors are sorted to the front, so make sure one of them gets default focus
-    // Use same text colors for both active and inactive tabs, which is consistent AS components.
-    val inspectorTabsPane = CommonTabbedPane(CommonTabbedPaneUI(CommonTabbedPaneUI.TEXT_COLOR, CommonTabbedPaneUI.TEXT_COLOR))
-    inspectorTabs.forEach { tab -> tab.addTo(inspectorTabsPane) }
-    inspectorTabsPane.selectedIndex = if (inspectorTabs.size > 0) 0 else -1
-
-    val inspectorComponent: JComponent = if (inspectorTabs.size > 0) inspectorTabsPane else noInspectorsMessage
+    val inspectorComponent = if (inspectorTabs.size > 0) createInspectorTabsPane() else noInspectorsMessage
     inspectorPanel.add(inspectorComponent)
     inspectorPanel.repaint()
   }

@@ -26,7 +26,6 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
@@ -43,7 +42,6 @@ import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 /**
  * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
@@ -124,11 +122,7 @@ internal class DefaultAppInspectionTarget(
     )
     val event = transport.executeCommand(appInspectionCommand, eventQuery)
     if (event.appInspectionResponse.createInspectorResponse.status == AppInspection.CreateInspectorResponse.Status.SUCCESS) {
-      val connection = AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
-      scope.launch {
-        connection.awaitForDisposal()
-      }
-      return connection
+      return AppInspectorConnection(transport, params.inspectorId, event.timestamp, scope.createChildScope(false))
     }
     else {
       throw event.appInspectionResponse.getException(params.inspectorId)
