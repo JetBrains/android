@@ -44,7 +44,7 @@ public abstract class Device {
 
   protected abstract @NotNull Icon getIcon();
 
-  final @NotNull String getName() {
+  public final @NotNull String getName() {
     return myName;
   }
 
