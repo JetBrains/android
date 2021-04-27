@@ -29,16 +29,13 @@ internal class LiveLiteralsServiceTest {
   lateinit var file1: PsiFile
   lateinit var file2: PsiFile
 
-  private var isAvailable = false
-
   private fun getTestLiveLiteralsService(): LiveLiteralsService =
-    LiveLiteralsService.getInstanceForTest(project, rootDisposable).also {
-      it.addAvailabilityListener(rootDisposable) { available -> isAvailable = available }
-    }
+    LiveLiteralsService.getInstanceForTest(project, rootDisposable)
 
   @Before
   fun setup() {
     StudioFlags.COMPOSE_LIVE_LITERALS.override(true)
+    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
 
@@ -77,12 +74,12 @@ internal class LiveLiteralsServiceTest {
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    assertFalse(isAvailable)
+    assertFalse(liveLiteralsService.isAvailable)
     ApplicationManager.getApplication().invokeAndWait {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    assertTrue(isAvailable)
+    assertTrue(liveLiteralsService.isAvailable)
     assertEquals(9, liveLiteralsService.allConstants().size)
   }
 
@@ -90,12 +87,12 @@ internal class LiveLiteralsServiceTest {
   fun `check that constants are registered after a new editor is opened`() {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    assertFalse(isAvailable)
+    assertFalse(liveLiteralsService.isAvailable)
     ApplicationManager.getApplication().invokeAndWait {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    assertTrue(isAvailable)
+    assertTrue(liveLiteralsService.isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     assertEquals(9, liveLiteralsService.allConstants().size)
@@ -145,13 +142,13 @@ internal class LiveLiteralsServiceTest {
       changeListenerCalls++
     }
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    assertFalse(isAvailable)
+    assertFalse(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
     ApplicationManager.getApplication().invokeAndWait {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
-    assertTrue(isAvailable)
+    assertTrue(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
@@ -160,7 +157,40 @@ internal class LiveLiteralsServiceTest {
       // We run it and wait to ensure this has executed before the next assert
       liveLiteralsService.liveLiteralsMonitorStopped("TestDevice")
     }
-    assertFalse(isAvailable)
+    assertFalse(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
+  }
+
+  @Test
+  fun `listener is only called when live literals are enabled`() {
+    var changeListenerCalls = 0
+    val liveLiteralsService = getTestLiveLiteralsService()
+    assertTrue(liveLiteralsService.isEnabled)
+    val latch = CountDownLatch(1)
+    liveLiteralsService.addOnLiteralsChangedListener(projectRule.fixture.testRootDisposable) {
+      changeListenerCalls++
+      latch.countDown()
+    }
+    ApplicationManager.getApplication().invokeAndWait {
+      // We run it and wait to ensure this has executed before the next assert
+      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
+    }
+    assertTrue(liveLiteralsService.isAvailable)
+    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+
+    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
+    assertFalse(liveLiteralsService.isAvailable)
+    assertEquals(0, changeListenerCalls)
+    projectRule.fixture.editor.executeAndSave {
+      replaceText("999", "555")
+    }
+
+    LiveLiteralsApplicationConfiguration.getInstance().isEnabled = true
+    projectRule.fixture.editor.executeAndSave {
+      replaceText("555", "333")
+    }
+    // Wait for the modification to be notified
+    latch.await(5, TimeUnit.SECONDS)
+    assertEquals(1, changeListenerCalls)
   }
 }
