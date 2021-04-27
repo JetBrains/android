@@ -1,0 +1,11 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion=19
+    buildToolsVersion = "19.0.0"
+
+    defaultConfig.minSdkVersion<error descr="Do not use assignment with the minSdkVersion property (remove the '=')"> = </error>7
+    defaultConfig.targetSdkVersion<error descr="Do not use assignment with the targetSdkVersion property (remove the '=')">=</error>19
+    defaultConfig.versionCode = 1
+    defaultConfig.versionName "1.0"
+}

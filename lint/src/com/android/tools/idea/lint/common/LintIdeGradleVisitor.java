@@ -89,6 +89,29 @@ public class LintIdeGradleVisitor extends GradleVisitor {
     return result;
   }
 
+  private static List<String> getReferenceExpressionNames(GrReferenceExpression referenceExpression) {
+    ArrayList<String> result = new ArrayList<>(3);
+    // We need at most three strings: the property name and two parent qualifiers (for parent and parentParent in GradleDetector calls).
+    if (referenceExpression.getReferenceName() != null) {
+      result.add(referenceExpression.getReferenceName());
+      if (referenceExpression.isQualified() && referenceExpression.getQualifierExpression() instanceof GrReferenceExpression) {
+        GrReferenceExpression qualifierReferenceExpression = (GrReferenceExpression)referenceExpression.getQualifierExpression();
+        if (qualifierReferenceExpression.getReferenceName() != null) {
+          result.add(qualifierReferenceExpression.getReferenceName());
+          if (qualifierReferenceExpression.isQualified() &&
+              qualifierReferenceExpression.getQualifierExpression() instanceof GrReferenceExpression) {
+            GrReferenceExpression qualifierQualifierReferenceExpression =
+              (GrReferenceExpression)qualifierReferenceExpression.getQualifierExpression();
+            if (qualifierQualifierReferenceExpression.getReferenceName() != null) {
+              result.add(qualifierQualifierReferenceExpression.getReferenceName());
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   private static void extractMethodCallArguments(GrMethodCall methodCall, List<String> unnamed, Map<String, String> named) {
     GrArgumentList argumentList = methodCall.getArgumentList();
     for (GroovyPsiElement groovyPsiElement : argumentList.getAllArguments()) {
@@ -123,12 +146,8 @@ public class LintIdeGradleVisitor extends GradleVisitor {
         groovyFile.accept(new GroovyRecursiveElementVisitor() {
           @Override
           public void visitClosure(@NotNull GrClosableBlock closure) {
-            String parentName = null;
-            String parentParentName = null;
-            List<String> parentNames = getClosureNames(closure);
-            if (parentNames.size() > 0) parentName = parentNames.get(0);
-            if (parentNames.size() > 1) parentParentName = parentNames.get(1);
-            if (parentName != null) {
+            List<String> closureNames = getClosureNames(closure);
+            if (closureNames.size() != 0) {
               for (PsiElement element : closure.getChildren()) {
                 if (element instanceof GrApplicationStatement) {
                   GrApplicationStatement call = (GrApplicationStatement)element;
@@ -136,9 +155,13 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                   GrCommandArgumentList argumentList = call.getArgumentList();
                   if (propertyExpression instanceof GrReferenceExpression) {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
-                    String property = propertyRef.getReferenceName();
+                    List<String> names = getReferenceExpressionNames(propertyRef);
+                    names.addAll(closureNames);
+                    String property = names.get(0);
+                    String parentName = names.size() > 1 ? names.get(1) : null;
+                    String parentParentName = names.size() > 2 ? names.get(2) : null;
                     //noinspection ConstantConditions
-                    if (property != null && argumentList != null) {
+                    if (property != null && parentName != null && argumentList != null) {
                       String value = argumentList.getText();
                       for (GradleScanner detector : detectors) {
                         detector
@@ -153,8 +176,12 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                   GrExpression lValue = assignment.getInvokedExpression();
                   if (lValue instanceof GrReferenceExpression) {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
-                    String property = propertyRef.getReferenceName();
-                    if (property != null) {
+                    List<String> names = getReferenceExpressionNames(propertyRef);
+                    names.addAll(closureNames);
+                    String property = names.get(0);
+                    String parentName = names.size() > 1 ? names.get(1) : null;
+                    String parentParentName = names.size() > 2 ? names.get(2) : null;
+                    if (property != null && parentName != null) {
                       GrExpression[] list = assignment.getArgumentList().getExpressionArguments();
                       if (list.length == 1) {
                         GrExpression rValue = list[0];
@@ -183,17 +210,12 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                   GrExpression lValue = assignment.getLValue();
                   if (lValue instanceof GrReferenceExpression) {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
-                    String property = propertyRef.getReferenceName();
-                    if (property != null) {
-                      GrExpression qualifierExpression = propertyRef.getQualifierExpression();
-                      if (qualifierExpression instanceof GrReferenceExpression) {
-                        GrReferenceExpression qualifierRef = (GrReferenceExpression)qualifierExpression;
-                        String qualifier = qualifierRef.getReferenceName();
-                        if (qualifier != null) {
-                          parentParentName = parentName;
-                          parentName = qualifier;
-                        }
-                      }
+                    List<String> names = getReferenceExpressionNames(propertyRef);
+                    names.addAll(closureNames);
+                    String property = names.get(0);
+                    String parentName = names.size() > 1 ? names.get(1) : null;
+                    String parentParentName = names.size() > 2 ? names.get(2) : null;
+                    if (property != null && parentName != null) {
                       GrExpression rValue = assignment.getRValue();
                       if (rValue != null) {
                         String value = rValue.getText();
@@ -231,36 +253,32 @@ public class LintIdeGradleVisitor extends GradleVisitor {
           @Override
           public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
-            String parentName = null;
-            String parentParentName = null;
             List<String> parentNames = block != null ? getClosureNames(block) : new ArrayList<>(0);
-            if (parentNames.size() > 0) parentName = parentNames.get(0);
-            if (parentNames.size() > 1) parentParentName = parentNames.get(1);
             String statementName = applicationStatement.getInvokedExpression().getText();
             Map<String, String> namedArguments = Maps.newHashMap();
             List<String> unnamedArguments = Lists.newArrayList();
             extractMethodCallArguments(applicationStatement, unnamedArguments, namedArguments);
-            if (parentName == null && unnamedArguments.size() == 1 && namedArguments.isEmpty()) {
+            if (parentNames.size() == 0 && unnamedArguments.size() == 1 && namedArguments.isEmpty()) {
               // This might be a top-level application statement for Dsl property assignment with embedded hierarchy
               GrExpression invokedExpression = applicationStatement.getInvokedExpression();
               if (invokedExpression instanceof GrReferenceExpression) {
                 GrReferenceExpression referenceExpression = (GrReferenceExpression) invokedExpression;
-                GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
-                String qualifierName = "";
-                if (qualifierExpression != null) {
-                  qualifierName = qualifierExpression.getText();
-                }
-                String name = referenceExpression.getReferenceName();
+                List<String> names = getReferenceExpressionNames(referenceExpression);
+                String name = names.size() > 0 ? names.get(0) : null;
+                String parentName = names.size() > 1 ? names.get(1) : ""; // empty-string parent convention for top-level properties
+                String parentParentName = names.size() > 2 ? names.get(2) : null;
                 if (name != null) {
                   String value = unnamedArguments.get(0);
                   GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
                   for (GradleScanner detector : detectors) {
-                    detector.checkDslPropertyAssignment(context, name, value, qualifierName, null,
+                    detector.checkDslPropertyAssignment(context, name, value, parentName, parentParentName,
                                                         invokedExpression, argumentList, applicationStatement);
                   }
                 }
               }
             }
+            String parentName = parentNames.size() > 0 ? parentNames.get(0) : null;
+            String parentParentName = parentNames.size() > 1 ? parentNames.get(1) : null;
             for (GradleScanner detector : detectors) {
               detector.checkMethodCall(context, statementName, parentName, parentParentName, namedArguments, unnamedArguments,
                                        applicationStatement);
@@ -276,18 +294,16 @@ public class LintIdeGradleVisitor extends GradleVisitor {
               GrExpression lvalue = expression.getLValue();
               if (lvalue instanceof GrReferenceExpression) {
                 GrReferenceExpression lvalueRef = (GrReferenceExpression) lvalue;
-                GrExpression qualifierExpression = lvalueRef.getQualifierExpression();
-                String qualifierName = "";
-                if (qualifierExpression != null) {
-                  qualifierName = qualifierExpression.getText();
-                }
-                String name = lvalueRef.getReferenceName();
+                List<String> names = getReferenceExpressionNames(lvalueRef);
+                String name = names.size() > 0 ? names.get(0) : null;
+                String parentName = names.size() > 1 ? names.get(1) : ""; // empty-string parent convention for top-level properties
+                String parentParentName = names.size() > 2 ? names.get(2) : null;
                 GrExpression rvalue = expression.getRValue();
-                if (rvalue != null) {
+                if (name != null && rvalue != null) {
                   String value = rvalue.getText();
                   for (GradleScanner detector : detectors) {
-                    detector.checkDslPropertyAssignment(context, name, value, qualifierName,
-                                                        null, lvalue, rvalue, expression);
+                    detector.checkDslPropertyAssignment(context, name, value, parentName,
+                                                        parentParentName, lvalue, rvalue, expression);
                   }
                 }
               }
