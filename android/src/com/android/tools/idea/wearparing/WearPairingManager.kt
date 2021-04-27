@@ -176,9 +176,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private fun getConnectedDevices(): Map<String, IDevice> {
     val connectedDevices = AndroidDebugBridge.getBridge()?.devices ?: return emptyMap()
     return connectedDevices
-      .filter { it.arePropertiesSet() } // Ignore un-populated data devices (still loading properties)
-      .map { it.getDeviceID() to it }
-      .toMap()
+      .filter { it.isEmulator || it.arePropertiesSet() } // Ignore un-populated physical devices (still loading properties)
+      .associateBy { it.getDeviceID() }
   }
 
   private suspend fun updateForwardState(onlineDevices: Map<String, IDevice>) {
@@ -240,22 +239,36 @@ suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
 }
 
 private suspend fun killGmsCore(device: IDevice) {
-  LOG.warn("[${device.name}] Killing Wear OS Process")
-  runCatching { device.executeShellCommand("am force-stop $GMS_PACKAGE") }
+  runCatching {
+    val uptimeRes = device.runShellCommand("cat /proc/uptime")
+    val uptime = uptimeRes.split(' ').firstOrNull()?.toDoubleOrNull() ?: 0.0
+    // Killing gmsCore during cold boot will hang booting for a while, so skip it
+    if (uptime > 120.0) {
+      LOG.warn("[${device.name}] Killing Google Play Services/gmsCore")
+      device.executeShellCommand("am force-stop $GMS_PACKAGE")
+    }
+    else {
+      LOG.warn("[${device.name}] Skip killing Google Play Services/gmsCore (uptime = $uptime)")
+    }
+  }
 }
 
 private suspend fun restartGmsCore(device: IDevice) {
   killGmsCore(device)
 
-  LOG.warn("[${device.name}] Wait for Wear OS process re-start")
-  withTimeoutOrNull(30_000) {
+  LOG.warn("[${device.name}] Wait for Google Play Services/gmsCore re-start")
+  val res = withTimeoutOrNull(30_000) {
     while (device.loadNodeID().isEmpty()) {
       // Restart in case it doesn't restart automatically
       device.executeShellCommand("am broadcast -a $GMS_PACKAGE.INITIALIZE")
       delay(1_000)
     }
+    true
   }
-  LOG.warn("[${device.name}] Wear OS Process started")
+  when (res) {
+    true -> LOG.warn("[${device.name}] Google Play Services/gmsCore started")
+    else -> LOG.warn("[${device.name}] Google Play Services/gmsCore never started")
+  }
 }
 
 private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevice: PairingDevice?): PairingDevice {
