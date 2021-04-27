@@ -33,6 +33,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -52,19 +53,40 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 public class LintIdeGradleVisitor extends GradleVisitor {
-  @Nullable
-  private static String getClosureName(@NonNull GrClosableBlock closure) {
+  private static List<String> getClosureNames(@NonNull GrClosableBlock closure) {
+    ArrayList<String> result = new ArrayList<>(2);
     if (closure.getParent() instanceof GrMethodCall) {
       GrMethodCall parent = (GrMethodCall)closure.getParent();
       if (parent.getInvokedExpression() instanceof GrReferenceExpression) {
         GrReferenceExpression invokedExpression = (GrReferenceExpression)(parent.getInvokedExpression());
-        if (invokedExpression.getDotToken() == null) {
-          return invokedExpression.getReferenceName();
+        if (invokedExpression.getReferenceName() != null) {
+          result.add(invokedExpression.getReferenceName());
+          if (invokedExpression.isQualified()) {
+            GrExpression qualifierExpression = invokedExpression.getQualifierExpression();
+            if (qualifierExpression instanceof GrReferenceExpression) {
+              GrReferenceExpression qualifierReferenceExpression = (GrReferenceExpression)qualifierExpression;
+              if (qualifierReferenceExpression.getReferenceName() != null) {
+                result.add(qualifierReferenceExpression.getReferenceName());
+              }
+            }
+          }
+          else {
+            GrClosableBlock parentClosableBlock = PsiTreeUtil.getParentOfType(closure, GrClosableBlock.class, true);
+            if (parentClosableBlock != null && parentClosableBlock.getParent() instanceof GrMethodCall) {
+              GrMethodCall parent2 = (GrMethodCall)parentClosableBlock.getParent();
+              if (parent2.getInvokedExpression() instanceof GrReferenceExpression) {
+                GrReferenceExpression parent2InvokedExpression = (GrReferenceExpression)(parent2.getInvokedExpression());
+                if (parent2InvokedExpression.getReferenceName() != null) {
+                  result.add(parent2InvokedExpression.getReferenceName());
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    return null;
+    return result;
   }
 
   private static void extractMethodCallArguments(GrMethodCall methodCall, List<String> unnamed, Map<String, String> named) {
@@ -101,14 +123,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
         groovyFile.accept(new GroovyRecursiveElementVisitor() {
           @Override
           public void visitClosure(@NotNull GrClosableBlock closure) {
-            String parentName = getClosureName(closure);
+            String parentName = null;
             String parentParentName = null;
-            if (parentName != null) {
-              GrClosableBlock block = PsiTreeUtil.getParentOfType(closure, GrClosableBlock.class, true);
-              if (block != null) {
-                parentParentName = getClosureName(block);
-              }
-            }
+            List<String> parentNames = getClosureNames(closure);
+            if (parentNames.size() > 0) parentName = parentNames.get(0);
+            if (parentNames.size() > 1) parentParentName = parentNames.get(1);
             if (parentName != null) {
               for (PsiElement element : closure.getChildren()) {
                 if (element instanceof GrApplicationStatement) {
@@ -212,12 +231,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
           @Override
           public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
-            String parentName = block != null ? getClosureName(block) : null;
+            String parentName = null;
             String parentParentName = null;
-            if (parentName != null) {
-              GrClosableBlock outerBlock = PsiTreeUtil.getParentOfType(block, GrClosableBlock.class, true);
-              parentParentName = outerBlock != null ? getClosureName(outerBlock) : null;
-            }
+            List<String> parentNames = block != null ? getClosureNames(block) : new ArrayList<>(0);
+            if (parentNames.size() > 0) parentName = parentNames.get(0);
+            if (parentNames.size() > 1) parentParentName = parentNames.get(1);
             String statementName = applicationStatement.getInvokedExpression().getText();
             Map<String, String> namedArguments = Maps.newHashMap();
             List<String> unnamedArguments = Lists.newArrayList();
