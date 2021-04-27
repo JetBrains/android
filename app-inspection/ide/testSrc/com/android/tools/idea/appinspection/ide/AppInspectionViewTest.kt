@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -1035,6 +1036,42 @@ class AppInspectionViewTest {
 
       assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[2].pid)
       assertThat(inspectionView.currentProcess!!.isRunning).isTrue()
+    }
+  }
+
+  @Test
+  fun remembersLastActiveTab() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
+                        appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    timer.currentTimeNs += 1
+
+    inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
+      when (i) {
+        0 -> {
+          val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
+          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
+          inspectionView.inspectorTabs.forEach { it.waitForContent() }
+          inspectorTabsPane.selectedIndex = 1
+          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
+          transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+          timer.currentTimeNs += 1
+        }
+        1 -> {
+          transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+        }
+        2 -> assertThat((inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex).isEqualTo(1)
+      }
     }
   }
 }

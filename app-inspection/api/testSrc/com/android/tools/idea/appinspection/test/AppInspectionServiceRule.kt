@@ -87,6 +87,7 @@ class AppInspectionServiceRule(
           .setPid(command.pid)
           .setKind(Common.Event.Kind.AGENT)
           .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
+          .setTimestamp(timer.currentTimeNs)
           .build()
       )
     }
