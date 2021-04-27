@@ -86,6 +86,10 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
       }
     }
 
+    override fun canBePerformed(context: DataContext): Boolean {
+      return client.getAllTags().isNotEmpty()
+    }
+
     public override fun updateActions(context: DataContext): Boolean {
       removeAll()
       add(FilterWithTagToggleAction(null))
