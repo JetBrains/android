@@ -177,14 +177,8 @@ fun NlComponent.ensureLiveId(): String {
 
 @AndroidCoordinate
 fun NlComponent.getBaseline(): Int {
-  try {
-    val viewObject = viewInfo?.viewObject ?: return -1
-    return viewObject.javaClass.getMethod("getBaseline").invoke(viewObject) as Int
-  }
-  catch (ignore: Throwable) {
-  }
-
-  return -1
+  val baseline = viewInfo?.baseLine ?: return -1
+  return if (baseline == Integer.MIN_VALUE) -1 else baseline
 }
 
 private fun fixDefault(value: Int): Int {
