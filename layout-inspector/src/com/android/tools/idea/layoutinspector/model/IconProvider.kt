@@ -40,8 +40,12 @@ object IconProvider {
   fun getIconForView(qualifiedName: String, isCompose: Boolean): Icon =
     if (isCompose) getIconForComposeViewNode(qualifiedName) else getIconForViewNode(qualifiedName)
 
-  private fun getIconForViewNode(viewName: String): Icon =
-    AndroidDomElementDescriptorProvider.getIconForViewTag(viewName.substringAfterLast('.')) ?: UNKNOWN_VIEW
+  private fun getIconForViewNode(viewName: String): Icon {
+    // Remove "AppCompat" and "Material" prefixes from the simple tag name such that we get
+    // e.g. the ImageView icon for an AppCompatImageIcon etc.
+    val simpleName = viewName.substringAfterLast('.').removePrefix("AppCompat").removePrefix("Material")
+    return AndroidDomElementDescriptorProvider.getIconForViewTag(simpleName) ?: UNKNOWN_VIEW
+  }
 
   private fun getIconForComposeViewNode(nodeName: String): Icon = when (nodeName) {
     "AppBar" -> APP_BAR_LAYOUT

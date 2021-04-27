@@ -162,12 +162,20 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   @NotNull
   private static Map<String, Icon> getInitialViewTagName2IconMap() {
     final HashMap<String, Icon> map = new HashMap<>();
+    map.put("ActionMenuView", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
+    map.put("ContentFrameLayout", StudioIcons.LayoutEditor.Palette.FRAME_LAYOUT);
+    map.put("FitWindowsLinearLayout", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
+    map.put("FragmentContainerView", StudioIcons.LayoutEditor.Palette.FRAME_LAYOUT);
+    map.put("ImageFilterButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON);
+    map.put("ImageFilterView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW);
     // The default icon for LinearLayout is horizontal version.
     map.put("LinearLayout", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
-    map.put("MotionLayout", StudioIcons.LayoutEditor.Motion.MOTION_LAYOUT);
-    map.put("ImageFilterView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW);
-    map.put("ImageFilterButton", StudioIcons.LayoutEditor.Palette.IMAGE_BUTTON);
     map.put("MockView", StudioIcons.LayoutEditor.Palette.PLACEHOLDER);
+    map.put("MotionLayout", StudioIcons.LayoutEditor.Motion.MOTION_LAYOUT);
+    map.put("RecyclerViewImpl", StudioIcons.LayoutEditor.Palette.RECYCLER_VIEW);
+    map.put("SlidingTabIndicator", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
+    map.put("ViewPager2", StudioIcons.LayoutEditor.Palette.VIEW_PAGER);
+    map.put("ViewStubCompat", StudioIcons.LayoutEditor.Palette.VIEW_STUB);
 
     return map;
   }
