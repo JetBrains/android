@@ -58,6 +58,7 @@ import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
+import com.intellij.util.SystemProperties.getUserHome
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
@@ -275,7 +276,7 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     }
 
   private fun createDestinationPath(params: ExportDialogParams, format: ExportFormat) =
-    Path.of("/foo/bar/baz", "exported-file.${expectedFileExtension(format, params)}").toFile().canonicalFile.toPath()
+    Path.of(getUserHome(), "exported-file.${expectedFileExtension(format, params)}").toFile().canonicalFile.toPath()
 
   private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
 }

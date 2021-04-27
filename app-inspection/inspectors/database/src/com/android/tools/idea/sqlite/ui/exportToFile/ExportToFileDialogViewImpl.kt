@@ -33,8 +33,6 @@ import com.android.tools.idea.sqlite.model.ExportRequest.ExportDatabaseRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportQueryResultsRequest
 import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
-import com.google.common.base.Strings
-import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent
 import com.intellij.CommonBundle
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -45,12 +43,13 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.io.exists
+import com.intellij.util.io.isDirectory
 import java.io.File
 import java.nio.file.Path
+import java.nio.file.Paths
 import javax.swing.ButtonGroup
 import javax.swing.JComponent
 import javax.swing.JRadioButton
@@ -149,11 +148,20 @@ class ExportToFileDialogViewImpl(
     val dialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(
       FileSaverDescriptor("Save as...", "", selectedFormatExtension()), contentPanel
     )
-    val pathSuggestion = saveLocationTextField.text.let { current ->
-      if (current.isBlank()) null else LocalFileSystem.getInstance().findFileByPath(current)
+
+    val pathSuggestion = createSuggestedPath()
+    val parent: Path? = when {
+      pathSuggestion == null -> IOUtils.getDefaultBaseDir()
+      pathSuggestion.isDirectory() -> pathSuggestion
+      else -> pathSuggestion.parent
     }
-    val file = dialog.save(pathSuggestion?.parent, pathSuggestion?.name)
-    file?.let { saveLocationTextField.text = it.file.absolutePath }
+    val fileName: String = when {
+      pathSuggestion == null || pathSuggestion.isDirectory() -> createFileName()
+      else -> pathSuggestion.fileName.toString()
+    }
+
+    val selectedFile = dialog.save(parent, fileName)
+    selectedFile?.let { saveLocationTextField.text = it.file.absolutePath }
     this@ExportToFileDialogViewImpl.toFront()
   }
 
@@ -177,10 +185,21 @@ class ExportToFileDialogViewImpl(
     delimiterComboBox.isEnabled = enabled
   }
 
+  private fun parseSaveLocation(): Path? = IOUtils.pathFromText(saveLocationTextField.text)
+
   private fun createSuggestedPath(): Path? {
-    val baseDir = IdeFileUtils.getDesktopDirectory() ?: VfsUtil.getUserHomeDir()?.toNioPath() ?: return null
+    /** check if anything is already in [saveLocationTextField] **/
+    parseSaveLocation()?.let { return it }
+
+    // try to find a sensible path to suggest
+    val baseDir = IOUtils.getDefaultBaseDir() ?: return null
+    val fileName = createFileName()
+    return baseDir.resolve(fileName)
+  }
+
+  private fun createFileName(): String {
     val databaseName = params.srcDatabase.name
-    val fileName = FileUtil.sanitizeFileName(
+    val baseFileName = FileUtil.sanitizeFileName(
       when (params) {
         is ExportDatabaseDialogParams -> databaseName
         is ExportTableDialogParams -> "$databaseName-${params.srcTable}"
@@ -188,14 +207,24 @@ class ExportToFileDialogViewImpl(
       }, false)
     val extension = selectedFormatExtension()
     val extensionPart = if (extension.isBlank()) "" else ".$extension"
-    return baseDir.resolve("$fileName$extensionPart")
+    return "$baseFileName$extensionPart"
   }
 
   private fun updateDestinationExtension() {
+    if (saveLocationTextField.text.isBlank()) return
+
     val currentPath = File(saveLocationTextField.text)
-    val parentDir = currentPath.parentFile
-    val newPath = parentDir.resolve("${currentPath.nameWithoutExtension}.${selectedFormatExtension()}")
-    saveLocationTextField.text = newPath.absolutePath
+    val fileName = currentPath.name
+    val fileNameNoExt = currentPath.nameWithoutExtension
+
+    val newExtension = selectedFormatExtension()
+    val newFileName = "$fileNameNoExt.$newExtension"
+
+    val currentPathStr = currentPath.toString()
+    val fileNameLocation = currentPathStr.lastIndexOf(fileName)
+    val newPath = currentPathStr.substring(0, fileNameLocation) + newFileName
+
+    saveLocationTextField.text = newPath
   }
 
   /** Returns a file extension appropriate for the selected format */
@@ -219,11 +248,11 @@ class ExportToFileDialogViewImpl(
   /** Combines selected options into an [ExportRequest] formed of all information needed for an export operation */
   private fun createExportRequest(): ExportRequest? {
     // gather params
-    val dstPath: Path = File(saveLocationTextField.text).toPath()
+    val dstPath: Path? = parseSaveLocation()
     val format = selectedFormat()
 
     // validate params
-    if (Strings.isNullOrEmpty(dstPath.toString()) || !showConfirmOverwriteDialog(project, dstPath)) return null
+    if (dstPath == null || !IOUtils.isValidPath(dstPath) || !showConfirmOverwriteDialog(project, dstPath)) return null
 
     // return as ExportInstructions
     return when (params) {
@@ -282,4 +311,38 @@ class ExportToFileDialogViewImpl(
       SQL -> "SQL"
       is CSV -> "CSV"
     }
+}
+
+// TODO(161081452): move to a more suitable location
+/** Provides functions to parse, validate, and resolve paths used in the [ExportToFileDialogViewImpl] code. */
+private object IOUtils {
+  fun pathFromText(text: String): Path? {
+    if (text.isBlank()) return null
+
+    return try {
+      val rawPath = Paths.get(text)
+      resolveHomeDir(rawPath)
+    }
+    catch (ignored: Exception) {
+      null // invalid path in the text field
+    }
+  }
+
+  fun isValidPath(path: Path?): Boolean {
+    if (path == null) return false
+    val parent = path.parent
+    return parent != null && parent.exists()
+  }
+
+  /** Resolves "~" in path. If it cannot resolve the home-dir location, it leaves the path as-is. */
+  private fun resolveHomeDir(path: Path): Path {
+    val dirs = generateSequence(path) { it.parent }.toList().asReversed() // dir list in natural order
+    if (dirs.firstOrNull()?.toString() != "~") return path // if first dir isn't "~", we have nothing to do
+    val homeDir = getHomeDir() ?: return path // if we can't get home dir location, we can't do anything
+    return dirs.drop(1).fold(homeDir) { acc, next -> acc.resolve(next.fileName) }
+  }
+
+  private fun getHomeDir(): Path? = VfsUtil.getUserHomeDir()?.toNioPath()
+
+  fun getDefaultBaseDir(): Path? = IdeFileUtils.getDesktopDirectory() ?: getHomeDir()
 }
