@@ -17,8 +17,9 @@ package com.android.tools.idea
 
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.util.Conditions
 import com.intellij.testFramework.JavaProjectTestCase
+import junit.framework.TestCase
 
 /**
  * The actions which register the shortcuts.
@@ -46,8 +47,11 @@ class DesignerKeymapExtensionTest : JavaProjectTestCase() {
   }
 
   fun testKeySectionAdded() {
-    // TODO(b/178662857): Properly test DesignerKeymapExtension#createGroup method.")
-    //val keymap = KeymapManager.getInstance().getKeymap(KeymapManager.DEFAULT_IDEA_KEYMAP)!!
-    //assertTrue(keymap.actionIdList.containsAll(DESIGNER_SHORTCUT_ACTIONS))
+    val extension = DesignerKeymapExtension()
+    val group = extension.createGroup(Conditions.alwaysTrue(), myProject)
+    TestCase.assertNotNull(group)
+
+    val actionIds = (group as com.intellij.openapi.keymap.impl.ui.Group).initIds()
+    TestCase.assertTrue(actionIds.containsAll(DESIGNER_SHORTCUT_ACTIONS))
   }
 }
