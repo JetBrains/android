@@ -101,9 +101,6 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JComponent
 import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
 
 /**
  * Background color for the surface while "Interactive" is enabled.
@@ -885,7 +882,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  @OptIn(ExperimentalTime::class)
   private fun refresh(quickRefresh: Boolean = false): Job {
     val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
@@ -903,7 +899,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       fun createRefreshElapsedTimeNotification(bundleStringEntry: String) = Notification(
         NOTIFICATION_GROUP_ID,
         message("event.log.refresh.title"),
-        message(bundleStringEntry, (System.nanoTime() - startTime).toDuration(DurationUnit.NANOSECONDS)),
+        message(bundleStringEntry, "${(System.nanoTime() - startTime) / 1_000_000} ms"),
         NotificationType.INFORMATION
       )
 
