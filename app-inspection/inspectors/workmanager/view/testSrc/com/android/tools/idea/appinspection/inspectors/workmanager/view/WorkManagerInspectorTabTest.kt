@@ -336,11 +336,11 @@ class WorkManagerInspectorTabTest {
       assertThat((chainComponent.getComponent(0) as HyperlinkLabel).text).isEqualTo("ID1  (Current)")
 
       val resultsPanel = detailedPanel.getCategoryPanel("Results") as JPanel
-      val timeStartedComponent = resultsPanel.getValueComponent("Time Started") as JLabel
+      val timeStartedComponent = resultsPanel.getValueComponent("Time started") as JLabel
       assertThat(timeStartedComponent.text).isEqualTo(fakeWorkInfo.scheduleRequestedAt.toFormattedTimeString())
       val retryCountComponent = resultsPanel.getValueComponent("Retries") as JLabel
       assertThat(retryCountComponent.text).isEqualTo("1")
-      val dataComponent = resultsPanel.getValueComponent("Output Data") as HideablePanel
+      val dataComponent = resultsPanel.getValueComponent("Output data") as HideablePanel
       val keyLabel = TreeWalker(dataComponent).descendantStream().filter { (it as? JLabel)?.text == "k = " }.findFirst().get()
       val valueLabel = (keyLabel.parent as JPanel).getComponent(1) as JLabel
       assertThat(valueLabel.text).isEqualTo("\"v\"")
