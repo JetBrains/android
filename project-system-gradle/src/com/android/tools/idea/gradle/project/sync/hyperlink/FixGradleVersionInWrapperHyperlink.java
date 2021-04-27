@@ -90,7 +90,7 @@ public class FixGradleVersionInWrapperHyperlink extends SyncIssueNotificationHyp
   }
 
   private static void requestSync(@NotNull Project project) {
-    requestProjectSync(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
+    HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_WRAPPER_GRADLE_VERSION_FIXED);
   }
 
   @VisibleForTesting

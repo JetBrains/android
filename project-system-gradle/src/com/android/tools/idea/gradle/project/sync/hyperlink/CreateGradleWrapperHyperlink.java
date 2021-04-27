@@ -56,6 +56,6 @@ public class CreateGradleWrapperHyperlink extends SyncIssueNotificationHyperlink
 
   private static void requestSync(@NotNull Project project) {
     // TODO use another trigger?
-    requestProjectSync(project, TRIGGER_QF_WRAPPER_CREATED);
+    HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_WRAPPER_CREATED);
   }
 }

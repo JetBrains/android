@@ -33,6 +33,6 @@ public class DisableOfflineModeHyperlink extends SyncIssueNotificationHyperlink 
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(false);
-    requestProjectSync(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
+    HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
   }
 }

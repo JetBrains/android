@@ -51,7 +51,7 @@ public class InstallPlatformHyperlink extends SyncIssueNotificationHyperlink {
     }
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      requestProjectSync(project, TRIGGER_QF_PLATFORM_INSTALLED);
+      HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_PLATFORM_INSTALLED);
     }
   }
 }

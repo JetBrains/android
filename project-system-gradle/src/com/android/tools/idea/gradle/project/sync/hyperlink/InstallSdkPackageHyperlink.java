@@ -41,7 +41,7 @@ public class InstallSdkPackageHyperlink extends SyncIssueNotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, myPackageIds, true);
     if (dialog != null && dialog.showAndGet()) {
-      requestProjectSync(project, TRIGGER_QF_REPOSITORY_INSTALLED);
+      HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_REPOSITORY_INSTALLED);
     }
   }
 }

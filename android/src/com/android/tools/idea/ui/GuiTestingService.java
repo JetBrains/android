@@ -56,4 +56,9 @@ public class GuiTestingService {
       myGuiTestingMode = guiTestingMode;
     }
   }
+
+  public static boolean isInTestingMode() {
+    GuiTestingService guiTestingService = getInstance();
+    return (guiTestingService != null && guiTestingService.isGuiTestingMode()) || ApplicationManager.getApplication().isUnitTestMode();
+  }
 }

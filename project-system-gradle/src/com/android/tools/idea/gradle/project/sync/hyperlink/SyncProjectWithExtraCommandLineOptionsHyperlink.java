@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,6 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends SyncIssueNo
   protected void execute(@NotNull Project project) {
     // This is the only way that we can pass extra command line options to the Gradle sync process.
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, myExtraOptions);
-    requestProjectSync(project, TRIGGER_QF_REFRESH_DEPENDENCIES);
+    HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_REFRESH_DEPENDENCIES);
   }
 }

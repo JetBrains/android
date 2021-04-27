@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenUrlHyperlink extends SyncIssueNotificationHyperlink {
-  @NotNull private final String myUrl;
-
-  public OpenUrlHyperlink(@NotNull String url, @NotNull String text) {
-    super(url, text, AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK);
-    myUrl = url;
-  }
-
-  @Override
-  protected void execute(@NotNull Project project) {
-    BrowserUtil.browse(myUrl);
+class HyperlinkUtil {
+  static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
+    GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(trigger), null);
   }
 }

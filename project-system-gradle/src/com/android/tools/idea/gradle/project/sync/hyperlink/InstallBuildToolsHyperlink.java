@@ -77,7 +77,7 @@ public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
         processor.run();
       }
       else {
-        requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
+        HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
       }
     }
   }

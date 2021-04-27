@@ -120,7 +120,7 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
                 new FixNdkVersionProcessor(project, buildFiles, highestLocalNdk.getVersion().toString()).run();
               });
             } else {
-              requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED);
+              HyperlinkUtil.requestProjectSync(project, TRIGGER_QF_NDK_INSTALLED);
             }
           }
           return;

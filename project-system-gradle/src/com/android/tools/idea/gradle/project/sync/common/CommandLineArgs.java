@@ -110,7 +110,7 @@ public class CommandLineArgs {
     }
 
     Application application = ApplicationManager.getApplication();
-    boolean isTestingMode = isInTestingMode();
+    boolean isTestingMode = GuiTestingService.isInTestingMode();
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
@@ -120,10 +120,5 @@ public class CommandLineArgs {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
-  }
-
-  public static boolean isInTestingMode() {
-    GuiTestingService guiTestingService = GuiTestingService.getInstance();
-    return (guiTestingService != null && guiTestingService.isGuiTestingMode()) || ApplicationManager.getApplication().isUnitTestMode();
   }
 }
