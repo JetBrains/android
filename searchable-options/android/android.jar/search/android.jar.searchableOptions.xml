@@ -1346,16 +1346,16 @@
     <option name="settings" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="that" hit="  Note:  These settings are for features that are considered  experimental . " />
     <option name="these" hit="  Note:  These settings are for features that are considered  experimental . " />
-    <option name="a" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="allows" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="deploying" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="device" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="elements" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="emulator" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="individial" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="or" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="preview" hit="Allows deploying individial @Preview elements to a device or emulator" />
-    <option name="to" hit="Allows deploying individial @Preview elements to a device or emulator" />
+    <option name="a" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="allows" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="deploying" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="device" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="elements" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="emulator" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="individual" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="or" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="preview" hit="Allows deploying individual @Preview elements to a device or emulator" />
+    <option name="to" hit="Allows deploying individual @Preview elements to a device or emulator" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="build" hit="Do not build Gradle task list during Gradle sync" />
