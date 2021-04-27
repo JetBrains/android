@@ -114,9 +114,9 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     )))
 
     detailsPanel.add(buildCategoryPanel("Results", listOf(
-      buildKeyValuePair("Time Started", work.scheduleRequestedAt, TimeProvider),
+      buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
       buildKeyValuePair("Retries", work.runAttemptCount),
-      buildKeyValuePair("Output Data", work, OutputDataProvider)
+      buildKeyValuePair("Output data", work, OutputDataProvider)
     )))
 
     scrollPane.setViewportView(detailsPanel)
