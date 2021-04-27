@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.intellij.ide.ui.laf.darcula.DarculaTableSelectedCellHighlightBorder;
@@ -73,7 +74,7 @@ public final class DeviceTableCellRendererTest {
     // Assert
     assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(device.getName(), renderer.getNameLabel().getText());
-    assertEquals(StudioIcons.Common.CIRCLE_RED, renderer.getOnlineLabel().getIcon());
+    assertNull(renderer.getOnlineLabel().getIcon());
     assertEquals(device.getTarget(), renderer.getLine2Label().getText());
   }
 
