@@ -293,6 +293,7 @@ public class BuildVariantUpdater {
       @Override
       public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
         AndroidGradleProjectResolver.clearVariantsSavedForReuse(project);
+        variantSelectionChangeListeners.run();
       }
 
       @Override
