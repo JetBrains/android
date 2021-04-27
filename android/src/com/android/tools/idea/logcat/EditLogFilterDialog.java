@@ -2,12 +2,15 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log.LogLevel;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.logcat.PersistentAndroidLogFilters.FilterData;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
@@ -18,26 +21,30 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.EditorTextField;
+import com.intellij.ui.EnumComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.ZoneId;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A dialog which is shown to the user when they request to modify or add a new log filter.
@@ -54,7 +61,6 @@ final class EditLogFilterDialog extends DialogWrapper {
   private final Project myProject;
   private final List<FilterData> myFilters;
   private final AndroidLogcatView myView;
-  private final AndroidLogcatFormatter myFormatter;
   private final Splitter mySplitter;
 
   private JPanel myContentPanel;
@@ -88,7 +94,6 @@ final class EditLogFilterDialog extends DialogWrapper {
     myProject = view.getProject();
     myFilters = PersistentAndroidLogFilters.getInstance(myProject).getFilters();
     myView = view;
-    myFormatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(myProject));
 
     mySplitter = new Splitter(false, 0.25f);
     mySplitter.setFirstComponent(myLeftPanel);
@@ -275,10 +280,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
-      LogCatMessage logCatMessage = myFormatter.tryParseMessage(line);
-      if (logCatMessage != null) {
-        pidSet.add(Integer.toString(logCatMessage.getHeader().getPid()));
-      }
+      pidSet.add(Integer.toString(LogcatJson.fromJson(line).getHeader().getPid()));
     }
 
     myUsedPids = Lists.newArrayList(pidSet);

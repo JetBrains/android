@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.openapi.Disposable;
@@ -36,22 +37,20 @@ import org.jetbrains.annotations.TestOnly;
  * The update is posted to the Event Dispatch Thread (EDT) using an {@link com.intellij.util.Alarm}
  * no more frequently than every 500ms which is the normal refresh rate.
  */
-final class ViewListener extends FormattedLogcatReceiver {
+final class ViewListener implements AndroidLogcatService.LogcatListener {
   private static final int DELAY_MS = 500;
   private final AndroidLogcatView myView;
   private final SafeAlarm myAlarm;
 
-  ViewListener(@NotNull AndroidLogcatFormatter formatter, @NotNull AndroidLogcatView view) {
-    super(formatter);
-
+  ViewListener(@NotNull AndroidLogcatView view) {
     myView = view;
     // It seems that updateActionsImmediately() needs to run on the EDT.
     myAlarm = new SafeAlarm(view.parentDisposable, SWING_THREAD);
   }
 
   @Override
-  void receiveFormattedLogLine(@NotNull String line) {
-    myView.getLogConsole().addLogLine(line);
+  public void onLogLineReceived(@NotNull LogCatMessage line) {
+    myView.getLogConsole().addLogLine(LogcatJson.toJson(line));
 
     // If we already added a request, we just let it run. This is better than canceling it and
     // scheduling another one which can result in starvation.

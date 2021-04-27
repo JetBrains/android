@@ -17,16 +17,17 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NonNls;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Class which handles parsing the output from logcat and reformatting it to its final form before
@@ -37,50 +38,25 @@ import org.jetbrains.annotations.Nullable;
  * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
 public final class AndroidLogcatFormatter extends DefaultLogFormatter {
+  private static final String CONTINUATION_LINE = "\n    ";
   private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+    .appendLiteral(' ')
+    .appendValue(ChronoField.HOUR_OF_DAY, 2)
+    .appendLiteral(':')
+    .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+    .appendLiteral(':')
+    .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+    .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+    .toFormatter(Locale.ROOT);
 
-  /**
-   * If a logcat message has more than one line, all followup lines are marked with this pattern.
-   * The user will not see this formatting, however; the continuation character will be removed and
-   * replaced with an indent.
-   */
-  @NonNls private static final Pattern CONTINUATION_PATTERN = Pattern.compile("^\\+ (.*)$");
-
-  public static final CharSequence CONTINUATION_INDENT = "    ";
-
-  @NotNull private final LongEpochMessageHandler myLongEpochHandler;
-  @NotNull private final LongMessageParser myLongFormatterParser;
-
+  @NotNull private final ZoneId myTimeZone;
   private final AndroidLogcatPreferences myPreferences;
 
   public AndroidLogcatFormatter(@NotNull ZoneId timeZone, @NotNull AndroidLogcatPreferences preferences) {
-    myLongEpochHandler = new LongEpochMessageHandler(preferences, timeZone);
-    myLongFormatterParser = new LongMessageParser();
-
+    myTimeZone = timeZone;
     myPreferences = preferences;
-  }
-
-  /**
-   * Given data parsed from a line of logcat, return a final, formatted string that represents a
-   * line of text we should show to the user in the logcat console. (However, this line may be
-   * further processed if {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} is set.)
-   *
-   * <p>Note: If a logcat message contains multiple lines, you should only use this for the first
-   * line, and {@link #formatContinuation(String)} for each additional line.
-   */
-  @NotNull
-  String formatMessageFull(@NotNull LogCatHeader header, @NotNull String message) {
-    return formatMessage(FULL_FORMAT, header, message);
-  }
-
-  /**
-   * When parsing a multi-line message from logcat, you should format all lines after the first as
-   * a continuation. This marks the line in a special way so this formatter is aware that it is a
-   * part of a larger whole.
-   */
-  @NotNull
-  public static String formatContinuation(@NotNull String message) {
-    return String.format("+ %s", message);
   }
 
   /**
@@ -88,8 +64,6 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    */
   @NotNull
   public static String createCustomFormat(boolean showTime, boolean showPid, boolean showPackage, boolean showTag) {
-    // Note: if all values are true, the format returned must be matchable by MESSAGE_WITH_HEADER
-    // or else parseMessage will fail later.
     StringBuilder builder = new StringBuilder();
     if (showTime) {
       builder.append("%1$s ");
@@ -110,88 +84,39 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   @NotNull
-  public String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    return myLongEpochHandler.format(format, header, message);
-  }
-
-  /**
-   * Parse a message that was encoded using {@link #formatMessageFull(LogCatHeader, String)}
-   */
-  @NotNull
-  LogCatMessage parseMessage(@NotNull String message) {
-    LogCatMessage result = tryParseMessage(message);
-    if (result == null) {
-      throw new IllegalArgumentException("Invalid message doesn't match expected logcat pattern: " + message);
-    }
-
-    return result;
-  }
-
-  /**
-   * Returns the result of {@link #parseMessage(String)} or {@code null} if the format of the input
-   * text doesn't match.
-   */
-  @Nullable
-  LogCatMessage tryParseMessage(@NotNull String message) {
-    LogCatMessage logcatMessage = myLongEpochHandler.tryParse(message);
-
-    if (logcatMessage != null) {
-      return logcatMessage;
-    }
-
-    logcatMessage = myLongFormatterParser.tryParse(message);
-
-    return logcatMessage;
-  }
-
-  /**
-   * Parse a message that was encoded using {@link #formatContinuation(String)}, returning the
-   * message within or {@code null} if the format of the input text doesn't match.
-   */
-  @Nullable
-  public static String tryParseContinuation(@NotNull String msg) {
-    Matcher matcher = CONTINUATION_PATTERN.matcher(msg);
-    if (!matcher.matches()) {
-      return null;
-    }
-
-    return matcher.group(1);
-  }
-
-  @Override
-  public String formatPrefix(String prefix) {
-    if (prefix.isEmpty()) {
-      return prefix;
-    }
-
-    // If the prefix is set, it contains log lines which were initially skipped over by our
-    // filter but were belatedly accepted later.
-    return Arrays.stream(prefix.split("\n", -1))
-      .map(this::formatMessage)
-      .collect(Collectors.joining("\n"));
-  }
-
-  @NotNull
   @Override
   public String formatMessage(@NotNull String message) {
-    String continuation = tryParseContinuation(message);
-
-    if (continuation != null) {
-      return CONTINUATION_INDENT + continuation;
-    }
-
-    LogCatMessage logcatMessage = tryParseMessage(message);
-
-    if (logcatMessage == null || myPreferences.LOGCAT_FORMAT_STRING.isEmpty()) {
-      return message;
-    }
-
-    return formatMessage(logcatMessage);
+    return formatMessage(LogcatJson.fromJson(message));
   }
 
   @NotNull
   String formatMessage(@NotNull LogCatMessage message) {
     String format = myPreferences.LOGCAT_FORMAT_STRING.isEmpty() ? FULL_FORMAT : myPreferences.LOGCAT_FORMAT_STRING;
     return formatMessage(format, message.getHeader(), message.getMessage());
+  }
+
+  @NotNull
+  public String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
+    Instant timestamp = header.getTimestamp();
+
+    Object timestampString = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH
+                             ? LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.format(timestamp)
+                             : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, myTimeZone));
+
+    Object processIdThreadId = header.getPid() + "-" + header.getTid();
+    Object priority = header.getLogLevel().getPriorityLetter();
+
+    // Replacing spaces with non breaking spaces makes parsing easier later
+    Object tag = header.getTag().replace(' ', '\u00A0');
+
+    return String.format(
+      Locale.ROOT,
+      format,
+      timestampString,
+      processIdThreadId,
+      header.getAppName(),
+      priority,
+      tag,
+      message.replaceAll("\n", CONTINUATION_LINE));
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
+import com.android.annotations.NonNull;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
@@ -262,7 +263,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       getLog().warn(throwable);
 
       String app = IdeInfo.getInstance().isAndroidStudio() ? "com.android.studio" : "com.jetbrains.idea";
-      receiver.notifyLine(new LogCatHeader(LogLevel.ERROR, 0, 0, app, "AndroidLogcatService", Instant.now()), throwable.toString());
+      receiver.notifyLogcatMessage(new LogCatHeader(LogLevel.ERROR, 0, 0, app, "AndroidLogcatService", Instant.now()), throwable.toString());
     }
   }
 
