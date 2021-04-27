@@ -94,6 +94,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "lastOnlineTime", nameAttribute = "", converter = InstantConverter.class)
     private @Nullable Instant lastOnlineTime;
 
+    @OptionTag(tag = "name", nameAttribute = "")
+    private @Nullable String name;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
     }
@@ -101,20 +104,28 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
       serialNumber = device.getSerialNumber();
       lastOnlineTime = device.getLastOnlineTime();
+      name = device.getName();
     }
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
+      assert name != null;
 
       return new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
         .setLastOnlineTime(lastOnlineTime)
+        .setName(name)
         .build();
     }
 
     @Override
     public int hashCode() {
-      return 31 * Objects.hashCode(serialNumber) + Objects.hashCode(lastOnlineTime);
+      int hashCode = Objects.hashCode(serialNumber);
+
+      hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
+      hashCode = 31 * hashCode + Objects.hashCode(name);
+
+      return hashCode;
     }
 
     @Override
@@ -124,7 +135,10 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       }
 
       PhysicalDeviceState device = (PhysicalDeviceState)object;
-      return Objects.equals(serialNumber, device.serialNumber) && Objects.equals(lastOnlineTime, device.lastOnlineTime);
+
+      return Objects.equals(serialNumber, device.serialNumber) &&
+             Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
+             Objects.equals(name, device.name);
     }
   }
 }
