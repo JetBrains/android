@@ -2,6 +2,7 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol.Data
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorksTableModel
@@ -30,7 +31,7 @@ class WorksTableView(tab: WorkManagerInspectorTab,
 
       val state = WorkInfo.State.forNumber(value as Int)
       super.getTableCellRendererComponent(table, state.capitalizedName(), isSelected, hasFocus, row, column)
-      icon = state.icon()
+      icon = if (isSelected) ColoredIconGenerator.generateWhiteIcon(state.icon()) else state.icon()
       return this
     }
   }
